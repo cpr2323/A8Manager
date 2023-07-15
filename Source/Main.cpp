@@ -13,7 +13,7 @@ void crashHandler (void* /*data*/)
     juce::Logger::writeToLog (juce::SystemStats::getStackBacktrace ());
 }
 
-class A8ManagerApplication  : public juce::JUCEApplication, public juce::Timer
+class A8ManagerApplication : public juce::JUCEApplication, public juce::Timer
 {
 public:
     A8ManagerApplication () {}
@@ -28,7 +28,7 @@ public:
         initLogger ();
         initCrashHandler ();
         initPropertyRoots ();
-        initAssimil8r();
+        initAssimil8or();
         initUi ();
 
         // async quit timer
@@ -75,9 +75,165 @@ public:
             quit ();
     }
 
-    void initAssimil8r ()
+    void initAssimil8or ()
     {
 //        bezier.wrap (persistentRootProperties.getValueTree (), ValueTreeWrapper::WrapperType::owner, ValueTreeWrapper::EnableCallbacks::no);
+        // open file
+        auto testPresetFile { appDirectory.getChildFile("test_preset.yml") };
+        if (!testPresetFile.exists ())
+        {
+            juce::AlertWindow::showMessageBoxAsync (juce::AlertWindow::WarningIcon, "Test File Missing Error",
+                "Unable to find test file: '" + testPresetFile.getFullPathName () + "'", {}, nullptr,
+                juce::ModalCallbackFunction::create ([this] (int) {}));
+            return;
+        }
+        juce::StringArray fileContents;
+        testPresetFile.readLines (fileContents);
+        // parse assumptions
+        //  indent using 2 spaces
+//         Preset 1 :
+//           Name : template001
+//           Channel 1 :
+//             Release :  2.5000
+//             ReleaseMod : 0B 1.00
+//             ZonesCV : 0A
+//             ZonesRT : 1
+//             Zone 1 :
+//               Sample : sampleA.wav
+//               MinVoltage : +4.56
+        auto scopeDepth { 0 };
+        juce::Identifier PresetSectionId  { "Preset" };
+        juce::Identifier PresetNamePropertyId { "Name" };
+
+        juce::Identifier ChannelSectionId { "Channel" };
+        juce::Identifier ZoneSectionId    { "Zone" };
+
+        juce::ValueTree assimil8orData { "Assimil8or" };
+
+        enum class ParseState
+        {
+            ExpectPresetSection,
+            ExpectChannelSection,
+            ExpectZoneSection,
+            ParsingZoneSection,
+        };
+        ParseState parseState { ParseState::ExpectPresetSection };
+
+        auto setParseState = [&parseState] (ParseState newParseState)
+        {
+            auto getParseStateString = [] (ParseState parseState) -> juce::String
+            {
+                switch (parseState)
+                {
+                    case ParseState::ExpectPresetSection: { return "ExpectPresetSection"; } break;
+                    case ParseState::ExpectChannelSection: { return "ExpectChannelSection"; } break;
+                    case ParseState::ExpectZoneSection: { return "ExpectZoneSection"; } break;
+                    case ParseState::ParsingZoneSection: { return "ParsingZoneSection"; } break;
+                    default: { return "[error]"; } break;
+                }
+            };
+            parseState = newParseState;
+//            juce::Logger::outputDebugString ("new state: " + getParseStateString (parseState));
+        };
+
+        juce::ValueTree curPresetSection;
+        juce::ValueTree curChannelSection;
+        juce::ValueTree curZoneSection;
+        for (auto& lineFromFile : fileContents)
+        {
+            auto indent { lineFromFile.initialSectionContainingOnly (" ") };
+            const auto previousScopeDepth { scopeDepth };
+            scopeDepth = indent.length () / 2;
+            const auto scopeDifference {scopeDepth - previousScopeDepth};
+            if (scopeDifference < 0)
+            {
+//                juce::Logger::outputDebugString ("scopeDepth reduced by: " + juce::String(scopeDifference * -1));
+                for (auto remainingScopes {scopeDifference * -1}; remainingScopes > 0; --remainingScopes)
+                {
+                    switch (parseState)
+                    {
+                    case ParseState::ExpectPresetSection:
+                    {
+                        jassertfalse;
+                    }
+                    break;
+                    case ParseState::ExpectChannelSection:
+                    {
+                        setParseState (ParseState::ExpectPresetSection);
+                        curPresetSection = {};
+                    }
+                    break;
+                    case ParseState::ExpectZoneSection:
+                    {
+                        setParseState (ParseState::ExpectChannelSection);
+                        curChannelSection = {};
+                    }
+                    break;
+                    case ParseState::ParsingZoneSection:
+                    {
+                        setParseState (ParseState::ExpectZoneSection);
+                        curZoneSection = {};
+                    }
+                    break;
+                    default:
+                    {
+                        jassertfalse;
+                    }
+                    break;
+                    }
+                }
+            }
+
+            juce::Logger::outputDebugString (juce::String(scopeDepth) + "-" + lineFromFile);
+
+            lineFromFile = lineFromFile.trim ();
+            auto key { lineFromFile.upToFirstOccurrenceOf(":", false, false).trim () };
+            auto values { lineFromFile.fromFirstOccurrenceOf (":", false, false).trim () };
+            auto valueList { juce::StringArray::fromTokens (values, " ", "\"") };
+            switch (parseState)
+            {
+                case ParseState::ExpectPresetSection:
+                {
+                    if (key.upToFirstOccurrenceOf (" ", false, false) == PresetSectionId.toString ())
+                    {
+                        auto presetNumber { key.fromFirstOccurrenceOf (" ", false, false) };
+                        setParseState (ParseState::ExpectChannelSection);
+                        curPresetSection = juce::ValueTree { PresetSectionId };
+                        assimil8orData.addChild (curPresetSection, -1, nullptr);
+                    }
+                }
+                break;
+                case ParseState::ExpectChannelSection:
+                {
+                    if (key.upToFirstOccurrenceOf (" ", false, false) == ChannelSectionId.toString ())
+                    {
+                        auto channelNumber { key.fromFirstOccurrenceOf (" ", false, false) };
+                        setParseState (ParseState::ExpectZoneSection);
+                        curChannelSection = juce::ValueTree { ChannelSectionId };
+                        curPresetSection.addChild (curChannelSection, -1, nullptr);
+                    }
+                }
+                break;
+                case ParseState::ExpectZoneSection:
+                {
+                    if (key.upToFirstOccurrenceOf (" ", false, false) == ZoneSectionId.toString ())
+                    {
+                        auto zoneNumber { key.fromFirstOccurrenceOf (" ", false, false) };
+                        setParseState (ParseState::ParsingZoneSection);
+                        curZoneSection = juce::ValueTree { ZoneSectionId };
+                        curChannelSection.addChild (curZoneSection, -1, nullptr);
+                    }
+                }
+                break;
+                case ParseState::ParsingZoneSection:
+                {
+                }
+                break;
+                default:
+                    jassertfalse;
+                break;
+            }
+        }
     }
 
     void initUi ()
