@@ -4,6 +4,7 @@
 #include "Utility/PersistentRootProperties.h"
 #include "Utility/RuntimeRootProperties.h"
 #include "Utility/ValueTreeFile.h"
+#include <map>
 
 const juce::String PropertiesFileExtension { ".properties" };
 
@@ -190,6 +191,7 @@ public:
             auto key { lineFromFile.upToFirstOccurrenceOf(":", false, false).trim () };
             auto values { lineFromFile.fromFirstOccurrenceOf (":", false, false).trim () };
             auto valueList { juce::StringArray::fromTokens (values, " ", "\"") };
+
             auto keyIs = [&key] (juce::String desiredKey)
             {
                 return key.upToFirstOccurrenceOf (" ", false, false) == desiredKey;
@@ -205,6 +207,13 @@ public:
                 parent.addChild (section, -1, nullptr);
                 return section;
             };
+            auto addChildValue = [] (juce::ValueTree parent, juce::String childName, std::function<void (juce::ValueTree)> setProperties)
+            {
+                auto child { juce::ValueTree {childName} };
+                setProperties (child);
+                parent.addChild (child, -1, nullptr);
+            };
+
             switch (parseState)
             {
                 case ParseState::SeekingPresetSection:
@@ -261,6 +270,120 @@ public:
                         // SpliceSmoothing : 1
                         // ZonesCV : 0B
                         // ZonesRT : 1
+                        if (keyIs ("Pitch"))
+                        {
+                            addChildValue (curChannelSection, "Pitch", [&valueList] (juce::ValueTree child)
+                                {
+                                    child.setProperty ("amount", valueList [0], nullptr);
+                                });
+                        }
+                        else if (keyIs ("Level"))
+                        {
+                            addChildValue (curChannelSection, "Level", [&valueList] (juce::ValueTree child)
+                                {
+                                    child.setProperty ("amount", valueList [0], nullptr);
+                                });
+                        }
+                        else if (keyIs ("Pan"))
+                        {
+                            addChildValue (curChannelSection, "Pan", [&valueList] (juce::ValueTree child)
+                                {
+                                    child.setProperty ("amount", valueList [0], nullptr);
+                                });
+                        }
+                        else if (keyIs ("Release"))
+                        {
+                            addChildValue (curChannelSection, "Release", [&valueList] (juce::ValueTree child)
+                                {
+                                    child.setProperty ("amount", valueList [0], nullptr);
+                                });
+                        }
+                        else if (keyIs ("MixLevel"))
+                        {
+                            addChildValue (curChannelSection, "MixLevel", [&valueList] (juce::ValueTree child)
+                                {
+                                    child.setProperty ("amount", valueList [0], nullptr);
+                                });
+                        }
+                        else if (keyIs ("PMSource"))
+                        {
+                            addChildValue (curChannelSection, "PMSource", [&valueList] (juce::ValueTree child)
+                                {
+                                    child.setProperty ("amount", valueList [0], nullptr);
+                                });
+                        }
+                        else if (keyIs ("PitchCV"))
+                        {
+                            addChildValue (curChannelSection, "PitchCV", [&valueList] (juce::ValueTree child)
+                                {
+                                    child.setProperty ("cvInput", valueList [0], nullptr);
+                                    child.setProperty ("amount", valueList [1], nullptr);
+                                });
+                        }
+                        else if (keyIs ("PMIndexMod"))
+                        {
+                            addChildValue (curChannelSection, "PMIndexMod", [&valueList] (juce::ValueTree child)
+                                {
+                                    child.setProperty ("cvInput", valueList [0], nullptr);
+                                    child.setProperty ("amount", valueList [1], nullptr);
+                                });
+                        }
+                        else if (keyIs ("ReleaseMod"))
+                        {
+                            addChildValue (curChannelSection, "ReleaseMod", [&valueList] (juce::ValueTree child)
+                                {
+                                    child.setProperty ("cvInput", valueList [0], nullptr);
+                                    child.setProperty ("amount", valueList [1], nullptr);
+                                });
+                        }
+                        else if (keyIs ("PanMod"))
+                        {
+                            addChildValue (curChannelSection, "PanMod", [&valueList] (juce::ValueTree child)
+                                {
+                                    child.setProperty ("cvInput", valueList [0], nullptr);
+                                    child.setProperty ("amount", valueList [1], nullptr);
+                                });
+                        }
+                        else if (keyIs ("LoopStartMod"))
+                        {
+                            addChildValue (curChannelSection, "LoopStartMod", [&valueList] (juce::ValueTree child)
+                                {
+                                    child.setProperty ("cvInput", valueList [0], nullptr);
+                                    child.setProperty ("amount", valueList [1], nullptr);
+                                });
+                        }
+                        else if (keyIs ("LoopMode"))
+                        {
+                            addChildValue (curChannelSection, "LoopMode", [&valueList] (juce::ValueTree child)
+                                {
+                                    child.setProperty ("mode", valueList [0], nullptr);
+                                });
+                        }
+                        else if (keyIs ("SpliceSmoothing"))
+                        {
+                            addChildValue (curChannelSection, "SpliceSmoothing", [&valueList] (juce::ValueTree child)
+                                {
+                                    child.setProperty ("mode", valueList [0], nullptr);
+                                });
+                        }
+                        else if (keyIs ("ZonesCV"))
+                        {
+                            addChildValue (curChannelSection, "ZonesCV", [&valueList] (juce::ValueTree child)
+                                {
+                                    child.setProperty ("cvInput", valueList [0], nullptr);
+                                });
+                        }
+                        else if (keyIs ("ZonesRT"))
+                        {
+                            addChildValue (curChannelSection, "ZonesRT", [&valueList] (juce::ValueTree child)
+                                {
+                                    child.setProperty ("value", valueList [0], nullptr);
+                                });
+                        }
+                        else
+                        {
+                            jassertfalse;
+                        }
                     }
                 }
                 break;
@@ -271,13 +394,6 @@ public:
                     // SampleEnd : 6058
                     // MinVoltage : +4.56
                     // LoopLength: 256.0000
-                    auto addChildValue = [] (juce::ValueTree parent, juce::String childName, std::function<void(juce::ValueTree)> setProperties)
-                    {
-                        auto child { juce::ValueTree {childName} };
-                        setProperties (child);
-                        parent.addChild (child, -1, nullptr);
-                    };
-
                     if (keyIs ("Sample"))
                     {
                         addChildValue (curZoneSection, "Sample", [&valueList] (juce::ValueTree sampleChild)
@@ -314,7 +430,9 @@ public:
                             });
                     }
                     else
+                    {
                         jassertfalse;
+                    }
                 }
                 break;
                 default:
