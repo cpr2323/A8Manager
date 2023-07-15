@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<JUCERPROJECT id="wWHbxR" name="A8Manager" projectType="guiapp" useAppConfig="0"
+              addUsingNamespaceToJuceHeader="0" displaySplashScreen="1" jucerFormatVersion="1">
+  <MAINGROUP id="JDgvjc" name="A8Manager">
+    <GROUP id="{26A00EED-F319-636E-6162-8A113C6EE925}" name="Source">
+      <GROUP id="{B33B27D7-84B5-739E-6EF4-3DA0243B11AC}" name="Assimil8r"/>
+      <GROUP id="{CF0C93A7-2DC9-863C-8999-5F753D262369}" name="GUI">
+        <FILE id="Van35d" name="MainComponent.cpp" compile="1" resource="0"
+              file="Source/GUI/MainComponent.cpp"/>
+        <FILE id="aJmy63" name="MainComponent.h" compile="0" resource="0" file="Source/GUI/MainComponent.h"/>
+        <FILE id="UTX5R3" name="ToolWindow.cpp" compile="1" resource="0" file="Source/GUI/ToolWindow.cpp"/>
+        <FILE id="uO9Sb7" name="ToolWindow.h" compile="0" resource="0" file="Source/GUI/ToolWindow.h"/>
+      </GROUP>
+      <GROUP id="{8CE93423-6945-B212-EA23-BC0B9325BBF7}" name="Utility">
+        <FILE id="ZzjeA7" name="Crc.h" compile="0" resource="0" file="Source/Utility/Crc.h"/>
+        <FILE id="yrhXEY" name="DebugLog.cpp" compile="1" resource="0" file="Source/Utility/DebugLog.cpp"/>
+        <FILE id="i75h2A" name="DebugLog.h" compile="0" resource="0" file="Source/Utility/DebugLog.h"/>
+        <FILE id="rv1w6s" name="DebugLogImplementation.h" compile="0" resource="0"
+              file="Source/Utility/DebugLogImplementation.h"/>
+        <FILE id="e2rm9l" name="PersistentRootProperties.cpp" compile="1" resource="0"
+              file="Source/Utility/PersistentRootProperties.cpp"/>
+        <FILE id="mF5R47" name="PersistentRootProperties.h" compile="0" resource="0"
+              file="Source/Utility/PersistentRootProperties.h"/>
+        <FILE id="VM3XFk" name="RootProperties.cpp" compile="1" resource="0"
+              file="Source/Utility/RootProperties.cpp"/>
+        <FILE id="bH38Sx" name="RootProperties.h" compile="0" resource="0"
+              file="Source/Utility/RootProperties.h"/>
+        <FILE id="rY0TF1" name="RuntimeRootProperties.cpp" compile="1" resource="0"
+              file="Source/Utility/RuntimeRootProperties.cpp"/>
+        <FILE id="bVL7gX" name="RuntimeRootProperties.h" compile="0" resource="0"
+              file="Source/Utility/RuntimeRootProperties.h"/>
+        <FILE id="QZJhHU" name="ValueTreeFile.cpp" compile="1" resource="0"
+              file="Source/Utility/ValueTreeFile.cpp"/>
+        <FILE id="CNxuPk" name="ValueTreeFile.h" compile="0" resource="0" file="Source/Utility/ValueTreeFile.h"/>
+        <FILE id="v9wSHS" name="ValueTreeHelpers.cpp" compile="1" resource="0"
+              file="Source/Utility/ValueTreeHelpers.cpp"/>
+        <FILE id="rXge4w" name="ValueTreeHelpers.h" compile="0" resource="0"
+              file="Source/Utility/ValueTreeHelpers.h"/>
+        <FILE id="et2qGG" name="ValueTreeWrapper.cpp" compile="1" resource="0"
+              file="Source/Utility/ValueTreeWrapper.cpp"/>
+        <FILE id="gBHKT7" name="ValueTreeWrapper.h" compile="0" resource="0"
+              file="Source/Utility/ValueTreeWrapper.h"/>
+      </GROUP>
+      <FILE id="RnmsSv" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
+    </GROUP>
+  </MAINGROUP>
+  <MODULES>
+    <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_devices" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_formats" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_core" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_events" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+  </MODULES>
+  <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1"/>
+  <EXPORTFORMATS>
+    <VS2022 targetFolder="Builds/VisualStudio2022">
+      <CONFIGURATIONS>
+        <CONFIGURATION isDebug="1" name="Debug" targetName="A8Manager"/>
+        <CONFIGURATION isDebug="0" name="Release" targetName="A8Manager"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_audio_basics" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_devices" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_formats" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_core" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_data_structures" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_events" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_graphics" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_gui_basics" path="../JUCE/modules"/>
+      </MODULEPATHS>
+    </VS2022>
+  </EXPORTFORMATS>
+</JUCERPROJECT>
