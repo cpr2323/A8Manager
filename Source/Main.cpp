@@ -112,12 +112,12 @@ public:
 
         enum class ParseState
         {
-            ExpectPresetSection,
-            ExpectChannelSection,
-            ExpectZoneSection,
+            SeekingPresetSection,
+            ParsingPresetSection,
+            ParsingChannelSection,
             ParsingZoneSection,
         };
-        ParseState parseState { ParseState::ExpectPresetSection };
+        ParseState parseState { ParseState::SeekingPresetSection };
 
         auto setParseState = [&parseState] (ParseState newParseState)
         {
@@ -125,9 +125,9 @@ public:
             {
                 switch (parseState)
                 {
-                    case ParseState::ExpectPresetSection: { return "ExpectPresetSection"; } break;
-                    case ParseState::ExpectChannelSection: { return "ExpectChannelSection"; } break;
-                    case ParseState::ExpectZoneSection: { return "ExpectZoneSection"; } break;
+                    case ParseState::SeekingPresetSection: { return "SeekingPresetSection"; } break;
+                    case ParseState::ParsingPresetSection: { return "ParsingPresetSection"; } break;
+                    case ParseState::ParsingChannelSection: { return "ParsingChannelSection"; } break;
                     case ParseState::ParsingZoneSection: { return "ParsingZoneSection"; } break;
                     default: { return "[error]"; } break;
                 }
@@ -152,27 +152,27 @@ public:
                 {
                     switch (parseState)
                     {
-                    case ParseState::ExpectPresetSection:
+                    case ParseState::SeekingPresetSection:
                     {
                         jassertfalse;
                     }
                     break;
-                    case ParseState::ExpectChannelSection:
+                    case ParseState::ParsingPresetSection:
                     {
-                        setParseState (ParseState::ExpectPresetSection);
                         curPresetSection = {};
+                        setParseState (ParseState::SeekingPresetSection);
                     }
                     break;
-                    case ParseState::ExpectZoneSection:
+                    case ParseState::ParsingChannelSection:
                     {
-                        setParseState (ParseState::ExpectChannelSection);
                         curChannelSection = {};
+                        setParseState (ParseState::ParsingPresetSection);
                     }
                     break;
                     case ParseState::ParsingZoneSection:
                     {
-                        setParseState (ParseState::ExpectZoneSection);
                         curZoneSection = {};
+                        setParseState (ParseState::ParsingChannelSection);
                     }
                     break;
                     default:
@@ -190,43 +190,131 @@ public:
             auto key { lineFromFile.upToFirstOccurrenceOf(":", false, false).trim () };
             auto values { lineFromFile.fromFirstOccurrenceOf (":", false, false).trim () };
             auto valueList { juce::StringArray::fromTokens (values, " ", "\"") };
+            auto keyIs = [&key] (juce::String desiredKey)
+            {
+                return key.upToFirstOccurrenceOf (" ", false, false) == desiredKey;
+            };
+            auto getSectionIndex = [&key] ()
+            {
+                return key.fromFirstOccurrenceOf (" ", false, false);
+            };
+            auto addValueTreeChild = [&getSectionIndex] (juce::Identifier sectionId, juce::ValueTree parent)
+            {
+                auto section = juce::ValueTree { sectionId };
+                section.setProperty ("index", getSectionIndex (), nullptr);
+                parent.addChild (section, -1, nullptr);
+                return section;
+            };
             switch (parseState)
             {
-                case ParseState::ExpectPresetSection:
+                case ParseState::SeekingPresetSection:
                 {
-                    if (key.upToFirstOccurrenceOf (" ", false, false) == PresetSectionId.toString ())
+                    if (keyIs (PresetSectionId.toString ()))
                     {
-                        auto presetNumber { key.fromFirstOccurrenceOf (" ", false, false) };
-                        setParseState (ParseState::ExpectChannelSection);
-                        curPresetSection = juce::ValueTree { PresetSectionId };
-                        assimil8orData.addChild (curPresetSection, -1, nullptr);
+                        curPresetSection = addValueTreeChild (PresetSectionId, assimil8orData);
+                        setParseState (ParseState::ParsingPresetSection);
                     }
                 }
                 break;
-                case ParseState::ExpectChannelSection:
+                case ParseState::ParsingPresetSection:
                 {
-                    if (key.upToFirstOccurrenceOf (" ", false, false) == ChannelSectionId.toString ())
+                    if (keyIs (ChannelSectionId.toString ()))
                     {
-                        auto channelNumber { key.fromFirstOccurrenceOf (" ", false, false) };
-                        setParseState (ParseState::ExpectZoneSection);
-                        curChannelSection = juce::ValueTree { ChannelSectionId };
-                        curPresetSection.addChild (curChannelSection, -1, nullptr);
+                        curChannelSection = addValueTreeChild (ChannelSectionId, curPresetSection);
+                        setParseState (ParseState::ParsingChannelSection);
+                    }
+                    else
+                    {
+                        // Name: template001
+                        if (keyIs ("Name"))
+                        {
+                            auto nameChild { juce::ValueTree {"Name"}};
+                            nameChild.setProperty ("name", valueList [0], nullptr);
+                            curPresetSection.addChild (nameChild, -1, nullptr);
+                        }
+                        else
+                            jassertfalse;
                     }
                 }
                 break;
-                case ParseState::ExpectZoneSection:
+                case ParseState::ParsingChannelSection:
                 {
-                    if (key.upToFirstOccurrenceOf (" ", false, false) == ZoneSectionId.toString ())
+                    if (keyIs (ZoneSectionId.toString ()))
                     {
-                        auto zoneNumber { key.fromFirstOccurrenceOf (" ", false, false) };
+                        curZoneSection = addValueTreeChild (ZoneSectionId, curChannelSection);
                         setParseState (ParseState::ParsingZoneSection);
-                        curZoneSection = juce::ValueTree { ZoneSectionId };
-                        curChannelSection.addChild (curZoneSection, -1, nullptr);
+                    }
+                    else
+                    {
+                        // Pitch : -16.79
+                        // Level : -10.0
+                        // Pan : -0.30
+                        // Release : 99.0000
+                        // MixLevel : -90.0
+                        // PMSource : 8
+                        // PitchCV : 0A 0.50
+                        // PMIndexMod : 0C 0.18
+                        // ReleaseMod : 0C 1.00
+                        // PanMod : Off 0.00
+                        // LoopStartMod : 0C 0.00
+                        // LoopMode : 1
+                        // SpliceSmoothing : 1
+                        // ZonesCV : 0B
+                        // ZonesRT : 1
                     }
                 }
                 break;
                 case ParseState::ParsingZoneSection:
                 {
+                    // Sample : sampleA.wav
+                    // SampleStart : 79416
+                    // SampleEnd : 6058
+                    // MinVoltage : +4.56
+                    // LoopLength: 256.0000
+                    auto addChildValue = [] (juce::ValueTree parent, juce::String childName, std::function<void(juce::ValueTree)> setProperties)
+                    {
+                        auto child { juce::ValueTree {childName} };
+                        setProperties (child);
+                        parent.addChild (child, -1, nullptr);
+                    };
+
+                    if (keyIs ("Sample"))
+                    {
+                        addChildValue (curZoneSection, "Sample", [&valueList] (juce::ValueTree sampleChild)
+                            {
+                                sampleChild.setProperty ("fileName", valueList [0], nullptr);
+                            });
+                    }
+                    else if (keyIs ("SampleStart"))
+                    {
+                        addChildValue (curZoneSection, "SampleStart", [&valueList] (juce::ValueTree sampleStartChild)
+                            {
+                                sampleStartChild.setProperty ("sampleOffset", valueList [0], nullptr);
+                            });
+                    }
+                    else if (keyIs ("SampleEnd"))
+                    {
+                        addChildValue (curZoneSection, "SampleEnd", [&valueList] (juce::ValueTree sampleEndChild)
+                            {
+                                sampleEndChild.setProperty ("sampleOffset", valueList [0], nullptr);
+                            });
+                    }
+                    else if (keyIs ("MinVoltage"))
+                    {
+                        addChildValue (curZoneSection, "MinVoltage", [&valueList] (juce::ValueTree sampleEndChild)
+                            {
+                                sampleEndChild.setProperty ("voltage", valueList [0], nullptr);
+                            });
+                    }
+                    else if (keyIs ("LoopLength"))
+                    {
+                        addChildValue (curZoneSection, "LoopLength", [&valueList] (juce::ValueTree sampleEndChild)
+                            {
+                                sampleEndChild.setProperty ("sampleCount", valueList [0], nullptr);
+                            });
+                    }
+                    else
+                        jassertfalse;
                 }
                 break;
                 default:
