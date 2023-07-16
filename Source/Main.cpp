@@ -81,21 +81,6 @@ public:
 
     void initAssimil8or ()
     {
-        // just doing tests at the moment
-        // load a hardcoded file in for testing
-        auto testPresetFile { appDirectory.getChildFile("test_preset.yml") };
-        if (!testPresetFile.exists ())
-        {
-            juce::AlertWindow::showMessageBoxAsync (juce::AlertWindow::WarningIcon, "Test File Missing Error",
-                "Unable to find test file: '" + testPresetFile.getFullPathName () + "'", {}, nullptr,
-                juce::ModalCallbackFunction::create ([this] (int) {}));
-            return;
-        }
-        juce::StringArray fileContents;
-        testPresetFile.readLines (fileContents);
-
-        Assimil8orPresets assimil8orPresets;
-        assimil8orPresets.parse (fileContents);
     }
 
     void initUi ()
