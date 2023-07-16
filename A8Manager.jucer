@@ -5,7 +5,10 @@
               companyName="OmOhmProductions">
   <MAINGROUP id="JDgvjc" name="A8Manager">
     <GROUP id="{26A00EED-F319-636E-6162-8A113C6EE925}" name="Source">
-      <GROUP id="{B33B27D7-84B5-739E-6EF4-3DA0243B11AC}" name="Assimil8r"/>
+      <GROUP id="{B33B27D7-84B5-739E-6EF4-3DA0243B11AC}" name="Assimil8or">
+        <FILE id="o7xiMd" name="Assimil8or.cpp" compile="1" resource="0" file="Source/Assimil8or/Assimil8or.cpp"/>
+        <FILE id="EQ0pG9" name="Assimil8or.h" compile="0" resource="0" file="Source/Assimil8or/Assimil8or.h"/>
+      </GROUP>
       <GROUP id="{CF0C93A7-2DC9-863C-8999-5F753D262369}" name="GUI">
         <FILE id="Van35d" name="MainComponent.cpp" compile="1" resource="0"
               file="Source/GUI/MainComponent.cpp"/>
@@ -43,6 +46,9 @@
         <FILE id="gBHKT7" name="ValueTreeWrapper.h" compile="0" resource="0"
               file="Source/Utility/ValueTreeWrapper.h"/>
       </GROUP>
+      <FILE id="UhMfE9" name="AppProperties.cpp" compile="1" resource="0"
+            file="Source/AppProperties.cpp"/>
+      <FILE id="FkHRCS" name="AppProperties.h" compile="0" resource="0" file="Source/AppProperties.h"/>
       <FILE id="RnmsSv" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
     </GROUP>
   </MAINGROUP>

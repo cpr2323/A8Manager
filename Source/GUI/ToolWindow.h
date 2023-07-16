@@ -1,8 +1,7 @@
 #pragma once
 
 #include <JuceHeader.h>
-
-//#include "../Bezier/BezierProperties.h"
+#include "../AppProperties.h"
 
 class ToolWindow : public juce::Component
 {
@@ -11,9 +10,12 @@ public:
     void init (juce::ValueTree persistentRootPropertiesVT, juce::ValueTree runtimeRootPropertiesVT);
 
 private:
-//    BezierProperties bezierProperties;
-//    juce::Label numberOfControlPointsLabel {"ControlPoints", "Control Points :" };
-//    juce::TextEditor numberOfControlPointsEditor;
+    AppProperties appProperties;
+
+    std::unique_ptr<juce::FileChooser> fileChooser;
+    juce::TextButton fileMenuButton;
+
+    void loadFile ();
 
     void paint (juce::Graphics& g) override;
     void resized () override;

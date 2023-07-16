@@ -2,19 +2,31 @@
 
 ToolWindow::ToolWindow ()
 {
-//     addAndMakeVisible (numberOfControlPointsLabel);
-// 
-//     numberOfControlPointsEditor.setInputRestrictions (2, "0123456789");
-//     addAndMakeVisible (numberOfControlPointsEditor);
-//     numberOfControlPointsEditor.onReturnKey = [this] () { bezierProperties.setNumberOfControlPoints (numberOfControlPointsEditor.getText ().getIntValue (), false); };
+    fileMenuButton.setButtonText ("Files");
+    fileMenuButton.onClick = [this] ()
+    {
+        juce::PopupMenu pm;
+        pm.addItem ("Verify", true, false, [this] () { loadFile (); });
+        pm.showMenuAsync ({}, [this] (int) {});
+    };
+    addAndMakeVisible (fileMenuButton);
+
 }
 
 void ToolWindow::init (juce::ValueTree persistentRootPropertiesVT, juce::ValueTree runtimeRootPropertiesVT)
 {
-//     bezierProperties.wrap (persistentRootPropertiesVT, ValueTreeWrapper::WrapperType::client, ValueTreeWrapper::EnableCallbacks::yes);
-//     //bezierProperties.onNumberOfControlPointsChanged = [] () {};
-// 
-//     numberOfControlPointsEditor.setText (juce::String(bezierProperties.getNumberOfControlPoints ()), juce::dontSendNotification);
+    appProperties.wrap (persistentRootPropertiesVT, ValueTreeWrapper::WrapperType::client, ValueTreeWrapper::EnableCallbacks::no);
+}
+
+void ToolWindow::loadFile ()
+{
+    fileChooser.reset (new juce::FileChooser ("Please select the Assimil8or Preset file you want to verify...",
+                                              appProperties.getMostRecentFolder (), "*.lpproject;*.pchains"));
+    fileChooser->launchAsync (juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles, [this] (const juce::FileChooser& fc) mutable
+        {
+//             if (fc.getURLResults ().size () == 1 && fc.getURLResults () [0].isLocalFile ())
+//                 lightPlugFiles.loadFile (fc.getURLResults () [0].getLocalFile ());
+        }, nullptr);
 }
 
 void ToolWindow::paint (juce::Graphics& g)
@@ -25,10 +37,7 @@ void ToolWindow::paint (juce::Graphics& g)
 void ToolWindow::resized ()
 {
     auto localBounds { getLocalBounds () };
+    localBounds.reduce (5, 3);
 
-//     localBounds.reduce (5, 3);
-//     numberOfControlPointsLabel.setBounds (localBounds.removeFromLeft (90));
-// 
-//     localBounds.removeFromLeft (5);
-//     numberOfControlPointsEditor.setBounds (localBounds.removeFromLeft (75).reduced (0, 3));
+    fileMenuButton.setBounds (localBounds.removeFromLeft (100));
 }
