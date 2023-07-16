@@ -6,12 +6,11 @@
 class MainComponent  : public juce::Component
 {
 public:
-    MainComponent (juce::ValueTree persistentRootPropertiesVT, juce::ValueTree runtimeRootPropertiesVT);
+    MainComponent (juce::ValueTree rootPropertiesVT);
     ~MainComponent () override;
 
 private:
     ToolWindow toolWindow;
-//    BezierComponent bezierComponent;
 
     void resized () override;
     void paint (juce::Graphics& g) override;

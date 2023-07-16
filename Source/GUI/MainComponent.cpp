@@ -2,7 +2,7 @@
 
 const auto toolWindowHeight { 30 };
 
-MainComponent::MainComponent (juce::ValueTree persistentRootPropertiesVT, juce::ValueTree runtimeRootPropertiesVT)
+MainComponent::MainComponent (juce::ValueTree rootPropertiesVT)
 {
     setSize (800, 600);
 
@@ -14,7 +14,7 @@ MainComponent::MainComponent (juce::ValueTree persistentRootPropertiesVT, juce::
 
 //    bezierComponent.init (persistentRootPropertiesVT, runtimeRootPropertiesVT);
 //    addAndMakeVisible (bezierComponent);
-    toolWindow.init (persistentRootPropertiesVT, runtimeRootPropertiesVT);
+    toolWindow.init (rootPropertiesVT);
     addAndMakeVisible (toolWindow);
 }
 

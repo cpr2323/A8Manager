@@ -1,7 +1,9 @@
 #include <JuceHeader.h>
+#include "AppProperties.h"
 #include "GUI/MainComponent.h"
 #include "Utility/DebugLog.h"
 #include "Utility/PersistentRootProperties.h"
+#include "Utility/RootProperties.h"
 #include "Utility/RuntimeRootProperties.h"
 #include "Utility/ValueTreeFile.h"
 #include "Assimil8or/Assimil8or.h"
@@ -38,7 +40,7 @@ public:
 
     void shutdown () override
     {
-        appPropertiesFile.save ();
+        persitentPropertiesFile.save ();
         mainWindow = nullptr; // (deletes our window)
         juce::Logger::setCurrentLogger (nullptr);
     }
@@ -98,20 +100,21 @@ public:
 
     void initUi ()
     {
-        mainWindow.reset (new MainWindow (getApplicationName (),
-                                          persistentRootProperties.getValueTree (), runtimeRootProperties.getValueTree ()));
+        mainWindow.reset (new MainWindow (getApplicationName (), rootProperties.getValueTree ()));
     }
 
     void initPropertyRoots ()
     {
-        runtimeRootProperties.wrap ({}, ValueTreeWrapper::WrapperType::owner, ValueTreeWrapper::EnableCallbacks::yes);
+        rootProperties.wrap ({}, ValueTreeWrapper::WrapperType::owner, ValueTreeWrapper::EnableCallbacks::no);
+
+        persistentRootProperties.wrap (rootProperties.getValueTree (), ValueTreeWrapper::WrapperType::owner, ValueTreeWrapper::EnableCallbacks::no);
+        // connect the Properties file and the AppProperties ValueTree with the propertiesFile (ValueTreeFile with auto-save)
+        persitentPropertiesFile.init (persistentRootProperties.getValueTree (), appDirectory.getChildFile ("app" + PropertiesFileExtension), true);
+        appProperties.wrap (persistentRootProperties.getValueTree (), ValueTreeWrapper::WrapperType::owner, ValueTreeWrapper::EnableCallbacks::no);
+
+        runtimeRootProperties.wrap (rootProperties.getValueTree (), ValueTreeWrapper::WrapperType::owner, ValueTreeWrapper::EnableCallbacks::no);
         runtimeRootProperties.setAppVersion (getApplicationVersion ());
         runtimeRootProperties.setAppDataPath (appDirectory.getFullPathName ());
-        runtimeRootProperties.onQuitStateChanged = [this] (RuntimeRootProperties::QuitState quitState) { localQuitState.store (quitState); };
-
-        persistentRootProperties.wrap ({}, ValueTreeWrapper::WrapperType::owner, ValueTreeWrapper::EnableCallbacks::no);
-        // connect the Properties file and the AppProperties ValueTree with the propertiesFile (ValueTreeFile with auto-save)
-        appPropertiesFile.init (persistentRootProperties.getValueTree (), appDirectory.getChildFile (getApplicationName () + PropertiesFileExtension), true);
     }
 
     void initAppDirectory ()
@@ -177,14 +180,13 @@ public:
     class MainWindow    : public juce::DocumentWindow
     {
     public:
-        MainWindow (juce::String name, juce::ValueTree persistentRootProperties, juce::ValueTree runtimeRootProperties)
+        MainWindow (juce::String name, juce::ValueTree rootProperties)
             : DocumentWindow (name,
-                              juce::Desktop::getInstance ().getDefaultLookAndFeel ()
-                                                          .findColour (juce::ResizableWindow::backgroundColourId),
+                              juce::Desktop::getInstance ().getDefaultLookAndFeel ().findColour (juce::ResizableWindow::backgroundColourId),
                               DocumentWindow::allButtons)
         {
             setUsingNativeTitleBar (true);
-            setContentOwned (new MainComponent (persistentRootProperties, runtimeRootProperties), true);
+            setContentOwned (new MainComponent (rootProperties), true);
 
            #if JUCE_IOS || JUCE_ANDROID
             setFullScreen (true);
@@ -217,16 +219,15 @@ public:
 
 private:
     juce::File appDirectory;
-    ValueTreeFile appPropertiesFile;
+    RootProperties rootProperties;
+    ValueTreeFile persitentPropertiesFile;
     PersistentRootProperties persistentRootProperties;
+    AppProperties appProperties;
     RuntimeRootProperties runtimeRootProperties;
     std::unique_ptr<juce::FileLogger> fileLogger;
     std::atomic<RuntimeRootProperties::QuitState> localQuitState { RuntimeRootProperties::QuitState::idle };
     std::unique_ptr<MainWindow> mainWindow;
-
-//    BezierProperties bezier;
 };
 
-//==============================================================================
 // This macro generates the main() routine that launches the app.
 START_JUCE_APPLICATION (A8ManagerApplication)
