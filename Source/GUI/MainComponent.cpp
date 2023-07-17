@@ -6,12 +6,6 @@ MainComponent::MainComponent (juce::ValueTree rootPropertiesVT)
 {
     setSize (800, 600);
 
-    //toolWindow.setResetFunction ([this] () { currentParticleSystemClient->initParticles (); });
-    //toolWindow.setRunFunction ([this] () { currentParticleSystemClient->setEnabled (! currentParticleSystemClient->isEnabled ());
-    //                                       toolWindow.setRunState (currentParticleSystemClient->isEnabled ()); });
-
-    //toolWindow.setRunState (currentParticleSystemClient->isEnabled ());
-
     assimil8orPresetComponent.init (rootPropertiesVT);
     addAndMakeVisible (assimil8orPresetComponent);
     toolWindow.init (rootPropertiesVT);
