@@ -2,10 +2,23 @@
 
 #include <JuceHeader.h>
 
-class Assimil8orPresets
+//  SD Card (max folders unknown)
+//      Folder (32 character len?) (max 199 presets) (no nested folders)
+//          Preset (prst000.yml)
+//          Preset
+//          Audio (32 character len?) (arbitrary name) 
+//          Audio
+
+// File Contents
+//      Preset 1 (1-8 channels)
+//          Channel 1 (? zones)
+//              Zone 1
+class Assimil8orPreset
 {
 public:
     void parse (juce::StringArray presetLines);
+
+    juce::ValueTree getPresetVT () { return assimil8orData; }
 
 private:
     enum class ParseState

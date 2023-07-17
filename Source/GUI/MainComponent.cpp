@@ -12,8 +12,8 @@ MainComponent::MainComponent (juce::ValueTree rootPropertiesVT)
 
     //toolWindow.setRunState (currentParticleSystemClient->isEnabled ());
 
-//    bezierComponent.init (persistentRootPropertiesVT, runtimeRootPropertiesVT);
-//    addAndMakeVisible (bezierComponent);
+    assimil8orPresetComponent.init (rootPropertiesVT);
+    addAndMakeVisible (assimil8orPresetComponent);
     toolWindow.init (rootPropertiesVT);
     addAndMakeVisible (toolWindow);
 }
@@ -30,5 +30,5 @@ void MainComponent::resized ()
 {
     auto localBounds { getLocalBounds () };
     toolWindow.setBounds (localBounds.removeFromBottom (toolWindowHeight));
-//    bezierComponent.setBounds (localBounds);
+    assimil8orPresetComponent.setBounds (localBounds);
 }

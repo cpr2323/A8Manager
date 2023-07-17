@@ -1,6 +1,6 @@
 #include "Assimil8or.h"
 
-void Assimil8orPresets::parse (juce::StringArray presetLines)
+void Assimil8orPreset::parse (juce::StringArray presetLines)
 {
     auto scopeDepth { 0 };
 
@@ -109,12 +109,12 @@ void Assimil8orPresets::parse (juce::StringArray presetLines)
                 else
                 {
                     // Data2asCV : 1A
-                    // Name: template001
+                    // Name: template001 (max len?)
                     // XfadeACV: 1A
                     // XfadeAWidth : 9.10
-                    if (keyIs ("Name"))
+                    if (keyIs (PresetNamePropertyId.toString ()))
                     {
-                        auto nameChild { juce::ValueTree {"Name"} };
+                        auto nameChild { juce::ValueTree {PresetNamePropertyId} };
                         nameChild.setProperty ("name", valueList [0], nullptr);
                         curPresetSection.addChild (nameChild, -1, nullptr);
                     }
@@ -513,7 +513,7 @@ void Assimil8orPresets::parse (juce::StringArray presetLines)
     }
 }
 
-juce::String Assimil8orPresets::getParseStateString (ParseState theParseState)
+juce::String Assimil8orPreset::getParseStateString (ParseState theParseState)
 {
     switch (theParseState)
     {
@@ -525,7 +525,7 @@ juce::String Assimil8orPresets::getParseStateString (ParseState theParseState)
     }
 };
 
-void Assimil8orPresets::setParseState (ParseState newParseState)
+void Assimil8orPreset::setParseState (ParseState newParseState)
 {
     parseState = newParseState;
     // juce::Logger::outputDebugString ("new state: " + getParseStateString (parseState));

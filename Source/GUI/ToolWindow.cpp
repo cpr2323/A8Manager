@@ -37,13 +37,13 @@ void ToolWindow::verifyFile (juce::File presetFile)
     juce::StringArray fileContents;
     presetFile.readLines (fileContents);
 
-    Assimil8orPresets assimil8orPresets;
-    assimil8orPresets.parse (fileContents);
+    Assimil8orPreset assimil8orPreset;
+    assimil8orPreset.parse (fileContents);
 }
 
 void ToolWindow::verifyFoldersUi ()
 {
-    fileChooser.reset (new juce::FileChooser ("Please select the Assimil8or Preset file you want to verify...",
+    fileChooser.reset (new juce::FileChooser ("Please select the folder to scan for Assimil8or Preset files you want to verify...",
                                               appProperties.getMostRecentFolder (), ""));
     fileChooser->launchAsync (juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectDirectories, [this] (const juce::FileChooser& fc) mutable
         {

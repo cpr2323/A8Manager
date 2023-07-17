@@ -14,6 +14,7 @@ void crashHandler (void* /*data*/)
 {
     FlushDebugLog ();
     juce::Logger::writeToLog (juce::SystemStats::getStackBacktrace ());
+    FlushDebugLog ();
 }
 
 class A8ManagerApplication : public juce::JUCEApplication, public juce::Timer
@@ -81,6 +82,8 @@ public:
 
     void initAssimil8or ()
     {
+        // hack the preset data on to the runtime root until we get a proper valuetreewrapper for the preset
+        runtimeRootProperties.getValueTree ().addChild (assimil8orPreset.getPresetVT (), -1, nullptr);
     }
 
     void initUi ()
@@ -209,6 +212,7 @@ private:
     PersistentRootProperties persistentRootProperties;
     AppProperties appProperties;
     RuntimeRootProperties runtimeRootProperties;
+    Assimil8orPreset assimil8orPreset;
     std::unique_ptr<juce::FileLogger> fileLogger;
     std::atomic<RuntimeRootProperties::QuitState> localQuitState { RuntimeRootProperties::QuitState::idle };
     std::unique_ptr<MainWindow> mainWindow;

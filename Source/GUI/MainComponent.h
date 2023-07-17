@@ -2,6 +2,7 @@
 
 #include <JuceHeader.h>
 #include "ToolWindow.h"
+#include "Assimil8or/Assimil8orPresetComponent.h"
 
 class MainComponent  : public juce::Component
 {
@@ -10,6 +11,7 @@ public:
     ~MainComponent () override;
 
 private:
+    Assimil8orPresetComponent assimil8orPresetComponent;
     ToolWindow toolWindow;
 
     void resized () override;
