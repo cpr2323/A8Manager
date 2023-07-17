@@ -12,10 +12,6 @@ MainComponent::MainComponent (juce::ValueTree rootPropertiesVT)
     addAndMakeVisible (toolWindow);
 }
 
-MainComponent::~MainComponent ()
-{
-}
-
 void MainComponent::paint ([[maybe_unused]] juce::Graphics& g)
 {
 }

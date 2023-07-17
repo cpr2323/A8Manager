@@ -8,7 +8,7 @@ class MainComponent  : public juce::Component
 {
 public:
     MainComponent (juce::ValueTree rootPropertiesVT);
-    ~MainComponent () override;
+    ~MainComponent () override = default;
 
 private:
     Assimil8orPresetComponent assimil8orPresetComponent;
