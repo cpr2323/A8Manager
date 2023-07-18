@@ -5,7 +5,7 @@
 #include "../Assimil8or/Assimil8or.h"
 #include "../Utility/PersistentRootProperties.h"
 
-class ToolWindow : public juce::Component, public juce::Timer
+class ToolWindow : public juce::Component, public juce::Timer, public juce::ValueTree::Listener
 {
 public:
     ToolWindow ();
@@ -21,6 +21,7 @@ private:
     juce::TextButton fileMenuButton;
     std::vector<juce::File> foldersToScan;
     Assimil8orSDCardImage assimil8orSDCardImage;
+    juce::ValueTree sdCardImage;
 
     void verifySdCardImage ();
     void verifyFileUi ();
@@ -31,4 +32,5 @@ private:
     void timerCallback () override;
     void paint (juce::Graphics& g) override;
     void resized () override;
+    void valueTreePropertyChanged (juce::ValueTree& treeWhosePropertyHasChanged, const juce::Identifier& property) override;
 };
