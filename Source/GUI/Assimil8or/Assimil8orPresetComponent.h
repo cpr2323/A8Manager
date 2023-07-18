@@ -12,6 +12,7 @@ public:
 
 private:
     juce::ValueTree assimil8orData;
+    juce::TreeView presetTreeView { "Assimil8orPreset" };
 
     void resized () override;
     void paint (juce::Graphics& g) override;

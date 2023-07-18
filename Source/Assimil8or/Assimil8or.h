@@ -2,12 +2,23 @@
 
 #include <JuceHeader.h>
 
+// validate
 //  SD Card (max folders unknown)
-//      Folder (32 character len?) (max 199 presets) (no nested folders)
+//      Folder (31 character len) (max 199 presets) (no nested folders)
 //          Preset (prst000.yml)
 //          Preset
-//          Audio (32 character len?) (arbitrary name) 
+//          Audio (47 character len) (arbitrary name) 
 //          Audio
+class Assimil8orSDCardImage
+{
+public:
+    void setRootFolder (juce::File newRootFolder);
+    void validate ();
+private:
+    juce::File rootFolder;
+
+    void refreshFiles ();
+};
 
 // File Contents
 //      Preset 1 (1-8 channels)
@@ -34,7 +45,9 @@ private:
 
     juce::Identifier PresetSectionId  { "Preset" };
     juce::Identifier PresetNamePropertyId { "Name" };
+
     juce::Identifier ChannelSectionId { "Channel" };
+
     juce::Identifier ZoneSectionId    { "Zone" };
 
     juce::String getParseStateString (ParseState parseState);

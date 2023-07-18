@@ -1,5 +1,34 @@
 #include "Assimil8or.h"
 
+
+void Assimil8orSDCardImage::setRootFolder (juce::File newRootFolder)
+{
+    if (newRootFolder.exists () && newRootFolder.isDirectory ())
+    {
+        rootFolder = newRootFolder;
+        refreshFiles ();
+    }
+}
+
+void Assimil8orSDCardImage::validate ()
+{
+    // iterate over files system
+    // for directories
+    //      report if name over 31 characters
+    //      report if folder is 2 or more deep in hierarchy
+    // for preset files
+    //      validate preset file data (really only important if it has been edited)
+    // for audio files
+    //      report if name over 47 characters
+    //      report if it does not match supported formats
+    // report any other files as unused by assimil8or
+}
+
+void Assimil8orSDCardImage::refreshFiles ()
+{
+    throw std::logic_error ("The method or operation is not implemented.");
+}
+
 void Assimil8orPreset::parse (juce::StringArray presetLines)
 {
     auto scopeDepth { 0 };
