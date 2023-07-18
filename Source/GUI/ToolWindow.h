@@ -22,7 +22,7 @@ private:
     std::vector<juce::File> foldersToScan;
     Assimil8orSDCardImage assimil8orSDCardImage;
 
-    void testCode ();
+    void verifySdCardImage ();
     void verifyFileUi ();
     void verifyFile (juce::File presetFile);
     void verifyFoldersUi ();

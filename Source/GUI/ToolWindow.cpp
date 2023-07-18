@@ -6,13 +6,12 @@ ToolWindow::ToolWindow ()
     fileMenuButton.onClick = [this] ()
     {
         juce::PopupMenu pm;
-        pm.addItem ("Test new code", true, false, [this] () { testCode (); });
+        pm.addItem ("Verify SD Card Image", true, false, [this] () { verifySdCardImage (); });
         pm.addItem ("Verify File", true, false, [this] () { verifyFileUi (); });
         pm.addItem ("Verify Folders", true, false, [this] () { verifyFoldersUi (); });
         pm.showMenuAsync ({}, [this] (int) {});
     };
     addAndMakeVisible (fileMenuButton);
-
 }
 
 void ToolWindow::init (juce::ValueTree rootPropertiesVT)
@@ -21,16 +20,19 @@ void ToolWindow::init (juce::ValueTree rootPropertiesVT)
     appProperties.wrap (persistentRootProperties.getValueTree (), ValueTreeWrapper::WrapperType::client, ValueTreeWrapper::EnableCallbacks::no);
 }
 
-void ToolWindow::testCode ()
+void ToolWindow::verifySdCardImage ()
 {
     fileChooser.reset (new juce::FileChooser ("Please select the folder to scan for Assimil8or Preset files you want to verify...",
-        appProperties.getMostRecentFolder (), ""));
+                                              appProperties.getMostRecentFolder (), ""));
     fileChooser->launchAsync (juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectDirectories, [this] (const juce::FileChooser& fc) mutable
         {
             if (fc.getURLResults ().size () == 1 && fc.getURLResults () [0].isLocalFile ())
             {
                 assimil8orSDCardImage.setRootFolder (fc.getURLResults () [0].getLocalFile ());
-                assimil8orSDCardImage.validate ();
+                assimil8orSDCardImage.validate ([this] ()
+                {
+                    juce::Logger::outputDebugString ("validation done");
+                });
             }
         }, nullptr);
 }

@@ -15,8 +15,11 @@ void Assimil8orSDCardImage::setRootFolder (juce::File newRootFolder)
     }
 }
 
-void Assimil8orSDCardImage::validate ()
+void Assimil8orSDCardImage::validate (std::function<void()> theValidationCompleteCallback)
 {
+    jassert (theValidationCompleteCallback != nullptr);
+    validationCompleteCallback = theValidationCompleteCallback;
+
     startThread ();
 }
 
@@ -116,6 +119,8 @@ void Assimil8orSDCardImage::run ()
         juce::Logger::outputDebugString ("Folder: " + curFolderToScan.getFileName ());
         validateFolder (curFolderToScan, foldersToScan);
     }
+
+    juce::MessageManager::callAsync ([this] () { validationCompleteCallback (); });
 }
 
 
