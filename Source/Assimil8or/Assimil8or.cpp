@@ -12,22 +12,87 @@ void Assimil8orSDCardImage::setRootFolder (juce::File newRootFolder)
 
 void Assimil8orSDCardImage::validate ()
 {
+    startThread ();
+}
+
+void Assimil8orSDCardImage::refreshFiles ()
+{
+}
+
+void Assimil8orSDCardImage::validateFolder (juce::File folder, std::vector<juce::File>& foldersToScan)
+{
     // iterate over files system
     // for directories
     //      report if name over 31 characters
     //      report if folder is 2 or more deep in hierarchy
-    // for preset files
+    // for preset files (to be done when the preset file is fully defined)
     //      validate preset file data (really only important if it has been edited)
     // for audio files
     //      report if name over 47 characters
     //      report if it does not match supported formats
     // report any other files as unused by assimil8or
+    
+    const auto kMaxFolderNameLength { 31 };
+    const auto kMaxFileNameLength { 47 };
+
+    for (const auto& entry : juce::RangedDirectoryIterator (folder, false, "*", juce::File::findFilesAndDirectories))
+    {
+        if (threadShouldExit ())
+            return;
+
+        const auto& curFile { entry.getFile () };
+        if (curFile.isDirectory ())
+        {
+            if (curFile.getFileName ().length () > kMaxFolderNameLength)
+            {
+                // report issue
+            }
+            foldersToScan.emplace_back (curFile);
+        }
+        else
+        {
+            if (curFile.getFileName ().startsWithChar ('.'))
+            {
+                // ignore file
+                juce::Logger::outputDebugString ("File (ignored) : " + curFile.getFileName ());
+            }
+            else if (curFile.getFileExtension () == ".wav")
+            {
+                juce::Logger::outputDebugString ("File (audio) : " + curFile.getFileName ());
+                if (curFile.getFileName ().length () > kMaxFileNameLength)
+                {
+                    // report issue
+                }
+
+                // process sample file
+            }
+            else if (curFile.getFileExtension () == ".yml" && curFile.getFileNameWithoutExtension ().startsWith ("prst"))
+            {
+                juce::Logger::outputDebugString ("File (preset) : " + curFile.getFileName ());
+                // process preset file
+            }
+            else
+            {
+                juce::Logger::outputDebugString ("File (unknown) : " + curFile.getFileName ());
+                // report unrecognized file
+            }
+        }
+    }
 }
 
-void Assimil8orSDCardImage::refreshFiles ()
+void Assimil8orSDCardImage::run ()
 {
-    throw std::logic_error ("The method or operation is not implemented.");
+    std::vector<juce::File> foldersToScan;
+    foldersToScan.emplace_back (rootFolder);
+    while (foldersToScan.size () > 0)
+    {
+        auto folderToScan { foldersToScan.back () };
+        juce::Logger::outputDebugString ("Folder: " + folderToScan.getFileName ());
+        foldersToScan.pop_back ();
+        validateFolder (folderToScan, foldersToScan);
+    }
 }
+
 
 void Assimil8orPreset::parse (juce::StringArray presetLines)
 {

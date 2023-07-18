@@ -1,5 +1,4 @@
 #include "ToolWindow.h"
-#include "../Assimil8or/Assimil8or.h"
 
 ToolWindow::ToolWindow ()
 {
@@ -7,6 +6,7 @@ ToolWindow::ToolWindow ()
     fileMenuButton.onClick = [this] ()
     {
         juce::PopupMenu pm;
+        pm.addItem ("Test new code", true, false, [this] () { testCode (); });
         pm.addItem ("Verify File", true, false, [this] () { verifyFileUi (); });
         pm.addItem ("Verify Folders", true, false, [this] () { verifyFoldersUi (); });
         pm.showMenuAsync ({}, [this] (int) {});
@@ -19,6 +19,20 @@ void ToolWindow::init (juce::ValueTree rootPropertiesVT)
 {
     persistentRootProperties.wrap (rootPropertiesVT, ValueTreeWrapper::WrapperType::client, ValueTreeWrapper::EnableCallbacks::no);
     appProperties.wrap (persistentRootProperties.getValueTree (), ValueTreeWrapper::WrapperType::client, ValueTreeWrapper::EnableCallbacks::no);
+}
+
+void ToolWindow::testCode ()
+{
+    fileChooser.reset (new juce::FileChooser ("Please select the folder to scan for Assimil8or Preset files you want to verify...",
+        appProperties.getMostRecentFolder (), ""));
+    fileChooser->launchAsync (juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectDirectories, [this] (const juce::FileChooser& fc) mutable
+        {
+            if (fc.getURLResults ().size () == 1 && fc.getURLResults () [0].isLocalFile ())
+            {
+                assimil8orSDCardImage.setRootFolder (fc.getURLResults () [0].getLocalFile ());
+                assimil8orSDCardImage.validate ();
+            }
+        }, nullptr);
 }
 
 void ToolWindow::verifyFileUi ()

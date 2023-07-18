@@ -2,6 +2,7 @@
 
 #include <JuceHeader.h>
 #include "../AppProperties.h"
+#include "../Assimil8or/Assimil8or.h"
 #include "../Utility/PersistentRootProperties.h"
 
 class ToolWindow : public juce::Component, public juce::Timer
@@ -19,7 +20,9 @@ private:
     std::unique_ptr<juce::FileChooser> fileChooser;
     juce::TextButton fileMenuButton;
     std::vector<juce::File> foldersToScan;
+    Assimil8orSDCardImage assimil8orSDCardImage;
 
+    void testCode ();
     void verifyFileUi ();
     void verifyFile (juce::File presetFile);
     void verifyFoldersUi ();
