@@ -12,12 +12,13 @@
 class Assimil8orSDCardImage : public juce::Thread
 {
 public:
-    Assimil8orSDCardImage () : Thread ("Assimil8orSDCardImage") {}
+    Assimil8orSDCardImage ();
 
     void setRootFolder (juce::File newRootFolder);
     void validate ();
 private:
     juce::File rootFolder;
+    juce::AudioFormatManager audioFormatManager;
 
     void refreshFiles ();
     void validateFolder (juce::File folder, std::vector<juce::File>& foldersToScan);

@@ -1,5 +1,10 @@
 #include "Assimil8or.h"
 
+Assimil8orSDCardImage::Assimil8orSDCardImage () : Thread ("Assimil8orSDCardImage")
+{
+    // initialize format manager for sample file reading
+    audioFormatManager.registerBasicFormats ();
+}
 
 void Assimil8orSDCardImage::setRootFolder (juce::File newRootFolder)
 {
@@ -67,6 +72,23 @@ void Assimil8orSDCardImage::validateFolder (juce::File folder, std::vector<juce:
                 }
 
                 // process sample file
+                std::unique_ptr<juce::AudioFormatReader> reader (audioFormatManager.createReaderFor (curFile));
+                if (reader == nullptr)
+                {
+                    juce::Logger::outputDebugString ("    [ Warning : unknown audio format ]");
+                    // unknown format
+                    // report issue
+                }
+                else
+                {
+                    juce::Logger::outputDebugString ("    Format: " + reader->getFormatName());
+                    juce::Logger::outputDebugString ("    Sample data: " + juce::String (reader->usesFloatingPointData == true ? "floating point" : "integer"));
+                    juce::Logger::outputDebugString ("    Bit Depth: " + juce::String (reader->bitsPerSample));
+                    juce::Logger::outputDebugString ("    Sample Rate: " + juce::String (reader->sampleRate));
+                    juce::Logger::outputDebugString ("    Channels: " + juce::String (reader->numChannels));
+                    juce::Logger::outputDebugString ("    Length/Samples: " + juce::String (reader->lengthInSamples));
+                }
+
             }
             else if (curFile.getFileExtension () == ".yml" && curFile.getFileNameWithoutExtension ().startsWith ("prst"))
             {
