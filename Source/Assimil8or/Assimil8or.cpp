@@ -87,6 +87,7 @@ void Assimil8orSDCardImage::validateFolder (juce::File folder, std::vector<juce:
                     juce::Logger::outputDebugString ("    Sample Rate: " + juce::String (reader->sampleRate));
                     juce::Logger::outputDebugString ("    Channels: " + juce::String (reader->numChannels));
                     juce::Logger::outputDebugString ("    Length/Samples: " + juce::String (reader->lengthInSamples));
+                    juce::Logger::outputDebugString ("    Length/Time: " + juce::String (reader->lengthInSamples / reader->sampleRate));
                 }
 
             }
