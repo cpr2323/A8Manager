@@ -15,6 +15,10 @@
                 resource="0" file="Source/GUI/Assimil8or/Assimil8orPresetComponent.cpp"/>
           <FILE id="ayK2Bn" name="Assimil8orPresetComponent.h" compile="0" resource="0"
                 file="Source/GUI/Assimil8or/Assimil8orPresetComponent.h"/>
+          <FILE id="g474Kb" name="Assimil8orSdImageComponent.cpp" compile="1"
+                resource="0" file="Source/GUI/Assimil8or/Assimil8orSdImageComponent.cpp"/>
+          <FILE id="ns8GQt" name="Assimil8orSdImageComponent.h" compile="0" resource="0"
+                file="Source/GUI/Assimil8or/Assimil8orSdImageComponent.h"/>
         </GROUP>
         <FILE id="Van35d" name="MainComponent.cpp" compile="1" resource="0"
               file="Source/GUI/MainComponent.cpp"/>

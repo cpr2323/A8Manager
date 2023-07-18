@@ -280,6 +280,15 @@ void Assimil8orPreset::parse (juce::StringArray presetLines)
                 }
                 else
                 {
+                    // AttackFromCurrent: 1
+                    // AliasingMod: 0B 0.92
+                    // AttackMod: 0B 0.82
+                    // LinAMisExtEnv: 1
+                    // MixMod: 0A 0.93
+                    // MixModIsFader: 1
+                    // SampleEndMod: 0A 0.66
+
+                    // 
                     // Aliasing: 100
                     // Attack:  0.0006
                     // AutoTrigger: 1
@@ -312,11 +321,35 @@ void Assimil8orPreset::parse (juce::StringArray presetLines)
                     // XfadeGroup : A
                     // ZonesCV : 0B
                     // ZonesRT : 1
-                    if (keyIs ("Aliasing"))
+
+                    if (keyIs ("AttackFromCurrent"))
+                    {
+                        addChildValue (curChannelSection, "AttackFromCurrent", [&valueList] (juce::ValueTree child)
+                            {
+                                child.setProperty ("amount", valueList [0], nullptr);
+                            });
+                    }
+                    else if (keyIs ("AttackMod"))
+                    {
+                        addChildValue (curChannelSection, "AttackMod", [&valueList] (juce::ValueTree child)
+                            {
+                                child.setProperty ("cvInput", valueList [0], nullptr);
+                                child.setProperty ("amount", valueList [1], nullptr);
+                            });
+                    }
+                    else if (keyIs ("Aliasing"))
                     {
                         addChildValue (curChannelSection, "Aliasing", [&valueList] (juce::ValueTree child)
                             {
                                 child.setProperty ("amount", valueList [0], nullptr);
+                            });
+                    }
+                    else if (keyIs ("AliasingMod"))
+                    {
+                        addChildValue (curChannelSection, "AliasingMod", [&valueList] (juce::ValueTree child)
+                            {
+                                child.setProperty ("cvInput", valueList [0], nullptr);
+                                child.setProperty ("amount", valueList [1], nullptr);
                             });
                             }
                     else if (keyIs ("Attack"))
@@ -386,6 +419,13 @@ void Assimil8orPreset::parse (juce::StringArray presetLines)
                                 child.setProperty ("amount", valueList [1], nullptr);
                             });
                     }
+                    else if (keyIs ("LinAMisExtEnv"))
+                    {
+                        addChildValue (curChannelSection, "LinAMisExtEnv", [&valueList] (juce::ValueTree child)
+                            {
+                                child.setProperty ("amount", valueList [0], nullptr);
+                            });
+                    }
                     else if (keyIs ("LinFM"))
                     {
                         addChildValue (curChannelSection, "LinFM", [&valueList] (juce::ValueTree child)
@@ -420,6 +460,21 @@ void Assimil8orPreset::parse (juce::StringArray presetLines)
                     else if (keyIs ("MixLevel"))
                     {
                         addChildValue (curChannelSection, "MixLevel", [&valueList] (juce::ValueTree child)
+                            {
+                                child.setProperty ("amount", valueList [0], nullptr);
+                            });
+                    }
+                    else if (keyIs ("MixMod"))
+                    {
+                        addChildValue (curChannelSection, "MixMod", [&valueList] (juce::ValueTree child)
+                            {
+                                child.setProperty ("cvInput", valueList [0], nullptr);
+                                child.setProperty ("amount", valueList [1], nullptr);
+                            });
+                    }
+                    else if (keyIs ("MixModIsFader"))
+                    {
+                        addChildValue (curChannelSection, "MixModIsFader", [&valueList] (juce::ValueTree child)
                             {
                                 child.setProperty ("amount", valueList [0], nullptr);
                             });
@@ -513,6 +568,14 @@ void Assimil8orPreset::parse (juce::StringArray presetLines)
                                 child.setProperty ("mode", valueList [0], nullptr);
                             });
                     }
+                    else if (keyIs ("SampleEndMod"))
+                    {
+                        addChildValue (curChannelSection, "SampleEndMod", [&valueList] (juce::ValueTree child)
+                            {
+                                child.setProperty ("cvInput", valueList [0], nullptr);
+                                child.setProperty ("amount", valueList [1], nullptr);
+                            });
+                            }
                     else if (keyIs ("SampleStartMod"))
                     {
                         addChildValue (curChannelSection, "SampleStartMod", [&valueList] (juce::ValueTree child)
@@ -559,6 +622,7 @@ void Assimil8orPreset::parse (juce::StringArray presetLines)
             break;
             case ParseState::ParsingZoneSection:
             {
+                // LevelOffset: -6.3
                 // LoopLength: 256.0000
                 // LoopStart : 111683
                 // MinVoltage : +4.56
@@ -567,7 +631,14 @@ void Assimil8orPreset::parse (juce::StringArray presetLines)
                 // SampleStart : 79416
                 // SampleEnd : 6058
                 // Side : 1
-                if (keyIs ("LoopLength"))
+                if (keyIs ("LevelOffset"))
+                {
+                    addChildValue (curZoneSection, "LevelOffset", [&valueList] (juce::ValueTree sampleEndChild)
+                        {
+                            sampleEndChild.setProperty ("amount", valueList [0], nullptr);
+                        });
+                }
+                else if (keyIs ("LoopLength"))
                 {
                     addChildValue (curZoneSection, "LoopLength", [&valueList] (juce::ValueTree sampleEndChild)
                         {

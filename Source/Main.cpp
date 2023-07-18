@@ -84,6 +84,7 @@ public:
     {
         // hack the preset data on to the runtime root until we get a proper valuetreewrapper for the preset
         runtimeRootProperties.getValueTree ().addChild (assimil8orPreset.getPresetVT (), -1, nullptr);
+        runtimeRootProperties.getValueTree ().addChild (juce::ValueTree("SDCardImage"), -1, nullptr);
     }
 
     void initUi ()
