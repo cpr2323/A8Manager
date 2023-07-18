@@ -280,30 +280,27 @@ void Assimil8orPreset::parse (juce::StringArray presetLines)
                 }
                 else
                 {
-                    // AttackFromCurrent: 1
-                    // AliasingMod: 0B 0.92
-                    // AttackMod: 0B 0.82
-                    // LinAMisExtEnv: 1
-                    // MixMod: 0A 0.93
-                    // MixModIsFader: 1
-                    // SampleEndMod: 0A 0.66
-
-                    // 
-                    // Aliasing: 100
-                    // Attack:  0.0006
-                    // AutoTrigger: 1
+                    // Aliasing : 100
+                    // AliasingMod : 0B 0.92
+                    // Attack :  0.0006
+                    // AttackFromCurrent : 1
+                    // AttackMod : 0B 0.82
+                    // AutoTrigger : 1
                     // Bits : 01.0
                     // BitsMod : Off 0.00
                     // ChannelMode : 2
                     // ExpAM : 0A 1.00
                     // ExpFM : 0A 1.00
                     // Level : -10.0
-                    // LinAM: 0A -1.00
-                    // LinFM: 0A -1.00
-                    // LoopLengthMod: 0B -0.26
+                    // LinAM : 0A -1.00
+                    // LinAMisExtEnv : 1
+                    // LinFM : 0A -1.00
+                    // LoopLengthMod : 0B -0.26
                     // LoopMode : 1
                     // LoopStartMod : 0C 0.00
                     // MixLevel : -90.0
+                    // MixMod : 0A 0.93
+                    // MixModIsFader : 1
                     // Pan : -0.30
                     // PanMod : Off 0.00
                     // PhaseCV : 0A 1.00
@@ -317,12 +314,19 @@ void Assimil8orPreset::parse (juce::StringArray presetLines)
                     // ReleaseMod : 0C 1.00
                     // Reverse : 1
                     // SampleStartMod : 0B 1.00
+                    // SampleEndMod : 0A 0.66
                     // SpliceSmoothing : 1
                     // XfadeGroup : A
                     // ZonesCV : 0B
                     // ZonesRT : 1
-
-                    if (keyIs ("AttackFromCurrent"))
+                    if (keyIs ("Attack"))
+                    {
+                        addChildValue (curChannelSection, "Attack", [&valueList] (juce::ValueTree child)
+                            {
+                                child.setProperty ("amount", valueList [0], nullptr);
+                            });
+                            }
+                    else if (keyIs ("AttackFromCurrent"))
                     {
                         addChildValue (curChannelSection, "AttackFromCurrent", [&valueList] (juce::ValueTree child)
                             {
@@ -351,14 +355,7 @@ void Assimil8orPreset::parse (juce::StringArray presetLines)
                                 child.setProperty ("cvInput", valueList [0], nullptr);
                                 child.setProperty ("amount", valueList [1], nullptr);
                             });
-                            }
-                    else if (keyIs ("Attack"))
-                    {
-                        addChildValue (curChannelSection, "Attack", [&valueList] (juce::ValueTree child)
-                            {
-                                child.setProperty ("amount", valueList [0], nullptr);
-                            });
-                            }
+                    }
                     else if (keyIs ("AutoTrigger"))
                     {
                         addChildValue (curChannelSection, "AutoTrigger", [&valueList] (juce::ValueTree child)
@@ -622,8 +619,8 @@ void Assimil8orPreset::parse (juce::StringArray presetLines)
             break;
             case ParseState::ParsingZoneSection:
             {
-                // LevelOffset: -6.3
-                // LoopLength: 256.0000
+                // LevelOffset : -6.3
+                // LoopLength : 256.0000
                 // LoopStart : 111683
                 // MinVoltage : +4.56
                 // PitchOffset : +2.00
