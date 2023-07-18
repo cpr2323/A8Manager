@@ -45,6 +45,7 @@ void Assimil8orSDCardImage::validateFolder (juce::File folder, std::vector<juce:
         {
             if (curFile.getFileName ().length () > kMaxFolderNameLength)
             {
+                juce::Logger::outputDebugString ("  [ Warning : folder name too long ]");
                 // report issue
             }
             foldersToScan.emplace_back (curFile);
@@ -54,13 +55,14 @@ void Assimil8orSDCardImage::validateFolder (juce::File folder, std::vector<juce:
             if (curFile.getFileName ().startsWithChar ('.'))
             {
                 // ignore file
-                juce::Logger::outputDebugString ("File (ignored) : " + curFile.getFileName ());
+                juce::Logger::outputDebugString ("  File (ignored) : " + curFile.getFileName ());
             }
             else if (curFile.getFileExtension () == ".wav")
             {
-                juce::Logger::outputDebugString ("File (audio) : " + curFile.getFileName ());
+                juce::Logger::outputDebugString ("  File (audio) : " + curFile.getFileName ());
                 if (curFile.getFileName ().length () > kMaxFileNameLength)
                 {
+                    juce::Logger::outputDebugString ("    [ Warning : file name too long ]");
                     // report issue
                 }
 
@@ -68,12 +70,12 @@ void Assimil8orSDCardImage::validateFolder (juce::File folder, std::vector<juce:
             }
             else if (curFile.getFileExtension () == ".yml" && curFile.getFileNameWithoutExtension ().startsWith ("prst"))
             {
-                juce::Logger::outputDebugString ("File (preset) : " + curFile.getFileName ());
+                juce::Logger::outputDebugString ("  File (preset) : " + curFile.getFileName ());
                 // process preset file
             }
             else
             {
-                juce::Logger::outputDebugString ("File (unknown) : " + curFile.getFileName ());
+                juce::Logger::outputDebugString ("  File (unknown) : " + curFile.getFileName ());
                 // report unrecognized file
             }
         }
@@ -86,10 +88,10 @@ void Assimil8orSDCardImage::run ()
     foldersToScan.emplace_back (rootFolder);
     while (foldersToScan.size () > 0)
     {
-        auto folderToScan { foldersToScan.back () };
-        juce::Logger::outputDebugString ("Folder: " + folderToScan.getFileName ());
+        auto curFolderToScan { foldersToScan.back () };
         foldersToScan.pop_back ();
-        validateFolder (folderToScan, foldersToScan);
+        juce::Logger::outputDebugString ("Folder: " + curFolderToScan.getFileName ());
+        validateFolder (curFolderToScan, foldersToScan);
     }
 }
 
