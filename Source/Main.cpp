@@ -84,6 +84,8 @@ public:
     {
         // hack the preset data on to the runtime root until we get a proper valuetreewrapper for the preset
         runtimeRootProperties.getValueTree ().addChild (assimil8orPreset.getPresetVT (), -1, nullptr);
+        // TODO - currently creating this manually here
+        //        need to refactor with a proper owner (Assimil8orSDCardImage?) and ValueTreeWrapper 
         auto sdCardImageProperties { juce::ValueTree ("SDCardImage") };
         sdCardImageProperties.addChild (juce::ValueTree {"ValidationStatus"}, -1, nullptr);
         runtimeRootProperties.getValueTree ().addChild (sdCardImageProperties, -1, nullptr);

@@ -32,7 +32,7 @@ void Assimil8orSdImageComponent::resized ()
 {
     auto localBounds { getLocalBounds () };
     sdImageListBox.setBounds (localBounds);
-    sdImageListBox.getHeader ().setColumnWidth (1, getWidth () - 2);
+    sdImageListBox.getHeader ().setColumnWidth (1, sdImageListBox.getWidth () - 2);
 }
 
 int Assimil8orSdImageComponent::getNumRows ()

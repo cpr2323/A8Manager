@@ -1,5 +1,12 @@
 #include "Assimil8or.h"
 
+#define LOG_VALIDATION 0
+#if LOG_VALIDATION
+#define LogValidation(text) juce::Logger::outputDebugString(text);
+#else
+#define LogValidation(text) ;
+#endif
+
 Assimil8orSDCardImage::Assimil8orSDCardImage () : Thread ("Assimil8orSDCardImage")
 {
     // initialize format manager for sample file reading
@@ -37,7 +44,92 @@ void Assimil8orSDCardImage::refreshFiles ()
 {
 }
 
-void Assimil8orSDCardImage::validateFolder (juce::File folder, std::vector<juce::File>& foldersToScan)
+std::tuple<juce::String, juce::String> Assimil8orSDCardImage::validateFile (juce::File file)
+{
+    const auto kMaxFileNameLength { 47 };
+
+    LogValidation ("File: " + file.getFileName ());
+    if (file.getFileName ().startsWithChar ('.'))
+    {
+        // ignore file
+        LogValidation ("  File (ignored)");
+        return { "warning", "(ignored)" };
+    }
+    else if (file.getFileExtension () == ".yml" &&
+             file.getFileNameWithoutExtension ().length () == 7 &&
+             file.getFileNameWithoutExtension ().startsWith ("prst") &&
+             file.getFileNameWithoutExtension ().substring(4).containsOnly ("0123456789"))
+    {
+        LogValidation ("  File (preset)");
+        return { "info", "Preset File" };
+    }
+    else if (file.getFileExtension () == ".wav")
+    {
+        juce::String statusType { "info" };
+        juce::String statusText;
+        if (file.getFileName ().length () > kMaxFileNameLength)
+        {
+            LogValidation ("  [ Warning : file name too long ]");
+            statusType = "error";
+            statusText = "[too long]";
+        }
+
+        std::unique_ptr<juce::AudioFormatReader> reader (audioFormatManager.createReaderFor (file));
+        if (reader == nullptr)
+        {
+            LogValidation ("    [ Warning : unknown audio format ]");
+            statusType = "error";
+            statusText = juce::String(statusText.length() == 0 ? "" : ", ") + "[unknown audio format. size = " + juce::String (file.getSize()) + "]";
+        }
+        else
+        {
+            LogValidation ("    Format: " + reader->getFormatName ());
+            LogValidation ("    Sample data: " + juce::String (reader->usesFloatingPointData == true ? "floating point" : "integer"));
+            LogValidation ("    Bit Depth: " + juce::String (reader->bitsPerSample));
+            LogValidation ("    Sample Rate: " + juce::String (reader->sampleRate));
+            LogValidation ("    Channels: " + juce::String (reader->numChannels));
+            LogValidation ("    Length/Samples: " + juce::String (reader->lengthInSamples));
+            LogValidation ("    Length/Time: " + juce::String (reader->lengthInSamples / reader->sampleRate));
+
+            if (statusType != "error")
+                statusType == "info";
+            statusText = juce::String (statusText.length () == 0 ? "" : ", ") + "Audio format: " +
+                                       juce::String (reader->usesFloatingPointData == true ? "floating point" : "integer") + ", " +
+                                       juce::String (reader->bitsPerSample) + "bits/" + juce::String (reader->sampleRate / 1000.0f, 2) + "k, " +
+                                       juce::String (reader->numChannels == 1 ? "mono" : "stereo") + ", " +
+                                       juce::String (reader->lengthInSamples / reader->sampleRate) + " seconds";
+        }
+        return { statusType, statusText };
+    }
+    else
+    {
+        LogValidation ("  File (unknown)");
+        return { "warning", "(unknown file type)" };
+    }
+}
+
+std::tuple<juce::String,juce::String> Assimil8orSDCardImage::validateFolder (juce::File folder)
+{
+    const auto kMaxFolderNameLength { 31 };
+
+    if (folder.getFileName ().startsWithChar ('.'))
+    {
+        // ignore file
+        LogValidation ("  Folder (ignored) : " + folder.getFileName ());
+        return { "warning", "(ignored)" };
+    }
+    else if (folder.getFileName ().length () > kMaxFolderNameLength)
+    {
+        LogValidation ("  [ Warning : folder name too long ]");
+        return { "error", "[too long]" };
+    }
+    else
+    {
+        return { "info", "" };
+    }
+}
+
+void Assimil8orSDCardImage::validateFolderContents (juce::File folder, std::vector<juce::File>& foldersToScan, bool isRoot)
 {
     // iterate over files system
     // for directories
@@ -49,9 +141,6 @@ void Assimil8orSDCardImage::validateFolder (juce::File folder, std::vector<juce:
     //      report if name over 47 characters
     //      report if it does not match supported formats
     // report any other files as unused by assimil8or
-    
-    const auto kMaxFolderNameLength { 31 };
-    const auto kMaxFileNameLength { 47 };
 
     auto addStatus = [this] (juce::String statusType, juce::String statusText)
     {
@@ -60,8 +149,54 @@ void Assimil8orSDCardImage::validateFolder (juce::File folder, std::vector<juce:
         newStatusChild.setProperty ("text", statusText, nullptr);
         validationStatusProperties.addChild (newStatusChild, -1, nullptr);
     };
-    //juce::Logger::outputDebugString ("Folder: " + folder.getFileName ());
-    addStatus ("info", "Processing folder: " + folder.getFileName ());
+    auto updateStatusType = [] (juce::String oldStatusType, juce::String newStatusType)
+    {
+        if (oldStatusType == "")
+        {
+            return newStatusType;
+        }
+        else if (oldStatusType == "info")
+        {
+            if (newStatusType != "")
+                return newStatusType;
+            else
+                return oldStatusType;
+        }
+        else if (oldStatusType == "warning")
+        {
+            if (newStatusType != "info")
+                return newStatusType;
+            else
+                return oldStatusType;
+        }
+        else if (oldStatusType == "error")
+        {
+            return oldStatusType;
+        }
+        else
+        {
+            jassertfalse;
+        }
+    };
+    juce::String statusType;
+    juce::String statusText;
+    LogValidation ("Folder: " + folder.getFileName ());
+    if (isRoot)
+    {
+        addStatus ("info", "Root Folder: " + folder.getFileName ());
+    }
+    else
+    {
+        statusType = "info";
+        statusText = "Folder: " + folder.getFileName ();
+        auto [newStatusType, newStatusText] = validateFolder (folder);
+        statusType = updateStatusType (statusType, newStatusType);
+        statusText += ", " + newStatusText;
+        addStatus (statusType, statusText);
+    }
+
+    statusType = {};
+    statusText = {};
     for (const auto& entry : juce::RangedDirectoryIterator (folder, false, "*", juce::File::findFilesAndDirectories))
     {
         if (threadShouldExit ())
@@ -70,85 +205,34 @@ void Assimil8orSDCardImage::validateFolder (juce::File folder, std::vector<juce:
         const auto& curFile { entry.getFile () };
         if (curFile.isDirectory ())
         {
-            if (curFile.getFileName ().length () > kMaxFolderNameLength)
-            {
-                //juce::Logger::outputDebugString ("  [ Warning : folder name too long ]");
-                addStatus ("error", "Folder name too long: " + curFile.getFileName ());
-                // report issue
-            }
             foldersToScan.emplace_back (curFile);
         }
         else
         {
-            if (curFile.getFileName ().startsWithChar ('.'))
-            {
-                // ignore file
-                //juce::Logger::outputDebugString ("  File (ignored) : " + curFile.getFileName ());
-                addStatus ("info", "File ignored: " + curFile.getFileName ());
-            }
-            else if (curFile.getFileExtension () == ".wav")
-            {
-                //juce::Logger::outputDebugString ("  File (audio) : " + curFile.getFileName ());
-                addStatus ("info", "Checking audio file: " + curFile.getFileName ());
-                if (curFile.getFileName ().length () > kMaxFileNameLength)
-                {
-                    //juce::Logger::outputDebugString ("    [ Warning : file name too long ]");
-                    addStatus ("error", "File name too long: " + curFile.getFileName ());
-                    // report issue
-                }
-
-                // process sample file
-                std::unique_ptr<juce::AudioFormatReader> reader (audioFormatManager.createReaderFor (curFile));
-                if (reader == nullptr)
-                {
-                    //juce::Logger::outputDebugString ("    [ Warning : unknown audio format ]");
-                    addStatus ("error", "Unknown audio format: " + curFile.getFileName ());
-                    // unknown format
-                    // report issue
-                }
-                else
-                {
-                    addStatus ("info", "Audio format: " + curFile.getFileName ());
-//                     juce::Logger::outputDebugString ("    Format: " + reader->getFormatName());
-//                     juce::Logger::outputDebugString ("    Sample data: " + juce::String (reader->usesFloatingPointData == true ? "floating point" : "integer"));
-//                     juce::Logger::outputDebugString ("    Bit Depth: " + juce::String (reader->bitsPerSample));
-//                     juce::Logger::outputDebugString ("    Sample Rate: " + juce::String (reader->sampleRate));
-//                     juce::Logger::outputDebugString ("    Channels: " + juce::String (reader->numChannels));
-//                     juce::Logger::outputDebugString ("    Length/Samples: " + juce::String (reader->lengthInSamples));
-//                     juce::Logger::outputDebugString ("    Length/Time: " + juce::String (reader->lengthInSamples / reader->sampleRate));
-                    addStatus ("info", "Audio format: " + curFile.getFileName () + ", " +
-                                       juce::String (reader->usesFloatingPointData == true ? "floating point" : "integer") + ", " +
-                                       juce::String (reader->bitsPerSample) + "bits/" + juce::String (reader->sampleRate / 1000.0f, 2) + "k, " +
-                                       juce::String(reader->numChannels == 1 ? "mono" : "stereo") + ", " +
-                                       juce::String (reader->lengthInSamples / reader->sampleRate) + " seconds");
-                }
-
-            }
-            else if (curFile.getFileExtension () == ".yml" && curFile.getFileNameWithoutExtension ().startsWith ("prst"))
-            {
-                //juce::Logger::outputDebugString ("  File (preset) : " + curFile.getFileName ());
-                addStatus ("info", "Checking preset file: " + curFile.getFileName ());
-                // process preset file
-            }
-            else
-            {
-                //juce::Logger::outputDebugString ("  File (unknown) : " + curFile.getFileName ());
-                addStatus ("warning", "Unknown file: " + curFile.getFileName ());
-                // report unrecognized file
-            }
+            statusText = "File: " + curFile.getFileName ();
+            auto [newStatusType, newStatusText] = validateFile (curFile);
+            statusType = updateStatusType (statusType, newStatusType);
+            statusText += ", " + newStatusText;
         }
+        if (statusType != "")
+            addStatus (statusType, statusText);
+        statusType = {};
+        statusText = {};
     }
 }
 
 void Assimil8orSDCardImage::run ()
 {
+    bool isRoot = true;
+    validationStatusProperties.removeAllChildren (nullptr);
     std::vector<juce::File> foldersToScan;
     foldersToScan.emplace_back (rootFolder);
     while (foldersToScan.size () > 0)
     {
         auto curFolderToScan { foldersToScan.back () };
         foldersToScan.pop_back ();
-        validateFolder (curFolderToScan, foldersToScan);
+        validateFolderContents (curFolderToScan, foldersToScan, isRoot);
+        isRoot = false;
     }
 
     juce::MessageManager::callAsync ([this] ()
@@ -157,7 +241,6 @@ void Assimil8orSDCardImage::run ()
             validationCompleteCallback ();
         });
 }
-
 
 void Assimil8orPreset::parse (juce::StringArray presetLines)
 {
