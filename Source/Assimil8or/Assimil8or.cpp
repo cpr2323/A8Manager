@@ -10,7 +10,9 @@ void Assimil8orSDCardImage::init (juce::ValueTree vt)
 {
     sdCardImage = vt.getChildWithName ("SDCardImage");
     jassert (sdCardImage.isValid ());
-    sdCardImage.addChild (validationStatusProperties, -1, nullptr);
+    validationStatusProperties = sdCardImage.getChildWithName ("ValidationStatus");
+    jassert (validationStatusProperties.isValid ());
+    sdCardImage.setProperty ("scanStatus", "idle", nullptr);
 }
 
 void Assimil8orSDCardImage::setRootFolder (juce::File newRootFolder)
@@ -58,7 +60,7 @@ void Assimil8orSDCardImage::validateFolder (juce::File folder, std::vector<juce:
         newStatusChild.setProperty ("text", statusText, nullptr);
         validationStatusProperties.addChild (newStatusChild, -1, nullptr);
     };
-    juce::Logger::outputDebugString ("Folder: " + folder.getFileName ());
+    //juce::Logger::outputDebugString ("Folder: " + folder.getFileName ());
     addStatus ("info", "Processing folder: " + folder.getFileName ());
     for (const auto& entry : juce::RangedDirectoryIterator (folder, false, "*", juce::File::findFilesAndDirectories))
     {
@@ -70,7 +72,7 @@ void Assimil8orSDCardImage::validateFolder (juce::File folder, std::vector<juce:
         {
             if (curFile.getFileName ().length () > kMaxFolderNameLength)
             {
-                juce::Logger::outputDebugString ("  [ Warning : folder name too long ]");
+                //juce::Logger::outputDebugString ("  [ Warning : folder name too long ]");
                 addStatus ("error", "Folder name too long: " + curFile.getFileName ());
                 // report issue
             }
@@ -81,16 +83,16 @@ void Assimil8orSDCardImage::validateFolder (juce::File folder, std::vector<juce:
             if (curFile.getFileName ().startsWithChar ('.'))
             {
                 // ignore file
-                juce::Logger::outputDebugString ("  File (ignored) : " + curFile.getFileName ());
+                //juce::Logger::outputDebugString ("  File (ignored) : " + curFile.getFileName ());
                 addStatus ("info", "File ignored: " + curFile.getFileName ());
             }
             else if (curFile.getFileExtension () == ".wav")
             {
-                juce::Logger::outputDebugString ("  File (audio) : " + curFile.getFileName ());
+                //juce::Logger::outputDebugString ("  File (audio) : " + curFile.getFileName ());
                 addStatus ("info", "Checking audio file: " + curFile.getFileName ());
                 if (curFile.getFileName ().length () > kMaxFileNameLength)
                 {
-                    juce::Logger::outputDebugString ("    [ Warning : file name too long ]");
+                    //juce::Logger::outputDebugString ("    [ Warning : file name too long ]");
                     addStatus ("error", "File name too long: " + curFile.getFileName ());
                     // report issue
                 }
@@ -99,7 +101,7 @@ void Assimil8orSDCardImage::validateFolder (juce::File folder, std::vector<juce:
                 std::unique_ptr<juce::AudioFormatReader> reader (audioFormatManager.createReaderFor (curFile));
                 if (reader == nullptr)
                 {
-                    juce::Logger::outputDebugString ("    [ Warning : unknown audio format ]");
+                    //juce::Logger::outputDebugString ("    [ Warning : unknown audio format ]");
                     addStatus ("error", "Unknown audio format: " + curFile.getFileName ());
                     // unknown format
                     // report issue
@@ -107,13 +109,13 @@ void Assimil8orSDCardImage::validateFolder (juce::File folder, std::vector<juce:
                 else
                 {
                     addStatus ("info", "Audio format: " + curFile.getFileName ());
-                    juce::Logger::outputDebugString ("    Format: " + reader->getFormatName());
-                    juce::Logger::outputDebugString ("    Sample data: " + juce::String (reader->usesFloatingPointData == true ? "floating point" : "integer"));
-                    juce::Logger::outputDebugString ("    Bit Depth: " + juce::String (reader->bitsPerSample));
-                    juce::Logger::outputDebugString ("    Sample Rate: " + juce::String (reader->sampleRate));
-                    juce::Logger::outputDebugString ("    Channels: " + juce::String (reader->numChannels));
-                    juce::Logger::outputDebugString ("    Length/Samples: " + juce::String (reader->lengthInSamples));
-                    juce::Logger::outputDebugString ("    Length/Time: " + juce::String (reader->lengthInSamples / reader->sampleRate));
+//                     juce::Logger::outputDebugString ("    Format: " + reader->getFormatName());
+//                     juce::Logger::outputDebugString ("    Sample data: " + juce::String (reader->usesFloatingPointData == true ? "floating point" : "integer"));
+//                     juce::Logger::outputDebugString ("    Bit Depth: " + juce::String (reader->bitsPerSample));
+//                     juce::Logger::outputDebugString ("    Sample Rate: " + juce::String (reader->sampleRate));
+//                     juce::Logger::outputDebugString ("    Channels: " + juce::String (reader->numChannels));
+//                     juce::Logger::outputDebugString ("    Length/Samples: " + juce::String (reader->lengthInSamples));
+//                     juce::Logger::outputDebugString ("    Length/Time: " + juce::String (reader->lengthInSamples / reader->sampleRate));
                     addStatus ("info", "Audio format: " + curFile.getFileName () + ", " +
                                        juce::String (reader->usesFloatingPointData == true ? "floating point" : "integer") + ", " +
                                        juce::String (reader->bitsPerSample) + "bits/" + juce::String (reader->sampleRate / 1000.0f, 2) + "k, " +
@@ -124,13 +126,13 @@ void Assimil8orSDCardImage::validateFolder (juce::File folder, std::vector<juce:
             }
             else if (curFile.getFileExtension () == ".yml" && curFile.getFileNameWithoutExtension ().startsWith ("prst"))
             {
-                juce::Logger::outputDebugString ("  File (preset) : " + curFile.getFileName ());
+                //juce::Logger::outputDebugString ("  File (preset) : " + curFile.getFileName ());
                 addStatus ("info", "Checking preset file: " + curFile.getFileName ());
                 // process preset file
             }
             else
             {
-                juce::Logger::outputDebugString ("  File (unknown) : " + curFile.getFileName ());
+                //juce::Logger::outputDebugString ("  File (unknown) : " + curFile.getFileName ());
                 addStatus ("warning", "Unknown file: " + curFile.getFileName ());
                 // report unrecognized file
             }

@@ -24,7 +24,7 @@ private:
     juce::AudioFormatManager audioFormatManager;
     std::function<void ()> validationCompleteCallback;
     juce::ValueTree sdCardImage;
-    juce::ValueTree validationStatusProperties {"ValidationStatus"};
+    juce::ValueTree validationStatusProperties;
 
     void refreshFiles ();
     void validateFolder (juce::File folder, std::vector<juce::File>& foldersToScan);
