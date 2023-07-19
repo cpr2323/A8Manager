@@ -5,11 +5,11 @@ Assimil8orSdImageComponent::Assimil8orSdImageComponent ()
 {
     setOpaque (true);
 
-//    sdImageListBox.setLookAndFeel (&tableListBoxHeaderCenteredLookAndFeel);
-    sdImageListBox.setClickingTogglesRowSelection (true);
+    sdImageListBox.setClickingTogglesRowSelection (false);
     sdImageListBox.setColour (juce::ListBox::outlineColourId, juce::Colours::grey);
     sdImageListBox.setOutlineThickness (1);
-    sdImageListBox.getHeader ().addColumn ("Status Message (0 items)", 1, 100, 10, 3000, juce::TableHeaderComponent::visible);
+    sdImageListBox.getHeader ().addColumn ("Status", 1, 60, 10, 60, juce::TableHeaderComponent::visible);
+    sdImageListBox.getHeader ().addColumn ("Message (0 items)", 2, 100, 10, 3000, juce::TableHeaderComponent::visible);
     addAndMakeVisible (sdImageListBox);
 }
 
@@ -32,7 +32,7 @@ void Assimil8orSdImageComponent::resized ()
 {
     auto localBounds { getLocalBounds () };
     sdImageListBox.setBounds (localBounds);
-    sdImageListBox.getHeader ().setColumnWidth (1, sdImageListBox.getWidth () - 2);
+    sdImageListBox.getHeader ().setColumnWidth (2, sdImageListBox.getWidth () - 2 - sdImageListBox.getHeader().getColumnWidth(1));
 }
 
 int Assimil8orSdImageComponent::getNumRows ()
@@ -76,6 +76,11 @@ void Assimil8orSdImageComponent::paintCell (juce::Graphics& g, int rowNumber, in
             switch (columnId)
             {
                 case 1:
+                {
+                    data += quickLookupList [rowNumber].getProperty ("type").toString ();
+                }
+                break;
+                case 2:
                 {
                     data += quickLookupList [rowNumber].getProperty ("text").toString ();
                 }
@@ -217,7 +222,7 @@ void Assimil8orSdImageComponent::valueTreePropertyChanged (juce::ValueTree& tree
                     }
                     return true;
                 });
-                sdImageListBox.getHeader ().setColumnName (1, "Status Message (" + juce::String (quickLookupList.size ()) + " items)");
+                sdImageListBox.getHeader ().setColumnName (2, "Message (" + juce::String (quickLookupList.size ()) + " items)");
                 sdImageListBox.repaint ();
             }
         }
