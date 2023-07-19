@@ -208,23 +208,20 @@ void Assimil8orSdImageComponent::valueTreePropertyChanged (juce::ValueTree& tree
     {
         if (property.toString () == "scanStatus")
         {
-            juce::Logger::outputDebugString ("tool window received scanning update - " + sdCardImage.getProperty ("scanStatus").toString ());
+            // clearing
+            quickLookupList.clear ();
             if (sdCardImage.getProperty ("scanStatus").toString () == "idle")
             {
                 // iterate over the state message list, adding each one to the quick list
-                quickLookupList.clear ();
                 ValueTreeHelpers::forEachChild (validationStatusProperties, [this] (juce::ValueTree child)
                 {
                     if (child.getType().toString() == "Status")
-                    {
-                        juce::Logger::outputDebugString (child.getProperty ("text").toString ());
                         quickLookupList.emplace_back (child);
-                    }
                     return true;
                 });
-                sdImageListBox.getHeader ().setColumnName (2, "Message (" + juce::String (quickLookupList.size ()) + " items)");
-                sdImageListBox.repaint ();
             }
+            sdImageListBox.getHeader ().setColumnName (2, "Message (" + juce::String (quickLookupList.size ()) + " items)");
+            sdImageListBox.repaint ();
         }
     }
 }
