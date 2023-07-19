@@ -1,16 +1,25 @@
 #include "ToolWindow.h"
 #include "../Utility/RuntimeRootProperties.h"
 
+#define SCAN_ONLY 1
 ToolWindow::ToolWindow ()
 {
+#if SCAN_ONLY
+    fileMenuButton.setButtonText ("Validate Directory");
+#else
     fileMenuButton.setButtonText ("Files");
+#endif
     fileMenuButton.onClick = [this] ()
     {
+#if SCAN_ONLY
+        verifySdCardImage ();
+#else
         juce::PopupMenu pm;
-        pm.addItem ("Verify SD Card Image", true, false, [this] () { verifySdCardImage (); });
+        pm.addItem ("Validate Directory", true, false, [this] () { verifySdCardImage (); });
         pm.addItem ("Verify File", true, false, [this] () { verifyFileUi (); });
         pm.addItem ("Verify Folders", true, false, [this] () { verifyFoldersUi (); });
         pm.showMenuAsync ({}, [this] (int) {});
+#endif
     };
     addAndMakeVisible (fileMenuButton);
     scanningStatusLabel.setColour (juce::Label::ColourIds::textColourId, juce::Colours::black);

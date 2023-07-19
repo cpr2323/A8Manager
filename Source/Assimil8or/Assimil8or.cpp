@@ -71,7 +71,9 @@ std::tuple<juce::String, juce::String> Assimil8orSDCardImage::validateFile (juce
         {
             LogValidation ("  [ Warning : file name too long ]");
             statusType = "error";
-            statusText = "[too long]";
+            statusText = "[name too long. " +
+                          juce::String(file.getFileName ().length()) + "(length) vs " +
+                          juce::String (kMaxFileNameLength) +"(max)]";
         }
 
         std::unique_ptr<juce::AudioFormatReader> reader (audioFormatManager.createReaderFor (file));
@@ -93,7 +95,7 @@ std::tuple<juce::String, juce::String> Assimil8orSDCardImage::validateFile (juce
 
             if (statusType != "error")
                 statusType == "info";
-            statusText = juce::String (statusText.length () == 0 ? "" : ", ") + "Audio format: " +
+            statusText += juce::String (statusText.length () == 0 ? "" : ", ") + "Audio format: " +
                                        juce::String (reader->usesFloatingPointData == true ? "floating point" : "integer") + ", " +
                                        juce::String (reader->bitsPerSample) + "bits/" + juce::String (reader->sampleRate / 1000.0f, 2) + "k, " +
                                        juce::String (reader->numChannels == 1 ? "mono" : "stereo") + ", " +
@@ -121,7 +123,9 @@ std::tuple<juce::String,juce::String> Assimil8orSDCardImage::validateFolder (juc
     else if (folder.getFileName ().length () > kMaxFolderNameLength)
     {
         LogValidation ("  [ Warning : folder name too long ]");
-        return { "error", "[too long]" };
+        return { "error", "[name too long. " +
+                            juce::String (folder.getFileName ().length ()) + "(length) vs " +
+                            juce::String (kMaxFolderNameLength) + "(max)]" };
     }
     else
     {
@@ -151,6 +155,7 @@ void Assimil8orSDCardImage::validateFolderContents (juce::File folder, std::vect
     };
     auto updateStatusType = [] (juce::String oldStatusType, juce::String newStatusType)
     {
+        //jassert (newStatusType != "error");
         if (oldStatusType == "")
         {
             return newStatusType;
