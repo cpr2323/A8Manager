@@ -17,6 +17,7 @@ private:
     juce::TimeSliceThread tst {"dcl"};
     juce::DirectoryContentsList directoryContentsList {nullptr, tst};
 
+    juce::Label scanningStatusLabel;
     std::unique_ptr<juce::FileChooser> fileChooser;
     juce::TextButton fileMenuButton;
     std::vector<juce::File> foldersToScan;

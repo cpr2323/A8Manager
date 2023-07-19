@@ -13,8 +13,9 @@ void Assimil8orSdImageComponent::init (juce::ValueTree rootPropertiesVT)
 {
     RuntimeRootProperties runtimeRootProperties;
     runtimeRootProperties.wrap (rootPropertiesVT, ValueTreeWrapper::WrapperType::client, ValueTreeWrapper::EnableCallbacks::no);
-    sdImageProperties = runtimeRootProperties.getValueTree ().getChildWithName ("SDCardImage");
-    jassert (sdImageProperties.isValid ());
+    sdCardImage = runtimeRootProperties.getValueTree ().getChildWithName ("SDCardImage");
+    jassert (sdCardImage.isValid ());
+    sdCardImage.addListener (this);
 }
 
 void Assimil8orSdImageComponent::paint ([[maybe_unused]] juce::Graphics& g)
@@ -26,4 +27,19 @@ void Assimil8orSdImageComponent::resized ()
 {
     auto localBounds { getLocalBounds () };
     sdImageListBox.setBounds (localBounds);
+
+}
+void Assimil8orSdImageComponent::valueTreePropertyChanged (juce::ValueTree& treeWhosePropertyHasChanged, const juce::Identifier& property)
+{
+    if (treeWhosePropertyHasChanged == sdCardImage)
+    {
+        if (property.toString () == "scanStatus")
+        {
+            juce::Logger::outputDebugString ("tool window received scanning update - " + sdCardImage.getProperty ("scanStatus").toString ());
+            if (sdCardImage.getProperty ("scanStatus").toString () == "idle")
+            {
+                int xc = 5;
+            }
+        }
+    }
 }

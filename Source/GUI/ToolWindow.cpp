@@ -13,7 +13,8 @@ ToolWindow::ToolWindow ()
         pm.showMenuAsync ({}, [this] (int) {});
     };
     addAndMakeVisible (fileMenuButton);
-    sdCardImage.addListener (this);
+    scanningStatusLabel.setColour (juce::Label::ColourIds::textColourId, juce::Colours::black);
+    addAndMakeVisible (scanningStatusLabel);
 }
 
 void ToolWindow::init (juce::ValueTree rootPropertiesVT)
@@ -24,22 +25,22 @@ void ToolWindow::init (juce::ValueTree rootPropertiesVT)
     appProperties.wrap (persistentRootProperties.getValueTree (), ValueTreeWrapper::WrapperType::client, ValueTreeWrapper::EnableCallbacks::no);
     sdCardImage = runtimeRootProperties.getValueTree ().getChildWithName ("SDCardImage");
     jassert (sdCardImage.isValid ());
+    sdCardImage.addListener (this);
+    assimil8orSDCardImage.init (runtimeRootProperties.getValueTree ());
 }
 
 void ToolWindow::verifySdCardImage ()
 {
-    fileChooser.reset (new juce::FileChooser ("Please select the folder to scan for Assimil8or Preset files you want to verify...",
+    fileChooser.reset (new juce::FileChooser ("Please select the folder to scan as an Assimil8or SD Card...",
                                               appProperties.getMostRecentFolder (), ""));
     fileChooser->launchAsync (juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectDirectories, [this] (const juce::FileChooser& fc) mutable
         {
             if (fc.getURLResults ().size () == 1 && fc.getURLResults () [0].isLocalFile ())
             {
                 assimil8orSDCardImage.setRootFolder (fc.getURLResults () [0].getLocalFile ());
-                sdCardImage.setProperty ("scanStatus", "scanning", nullptr);
                 assimil8orSDCardImage.validate ([this] ()
                 {
                     juce::Logger::outputDebugString ("validation done");
-                    juce::MessageManager::callAsync ([this] () { sdCardImage.setProperty ("scanStatus", "idle", nullptr); });
                 });
             }
         }, nullptr);
@@ -123,6 +124,7 @@ void ToolWindow::resized ()
     localBounds.reduce (5, 3);
 
     fileMenuButton.setBounds (localBounds.removeFromLeft (100));
+    scanningStatusLabel.setBounds (localBounds.removeFromRight(100));
 }
 
 void ToolWindow::valueTreePropertyChanged (juce::ValueTree& treeWhosePropertyHasChanged, const juce::Identifier& property)
@@ -132,6 +134,18 @@ void ToolWindow::valueTreePropertyChanged (juce::ValueTree& treeWhosePropertyHas
         if (property.toString () == "scanStatus")
         {
             juce::Logger::outputDebugString ("tool window received scanning update - " + sdCardImage.getProperty("scanStatus").toString());
+            if (sdCardImage.getProperty ("scanStatus").toString () == "scanning")
+            {
+                scanningStatusLabel.setText ("Scanning file system", juce::NotificationType::dontSendNotification);
+            }
+            else if (sdCardImage.getProperty ("scanStatus").toString () == "idle")
+            {
+                scanningStatusLabel.setText ("", juce::NotificationType::dontSendNotification);
+            }
+            else
+            {
+                jassertfalse;
+            }
         }
     }
 }

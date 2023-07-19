@@ -14,6 +14,7 @@ class Assimil8orSDCardImage : public juce::Thread
 public:
     Assimil8orSDCardImage ();
 
+    void init (juce::ValueTree vt);
     void setRootFolder (juce::File newRootFolder);
     void validate (std::function<void ()> theValidationCompleteCallback);
     bool isScanning () { return isThreadRunning (); }
@@ -22,6 +23,8 @@ private:
     juce::File rootFolder;
     juce::AudioFormatManager audioFormatManager;
     std::function<void ()> validationCompleteCallback;
+    juce::ValueTree sdCardImage;
+    juce::ValueTree validationStatusProperties {"ValidationStatus"};
 
     void refreshFiles ();
     void validateFolder (juce::File folder, std::vector<juce::File>& foldersToScan);
