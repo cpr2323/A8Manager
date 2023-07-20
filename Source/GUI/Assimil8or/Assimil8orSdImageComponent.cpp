@@ -62,7 +62,9 @@ void Assimil8orSdImageComponent::paintCell (juce::Graphics& g, int rowNumber, in
 {
     if (rowNumber < quickLookupList.size ())
     {
-        if (! rowIsSelected)
+        g.setColour (juce::Colours::lightsteelblue);
+        g.fillRect (width - 1, 0, 1, height);
+        //if (! rowIsSelected)
         {
             // draw rowNumber entry
             auto textColor { juce::Colours::black };
@@ -89,8 +91,6 @@ void Assimil8orSdImageComponent::paintCell (juce::Graphics& g, int rowNumber, in
             g.drawText (data, juce::Rectangle<float>{ 0.0f, 0.0f, (float) width, (float) height }, juce::Justification::centredLeft, true);
         }
     }
-    g.setColour (juce::Colours::lightsteelblue);
-    g.fillRect (width - 1, 0, 1, height);
 }
 
 juce::Component* Assimil8orSdImageComponent::refreshComponentForCell (int rowNumber, int columnId, bool rowIsSelected,

@@ -1,7 +1,7 @@
 #include "ToolWindow.h"
 #include "../Utility/RuntimeRootProperties.h"
 
-#define SCAN_ONLY 1
+#define SCAN_ONLY 0
 ToolWindow::ToolWindow ()
 {
 #if SCAN_ONLY
