@@ -142,7 +142,7 @@ void ToolWindow::valueTreePropertyChanged (juce::ValueTree& treeWhosePropertyHas
     {
         if (property.toString () == "scanStatus")
         {
-            juce::Logger::outputDebugString ("tool window received scanning update - " + sdCardImage.getProperty("scanStatus").toString());
+            //juce::Logger::outputDebugString ("tool window received scanning update - " + sdCardImage.getProperty("scanStatus").toString());
             if (sdCardImage.getProperty ("scanStatus").toString () == "scanning")
             {
                 scanningStatusLabel.setText ("Scanning file system", juce::NotificationType::dontSendNotification);
