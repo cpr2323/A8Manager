@@ -53,17 +53,17 @@ public:
         // the other instance's command-line arguments were.
     }
 
-    void suspended ()
+    void suspended () override
     {
         runtimeRootProperties.triggerAppSuspended ();
     }
 
-    void resumed ()
+    void resumed () override
     {
         runtimeRootProperties.triggerAppResumed ();
     }
 
-    void systemRequestedQuit ()
+    void systemRequestedQuit () override
     {
         // reset preferred quit state
         runtimeRootProperties.setPreferredQuitState (RuntimeRootProperties::QuitState::now);
@@ -73,7 +73,7 @@ public:
         localQuitState.store (runtimeRootProperties.getPreferredQuitState ());
     }
 
-    void timerCallback ()
+    void timerCallback () override
     {
         if (localQuitState.load () == RuntimeRootProperties::QuitState::now)
             quit ();

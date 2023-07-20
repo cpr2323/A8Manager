@@ -101,7 +101,7 @@ std::tuple<juce::String, juce::String> Assimil8orSDCardImage::validateFile (juce
             LogValidation ("    Length/Time: " + juce::String (reader->lengthInSamples / reader->sampleRate));
 
             if (statusType != "error")
-                statusType == "info";
+                statusType = "info";
             statusText += juce::String (statusText.length () == 0 ? "" : ", ") + "Audio format: " +
                                        juce::String (reader->usesFloatingPointData == true ? "floating point" : "integer") + ", " +
                                        juce::String (reader->bitsPerSample) + "bits/" + juce::String (reader->sampleRate / 1000.0f, 2) + "k, " +
@@ -188,6 +188,7 @@ void Assimil8orSDCardImage::validateFolderContents (juce::File folder, std::vect
         else
         {
             jassertfalse;
+            return newStatusType;
         }
     };
     juce::String statusType;
