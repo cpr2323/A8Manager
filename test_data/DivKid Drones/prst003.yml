@@ -1,0 +1,86 @@
+Preset 3 :
+  Name : Drones 3
+  XfadeACV : 1A
+  XfadeAWidth : 9.10
+  Channel 1 :
+    Pan : -1.00
+    PMSource : 10
+    PitchCV : 0A 0.50
+    PhaseCV : 0B 1.00
+    PMIndexMod : 0C 1.00
+    BitsMod : Off 0.00
+    LoopMode : 1
+    Zone 1 :
+      Sample : ChordLayer_Gm7.wav
+  Channel 2 :
+    Pan : +1.00
+    PMSource : 10
+    PitchCV : 0A 0.50
+    PhaseCV : 0B 1.00
+    PMIndexMod : 0C 1.00
+    ChannelMode : 2
+    LoopMode : 1
+    Zone 1 :
+      Sample : ChordLayer_Gm7.wav
+      Side : 1
+  Channel 3 :
+    Pan : -1.00
+    PMSource : 10
+    PitchCV : 0A 0.50
+    PhaseCV : 0B 1.00
+    PMIndexMod : 0C 1.00
+    LoopMode : 1
+    Zone 1 :
+      Sample : Destroyed_A1_LR.wav
+  Channel 4 :
+    Pan : +1.00
+    PMSource : 10
+    PitchCV : 0A 0.50
+    PhaseCV : 0B 1.00
+    PMIndexMod : 0C 1.00
+    ChannelMode : 2
+    LoopMode : 1
+    Zone 1 :
+      Sample : Destroyed_A1_LR.wav
+      Side : 1
+  Channel 5 :
+    Pan : -1.00
+    PMSource : 10
+    PitchCV : 0A 0.50
+    PhaseCV : 0B 1.00
+    PMIndexMod : 0C 1.00
+    LoopMode : 1
+    Zone 1 :
+      Sample : Fusion_A2_LR.wav
+  Channel 6 :
+    Pan : +1.00
+    PMSource : 10
+    PitchCV : 0A 0.50
+    PhaseCV : 0B 1.00
+    PMIndexMod : 0C 1.00
+    ChannelMode : 2
+    LoopMode : 1
+    Zone 1 :
+      Sample : Fusion_A2_LR.wav
+      Side : 1
+  Channel 7 :
+    Pan : -1.00
+    PMSource : 10
+    PitchCV : 0A 0.50
+    PhaseCV : 0B 1.00
+    PMIndexMod : 0C 1.00
+    LoopMode : 1
+    Zone 1 :
+      Sample : TroikaWarp_A1_LR.wav
+  Channel 8 :
+    Pan : +1.00
+    PMSource : 10
+    PitchCV : 0A 0.50
+    PhaseCV : 0B 1.00
+    PMIndexMod : 0C 1.00
+    BitsMod : 0B 1.00
+    ChannelMode : 2
+    LoopMode : 1
+    Zone 1 :
+      Sample : TroikaWarp_A1_LR.wav
+      Side : 1

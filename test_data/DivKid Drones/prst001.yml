@@ -1,0 +1,86 @@
+Preset 1 :
+  Name : Drones 1
+  XfadeACV : 1A
+  XfadeAWidth : 9.10
+  Channel 1 :
+    Pan : -1.00
+    PMSource : 10
+    PitchCV : 0A 0.50
+    PhaseCV : 0B 1.00
+    PMIndexMod : 0C 1.00
+    BitsMod : Off 0.00
+    LoopMode : 1
+    Zone 1 :
+      Sample : 4VoiceAmbient_LR.wav
+  Channel 2 :
+    Pan : +1.00
+    PMSource : 10
+    PitchCV : 0A 0.50
+    PhaseCV : 0B 1.00
+    PMIndexMod : 0C 1.00
+    ChannelMode : 2
+    LoopMode : 1
+    Zone 1 :
+      Sample : 4VoiceAmbient_LR.wav
+      Side : 1
+  Channel 3 :
+    Pan : -1.00
+    PMSource : 10
+    PitchCV : 0A 0.50
+    PhaseCV : 0B 1.00
+    PMIndexMod : 0C 1.00
+    LoopMode : 1
+    Zone 1 :
+      Sample : AlienAFG_A1_LR.wav
+  Channel 4 :
+    Pan : +1.00
+    PMSource : 10
+    PitchCV : 0A 0.50
+    PhaseCV : 0B 1.00
+    PMIndexMod : 0C 1.00
+    ChannelMode : 2
+    LoopMode : 1
+    Zone 1 :
+      Sample : AlienAFG_A1_LR.wav
+      Side : 1
+  Channel 5 :
+    Pan : -1.00
+    PMSource : 10
+    PitchCV : 0A 0.50
+    PhaseCV : 0B 1.00
+    PMIndexMod : 0C 1.00
+    LoopMode : 1
+    Zone 1 :
+      Sample : ChordLayer_Ab.wav
+  Channel 6 :
+    Pan : +1.00
+    PMSource : 10
+    PitchCV : 0A 0.50
+    PhaseCV : 0B 1.00
+    PMIndexMod : 0C 1.00
+    ChannelMode : 2
+    LoopMode : 1
+    Zone 1 :
+      Sample : ChordLayer_Ab.wav
+      Side : 1
+  Channel 7 :
+    Pan : -1.00
+    PMSource : 10
+    PitchCV : 0A 0.50
+    PhaseCV : 0B 1.00
+    PMIndexMod : 0C 1.00
+    LoopMode : 1
+    Zone 1 :
+      Sample : ChordLayer_Bb.wav
+  Channel 8 :
+    Pan : +1.00
+    PMSource : 10
+    PitchCV : 0A 0.50
+    PhaseCV : 0B 1.00
+    PMIndexMod : 0C 1.00
+    BitsMod : 0B 1.00
+    ChannelMode : 2
+    LoopMode : 1
+    Zone 1 :
+      Sample : ChordLayer_Bb.wav
+      Side : 1
