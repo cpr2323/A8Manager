@@ -79,13 +79,33 @@ public:
             quit ();
     }
 
+    class Assimil8orSDCardValidatorProperties : public ValueTreeWrapper
+    {
+    public:
+        Assimil8orSDCardValidatorProperties () noexcept : ValueTreeWrapper (Assimil8orSDCardValidatorId) {}
 
+        juce::ValueTree getValidationStatusVT ()
+        {
+            return data.getChildWithName (ValidationsStatusId);
+        }
+
+        static inline const juce::Identifier Assimil8orSDCardValidatorId { "Assimil8orSDCardValidator" };
+
+        static inline const juce::Identifier ValidationsStatusId { "ValidationStatus" };
+    private:
+        void initValueTree () override
+        {
+            data.addChild (juce::ValueTree {ValidationsStatusId}, -1, nullptr);
+        }
+    };
     void initAssimil8or ()
     {
+        Assimil8orSDCardValidatorProperties assimil8orSDCardValidatorProperties;
         // hack the preset data on to the runtime root until we get a proper valuetreewrapper for the preset
         runtimeRootProperties.getValueTree ().addChild (assimil8orPreset.getPresetVT (), -1, nullptr);
         // TODO - currently creating this manually here
         //        need to refactor with a proper owner (Assimil8orSDCardImage?) and ValueTreeWrapper 
+        assimil8orSDCardValidatorProperties.wrap (runtimeRootProperties.getValueTree (), ValueTreeWrapper::WrapperType::client, ValueTreeWrapper::EnableCallbacks::yes);
         auto sdCardImageProperties { juce::ValueTree ("SDCardImage") };
         sdCardImageProperties.addChild (juce::ValueTree {"ValidationStatus"}, -1, nullptr);
         runtimeRootProperties.getValueTree ().addChild (sdCardImageProperties, -1, nullptr);
@@ -93,7 +113,7 @@ public:
 
     void initUi ()
     {
-        mainWindow.reset (new MainWindow (getApplicationName (), rootProperties.getValueTree ()));
+        mainWindow.reset (new MainWindow (getApplicationName () + " - v" + getApplicationVersion (), rootProperties.getValueTree ()));
     }
 
     void initPropertyRoots ()
