@@ -1,0 +1,77 @@
+Preset 2 :
+  Name : All params
+  Data2asCV : 1A
+  XfadeACV : 2A
+  XfadeAWidth : 3.60
+  Channel 1 :
+    XfadeGroup : C
+    Zone 1 :
+      Sample : 67.wav
+  Channel 2 :
+    ChannelMode : 1
+    XfadeGroup : A
+    Zone 1 :
+      Sample : 74.wav
+  Channel 3 :
+    ChannelMode : 2
+    Zone 1 :
+      Sample : Standup_Bass_Normal_C#3.wav
+  Channel 4 :
+    Pitch : +3.97
+    Level : -3.8
+    Pan : -0.77
+    Attack :  0.0360
+    AttackFromCurrent : 1
+    Release :  0.2200
+    Bits : 08.4
+    Aliasing : 93
+    PlayMode : 1
+    MixLevel : +4.0
+    PMSource : 1
+    PMIndex : 0.93
+    LinFM : 0A 0.78
+    ExpFM : 0A 0.61
+    PitchCV : 0C 0.84
+    PhaseCV : 0A 0.67
+    PMIndexMod : 0A 0.71
+    BitsMod : 0A 0.84
+    AliasingMod : 0B 0.92
+    LinAM : 0C 0.59
+    ExpAM : 0B 0.86
+    AttackMod : 0B 0.82
+    ReleaseMod : 0C 0.68
+    PanMod : 0B 0.84
+    SampleStartMod : 0B 0.97
+    SampleEndMod : 0A 0.66
+    LoopStartMod : 0A 0.93
+    LoopLengthMod : 0A 0.80
+    ChannelMode : 3
+    LoopMode : 1
+    Reverse : 1
+    AutoTrigger : 1
+    LinAMisExtEnv : 1
+    SpliceSmoothing : 1
+    ZonesCV : 0A
+    ZonesRT : 1
+    MixMod : 0A 0.93
+    MixModIsFader : 1
+    Zone 1 :
+      Sample : [22] s-vibraphone penta up 1.wav
+      SampleEnd : 396900
+    Zone 2 :
+      Sample : MOOG_BASS_G.wav
+      SampleEnd : 23362
+      MinVoltage : -2.50
+    Zone 3 :
+      Sample : Standup_Bass_Normal_E1.wav
+      SampleEnd : 528759
+      MinVoltage : -3.75
+    Zone 4 :
+      Sample : Standup_Bass_Normal_G1.wav
+      SampleStart : 142794
+      SampleEnd : 370962
+      LoopStart : 104433
+      LoopLength : 250512.0000
+      PitchOffset : +2.00
+      LevelOffset : -6.3
+      MinVoltage : -5.00
