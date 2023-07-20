@@ -1,7 +1,7 @@
 #include "ToolWindow.h"
 #include "../Utility/RuntimeRootProperties.h"
 
-#define SCAN_ONLY 0
+#define SCAN_ONLY 1
 ToolWindow::ToolWindow ()
 {
 #if SCAN_ONLY
@@ -47,10 +47,7 @@ void ToolWindow::verifySdCardImage ()
             if (fc.getURLResults ().size () == 1 && fc.getURLResults () [0].isLocalFile ())
             {
                 assimil8orSDCardImage.setRootFolder (fc.getURLResults () [0].getLocalFile ());
-                assimil8orSDCardImage.validate ([this] ()
-                {
-                    juce::Logger::outputDebugString ("validation done");
-                });
+                assimil8orSDCardImage.validate ();
             }
         }, nullptr);
 }

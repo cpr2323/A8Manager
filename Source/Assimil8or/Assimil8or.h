@@ -16,13 +16,12 @@ public:
 
     void init (juce::ValueTree vt);
     void setRootFolder (juce::File newRootFolder);
-    void validate (std::function<void ()> theValidationCompleteCallback);
+    void validate ();
     bool isScanning () { return isThreadRunning (); }
 
 private:
     juce::File rootFolder;
     juce::AudioFormatManager audioFormatManager;
-    std::function<void ()> validationCompleteCallback;
     juce::ValueTree sdCardImage;
     juce::ValueTree validationStatusProperties;
 

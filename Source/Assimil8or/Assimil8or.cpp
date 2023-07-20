@@ -14,6 +14,73 @@
 #define LogParsing(text) ;
 #endif
 
+class ScanStatusResult
+{
+public:
+    ScanStatusResult () = default;
+
+    void reset ()
+    {
+        curType = {};
+        curText = {};
+    }
+
+    juce::String getType ()
+    {
+        return curType;
+    }
+
+    juce::String getText ()
+    {
+        return curText;
+    }
+
+    void update (juce::String newType, juce::String newText)
+    {
+        updateType (newType);
+        udpateText (newText);
+    }
+
+    void updateType (juce::String newType)
+    {
+        if (newType == "" || curType == "error")
+            return;
+
+        if (curType == "")
+        {
+            curType = newType;
+        }
+        else if (curType == "info")
+        {
+            if (newType != "")
+                curType = newType;
+        }
+        else if (curType == "warning")
+        {
+            if (newType != "info")
+                curType = newType;
+        }
+        else
+        {
+            jassertfalse;
+        }
+    }
+
+    void udpateText (juce::String newText)
+    {
+        if (newText.isEmpty ())
+            return;
+
+        if (curText.isNotEmpty ())
+            curText += ", ";
+
+        curText += newText;
+    }
+private:
+    juce::String curType;
+    juce::String curText;
+};
+
 Assimil8orSDCardImage::Assimil8orSDCardImage () : Thread ("Assimil8orSDCardImage")
 {
     // initialize format manager for sample file reading
@@ -38,11 +105,8 @@ void Assimil8orSDCardImage::setRootFolder (juce::File newRootFolder)
     }
 }
 
-void Assimil8orSDCardImage::validate (std::function<void()> theValidationCompleteCallback)
+void Assimil8orSDCardImage::validate()
 {
-    jassert (theValidationCompleteCallback != nullptr);
-    validationCompleteCallback = theValidationCompleteCallback;
-
     sdCardImage.setProperty ("scanStatus", "scanning", nullptr);
     startThread ();
 }
@@ -72,23 +136,21 @@ std::tuple<juce::String, juce::String> Assimil8orSDCardImage::validateFile (juce
     }
     else if (file.getFileExtension () == ".wav")
     {
-        juce::String statusType { "info" };
-        juce::String statusText;
+        ScanStatusResult scanStatusResult;
+        scanStatusResult.updateType ("info");
         if (file.getFileName ().length () > kMaxFileNameLength)
         {
             LogValidation ("  [ Warning : file name too long ]");
-            statusType = "error";
-            statusText = "[name too long. " +
-                          juce::String(file.getFileName ().length()) + "(length) vs " +
-                          juce::String (kMaxFileNameLength) +"(max)]";
+            scanStatusResult.update("error",
+                                    "[name too long. " + juce::String(file.getFileName ().length()) + "(length) vs " +
+                                       juce::String (kMaxFileNameLength) +"(max)]");
         }
 
         std::unique_ptr<juce::AudioFormatReader> reader (audioFormatManager.createReaderFor (file));
         if (reader == nullptr)
         {
             LogValidation ("    [ Warning : unknown audio format ]");
-            statusType = "error";
-            statusText = juce::String(statusText.length() == 0 ? "" : ", ") + "[unknown audio format. size = " + juce::String (file.getSize()) + "]";
+            scanStatusResult.update ("error", "[unknown audio format. size = " + juce::String (file.getSize()) + "]");
         }
         else
         {
@@ -100,15 +162,13 @@ std::tuple<juce::String, juce::String> Assimil8orSDCardImage::validateFile (juce
             LogValidation ("    Length/Samples: " + juce::String (reader->lengthInSamples));
             LogValidation ("    Length/Time: " + juce::String (reader->lengthInSamples / reader->sampleRate));
 
-            if (statusType != "error")
-                statusType = "info";
-            statusText += juce::String (statusText.length () == 0 ? "" : ", ") + "Audio format: " +
-                                       juce::String (reader->usesFloatingPointData == true ? "floating point" : "integer") + ", " +
-                                       juce::String (reader->bitsPerSample) + "bits/" + juce::String (reader->sampleRate / 1000.0f, 2) + "k, " +
-                                       juce::String (reader->numChannels == 1 ? "mono" : "stereo") + ", " +
-                                       juce::String (reader->lengthInSamples / reader->sampleRate) + " seconds";
+            scanStatusResult.udpateText(juce::String ("Audio format: ") +
+                                        juce::String (reader->usesFloatingPointData == true ? "floating point" : "integer") + ", " +
+                                        juce::String (reader->bitsPerSample) + "bits/" + juce::String (reader->sampleRate / 1000.0f, 2) + "k, " +
+                                        juce::String (reader->numChannels == 1 ? "mono" : "stereo") + ", " +
+                                        juce::String (reader->lengthInSamples / reader->sampleRate) + " seconds");
         }
-        return { statusType, statusText };
+        return { scanStatusResult.getType (), scanStatusResult.getText () };
     }
     else
     {
@@ -145,9 +205,10 @@ void Assimil8orSDCardImage::validateFolderContents (juce::File folder, std::vect
     // iterate over files system
     // for directories
     //      report if name over 31 characters
-    //      report if folder is 2 or more deep in hierarchy
+    //      (TODO) report if folder is 2 or more deep in hierarchy
     // for preset files (to be done when the preset file is fully defined)
-    //      validate preset file data (really only important if it has been edited)
+    //      (TODO) report if channels * samples * 32 > Assimil8or memory
+    //      (TODO) validate preset file data (really only important if it has been edited)
     // for audio files
     //      report if name over 47 characters
     //      report if it does not match supported formats
@@ -160,39 +221,7 @@ void Assimil8orSDCardImage::validateFolderContents (juce::File folder, std::vect
         newStatusChild.setProperty ("text", statusText, nullptr);
         validationStatusProperties.addChild (newStatusChild, -1, nullptr);
     };
-    auto updateStatusType = [] (juce::String oldStatusType, juce::String newStatusType)
-    {
-        //jassert (newStatusType != "error");
-        if (oldStatusType == "")
-        {
-            return newStatusType;
-        }
-        else if (oldStatusType == "info")
-        {
-            if (newStatusType != "")
-                return newStatusType;
-            else
-                return oldStatusType;
-        }
-        else if (oldStatusType == "warning")
-        {
-            if (newStatusType != "info")
-                return newStatusType;
-            else
-                return oldStatusType;
-        }
-        else if (oldStatusType == "error")
-        {
-            return oldStatusType;
-        }
-        else
-        {
-            jassertfalse;
-            return newStatusType;
-        }
-    };
-    juce::String statusType;
-    juce::String statusText;
+    ScanStatusResult scanStatusResult;
     LogValidation ("Folder: " + folder.getFileName ());
     if (isRoot)
     {
@@ -200,16 +229,13 @@ void Assimil8orSDCardImage::validateFolderContents (juce::File folder, std::vect
     }
     else
     {
-        statusType = "info";
-        statusText = "Folder: " + folder.getFileName ();
+        scanStatusResult.update ("info", "Folder: " + folder.getFileName ());
         auto [newStatusType, newStatusText] = validateFolder (folder);
-        statusType = updateStatusType (statusType, newStatusType);
-        statusText += ", " + newStatusText;
-        addStatus (statusType, statusText);
+        scanStatusResult.update (newStatusType, newStatusText);
+        addStatus (scanStatusResult.getType (), scanStatusResult.getText());
     }
+    scanStatusResult.reset ();
 
-    statusType = {};
-    statusText = {};
     for (const auto& entry : juce::RangedDirectoryIterator (folder, false, "*", juce::File::findFilesAndDirectories))
     {
         if (threadShouldExit ())
@@ -218,19 +244,18 @@ void Assimil8orSDCardImage::validateFolderContents (juce::File folder, std::vect
         const auto& curFile { entry.getFile () };
         if (curFile.isDirectory ())
         {
+            // queue folders up to be handled in scan thread loop, ie. our caller
             foldersToScan.emplace_back (curFile);
         }
         else
         {
-            statusText = "File: " + curFile.getFileName ();
+            scanStatusResult.update ("info", "File: " + curFile.getFileName ());
             auto [newStatusType, newStatusText] = validateFile (curFile);
-            statusType = updateStatusType (statusType, newStatusType);
-            statusText += ", " + newStatusText;
+            scanStatusResult.update (newStatusType, newStatusText);
         }
-        if (statusType != "")
-            addStatus (statusType, statusText);
-        statusType = {};
-        statusText = {};
+        if (scanStatusResult.getType () != "")
+            addStatus (scanStatusResult.getType (), scanStatusResult.getText ());
+        scanStatusResult.reset ();
     }
 }
 
@@ -249,12 +274,12 @@ void Assimil8orSDCardImage::run ()
     }
 
     juce::MessageManager::callAsync ([this] ()
-        {
-            sdCardImage.setProperty ("scanStatus", "idle", nullptr);
-            validationCompleteCallback ();
-        });
+    {
+        sdCardImage.setProperty ("scanStatus", "idle", nullptr);
+    });
 }
 
+// NOTE: still very much under construction
 void Assimil8orPreset::parse (juce::StringArray presetLines)
 {
     auto scopeDepth { 0 };
