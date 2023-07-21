@@ -50,6 +50,5 @@ void A8SDCardValidatorProperties::valueTreePropertyChanged (juce::ValueTree& vt,
             if (onStartScanAsync!= nullptr)
                 onStartScanAsync ();
         }
-        
     }
 }

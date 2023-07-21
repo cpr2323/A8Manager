@@ -32,7 +32,7 @@ public:
         initLogger ();
         initCrashHandler ();
         initPropertyRoots ();
-        initAssimil8or();
+        initAssimil8or ();
         initUi ();
 
         // async quit timer
@@ -219,5 +219,5 @@ private:
     std::unique_ptr<MainWindow> mainWindow;
 };
 
-// This macro generates the main() routine that launches the app.
+// This macro generates the main () routine that launches the app.
 START_JUCE_APPLICATION (A8ManagerApplication)

@@ -2,14 +2,14 @@
 
 #define LOG_VALIDATION 0
 #if LOG_VALIDATION
-#define LogValidation(text) juce::Logger::outputDebugString(text);
+#define LogValidation(text) juce::Logger::outputDebugString (text);
 #else
 #define LogValidation(text) ;
 #endif
 
 #define LOG_PARSING 1
-#if LOG_PARSING 
-#define LogParsing(text) juce::Logger::outputDebugString(text);
+#if LOG_PARSING
+#define LogParsing(text) juce::Logger::outputDebugString (text);
 #else
 #define LogParsing(text) ;
 #endif
@@ -245,7 +245,7 @@ void Assimil8orSDCardImage::validateFolderContents (juce::File folder, std::vect
 
 void Assimil8orSDCardImage::run ()
 {
-    bool isRoot = true;
+    bool isRoot { true };
     a8SDCardValidatorProperties.getValidationStatusVT ().removeAllChildren (nullptr);
     std::vector<juce::File> foldersToScan;
     foldersToScan.emplace_back (a8SDCardValidatorProperties.getRootFolder ());
@@ -306,7 +306,7 @@ void Assimil8orPreset::parse (juce::StringArray presetLines)
         };
         auto addValueTreeChild = [&key] (juce::Identifier sectionId, juce::ValueTree parent)
         {
-            auto section = juce::ValueTree { sectionId };
+            auto section { juce::ValueTree { sectionId } };
             section.setProperty ("index", key.fromFirstOccurrenceOf (" ", false, false), nullptr);
             parent.addChild (section, -1, nullptr);
             return section;

@@ -8,7 +8,7 @@
 //      Folder (31 character len) (max 199 presets) (no nested folders)
 //          Preset (prst000.yml)
 //          Preset
-//          Audio (47 character len) (arbitrary name) 
+//          Audio (47 character len) (arbitrary name)
 //          Audio
 class Assimil8orSDCardImage : public juce::Thread
 {
