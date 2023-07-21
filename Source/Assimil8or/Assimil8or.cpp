@@ -150,17 +150,17 @@ std::tuple<juce::String, juce::String> Assimil8orSDCardImage::validateFile (juce
 
             const auto memoryUsage { reader->numChannels * reader->lengthInSamples * 4 };
             const auto sampleRateString { juce::String (reader->sampleRate / 1000.0f, 2).trimCharactersAtEnd ("0.") };
-            const double oneK { 1024.0f };
-            const double oneMB { 1024.0f * 1024.0f };
-            const double oneGB { 1024.0f * 1024.0f * 10240.f };
-            const auto memoryUsageString = [memoryUsage, oneK, oneMB, oneGB] ()
+            const auto memoryUsageString = [memoryUsage] ()
             {
+                const double oneK { 1024.0f };
+                const double oneMB { 1024.0f * 1024.0f };
+                const double oneGB { 1024.0f * 1024.0f * 1024.0f };
                 if (memoryUsage >= oneGB)
-                    return juce::String (memoryUsage / oneGB, 2) + "GB";
+                    return juce::String (memoryUsage / oneGB, 2).trimCharactersAtEnd ("0.") + "GB";
                 else if (memoryUsage >= oneMB)
-                    return juce::String (memoryUsage / oneMB, 2) + "MB";
+                    return juce::String (memoryUsage / oneMB, 2).trimCharactersAtEnd ("0.") + "MB";
                 else if (memoryUsage >= oneK)
-                    return juce::String (memoryUsage / oneK, 2) + "k";
+                    return juce::String (memoryUsage / oneK, 2).trimCharactersAtEnd ("0.") + "k";
                 else
                     return juce::String (memoryUsage) + "bytes";
             }();
