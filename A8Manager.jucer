@@ -6,6 +6,10 @@
   <MAINGROUP id="JDgvjc" name="A8Manager">
     <GROUP id="{26A00EED-F319-636E-6162-8A113C6EE925}" name="Source">
       <GROUP id="{B33B27D7-84B5-739E-6EF4-3DA0243B11AC}" name="Assimil8or">
+        <FILE id="uhqsFr" name="A8SDCardValidatorProperties.cpp" compile="1"
+              resource="0" file="Source/Assimil8or/A8SDCardValidatorProperties.cpp"/>
+        <FILE id="w8jVEF" name="A8SDCardValidatorProperties.h" compile="0"
+              resource="0" file="Source/Assimil8or/A8SDCardValidatorProperties.h"/>
         <FILE id="o7xiMd" name="Assimil8or.cpp" compile="1" resource="0" file="Source/Assimil8or/Assimil8or.cpp"/>
         <FILE id="EQ0pG9" name="Assimil8or.h" compile="0" resource="0" file="Source/Assimil8or/Assimil8or.h"/>
       </GROUP>

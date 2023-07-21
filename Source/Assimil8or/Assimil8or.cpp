@@ -89,11 +89,7 @@ Assimil8orSDCardImage::Assimil8orSDCardImage () : Thread ("Assimil8orSDCardImage
 
 void Assimil8orSDCardImage::init (juce::ValueTree vt)
 {
-    sdCardImage = vt.getChildWithName ("SDCardImage");
-    jassert (sdCardImage.isValid ());
-    validationStatusProperties = sdCardImage.getChildWithName ("ValidationStatus");
-    jassert (validationStatusProperties.isValid ());
-    sdCardImage.setProperty ("scanStatus", "idle", nullptr);
+    a8SDCardValidatorProperties.wrap (vt, ValueTreeWrapper::WrapperType::owner, ValueTreeWrapper::EnableCallbacks::yes);
 }
 
 void Assimil8orSDCardImage::setRootFolder (juce::File newRootFolder)
@@ -107,7 +103,7 @@ void Assimil8orSDCardImage::setRootFolder (juce::File newRootFolder)
 
 void Assimil8orSDCardImage::validate()
 {
-    sdCardImage.setProperty ("scanStatus", "scanning", nullptr);
+    a8SDCardValidatorProperties.setScanStatus ("scanning", false);
     startThread ();
 }
 
@@ -219,7 +215,7 @@ void Assimil8orSDCardImage::validateFolderContents (juce::File folder, std::vect
         auto newStatusChild { juce::ValueTree {"Status"}};
         newStatusChild.setProperty ("type", statusType, nullptr);
         newStatusChild.setProperty ("text", statusText, nullptr);
-        validationStatusProperties.addChild (newStatusChild, -1, nullptr);
+        a8SDCardValidatorProperties.getValidationStatusVT ().addChild (newStatusChild, -1, nullptr);
     };
     ScanStatusResult scanStatusResult;
     LogValidation ("Folder: " + folder.getFileName ());
@@ -262,7 +258,7 @@ void Assimil8orSDCardImage::validateFolderContents (juce::File folder, std::vect
 void Assimil8orSDCardImage::run ()
 {
     bool isRoot = true;
-    validationStatusProperties.removeAllChildren (nullptr);
+    a8SDCardValidatorProperties.getValidationStatusVT ().removeAllChildren (nullptr);
     std::vector<juce::File> foldersToScan;
     foldersToScan.emplace_back (rootFolder);
     while (foldersToScan.size () > 0)
@@ -275,7 +271,7 @@ void Assimil8orSDCardImage::run ()
 
     juce::MessageManager::callAsync ([this] ()
     {
-        sdCardImage.setProperty ("scanStatus", "idle", nullptr);
+        a8SDCardValidatorProperties.setScanStatus ("idle", false);
     });
 }
 
