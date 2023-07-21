@@ -149,8 +149,17 @@ std::tuple<juce::String, juce::String> Assimil8orSDCardImage::validateFile (juce
             scanStatusResult.udpateText (juce::String ("Audio format: ") +
                                          juce::String (reader->usesFloatingPointData == true ? "floating point" : "integer") + ", " +
                                          juce::String (reader->bitsPerSample) + "bits/" + juce::String (reader->sampleRate / 1000.0f, 2) + "k, " +
-                                         juce::String (reader->numChannels == 1 ? "mono" : "stereo") + ", " +
+                                         juce::String (reader->numChannels == 1 ? "mono" : (reader->numChannels == 2 ? "stereo" : juce::String(reader->numChannels) + " channels")) + ", " +
                                          juce::String (reader->lengthInSamples / reader->sampleRate) + " seconds");
+            auto reportErrorIfTrue = [&scanStatusResult] (bool conditionalResult, juce::String newText)
+            {
+                if (conditionalResult)
+                    scanStatusResult.update ("error", newText);
+            };
+            reportErrorIfTrue (reader->usesFloatingPointData == true, "[sample format must be integer]");
+            reportErrorIfTrue (reader->bitsPerSample < 8 || reader->bitsPerSample > 32, "[bit depth must be between 8 and 32]");
+            reportErrorIfTrue (reader->numChannels < 1 || reader->numChannels > 2, "[only mono and stereo supported]");
+            reportErrorIfTrue (reader->sampleRate > 192000, "[sample rate must not exceed 129k]");
         }
         return { scanStatusResult.getType (), scanStatusResult.getText () };
     }
