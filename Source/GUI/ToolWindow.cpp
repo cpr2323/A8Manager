@@ -1,5 +1,6 @@
 #include "ToolWindow.h"
 #include "../Utility/RuntimeRootProperties.h"
+#include "../Assimil8or/Assimil8or.h"
 
 #define SCAN_ONLY 1
 ToolWindow::ToolWindow ()
@@ -32,10 +33,24 @@ void ToolWindow::init (juce::ValueTree rootPropertiesVT)
     runtimeRootProperties.wrap (rootPropertiesVT, ValueTreeWrapper::WrapperType::client, ValueTreeWrapper::EnableCallbacks::no);
     persistentRootProperties.wrap (rootPropertiesVT, ValueTreeWrapper::WrapperType::client, ValueTreeWrapper::EnableCallbacks::no);
     appProperties.wrap (persistentRootProperties.getValueTree (), ValueTreeWrapper::WrapperType::client, ValueTreeWrapper::EnableCallbacks::no);
-    sdCardImage = runtimeRootProperties.getValueTree ().getChildWithName ("SDCardImage");
-    jassert (sdCardImage.isValid ());
-    sdCardImage.addListener (this);
-    assimil8orSDCardImage.init (runtimeRootProperties.getValueTree ());
+    a8SDCardValidatorProperties.wrap (runtimeRootProperties.getValueTree (), ValueTreeWrapper::WrapperType::client, ValueTreeWrapper::EnableCallbacks::yes);
+    a8SDCardValidatorProperties.onScanStatusChanged = [this] (juce::String scanStatus) { updateScanStatus (scanStatus); };
+}
+
+void ToolWindow::updateScanStatus (juce::String scanStatus)
+{
+    if (scanStatus == "scanning")
+    {
+        scanningStatusLabel.setText ("Scanning file system", juce::NotificationType::dontSendNotification);
+    }
+    else if (scanStatus == "idle")
+    {
+        scanningStatusLabel.setText ("", juce::NotificationType::dontSendNotification);
+    }
+    else
+    {
+        jassertfalse;
+    }
 }
 
 void ToolWindow::verifySdCardImage ()
@@ -46,8 +61,8 @@ void ToolWindow::verifySdCardImage ()
         {
             if (fc.getURLResults ().size () == 1 && fc.getURLResults () [0].isLocalFile ())
             {
-                assimil8orSDCardImage.setRootFolder (fc.getURLResults () [0].getLocalFile ());
-                assimil8orSDCardImage.validate ();
+                a8SDCardValidatorProperties.setRootFolder (fc.getURLResults () [0].getLocalFile ().getFullPathName (), false);
+                a8SDCardValidatorProperties.startAsyncScan (false);
             }
         }, nullptr);
 }
@@ -131,27 +146,4 @@ void ToolWindow::resized ()
 
     fileMenuButton.setBounds (localBounds.removeFromLeft (100));
     scanningStatusLabel.setBounds (localBounds.removeFromRight(100));
-}
-
-void ToolWindow::valueTreePropertyChanged (juce::ValueTree& treeWhosePropertyHasChanged, const juce::Identifier& property)
-{
-    if (treeWhosePropertyHasChanged == sdCardImage)
-    {
-        if (property.toString () == "scanStatus")
-        {
-            //juce::Logger::outputDebugString ("tool window received scanning update - " + sdCardImage.getProperty("scanStatus").toString());
-            if (sdCardImage.getProperty ("scanStatus").toString () == "scanning")
-            {
-                scanningStatusLabel.setText ("Scanning file system", juce::NotificationType::dontSendNotification);
-            }
-            else if (sdCardImage.getProperty ("scanStatus").toString () == "idle")
-            {
-                scanningStatusLabel.setText ("", juce::NotificationType::dontSendNotification);
-            }
-            else
-            {
-                jassertfalse;
-            }
-        }
-    }
 }

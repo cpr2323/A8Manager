@@ -83,6 +83,7 @@ public:
     {
         // hack the preset data on to the runtime root until we get a proper valuetreewrapper for the preset
         runtimeRootProperties.getValueTree ().addChild (assimil8orPreset.getPresetVT (), -1, nullptr);
+        assimil8orSDCardImage.init (runtimeRootProperties.getValueTree ());
     }
 
     void initUi ()
@@ -212,6 +213,7 @@ private:
     AppProperties appProperties;
     RuntimeRootProperties runtimeRootProperties;
     Assimil8orPreset assimil8orPreset;
+    Assimil8orSDCardImage assimil8orSDCardImage;
     std::unique_ptr<juce::FileLogger> fileLogger;
     std::atomic<RuntimeRootProperties::QuitState> localQuitState { RuntimeRootProperties::QuitState::idle };
     std::unique_ptr<MainWindow> mainWindow;

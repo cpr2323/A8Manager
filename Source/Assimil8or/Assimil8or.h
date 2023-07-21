@@ -16,15 +16,12 @@ public:
     Assimil8orSDCardImage ();
 
     void init (juce::ValueTree vt);
-    void setRootFolder (juce::File newRootFolder);
     void validate ();
     bool isScanning () { return isThreadRunning (); }
 
 private:
-    juce::File rootFolder;
     juce::AudioFormatManager audioFormatManager;
     A8SDCardValidatorProperties a8SDCardValidatorProperties;
-    void refreshFiles ();
     std::tuple<juce::String, juce::String> validateFile (juce::File file);
     std::tuple<juce::String,juce::String> validateFolder (juce::File folder);
     void validateFolderContents (juce::File folder, std::vector<juce::File>& foldersToScan, bool isRoot);

@@ -90,25 +90,13 @@ Assimil8orSDCardImage::Assimil8orSDCardImage () : Thread ("Assimil8orSDCardImage
 void Assimil8orSDCardImage::init (juce::ValueTree vt)
 {
     a8SDCardValidatorProperties.wrap (vt, ValueTreeWrapper::WrapperType::owner, ValueTreeWrapper::EnableCallbacks::yes);
-}
-
-void Assimil8orSDCardImage::setRootFolder (juce::File newRootFolder)
-{
-    if (newRootFolder.exists () && newRootFolder.isDirectory ())
-    {
-        rootFolder = newRootFolder;
-        refreshFiles ();
-    }
+    a8SDCardValidatorProperties.onStartScanAsync = [this] () { validate (); };
 }
 
 void Assimil8orSDCardImage::validate()
 {
     a8SDCardValidatorProperties.setScanStatus ("scanning", false);
     startThread ();
-}
-
-void Assimil8orSDCardImage::refreshFiles ()
-{
 }
 
 std::tuple<juce::String, juce::String> Assimil8orSDCardImage::validateFile (juce::File file)
@@ -260,7 +248,7 @@ void Assimil8orSDCardImage::run ()
     bool isRoot = true;
     a8SDCardValidatorProperties.getValidationStatusVT ().removeAllChildren (nullptr);
     std::vector<juce::File> foldersToScan;
-    foldersToScan.emplace_back (rootFolder);
+    foldersToScan.emplace_back (a8SDCardValidatorProperties.getRootFolder ());
     while (foldersToScan.size () > 0)
     {
         auto curFolderToScan { foldersToScan.back () };
