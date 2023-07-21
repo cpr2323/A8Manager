@@ -14,6 +14,8 @@
 #define LogParsing(text) ;
 #endif
 
+const auto maxMemory { 422 * 1024 * 1024 };
+
 class ScanStatusResult
 {
 public:
@@ -148,12 +150,26 @@ std::tuple<juce::String, juce::String> Assimil8orSDCardImage::validateFile (juce
 
             const auto memoryUsage { reader->numChannels * reader->lengthInSamples * 4 };
             const auto sampleRateString { juce::String (reader->sampleRate / 1000.0f, 2).trimCharactersAtEnd ("0.") };
+            const double oneK { 1024.0f };
+            const double oneMB { 1024.0f * 1024.0f };
+            const double oneGB { 1024.0f * 1024.0f * 10240.f };
+            const auto memoryUsageString = [memoryUsage, oneK, oneMB, oneGB] ()
+            {
+                if (memoryUsage >= oneGB)
+                    return juce::String (memoryUsage / oneGB, 2) + "GB";
+                else if (memoryUsage >= oneMB)
+                    return juce::String (memoryUsage / oneMB, 2) + "MB";
+                else if (memoryUsage >= oneK)
+                    return juce::String (memoryUsage / oneK, 2) + "k";
+                else
+                    return juce::String (memoryUsage) + "bytes";
+            }();
             scanStatusResult.udpateText (juce::String (" {") +
                                          juce::String (reader->usesFloatingPointData == true ? "floating point" : "integer") + ", " +
                                          juce::String (reader->bitsPerSample) + "bits/" + sampleRateString + "k, " +
                                          juce::String (reader->numChannels == 1 ? "mono" : (reader->numChannels == 2 ? "stereo" : juce::String(reader->numChannels) + " channels")) + "}, " +
-                                         juce::String (reader->lengthInSamples / reader->sampleRate) + " seconds, " +
-                                         "RAM: " + juce::String(memoryUsage) + " bytes (" + juce::String(memoryUsage / 1024) + "k)");
+                                         juce::String (reader->lengthInSamples / reader->sampleRate, 2) + " seconds, " +
+                                         "RAM: " + juce::String(memoryUsage) + " bytes (" + memoryUsageString + ")");
             auto reportErrorIfTrue = [&scanStatusResult] (bool conditionalResult, juce::String newText)
             {
                 if (conditionalResult)
@@ -230,8 +246,8 @@ void Assimil8orSDCardImage::validateFolderContents (juce::File folder, std::vect
         scanStatusResult.update (newStatusType, newStatusText);
         addStatus (scanStatusResult.getType (), scanStatusResult.getText ());
     }
-    scanStatusResult.reset ();
 
+    scanStatusResult.reset ();
     for (const auto& entry : juce::RangedDirectoryIterator (folder, false, "*", juce::File::findFilesAndDirectories))
     {
         if (threadShouldExit ())
@@ -248,10 +264,12 @@ void Assimil8orSDCardImage::validateFolderContents (juce::File folder, std::vect
             scanStatusResult.update ("info", "File: " + curFile.getFileName ());
             auto [newStatusType, newStatusText] = validateFile (curFile);
             scanStatusResult.update (newStatusType, newStatusText);
+
+            jassert (scanStatusResult.getType () != "");
+            if (scanStatusResult.getType () != "")
+                addStatus (scanStatusResult.getType (), scanStatusResult.getText ());
+            scanStatusResult.reset ();
         }
-        if (scanStatusResult.getType () != "")
-            addStatus (scanStatusResult.getType (), scanStatusResult.getText ());
-        scanStatusResult.reset ();
     }
 }
 
