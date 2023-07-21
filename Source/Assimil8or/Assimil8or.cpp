@@ -146,11 +146,14 @@ std::tuple<juce::String, juce::String> Assimil8orSDCardImage::validateFile (juce
             LogValidation ("    Length/Samples: " + juce::String (reader->lengthInSamples));
             LogValidation ("    Length/Time: " + juce::String (reader->lengthInSamples / reader->sampleRate));
 
-            scanStatusResult.udpateText (juce::String ("Audio format: ") +
+            const auto memoryUsage { reader->numChannels * reader->lengthInSamples * 4 };
+            const auto sampleRateString { juce::String (reader->sampleRate / 1000.0f, 2).trimCharactersAtEnd ("0.") };
+            scanStatusResult.udpateText (juce::String (" {") +
                                          juce::String (reader->usesFloatingPointData == true ? "floating point" : "integer") + ", " +
-                                         juce::String (reader->bitsPerSample) + "bits/" + juce::String (reader->sampleRate / 1000.0f, 2) + "k, " +
-                                         juce::String (reader->numChannels == 1 ? "mono" : (reader->numChannels == 2 ? "stereo" : juce::String(reader->numChannels) + " channels")) + ", " +
-                                         juce::String (reader->lengthInSamples / reader->sampleRate) + " seconds");
+                                         juce::String (reader->bitsPerSample) + "bits/" + sampleRateString + "k, " +
+                                         juce::String (reader->numChannels == 1 ? "mono" : (reader->numChannels == 2 ? "stereo" : juce::String(reader->numChannels) + " channels")) + "}, " +
+                                         juce::String (reader->lengthInSamples / reader->sampleRate) + " seconds, " +
+                                         "RAM: " + juce::String(memoryUsage) + " bytes (" + juce::String(memoryUsage / 1024) + "k)");
             auto reportErrorIfTrue = [&scanStatusResult] (bool conditionalResult, juce::String newText)
             {
                 if (conditionalResult)
