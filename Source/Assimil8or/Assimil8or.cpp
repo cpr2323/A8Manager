@@ -93,7 +93,7 @@ void Assimil8orSDCardImage::init (juce::ValueTree vt)
     a8SDCardValidatorProperties.onStartScanAsync = [this] () { validate (); };
 }
 
-void Assimil8orSDCardImage::validate()
+void Assimil8orSDCardImage::validate ()
 {
     a8SDCardValidatorProperties.setScanStatus ("scanning", false);
     startThread ();
@@ -113,7 +113,7 @@ std::tuple<juce::String, juce::String> Assimil8orSDCardImage::validateFile (juce
     else if (file.getFileExtension () == ".yml" &&
              file.getFileNameWithoutExtension ().length () == 7 &&
              file.getFileNameWithoutExtension ().startsWith ("prst") &&
-             file.getFileNameWithoutExtension ().substring(4).containsOnly ("0123456789"))
+             file.getFileNameWithoutExtension ().substring (4).containsOnly ("0123456789"))
     {
         LogValidation ("  File (preset)");
         return { "info", "Preset File" };
@@ -125,8 +125,8 @@ std::tuple<juce::String, juce::String> Assimil8orSDCardImage::validateFile (juce
         if (file.getFileName ().length () > kMaxFileNameLength)
         {
             LogValidation ("  [ Warning : file name too long ]");
-            scanStatusResult.update("error",
-                                    "[name too long. " + juce::String(file.getFileName ().length()) + "(length) vs " +
+            scanStatusResult.update ("error",
+                                     "[name too long. " + juce::String (file.getFileName ().length ()) + "(length) vs " +
                                        juce::String (kMaxFileNameLength) +"(max)]");
         }
 
@@ -134,7 +134,7 @@ std::tuple<juce::String, juce::String> Assimil8orSDCardImage::validateFile (juce
         if (reader == nullptr)
         {
             LogValidation ("    [ Warning : unknown audio format ]");
-            scanStatusResult.update ("error", "[unknown audio format. size = " + juce::String (file.getSize()) + "]");
+            scanStatusResult.update ("error", "[unknown audio format. size = " + juce::String (file.getSize ()) + "]");
         }
         else
         {
@@ -146,11 +146,11 @@ std::tuple<juce::String, juce::String> Assimil8orSDCardImage::validateFile (juce
             LogValidation ("    Length/Samples: " + juce::String (reader->lengthInSamples));
             LogValidation ("    Length/Time: " + juce::String (reader->lengthInSamples / reader->sampleRate));
 
-            scanStatusResult.udpateText(juce::String ("Audio format: ") +
-                                        juce::String (reader->usesFloatingPointData == true ? "floating point" : "integer") + ", " +
-                                        juce::String (reader->bitsPerSample) + "bits/" + juce::String (reader->sampleRate / 1000.0f, 2) + "k, " +
-                                        juce::String (reader->numChannels == 1 ? "mono" : "stereo") + ", " +
-                                        juce::String (reader->lengthInSamples / reader->sampleRate) + " seconds");
+            scanStatusResult.udpateText (juce::String ("Audio format: ") +
+                                         juce::String (reader->usesFloatingPointData == true ? "floating point" : "integer") + ", " +
+                                         juce::String (reader->bitsPerSample) + "bits/" + juce::String (reader->sampleRate / 1000.0f, 2) + "k, " +
+                                         juce::String (reader->numChannels == 1 ? "mono" : "stereo") + ", " +
+                                         juce::String (reader->lengthInSamples / reader->sampleRate) + " seconds");
         }
         return { scanStatusResult.getType (), scanStatusResult.getText () };
     }
@@ -216,7 +216,7 @@ void Assimil8orSDCardImage::validateFolderContents (juce::File folder, std::vect
         scanStatusResult.update ("info", "Folder: " + folder.getFileName ());
         auto [newStatusType, newStatusText] = validateFolder (folder);
         scanStatusResult.update (newStatusType, newStatusText);
-        addStatus (scanStatusResult.getType (), scanStatusResult.getText());
+        addStatus (scanStatusResult.getType (), scanStatusResult.getText ());
     }
     scanStatusResult.reset ();
 
@@ -711,7 +711,7 @@ void Assimil8orPreset::parse (juce::StringArray presetLines)
                 }
                 else
                 {
-                    LogParsing("unknown channel key: " + presetLine);
+                    LogParsing ("unknown channel key: " + presetLine);
                     //jassertfalse;
                 }
             }
@@ -792,7 +792,7 @@ void Assimil8orPreset::parse (juce::StringArray presetLines)
                 }
                 else
                 {
-                    LogParsing("unknown zone key: " + presetLine);
+                    LogParsing ("unknown zone key: " + presetLine);
                     //jassertfalse;
                 }
             }

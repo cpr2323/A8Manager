@@ -17,10 +17,27 @@ void Assimil8orSdImageComponent::init (juce::ValueTree rootPropertiesVT)
 {
     RuntimeRootProperties runtimeRootProperties;
     runtimeRootProperties.wrap (rootPropertiesVT, ValueTreeWrapper::WrapperType::client, ValueTreeWrapper::EnableCallbacks::no);
-    sdCardImage = runtimeRootProperties.getValueTree ().getChildWithName ("SDCardImage");
-    jassert (sdCardImage.isValid ());
-    sdCardImage.addListener (this);
-    validationStatusProperties = sdCardImage.getChildWithName ("ValidationStatus");
+    a8SDCardValidatorProperties.wrap (runtimeRootProperties.getValueTree (), ValueTreeWrapper::WrapperType::client, ValueTreeWrapper::EnableCallbacks::yes);
+    a8SDCardValidatorProperties.onScanStatusChanged = [this] (juce::String scanStatus)
+    {
+        quickLookupList.clear ();
+        if (scanStatus == "idle")
+            buildQuickLookupList ();
+
+        sdImageListBox.getHeader ().setColumnName (2, "Message (" + juce::String (quickLookupList.size ()) + " items)");
+        sdImageListBox.repaint ();
+    };
+}
+
+void Assimil8orSdImageComponent::buildQuickLookupList ()
+{
+    // iterate over the state message list, adding each one to the quick list
+    ValueTreeHelpers::forEachChild (a8SDCardValidatorProperties.getValidationStatusVT (), [this] (juce::ValueTree child)
+    {
+        if (child.getType ().toString () == "Status")
+            quickLookupList.emplace_back (child);
+        return true;
+    });
 }
 
 void Assimil8orSdImageComponent::paint ([[maybe_unused]] juce::Graphics& g)
@@ -32,7 +49,7 @@ void Assimil8orSdImageComponent::resized ()
 {
     auto localBounds { getLocalBounds () };
     sdImageListBox.setBounds (localBounds);
-    sdImageListBox.getHeader ().setColumnWidth (2, sdImageListBox.getWidth () - 2 - sdImageListBox.getHeader().getColumnWidth(1));
+    sdImageListBox.getHeader ().setColumnWidth (2, sdImageListBox.getWidth () - 2 - sdImageListBox.getHeader ().getColumnWidth (1));
 }
 
 int Assimil8orSdImageComponent::getNumRows ()
@@ -58,7 +75,7 @@ void Assimil8orSdImageComponent::paintRowBackground (juce::Graphics& g, int rowN
     }
 }
 
-void Assimil8orSdImageComponent::paintCell (juce::Graphics& g, int rowNumber, int columnId, int width, int height, bool rowIsSelected)
+void Assimil8orSdImageComponent::paintCell (juce::Graphics& g, int rowNumber, int columnId, int width, int height, [[maybe_unused]] bool rowIsSelected)
 {
     if (rowNumber < quickLookupList.size ())
     {
@@ -93,7 +110,7 @@ void Assimil8orSdImageComponent::paintCell (juce::Graphics& g, int rowNumber, in
     }
 }
 
-juce::Component* Assimil8orSdImageComponent::refreshComponentForCell (int rowNumber, int columnId, bool rowIsSelected,
+juce::Component* Assimil8orSdImageComponent::refreshComponentForCell (int rowNumber, [[maybe_unused]] int columnId, bool rowIsSelected,
                                                                       juce::Component* existingComponentToUpdate)
 {
     if (rowIsSelected)
@@ -200,28 +217,4 @@ juce::Component* Assimil8orSdImageComponent::refreshComponentForCell (int rowNum
 
     jassert (existingComponentToUpdate == nullptr);
     return nullptr;
-}
-
-void Assimil8orSdImageComponent::valueTreePropertyChanged (juce::ValueTree& treeWhosePropertyHasChanged, const juce::Identifier& property)
-{
-    if (treeWhosePropertyHasChanged == sdCardImage)
-    {
-        if (property.toString () == "scanStatus")
-        {
-            // clearing
-            quickLookupList.clear ();
-            if (sdCardImage.getProperty ("scanStatus").toString () == "idle")
-            {
-                // iterate over the state message list, adding each one to the quick list
-                ValueTreeHelpers::forEachChild (validationStatusProperties, [this] (juce::ValueTree child)
-                {
-                    if (child.getType().toString() == "Status")
-                        quickLookupList.emplace_back (child);
-                    return true;
-                });
-            }
-            sdImageListBox.getHeader ().setColumnName (2, "Message (" + juce::String (quickLookupList.size ()) + " items)");
-            sdImageListBox.repaint ();
-        }
-    }
 }

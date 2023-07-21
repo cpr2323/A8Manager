@@ -145,5 +145,5 @@ void ToolWindow::resized ()
     localBounds.reduce (5, 3);
 
     fileMenuButton.setBounds (localBounds.removeFromLeft (100));
-    scanningStatusLabel.setBounds (localBounds.removeFromRight(100));
+    scanningStatusLabel.setBounds (localBounds.removeFromRight (100));
 }
