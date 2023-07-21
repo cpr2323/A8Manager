@@ -89,13 +89,13 @@ Assimil8orSDCardImage::Assimil8orSDCardImage () : Thread ("Assimil8orSDCardImage
 
 void Assimil8orSDCardImage::init (juce::ValueTree vt)
 {
-    a8SDCardValidatorProperties.wrap (vt, ValueTreeWrapper::WrapperType::owner, ValueTreeWrapper::EnableCallbacks::yes);
-    a8SDCardValidatorProperties.onStartScanAsync = [this] () { validate (); };
+    validatorProperties.wrap (vt, ValueTreeWrapper::WrapperType::owner, ValueTreeWrapper::EnableCallbacks::yes);
+    validatorProperties.onStartScanAsync = [this] () { validate (); };
 }
 
 void Assimil8orSDCardImage::validate ()
 {
-    a8SDCardValidatorProperties.setScanStatus ("scanning", false);
+    validatorProperties.setScanStatus ("scanning", false);
     startThread ();
 }
 
@@ -203,7 +203,7 @@ void Assimil8orSDCardImage::validateFolderContents (juce::File folder, std::vect
         auto newStatusChild { juce::ValueTree {"Status"}};
         newStatusChild.setProperty ("type", statusType, nullptr);
         newStatusChild.setProperty ("text", statusText, nullptr);
-        a8SDCardValidatorProperties.getValidationStatusVT ().addChild (newStatusChild, -1, nullptr);
+        validatorProperties.getValidationStatusVT ().addChild (newStatusChild, -1, nullptr);
     };
     ScanStatusResult scanStatusResult;
     LogValidation ("Folder: " + folder.getFileName ());
@@ -246,9 +246,9 @@ void Assimil8orSDCardImage::validateFolderContents (juce::File folder, std::vect
 void Assimil8orSDCardImage::run ()
 {
     bool isRoot { true };
-    a8SDCardValidatorProperties.getValidationStatusVT ().removeAllChildren (nullptr);
+    validatorProperties.getValidationStatusVT ().removeAllChildren (nullptr);
     std::vector<juce::File> foldersToScan;
-    foldersToScan.emplace_back (a8SDCardValidatorProperties.getRootFolder ());
+    foldersToScan.emplace_back (validatorProperties.getRootFolder ());
     while (foldersToScan.size () > 0)
     {
         auto curFolderToScan { foldersToScan.back () };
@@ -259,7 +259,7 @@ void Assimil8orSDCardImage::run ()
 
     juce::MessageManager::callAsync ([this] ()
     {
-        a8SDCardValidatorProperties.setScanStatus ("idle", false);
+        validatorProperties.setScanStatus ("idle", false);
     });
 }
 

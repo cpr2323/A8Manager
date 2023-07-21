@@ -1,21 +1,21 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include "../../Assimil8or/A8SDCardValidatorProperties.h"
+#include "../../Assimil8or/ValidatorProperties.h"
 
-class Assimil8orSdImageComponent : public juce::Component,
+class Assimil8orSdCardComponent : public juce::Component,
                                    private juce::TableListBoxModel
 {
 public:
-    Assimil8orSdImageComponent ();
-    ~Assimil8orSdImageComponent () = default;
+    Assimil8orSdCardComponent ();
+    ~Assimil8orSdCardComponent () = default;
 
     void init (juce::ValueTree rootPropertiesVT);
 
 private:
-    A8SDCardValidatorProperties a8SDCardValidatorProperties;
-    juce::TableListBox sdImageListBox { {}, this };
-    std::vector<juce::ValueTree> quickLookupList;
+    ValidatorProperties validatorProperties;
+    juce::TableListBox scanStatusListBox { {}, this };
+    std::vector<juce::ValueTree> scanStatusQuickLookupList;
 
     void buildQuickLookupList ();
 

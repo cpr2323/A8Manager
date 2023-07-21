@@ -3,7 +3,7 @@
 #include <JuceHeader.h>
 #include "ToolWindow.h"
 #include "Assimil8or/Assimil8orPresetComponent.h"
-#include "Assimil8or/Assimil8orSdImageComponent.h"
+#include "Assimil8or/Assimil8orSdCardComponent.h"
 
 class MainComponent  : public juce::Component
 {
@@ -13,7 +13,7 @@ public:
 
 private:
     Assimil8orPresetComponent assimil8orPresetComponent;
-    Assimil8orSdImageComponent assimil8orSdImageComponent;
+    Assimil8orSdCardComponent assimil8orSdCardComponent;
     ToolWindow toolWindow;
 
     void resized () override;

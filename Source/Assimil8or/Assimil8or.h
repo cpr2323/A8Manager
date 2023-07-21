@@ -1,7 +1,7 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include "A8SDCardValidatorProperties.h"
+#include "ValidatorProperties.h"
 
 // validate
 //  SD Card (max folders unknown)
@@ -21,7 +21,7 @@ public:
 
 private:
     juce::AudioFormatManager audioFormatManager;
-    A8SDCardValidatorProperties a8SDCardValidatorProperties;
+    ValidatorProperties validatorProperties;
     std::tuple<juce::String, juce::String> validateFile (juce::File file);
     std::tuple<juce::String,juce::String> validateFolder (juce::File folder);
     void validateFolderContents (juce::File folder, std::vector<juce::File>& foldersToScan, bool isRoot);

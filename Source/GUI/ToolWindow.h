@@ -2,7 +2,7 @@
 
 #include <JuceHeader.h>
 #include "../AppProperties.h"
-#include "../Assimil8or/A8SDCardValidatorProperties.h"
+#include "../Assimil8or/ValidatorProperties.h"
 #include "../Utility/PersistentRootProperties.h"
 
 class ToolWindow : public juce::Component, public juce::Timer, public juce::ValueTree::Listener
@@ -21,7 +21,7 @@ private:
     std::unique_ptr<juce::FileChooser> fileChooser;
     juce::TextButton fileMenuButton;
     std::vector<juce::File> foldersToScan;
-    A8SDCardValidatorProperties a8SDCardValidatorProperties;
+    ValidatorProperties validatorProperties;
 
     void updateScanStatus (juce::String scanStatus);
     void verifySdCardImage ();

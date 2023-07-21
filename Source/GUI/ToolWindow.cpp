@@ -33,8 +33,8 @@ void ToolWindow::init (juce::ValueTree rootPropertiesVT)
     runtimeRootProperties.wrap (rootPropertiesVT, ValueTreeWrapper::WrapperType::client, ValueTreeWrapper::EnableCallbacks::no);
     persistentRootProperties.wrap (rootPropertiesVT, ValueTreeWrapper::WrapperType::client, ValueTreeWrapper::EnableCallbacks::no);
     appProperties.wrap (persistentRootProperties.getValueTree (), ValueTreeWrapper::WrapperType::client, ValueTreeWrapper::EnableCallbacks::no);
-    a8SDCardValidatorProperties.wrap (runtimeRootProperties.getValueTree (), ValueTreeWrapper::WrapperType::client, ValueTreeWrapper::EnableCallbacks::yes);
-    a8SDCardValidatorProperties.onScanStatusChanged = [this] (juce::String scanStatus) { updateScanStatus (scanStatus); };
+    validatorProperties.wrap (runtimeRootProperties.getValueTree (), ValueTreeWrapper::WrapperType::client, ValueTreeWrapper::EnableCallbacks::yes);
+    validatorProperties.onScanStatusChanged = [this] (juce::String scanStatus) { updateScanStatus (scanStatus); };
 }
 
 void ToolWindow::updateScanStatus (juce::String scanStatus)
@@ -61,8 +61,8 @@ void ToolWindow::verifySdCardImage ()
         {
             if (fc.getURLResults ().size () == 1 && fc.getURLResults () [0].isLocalFile ())
             {
-                a8SDCardValidatorProperties.setRootFolder (fc.getURLResults () [0].getLocalFile ().getFullPathName (), false);
-                a8SDCardValidatorProperties.startAsyncScan (false);
+                validatorProperties.setRootFolder (fc.getURLResults () [0].getLocalFile ().getFullPathName (), false);
+                validatorProperties.startAsyncScan (false);
             }
         }, nullptr);
 }

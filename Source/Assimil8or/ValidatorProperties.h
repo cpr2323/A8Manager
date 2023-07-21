@@ -3,10 +3,10 @@
 #include <JuceHeader.h>
 #include "../Utility/ValueTreeWrapper.h"
 
-class A8SDCardValidatorProperties : public ValueTreeWrapper
+class ValidatorProperties : public ValueTreeWrapper
 {
 public:
-    A8SDCardValidatorProperties () noexcept : ValueTreeWrapper (Assimil8orSDCardValidatorId) {}
+    ValidatorProperties () noexcept : ValueTreeWrapper (Assimil8orSDCardValidatorId) {}
 
     void setRootFolder (juce::String rootFolder, bool includeSelfCallback);
     void setScanStatus (juce::String scanStatus, bool includeSelfCallback);

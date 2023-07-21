@@ -8,8 +8,8 @@ MainComponent::MainComponent (juce::ValueTree rootPropertiesVT)
 
 //     assimil8orPresetComponent.init (rootPropertiesVT);
 //     addAndMakeVisible (assimil8orPresetComponent);
-    assimil8orSdImageComponent.init (rootPropertiesVT);
-    addAndMakeVisible (assimil8orSdImageComponent);
+    assimil8orSdCardComponent.init (rootPropertiesVT);
+    addAndMakeVisible (assimil8orSdCardComponent);
     toolWindow.init (rootPropertiesVT);
     addAndMakeVisible (toolWindow);
 }
@@ -22,5 +22,5 @@ void MainComponent::resized ()
 {
     auto localBounds { getLocalBounds () };
     toolWindow.setBounds (localBounds.removeFromBottom (toolWindowHeight));
-    assimil8orSdImageComponent.setBounds (localBounds);
+    assimil8orSdCardComponent.setBounds (localBounds);
 }

@@ -1,37 +1,37 @@
-#include "A8SDCardValidatorProperties.h"
+#include "ValidatorProperties.h"
 
-void A8SDCardValidatorProperties::initValueTree ()
+void ValidatorProperties::initValueTree ()
 {
     setScanStatus ("idle", false);
     data.addChild (juce::ValueTree {ValidationsStatusId}, -1, nullptr);
 }
 
-void A8SDCardValidatorProperties::setRootFolder (juce::String rootFolder, bool includeSelfCallback)
+void ValidatorProperties::setRootFolder (juce::String rootFolder, bool includeSelfCallback)
 {
     setValue (rootFolder, RootFolderPropertyId, includeSelfCallback);
 }
 
-void A8SDCardValidatorProperties::setScanStatus (juce::String scanStatus, bool includeSelfCallback)
+void ValidatorProperties::setScanStatus (juce::String scanStatus, bool includeSelfCallback)
 {
     setValue (scanStatus, ScanStatusPropertyId, includeSelfCallback);
 }
 
-void A8SDCardValidatorProperties::startAsyncScan (bool includeSelfCallback)
+void ValidatorProperties::startAsyncScan (bool includeSelfCallback)
 {
     toggleValue (StartScanAsyncPropertyId, includeSelfCallback);
 }
 
-juce::String A8SDCardValidatorProperties::getRootFolder ()
+juce::String ValidatorProperties::getRootFolder ()
 {
     return getValue<juce::String> (RootFolderPropertyId);
 }
 
-juce::String A8SDCardValidatorProperties::getScanStatus ()
+juce::String ValidatorProperties::getScanStatus ()
 {
     return getValue<juce::String> (ScanStatusPropertyId);
 }
 
-void A8SDCardValidatorProperties::valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property)
+void ValidatorProperties::valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property)
 {
     if (data == vt)
     {

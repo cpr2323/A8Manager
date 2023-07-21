@@ -2,14 +2,15 @@
 
 <JUCERPROJECT id="wWHbxR" name="A8Manager" projectType="guiapp" useAppConfig="0"
               addUsingNamespaceToJuceHeader="0" displaySplashScreen="0" jucerFormatVersion="1"
-              companyName="OmOhmProductions" cppLanguageStandard="17">
+              companyName="OmOhmProductions" cppLanguageStandard="17" version="1.0"
+              companyWebsite="www.omohmproductions.com">
   <MAINGROUP id="JDgvjc" name="A8Manager">
     <GROUP id="{26A00EED-F319-636E-6162-8A113C6EE925}" name="Source">
       <GROUP id="{B33B27D7-84B5-739E-6EF4-3DA0243B11AC}" name="Assimil8or">
-        <FILE id="uhqsFr" name="A8SDCardValidatorProperties.cpp" compile="1"
-              resource="0" file="Source/Assimil8or/A8SDCardValidatorProperties.cpp"/>
-        <FILE id="w8jVEF" name="A8SDCardValidatorProperties.h" compile="0"
-              resource="0" file="Source/Assimil8or/A8SDCardValidatorProperties.h"/>
+        <FILE id="uhqsFr" name="ValidatorProperties.cpp" compile="1" resource="0"
+              file="Source/Assimil8or/ValidatorProperties.cpp"/>
+        <FILE id="w8jVEF" name="ValidatorProperties.h" compile="0" resource="0"
+              file="Source/Assimil8or/ValidatorProperties.h"/>
         <FILE id="o7xiMd" name="Assimil8or.cpp" compile="1" resource="0" file="Source/Assimil8or/Assimil8or.cpp"/>
         <FILE id="EQ0pG9" name="Assimil8or.h" compile="0" resource="0" file="Source/Assimil8or/Assimil8or.h"/>
       </GROUP>
@@ -19,10 +20,10 @@
                 resource="0" file="Source/GUI/Assimil8or/Assimil8orPresetComponent.cpp"/>
           <FILE id="ayK2Bn" name="Assimil8orPresetComponent.h" compile="0" resource="0"
                 file="Source/GUI/Assimil8or/Assimil8orPresetComponent.h"/>
-          <FILE id="g474Kb" name="Assimil8orSdImageComponent.cpp" compile="1"
-                resource="0" file="Source/GUI/Assimil8or/Assimil8orSdImageComponent.cpp"/>
-          <FILE id="ns8GQt" name="Assimil8orSdImageComponent.h" compile="0" resource="0"
-                file="Source/GUI/Assimil8or/Assimil8orSdImageComponent.h"/>
+          <FILE id="g474Kb" name="Assimil8orSdCardComponent.cpp" compile="1"
+                resource="0" file="Source/GUI/Assimil8or/Assimil8orSdCardComponent.cpp"/>
+          <FILE id="ns8GQt" name="Assimil8orSdCardComponent.h" compile="0" resource="0"
+                file="Source/GUI/Assimil8or/Assimil8orSdCardComponent.h"/>
         </GROUP>
         <FILE id="Van35d" name="MainComponent.cpp" compile="1" resource="0"
               file="Source/GUI/MainComponent.cpp"/>
