@@ -117,6 +117,24 @@ void Assimil8orSDCardValidator::validate ()
     startThread ();
 }
 
+void Assimil8orSDCardValidator::addStatus (juce::String statusType, juce::String statusText)
+{
+    auto newStatusChild { juce::ValueTree {"Status"} };
+    newStatusChild.setProperty ("type", statusType, nullptr);
+    newStatusChild.setProperty ("text", statusText, nullptr);
+    validatorProperties.getValidationStatusVT ().addChild (newStatusChild, -1, nullptr);
+};
+
+void Assimil8orSDCardValidator::doIfProgressTimeElapsed (std::function<void ()> functionToDo)
+{
+    jassert (functionToDo != nullptr);
+    if (juce::Time::currentTimeMillis () - lastScanInProgressUpdate > 250)
+    {
+        lastScanInProgressUpdate = juce::Time::currentTimeMillis ();
+        functionToDo ();
+    }
+}
+
 std::tuple<juce::String, juce::String> Assimil8orSDCardValidator::validateFile (juce::File file)
 {
     const auto kMaxFileNameLength { 47 };
@@ -265,54 +283,6 @@ std::tuple<juce::String,juce::String> Assimil8orSDCardValidator::validateFolder 
     }
 }
 
-void Assimil8orSDCardValidator::addStatus (juce::String statusType, juce::String statusText)
-{
-    auto newStatusChild { juce::ValueTree {"Status"} };
-    newStatusChild.setProperty ("type", statusType, nullptr);
-    newStatusChild.setProperty ("text", statusText, nullptr);
-    validatorProperties.getValidationStatusVT ().addChild (newStatusChild, -1, nullptr);
-};
-
-void Assimil8orSDCardValidator::doIfProgressTimeElapsed (std::function<void()> functionToDo)
-{
-    jassert (functionToDo != nullptr);
-    if (juce::Time::currentTimeMillis () - lastScanInProgressUpdate > 250)
-    {
-        lastScanInProgressUpdate = juce::Time::currentTimeMillis ();
-        functionToDo ();
-    }
-}
-
-juce::ValueTree Assimil8orSDCardValidator::getContentsOfFolder (juce::File folder)
-{
-    juce::ValueTree folderVT {"Folder"};
-    folderVT.setProperty ("name", folder.getFullPathName (), nullptr);
-    for (const auto& entry : juce::RangedDirectoryIterator (folder, false, "*", juce::File::findFilesAndDirectories))
-    {
-        if (threadShouldExit ())
-            break;
-
-        doIfProgressTimeElapsed ([this, fileName = entry.getFile ().getFileName ()] ()
-        {
-            juce::MessageManager::callAsync ([this, fileName] ()
-            {
-                validatorProperties.setProgressUpdate (fileName, false);
-            });
-        });
-        if (const auto& curFile { entry.getFile () }; curFile.isDirectory ())
-        {
-            folderVT.addChild (getContentsOfFolder (curFile), -1, nullptr);
-        }
-        else
-        {
-            juce::ValueTree fileVT {"File"};
-            fileVT.setProperty ("name", curFile.getFullPathName (), nullptr);
-            folderVT.addChild (fileVT, -1, nullptr);
-        }
-    }
-    return folderVT;
-}
-
 void Assimil8orSDCardValidator::processFolder (juce::ValueTree folderVT)
 {
     // iterate over file system
@@ -368,6 +338,36 @@ void Assimil8orSDCardValidator::processFolder (juce::ValueTree folderVT)
         addStatus ("error", "[Number of Presets (" + juce::String (numberOfPresets) + ") exceeds maximum allowed (" + juce::String (maxPresets) + ")]");
 }
 
+juce::ValueTree Assimil8orSDCardValidator::getContentsOfFolder (juce::File folder)
+{
+    juce::ValueTree folderVT {"Folder"};
+    folderVT.setProperty ("name", folder.getFullPathName (), nullptr);
+    for (const auto& entry : juce::RangedDirectoryIterator (folder, false, "*", juce::File::findFilesAndDirectories))
+    {
+        if (threadShouldExit ())
+            break;
+
+        doIfProgressTimeElapsed ([this, fileName = entry.getFile ().getFileName ()] ()
+            {
+                juce::MessageManager::callAsync ([this, fileName] ()
+                    {
+                        validatorProperties.setProgressUpdate (fileName, false);
+                    });
+            });
+        if (const auto& curFile { entry.getFile () }; curFile.isDirectory ())
+        {
+            folderVT.addChild (getContentsOfFolder (curFile), -1, nullptr);
+        }
+        else
+        {
+            juce::ValueTree fileVT {"File"};
+            fileVT.setProperty ("name", curFile.getFullPathName (), nullptr);
+            folderVT.addChild (fileVT, -1, nullptr);
+        }
+    }
+    return folderVT;
+}
+
 void Assimil8orSDCardValidator::validateRootFolder ()
 {
     validatorProperties.getValidationStatusVT ().removeAllChildren (nullptr);
@@ -383,6 +383,21 @@ void Assimil8orSDCardValidator::validateRootFolder ()
     });
 
     rootFolderVT = getContentsOfFolder (rootFolderName);
+    // FolderVT
+    // <Folder name= "">
+    //   <Folder name= "">
+    //   <File name= "">
+    //   <File name= "">
+    // </Folder>
+    //   <File name= "">
+    //   <Folder name= "">
+    //   <Folder name= "">
+    //
+    // TODO sort each Folder as such
+    //   Folders
+    //   Preset files
+    //   Audio files
+    //   unknown files
     processFolder (rootFolderVT);
     rootFolderVT = {};
 
