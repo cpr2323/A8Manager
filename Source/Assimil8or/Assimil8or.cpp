@@ -7,7 +7,7 @@
 #define LogValidation(text) ;
 #endif
 
-#define LOG_PARSING 1
+#define LOG_PARSING 0
 #if LOG_PARSING
 #define LogParsing(text) juce::Logger::outputDebugString (text);
 #else
