@@ -15,6 +15,7 @@
 #endif
 
 const auto maxMemory { 422 * 1024 * 1024 };
+const auto maxPresets { 199 };
 
 juce::String getMemorySizeString (uint64_t memoryUsage)
 {
@@ -132,6 +133,8 @@ std::tuple<juce::String, juce::String> Assimil8orSDCardImage::validateFile (juce
              file.getFileNameWithoutExtension ().startsWith ("prst") &&
              file.getFileNameWithoutExtension ().substring (4).containsOnly ("0123456789"))
     {
+        ++numberOfPresets;
+
         ScanStatusResult scanStatusResult;
         scanStatusResult.update ("info", "Preset");
 
@@ -291,6 +294,7 @@ void Assimil8orSDCardImage::validateFolderContents (juce::File folder, std::vect
     };
 
     totalSizeOfPresets = 0;
+    numberOfPresets = 0;
     ScanStatusResult scanStatusResult;
     LogValidation ("Folder: " + folder.getFileName ());
     if (isRoot)
@@ -345,6 +349,8 @@ void Assimil8orSDCardImage::validateFolderContents (juce::File folder, std::vect
     addStatus ("info", "Total RAM Usage for `" + folder.getFileName () + "': " + getMemorySizeString (totalSizeOfPresets));
     if (totalSizeOfPresets > maxMemory)
         addStatus ("error", "[RAM Usage exceeds memory capacity by " + getMemorySizeString (totalSizeOfPresets - maxMemory) +"]");
+    if (numberOfPresets > maxPresets)
+        addStatus ("error", "[Number of Presets (" + juce::String(numberOfPresets) + ") exceeds maximum allowed (" + juce::String (maxPresets) + ")]");
 }
 
 void Assimil8orSDCardImage::run ()
