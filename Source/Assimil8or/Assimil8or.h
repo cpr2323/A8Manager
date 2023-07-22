@@ -24,6 +24,8 @@ private:
     ValidatorProperties validatorProperties;
     std::tuple<juce::String, juce::String> validateFile (juce::File file);
     std::tuple<juce::String,juce::String> validateFolder (juce::File folder);
+    uint64_t totalSizeOfPresets {};
+
     void validateFolderContents (juce::File folder, std::vector<juce::File>& foldersToScan, bool isRoot);
 
     void run () override;

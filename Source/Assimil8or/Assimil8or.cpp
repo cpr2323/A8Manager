@@ -16,6 +16,21 @@
 
 const auto maxMemory { 422 * 1024 * 1024 };
 
+juce::String getMemorySizeString (uint64_t memoryUsage)
+{
+    const double oneK { 1024.0f };
+    const double oneMB { 1024.0f * 1024.0f };
+    const double oneGB { 1024.0f * 1024.0f * 1024.0f };
+    if (memoryUsage >= oneGB)
+        return juce::String (memoryUsage / oneGB, 2).trimCharactersAtEnd ("0.") + "GB";
+    else if (memoryUsage >= oneMB)
+        return juce::String (memoryUsage / oneMB, 2).trimCharactersAtEnd ("0.") + "MB";
+    else if (memoryUsage >= oneK)
+        return juce::String (memoryUsage / oneK, 2).trimCharactersAtEnd ("0.") + "k";
+    else
+        return juce::String (memoryUsage) + "bytes";
+};
+
 class ScanStatusResult
 {
 public:
@@ -123,36 +138,49 @@ std::tuple<juce::String, juce::String> Assimil8orSDCardImage::validateFile (juce
         juce::StringArray fileContents;
         file.readLines (fileContents);
 
-        uint64_t sizeRequiredForSamples;
         Assimil8orPreset assimil8orPreset;
         assimil8orPreset.parse (fileContents);
 
         auto presetVT { assimil8orPreset.getPresetVT ().getChildWithName ("Preset") };
         jassert (presetVT.isValid ());
-        ValueTreeHelpers::forEachChild (presetVT, [&file] (juce::ValueTree child)
+        uint64_t sizeRequiredForSamples {};
+        ValueTreeHelpers::forEachChild (presetVT, [this, &file, &scanStatusResult, &sizeRequiredForSamples] (juce::ValueTree child)
         {
-                if (child.getType ().toString () == "Channel")
+            if (child.getType ().toString () == "Channel")
+            {
+                ValueTreeHelpers::forEachChild (child, [this, &file, &scanStatusResult, &sizeRequiredForSamples] (juce::ValueTree child)
                 {
-                    ValueTreeHelpers::forEachChild (child, [&file] (juce::ValueTree child)
+                    if (child.getType ().toString () == "Zone")
                     {
-                        if (child.getType ().toString () == "Zone")
+                        const auto sampleFileName { child.getProperty ("Sample").toString () };
+                        juce::File sampleFile (file.getParentDirectory().getChildFile(sampleFileName));
+                        if (! sampleFile.exists ())
                         {
-                            const auto sampleFileName { child.getProperty ("Sample").toString () };
-                            juce::File sampleFile (file.getParentDirectory().getChildFile(sampleFileName));
-                            if (!sampleFile.exists ())
+                            // report error
+                            scanStatusResult.update ("error", "['" + sampleFileName + "' does not exist]");
+                        }
+                        else
+                        {
+                            // open as audio file, calculate memory requirements
+                            std::unique_ptr<juce::AudioFormatReader> reader (audioFormatManager.createReaderFor (sampleFile));
+                            if (reader == nullptr)
                             {
-                                // report error
+                                LogValidation ("    [ Warning : unknown audio format ]");
+                                scanStatusResult.update ("error", "['" + sampleFileName + "' unknown audio format. size = " + juce::String (file.getSize ()) + "]");
                             }
                             else
                             {
-                                // open as audio file, calculate memory requirements
+                                sizeRequiredForSamples += reader->numChannels * reader->lengthInSamples * 4;
                             }
                         }
-                        return true;
-                    });
-                }
+                    }
+                    return true;
+                });
+            }
             return true;
         });
+        scanStatusResult.update ("info", "RAM: " + getMemorySizeString (sizeRequiredForSamples));
+        totalSizeOfPresets += sizeRequiredForSamples;
         LogValidation ("  File (preset)");
         return { scanStatusResult.getType (), scanStatusResult.getText () };
     }
@@ -186,26 +214,12 @@ std::tuple<juce::String, juce::String> Assimil8orSDCardImage::validateFile (juce
 
             const auto memoryUsage { reader->numChannels * reader->lengthInSamples * 4 };
             const auto sampleRateString { juce::String (reader->sampleRate / 1000.0f, 2).trimCharactersAtEnd ("0.") };
-            const auto memoryUsageString = [memoryUsage] ()
-            {
-                const double oneK { 1024.0f };
-                const double oneMB { 1024.0f * 1024.0f };
-                const double oneGB { 1024.0f * 1024.0f * 1024.0f };
-                if (memoryUsage >= oneGB)
-                    return juce::String (memoryUsage / oneGB, 2).trimCharactersAtEnd ("0.") + "GB";
-                else if (memoryUsage >= oneMB)
-                    return juce::String (memoryUsage / oneMB, 2).trimCharactersAtEnd ("0.") + "MB";
-                else if (memoryUsage >= oneK)
-                    return juce::String (memoryUsage / oneK, 2).trimCharactersAtEnd ("0.") + "k";
-                else
-                    return juce::String (memoryUsage) + "bytes";
-            }();
             scanStatusResult.udpateText (juce::String (" {") +
                                          juce::String (reader->usesFloatingPointData == true ? "floating point" : "integer") + ", " +
                                          juce::String (reader->bitsPerSample) + "bits/" + sampleRateString + "k, " +
                                          juce::String (reader->numChannels == 1 ? "mono" : (reader->numChannels == 2 ? "stereo" : juce::String(reader->numChannels) + " channels")) + "}, " +
                                          juce::String (reader->lengthInSamples / reader->sampleRate, 2) + " seconds, " +
-                                         "RAM: " + juce::String(memoryUsage) + " bytes (" + memoryUsageString + ")");
+                                         "RAM: " + juce::String(memoryUsage) + " bytes (" + getMemorySizeString (memoryUsage) + ")");
             auto reportErrorIfTrue = [&scanStatusResult] (bool conditionalResult, juce::String newText)
             {
                 if (conditionalResult)
@@ -269,6 +283,8 @@ void Assimil8orSDCardImage::validateFolderContents (juce::File folder, std::vect
         newStatusChild.setProperty ("text", statusText, nullptr);
         validatorProperties.getValidationStatusVT ().addChild (newStatusChild, -1, nullptr);
     };
+
+    totalSizeOfPresets = 0;
     ScanStatusResult scanStatusResult;
     LogValidation ("Folder: " + folder.getFileName ());
     if (isRoot)
@@ -307,6 +323,9 @@ void Assimil8orSDCardImage::validateFolderContents (juce::File folder, std::vect
             scanStatusResult.reset ();
         }
     }
+    addStatus ("info", "Total RAM Usage for `" + folder.getFileName () + "': " + getMemorySizeString (totalSizeOfPresets));
+    if (totalSizeOfPresets > maxMemory)
+        addStatus ("error", "[RAM Usage exceeds memory capacity by " + getMemorySizeString (totalSizeOfPresets - maxMemory) +"]");
 }
 
 void Assimil8orSDCardImage::run ()
