@@ -110,7 +110,7 @@ void Assimil8orSdCardComponent::paintCell (juce::Graphics& g, int rowNumber, int
 }
 
 juce::Component* Assimil8orSdCardComponent::refreshComponentForCell (int rowNumber, [[maybe_unused]] int columnId, bool rowIsSelected,
-                                                                      juce::Component* existingComponentToUpdate)
+                                                                     juce::Component* existingComponentToUpdate)
 {
     if (rowIsSelected)
     {

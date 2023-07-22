@@ -163,15 +163,16 @@ std::tuple<juce::String, juce::String> Assimil8orSDCardValidator::validateFile (
         assimil8orPreset.parse (fileContents);
 
         uint64_t sizeRequiredForSamples {};
-        auto presetVT { assimil8orPreset.getPresetVT ().getChildWithName ("Preset") };
+        const auto presetVT { assimil8orPreset.getPresetVT ().getChildWithName ("Preset") };
         if (presetVT.isValid ())
         {
             ValueTreeHelpers::forEachChildOfType (presetVT, "Channel", [this, &file, &scanStatusResult, &sizeRequiredForSamples] (juce::ValueTree child)
             {
                 ValueTreeHelpers::forEachChildOfType (child, "Zone", [this, &file, &scanStatusResult, &sizeRequiredForSamples] (juce::ValueTree child)
                 {
+                    // TODO - should we do doIfProgressTimeElapsed() here?
                     const auto sampleFileName { child.getProperty ("Sample").toString () };
-                    auto sampleFile { file.getParentDirectory ().getChildFile (sampleFileName) };
+                    const auto sampleFile { file.getParentDirectory ().getChildFile (sampleFileName) };
                     if (! sampleFile.exists ())
                     {
                         // report error
@@ -302,8 +303,11 @@ void Assimil8orSDCardValidator::processFolder (juce::ValueTree folderVT)
     numberOfPresets = 0;
     for (auto folderEntryVT : folderVT)
     {
+        if (isThreadRunning () && threadShouldExit ())
+            break;
+
         scanStatusResult.reset ();
-        auto curEntry { juce::File (folderEntryVT.getProperty ("name")) };
+        const auto curEntry { juce::File (folderEntryVT.getProperty ("name")) };
         doIfProgressTimeElapsed ([this, fileName = curEntry.getFileName ()] ()
         {
             juce::MessageManager::callAsync ([this, fileName] ()
@@ -344,16 +348,16 @@ juce::ValueTree Assimil8orSDCardValidator::getContentsOfFolder (juce::File folde
     folderVT.setProperty ("name", folder.getFullPathName (), nullptr);
     for (const auto& entry : juce::RangedDirectoryIterator (folder, false, "*", juce::File::findFilesAndDirectories))
     {
-        if (threadShouldExit ())
+        if (isThreadRunning() && threadShouldExit ())
             break;
 
         doIfProgressTimeElapsed ([this, fileName = entry.getFile ().getFileName ()] ()
+        {
+            juce::MessageManager::callAsync ([this, fileName] ()
             {
-                juce::MessageManager::callAsync ([this, fileName] ()
-                    {
-                        validatorProperties.setProgressUpdate (fileName, false);
-                    });
+                validatorProperties.setProgressUpdate (fileName, false);
             });
+        });
         if (const auto& curFile { entry.getFile () }; curFile.isDirectory ())
         {
             folderVT.addChild (getContentsOfFolder (curFile), -1, nullptr);
@@ -374,7 +378,7 @@ void Assimil8orSDCardValidator::validateRootFolder ()
     lastScanInProgressUpdate = juce::Time::currentTimeMillis ();
     const auto rootFolderName { validatorProperties.getRootFolder () };
 
-    auto rootEntry { juce::File (rootFolderName) };
+    const auto rootEntry { juce::File (rootFolderName) };
     addStatus ("info", "Root Folder: " + rootEntry.getFileName ());
     // do one initial progress update to fill in the first one
     juce::MessageManager::callAsync ([this, folderName = rootEntry.getFileName ()] ()
