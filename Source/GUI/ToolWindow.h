@@ -18,11 +18,13 @@ private:
     juce::DirectoryContentsList directoryContentsList {nullptr, tst};
 
     juce::Label scanningStatusLabel;
+    juce::Label progressUpdateLabel;
     std::unique_ptr<juce::FileChooser> fileChooser;
     juce::TextButton fileMenuButton;
     std::vector<juce::File> foldersToScan;
     ValidatorProperties validatorProperties;
 
+    void updateProgress (juce::String progressUpdate);
     void updateScanStatus (juce::String scanStatus);
     void verifySdCardImage ();
     void verifyFileUi ();

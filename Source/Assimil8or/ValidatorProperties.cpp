@@ -16,6 +16,11 @@ void ValidatorProperties::setScanStatus (juce::String scanStatus, bool includeSe
     setValue (scanStatus, ScanStatusPropertyId, includeSelfCallback);
 }
 
+void ValidatorProperties::setProgressUpdate (juce::String progressUpdate, bool includeSelfCallback)
+{
+    setValue (progressUpdate, ProgressUpdatePropertyId, includeSelfCallback);
+}
+
 void ValidatorProperties::startAsyncScan (bool includeSelfCallback)
 {
     toggleValue (StartScanAsyncPropertyId, includeSelfCallback);
@@ -29,6 +34,11 @@ juce::String ValidatorProperties::getRootFolder ()
 juce::String ValidatorProperties::getScanStatus ()
 {
     return getValue<juce::String> (ScanStatusPropertyId);
+}
+
+juce::String ValidatorProperties::getProgressUpdate ()
+{
+    return getValue<juce::String> (ProgressUpdatePropertyId);
 }
 
 void ValidatorProperties::valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property)
@@ -49,6 +59,11 @@ void ValidatorProperties::valueTreePropertyChanged (juce::ValueTree& vt, const j
         {
             if (onStartScanAsync!= nullptr)
                 onStartScanAsync ();
+        }
+        else if (property == ProgressUpdatePropertyId)
+        {
+            if (onProgressUpdateChanged!= nullptr)
+                onProgressUpdateChanged (getProgressUpdate ());
         }
     }
 }

@@ -25,6 +25,7 @@ private:
     std::tuple<juce::String, juce::String> validateFile (juce::File file);
     std::tuple<juce::String,juce::String> validateFolder (juce::File folder);
     uint64_t totalSizeOfPresets {};
+    int64_t lastScanInProgressUpdate {};
 
     void validateFolderContents (juce::File folder, std::vector<juce::File>& foldersToScan, bool isRoot);
 

@@ -25,6 +25,8 @@ ToolWindow::ToolWindow ()
     addAndMakeVisible (fileMenuButton);
     scanningStatusLabel.setColour (juce::Label::ColourIds::textColourId, juce::Colours::black);
     addAndMakeVisible (scanningStatusLabel);
+    progressUpdateLabel.setColour (juce::Label::ColourIds::textColourId, juce::Colours::darkgreen);
+    addAndMakeVisible (progressUpdateLabel);
 }
 
 void ToolWindow::init (juce::ValueTree rootPropertiesVT)
@@ -35,6 +37,7 @@ void ToolWindow::init (juce::ValueTree rootPropertiesVT)
     appProperties.wrap (persistentRootProperties.getValueTree (), ValueTreeWrapper::WrapperType::client, ValueTreeWrapper::EnableCallbacks::no);
     validatorProperties.wrap (runtimeRootProperties.getValueTree (), ValueTreeWrapper::WrapperType::client, ValueTreeWrapper::EnableCallbacks::yes);
     validatorProperties.onScanStatusChanged = [this] (juce::String scanStatus) { updateScanStatus (scanStatus); };
+    validatorProperties.onProgressUpdateChanged = [this] (juce::String progressUpdate) { updateProgress (progressUpdate); };
 }
 
 void ToolWindow::updateScanStatus (juce::String scanStatus)
@@ -51,6 +54,14 @@ void ToolWindow::updateScanStatus (juce::String scanStatus)
     {
         jassertfalse;
     }
+}
+
+void ToolWindow::updateProgress (juce::String progressUpdate)
+{
+    juce::MessageManager::callAsync ([this, progressUpdate] ()
+    {
+        progressUpdateLabel.setText (progressUpdate, juce::NotificationType::dontSendNotification);
+    });
 }
 
 void ToolWindow::verifySdCardImage ()
@@ -145,5 +156,6 @@ void ToolWindow::resized ()
     localBounds.reduce (5, 3);
 
     fileMenuButton.setBounds (localBounds.removeFromLeft (100));
+    progressUpdateLabel.setBounds (localBounds.removeFromRight (100));
     scanningStatusLabel.setBounds (localBounds.removeFromRight (100));
 }

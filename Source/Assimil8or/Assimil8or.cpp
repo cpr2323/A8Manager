@@ -275,7 +275,7 @@ void Assimil8orSDCardImage::validateFolderContents (juce::File folder, std::vect
     //      report if name over 31 characters
     //      (TODO) report if folder is 2 or more deep in hierarchy
     // for preset files (to be done when the preset file is fully defined)
-    //      (TODO) report if channels * samples * 32 > Assimil8or memory
+    //      report if channels * samples * 4 > Assimil8or memory
     //      (TODO) validate preset file data (really only important if it has been edited)
     // for audio files
     //      report if name over 47 characters
@@ -296,6 +296,7 @@ void Assimil8orSDCardImage::validateFolderContents (juce::File folder, std::vect
     if (isRoot)
     {
         addStatus ("info", "Root Folder: " + folder.getFileName ());
+        validatorProperties.setProgressUpdate (folder.getFileName (), false);
     }
     else
     {
@@ -312,6 +313,14 @@ void Assimil8orSDCardImage::validateFolderContents (juce::File folder, std::vect
             return;
 
         const auto& curFile { entry.getFile () };
+        if (juce::Time::currentTimeMillis () - lastScanInProgressUpdate > 250)
+        {
+            lastScanInProgressUpdate = juce::Time::currentTimeMillis ();
+            juce::MessageManager::callAsync ([this, &curFile] ()
+            {
+                validatorProperties.setProgressUpdate (curFile.getFileName (), false);
+            });
+        }
         if (curFile.isDirectory ())
         {
             // queue folders up to be handled in scan thread loop, ie. our caller
@@ -340,6 +349,7 @@ void Assimil8orSDCardImage::run ()
     validatorProperties.getValidationStatusVT ().removeAllChildren (nullptr);
     std::vector<juce::File> foldersToScan;
     foldersToScan.emplace_back (validatorProperties.getRootFolder ());
+    lastScanInProgressUpdate = juce::Time::currentTimeMillis ();
     while (foldersToScan.size () > 0)
     {
         auto curFolderToScan { foldersToScan.back () };
@@ -350,6 +360,7 @@ void Assimil8orSDCardImage::run ()
 
     juce::MessageManager::callAsync ([this] ()
     {
+        validatorProperties.setProgressUpdate ("", false);
         validatorProperties.setScanStatus ("idle", false);
     });
 }
