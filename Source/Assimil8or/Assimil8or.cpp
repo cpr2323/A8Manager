@@ -141,44 +141,50 @@ std::tuple<juce::String, juce::String> Assimil8orSDCardImage::validateFile (juce
         Assimil8orPreset assimil8orPreset;
         assimil8orPreset.parse (fileContents);
 
-        auto presetVT { assimil8orPreset.getPresetVT ().getChildWithName ("Preset") };
-        jassert (presetVT.isValid ());
         uint64_t sizeRequiredForSamples {};
-        ValueTreeHelpers::forEachChild (presetVT, [this, &file, &scanStatusResult, &sizeRequiredForSamples] (juce::ValueTree child)
+        auto presetVT { assimil8orPreset.getPresetVT ().getChildWithName("Preset")};
+        if (presetVT.isValid ())
         {
-            if (child.getType ().toString () == "Channel")
+            ValueTreeHelpers::forEachChild (presetVT, [this, &file, &scanStatusResult, &sizeRequiredForSamples] (juce::ValueTree child)
             {
-                ValueTreeHelpers::forEachChild (child, [this, &file, &scanStatusResult, &sizeRequiredForSamples] (juce::ValueTree child)
+                if (child.getType ().toString () == "Channel")
                 {
-                    if (child.getType ().toString () == "Zone")
+                    ValueTreeHelpers::forEachChild (child, [this, &file, &scanStatusResult, &sizeRequiredForSamples] (juce::ValueTree child)
                     {
-                        const auto sampleFileName { child.getProperty ("Sample").toString () };
-                        juce::File sampleFile (file.getParentDirectory().getChildFile(sampleFileName));
-                        if (! sampleFile.exists ())
+                        if (child.getType ().toString () == "Zone")
                         {
-                            // report error
-                            scanStatusResult.update ("error", "['" + sampleFileName + "' does not exist]");
-                        }
-                        else
-                        {
-                            // open as audio file, calculate memory requirements
-                            std::unique_ptr<juce::AudioFormatReader> reader (audioFormatManager.createReaderFor (sampleFile));
-                            if (reader == nullptr)
+                            const auto sampleFileName { child.getProperty ("Sample").toString () };
+                            juce::File sampleFile (file.getParentDirectory ().getChildFile (sampleFileName));
+                            if (! sampleFile.exists ())
                             {
-                                LogValidation ("    [ Warning : unknown audio format ]");
-                                scanStatusResult.update ("error", "['" + sampleFileName + "' unknown audio format. size = " + juce::String (file.getSize ()) + "]");
+                                // report error
+                                scanStatusResult.update ("error", "['" + sampleFileName + "' does not exist]");
                             }
                             else
                             {
-                                sizeRequiredForSamples += reader->numChannels * reader->lengthInSamples * 4;
+                                // open as audio file, calculate memory requirements
+                                std::unique_ptr<juce::AudioFormatReader> reader (audioFormatManager.createReaderFor (sampleFile));
+                                if (reader == nullptr)
+                                {
+                                    LogValidation ("    [ Warning : unknown audio format ]");
+                                    scanStatusResult.update ("error", "['" + sampleFileName + "' unknown audio format. size = " + juce::String (file.getSize ()) + "]");
+                                }
+                                else
+                                {
+                                    sizeRequiredForSamples += reader->numChannels * reader->lengthInSamples * 4;
+                                }
                             }
                         }
-                    }
-                    return true;
-                });
-            }
-            return true;
-        });
+                        return true;
+                    });
+                }
+                return true;
+            });
+        }
+        else
+        {
+            scanStatusResult.update ("error", "[missing Preset section]");
+        }
         scanStatusResult.update ("info", "RAM: " + getMemorySizeString (sizeRequiredForSamples));
         totalSizeOfPresets += sizeRequiredForSamples;
         LogValidation ("  File (preset)");
@@ -382,8 +388,7 @@ void Assimil8orPreset::parse (juce::StringArray presetLines)
         presetLine = presetLine.trim ();
         LogParsing (juce::String (scopeDepth) + "-" + presetLine);
         auto key { presetLine.upToFirstOccurrenceOf (":", false, false).trim () };
-        auto values { presetLine.fromFirstOccurrenceOf (":", false, false).trim () };
-        auto valueList { juce::StringArray::fromTokens (values, " ", "\"") };
+        auto value { presetLine.fromFirstOccurrenceOf (":", false, false).trim () };
 
         auto keyIs = [&key] (juce::String desiredKey)
         {
@@ -420,19 +425,19 @@ void Assimil8orPreset::parse (juce::StringArray presetLines)
                 }
                 else if (keyIs (PresetNamePropertyId.toString ()))
                 {
-                    curPresetSection.setProperty (PresetNamePropertyId, valueList [0], nullptr);
+                    curPresetSection.setProperty (PresetNamePropertyId, value, nullptr);
                 }
                 else if (keyIs ("XfadeACV"))
                 {
-                    curPresetSection.setProperty ("XfadeACV", valueList [0], nullptr);
+                    curPresetSection.setProperty ("XfadeACV", value, nullptr);
                 }
                 else if (keyIs ("XfadeAWidth"))
                 {
-                    curPresetSection.setProperty ("XfadeAWidth", valueList [0], nullptr);
+                    curPresetSection.setProperty ("XfadeAWidth", value, nullptr);
                 }
                 else if (keyIs ("Data2asCV"))
                 {
-                    curPresetSection.setProperty ("Data2asCV", valueList [0], nullptr);
+                    curPresetSection.setProperty ("Data2asCV", value, nullptr);
                 }
                 else
                 {
@@ -489,159 +494,159 @@ void Assimil8orPreset::parse (juce::StringArray presetLines)
                 }
                 else if (keyIs ("Attack"))
                 {
-                    curChannelSection.setProperty ("Attack", valueList [0], nullptr);
+                    curChannelSection.setProperty ("Attack", value, nullptr);
                 }
                 else if (keyIs ("AttackFromCurrent"))
                 {
-                    curChannelSection.setProperty ("AttackFromCurrent", valueList [0], nullptr);
+                    curChannelSection.setProperty ("AttackFromCurrent", value, nullptr);
                 }
                 else if (keyIs ("AttackMod"))
                 {
-                    curChannelSection.setProperty ("AttackMod", valueList [0] + " " + valueList [1], nullptr);
+                    curChannelSection.setProperty ("AttackMod", value, nullptr);
                 }
                 else if (keyIs ("Aliasing"))
                 {
-                    curChannelSection.setProperty ("Aliasing", valueList [0], nullptr);
+                    curChannelSection.setProperty ("Aliasing", value, nullptr);
                 }
                 else if (keyIs ("AliasingMod"))
                 {
-                    curChannelSection.setProperty ("AliasingMod", valueList [0] + " " + valueList [1], nullptr);
+                    curChannelSection.setProperty ("AliasingMod", value, nullptr);
                 }
                 else if (keyIs ("AutoTrigger"))
                 {
-                    curChannelSection.setProperty ("AutoTrigger", valueList [0], nullptr);
+                    curChannelSection.setProperty ("AutoTrigger", value, nullptr);
                 }
                 else if (keyIs ("Bits"))
                 {
-                    curChannelSection.setProperty ("Bits", valueList [0], nullptr);
+                    curChannelSection.setProperty ("Bits", value, nullptr);
                 }
                 else if (keyIs ("BitsMod"))
                 {
-                    curChannelSection.setProperty ("BitsMod", valueList [0] + " " + valueList [1], nullptr);
+                    curChannelSection.setProperty ("BitsMod", value, nullptr);
                 }
                 else if (keyIs ("ChannelMode"))
                 {
-                    curChannelSection.setProperty ("ChannelMode", valueList [0], nullptr);
+                    curChannelSection.setProperty ("ChannelMode", value, nullptr);
                 }
                 else if (keyIs ("ExpAM"))
                 {
-                    curChannelSection.setProperty ("ExpAM", valueList [0] + " " + valueList [1], nullptr);
+                    curChannelSection.setProperty ("ExpAM", value, nullptr);
                 }
                 else if (keyIs ("ExpFM"))
                 {
-                    curChannelSection.setProperty ("ExpFM", valueList [0] + " " + valueList [1], nullptr);
+                    curChannelSection.setProperty ("ExpFM", value, nullptr);
                 }
                 else if (keyIs ("Level"))
                 {
-                    curChannelSection.setProperty ("Level", valueList [0], nullptr);
+                    curChannelSection.setProperty ("Level", value, nullptr);
                 }
                 else if (keyIs ("LinAM"))
                 {
-                    curChannelSection.setProperty ("LinAM", valueList [0] + " " + valueList [1], nullptr);
+                    curChannelSection.setProperty ("LinAM", value, nullptr);
                 }
                 else if (keyIs ("LinAMisExtEnv"))
                 {
-                    curChannelSection.setProperty ("LinAMisExtEnv", valueList [0], nullptr);
+                    curChannelSection.setProperty ("LinAMisExtEnv", value, nullptr);
                 }
                 else if (keyIs ("LinFM"))
                 {
-                    curChannelSection.setProperty ("LinFM", valueList [0] + " " + valueList [1], nullptr);
+                    curChannelSection.setProperty ("LinFM", value, nullptr);
                 }
                 else if (keyIs ("LoopLengthMod"))
                 {
-                    curChannelSection.setProperty ("LoopLengthMod", valueList [0] + " " + valueList [1], nullptr);
+                    curChannelSection.setProperty ("LoopLengthMod", value, nullptr);
                 }
                 else if (keyIs ("LoopMode"))
                 {
-                    curChannelSection.setProperty ("LoopMode", valueList [0], nullptr);
+                    curChannelSection.setProperty ("LoopMode", value, nullptr);
                 }
                 else if (keyIs ("LoopStartMod"))
                 {
-                    curChannelSection.setProperty ("LoopStartMod", valueList [0] + " " + valueList [1], nullptr);
+                    curChannelSection.setProperty ("LoopStartMod", value, nullptr);
                 }
                 else if (keyIs ("MixLevel"))
                 {
-                    curChannelSection.setProperty ("MixLevel", valueList [0], nullptr);
+                    curChannelSection.setProperty ("MixLevel", value, nullptr);
                 }
                 else if (keyIs ("MixMod"))
                 {
-                    curChannelSection.setProperty ("MixMod", valueList [0] + " " + valueList [1], nullptr);
+                    curChannelSection.setProperty ("MixMod", value, nullptr);
                 }
                 else if (keyIs ("MixModIsFader"))
                 {
-                    curChannelSection.setProperty ("MixModIsFader", valueList [0], nullptr);
+                    curChannelSection.setProperty ("MixModIsFader", value, nullptr);
                 }
                 else if (keyIs ("Pan"))
                 {
-                    curChannelSection.setProperty ("Pan", valueList [0], nullptr);
+                    curChannelSection.setProperty ("Pan", value, nullptr);
                 }
                 else if (keyIs ("PanMod"))
                 {
-                    curChannelSection.setProperty ("PanMod", valueList [0] + " " + valueList [1], nullptr);
+                    curChannelSection.setProperty ("PanMod", value, nullptr);
                 }
                 else if (keyIs ("PhaseCV"))
                 {
-                    curChannelSection.setProperty ("PhaseCV", valueList [0] + " " + valueList [1], nullptr);
+                    curChannelSection.setProperty ("PhaseCV", value, nullptr);
                 }
                 else if (keyIs ("Pitch"))
                 {
-                    curChannelSection.setProperty ("Pitch", valueList [0], nullptr);
+                    curChannelSection.setProperty ("Pitch", value, nullptr);
                 }
                 else if (keyIs ("PitchCV"))
                 {
-                    curChannelSection.setProperty ("PitchCV", valueList [0] + " " + valueList [1], nullptr);
+                    curChannelSection.setProperty ("PitchCV", value, nullptr);
                 }
                 else if (keyIs ("PlayMode"))
                 {
-                    curChannelSection.setProperty ("PlayMode", valueList [0], nullptr);
+                    curChannelSection.setProperty ("PlayMode", value, nullptr);
                 }
                 else if (keyIs ("PMIndex"))
                 {
-                    curChannelSection.setProperty ("PMIndex", valueList [0], nullptr);
+                    curChannelSection.setProperty ("PMIndex", value, nullptr);
                 }
                 else if (keyIs ("PMIndexMod"))
                 {
-                    curChannelSection.setProperty ("PMIndexMod", valueList [0] + " " + valueList [1], nullptr);
+                    curChannelSection.setProperty ("PMIndexMod", value, nullptr);
                 }
                 else if (keyIs ("PMSource"))
                 {
-                    curChannelSection.setProperty ("PMSource", valueList [0], nullptr);
+                    curChannelSection.setProperty ("PMSource", value, nullptr);
                 }
                 else if (keyIs ("Release"))
                 {
-                    curChannelSection.setProperty ("Release", valueList [0], nullptr);
+                    curChannelSection.setProperty ("Release", value, nullptr);
                 }
                 else if (keyIs ("ReleaseMod"))
                 {
-                    curChannelSection.setProperty ("ReleaseMod", valueList [0] + " " + valueList [1], nullptr);
+                    curChannelSection.setProperty ("ReleaseMod", value, nullptr);
                 }
                 else if (keyIs ("Reverse"))
                 {
-                    curChannelSection.setProperty ("Reverse", valueList [0], nullptr);
+                    curChannelSection.setProperty ("Reverse", value, nullptr);
                 }
                 else if (keyIs ("SampleEndMod"))
                 {
-                    curChannelSection.setProperty ("SampleEndMod", valueList [0] + " " + valueList [1], nullptr);
+                    curChannelSection.setProperty ("SampleEndMod", value, nullptr);
                 }
                 else if (keyIs ("SampleStartMod"))
                 {
-                    curChannelSection.setProperty ("SampleStartMod", valueList [0] + " " + valueList [1], nullptr);
+                    curChannelSection.setProperty ("SampleStartMod", value, nullptr);
                 }
                 else if (keyIs ("SpliceSmoothing"))
                 {
-                    curChannelSection.setProperty ("SpliceSmoothing", valueList [0], nullptr);
+                    curChannelSection.setProperty ("SpliceSmoothing", value, nullptr);
                 }
                 else if (keyIs ("XfadeGroup"))
                 {
-                    curChannelSection.setProperty ("XfadeGroup", valueList [0], nullptr);
+                    curChannelSection.setProperty ("XfadeGroup", value, nullptr);
                 }
                 else if (keyIs ("ZonesCV"))
                 {
-                    curChannelSection.setProperty ("ZonesCV", valueList [0], nullptr);
+                    curChannelSection.setProperty ("ZonesCV", value, nullptr);
                 }
                 else if (keyIs ("ZonesRT"))
                 {
-                    curChannelSection.setProperty ("ZonesRT", valueList [0], nullptr);
+                    curChannelSection.setProperty ("ZonesRT", value, nullptr);
                 }
                 else
                 {
@@ -663,39 +668,39 @@ void Assimil8orPreset::parse (juce::StringArray presetLines)
                 // Side : 1
                 if (keyIs ("LevelOffset"))
                 {
-                    curZoneSection.setProperty ("LevelOffset", valueList [0], nullptr);
+                    curZoneSection.setProperty ("LevelOffset", value, nullptr);
                 }
                 else if (keyIs ("LoopLength"))
                 {
-                    curZoneSection.setProperty ("LoopLength", valueList [0], nullptr);
+                    curZoneSection.setProperty ("LoopLength", value, nullptr);
                 }
                 else if (keyIs ("LoopStart"))
                 {
-                    curZoneSection.setProperty ("LoopStart", valueList [0], nullptr);
+                    curZoneSection.setProperty ("LoopStart", value, nullptr);
                 }
                 else if (keyIs ("MinVoltage"))
                 {
-                    curZoneSection.setProperty ("MinVoltage", valueList [0], nullptr);
+                    curZoneSection.setProperty ("MinVoltage", value, nullptr);
                 }
                 else if (keyIs ("PitchOffset"))
                 {
-                    curZoneSection.setProperty ("PitchOffset", valueList [0], nullptr);
+                    curZoneSection.setProperty ("PitchOffset", value, nullptr);
                 }
                 else if (keyIs ("Sample"))
                 {
-                    curZoneSection.setProperty ("Sample", valueList [0], nullptr);
+                    curZoneSection.setProperty ("Sample", value, nullptr);
                 }
                 else if (keyIs ("SampleStart"))
                 {
-                    curZoneSection.setProperty ("SampleStart", valueList [0], nullptr);
+                    curZoneSection.setProperty ("SampleStart", value, nullptr);
                 }
                 else if (keyIs ("SampleEnd"))
                 {
-                    curZoneSection.setProperty ("SampleEnd", valueList [0], nullptr);
+                    curZoneSection.setProperty ("SampleEnd", value, nullptr);
                 }
                 else if (keyIs ("Side"))
                 {
-                    curZoneSection.setProperty ("Side", valueList [0], nullptr);
+                    curZoneSection.setProperty ("Side", value, nullptr);
                 }
                 else
                 {
