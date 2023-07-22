@@ -99,25 +99,25 @@ private:
     juce::String curText;
 };
 
-Assimil8orSDCardImage::Assimil8orSDCardImage () : Thread ("Assimil8orSDCardImage")
+Assimil8orSDCardValidator::Assimil8orSDCardValidator () : Thread ("Assimil8orSDCardValidator")
 {
     // initialize format manager for sample file reading
     audioFormatManager.registerBasicFormats ();
 }
 
-void Assimil8orSDCardImage::init (juce::ValueTree vt)
+void Assimil8orSDCardValidator::init (juce::ValueTree vt)
 {
     validatorProperties.wrap (vt, ValueTreeWrapper::WrapperType::owner, ValueTreeWrapper::EnableCallbacks::yes);
     validatorProperties.onStartScanAsync = [this] () { validate (); };
 }
 
-void Assimil8orSDCardImage::validate ()
+void Assimil8orSDCardValidator::validate ()
 {
     validatorProperties.setScanStatus ("scanning", false);
     startThread ();
 }
 
-std::tuple<juce::String, juce::String> Assimil8orSDCardImage::validateFile (juce::File file)
+std::tuple<juce::String, juce::String> Assimil8orSDCardValidator::validateFile (juce::File file)
 {
     const auto kMaxFileNameLength { 47 };
 
@@ -242,7 +242,7 @@ std::tuple<juce::String, juce::String> Assimil8orSDCardImage::validateFile (juce
     }
 }
 
-std::tuple<juce::String,juce::String> Assimil8orSDCardImage::validateFolder (juce::File folder)
+std::tuple<juce::String,juce::String> Assimil8orSDCardValidator::validateFolder (juce::File folder)
 {
     const auto kMaxFolderNameLength { 31 };
 
@@ -265,7 +265,7 @@ std::tuple<juce::String,juce::String> Assimil8orSDCardImage::validateFolder (juc
     }
 }
 
-void Assimil8orSDCardImage::validateFolderContents (juce::File folder, std::vector<juce::File>& foldersToScan, bool isRoot)
+void Assimil8orSDCardValidator::validateFolderContents (juce::File folder, std::vector<juce::File>& foldersToScan, bool isRoot)
 {
     // iterate over files system
     // for directories
@@ -347,7 +347,7 @@ void Assimil8orSDCardImage::validateFolderContents (juce::File folder, std::vect
         addStatus ("error", "[Number of Presets (" + juce::String(numberOfPresets) + ") exceeds maximum allowed (" + juce::String (maxPresets) + ")]");
 }
 
-void Assimil8orSDCardImage::run ()
+void Assimil8orSDCardValidator::run ()
 {
     bool isRoot { true };
     validatorProperties.getValidationStatusVT ().removeAllChildren (nullptr);

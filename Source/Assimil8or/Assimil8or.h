@@ -16,8 +16,6 @@ public:
     Assimil8orSDCardImage ();
 
     void init (juce::ValueTree vt);
-    void validate ();
-    bool isScanning () { return isThreadRunning (); }
 
 private:
     juce::AudioFormatManager audioFormatManager;
@@ -28,6 +26,7 @@ private:
     int numberOfPresets {};
     int64_t lastScanInProgressUpdate {};
 
+    void validate ();
     void validateFolderContents (juce::File folder, std::vector<juce::File>& foldersToScan, bool isRoot);
 
     void run () override;

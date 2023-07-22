@@ -83,7 +83,7 @@ public:
     {
         // hack the preset data on to the runtime root until we get a proper valuetreewrapper for the preset
         runtimeRootProperties.getValueTree ().addChild (assimil8orPreset.getPresetVT (), -1, nullptr);
-        assimil8orSDCardImage.init (runtimeRootProperties.getValueTree ());
+        assimil8orSDCardValidator.init (runtimeRootProperties.getValueTree ());
     }
 
     void initUi ()
@@ -110,7 +110,7 @@ public:
         // locate the appProperties file in the User Application Data Directory
 
         //   On Windows, something like "\Documents and Settings\username\Application Data".
-        //   On the Mac, it is "~/Library/Artiphon".
+        //   On the Mac, it is "~/Library/Company".
         //   On GNU/Linux it is "~/.config".
 
         const juce::String propertiesFilePath { juce::File::getSpecialLocation (juce::File::userApplicationDataDirectory).getFullPathName () };
@@ -213,7 +213,7 @@ private:
     AppProperties appProperties;
     RuntimeRootProperties runtimeRootProperties;
     Assimil8orPreset assimil8orPreset;
-    Assimil8orSDCardImage assimil8orSDCardImage;
+    Assimil8orSDCardValidator assimil8orSDCardValidator;
     std::unique_ptr<juce::FileLogger> fileLogger;
     std::atomic<RuntimeRootProperties::QuitState> localQuitState { RuntimeRootProperties::QuitState::idle };
     std::unique_ptr<MainWindow> mainWindow;
