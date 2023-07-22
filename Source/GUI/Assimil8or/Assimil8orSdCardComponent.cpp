@@ -126,3 +126,8 @@ juce::Component* Assimil8orSdCardComponent::refreshComponentForCell (int rowNumb
     jassert (existingComponentToUpdate == nullptr);
     return nullptr;
 }
+
+void Assimil8orSdCardComponent::cellDoubleClicked (int rowNumber, int columnId, const juce::MouseEvent& mouseEvent)
+{
+    juce::Logger::outputDebugString ("rowNum: " + juce::String (rowNumber) + ", colId: " + juce::String (columnId));
+}
