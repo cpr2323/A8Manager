@@ -148,39 +148,33 @@ std::tuple<juce::String, juce::String> Assimil8orSDCardImage::validateFile (juce
         auto presetVT { assimil8orPreset.getPresetVT ().getChildWithName("Preset")};
         if (presetVT.isValid ())
         {
-            ValueTreeHelpers::forEachChild (presetVT, [this, &file, &scanStatusResult, &sizeRequiredForSamples] (juce::ValueTree child)
+            ValueTreeHelpers::forEachChildOfType (presetVT, "Channel", [this, &file, &scanStatusResult, &sizeRequiredForSamples] (juce::ValueTree child)
             {
-                if (child.getType ().toString () == "Channel")
+                ValueTreeHelpers::forEachChildOfType (child, "Zone", [this, &file, &scanStatusResult, &sizeRequiredForSamples] (juce::ValueTree child)
                 {
-                    ValueTreeHelpers::forEachChild (child, [this, &file, &scanStatusResult, &sizeRequiredForSamples] (juce::ValueTree child)
+                    const auto sampleFileName { child.getProperty ("Sample").toString () };
+                    auto sampleFile { file.getParentDirectory ().getChildFile (sampleFileName) };
+                    if (! sampleFile.exists ())
                     {
-                        if (child.getType ().toString () == "Zone")
+                        // report error
+                        scanStatusResult.update ("error", "['" + sampleFileName + "' does not exist]");
+                    }
+                    else
+                    {
+                        // open as audio file, calculate memory requirements
+                        std::unique_ptr<juce::AudioFormatReader> reader (audioFormatManager.createReaderFor (sampleFile));
+                        if (reader == nullptr)
                         {
-                            const auto sampleFileName { child.getProperty ("Sample").toString () };
-                            juce::File sampleFile (file.getParentDirectory ().getChildFile (sampleFileName));
-                            if (! sampleFile.exists ())
-                            {
-                                // report error
-                                scanStatusResult.update ("error", "['" + sampleFileName + "' does not exist]");
-                            }
-                            else
-                            {
-                                // open as audio file, calculate memory requirements
-                                std::unique_ptr<juce::AudioFormatReader> reader (audioFormatManager.createReaderFor (sampleFile));
-                                if (reader == nullptr)
-                                {
-                                    LogValidation ("    [ Warning : unknown audio format ]");
-                                    scanStatusResult.update ("error", "['" + sampleFileName + "' unknown audio format. size = " + juce::String (file.getSize ()) + "]");
-                                }
-                                else
-                                {
-                                    sizeRequiredForSamples += reader->numChannels * reader->lengthInSamples * 4;
-                                }
-                            }
+                            LogValidation ("    [ Warning : unknown audio format ]");
+                            scanStatusResult.update ("error", "['" + sampleFileName + "' unknown audio format. size = " + juce::String (file.getSize ()) + "]");
                         }
-                        return true;
-                    });
-                }
+                        else
+                        {
+                            sizeRequiredForSamples += reader->numChannels * reader->lengthInSamples * 4;
+                        }
+                    }
+                    return true;
+                });
                 return true;
             });
         }

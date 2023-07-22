@@ -21,6 +21,7 @@ namespace ValueTreeHelpers
     void dumpValueTreeContent (juce::ValueTree vt, bool displayProperties, std::function<void (juce::String)> displayFunction);
     juce::ValueTree findChild (juce::ValueTree parent, std::function<bool (juce::ValueTree child)> findChildCallback);
     void forEachChild (juce::ValueTree parent, std::function<bool (juce::ValueTree child)> childCallback);
+    void forEachChildOfType (juce::ValueTree parent, juce::Identifier childType, std::function<bool (juce::ValueTree child)> childCallback);
     juce::ValueTree fromXmlData (const void* data, size_t size);
     juce::ValueTree fromXmlString (juce::StringRef xmlString);
     uint32_t getCrc (juce::ValueTree tree);

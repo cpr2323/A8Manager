@@ -32,10 +32,9 @@ void Assimil8orSdCardComponent::init (juce::ValueTree rootPropertiesVT)
 void Assimil8orSdCardComponent::buildQuickLookupList ()
 {
     // iterate over the state message list, adding each one to the quick list
-    ValueTreeHelpers::forEachChild (validatorProperties.getValidationStatusVT (), [this] (juce::ValueTree child)
+    ValueTreeHelpers::forEachChildOfType (validatorProperties.getValidationStatusVT (), "Status", [this] (juce::ValueTree child)
     {
-        if (child.getType ().toString () == "Status")
-            scanStatusQuickLookupList.emplace_back (child);
+        scanStatusQuickLookupList.emplace_back (child);
         return true;
     });
 }
