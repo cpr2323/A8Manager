@@ -14,14 +14,14 @@
 #define LogParsing(text) ;
 #endif
 
-const auto maxMemory { 422 * 1024 * 1024 };
+const double oneK { 1024.0f };
+const double oneMB { oneK * oneK };
+const double oneGB { oneMB * oneK };
+const auto maxMemory { static_cast<int>(422 * oneMB) };
 const auto maxPresets { 199 };
 
 juce::String getMemorySizeString (uint64_t memoryUsage)
 {
-    const double oneK { 1024.0f };
-    const double oneMB { 1024.0f * 1024.0f };
-    const double oneGB { 1024.0f * 1024.0f * 1024.0f };
     if (memoryUsage >= oneGB)
         return juce::String (memoryUsage / oneGB, 2).trimCharactersAtEnd ("0.") + "GB";
     else if (memoryUsage >= oneMB)
@@ -29,7 +29,7 @@ juce::String getMemorySizeString (uint64_t memoryUsage)
     else if (memoryUsage >= oneK)
         return juce::String (memoryUsage / oneK, 2).trimCharactersAtEnd ("0.") + "k";
     else
-        return juce::String (memoryUsage) + "bytes";
+        return juce::String (memoryUsage) + " bytes";
 };
 
 class ScanStatusResult
