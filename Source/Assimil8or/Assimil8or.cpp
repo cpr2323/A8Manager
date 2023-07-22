@@ -228,7 +228,7 @@ std::tuple<juce::String, juce::String> Assimil8orSDCardImage::validateFile (juce
                                          juce::String (reader->bitsPerSample) + "bits/" + sampleRateString + "k, " +
                                          juce::String (reader->numChannels == 1 ? "mono" : (reader->numChannels == 2 ? "stereo" : juce::String(reader->numChannels) + " channels")) + "}, " +
                                          juce::String (reader->lengthInSamples / reader->sampleRate, 2) + " seconds, " +
-                                         "RAM: " + juce::String(memoryUsage) + " bytes (" + getMemorySizeString (memoryUsage) + ")");
+                                         "RAM: " + getMemorySizeString (memoryUsage));
             auto reportErrorIfTrue = [&scanStatusResult] (bool conditionalResult, juce::String newText)
             {
                 if (conditionalResult)
