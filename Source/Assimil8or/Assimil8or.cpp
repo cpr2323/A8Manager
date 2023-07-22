@@ -53,13 +53,13 @@ public:
         return curText;
     }
 
-    void update (juce::String newType, juce::String newText)
+    void update (const juce::String& newType, const juce::String& newText)
     {
         updateType (newType);
         udpateText (newText);
     }
 
-    void updateType (juce::String newType)
+    void updateType (const juce::String& newType)
     {
         if (newType == "" || curType == "error")
             return;
@@ -84,7 +84,7 @@ public:
         }
     }
 
-    void udpateText (juce::String newText)
+    void udpateText (const juce::String& newText)
     {
         if (newText.isEmpty ())
             return;
@@ -145,7 +145,7 @@ std::tuple<juce::String, juce::String> Assimil8orSDCardImage::validateFile (juce
         assimil8orPreset.parse (fileContents);
 
         uint64_t sizeRequiredForSamples {};
-        auto presetVT { assimil8orPreset.getPresetVT ().getChildWithName("Preset")};
+        auto presetVT { assimil8orPreset.getPresetVT ().getChildWithName ("Preset") };
         if (presetVT.isValid ())
         {
             ValueTreeHelpers::forEachChildOfType (presetVT, "Channel", [this, &file, &scanStatusResult, &sizeRequiredForSamples] (juce::ValueTree child)
@@ -303,7 +303,7 @@ void Assimil8orSDCardImage::validateFolderContents (juce::File folder, std::vect
     else
     {
         scanStatusResult.update ("info", "Folder: " + folder.getFileName ());
-        auto [newStatusType, newStatusText] = validateFolder (folder);
+        const auto [newStatusType, newStatusText] = validateFolder (folder);
         scanStatusResult.update (newStatusType, newStatusText);
         addStatus (scanStatusResult.getType (), scanStatusResult.getText ());
     }
@@ -318,9 +318,9 @@ void Assimil8orSDCardImage::validateFolderContents (juce::File folder, std::vect
         if (juce::Time::currentTimeMillis () - lastScanInProgressUpdate > 250)
         {
             lastScanInProgressUpdate = juce::Time::currentTimeMillis ();
-            juce::MessageManager::callAsync ([this, &curFile] ()
+            juce::MessageManager::callAsync ([this, fileName = curFile.getFileName ()] ()
             {
-                validatorProperties.setProgressUpdate (curFile.getFileName (), false);
+                validatorProperties.setProgressUpdate (fileName, false);
             });
         }
         if (curFile.isDirectory ())
@@ -331,7 +331,7 @@ void Assimil8orSDCardImage::validateFolderContents (juce::File folder, std::vect
         else
         {
             scanStatusResult.update ("info", "File: " + curFile.getFileName ());
-            auto [newStatusType, newStatusText] = validateFile (curFile);
+            const auto [newStatusType, newStatusText] = validateFile (curFile);
             scanStatusResult.update (newStatusType, newStatusText);
 
             jassert (scanStatusResult.getType () != "");
@@ -356,7 +356,7 @@ void Assimil8orSDCardImage::run ()
     lastScanInProgressUpdate = juce::Time::currentTimeMillis ();
     while (foldersToScan.size () > 0)
     {
-        auto curFolderToScan { foldersToScan.back () };
+        const auto curFolderToScan { foldersToScan.back () };
         foldersToScan.pop_back ();
         validateFolderContents (curFolderToScan, foldersToScan, isRoot);
         isRoot = false;
@@ -379,7 +379,7 @@ void Assimil8orPreset::parse (juce::StringArray presetLines)
     juce::ValueTree curZoneSection;
     for (auto& presetLine : presetLines)
     {
-        auto indent { presetLine.initialSectionContainingOnly (" ") };
+        const auto indent { presetLine.initialSectionContainingOnly (" ") };
         const auto previousScopeDepth { scopeDepth };
         scopeDepth = indent.length () / 2;
         const auto scopeDifference { scopeDepth - previousScopeDepth };
@@ -391,8 +391,8 @@ void Assimil8orPreset::parse (juce::StringArray presetLines)
             {
                 switch (parseState)
                 {
-                    case ParseState::SeekingPresetSection: { jassertfalse; } break;
-                    case ParseState::ParsingPresetSection: { curPresetSection = {}; setParseState (ParseState::SeekingPresetSection); } break;
+                    case ParseState::ParsingGlobalSection: { jassertfalse; } break;
+                    case ParseState::ParsingPresetSection: { curPresetSection = {}; setParseState (ParseState::ParsingGlobalSection); } break;
                     case ParseState::ParsingChannelSection: { curChannelSection = {}; setParseState (ParseState::ParsingPresetSection); } break;
                     case ParseState::ParsingZoneSection: { curZoneSection = {}; setParseState (ParseState::ParsingChannelSection); } break;
                     default: { jassertfalse; } break;
@@ -400,16 +400,15 @@ void Assimil8orPreset::parse (juce::StringArray presetLines)
             }
         }
 
-        presetLine = presetLine.trim ();
-        LogParsing (juce::String (scopeDepth) + "-" + presetLine);
-        auto key { presetLine.upToFirstOccurrenceOf (":", false, false).trim () };
-        auto value { presetLine.fromFirstOccurrenceOf (":", false, false).trim () };
+        LogParsing (juce::String (scopeDepth) + "-" + presetLine.trimStart ());
+        const auto key { presetLine.upToFirstOccurrenceOf (":", false, false).trim () };
+        const auto value { presetLine.fromFirstOccurrenceOf (":", false, false).trim () };
 
-        auto keyIs = [&key] (juce::String desiredKey)
+        auto keyIs = [&key] (const juce::String& desiredKey)
         {
             return key.upToFirstOccurrenceOf (" ", false, false) == desiredKey;
         };
-        auto addValueTreeChild = [&key] (juce::Identifier sectionId, juce::ValueTree parent)
+        auto addSection = [&key] (const juce::Identifier& sectionId, juce::ValueTree parent)
         {
             auto section { juce::ValueTree { sectionId } };
             section.setProperty ("index", key.fromFirstOccurrenceOf (" ", false, false), nullptr);
@@ -418,11 +417,11 @@ void Assimil8orPreset::parse (juce::StringArray presetLines)
         };
         switch (parseState)
         {
-            case ParseState::SeekingPresetSection:
+            case ParseState::ParsingGlobalSection:
             {
                 if (keyIs (PresetSectionId.toString ()))
                 {
-                    curPresetSection = addValueTreeChild (PresetSectionId, assimil8orData);
+                    curPresetSection = addSection (PresetSectionId, assimil8orData);
                     setParseState (ParseState::ParsingPresetSection);
                 }
             }
@@ -435,7 +434,7 @@ void Assimil8orPreset::parse (juce::StringArray presetLines)
                 // XfadeAWidth : 9.10
                 if (keyIs (ChannelSectionId.toString ()))
                 {
-                    curChannelSection = addValueTreeChild (ChannelSectionId, curPresetSection);
+                    curChannelSection = addSection (ChannelSectionId, curPresetSection);
                     setParseState (ParseState::ParsingChannelSection);
                 }
                 else if (keyIs (PresetNamePropertyId.toString ()))
@@ -504,7 +503,7 @@ void Assimil8orPreset::parse (juce::StringArray presetLines)
                 // ZonesRT : 1
                 if (keyIs (ZoneSectionId.toString ()))
                 {
-                    curZoneSection = addValueTreeChild (ZoneSectionId, curChannelSection);
+                    curZoneSection = addSection (ZoneSectionId, curChannelSection);
                     setParseState (ParseState::ParsingZoneSection);
                 }
                 else if (keyIs ("Attack"))
@@ -735,7 +734,7 @@ juce::String Assimil8orPreset::getParseStateString (ParseState theParseState)
 {
     switch (theParseState)
     {
-        case ParseState::SeekingPresetSection: { return "SeekingPresetSection"; } break;
+        case ParseState::ParsingGlobalSection: { return "ParsinGlobalSection"; } break;
         case ParseState::ParsingPresetSection: { return "ParsingPresetSection"; } break;
         case ParseState::ParsingChannelSection: { return "ParsingChannelSection"; } break;
         case ParseState::ParsingZoneSection: { return "ParsingZoneSection"; } break;

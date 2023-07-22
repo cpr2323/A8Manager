@@ -47,12 +47,12 @@ public:
 private:
     enum class ParseState
     {
-        SeekingPresetSection,
+        ParsingGlobalSection,
         ParsingPresetSection,
         ParsingChannelSection,
         ParsingZoneSection,
     };
-    ParseState parseState { ParseState::SeekingPresetSection };
+    ParseState parseState { ParseState::ParsingGlobalSection };
 
     juce::ValueTree assimil8orData { "Assimil8or" };
 
