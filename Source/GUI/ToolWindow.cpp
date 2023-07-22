@@ -58,10 +58,7 @@ void ToolWindow::updateScanStatus (juce::String scanStatus)
 
 void ToolWindow::updateProgress (juce::String progressUpdate)
 {
-    juce::MessageManager::callAsync ([this, progressUpdate] ()
-    {
-        progressUpdateLabel.setText (progressUpdate, juce::NotificationType::dontSendNotification);
-    });
+    progressUpdateLabel.setText (progressUpdate, juce::NotificationType::dontSendNotification);
 }
 
 void ToolWindow::verifySdCardImage ()

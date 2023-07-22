@@ -296,7 +296,11 @@ void Assimil8orSDCardImage::validateFolderContents (juce::File folder, std::vect
     if (isRoot)
     {
         addStatus ("info", "Root Folder: " + folder.getFileName ());
-        validatorProperties.setProgressUpdate (folder.getFileName (), false);
+        // do one initial progress update to fill in the first one
+        juce::MessageManager::callAsync ([this, folderName = folder.getFileName ()] ()
+        {
+            validatorProperties.setProgressUpdate (folderName, false);
+        });
     }
     else
     {
