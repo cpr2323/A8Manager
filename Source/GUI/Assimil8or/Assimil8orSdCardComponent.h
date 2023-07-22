@@ -16,8 +16,13 @@ private:
     ValidatorProperties validatorProperties;
     juce::TableListBox scanStatusListBox { {}, this };
     std::vector<juce::ValueTree> scanStatusQuickLookupList;
+    juce::StringArray filterList {"idle"};
+    juce::TextButton idleFilterButton;
+    juce::TextButton warningFilterButton;
+    juce::TextButton errorFilterButton;
 
     void buildQuickLookupList ();
+    void setupFilterList ();
 
     void resized () override;
     void paint (juce::Graphics& g) override;

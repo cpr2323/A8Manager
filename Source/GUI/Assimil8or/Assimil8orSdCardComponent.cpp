@@ -11,6 +11,32 @@ Assimil8orSdCardComponent::Assimil8orSdCardComponent ()
     scanStatusListBox.getHeader ().addColumn ("Status", 1, 60, 10, 60, juce::TableHeaderComponent::visible);
     scanStatusListBox.getHeader ().addColumn ("Message (0 items)", 2, 100, 10, 3000, juce::TableHeaderComponent::visible);
     addAndMakeVisible (scanStatusListBox);
+
+    auto setupFilterButton = [this] (juce::TextButton& button, juce::String text)
+    {
+        button.setColour (juce::TextButton::ColourIds::buttonColourId, juce::Colours::grey);
+        button.setColour (juce::TextButton::ColourIds::buttonOnColourId, juce::Colours::green.darker(0.5f));
+        button.setClickingTogglesState (true);
+        button.setToggleable (true);
+        button.setButtonText (text);
+        button.setToggleState (true, juce::NotificationType::dontSendNotification);
+        button.onClick = [this] ()
+        {
+            setupFilterList ();
+            scanStatusQuickLookupList.clear ();
+            buildQuickLookupList ();
+            repaint ();
+        };
+        addAndMakeVisible (button);
+    };
+    setupFilterButton (idleFilterButton, "I");
+    setupFilterButton (warningFilterButton, "W");
+    setupFilterButton (errorFilterButton, "E");
+
+    setupFilterList ();
+    scanStatusQuickLookupList.clear ();
+    buildQuickLookupList ();
+    repaint ();
 }
 
 void Assimil8orSdCardComponent::init (juce::ValueTree rootPropertiesVT)
@@ -29,12 +55,23 @@ void Assimil8orSdCardComponent::init (juce::ValueTree rootPropertiesVT)
     };
 }
 
+void Assimil8orSdCardComponent::setupFilterList ()
+{
+    filterList.clearQuick ();
+    if (idleFilterButton.getToggleState ())
+        filterList.add ("info");
+    if (warningFilterButton.getToggleState ())
+        filterList.add ("warning");
+    if (errorFilterButton.getToggleState ())
+        filterList.add ("error");
+}
 void Assimil8orSdCardComponent::buildQuickLookupList ()
 {
     // iterate over the state message list, adding each one to the quick list
     ValueTreeHelpers::forEachChildOfType (validatorProperties.getValidationStatusVT (), "Status", [this] (juce::ValueTree child)
     {
-        scanStatusQuickLookupList.emplace_back (child);
+        if (filterList.contains (child.getProperty ("type").toString ()))
+            scanStatusQuickLookupList.emplace_back (child);
         return true;
     });
 }
@@ -49,6 +86,12 @@ void Assimil8orSdCardComponent::resized ()
     auto localBounds { getLocalBounds () };
     scanStatusListBox.setBounds (localBounds);
     scanStatusListBox.getHeader ().setColumnWidth (2, scanStatusListBox.getWidth () - 2 - scanStatusListBox.getHeader ().getColumnWidth (1));
+    auto filterButtonBounds { getLocalBounds().removeFromBottom(45).withTrimmedBottom(15).withTrimmedRight(15) };
+    errorFilterButton.setBounds (filterButtonBounds.removeFromRight (filterButtonBounds.getHeight ()));
+    filterButtonBounds.removeFromRight (5);
+    warningFilterButton.setBounds (filterButtonBounds.removeFromRight (filterButtonBounds.getHeight ()));
+    filterButtonBounds.removeFromRight (5);
+    idleFilterButton.setBounds (filterButtonBounds.removeFromRight (filterButtonBounds.getHeight ()));
 }
 
 int Assimil8orSdCardComponent::getNumRows ()
