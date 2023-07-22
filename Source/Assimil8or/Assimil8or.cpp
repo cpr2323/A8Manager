@@ -237,7 +237,7 @@ std::tuple<juce::String, juce::String> Assimil8orSDCardImage::validateFile (juce
             reportErrorIfTrue (reader->usesFloatingPointData == true, "[sample format must be integer]");
             reportErrorIfTrue (reader->bitsPerSample < 8 || reader->bitsPerSample > 32, "[bit depth must be between 8 and 32]");
             reportErrorIfTrue (reader->numChannels < 1 || reader->numChannels > 2, "[only mono and stereo supported]");
-            reportErrorIfTrue (reader->sampleRate > 192000, "[sample rate must not exceed 129k]");
+            reportErrorIfTrue (reader->sampleRate > 192000, "[sample rate must not exceed 192k]");
         }
         return { scanStatusResult.getType (), scanStatusResult.getText () };
     }
