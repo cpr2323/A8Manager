@@ -10,24 +10,29 @@
 //          Preset
 //          Audio (47 character len) (arbitrary name)
 //          Audio
-class Assimil8orSDCardImage : public juce::Thread
+class Assimil8orSDCardValidator : public juce::Thread
 {
 public:
-    Assimil8orSDCardImage ();
+    Assimil8orSDCardValidator ();
 
     void init (juce::ValueTree vt);
 
 private:
     juce::AudioFormatManager audioFormatManager;
     ValidatorProperties validatorProperties;
-    std::tuple<juce::String, juce::String> validateFile (juce::File file);
-    std::tuple<juce::String,juce::String> validateFolder (juce::File folder);
     uint64_t totalSizeOfPresets {};
     int numberOfPresets {};
     int64_t lastScanInProgressUpdate {};
+    juce::ValueTree rootFolderVT { "AssimilatorSdCardFileList" };
 
+    void addStatus (juce::String statusType, juce::String statusText);
+    void doIfProgressTimeElapsed (std::function<void ()> functionToDo);
+    juce::ValueTree getContentsOfFolder (juce::File folder);
+    void processFolder (juce::ValueTree folder);
     void validate ();
-    void validateFolderContents (juce::File folder, std::vector<juce::File>& foldersToScan, bool isRoot);
+    std::tuple<juce::String, juce::String> validateFile (juce::File file);
+    std::tuple<juce::String, juce::String> validateFolder (juce::File folder);
+    void validateRootFolder ();
 
     void run () override;
 };

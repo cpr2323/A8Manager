@@ -17,7 +17,7 @@
 const double oneK { 1024.0f };
 const double oneMB { oneK * oneK };
 const double oneGB { oneMB * oneK };
-const auto maxMemory { static_cast<int>(422 * oneMB) };
+const auto maxMemory { static_cast<int> (422 * oneMB) };
 const auto maxPresets { 199 };
 
 juce::String getMemorySizeString (uint64_t memoryUsage)
@@ -220,7 +220,7 @@ std::tuple<juce::String, juce::String> Assimil8orSDCardValidator::validateFile (
             scanStatusResult.udpateText (juce::String (" {") +
                                          juce::String (reader->usesFloatingPointData == true ? "floating point" : "integer") + ", " +
                                          juce::String (reader->bitsPerSample) + "bits/" + sampleRateString + "k, " +
-                                         juce::String (reader->numChannels == 1 ? "mono" : (reader->numChannels == 2 ? "stereo" : juce::String(reader->numChannels) + " channels")) + "}, " +
+                                         juce::String (reader->numChannels == 1 ? "mono" : (reader->numChannels == 2 ? "stereo" : juce::String (reader->numChannels) + " channels")) + "}, " +
                                          juce::String (reader->lengthInSamples / reader->sampleRate, 2) + " seconds, " +
                                          "RAM: " + getMemorySizeString (memoryUsage));
             auto reportErrorIfTrue = [&scanStatusResult] (bool conditionalResult, juce::String newText)
@@ -265,9 +265,57 @@ std::tuple<juce::String,juce::String> Assimil8orSDCardValidator::validateFolder 
     }
 }
 
-void Assimil8orSDCardValidator::validateFolderContents (juce::File folder, std::vector<juce::File>& foldersToScan, bool isRoot)
+void Assimil8orSDCardValidator::addStatus (juce::String statusType, juce::String statusText)
 {
-    // iterate over files system
+    auto newStatusChild { juce::ValueTree {"Status"} };
+    newStatusChild.setProperty ("type", statusType, nullptr);
+    newStatusChild.setProperty ("text", statusText, nullptr);
+    validatorProperties.getValidationStatusVT ().addChild (newStatusChild, -1, nullptr);
+};
+
+void Assimil8orSDCardValidator::doIfProgressTimeElapsed (std::function<void()> functionToDo)
+{
+    jassert (functionToDo != nullptr);
+    if (juce::Time::currentTimeMillis () - lastScanInProgressUpdate > 250)
+    {
+        lastScanInProgressUpdate = juce::Time::currentTimeMillis ();
+        functionToDo ();
+    }
+}
+
+juce::ValueTree Assimil8orSDCardValidator::getContentsOfFolder (juce::File folder)
+{
+    juce::ValueTree folderVT {"Folder"};
+    folderVT.setProperty ("name", folder.getFullPathName (), nullptr);
+    for (const auto& entry : juce::RangedDirectoryIterator (folder, false, "*", juce::File::findFilesAndDirectories))
+    {
+        if (threadShouldExit ())
+            break;
+
+        doIfProgressTimeElapsed ([this, fileName = entry.getFile ().getFileName ()] ()
+        {
+            juce::MessageManager::callAsync ([this, fileName] ()
+            {
+                validatorProperties.setProgressUpdate (fileName, false);
+            });
+        });
+        if (const auto& curFile { entry.getFile () }; curFile.isDirectory ())
+        {
+            folderVT.addChild (getContentsOfFolder (curFile), -1, nullptr);
+        }
+        else
+        {
+            juce::ValueTree fileVT {"File"};
+            fileVT.setProperty ("name", curFile.getFullPathName (), nullptr);
+            folderVT.addChild (fileVT, -1, nullptr);
+        }
+    }
+    return folderVT;
+}
+
+void Assimil8orSDCardValidator::processFolder (juce::ValueTree folderVT)
+{
+    // iterate over file system
     // for directories
     //      report if name over 31 characters
     //      (TODO) report if folder is 2 or more deep in hierarchy
@@ -278,95 +326,76 @@ void Assimil8orSDCardValidator::validateFolderContents (juce::File folder, std::
     //      report if name over 47 characters
     //      report if it does not match supported formats
     // report any other files as unused by assimil8or
-
-    auto addStatus = [this] (juce::String statusType, juce::String statusText)
-    {
-        auto newStatusChild { juce::ValueTree {"Status"}};
-        newStatusChild.setProperty ("type", statusType, nullptr);
-        newStatusChild.setProperty ("text", statusText, nullptr);
-        validatorProperties.getValidationStatusVT ().addChild (newStatusChild, -1, nullptr);
-    };
-
+    ScanStatusResult scanStatusResult;
+    jassert (folderVT.getType ().toString () == "Folder");
     totalSizeOfPresets = 0;
     numberOfPresets = 0;
-    ScanStatusResult scanStatusResult;
-    LogValidation ("Folder: " + folder.getFileName ());
-    if (isRoot)
+    for (auto folderEntryVT : folderVT)
     {
-        addStatus ("info", "Root Folder: " + folder.getFileName ());
-        // do one initial progress update to fill in the first one
-        juce::MessageManager::callAsync ([this, folderName = folder.getFileName ()] ()
+        scanStatusResult.reset ();
+        auto curEntry { juce::File (folderEntryVT.getProperty ("name")) };
+        doIfProgressTimeElapsed ([this, fileName = curEntry.getFileName ()] ()
         {
-            validatorProperties.setProgressUpdate (folderName, false);
-        });
-    }
-    else
-    {
-        scanStatusResult.update ("info", "Folder: " + folder.getFileName ());
-        const auto [newStatusType, newStatusText] = validateFolder (folder);
-        scanStatusResult.update (newStatusType, newStatusText);
-        addStatus (scanStatusResult.getType (), scanStatusResult.getText ());
-    }
-
-    scanStatusResult.reset ();
-    for (const auto& entry : juce::RangedDirectoryIterator (folder, false, "*", juce::File::findFilesAndDirectories))
-    {
-        if (threadShouldExit ())
-            return;
-
-        const auto& curFile { entry.getFile () };
-        if (juce::Time::currentTimeMillis () - lastScanInProgressUpdate > 250)
-        {
-            lastScanInProgressUpdate = juce::Time::currentTimeMillis ();
-            juce::MessageManager::callAsync ([this, fileName = curFile.getFileName ()] ()
+            juce::MessageManager::callAsync ([this, fileName] ()
             {
                 validatorProperties.setProgressUpdate (fileName, false);
             });
-        }
-        if (curFile.isDirectory ())
+        });
+        if (curEntry.isDirectory ())
         {
-            // queue folders up to be handled in scan thread loop, ie. our caller
-            foldersToScan.emplace_back (curFile);
+            scanStatusResult.update ("info", "Folder: " + curEntry.getFileName ());
+            const auto [newStatusType, newStatusText] = validateFolder (curEntry);
+            scanStatusResult.update (newStatusType, newStatusText);
+            addStatus (scanStatusResult.getType (), scanStatusResult.getText ());
+            processFolder (folderEntryVT);
         }
         else
         {
-            scanStatusResult.update ("info", "File: " + curFile.getFileName ());
-            const auto [newStatusType, newStatusText] = validateFile (curFile);
+            scanStatusResult.update ("info", "File: " + curEntry.getFileName ());
+            const auto [newStatusType, newStatusText] = validateFile (curEntry);
             scanStatusResult.update (newStatusType, newStatusText);
-
             jassert (scanStatusResult.getType () != "");
             if (scanStatusResult.getType () != "")
                 addStatus (scanStatusResult.getType (), scanStatusResult.getText ());
-            scanStatusResult.reset ();
         }
+
     }
-    addStatus ("info", "Total RAM Usage for `" + folder.getFileName () + "': " + getMemorySizeString (totalSizeOfPresets));
+    const auto folderName { juce::File (folderVT.getProperty ("name")).getFileName () };
+    addStatus ("info", "Total RAM Usage for `" + folderName + "': " + getMemorySizeString (totalSizeOfPresets));
     if (totalSizeOfPresets > maxMemory)
-        addStatus ("error", "[RAM Usage exceeds memory capacity by " + getMemorySizeString (totalSizeOfPresets - maxMemory) +"]");
+        addStatus ("error", "[RAM Usage exceeds memory capacity by " + getMemorySizeString (totalSizeOfPresets - maxMemory) + "]");
     if (numberOfPresets > maxPresets)
-        addStatus ("error", "[Number of Presets (" + juce::String(numberOfPresets) + ") exceeds maximum allowed (" + juce::String (maxPresets) + ")]");
+        addStatus ("error", "[Number of Presets (" + juce::String (numberOfPresets) + ") exceeds maximum allowed (" + juce::String (maxPresets) + ")]");
 }
 
-void Assimil8orSDCardValidator::run ()
+void Assimil8orSDCardValidator::validateRootFolder ()
 {
-    bool isRoot { true };
     validatorProperties.getValidationStatusVT ().removeAllChildren (nullptr);
-    std::vector<juce::File> foldersToScan;
-    foldersToScan.emplace_back (validatorProperties.getRootFolder ());
     lastScanInProgressUpdate = juce::Time::currentTimeMillis ();
-    while (foldersToScan.size () > 0)
+    const auto rootFolderName { validatorProperties.getRootFolder () };
+
+    auto rootEntry { juce::File (rootFolderName) };
+    addStatus ("info", "Root Folder: " + rootEntry.getFileName ());
+    // do one initial progress update to fill in the first one
+    juce::MessageManager::callAsync ([this, folderName = rootEntry.getFileName ()] ()
     {
-        const auto curFolderToScan { foldersToScan.back () };
-        foldersToScan.pop_back ();
-        validateFolderContents (curFolderToScan, foldersToScan, isRoot);
-        isRoot = false;
-    }
+        validatorProperties.setProgressUpdate (folderName, false);
+    });
+
+    rootFolderVT = getContentsOfFolder (rootFolderName);
+    processFolder (rootFolderVT);
+    rootFolderVT = {};
 
     juce::MessageManager::callAsync ([this] ()
     {
         validatorProperties.setProgressUpdate ("", false);
         validatorProperties.setScanStatus ("idle", false);
     });
+}
+
+void Assimil8orSDCardValidator::run ()
+{
+    validateRootFolder ();
 }
 
 // NOTE: still very much under construction
