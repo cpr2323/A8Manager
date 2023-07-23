@@ -493,6 +493,7 @@ void Assimil8orSDCardValidator::sortContentsOfFolder (juce::ValueTree folderVT)
             //   Audio files
             //   unknown files
             auto curFile { juce::File (folderEntryVT.getProperty ("name").toString ()) };
+            jassert (curFile.exists ());
             if ( isPresetFile (curFile))
                 insertSorted (folderIndex, SectionIndex::presetFiles);
             else if (isAudioFile (curFile))
