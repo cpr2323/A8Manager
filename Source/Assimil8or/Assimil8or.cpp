@@ -456,7 +456,14 @@ void Assimil8orSDCardValidator::sortContentsOfFolder (juce::ValueTree folderVT)
     {
         jassert (sectionIndex < SectionIndex::size);
         auto section { sections[sectionIndex] };
-        for (auto sectionIndex { section.startIndex }; sectionIndex < section.startIndex + section.length; ++sectionIndex)
+        if (section.length == 0)
+        {
+            jassert (section.startIndex == 0);
+            if (sectionIndex > 0)
+                section.startIndex = sections [sectionIndex - 1].startIndex + sections [sectionIndex - 1].length;
+            return;
+        }
+        for (auto sectionEntryIndex { section.startIndex }; sectionEntryIndex < section.startIndex + section.length; ++sectionEntryIndex)
         {
         }
     };
