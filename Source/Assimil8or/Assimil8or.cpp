@@ -135,6 +135,20 @@ void Assimil8orSDCardValidator::doIfProgressTimeElapsed (std::function<void ()> 
     }
 }
 
+bool Assimil8orSDCardValidator::isAudioFile (juce::File file)
+{
+    return file.getFileExtension () == ".wav";
+}
+
+bool Assimil8orSDCardValidator::isPresetFile (juce::File file)
+{
+    return file.getFileExtension () == ".yml" &&
+           file.getFileNameWithoutExtension ().length () == 7 &&
+           file.getFileNameWithoutExtension ().startsWith ("prst") &&
+           file.getFileNameWithoutExtension ().substring (4).containsOnly ("0123456789");
+
+}
+
 std::tuple<juce::String, juce::String> Assimil8orSDCardValidator::validateFile (juce::File file)
 {
     const auto kMaxFileNameLength { 47 };
@@ -146,10 +160,7 @@ std::tuple<juce::String, juce::String> Assimil8orSDCardValidator::validateFile (
         LogValidation ("  File (ignored)");
         return { "warning", "(ignored)" };
     }
-    else if (file.getFileExtension () == ".yml" &&
-             file.getFileNameWithoutExtension ().length () == 7 &&
-             file.getFileNameWithoutExtension ().startsWith ("prst") &&
-             file.getFileNameWithoutExtension ().substring (4).containsOnly ("0123456789"))
+    else if (isPresetFile (file))
     {
         ++numberOfPresets;
 
@@ -206,7 +217,7 @@ std::tuple<juce::String, juce::String> Assimil8orSDCardValidator::validateFile (
         LogValidation ("  File (preset)");
         return { scanStatusResult.getType (), scanStatusResult.getText () };
     }
-    else if (file.getFileExtension () == ".wav")
+    else if (isAudioFile (file))
     {
         ScanStatusResult scanStatusResult;
         scanStatusResult.updateType ("info");
@@ -332,7 +343,6 @@ void Assimil8orSDCardValidator::processFolder (juce::ValueTree folderVT)
             if (scanStatusResult.getType () != "")
                 addStatus (scanStatusResult.getType (), scanStatusResult.getText ());
         }
-
     }
     const auto folderName { juce::File (folderVT.getProperty ("name")).getFileName () };
     addStatus ("info", "Total RAM Usage for `" + folderName + "': " + getMemorySizeString (totalSizeOfPresets));
@@ -402,6 +412,7 @@ void Assimil8orSDCardValidator::validateRootFolder ()
     //   Preset files
     //   Audio files
     //   unknown files
+    sortContentsOfFolder (rootFolderVT);
     processFolder (rootFolderVT);
     rootFolderVT = {};
 
@@ -415,6 +426,86 @@ void Assimil8orSDCardValidator::validateRootFolder ()
 void Assimil8orSDCardValidator::run ()
 {
     validateRootFolder ();
+}
+
+void Assimil8orSDCardValidator::sortContentsOfFolder (juce::ValueTree folderVT)
+{
+    jassert (folderVT.getType ().toString () == "Folder");
+
+    //   Folders
+    //   Preset files
+    //   Audio files
+    //   unknown files
+    struct SectionInfo
+    {
+        int startIndex { 0 };
+        int length { 0 };
+    };
+    enum SectionIndex
+    {
+        folders,
+        presetFiles,
+        audioFiles,
+        unknownFiles,
+        size
+    };
+    std::array<SectionInfo, SectionIndex::size> sections;
+    const auto numFolderEntries { folderVT.getNumChildren () };
+
+    auto insertSorted = [&sections, &folderVT] (int itemIndex, int sectionIndex)
+    {
+        jassert (sectionIndex < SectionIndex::size);
+        auto& section { sections[sectionIndex] };
+        jassert (itemIndex >= section.startIndex + section.length);
+        auto startingSectionLength { section.length };
+        auto insertItem = [&folderVT, &section, &sections] (int itemIndex, int insertIndex)
+        {
+            auto tempVT { folderVT.getChild (itemIndex) };
+            folderVT.removeChild (itemIndex, nullptr);
+            folderVT.addChild (tempVT, insertIndex, nullptr);
+            ++section.length;
+            for (auto curSectionIndex { 1 }; curSectionIndex < SectionIndex::size; ++curSectionIndex)
+                sections [curSectionIndex].startIndex = sections [curSectionIndex - 1].startIndex + sections [curSectionIndex - 1].length;
+        };
+        for (auto sectionEntryIndex { section.startIndex }; sectionEntryIndex < section.startIndex + section.length; ++sectionEntryIndex)
+        {
+            if (folderVT.getChild (itemIndex).getProperty ("name").toString () < folderVT.getChild (sectionEntryIndex).getProperty ("name").toString ())
+            {
+                insertItem (itemIndex, sectionEntryIndex);
+                break;
+            }
+        }
+        if (section.length == startingSectionLength)
+            insertItem (itemIndex, section.startIndex + section.length);
+    };
+    for (auto folderIndex { 0 }; folderIndex < numFolderEntries; ++folderIndex)
+    {
+        auto folderEntryVT { folderVT.getChild (folderIndex) };
+        if (folderEntryVT.getType ().toString () == "Folder")
+        {
+            insertSorted (folderIndex, SectionIndex::folders);
+            sortContentsOfFolder (folderEntryVT);
+        }
+        else if (folderEntryVT.getType ().toString () == "File")
+        {
+            // alphabetize in these lists
+            //   Preset files
+            //   Audio files
+            //   unknown files
+            auto curFile { juce::File (folderEntryVT.getProperty ("name").toString ()) };
+            jassert (curFile.exists ());
+            if ( isPresetFile (curFile))
+                insertSorted (folderIndex, SectionIndex::presetFiles);
+            else if (isAudioFile (curFile))
+                insertSorted (folderIndex, SectionIndex::audioFiles);
+            else // unknown file
+                insertSorted (folderIndex, SectionIndex::unknownFiles);
+        }
+        else
+        {
+            jassertfalse;
+        }
+    }
 }
 
 // NOTE: still very much under construction
