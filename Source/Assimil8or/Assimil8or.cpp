@@ -452,20 +452,31 @@ void Assimil8orSDCardValidator::sortContentsOfFolder (juce::ValueTree folderVT)
     std::array<SectionInfo, SectionIndex::size> sections;
     const auto numFolderEntries { folderVT.getNumChildren () };
 
-    auto insertSorted = [&sections] (auto itemIndex, int sectionIndex)
+    auto insertSorted = [&sections, &folderVT] (int itemIndex, int sectionIndex)
     {
         jassert (sectionIndex < SectionIndex::size);
-        auto section { sections[sectionIndex] };
-        if (section.length == 0)
+        auto& section { sections[sectionIndex] };
+        jassert (itemIndex >= section.startIndex + section.length);
+        auto startingSectionLength { section.length };
+        auto insertItem = [&folderVT, &section, &sections] (int itemIndex, int insertIndex)
         {
-            jassert (section.startIndex == 0);
-            if (sectionIndex > 0)
-                section.startIndex = sections [sectionIndex - 1].startIndex + sections [sectionIndex - 1].length;
-            return;
-        }
+            auto tempVT { folderVT.getChild (itemIndex) };
+            folderVT.removeChild (itemIndex, nullptr);
+            folderVT.addChild (tempVT, insertIndex, nullptr);
+            ++section.length;
+            for (auto curSectionIndex { 1 }; curSectionIndex < SectionIndex::size; ++curSectionIndex)
+                sections [curSectionIndex].startIndex = sections [curSectionIndex - 1].startIndex + sections [curSectionIndex - 1].length;
+        };
         for (auto sectionEntryIndex { section.startIndex }; sectionEntryIndex < section.startIndex + section.length; ++sectionEntryIndex)
         {
+            if (folderVT.getChild (itemIndex).getProperty ("name").toString () < folderVT.getChild (sectionEntryIndex).getProperty ("name").toString ())
+            {
+                insertItem (itemIndex, sectionEntryIndex);
+                break;
+            }
         }
+        if (section.length == startingSectionLength)
+            insertItem (itemIndex, section.startIndex + section.length);
     };
     for (auto folderIndex { 0 }; folderIndex < numFolderEntries; ++folderIndex)
     {
@@ -484,7 +495,7 @@ void Assimil8orSDCardValidator::sortContentsOfFolder (juce::ValueTree folderVT)
             auto curFile { juce::File (folderEntryVT.getProperty ("name").toString ()) };
             if ( isPresetFile (curFile))
                 insertSorted (folderIndex, SectionIndex::presetFiles);
-            if (isAudioFile (curFile))
+            else if (isAudioFile (curFile))
                 insertSorted (folderIndex, SectionIndex::audioFiles);
             else // unknown file
                 insertSorted (folderIndex, SectionIndex::unknownFiles);
