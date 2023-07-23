@@ -28,7 +28,10 @@ private:
     void addStatus (juce::String statusType, juce::String statusText);
     void doIfProgressTimeElapsed (std::function<void ()> functionToDo);
     juce::ValueTree getContentsOfFolder (juce::File folder);
+    bool isAudioFile (juce::File file);
+    bool isPresetFile (juce::File file);
     void processFolder (juce::ValueTree folder);
+    void sortContentsOfFolder (juce::ValueTree rootFolderVT);
     void validate ();
     std::tuple<juce::String, juce::String> validateFile (juce::File file);
     std::tuple<juce::String, juce::String> validateFolder (juce::File folder);
