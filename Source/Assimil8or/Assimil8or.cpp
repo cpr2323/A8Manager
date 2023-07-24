@@ -22,14 +22,18 @@ const auto maxPresets { 199 };
 
 juce::String getMemorySizeString (uint64_t memoryUsage)
 {
+    auto formatString = [] (double usage, juce::String postFix)
+    {
+        return juce::String (usage, 2).trimCharactersAtEnd ("0.") + postFix;
+    };
     if (memoryUsage >= oneGB)
-        return juce::String (memoryUsage / oneGB, 2).trimCharactersAtEnd ("0.") + "GB";
+        return formatString (memoryUsage / oneGB, "GB");
     else if (memoryUsage >= oneMB)
-        return juce::String (memoryUsage / oneMB, 2).trimCharactersAtEnd ("0.") + "MB";
+        return formatString (memoryUsage / oneMB, "MB");
     else if (memoryUsage >= oneK)
-        return juce::String (memoryUsage / oneK, 2).trimCharactersAtEnd ("0.") + "k";
+        return formatString (memoryUsage / oneK, "k");
     else
-        return juce::String (memoryUsage) + " bytes";
+        return formatString (memoryUsage, "bytes");
 };
 
 class ScanStatusResult
