@@ -27,13 +27,13 @@ juce::String getMemorySizeString (uint64_t memoryUsage)
         return juce::String (usage, 2).trimCharactersAtEnd ("0.") + postFix;
     };
     if (memoryUsage >= oneGB)
-        return formatString (memoryUsage / oneGB, "GB");
+        return formatString (static_cast<float>(memoryUsage) / oneGB, "GB");
     else if (memoryUsage >= oneMB)
-        return formatString (memoryUsage / oneMB, "MB");
+        return formatString (static_cast<float>(memoryUsage) / oneMB, "MB");
     else if (memoryUsage >= oneK)
-        return formatString (memoryUsage / oneK, "k");
+        return formatString (static_cast<float>(memoryUsage) / oneK, "k");
     else
-        return formatString (memoryUsage, "bytes");
+        return formatString (static_cast<float>(memoryUsage), "bytes");
 };
 
 class ScanStatusResult
@@ -153,21 +153,20 @@ bool Assimil8orSDCardValidator::isPresetFile (juce::File file)
 
 }
 
-std::tuple<juce::String, juce::String> Assimil8orSDCardValidator::validateFile (juce::File file)
+std::tuple<juce::String, juce::String, std::optional<uint64_t>> Assimil8orSDCardValidator::validateFile (juce::File file)
 {
     const auto kMaxFileNameLength { 47 };
 
+    std::optional<uint64_t> optionalPresetInfo;
     LogValidation ("File: " + file.getFileName ());
     if (file.getFileName ().startsWithChar ('.'))
     {
         // ignore file
         LogValidation ("  File (ignored)");
-        return { "warning", "(ignored)" };
+        return { "warning", "(ignored)", {} };
     }
     else if (isPresetFile (file))
     {
-        ++numberOfPresets;
-
         ScanStatusResult scanStatusResult;
         scanStatusResult.update ("info", "Preset");
 
@@ -217,9 +216,9 @@ std::tuple<juce::String, juce::String> Assimil8orSDCardValidator::validateFile (
             scanStatusResult.update ("error", "[missing Preset section]");
         }
         scanStatusResult.update ("info", "RAM: " + getMemorySizeString (sizeRequiredForSamples));
-        totalSizeOfPresets += sizeRequiredForSamples;
+        optionalPresetInfo = optionalPresetInfo.value() + sizeRequiredForSamples;
         LogValidation ("  File (preset)");
-        return { scanStatusResult.getType (), scanStatusResult.getText () };
+        return { scanStatusResult.getType (), scanStatusResult.getText (), optionalPresetInfo };
     }
     else if (isAudioFile (file))
     {
@@ -267,12 +266,12 @@ std::tuple<juce::String, juce::String> Assimil8orSDCardValidator::validateFile (
             reportErrorIfTrue (reader->numChannels < 1 || reader->numChannels > 2, "[only mono and stereo supported]");
             reportErrorIfTrue (reader->sampleRate > 192000, "[sample rate must not exceed 192k]");
         }
-        return { scanStatusResult.getType (), scanStatusResult.getText () };
+        return { scanStatusResult.getType (), scanStatusResult.getText (), {} };
     }
     else
     {
         LogValidation ("  File (unknown)");
-        return { "warning", "(unknown file type)" };
+        return { "warning", "(unknown file type)", {} };
     }
 }
 
@@ -314,8 +313,8 @@ void Assimil8orSDCardValidator::processFolder (juce::ValueTree folderVT)
     // report any other files as unused by assimil8or
     ScanStatusResult scanStatusResult;
     jassert (folderVT.getType ().toString () == "Folder");
-    totalSizeOfPresets = 0;
-    numberOfPresets = 0;
+    uint64_t totalSizeOfPresets {};
+    int numberOfPresets {};
     for (auto folderEntryVT : folderVT)
     {
         if (isThreadRunning () && threadShouldExit ())
@@ -341,7 +340,12 @@ void Assimil8orSDCardValidator::processFolder (juce::ValueTree folderVT)
         else
         {
             scanStatusResult.update ("info", "File: " + curEntry.getFileName ());
-            const auto [newStatusType, newStatusText] = validateFile (curEntry);
+            const auto [newStatusType, newStatusText, presetUpdate] = validateFile (curEntry);
+            if (presetUpdate.has_value ())
+            {
+                totalSizeOfPresets += presetUpdate.value ();
+                ++numberOfPresets;
+            }
             scanStatusResult.update (newStatusType, newStatusText);
             jassert (scanStatusResult.getType () != "");
             if (scanStatusResult.getType () != "")

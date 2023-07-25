@@ -20,8 +20,6 @@ public:
 private:
     juce::AudioFormatManager audioFormatManager;
     ValidatorProperties validatorProperties;
-    uint64_t totalSizeOfPresets {};
-    int numberOfPresets {};
     int64_t lastScanInProgressUpdate {};
     juce::ValueTree rootFolderVT { "AssimilatorSdCardFileList" };
 
@@ -33,7 +31,7 @@ private:
     void processFolder (juce::ValueTree folder);
     void sortContentsOfFolder (juce::ValueTree rootFolderVT);
     void validate ();
-    std::tuple<juce::String, juce::String> validateFile (juce::File file);
+    std::tuple<juce::String, juce::String, std::optional<uint64_t>> validateFile (juce::File file);
     std::tuple<juce::String, juce::String> validateFolder (juce::File folder);
     void validateRootFolder ();
 
