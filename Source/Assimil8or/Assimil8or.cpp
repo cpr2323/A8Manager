@@ -33,7 +33,7 @@ juce::String getMemorySizeString (uint64_t memoryUsage)
     else if (memoryUsage >= oneK)
         return formatString (static_cast<float>(memoryUsage) / oneK, "k");
     else
-        return formatString (static_cast<float>(memoryUsage), "bytes");
+        return formatString (static_cast<float>(memoryUsage), " bytes");
 };
 
 class ScanStatusResult
