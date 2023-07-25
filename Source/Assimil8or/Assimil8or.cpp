@@ -24,7 +24,7 @@ juce::String getMemorySizeString (uint64_t memoryUsage)
 {
     auto formatString = [] (double usage, juce::String postFix)
     {
-        return juce::String (usage, 2).trimCharactersAtEnd ("0.") + postFix;
+        return (usage == 0 ? "0" : juce::String (usage, 2).trimCharactersAtEnd ("0.")) + postFix;
     };
     if (memoryUsage >= oneGB)
         return formatString (static_cast<float>(memoryUsage) / oneGB, "GB");
@@ -216,7 +216,7 @@ std::tuple<juce::String, juce::String, std::optional<uint64_t>> Assimil8orSDCard
             scanStatusResult.update ("error", "[missing Preset section]");
         }
         scanStatusResult.update ("info", "RAM: " + getMemorySizeString (sizeRequiredForSamples));
-        optionalPresetInfo = optionalPresetInfo.value() + sizeRequiredForSamples;
+        optionalPresetInfo = optionalPresetInfo.value_or (0) + sizeRequiredForSamples;
         LogValidation ("  File (preset)");
         return { scanStatusResult.getType (), scanStatusResult.getText (), optionalPresetInfo };
     }
