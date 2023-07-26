@@ -588,6 +588,10 @@ void Assimil8orPreset::parse (juce::StringArray presetLines)
                 {
                     curPresetSection.setProperty (PresetNamePropertyId, value, nullptr);
                 }
+                else if (keyIs ("Data2asCV"))
+                {
+                    curPresetSection.setProperty ("Data2asCV", value, nullptr);
+                }
                 else if (keyIs ("XfadeACV"))
                 {
                     curPresetSection.setProperty ("XfadeACV", value, nullptr);
@@ -596,9 +600,29 @@ void Assimil8orPreset::parse (juce::StringArray presetLines)
                 {
                     curPresetSection.setProperty ("XfadeAWidth", value, nullptr);
                 }
-                else if (keyIs ("Data2asCV"))
+                else if (keyIs ("XfadeBCV"))
                 {
-                    curPresetSection.setProperty ("Data2asCV", value, nullptr);
+                    curPresetSection.setProperty ("XfadeABV", value, nullptr);
+                }
+                else if (keyIs ("XfadeBWidth"))
+                {
+                    curPresetSection.setProperty ("XfadeBWidth", value, nullptr);
+                }
+                else if (keyIs ("XfadeCCV"))
+                {
+                    curPresetSection.setProperty ("XfadeCCV", value, nullptr);
+                }
+                else if (keyIs ("XfadeCWidth"))
+                {
+                    curPresetSection.setProperty ("XfadeCWidth", value, nullptr);
+                }
+                else if (keyIs ("XfadeDCV"))
+                {
+                    curPresetSection.setProperty ("XfadeDCV", value, nullptr);
+                }
+                else if (keyIs ("XfadeDWidth"))
+                {
+                    curPresetSection.setProperty ("XfadeDWidth", value, nullptr);
                 }
                 else
                 {
