@@ -579,6 +579,12 @@ void Assimil8orPreset::parse (juce::StringArray presetLines)
                 // Name: template001 (max len?)
                 // XfadeACV: 1A
                 // XfadeAWidth : 9.10
+                // XfadeBCV: 1A
+                // XfadeBWidth : 9.10
+                // XfadeCCV: 1A
+                // XfadeCWidth : 9.10
+                // XfadeDCV: 1A
+                // XfadeDWidth : 9.10
                 if (keyIs (ChannelSectionId.toString ()))
                 {
                     curChannelSection = addSection (ChannelSectionId, curPresetSection);
