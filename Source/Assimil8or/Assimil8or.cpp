@@ -1,4 +1,5 @@
 #include "Assimil8or.h"
+#include "Preset/ParameterNames.h"
 
 #define LOG_VALIDATION 0
 #if LOG_VALIDATION
@@ -566,9 +567,9 @@ void Assimil8orPreset::parse (juce::StringArray presetLines)
         {
             case ParseState::ParsingGlobalSection:
             {
-                if (keyIs (PresetSectionId.toString ()))
+                if (keyIs (Section::PresetId))
                 {
-                    curPresetSection = addSection (PresetSectionId, assimil8orData);
+                    curPresetSection = addSection (Section::PresetId, assimil8orData);
                     setParseState (ParseState::ParsingPresetSection);
                 }
             }
@@ -585,50 +586,50 @@ void Assimil8orPreset::parse (juce::StringArray presetLines)
                 // XfadeCWidth : 9.10
                 // XfadeDCV: 1A
                 // XfadeDWidth : 9.10
-                if (keyIs (ChannelSectionId.toString ()))
+                if (keyIs (Section::ChannelId))
                 {
-                    curChannelSection = addSection (ChannelSectionId, curPresetSection);
+                    curChannelSection = addSection (Section::ChannelId, curPresetSection);
                     setParseState (ParseState::ParsingChannelSection);
                 }
-                else if (keyIs (PresetNamePropertyId.toString ()))
+                else if (keyIs (Parameter::Preset::NameId))
                 {
-                    curPresetSection.setProperty (PresetNamePropertyId, value, nullptr);
+                    curPresetSection.setProperty (Parameter::Preset::NameId, value, nullptr);
                 }
-                else if (keyIs ("Data2asCV"))
+                else if (keyIs (Parameter::Preset::Data2asCVId))
                 {
-                    curPresetSection.setProperty ("Data2asCV", value, nullptr);
+                    curPresetSection.setProperty (Parameter::Preset::Data2asCVId, value, nullptr);
                 }
-                else if (keyIs ("XfadeACV"))
+                else if (keyIs (Parameter::Preset::XfadeACVId))
                 {
-                    curPresetSection.setProperty ("XfadeACV", value, nullptr);
+                    curPresetSection.setProperty (Parameter::Preset::XfadeACVId, value, nullptr);
                 }
-                else if (keyIs ("XfadeAWidth"))
+                else if (keyIs (Parameter::Preset::XfadeAWidthId))
                 {
-                    curPresetSection.setProperty ("XfadeAWidth", value, nullptr);
+                    curPresetSection.setProperty (Parameter::Preset::XfadeAWidthId, value, nullptr);
                 }
-                else if (keyIs ("XfadeBCV"))
+                else if (keyIs (Parameter::Preset::XfadeBCVId))
                 {
-                    curPresetSection.setProperty ("XfadeABV", value, nullptr);
+                    curPresetSection.setProperty (Parameter::Preset::XfadeBCVId, value, nullptr);
                 }
-                else if (keyIs ("XfadeBWidth"))
+                else if (keyIs (Parameter::Preset::XfadeBWidthId))
                 {
-                    curPresetSection.setProperty ("XfadeBWidth", value, nullptr);
+                    curPresetSection.setProperty (Parameter::Preset::XfadeBWidthId, value, nullptr);
                 }
-                else if (keyIs ("XfadeCCV"))
+                else if (keyIs (Parameter::Preset::XfadeCCVId))
                 {
-                    curPresetSection.setProperty ("XfadeCCV", value, nullptr);
+                    curPresetSection.setProperty (Parameter::Preset::XfadeCCVId, value, nullptr);
                 }
-                else if (keyIs ("XfadeCWidth"))
+                else if (keyIs (Parameter::Preset::XfadeCWidthId))
                 {
-                    curPresetSection.setProperty ("XfadeCWidth", value, nullptr);
+                    curPresetSection.setProperty (Parameter::Preset::XfadeCWidthId, value, nullptr);
                 }
-                else if (keyIs ("XfadeDCV"))
+                else if (keyIs (Parameter::Preset::XfadeDCVId))
                 {
-                    curPresetSection.setProperty ("XfadeDCV", value, nullptr);
+                    curPresetSection.setProperty (Parameter::Preset::XfadeDCVId, value, nullptr);
                 }
-                else if (keyIs ("XfadeDWidth"))
+                else if (keyIs (Parameter::Preset::XfadeDWidthId))
                 {
-                    curPresetSection.setProperty ("XfadeDWidth", value, nullptr);
+                    curPresetSection.setProperty (Parameter::Preset::XfadeDWidthId, value, nullptr);
                 }
                 else
                 {
@@ -678,166 +679,166 @@ void Assimil8orPreset::parse (juce::StringArray presetLines)
                 // XfadeGroup : A
                 // ZonesCV : 0B
                 // ZonesRT : 1
-                if (keyIs (ZoneSectionId.toString ()))
+                if (keyIs (Section::ZoneId))
                 {
-                    curZoneSection = addSection (ZoneSectionId, curChannelSection);
+                    curZoneSection = addSection (Section::ZoneId, curChannelSection);
                     setParseState (ParseState::ParsingZoneSection);
                 }
-                else if (keyIs ("Attack"))
+                else if (keyIs (Parameter::Channel::AttackId))
                 {
-                    curChannelSection.setProperty ("Attack", value, nullptr);
+                    curChannelSection.setProperty (Parameter::Channel::AttackId, value, nullptr);
                 }
-                else if (keyIs ("AttackFromCurrent"))
+                else if (keyIs (Parameter::Channel::AttackFromCurrentId))
                 {
-                    curChannelSection.setProperty ("AttackFromCurrent", value, nullptr);
+                    curChannelSection.setProperty (Parameter::Channel::AttackFromCurrentId, value, nullptr);
                 }
-                else if (keyIs ("AttackMod"))
+                else if (keyIs (Parameter::Channel::AttackModId))
                 {
-                    curChannelSection.setProperty ("AttackMod", value, nullptr);
+                    curChannelSection.setProperty (Parameter::Channel::AttackModId, value, nullptr);
                 }
-                else if (keyIs ("Aliasing"))
+                else if (keyIs (Parameter::Channel::AliasingId))
                 {
-                    curChannelSection.setProperty ("Aliasing", value, nullptr);
+                    curChannelSection.setProperty (Parameter::Channel::AliasingId, value, nullptr);
                 }
-                else if (keyIs ("AliasingMod"))
+                else if (keyIs (Parameter::Channel::AliasingModId))
                 {
-                    curChannelSection.setProperty ("AliasingMod", value, nullptr);
+                    curChannelSection.setProperty (Parameter::Channel::AliasingModId, value, nullptr);
                 }
-                else if (keyIs ("AutoTrigger"))
+                else if (keyIs (Parameter::Channel::AutoTriggerId))
                 {
-                    curChannelSection.setProperty ("AutoTrigger", value, nullptr);
+                    curChannelSection.setProperty (Parameter::Channel::AutoTriggerId, value, nullptr);
                 }
-                else if (keyIs ("Bits"))
+                else if (keyIs (Parameter::Channel::BitsId))
                 {
-                    curChannelSection.setProperty ("Bits", value, nullptr);
+                    curChannelSection.setProperty (Parameter::Channel::BitsId, value, nullptr);
                 }
-                else if (keyIs ("BitsMod"))
+                else if (keyIs (Parameter::Channel::BitsModId))
                 {
-                    curChannelSection.setProperty ("BitsMod", value, nullptr);
+                    curChannelSection.setProperty (Parameter::Channel::BitsModId, value, nullptr);
                 }
-                else if (keyIs ("ChannelMode"))
+                else if (keyIs (Parameter::Channel::ChannelModeId))
                 {
-                    curChannelSection.setProperty ("ChannelMode", value, nullptr);
+                    curChannelSection.setProperty (Parameter::Channel::ChannelModeId, value, nullptr);
                 }
-                else if (keyIs ("ExpAM"))
+                else if (keyIs (Parameter::Channel::ExpAMId))
                 {
-                    curChannelSection.setProperty ("ExpAM", value, nullptr);
+                    curChannelSection.setProperty (Parameter::Channel::ExpAMId, value, nullptr);
                 }
-                else if (keyIs ("ExpFM"))
+                else if (keyIs (Parameter::Channel::ExpFMId))
                 {
-                    curChannelSection.setProperty ("ExpFM", value, nullptr);
+                    curChannelSection.setProperty (Parameter::Channel::ExpFMId, value, nullptr);
                 }
-                else if (keyIs ("Level"))
+                else if (keyIs (Parameter::Channel::LevelId))
                 {
-                    curChannelSection.setProperty ("Level", value, nullptr);
+                    curChannelSection.setProperty (Parameter::Channel::LevelId, value, nullptr);
                 }
-                else if (keyIs ("LinAM"))
+                else if (keyIs (Parameter::Channel::LinAMId))
                 {
-                    curChannelSection.setProperty ("LinAM", value, nullptr);
+                    curChannelSection.setProperty (Parameter::Channel::LinAMId, value, nullptr);
                 }
-                else if (keyIs ("LinAMisExtEnv"))
+                else if (keyIs (Parameter::Channel::LinAMisExtEnvId))
                 {
-                    curChannelSection.setProperty ("LinAMisExtEnv", value, nullptr);
+                    curChannelSection.setProperty (Parameter::Channel::LinAMisExtEnvId, value, nullptr);
                 }
-                else if (keyIs ("LinFM"))
+                else if (keyIs (Parameter::Channel::LinFMId))
                 {
-                    curChannelSection.setProperty ("LinFM", value, nullptr);
+                    curChannelSection.setProperty (Parameter::Channel::LinFMId, value, nullptr);
                 }
-                else if (keyIs ("LoopLengthMod"))
+                else if (keyIs (Parameter::Channel::LoopLengthModId))
                 {
-                    curChannelSection.setProperty ("LoopLengthMod", value, nullptr);
+                    curChannelSection.setProperty (Parameter::Channel::LoopLengthModId, value, nullptr);
                 }
-                else if (keyIs ("LoopMode"))
+                else if (keyIs (Parameter::Channel::LoopModeId))
                 {
-                    curChannelSection.setProperty ("LoopMode", value, nullptr);
+                    curChannelSection.setProperty (Parameter::Channel::LoopModeId, value, nullptr);
                 }
-                else if (keyIs ("LoopStartMod"))
+                else if (keyIs (Parameter::Channel::LoopStartModId))
                 {
-                    curChannelSection.setProperty ("LoopStartMod", value, nullptr);
+                    curChannelSection.setProperty (Parameter::Channel::LoopStartModId, value, nullptr);
                 }
-                else if (keyIs ("MixLevel"))
+                else if (keyIs (Parameter::Channel::MixLevelId))
                 {
-                    curChannelSection.setProperty ("MixLevel", value, nullptr);
+                    curChannelSection.setProperty (Parameter::Channel::MixLevelId, value, nullptr);
                 }
-                else if (keyIs ("MixMod"))
+                else if (keyIs (Parameter::Channel::MixModId))
                 {
-                    curChannelSection.setProperty ("MixMod", value, nullptr);
+                    curChannelSection.setProperty (Parameter::Channel::MixModId, value, nullptr);
                 }
-                else if (keyIs ("MixModIsFader"))
+                else if (keyIs (Parameter::Channel::MixModIsFaderId))
                 {
-                    curChannelSection.setProperty ("MixModIsFader", value, nullptr);
+                    curChannelSection.setProperty (Parameter::Channel::MixModIsFaderId, value, nullptr);
                 }
-                else if (keyIs ("Pan"))
+                else if (keyIs (Parameter::Channel::PanId))
                 {
-                    curChannelSection.setProperty ("Pan", value, nullptr);
+                    curChannelSection.setProperty (Parameter::Channel::PanId, value, nullptr);
                 }
-                else if (keyIs ("PanMod"))
+                else if (keyIs (Parameter::Channel::PanModId))
                 {
-                    curChannelSection.setProperty ("PanMod", value, nullptr);
+                    curChannelSection.setProperty (Parameter::Channel::PanModId, value, nullptr);
                 }
-                else if (keyIs ("PhaseCV"))
+                else if (keyIs (Parameter::Channel::PhaseCVId))
                 {
-                    curChannelSection.setProperty ("PhaseCV", value, nullptr);
+                    curChannelSection.setProperty (Parameter::Channel::PhaseCVId, value, nullptr);
                 }
-                else if (keyIs ("Pitch"))
+                else if (keyIs (Parameter::Channel::PitchId))
                 {
-                    curChannelSection.setProperty ("Pitch", value, nullptr);
+                    curChannelSection.setProperty (Parameter::Channel::PitchId, value, nullptr);
                 }
-                else if (keyIs ("PitchCV"))
+                else if (keyIs (Parameter::Channel::PitchCVId))
                 {
-                    curChannelSection.setProperty ("PitchCV", value, nullptr);
+                    curChannelSection.setProperty (Parameter::Channel::PitchCVId, value, nullptr);
                 }
-                else if (keyIs ("PlayMode"))
+                else if (keyIs (Parameter::Channel::PlayModeId))
                 {
-                    curChannelSection.setProperty ("PlayMode", value, nullptr);
+                    curChannelSection.setProperty (Parameter::Channel::PlayModeId, value, nullptr);
                 }
-                else if (keyIs ("PMIndex"))
+                else if (keyIs (Parameter::Channel::PMIndexId))
                 {
-                    curChannelSection.setProperty ("PMIndex", value, nullptr);
+                    curChannelSection.setProperty (Parameter::Channel::PMIndexId, value, nullptr);
                 }
-                else if (keyIs ("PMIndexMod"))
+                else if (keyIs (Parameter::Channel::PMIndexModId))
                 {
-                    curChannelSection.setProperty ("PMIndexMod", value, nullptr);
+                    curChannelSection.setProperty (Parameter::Channel::PMIndexModId, value, nullptr);
                 }
-                else if (keyIs ("PMSource"))
+                else if (keyIs (Parameter::Channel::PMSourceId))
                 {
-                    curChannelSection.setProperty ("PMSource", value, nullptr);
+                    curChannelSection.setProperty (Parameter::Channel::PMSourceId, value, nullptr);
                 }
-                else if (keyIs ("Release"))
+                else if (keyIs (Parameter::Channel::ReleaseId))
                 {
-                    curChannelSection.setProperty ("Release", value, nullptr);
+                    curChannelSection.setProperty (Parameter::Channel::ReleaseId, value, nullptr);
                 }
-                else if (keyIs ("ReleaseMod"))
+                else if (keyIs (Parameter::Channel::ReleaseModId))
                 {
-                    curChannelSection.setProperty ("ReleaseMod", value, nullptr);
+                    curChannelSection.setProperty (Parameter::Channel::ReleaseModId, value, nullptr);
                 }
-                else if (keyIs ("Reverse"))
+                else if (keyIs (Parameter::Channel::ReverseId))
                 {
-                    curChannelSection.setProperty ("Reverse", value, nullptr);
+                    curChannelSection.setProperty (Parameter::Channel::ReverseId, value, nullptr);
                 }
-                else if (keyIs ("SampleEndMod"))
+                else if (keyIs (Parameter::Channel::SampleEndModId))
                 {
-                    curChannelSection.setProperty ("SampleEndMod", value, nullptr);
+                    curChannelSection.setProperty (Parameter::Channel::SampleEndModId, value, nullptr);
                 }
-                else if (keyIs ("SampleStartMod"))
+                else if (keyIs (Parameter::Channel::SampleStartModId))
                 {
-                    curChannelSection.setProperty ("SampleStartMod", value, nullptr);
+                    curChannelSection.setProperty (Parameter::Channel::SampleStartModId, value, nullptr);
                 }
-                else if (keyIs ("SpliceSmoothing"))
+                else if (keyIs (Parameter::Channel::SpliceSmoothingId))
                 {
-                    curChannelSection.setProperty ("SpliceSmoothing", value, nullptr);
+                    curChannelSection.setProperty (Parameter::Channel::SpliceSmoothingId, value, nullptr);
                 }
-                else if (keyIs ("XfadeGroup"))
+                else if (keyIs (Parameter::Channel::XfadeGroupId))
                 {
-                    curChannelSection.setProperty ("XfadeGroup", value, nullptr);
+                    curChannelSection.setProperty (Parameter::Channel::XfadeGroupId, value, nullptr);
                 }
-                else if (keyIs ("ZonesCV"))
+                else if (keyIs (Parameter::Channel::ZonesCVId))
                 {
-                    curChannelSection.setProperty ("ZonesCV", value, nullptr);
+                    curChannelSection.setProperty (Parameter::Channel::ZonesCVId, value, nullptr);
                 }
-                else if (keyIs ("ZonesRT"))
+                else if (keyIs (Parameter::Channel::ZonesRTId))
                 {
-                    curChannelSection.setProperty ("ZonesRT", value, nullptr);
+                    curChannelSection.setProperty (Parameter::Channel::ZonesRTId, value, nullptr);
                 }
                 else
                 {
@@ -857,41 +858,41 @@ void Assimil8orPreset::parse (juce::StringArray presetLines)
                 // SampleStart : 79416
                 // SampleEnd : 6058
                 // Side : 1
-                if (keyIs ("LevelOffset"))
+                if (keyIs (Parameter::Zone::LevelOffsetId))
                 {
-                    curZoneSection.setProperty ("LevelOffset", value, nullptr);
+                    curZoneSection.setProperty (Parameter::Zone::LevelOffsetId, value, nullptr);
                 }
-                else if (keyIs ("LoopLength"))
+                else if (keyIs (Parameter::Zone::LoopLengthId))
                 {
-                    curZoneSection.setProperty ("LoopLength", value, nullptr);
+                    curZoneSection.setProperty (Parameter::Zone::LoopLengthId, value, nullptr);
                 }
-                else if (keyIs ("LoopStart"))
+                else if (keyIs (Parameter::Zone::LoopStartId))
                 {
-                    curZoneSection.setProperty ("LoopStart", value, nullptr);
+                    curZoneSection.setProperty (Parameter::Zone::LoopStartId, value, nullptr);
                 }
-                else if (keyIs ("MinVoltage"))
+                else if (keyIs (Parameter::Zone::MinVoltageId))
                 {
-                    curZoneSection.setProperty ("MinVoltage", value, nullptr);
+                    curZoneSection.setProperty (Parameter::Zone::MinVoltageId, value, nullptr);
                 }
-                else if (keyIs ("PitchOffset"))
+                else if (keyIs (Parameter::Zone::PitchOffsetId))
                 {
-                    curZoneSection.setProperty ("PitchOffset", value, nullptr);
+                    curZoneSection.setProperty (Parameter::Zone::PitchOffsetId, value, nullptr);
                 }
-                else if (keyIs ("Sample"))
+                else if (keyIs (Parameter::Zone::SampleId))
                 {
-                    curZoneSection.setProperty ("Sample", value, nullptr);
+                    curZoneSection.setProperty (Parameter::Zone::SampleId, value, nullptr);
                 }
-                else if (keyIs ("SampleStart"))
+                else if (keyIs (Parameter::Zone::SampleStartId))
                 {
-                    curZoneSection.setProperty ("SampleStart", value, nullptr);
+                    curZoneSection.setProperty (Parameter::Zone::SampleStartId, value, nullptr);
                 }
-                else if (keyIs ("SampleEnd"))
+                else if (keyIs (Parameter::Zone::SampleEndId))
                 {
-                    curZoneSection.setProperty ("SampleEnd", value, nullptr);
+                    curZoneSection.setProperty (Parameter::Zone::SampleEndId, value, nullptr);
                 }
-                else if (keyIs ("Side"))
+                else if (keyIs (Parameter::Zone::SideId))
                 {
-                    curZoneSection.setProperty ("Side", value, nullptr);
+                    curZoneSection.setProperty (Parameter::Zone::SideId, value, nullptr);
                 }
                 else
                 {

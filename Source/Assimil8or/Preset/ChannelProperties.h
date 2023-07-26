@@ -1,72 +1,10 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include "../Utility/ValueTreeWrapper.h"
+#include <tuple>
+#include "../../Utility/ValueTreeWrapper.h"
 
-template <typename T>
-struct ParameterSpec
-{
-    T min;
-    T max;
-    T dflt;
-};
-
-using ParameterSpecInt = ParameterSpec<int>;
-using ParameterSpecFloat = ParameterSpec<float>;
-using ParameterSpecString = ParameterSpec<juce::String>;
 using AmountAndCvInput = std::tuple<juce::String, float>;
-
-class Assimil8orZoneProperties : public ValueTreeWrapper
-{
-public:
-    Assimil8orZoneProperties () noexcept : ValueTreeWrapper (ZoneTypeId) {}
-
-    void setLevelOffset (float levelOffset, bool includeSelfCallback);
-    void setLoopLength (float loopLength, bool includeSelfCallback);
-    void setLoopStart (int loopStart, bool includeSelfCallback);
-    void setMinVoltage (float minVoltage, bool includeSelfCallback);
-    void setPitchOffset (float pitchOffset, bool includeSelfCallback);
-    void setSample (juce::String sampleFileName, bool includeSelfCallback);
-    void setSampleStart (int sampleStart, bool includeSelfCallback);
-    void setSampleEnd (int sampleEnd, bool includeSelfCallback);
-    void setSide (int side, bool includeSelfCallback);
-
-    float getLevelOffset ();
-    float getLoopLength ();
-    int getLoopStart ();
-    float getMinVoltage ();
-    float getPitchOffset ();
-    juce::String getSample ();
-    int getSampleStart ();
-    int getSampleEnd ();
-    int getSide ();
-
-    std::function<void (float levelOffset)> onLevelOffsetChange;
-    std::function<void (float loopLength)> onLoopLengthChange;
-    std::function<void (int loopStart)> onLoopStartChange;
-    std::function<void (float minVoltage)> onMinVoltageChange;
-    std::function<void (float pitchOffset)> onPitchOffsetChange;
-    std::function<void (juce::String sampleFileName)> onSampleChange;
-    std::function<void (int sampleStart)> onSampleStartChange;
-    std::function<void (int sampleEnd)> onSampleEndChange;
-    std::function<void (int side)> onSideChange;
-
-    static inline const juce::Identifier ZoneTypeId { "Zone" };
-    static inline const juce::Identifier LevelOffsetPropertyId { "levelOffset" };
-    static inline const juce::Identifier LoopLengthPropertyId  { "loopLength" };
-    static inline const juce::Identifier LoopStartPropertyId   { "loopStart" };
-    static inline const juce::Identifier MinVoltagePropertyId  { "minVoltage" };
-    static inline const juce::Identifier PitchOffsetPropertyId { "pitchOffset" };
-    static inline const juce::Identifier SamplePropertyId      { "sample" };
-    static inline const juce::Identifier SampleStartPropertyId { "sampleStart" };
-    static inline const juce::Identifier SampleEndPropertyId   { "sampleEnd" };
-    static inline const juce::Identifier SidePropertyId        { "side" };
-
-private:
-    void initValueTree () override;
-
-    void valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property) override;
-};
 
 class Assimil8orChannelProperties : public ValueTreeWrapper
 {
@@ -109,7 +47,7 @@ public:
     void setSampleStartMod (juce::String cvInput, float sampleStartMod, bool includeSelfCallback);
     void setSampleEndMod (juce::String cvInput, float sampleEndMod, bool includeSelfCallback);
     void setSpliceSmoothing (bool spliceSmoothing, bool includeSelfCallback);
-    void setXfadeGroup (juce::String cvInput, float xfadeGroup, bool includeSelfCallback);
+    void setXfadeGroup (juce::String xfadeGroup, bool includeSelfCallback);
     void setZonesCV (juce::String zonesCV, bool includeSelfCallback);
     void setZonesRT (int zonesRT, bool includeSelfCallback);
 
@@ -149,7 +87,7 @@ public:
     AmountAndCvInput getSampleStartMod ();
     AmountAndCvInput getSampleEndMod ();
     bool getSpliceSmoothing ();
-    AmountAndCvInput getXfadeGroup ();
+    juce::String getXfadeGroup ();
     juce::String getZonesCV ();
     int getZonesRT ();
 
@@ -235,64 +173,6 @@ public:
     static inline const juce::Identifier XfadeGroupPropertyId        { "xfadeGroup" };
     static inline const juce::Identifier ZonesCVPropertyId           { "zonesCV" };
     static inline const juce::Identifier ZonesRTPropertyId           { "zonesRT" };
-
-private:
-    void initValueTree () override;
-
-    void valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property) override;
-};
-
-class Assimil8orPresetProperties : public ValueTreeWrapper
-{
-public:
-    Assimil8orPresetProperties () noexcept : ValueTreeWrapper (PresetTypeId) {}
-
-    void setData2AsCV (bool data2AsCv, bool includeSelfCallback);
-    void setName (juce::String name, bool includeSelfCallback);
-    void setXFadeACV (juce::String cvInput, bool includeSelfCallback);
-    void setXFadeAWidth (float width, bool includeSelfCallback);
-    void setXFadeBCV (juce::String cvInput, bool includeSelfCallback);
-    void setXFadeBWidth (float width, bool includeSelfCallback);
-    void setXFadeCCV (juce::String cvInput, bool includeSelfCallback);
-    void setXFadeCWidth (float width, bool includeSelfCallback);
-    void setXFadeDCV (juce::String cvInput, bool includeSelfCallback);
-    void setXFadeDWidth (float width, bool includeSelfCallback);
-
-    bool getData2AsCV ();
-    juce::String getName ();
-    juce::String getXFadeACV ();
-    float getXFadeAWidth ();
-    juce::String getXFadeBCV ();
-    float getXFadeBWidth ();
-    juce::String getXFadeCCV ();
-    float getXFadeCWidth ();
-    juce::String getXFadeDCV ();
-    float getXFadeDWidth ();
-
-    std::function<void (bool data2AsCv)> onData2AsCVChange;
-    std::function<void (juce::String name)> onNameChange;
-    std::function<void (juce::String cvInput)> onXFadeACVChange;
-    std::function<void (float width)> onXFadeAWidthChange;
-    std::function<void (juce::String cvInput)> onXFadeBCVChange;
-    std::function<void (float width)> onXFadeBWidthChange;
-    std::function<void (juce::String cvInput)> onXFadeCCVChange;
-    std::function<void (float width)> onXFadeCWidthChange;
-    std::function<void (juce::String cvInput)> onXFadeDCVChange;
-    std::function<void (float width)> onXFadeDWidthChange;
-
-    void forEachChannel (std::function<bool (juce::ValueTree channelVT)> channelVTCallback);
-
-    static inline const juce::Identifier PresetTypeId { "Preset" };
-    static inline const juce::Identifier Data2asCVPropertyId   { "data2asCV" };
-    static inline const juce::Identifier PresetNamePropertyId  { "name" };
-    static inline const juce::Identifier XfadeACVPropertyId    { "xfadeACV" };
-    static inline const juce::Identifier XfadeAWidthPropertyId { "xfadeAWidth" };
-    static inline const juce::Identifier XfadeBCVPropertyId    { "xfadeBCV" };
-    static inline const juce::Identifier XfadeBWidthPropertyId { "xfadeBWidth" };
-    static inline const juce::Identifier XfadeCCVPropertyId    { "xfadeCCV" };
-    static inline const juce::Identifier XfadeCWidthPropertyId { "xfadeCWidth" };
-    static inline const juce::Identifier XfadeDCVPropertyId    { "xfadeDCV" };
-    static inline const juce::Identifier XfadeDWidthPropertyId { "xfadeDWidth" };
 
 private:
     void initValueTree () override;

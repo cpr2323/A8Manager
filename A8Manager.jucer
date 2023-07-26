@@ -7,10 +7,22 @@
   <MAINGROUP id="JDgvjc" name="A8Manager">
     <GROUP id="{26A00EED-F319-636E-6162-8A113C6EE925}" name="Source">
       <GROUP id="{B33B27D7-84B5-739E-6EF4-3DA0243B11AC}" name="Assimil8or">
-        <FILE id="GLAdZb" name="Assimil8orPresetProperties.cpp" compile="1"
-              resource="0" file="Source/Assimil8or/Assimil8orPresetProperties.cpp"/>
-        <FILE id="NoUU7f" name="Assimil8orPresetProperties.h" compile="0" resource="0"
-              file="Source/Assimil8or/Assimil8orPresetProperties.h"/>
+        <GROUP id="{F93A3946-B57B-8541-1536-2BE5E57D6EED}" name="Preset">
+          <FILE id="SOUChx" name="ChannelProperties.cpp" compile="1" resource="0"
+                file="Source/Assimil8or/Preset/ChannelProperties.cpp"/>
+          <FILE id="VYXv3k" name="ChannelProperties.h" compile="0" resource="0"
+                file="Source/Assimil8or/Preset/ChannelProperties.h"/>
+          <FILE id="UST3sz" name="ParameterNames.h" compile="0" resource="0"
+                file="Source/Assimil8or/Preset/ParameterNames.h"/>
+          <FILE id="UUlAdu" name="PresetProperties.cpp" compile="1" resource="0"
+                file="Source/Assimil8or/Preset/PresetProperties.cpp"/>
+          <FILE id="RT0TrF" name="PresetProperties.h" compile="0" resource="0"
+                file="Source/Assimil8or/Preset/PresetProperties.h"/>
+          <FILE id="Mm3uYy" name="ZoneProperties.cpp" compile="1" resource="0"
+                file="Source/Assimil8or/Preset/ZoneProperties.cpp"/>
+          <FILE id="m51pzF" name="ZoneProperties.h" compile="0" resource="0"
+                file="Source/Assimil8or/Preset/ZoneProperties.h"/>
+        </GROUP>
         <FILE id="uhqsFr" name="ValidatorProperties.cpp" compile="1" resource="0"
               file="Source/Assimil8or/ValidatorProperties.cpp"/>
         <FILE id="w8jVEF" name="ValidatorProperties.h" compile="0" resource="0"

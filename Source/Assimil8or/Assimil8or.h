@@ -61,13 +61,6 @@ private:
 
     juce::ValueTree assimil8orData { "Assimil8or" };
 
-    juce::Identifier PresetSectionId  { "Preset" };
-    juce::Identifier PresetNamePropertyId { "Name" };
-
-    juce::Identifier ChannelSectionId { "Channel" };
-
-    juce::Identifier ZoneSectionId    { "Zone" };
-
     juce::String getParseStateString (ParseState parseState);
     void setParseState (ParseState newParseState);
 };
