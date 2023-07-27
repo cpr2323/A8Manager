@@ -68,10 +68,9 @@ void ToolWindow::loadPreset (juce::File presetFile)
     PresetProperties newPresetProperties;
     newPresetProperties.wrap (assimil8orPreset.getPresetVT (), ValueTreeWrapper::WrapperType::client, ValueTreeWrapper::EnableCallbacks::no);
 
-    // TODO - we need to deal with the 'defaults' behavior
-    //   1. Clear presetProperties
-    //   2. Copy only the parameters that exist
-    presetProperties.setName (newPresetProperties.getName (), false);
+    presetProperties.getValueTree ().removeAllChildren (nullptr);
+    presetProperties.getValueTree ().removeAllProperties (nullptr);
+    presetProperties.getValueTree ().copyPropertiesAndChildrenFrom (newPresetProperties.getValueTree (), nullptr);
 }
 
 void ToolWindow::updateScanStatus (juce::String scanStatus)

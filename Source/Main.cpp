@@ -27,8 +27,145 @@ public:
     const juce::String getApplicationVersion () override { return ProjectInfo::versionString; }
     bool moreThanOneInstanceAllowed () override { return true; }
 
+    class ListenerLogger : public juce::ValueTree::Listener
+    {
+    public:
+        void assign (juce::ValueTree& vtToListenTo)
+        {
+            vtBeingListened = vtToListenTo;
+        }
+    private:
+        juce::ValueTree vtBeingListened;
+
+        void valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property) override
+        {
+            juce::Logger::outputDebugString ("valueTreePropertyChanged(" + vtBeingListened.getType ().toString () + ")");
+            if (vt == vtBeingListened)
+            {
+                if (vt.hasProperty (property))
+                {
+                    // change in value
+                    juce::Logger::outputDebugString ("  (property value changed) - property: " +
+                                                     property.toString () + ", value: " + vt.getProperty (property).toString ());
+                }
+                else
+                {
+                    // property removed
+                    juce::Logger::outputDebugString ("  (property removed) - property: " + property.toString ());
+                }
+            }
+            else
+            {
+                if (vt.hasProperty (property))
+                {
+                    // change in value
+                    juce::Logger::outputDebugString ("  (value changed) - vt: " + vt.getType ().toString () +
+                                                     ", property: " + property.toString () + ", value: " + vt.getProperty (property).toString ());
+                }
+                else
+                {
+                    // property removed
+                    juce::Logger::outputDebugString ("  (property removed) - vt: " + vt.getType ().toString () + ", property: " + property.toString ());
+                }
+            }
+        };
+        void valueTreeChildAdded (juce::ValueTree& vt, juce::ValueTree& child) override
+        {
+            juce::Logger::outputDebugString ("valueTreeChildAdded(" + vtBeingListened.getType ().toString () + ")");
+
+            if (vt == vtBeingListened)
+                juce::Logger::outputDebugString ("  child: " + child.getType ().toString ());
+            else
+                juce::Logger::outputDebugString ("  vt: " + vt.getType ().toString () + ", child: " + child.getType ().toString ());
+
+        }
+        void valueTreeChildRemoved (juce::ValueTree& vt, juce::ValueTree& child , int index) override
+        {
+            juce::Logger::outputDebugString ("valueTreeChildRemoved(" + vtBeingListened.getType ().toString () + ")");
+            if (vt == vtBeingListened)
+                juce::Logger::outputDebugString ("  child: " + child.getType ().toString () + ", index: " + juce::String (index));
+            else
+                juce::Logger::outputDebugString ("  vt: " + vt.getType ().toString () +
+                                                 ", child: " + child.getType ().toString () + ", index: " + juce::String (index));
+        }
+        void valueTreeChildOrderChanged (juce::ValueTree& vt, int oldIndex, int newIndex) override
+        {
+            juce::Logger::outputDebugString ("valueTreeChildOrderChanged(" + vtBeingListened.getType ().toString () + ")");
+            if (vt == vtBeingListened)
+                juce::Logger::outputDebugString ("  old index: " + juce::String(oldIndex) + ", new index: " + juce::String (newIndex));
+            else
+                juce::Logger::outputDebugString ("  vt: " + vt.getType ().toString () +
+                                                 ", old index: " + juce::String (oldIndex) + ", new index: " + juce::String (newIndex));
+        }
+        void valueTreeParentChanged (juce::ValueTree& vt) override
+        {
+            juce::Logger::outputDebugString ("valueTreeParentChanged(" + vtBeingListened.getType ().toString () + ")");
+            if (vt == vtBeingListened)
+            {
+                if (vt.getParent ().isValid ())
+                    juce::Logger::outputDebugString ("  new parent: " + vt.getParent ().getType ().toString ());
+                else
+                    juce::Logger::outputDebugString ("  (removed)");
+            }
+            else
+            {
+                if (vt.getParent ().isValid ())
+                    juce::Logger::outputDebugString ("  vt: " + vt.getType ().toString () +
+                                                     ", new parent: " + vt.getParent ().getType ().toString ());
+                else
+                    juce::Logger::outputDebugString ("  (removed) vt: " + vt.getType ().toString ());
+            }
+        }
+        void valueTreeRedirected (juce::ValueTree& vt) override
+        {
+            juce::Logger::outputDebugString ("valueTreeRedirected(" + vtBeingListened.getType ().toString () + "): " + vt.getType ().toString ());
+            vtBeingListened = vt;
+            //if (vt == vtBeingListened)
+        }
+    };
+
+    void valueTreeTest ()
+    {
+        juce::ValueTree root { "Root" };
+        juce::ValueTree child1 { "RootChild1" };
+        juce::ValueTree child2 { "RootChild2" };
+        juce::ValueTree child3 { "RootChild3" };
+        juce::ValueTree child4 { "RootChild4" };
+        ListenerLogger rootListenerLogger;
+        rootListenerLogger.assign (root);
+        ListenerLogger child1ListenerLogger;
+        child1ListenerLogger.assign (child1);
+        ListenerLogger child2ListenerLogger;
+        child2ListenerLogger.assign (child2);
+        ListenerLogger child3ListenerLogger;
+        child3ListenerLogger.assign (child3);
+        root.addListener (&rootListenerLogger);
+        child1.addListener (&child1ListenerLogger);
+        child2.addListener (&child2ListenerLogger);
+        child3.addListener (&child3ListenerLogger);
+
+        auto basicPropertyTest = [] (juce::ValueTree& vt)
+        {
+            vt.setProperty ("propOne", "1", nullptr);
+            vt.setProperty ("propOne", "2", nullptr);
+            vt.removeProperty ("propOne", nullptr);
+            vt.setProperty ("propTwo", "3", nullptr);
+            vt.setProperty ("propThree", "4", nullptr);
+        };
+        basicPropertyTest (root);
+
+        root.addChild (child1, -1, nullptr);
+        basicPropertyTest (child1);
+        child1.addChild (child2, -1, nullptr);
+        child3.copyPropertiesAndChildrenFrom (child1, nullptr);
+        child2 = child4;
+        basicPropertyTest (child4);
+        root.removeChild (child1, nullptr);
+    }
+
     void initialise ([[maybe_unused]] const juce::String& commandLine) override
     {
+        //valueTreeTest ();
         initAppDirectory ();
         initLogger ();
         initCrashHandler ();
