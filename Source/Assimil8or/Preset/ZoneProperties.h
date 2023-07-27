@@ -3,10 +3,10 @@
 #include <JuceHeader.h>
 #include "../../Utility/ValueTreeWrapper.h"
 
-class Assimil8orZoneProperties : public ValueTreeWrapper
+class ZoneProperties : public ValueTreeWrapper
 {
 public:
-    Assimil8orZoneProperties () noexcept : ValueTreeWrapper (ZoneTypeId) {}
+    ZoneProperties () noexcept : ValueTreeWrapper (ZoneTypeId) {}
 
     void setLevelOffset (float levelOffset, bool includeSelfCallback);
     void setLoopLength (float loopLength, bool includeSelfCallback);
@@ -37,6 +37,8 @@ public:
     std::function<void (int sampleStart)> onSampleStartChange;
     std::function<void (int sampleEnd)> onSampleEndChange;
     std::function<void (int side)> onSideChange;
+
+    static juce::ValueTree create ();
 
     static inline const juce::Identifier ZoneTypeId { "Zone" };
     static inline const juce::Identifier LevelOffsetPropertyId { "levelOffset" };

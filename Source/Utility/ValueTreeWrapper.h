@@ -14,17 +14,17 @@ class ValueTreeWrapper : private juce::ValueTree::Listener
 {
 public:
     ValueTreeWrapper (juce::Identifier type) noexcept;
+    ValueTreeWrapper (ValueTreeWrapper&&) = default;
+    ValueTreeWrapper& operator = (ValueTreeWrapper&&) = default;
+
     /*
-        init will do one of four things:
+        wrap will do one of four things:
             1. Given an empty/invalid ValueTree, it will create a valid one to wrap
             2. Given a valid ValueTree of the initialized 'type', it will wrap that one
             3. Given a valid ValueTree no of initialized 'type'
                 a. If there is a child of the initialized 'type' it will wrap that one
                 b. If there is not a child of the initialized 'type', is will create one, wrap that one, and add it to the passing in ValueTree
     */
-    ValueTreeWrapper (ValueTreeWrapper&&) = default;
-    ValueTreeWrapper& operator = (ValueTreeWrapper&&) = default;
-
     enum class WrapperType { owner, client };
     enum class EnableCallbacks { no, yes };
     void wrap (juce::ValueTree vt, WrapperType wrapperType, EnableCallbacks shouldEnableCallbacks);

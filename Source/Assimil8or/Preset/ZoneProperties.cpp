@@ -1,103 +1,110 @@
 #include "ZoneProperties.h"
 
-void Assimil8orZoneProperties::initValueTree ()
+void ZoneProperties::initValueTree ()
 {
     // normally in this function we create all of the properties
     // but, as the Assimil8or only writes out parameters that have changed from the defaults
     // we will emulate this by only adding properties when they change, or are in a preset file that is read in
 }
 
-void Assimil8orZoneProperties::setLevelOffset (float levelOffset, bool includeSelfCallback)
+void ZoneProperties::setLevelOffset (float levelOffset, bool includeSelfCallback)
 {
     setValue (levelOffset, LevelOffsetPropertyId, includeSelfCallback);
 }
 
-void Assimil8orZoneProperties::setLoopLength (float loopLength, bool includeSelfCallback)
+void ZoneProperties::setLoopLength (float loopLength, bool includeSelfCallback)
 {
     setValue (loopLength, LoopLengthPropertyId, includeSelfCallback);
 }
 
-void Assimil8orZoneProperties::setLoopStart (int loopStart, bool includeSelfCallback)
+void ZoneProperties::setLoopStart (int loopStart, bool includeSelfCallback)
 {
     setValue (loopStart, LoopStartPropertyId, includeSelfCallback);
 }
 
-void Assimil8orZoneProperties::setMinVoltage (float minVoltage, bool includeSelfCallback)
+void ZoneProperties::setMinVoltage (float minVoltage, bool includeSelfCallback)
 {
     setValue (minVoltage, MinVoltagePropertyId, includeSelfCallback);
 }
 
-void Assimil8orZoneProperties::setPitchOffset (float pitchOffset, bool includeSelfCallback)
+void ZoneProperties::setPitchOffset (float pitchOffset, bool includeSelfCallback)
 {
     setValue (pitchOffset, PitchOffsetPropertyId, includeSelfCallback);
 }
 
-void Assimil8orZoneProperties::setSample (juce::String sampleFileName, bool includeSelfCallback)
+void ZoneProperties::setSample (juce::String sampleFileName, bool includeSelfCallback)
 {
     setValue (sampleFileName, SamplePropertyId, includeSelfCallback);
 }
 
-void Assimil8orZoneProperties::setSampleStart (int sampleStart, bool includeSelfCallback)
+void ZoneProperties::setSampleStart (int sampleStart, bool includeSelfCallback)
 {
     setValue (sampleStart, SampleStartPropertyId, includeSelfCallback);
 }
 
-void Assimil8orZoneProperties::setSampleEnd (int sampleEnd, bool includeSelfCallback)
+void ZoneProperties::setSampleEnd (int sampleEnd, bool includeSelfCallback)
 {
     setValue (sampleEnd, SampleEndPropertyId, includeSelfCallback);
 }
 
-void Assimil8orZoneProperties::setSide (int side, bool includeSelfCallback)
+void ZoneProperties::setSide (int side, bool includeSelfCallback)
 {
     setValue (side, SidePropertyId, includeSelfCallback);
 }
 
-float Assimil8orZoneProperties::getLevelOffset ()
+float ZoneProperties::getLevelOffset ()
 {
     return getValue<float> (LevelOffsetPropertyId);
 }
 
-float Assimil8orZoneProperties::getLoopLength ()
+float ZoneProperties::getLoopLength ()
 {
     return getValue<float> (LoopLengthPropertyId);
 }
 
-int Assimil8orZoneProperties::getLoopStart ()
+int ZoneProperties::getLoopStart ()
 {
     return getValue<int> (LoopStartPropertyId);
 }
 
-float Assimil8orZoneProperties::getMinVoltage ()
+float ZoneProperties::getMinVoltage ()
 {
     return getValue<float> (MinVoltagePropertyId);
 }
 
-float Assimil8orZoneProperties::getPitchOffset ()
+float ZoneProperties::getPitchOffset ()
 {
     return getValue<float> (PitchOffsetPropertyId);
 }
 
-juce::String Assimil8orZoneProperties::getSample ()
+juce::String ZoneProperties::getSample ()
 {
     return getValue<juce::String> (SamplePropertyId);
 }
 
-int Assimil8orZoneProperties::getSampleStart ()
+int ZoneProperties::getSampleStart ()
 {
     return getValue<int> (SampleStartPropertyId);
 }
 
-int Assimil8orZoneProperties::getSampleEnd ()
+int ZoneProperties::getSampleEnd ()
 {
     return getValue<int> (SampleEndPropertyId);
 }
 
-int Assimil8orZoneProperties::getSide ()
+int ZoneProperties::getSide ()
 {
     return getValue<int> (SidePropertyId);
 }
 
-void Assimil8orZoneProperties::valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property)
+juce::ValueTree ZoneProperties::create ()
+{
+    ZoneProperties zoneProperties;
+    zoneProperties.wrap ({}, ValueTreeWrapper::WrapperType::owner, ValueTreeWrapper::EnableCallbacks::no);
+    return zoneProperties.getValueTree ();
+}
+
+void ZoneProperties::valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property)
 {
     if (data == vt)
     {

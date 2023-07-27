@@ -1,8 +1,12 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "ChannelProperties.h"
 #include "../../Utility/ValueTreeWrapper.h"
 
+// TODO - under construction - idea exploration
+///////////////////////////////////////////////
+//
 template <typename T>
 struct ParameterSpec
 {
@@ -14,11 +18,13 @@ struct ParameterSpec
 using ParameterSpecInt = ParameterSpec<int>;
 using ParameterSpecFloat = ParameterSpec<float>;
 using ParameterSpecString = ParameterSpec<juce::String>;
+//
+///////////////////////////////////////////////
 
-class Assimil8orPresetProperties : public ValueTreeWrapper
+class PresetProperties : public ValueTreeWrapper
 {
 public:
-    Assimil8orPresetProperties () noexcept : ValueTreeWrapper (PresetTypeId) {}
+    PresetProperties () noexcept : ValueTreeWrapper (PresetTypeId) {}
 
     void setData2AsCV (bool data2AsCv, bool includeSelfCallback);
     void setName (juce::String name, bool includeSelfCallback);
@@ -53,6 +59,7 @@ public:
     std::function<void (juce::String cvInput)> onXfadeDCVChange;
     std::function<void (float width)> onXfadeDWidthChange;
 
+    void addChannel ();
     void forEachChannel (std::function<bool (juce::ValueTree channelVT)> channelVTCallback);
 
     static inline const juce::Identifier PresetTypeId { "Preset" };
@@ -68,6 +75,8 @@ public:
     static inline const juce::Identifier XfadeDWidthPropertyId { "xfadeDWidth" };
 
 private:
+    int getNumChannels ();
+
     void initValueTree () override;
 
     void valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property) override;

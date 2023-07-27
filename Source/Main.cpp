@@ -7,6 +7,7 @@
 #include "Utility/RuntimeRootProperties.h"
 #include "Utility/ValueTreeFile.h"
 #include "Assimil8or/Assimil8or.h"
+#include "Assimil8or/Preset/PresetProperties.h"
 
 const juce::String PropertiesFileExtension { ".properties" };
 
@@ -82,7 +83,8 @@ public:
     void initAssimil8or ()
     {
         // hack the preset data on to the runtime root until we get a proper valuetreewrapper for the preset
-        runtimeRootProperties.getValueTree ().addChild (assimil8orPreset.getPresetVT (), -1, nullptr);
+        presetProperties.wrap ({}, ValueTreeWrapper::WrapperType::owner, ValueTreeWrapper::EnableCallbacks::no);
+        runtimeRootProperties.getValueTree ().addChild (presetProperties.getValueTree (), -1, nullptr);
         assimil8orSDCardValidator.init (runtimeRootProperties.getValueTree ());
     }
 
@@ -212,8 +214,8 @@ private:
     PersistentRootProperties persistentRootProperties;
     AppProperties appProperties;
     RuntimeRootProperties runtimeRootProperties;
-    Assimil8orPreset assimil8orPreset;
     Assimil8orSDCardValidator assimil8orSDCardValidator;
+    PresetProperties presetProperties;
     std::unique_ptr<juce::FileLogger> fileLogger;
     std::atomic<RuntimeRootProperties::QuitState> localQuitState { RuntimeRootProperties::QuitState::idle };
     std::unique_ptr<MainWindow> mainWindow;

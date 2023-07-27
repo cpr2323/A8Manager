@@ -1,5 +1,6 @@
 #include "ChannelProperties.h"
-#include "ZoneProperties.h"
+
+const auto kMaxZones { 8 };
 
 juce::String getCvInputAndValueString (juce::String cvInput, float value, int decimalPlaces)
 {
@@ -11,414 +12,435 @@ AmountAndCvInput getCvInputAndValueFromString (juce::String cvInputAndValueStrin
     return { cvInputAndValueString.substring (0,2), cvInputAndValueString.substring (4).getFloatValue () };
 }
 
-void Assimil8orChannelProperties::initValueTree ()
+int ChannelProperties::getNumZones ()
+{
+    auto numZones { 0 };
+    forEachZone ([&numZones] (juce::ValueTree) { ++numZones; return true; });
+    return numZones;
+}
+
+void ChannelProperties::initValueTree ()
 {
     // normally in this function we create all of the properties
     // but, as the Assimil8or only writes out parameters that have changed from the defaults
     // we will emulate this by only adding properties when they change, or are in a preset file that is read in
 }
 
-void Assimil8orChannelProperties::forEachZone (std::function<bool (juce::ValueTree zoneVT)> zoneVTCallback)
+juce::ValueTree ChannelProperties::create ()
+{
+    ChannelProperties channelProperties;
+    channelProperties.wrap ({}, ValueTreeWrapper::WrapperType::owner, ValueTreeWrapper::EnableCallbacks::no);
+    return channelProperties.getValueTree ();
+}
+
+void ChannelProperties::addZone ()
+{
+    jassert (getNumZones () < kMaxZones);
+    auto zoneProperties { ZoneProperties::create () };
+    data.addChild (zoneProperties, -1, nullptr);
+}
+
+void ChannelProperties::forEachZone (std::function<bool (juce::ValueTree zoneVT)> zoneVTCallback)
 {
     jassert (zoneVTCallback != nullptr);
-    ValueTreeHelpers::forEachChildOfType (data, Assimil8orZoneProperties::ZoneTypeId, [this, zoneVTCallback] (juce::ValueTree zoneVT)
+    ValueTreeHelpers::forEachChildOfType (data, ZoneProperties::ZoneTypeId, [this, zoneVTCallback] (juce::ValueTree zoneVT)
     {
         zoneVTCallback (zoneVT);
         return true;
     });
 }
 
-void Assimil8orChannelProperties::setAliasing (int aliasing, bool includeSelfCallback)
+void ChannelProperties::setAliasing (int aliasing, bool includeSelfCallback)
 {
     setValue (aliasing, AliasingPropertyId, includeSelfCallback);
 }
 
-void Assimil8orChannelProperties::setAliasingMod (juce::String cvInput, float aliasingMod, bool includeSelfCallback)
+void ChannelProperties::setAliasingMod (juce::String cvInput, float aliasingMod, bool includeSelfCallback)
 {
     setValue (getCvInputAndValueString (cvInput, aliasingMod, 4), AliasingModPropertyId, includeSelfCallback);
 }
 
-void Assimil8orChannelProperties::setAttack (float attack, bool includeSelfCallback)
+void ChannelProperties::setAttack (float attack, bool includeSelfCallback)
 {
     setValue (attack, AttackPropertyId, includeSelfCallback);
 }
 
-void Assimil8orChannelProperties::setAttackFromCurrent (int attackFromCurrent, bool includeSelfCallback)
+void ChannelProperties::setAttackFromCurrent (int attackFromCurrent, bool includeSelfCallback)
 {
     setValue (attackFromCurrent, AttackFromCurrentPropertyId, includeSelfCallback);
 }
 
-void Assimil8orChannelProperties::setAttackMod (juce::String cvInput, float attackMod, bool includeSelfCallback)
+void ChannelProperties::setAttackMod (juce::String cvInput, float attackMod, bool includeSelfCallback)
 {
     setValue (getCvInputAndValueString (cvInput, attackMod, 4), AttackModPropertyId, includeSelfCallback);
 }
 
-void Assimil8orChannelProperties::setAutoTrigger (bool autoTrigger, bool includeSelfCallback)
+void ChannelProperties::setAutoTrigger (bool autoTrigger, bool includeSelfCallback)
 {
     setValue (autoTrigger, AutoTriggerPropertyId, includeSelfCallback);
 }
 
-void Assimil8orChannelProperties::setBits (float bits, bool includeSelfCallback)
+void ChannelProperties::setBits (float bits, bool includeSelfCallback)
 {
     setValue (bits, BitsPropertyId, includeSelfCallback);
 }
 
-void Assimil8orChannelProperties::setBitsMod (juce::String cvInput, float bitsMod, bool includeSelfCallback)
+void ChannelProperties::setBitsMod (juce::String cvInput, float bitsMod, bool includeSelfCallback)
 {
     setValue (getCvInputAndValueString (cvInput, bitsMod, 4), BitsModPropertyId, includeSelfCallback);
 }
 
-void Assimil8orChannelProperties::setChannelMode (int channelMode, bool includeSelfCallback)
+void ChannelProperties::setChannelMode (int channelMode, bool includeSelfCallback)
 {
     setValue (channelMode, ChannelModePropertyId, includeSelfCallback);
 }
 
-void Assimil8orChannelProperties::setExpAM (float expAM, bool includeSelfCallback)
+void ChannelProperties::setExpAM (float expAM, bool includeSelfCallback)
 {
     setValue (expAM, ExpAMPropertyId, includeSelfCallback);
 }
 
-void Assimil8orChannelProperties::setExpFM (float expFM, bool includeSelfCallback)
+void ChannelProperties::setExpFM (float expFM, bool includeSelfCallback)
 {
     setValue (expFM, ExpFMPropertyId, includeSelfCallback);
 }
 
-void Assimil8orChannelProperties::setLevel (float level, bool includeSelfCallback)
+void ChannelProperties::setLevel (float level, bool includeSelfCallback)
 {
     setValue (level, LevelPropertyId, includeSelfCallback);
 }
 
-void Assimil8orChannelProperties::setLinAM (float linAM, bool includeSelfCallback)
+void ChannelProperties::setLinAM (float linAM, bool includeSelfCallback)
 {
     setValue (linAM, LinAMPropertyId, includeSelfCallback);
 }
 
-void Assimil8orChannelProperties::setLinAMisExtEnv (bool linAMisExtEnv, bool includeSelfCallback)
+void ChannelProperties::setLinAMisExtEnv (bool linAMisExtEnv, bool includeSelfCallback)
 {
     setValue (linAMisExtEnv, LinAMisExtEnvPropertyId, includeSelfCallback);
 }
 
-void Assimil8orChannelProperties::setLinFM (float linFM, bool includeSelfCallback)
+void ChannelProperties::setLinFM (float linFM, bool includeSelfCallback)
 {
     setValue (linFM, LinFMPropertyId, includeSelfCallback);
 }
 
-void Assimil8orChannelProperties::setLoopLengthMod (juce::String cvInput, float loopLengthMod, bool includeSelfCallback)
+void ChannelProperties::setLoopLengthMod (juce::String cvInput, float loopLengthMod, bool includeSelfCallback)
 {
     setValue (getCvInputAndValueString (cvInput, loopLengthMod, 4), LoopLengthModPropertyId, includeSelfCallback);
 }
 
-void Assimil8orChannelProperties::setLoopMode (int loopMode, bool includeSelfCallback)
+void ChannelProperties::setLoopMode (int loopMode, bool includeSelfCallback)
 {
     setValue (loopMode, LoopModePropertyId, includeSelfCallback);
 }
 
-void Assimil8orChannelProperties::setLoopStartMod (juce::String cvInput, float loopStartMod, bool includeSelfCallback)
+void ChannelProperties::setLoopStartMod (juce::String cvInput, float loopStartMod, bool includeSelfCallback)
 {
     setValue (getCvInputAndValueString (cvInput, loopStartMod, 4), LoopStartModPropertyId, includeSelfCallback);
 }
 
-void Assimil8orChannelProperties::setMixLevel (float mixLevel, bool includeSelfCallback)
+void ChannelProperties::setMixLevel (float mixLevel, bool includeSelfCallback)
 {
     setValue (mixLevel, MixLevelPropertyId, includeSelfCallback);
 }
 
-void Assimil8orChannelProperties::setMixMod (juce::String cvInput, float mixMod, bool includeSelfCallback)
+void ChannelProperties::setMixMod (juce::String cvInput, float mixMod, bool includeSelfCallback)
 {
     setValue (getCvInputAndValueString (cvInput, mixMod, 4), MixModPropertyId, includeSelfCallback);
 }
 
-void Assimil8orChannelProperties::setMixModIsFader (bool mixModIsFader, bool includeSelfCallback)
+void ChannelProperties::setMixModIsFader (bool mixModIsFader, bool includeSelfCallback)
 {
     setValue (mixModIsFader, MixModIsFaderPropertyId, includeSelfCallback);
 }
 
-void Assimil8orChannelProperties::setPan (float pan, bool includeSelfCallback)
+void ChannelProperties::setPan (float pan, bool includeSelfCallback)
 {
     setValue (pan, PanPropertyId, includeSelfCallback);
 }
 
-void Assimil8orChannelProperties::setPanMod (juce::String cvInput, float panMod, bool includeSelfCallback)
+void ChannelProperties::setPanMod (juce::String cvInput, float panMod, bool includeSelfCallback)
 {
     setValue (getCvInputAndValueString (cvInput, panMod, 4), PanModPropertyId, includeSelfCallback);
 }
 
-void Assimil8orChannelProperties::setPhaseCV (juce::String cvInput, float phaseCV, bool includeSelfCallback)
+void ChannelProperties::setPhaseCV (juce::String cvInput, float phaseCV, bool includeSelfCallback)
 {
     setValue (getCvInputAndValueString (cvInput, phaseCV, 4), PhaseCVPropertyId, includeSelfCallback);
 }
 
-void Assimil8orChannelProperties::setPitch (float pitch, bool includeSelfCallback)
+void ChannelProperties::setPitch (float pitch, bool includeSelfCallback)
 {
     setValue (pitch, PitchPropertyId, includeSelfCallback);
 }
 
-void Assimil8orChannelProperties::setPitchCV (juce::String cvInput, float pitchCV, bool includeSelfCallback)
+void ChannelProperties::setPitchCV (juce::String cvInput, float pitchCV, bool includeSelfCallback)
 {
     setValue (getCvInputAndValueString (cvInput, pitchCV, 4), PitchCVPropertyId, includeSelfCallback);
 }
 
-void Assimil8orChannelProperties::setPlayMode (int PlayMode, bool includeSelfCallback)
+void ChannelProperties::setPlayMode (int PlayMode, bool includeSelfCallback)
 {
     setValue (PlayMode, PlayModePropertyId, includeSelfCallback);
 }
 
-void Assimil8orChannelProperties::setPMIndex (float pMIndex, bool includeSelfCallback)
+void ChannelProperties::setPMIndex (float pMIndex, bool includeSelfCallback)
 {
     setValue (pMIndex, PMIndexPropertyId, includeSelfCallback);
 }
 
-void Assimil8orChannelProperties::setPMIndexMod (juce::String cvInput, float pMIndexMod, bool includeSelfCallback)
+void ChannelProperties::setPMIndexMod (juce::String cvInput, float pMIndexMod, bool includeSelfCallback)
 {
     setValue (getCvInputAndValueString (cvInput, pMIndexMod, 4), PMIndexModPropertyId, includeSelfCallback);
 }
 
-void Assimil8orChannelProperties::setPMSource (int pMSource, bool includeSelfCallback)
+void ChannelProperties::setPMSource (int pMSource, bool includeSelfCallback)
 {
     setValue (pMSource, PMSourcePropertyId, includeSelfCallback);
 }
 
-void Assimil8orChannelProperties::setRelease (float release, bool includeSelfCallback)
+void ChannelProperties::setRelease (float release, bool includeSelfCallback)
 {
     setValue (release, ReleasePropertyId, includeSelfCallback);
 }
 
-void Assimil8orChannelProperties::setReleaseMod (juce::String cvInput, float releaseMod, bool includeSelfCallback)
+void ChannelProperties::setReleaseMod (juce::String cvInput, float releaseMod, bool includeSelfCallback)
 {
     setValue (getCvInputAndValueString (cvInput, releaseMod, 4), ReleaseModPropertyId, includeSelfCallback);
 }
 
-void Assimil8orChannelProperties::setReverse (bool reverse, bool includeSelfCallback)
+void ChannelProperties::setReverse (bool reverse, bool includeSelfCallback)
 {
     setValue (reverse, ReversePropertyId, includeSelfCallback);
 }
 
-void Assimil8orChannelProperties::setSampleStartMod (juce::String cvInput, float sampleStartMod, bool includeSelfCallback)
+void ChannelProperties::setSampleStartMod (juce::String cvInput, float sampleStartMod, bool includeSelfCallback)
 {
     setValue (getCvInputAndValueString (cvInput, sampleStartMod, 4), SampleStartModPropertyId, includeSelfCallback);
 }
 
-void Assimil8orChannelProperties::setSampleEndMod (juce::String cvInput, float sampleEndMod, bool includeSelfCallback)
+void ChannelProperties::setSampleEndMod (juce::String cvInput, float sampleEndMod, bool includeSelfCallback)
 {
     setValue (getCvInputAndValueString (cvInput, sampleEndMod, 4), SampleEndModPropertyId, includeSelfCallback);
 }
 
-void Assimil8orChannelProperties::setSpliceSmoothing (bool spliceSmoothing, bool includeSelfCallback)
+void ChannelProperties::setSpliceSmoothing (bool spliceSmoothing, bool includeSelfCallback)
 {
     setValue (spliceSmoothing, SpliceSmoothingPropertyId, includeSelfCallback);
 }
 
-void Assimil8orChannelProperties::setXfadeGroup (juce::String xfadeGroup, bool includeSelfCallback)
+void ChannelProperties::setXfadeGroup (juce::String xfadeGroup, bool includeSelfCallback)
 {
     setValue (xfadeGroup, XfadeGroupPropertyId, includeSelfCallback);
 }
 
-void Assimil8orChannelProperties::setZonesCV (juce::String zonesCV, bool includeSelfCallback)
+void ChannelProperties::setZonesCV (juce::String zonesCV, bool includeSelfCallback)
 {
     setValue (zonesCV, ZonesCVPropertyId, includeSelfCallback);
 }
 
-void Assimil8orChannelProperties::setZonesRT (int zonesRT, bool includeSelfCallback)
+void ChannelProperties::setZonesRT (int zonesRT, bool includeSelfCallback)
 {
     setValue (zonesRT, ZonesRTPropertyId, includeSelfCallback);
 }
 
-int Assimil8orChannelProperties::getAliasing ()
+int ChannelProperties::getAliasing ()
 {
     return getValue<int> (AliasingPropertyId);
 }
 
-AmountAndCvInput Assimil8orChannelProperties::getAliasingMod ()
+AmountAndCvInput ChannelProperties::getAliasingMod ()
 {
     return getCvInputAndValueFromString (getValue<juce::String> (AliasingModPropertyId));
 }
 
-float Assimil8orChannelProperties::getAttack ()
+float ChannelProperties::getAttack ()
 {
     return getValue<float> (AttackPropertyId);
 }
 
-int Assimil8orChannelProperties::getAttackFromCurrent ()
+int ChannelProperties::getAttackFromCurrent ()
 {
     return getValue<int> (AttackFromCurrentPropertyId);
 }
 
-AmountAndCvInput Assimil8orChannelProperties::getAttackMod ()
+AmountAndCvInput ChannelProperties::getAttackMod ()
 {
     return getCvInputAndValueFromString (getValue<juce::String> (AttackModPropertyId));
 }
 
-bool Assimil8orChannelProperties::getAutoTrigger ()
+bool ChannelProperties::getAutoTrigger ()
 {
     return getValue<bool> (AutoTriggerPropertyId);
 }
 
-float Assimil8orChannelProperties::getBits ()
+float ChannelProperties::getBits ()
 {
     return getValue<float> (BitsPropertyId);
 }
 
-AmountAndCvInput Assimil8orChannelProperties::getBitsMod ()
+AmountAndCvInput ChannelProperties::getBitsMod ()
 {
     return getCvInputAndValueFromString (getValue<juce::String> (BitsModPropertyId));
 }
 
-int Assimil8orChannelProperties::getChannelMode ()
+int ChannelProperties::getChannelMode ()
 {
     return getValue<int> (ChannelModePropertyId);
 }
 
-float Assimil8orChannelProperties::getExpAM ()
+float ChannelProperties::getExpAM ()
 {
     return getValue<float> (ExpAMPropertyId);
 }
 
-float Assimil8orChannelProperties::getExpFM ()
+float ChannelProperties::getExpFM ()
 {
     return getValue<float> (ExpFMPropertyId);
 }
 
-float Assimil8orChannelProperties::getLevel ()
+float ChannelProperties::getLevel ()
 {
     return getValue<float> (LevelPropertyId);
 }
 
-float Assimil8orChannelProperties::getLinAM ()
+float ChannelProperties::getLinAM ()
 {
     return getValue<float> (LinAMPropertyId);
 }
 
-bool Assimil8orChannelProperties::getLinAMisExtEnv ()
+bool ChannelProperties::getLinAMisExtEnv ()
 {
     return getValue<bool> (LinAMisExtEnvPropertyId);
 }
 
-float Assimil8orChannelProperties::getLinFM ()
+float ChannelProperties::getLinFM ()
 {
     return getValue<float> (LinFMPropertyId);
 }
 
-AmountAndCvInput Assimil8orChannelProperties::getLoopLengthMod ()
+AmountAndCvInput ChannelProperties::getLoopLengthMod ()
 {
     return getCvInputAndValueFromString (getValue<juce::String> (LoopLengthModPropertyId));
 }
 
-int Assimil8orChannelProperties::getLoopMode ()
+int ChannelProperties::getLoopMode ()
 {
     return getValue<int> (LoopModePropertyId);
 }
 
-AmountAndCvInput Assimil8orChannelProperties::getLoopStartMod ()
+AmountAndCvInput ChannelProperties::getLoopStartMod ()
 {
     return getCvInputAndValueFromString (getValue<juce::String> (LoopStartModPropertyId));
 }
 
-float Assimil8orChannelProperties::getMixLevel ()
+float ChannelProperties::getMixLevel ()
 {
     return getValue<float> (MixLevelPropertyId);
 }
 
-AmountAndCvInput Assimil8orChannelProperties::getMixMod ()
+AmountAndCvInput ChannelProperties::getMixMod ()
 {
     return getCvInputAndValueFromString (getValue<juce::String> (MixModPropertyId));
 }
 
-bool Assimil8orChannelProperties::getMixModIsFader ()
+bool ChannelProperties::getMixModIsFader ()
 {
     return getValue<bool> (MixModIsFaderPropertyId);
 }
 
-float Assimil8orChannelProperties::getPan ()
+float ChannelProperties::getPan ()
 {
     return getValue<float> (PanPropertyId);
 }
 
-AmountAndCvInput Assimil8orChannelProperties::getPanMod ()
+AmountAndCvInput ChannelProperties::getPanMod ()
 {
     return getCvInputAndValueFromString (getValue<juce::String> (PanModPropertyId));
 }
 
-AmountAndCvInput Assimil8orChannelProperties::getPhaseCV ()
+AmountAndCvInput ChannelProperties::getPhaseCV ()
 {
     return getCvInputAndValueFromString (getValue<juce::String> (PhaseCVPropertyId));
 }
 
-float Assimil8orChannelProperties::getPitch ()
+float ChannelProperties::getPitch ()
 {
     return getValue<float> (PitchPropertyId);
 }
 
-AmountAndCvInput Assimil8orChannelProperties::getPitchCV ()
+AmountAndCvInput ChannelProperties::getPitchCV ()
 {
     return getCvInputAndValueFromString (getValue<juce::String> (PitchCVPropertyId));
 }
 
-int Assimil8orChannelProperties::getPlayMode ()
+int ChannelProperties::getPlayMode ()
 {
     return getValue<int> (PlayModePropertyId);
 }
 
-float Assimil8orChannelProperties::getPMIndex ()
+float ChannelProperties::getPMIndex ()
 {
     return getValue<float> (PMIndexPropertyId);
 }
 
-AmountAndCvInput Assimil8orChannelProperties::getPMIndexMod ()
+AmountAndCvInput ChannelProperties::getPMIndexMod ()
 {
     return getCvInputAndValueFromString (getValue<juce::String> (PMIndexModPropertyId));
 }
 
-int Assimil8orChannelProperties::getPMSource ()
+int ChannelProperties::getPMSource ()
 {
     return getValue<int> (PMSourcePropertyId);
 }
 
-float Assimil8orChannelProperties::getRelease ()
+float ChannelProperties::getRelease ()
 {
     return getValue<float> (ReleasePropertyId);
 }
 
-AmountAndCvInput Assimil8orChannelProperties::getReleaseMod ()
+AmountAndCvInput ChannelProperties::getReleaseMod ()
 {
     return getCvInputAndValueFromString (getValue<juce::String> (ReleaseModPropertyId));
 }
 
-bool Assimil8orChannelProperties::getReverse ()
+bool ChannelProperties::getReverse ()
 {
     return getValue<bool> (ReversePropertyId);
 }
 
-AmountAndCvInput Assimil8orChannelProperties::getSampleStartMod ()
+AmountAndCvInput ChannelProperties::getSampleStartMod ()
 {
     return getCvInputAndValueFromString (getValue<juce::String> (SampleStartModPropertyId));
 }
 
-AmountAndCvInput Assimil8orChannelProperties::getSampleEndMod ()
+AmountAndCvInput ChannelProperties::getSampleEndMod ()
 {
     return getCvInputAndValueFromString (getValue<juce::String> (SampleEndModPropertyId));
 }
 
-bool Assimil8orChannelProperties::getSpliceSmoothing ()
+bool ChannelProperties::getSpliceSmoothing ()
 {
     return getValue<bool> (SpliceSmoothingPropertyId);
 }
 
-juce::String Assimil8orChannelProperties::getXfadeGroup ()
+juce::String ChannelProperties::getXfadeGroup ()
 {
     return getValue<juce::String> (XfadeGroupPropertyId);
 }
 
-juce::String Assimil8orChannelProperties::getZonesCV ()
+juce::String ChannelProperties::getZonesCV ()
 {
     return getValue<juce::String> (ZonesCVPropertyId);
 }
 
-int Assimil8orChannelProperties::getZonesRT ()
+int ChannelProperties::getZonesRT ()
 {
     return getValue<int> (ZonesRTPropertyId);
 }
 
-void Assimil8orChannelProperties::valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property)
+void ChannelProperties::valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property)
 {
     if (property == AliasingPropertyId)
     {

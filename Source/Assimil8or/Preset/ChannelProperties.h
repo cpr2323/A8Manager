@@ -2,14 +2,15 @@
 
 #include <JuceHeader.h>
 #include <tuple>
+#include "ZoneProperties.h"
 #include "../../Utility/ValueTreeWrapper.h"
 
 using AmountAndCvInput = std::tuple<juce::String, float>;
 
-class Assimil8orChannelProperties : public ValueTreeWrapper
+class ChannelProperties : public ValueTreeWrapper
 {
 public:
-    Assimil8orChannelProperties () noexcept : ValueTreeWrapper (ChannelTypeId) {}
+    ChannelProperties () noexcept : ValueTreeWrapper (ChannelTypeId) {}
 
     void setAliasing (int aliasing, bool includeSelfCallback);
     void setAliasingMod (juce::String cvInput, float aliasingMod, bool includeSelfCallback);
@@ -131,7 +132,10 @@ public:
     std::function<void (juce::String zonesCV)> onZonesCVChange;
     std::function<void (int zonesRT)> onZonesRTChange;
 
+    void addZone ();
     void forEachZone (std::function<bool (juce::ValueTree zoneVT)> zoneVTCallback);
+
+    static juce::ValueTree create ();
 
     static inline const juce::Identifier ChannelTypeId { "Channel" };
     static inline const juce::Identifier AliasingPropertyId          { "aliasing" };
@@ -175,6 +179,8 @@ public:
     static inline const juce::Identifier ZonesRTPropertyId           { "zonesRT" };
 
 private:
+    int getNumZones ();
+
     void initValueTree () override;
 
     void valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property) override;
