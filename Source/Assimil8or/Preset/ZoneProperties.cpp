@@ -2,7 +2,9 @@
 
 void Assimil8orZoneProperties::initValueTree ()
 {
-
+    // normally in this function we create all of the properties
+    // but, as the Assimil8or only writes out parameters that have changed from the defaults
+    // we will emulate this by only adding properties when they change, or are in a preset file that is read in
 }
 
 void Assimil8orZoneProperties::setLevelOffset (float levelOffset, bool includeSelfCallback)
@@ -97,5 +99,52 @@ int Assimil8orZoneProperties::getSide ()
 
 void Assimil8orZoneProperties::valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property)
 {
-
+    if (data == vt)
+    {
+        if (property == LevelOffsetPropertyId)
+        {
+            if (onLevelOffsetChange != nullptr)
+                onLevelOffsetChange (getLevelOffset ());
+        }
+        else if (property == LoopLengthPropertyId)
+        {
+            if (onLoopLengthChange != nullptr)
+                onLoopLengthChange (getLoopLength ());
+        }
+        else if (property == LoopStartPropertyId)
+        {
+            if (onLoopStartChange != nullptr)
+                onLoopStartChange (getLoopStart ());
+        }
+        else if (property == MinVoltagePropertyId)
+        {
+            if (onMinVoltageChange != nullptr)
+                onMinVoltageChange (getMinVoltage ());
+        }
+        else if (property == PitchOffsetPropertyId)
+        {
+            if (onPitchOffsetChange != nullptr)
+                onPitchOffsetChange (getPitchOffset ());
+        }
+        else if (property == SamplePropertyId)
+        {
+            if (onSampleChange != nullptr)
+                onSampleChange (getSample ());
+        }
+        else if (property == SampleStartPropertyId)
+        {
+            if (onSampleStartChange != nullptr)
+                onSampleStartChange (getSampleStart ());
+        }
+        else if (property == SampleEndPropertyId)
+        {
+            if (onSampleEndChange != nullptr)
+                onSampleEndChange (getSampleEnd ());
+        }
+        else if (property == SidePropertyId)
+        {
+            if (onSideChange != nullptr)
+                onSideChange (getSide ());
+        }
+    }
 }

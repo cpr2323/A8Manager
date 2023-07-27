@@ -3,8 +3,9 @@
 
 void Assimil8orPresetProperties::initValueTree ()
 {
-    // none of the properties are being created by default, as the Assimil8or only writes out parameters
-    // that have changed from the defaults
+    // normally in this function we create all of the properties
+    // but, as the Assimil8or only writes out parameters that have changed from the defaults
+    // we will emulate this by only adding properties when they change, or are in a preset file that is read in
 }
 
 void Assimil8orPresetProperties::forEachChannel (std::function<bool (juce::ValueTree channelVT)> channelVTCallback)
@@ -119,5 +120,57 @@ float Assimil8orPresetProperties::getXfadeDWidth ()
 
 void Assimil8orPresetProperties::valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property)
 {
-
+    if (vt == data)
+    {
+        if (property == Data2asCVPropertyId)
+        {
+            if (onData2AsCVChange != nullptr)
+                onData2AsCVChange (getData2AsCV ());
+        }
+        else if (property == NamePropertyId)
+        {
+            if (onNameChange != nullptr)
+                onNameChange (getName ());
+        }
+        else if (property == XfadeACVPropertyId)
+        {
+            if (onXfadeACVChange != nullptr)
+                onXfadeACVChange (getXfadeACV ());
+        }
+        else if (property == XfadeAWidthPropertyId)
+        {
+            if (onXfadeAWidthChange != nullptr)
+                onXfadeAWidthChange (getXfadeAWidth ());
+        }
+        else if (property == XfadeBCVPropertyId)
+        {
+            if (onXfadeBCVChange != nullptr)
+                onXfadeBCVChange (getXfadeBCV ());
+        }
+        else if (property == XfadeBWidthPropertyId)
+        {
+            if (onXfadeBWidthChange != nullptr)
+                onXfadeBWidthChange (getXfadeBWidth ());
+        }
+        else if (property == XfadeCCVPropertyId)
+        {
+            if (onXfadeCCVChange != nullptr)
+                onXfadeCCVChange (getXfadeCCV ());
+        }
+        else if (property == XfadeCWidthPropertyId)
+        {
+            if (onXfadeCWidthChange != nullptr)
+                onXfadeCWidthChange (getXfadeCWidth ());
+        }
+        else if (property == XfadeDCVPropertyId)
+        {
+            if (onXfadeDCVChange != nullptr)
+                onXfadeDCVChange (getXfadeDCV ());
+        }
+        else if (property == XfadeDWidthPropertyId)
+        {
+            if (onXfadeDWidthChange != nullptr)
+                onXfadeDWidthChange (getXfadeDWidth ());
+        }
+    }
 }

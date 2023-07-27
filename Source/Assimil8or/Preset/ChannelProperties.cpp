@@ -13,7 +13,9 @@ AmountAndCvInput getCvInputAndValueFromString (juce::String cvInputAndValueStrin
 
 void Assimil8orChannelProperties::initValueTree ()
 {
-
+    // normally in this function we create all of the properties
+    // but, as the Assimil8or only writes out parameters that have changed from the defaults
+    // we will emulate this by only adding properties when they change, or are in a preset file that is read in
 }
 
 void Assimil8orChannelProperties::forEachZone (std::function<bool (juce::ValueTree zoneVT)> zoneVTCallback)
@@ -418,5 +420,201 @@ int Assimil8orChannelProperties::getZonesRT ()
 
 void Assimil8orChannelProperties::valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property)
 {
-
+    if (property == AliasingPropertyId)
+    {
+        if (onAliasingChange != nullptr)
+            onAliasingChange (getAliasing ());
+    }
+    else if (property == AliasingModPropertyId)
+    {
+        if (onAliasingModChange != nullptr)
+        {
+            onAliasingModChange (getAliasingMod ());
+        }
+    }
+    else if (property == AttackPropertyId)
+    {
+        if (onAttackChange != nullptr)
+            onAttackChange (getAttack ());
+    }
+    else if (property == AttackFromCurrentPropertyId)
+    {
+        if (onAttackFromCurrentChange != nullptr)
+            onAttackFromCurrentChange (getAttackFromCurrent ());
+    }
+    else if (property == AttackModPropertyId)
+    {
+        if (onAttackModChange != nullptr)
+            onAttackModChange (getAttackMod ());
+    }
+    else if (property == AutoTriggerPropertyId)
+    {
+        if (onAutoTriggerChange != nullptr)
+            onAutoTriggerChange (getAutoTrigger ());
+    }
+    else if (property == BitsPropertyId)
+    {
+        if (onBitsChange != nullptr)
+            onBitsChange (getBits ());
+    }
+    else if (property == BitsModPropertyId)
+    {
+        if (onBitsModChange != nullptr)
+            onBitsModChange (getBitsMod ());
+    }
+    else if (property == ChannelModePropertyId)
+    {
+        if (onChannelModeChange != nullptr)
+            onChannelModeChange (getChannelMode ());
+    }
+    else if (property == ExpAMPropertyId)
+    {
+        if (onExpAMChange != nullptr)
+            onExpAMChange (getExpAM ());
+    }
+    else if (property == ExpFMPropertyId)
+    {
+        if (onExpFMChange != nullptr)
+            onExpFMChange (getExpFM ());
+    }
+    else if (property == LevelPropertyId)
+    {
+        if (onLevelChange != nullptr)
+            onLevelChange (getLevel ());
+    }
+    else if (property == LinAMPropertyId)
+    {
+        if (onLinAMChange != nullptr)
+            onLinAMChange (getLinAM ());
+    }
+    else if (property == LinAMisExtEnvPropertyId)
+    {
+        if (onLinAMisExtEnvChange != nullptr)
+            onLinAMisExtEnvChange (getLinAMisExtEnv ());
+    }
+    else if (property == LinFMPropertyId)
+    {
+        if (onLinFMChange != nullptr)
+            onLinFMChange (getLinFM ());
+    }
+    else if (property == LoopLengthModPropertyId)
+    {
+        if (onLoopLengthModChange != nullptr)
+            onLoopLengthModChange (getLoopLengthMod ());
+    }
+    else if (property == LoopModePropertyId)
+    {
+        if (onLoopModeChange != nullptr)
+            onLoopModeChange (getLoopMode ());
+    }
+    else if (property == LoopStartModPropertyId)
+    {
+        if (onLoopStartModChange != nullptr)
+            onLoopStartModChange (getLoopStartMod ());
+    }
+    else if (property == MixLevelPropertyId)
+    {
+        if (onMixLevelChange != nullptr)
+            onMixLevelChange (getMixLevel ());
+    }
+    else if (property == MixModPropertyId)
+    {
+        if (onMixModChange != nullptr)
+            onMixModChange (getMixMod ());
+    }
+    else if (property == MixModIsFaderPropertyId)
+    {
+        if (onMixModIsFaderChange != nullptr)
+            onMixModIsFaderChange (getMixModIsFader ());
+    }
+    else if (property == PanPropertyId)
+    {
+        if (onPanChange != nullptr)
+            onPanChange (getPan ());
+    }
+    else if (property == PanModPropertyId)
+    {
+        if (onPanModChange != nullptr)
+            onPanModChange (getPanMod ());
+    }
+    else if (property == PhaseCVPropertyId)
+    {
+        if (onPhaseCVChange != nullptr)
+            onPhaseCVChange (getPhaseCV ());
+    }
+    else if (property == PitchPropertyId)
+    {
+        if (onPitchChange != nullptr)
+            onPitchChange (getPitch ());
+    }
+    else if (property == PitchCVPropertyId)
+    {
+        if (onPitchCVChange != nullptr)
+            onPitchCVChange (getPitchCV ());
+    }
+    else if (property == PlayModePropertyId)
+    {
+        if (onPlayModeChange != nullptr)
+            onPlayModeChange (getPlayMode ());
+    }
+    else if (property == PMIndexPropertyId)
+    {
+        if (onPMIndexChange != nullptr)
+            onPMIndexChange (getPMIndex ());
+    }
+    else if (property == PMIndexModPropertyId)
+    {
+        if (onPMIndexModChange != nullptr)
+            onPMIndexModChange (getPMIndexMod ());
+    }
+    else if (property == PMSourcePropertyId)
+    {
+        if (onPMSourceChange != nullptr)
+            onPMSourceChange (getPMSource ());
+    }
+    else if (property == ReleasePropertyId)
+    {
+        if (onReleaseChange != nullptr)
+            onReleaseChange (getRelease ());
+    }
+    else if (property == ReleaseModPropertyId)
+    {
+        if (onReleaseModChange != nullptr)
+            onReleaseModChange (getReleaseMod ());
+    }
+    else if (property == ReversePropertyId)
+    {
+        if (onReverseChange != nullptr)
+            onReverseChange (getReverse ());
+    }
+    else if (property == SampleStartModPropertyId)
+    {
+        if (onSampleStartModChange != nullptr)
+            onSampleStartModChange (getSampleStartMod ());
+    }
+    else if (property == SampleEndModPropertyId)
+    {
+        if (onSampleEndModChange != nullptr)
+            onSampleEndModChange (getSampleEndMod ());
+    }
+    else if (property == SpliceSmoothingPropertyId)
+    {
+        if (onSpliceSmoothingChange != nullptr)
+            onSpliceSmoothingChange (getSpliceSmoothing ());
+    }
+    else if (property == XfadeGroupPropertyId)
+    {
+        if (onXfadeGroupChange != nullptr)
+            onXfadeGroupChange (getXfadeGroup ());
+    }
+    else if (property == ZonesCVPropertyId)
+    {
+        if (onZonesCVChange != nullptr)
+            onZonesCVChange (getZonesCV ());
+    }
+    else if (property == ZonesRTPropertyId)
+    {
+        if (onZonesRTChange != nullptr)
+            onZonesRTChange (getZonesRT ());
+    }
 }
