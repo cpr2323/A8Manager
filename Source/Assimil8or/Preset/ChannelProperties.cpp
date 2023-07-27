@@ -22,10 +22,10 @@ void Assimil8orChannelProperties::forEachZone (std::function<bool (juce::ValueTr
 {
     jassert (zoneVTCallback != nullptr);
     ValueTreeHelpers::forEachChildOfType (data, Assimil8orZoneProperties::ZoneTypeId, [this, zoneVTCallback] (juce::ValueTree zoneVT)
-        {
-            zoneVTCallback (zoneVT);
-            return true;
-        });
+    {
+        zoneVTCallback (zoneVT);
+        return true;
+    });
 }
 
 void Assimil8orChannelProperties::setAliasing (int aliasing, bool includeSelfCallback)
