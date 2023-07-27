@@ -2,6 +2,7 @@
 
 #include <JuceHeader.h>
 #include "ValidatorProperties.h"
+#include "Preset/PresetProperties.h"
 
 // validate
 //  SD Card (max folders unknown)
@@ -45,9 +46,10 @@ private:
 class Assimil8orPreset
 {
 public:
+    Assimil8orPreset ();
     void parse (juce::StringArray presetLines);
 
-    juce::ValueTree getPresetVT () { return assimil8orData; }
+    juce::ValueTree getPresetVT () { return presetProperties.getValueTree (); }
 
 private:
     enum class ParseState
@@ -58,8 +60,7 @@ private:
         ParsingZoneSection,
     };
     ParseState parseState { ParseState::ParsingGlobalSection };
-
-    juce::ValueTree assimil8orData { "Assimil8or" };
+    PresetProperties presetProperties;
 
     juce::String getParseStateString (ParseState parseState);
     void setParseState (ParseState newParseState);

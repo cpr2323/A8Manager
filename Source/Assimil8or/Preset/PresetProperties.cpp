@@ -19,11 +19,12 @@ void PresetProperties::initValueTree ()
     setName (kDefaultPresetName, false);
 }
 
-void PresetProperties::addChannel ()
+juce::ValueTree PresetProperties::addChannel ()
 {
     jassert (getNumChannels () < kMaxChannels);
     auto channelProperties { ChannelProperties::create () };
     data.addChild (channelProperties, -1, nullptr);
+    return channelProperties;
 }
 
 void PresetProperties::forEachChannel (std::function<bool (juce::ValueTree channelVT)> channelVTCallback)
@@ -51,7 +52,7 @@ void PresetProperties::setXfadeACV (juce::String cvInput, bool includeSelfCallba
     setValue (cvInput, XfadeACVPropertyId, includeSelfCallback);
 }
 
-void PresetProperties::setXfadeAWidth (float width, bool includeSelfCallback)
+void PresetProperties::setXfadeAWidth (double width, bool includeSelfCallback)
 {
     setValue (width, XfadeAWidthPropertyId, includeSelfCallback);
 }
@@ -61,7 +62,7 @@ void PresetProperties::setXfadeBCV (juce::String cvInput, bool includeSelfCallba
     setValue (cvInput, XfadeBCVPropertyId, includeSelfCallback);
 }
 
-void PresetProperties::setXfadeBWidth (float width, bool includeSelfCallback)
+void PresetProperties::setXfadeBWidth (double width, bool includeSelfCallback)
 {
     setValue (width, XfadeBWidthPropertyId, includeSelfCallback);
 }
@@ -71,7 +72,7 @@ void PresetProperties::setXfadeCCV (juce::String cvInput, bool includeSelfCallba
     setValue (cvInput, XfadeCCVPropertyId, includeSelfCallback);
 }
 
-void PresetProperties::setXfadeCWidth (float width, bool includeSelfCallback)
+void PresetProperties::setXfadeCWidth (double width, bool includeSelfCallback)
 {
     setValue (width, XfadeCWidthPropertyId, includeSelfCallback);
 }
@@ -81,7 +82,7 @@ void PresetProperties::setXfadeDCV (juce::String cvInput, bool includeSelfCallba
     setValue (cvInput, XfadeDCVPropertyId, includeSelfCallback);
 }
 
-void PresetProperties::setXfadeDWidth (float width, bool includeSelfCallback)
+void PresetProperties::setXfadeDWidth (double width, bool includeSelfCallback)
 {
     setValue (width, XfadeDWidthPropertyId, includeSelfCallback);
 }
@@ -101,9 +102,9 @@ juce::String PresetProperties::getXfadeACV ()
     return getValue<juce::String> (XfadeACVPropertyId);
 }
 
-float PresetProperties::getXfadeAWidth ()
+double PresetProperties::getXfadeAWidth ()
 {
-    return getValue<float> (XfadeAWidthPropertyId);
+    return getValue<double> (XfadeAWidthPropertyId);
 }
 
 juce::String PresetProperties::getXfadeBCV ()
@@ -111,9 +112,9 @@ juce::String PresetProperties::getXfadeBCV ()
     return getValue<juce::String> (XfadeBCVPropertyId);
 }
 
-float PresetProperties::getXfadeBWidth ()
+double PresetProperties::getXfadeBWidth ()
 {
-    return getValue<float> (XfadeBWidthPropertyId);
+    return getValue<double> (XfadeBWidthPropertyId);
 }
 
 juce::String PresetProperties::getXfadeCCV ()
@@ -121,9 +122,9 @@ juce::String PresetProperties::getXfadeCCV ()
     return getValue<juce::String> (XfadeCCVPropertyId);
 }
 
-float PresetProperties::getXfadeCWidth ()
+double PresetProperties::getXfadeCWidth ()
 {
-    return getValue<float> (XfadeCWidthPropertyId);
+    return getValue<double> (XfadeCWidthPropertyId);
 }
 
 juce::String PresetProperties::getXfadeDCV ()
@@ -131,9 +132,9 @@ juce::String PresetProperties::getXfadeDCV ()
     return getValue<juce::String> (XfadeDCVPropertyId);
 }
 
-float PresetProperties::getXfadeDWidth ()
+double PresetProperties::getXfadeDWidth ()
 {
-    return getValue<float> (XfadeDWidthPropertyId);
+    return getValue<double> (XfadeDWidthPropertyId);
 }
 
 void PresetProperties::valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property)

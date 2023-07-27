@@ -5,7 +5,7 @@
 #include "ZoneProperties.h"
 #include "../../Utility/ValueTreeWrapper.h"
 
-using AmountAndCvInput = std::tuple<juce::String, float>;
+using AmountAndCvInput = std::tuple<juce::String, double>;
 
 class ChannelProperties : public ValueTreeWrapper
 {
@@ -13,40 +13,40 @@ public:
     ChannelProperties () noexcept : ValueTreeWrapper (ChannelTypeId) {}
 
     void setAliasing (int aliasing, bool includeSelfCallback);
-    void setAliasingMod (juce::String cvInput, float aliasingMod, bool includeSelfCallback);
-    void setAttack (float attack, bool includeSelfCallback);
-    void setAttackFromCurrent (int attackFromCurrent, bool includeSelfCallback);
-    void setAttackMod (juce::String cvInput, float attackMod, bool includeSelfCallback);
+    void setAliasingMod (juce::String cvInput, double aliasingMod, bool includeSelfCallback);
+    void setAttack (double attack, bool includeSelfCallback);
+    void setAttackFromCurrent (bool attackFromCurrent, bool includeSelfCallback);
+    void setAttackMod (juce::String cvInput, double attackMod, bool includeSelfCallback);
     void setAutoTrigger (bool autoTrigger, bool includeSelfCallback);
-    void setBits (float bits, bool includeSelfCallback);
-    void setBitsMod (juce::String cvInput, float bitsMod, bool includeSelfCallback);
+    void setBits (double bits, bool includeSelfCallback);
+    void setBitsMod (juce::String cvInput, double bitsMod, bool includeSelfCallback);
     void setChannelMode (int channelMode, bool includeSelfCallback);
-    void setExpAM (float expAM, bool includeSelfCallback);
-    void setExpFM (float expFM, bool includeSelfCallback);
-    void setLevel (float level, bool includeSelfCallback);
-    void setLinAM (float linAM, bool includeSelfCallback);
+    void setExpAM (double expAM, bool includeSelfCallback);
+    void setExpFM (double expFM, bool includeSelfCallback);
+    void setLevel (double level, bool includeSelfCallback);
+    void setLinAM (double linAM, bool includeSelfCallback);
     void setLinAMisExtEnv (bool linAMisExtEnv, bool includeSelfCallback);
-    void setLinFM (float linFM, bool includeSelfCallback);
-    void setLoopLengthMod (juce::String cvInput, float loopLengthMod, bool includeSelfCallback);
+    void setLinFM (double linFM, bool includeSelfCallback);
+    void setLoopLengthMod (juce::String cvInput, double loopLengthMod, bool includeSelfCallback);
     void setLoopMode (int loopMode, bool includeSelfCallback);
-    void setLoopStartMod (juce::String cvInput, float loopStartMod, bool includeSelfCallback);
-    void setMixLevel (float mixLevel, bool includeSelfCallback);
-    void setMixMod (juce::String cvInput, float mixMod, bool includeSelfCallback);
+    void setLoopStartMod (juce::String cvInput, double loopStartMod, bool includeSelfCallback);
+    void setMixLevel (double mixLevel, bool includeSelfCallback);
+    void setMixMod (juce::String cvInput, double mixMod, bool includeSelfCallback);
     void setMixModIsFader (bool mixModIsFader, bool includeSelfCallback);
-    void setPan (float pan, bool includeSelfCallback);
-    void setPanMod (juce::String cvInput, float panMod, bool includeSelfCallback);
-    void setPhaseCV (juce::String cvInput, float phaseCV, bool includeSelfCallback);
-    void setPitch (float pitch, bool includeSelfCallback);
-    void setPitchCV (juce::String cvInput, float pitchCV, bool includeSelfCallback);
+    void setPan (double pan, bool includeSelfCallback);
+    void setPanMod (juce::String cvInput, double panMod, bool includeSelfCallback);
+    void setPhaseCV (juce::String cvInput, double phaseCV, bool includeSelfCallback);
+    void setPitch (double pitch, bool includeSelfCallback);
+    void setPitchCV (juce::String cvInput, double pitchCV, bool includeSelfCallback);
     void setPlayMode (int PlayMode, bool includeSelfCallback);
-    void setPMIndex (float pMIndex, bool includeSelfCallback);
-    void setPMIndexMod (juce::String cvInput, float pMIndexMod, bool includeSelfCallback);
+    void setPMIndex (double pMIndex, bool includeSelfCallback);
+    void setPMIndexMod (juce::String cvInput, double pMIndexMod, bool includeSelfCallback);
     void setPMSource (int pMSource, bool includeSelfCallback);
-    void setRelease (float release, bool includeSelfCallback);
-    void setReleaseMod (juce::String cvInput, float releaseMod, bool includeSelfCallback);
+    void setRelease (double release, bool includeSelfCallback);
+    void setReleaseMod (juce::String cvInput, double releaseMod, bool includeSelfCallback);
     void setReverse (bool reverse, bool includeSelfCallback);
-    void setSampleStartMod (juce::String cvInput, float sampleStartMod, bool includeSelfCallback);
-    void setSampleEndMod (juce::String cvInput, float sampleEndMod, bool includeSelfCallback);
+    void setSampleStartMod (juce::String cvInput, double sampleStartMod, bool includeSelfCallback);
+    void setSampleEndMod (juce::String cvInput, double sampleEndMod, bool includeSelfCallback);
     void setSpliceSmoothing (bool spliceSmoothing, bool includeSelfCallback);
     void setXfadeGroup (juce::String xfadeGroup, bool includeSelfCallback);
     void setZonesCV (juce::String zonesCV, bool includeSelfCallback);
@@ -54,35 +54,35 @@ public:
 
     int getAliasing ();
     AmountAndCvInput getAliasingMod ();
-    float getAttack ();
+    double getAttack ();
     int getAttackFromCurrent ();
     AmountAndCvInput getAttackMod ();
     bool getAutoTrigger ();
-    float getBits ();
+    double getBits ();
     AmountAndCvInput getBitsMod ();
     int getChannelMode ();
-    float getExpAM ();
-    float getExpFM ();
-    float getLevel ();
-    float getLinAM ();
+    double getExpAM ();
+    double getExpFM ();
+    double getLevel ();
+    double getLinAM ();
     bool getLinAMisExtEnv ();
-    float getLinFM ();
+    double getLinFM ();
     AmountAndCvInput getLoopLengthMod ();
     int getLoopMode ();
     AmountAndCvInput getLoopStartMod ();
-    float getMixLevel ();
+    double getMixLevel ();
     AmountAndCvInput getMixMod ();
     bool getMixModIsFader ();
-    float getPan ();
+    double getPan ();
     AmountAndCvInput getPanMod ();
     AmountAndCvInput getPhaseCV ();
-    float getPitch ();
+    double getPitch ();
     AmountAndCvInput getPitchCV ();
     int getPlayMode ();
-    float getPMIndex ();
+    double getPMIndex ();
     AmountAndCvInput getPMIndexMod ();
     int getPMSource ();
-    float getRelease ();
+    double getRelease ();
     AmountAndCvInput getReleaseMod ();
     bool getReverse ();
     AmountAndCvInput getSampleStartMod ();
@@ -94,35 +94,35 @@ public:
 
     std::function<void (int aliasing)> onAliasingChange;
     std::function<void (AmountAndCvInput amountAndCvInput)> onAliasingModChange;
-    std::function<void (float attack)> onAttackChange;
+    std::function<void (double attack)> onAttackChange;
     std::function<void (int attackFromCurrent)> onAttackFromCurrentChange;
     std::function<void (AmountAndCvInput amountAndCvInput)> onAttackModChange;
     std::function<void (bool autoTrigger)> onAutoTriggerChange;
-    std::function<void (float bits)> onBitsChange;
+    std::function<void (double bits)> onBitsChange;
     std::function<void (AmountAndCvInput amountAndCvInput)> onBitsModChange;
     std::function<void (int channelMode)> onChannelModeChange;
-    std::function<void (float expAM)> onExpAMChange;
-    std::function<void (float expFM)> onExpFMChange;
-    std::function<void (float level)> onLevelChange;
-    std::function<void (float linAM)> onLinAMChange;
+    std::function<void (double expAM)> onExpAMChange;
+    std::function<void (double expFM)> onExpFMChange;
+    std::function<void (double level)> onLevelChange;
+    std::function<void (double linAM)> onLinAMChange;
     std::function<void (bool linAMisExtEnv)> onLinAMisExtEnvChange;
-    std::function<void (float linFM)> onLinFMChange;
+    std::function<void (double linFM)> onLinFMChange;
     std::function<void (AmountAndCvInput amountAndCvInput)> onLoopLengthModChange;
     std::function<void (int loopMode)> onLoopModeChange;
     std::function<void (AmountAndCvInput amountAndCvInput)> onLoopStartModChange;
-    std::function<void (float mixLevel)> onMixLevelChange;
+    std::function<void (double mixLevel)> onMixLevelChange;
     std::function<void (AmountAndCvInput amountAndCvInput)> onMixModChange;
     std::function<void (bool mixModIsFader)> onMixModIsFaderChange;
-    std::function<void (float pan)> onPanChange;
+    std::function<void (double pan)> onPanChange;
     std::function<void (AmountAndCvInput amountAndCvInput)> onPanModChange;
     std::function<void (AmountAndCvInput amountAndCvInput)> onPhaseCVChange;
-    std::function<void (float pitch)> onPitchChange;
+    std::function<void (double pitch)> onPitchChange;
     std::function<void (AmountAndCvInput amountAndCvInput)> onPitchCVChange;
     std::function<void (int PlayMode)> onPlayModeChange;
-    std::function<void (float pMIndex)> onPMIndexChange;
+    std::function<void (double pMIndex)> onPMIndexChange;
     std::function<void (AmountAndCvInput amountAndCvInput)> onPMIndexModChange;
     std::function<void (int pMSource)> onPMSourceChange;
-    std::function<void (float release)> onReleaseChange;
+    std::function<void (double release)> onReleaseChange;
     std::function<void (AmountAndCvInput amountAndCvInput)> onReleaseModChange;
     std::function<void (bool reverse)> onReverseChange;
     std::function<void (AmountAndCvInput amountAndCvInput)> onSampleStartModChange;
@@ -132,10 +132,12 @@ public:
     std::function<void (juce::String zonesCV)> onZonesCVChange;
     std::function<void (int zonesRT)> onZonesRTChange;
 
-    void addZone ();
+    juce::ValueTree addZone ();
     void forEachZone (std::function<bool (juce::ValueTree zoneVT)> zoneVTCallback);
 
     static juce::ValueTree create ();
+    static juce::String getCvInputAndValueString (juce::String cvInput, double value, int decimalPlaces);
+    static AmountAndCvInput getCvInputAndValueFromString (juce::String cvInputAndValueString);
 
     static inline const juce::Identifier ChannelTypeId { "Channel" };
     static inline const juce::Identifier AliasingPropertyId          { "aliasing" };

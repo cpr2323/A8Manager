@@ -29,37 +29,37 @@ public:
     void setData2AsCV (bool data2AsCv, bool includeSelfCallback);
     void setName (juce::String name, bool includeSelfCallback);
     void setXfadeACV (juce::String cvInput, bool includeSelfCallback);
-    void setXfadeAWidth (float width, bool includeSelfCallback);
+    void setXfadeAWidth (double width, bool includeSelfCallback);
     void setXfadeBCV (juce::String cvInput, bool includeSelfCallback);
-    void setXfadeBWidth (float width, bool includeSelfCallback);
+    void setXfadeBWidth (double width, bool includeSelfCallback);
     void setXfadeCCV (juce::String cvInput, bool includeSelfCallback);
-    void setXfadeCWidth (float width, bool includeSelfCallback);
+    void setXfadeCWidth (double width, bool includeSelfCallback);
     void setXfadeDCV (juce::String cvInput, bool includeSelfCallback);
-    void setXfadeDWidth (float width, bool includeSelfCallback);
+    void setXfadeDWidth (double width, bool includeSelfCallback);
 
     bool getData2AsCV ();
     juce::String getName ();
     juce::String getXfadeACV ();
-    float getXfadeAWidth ();
+    double getXfadeAWidth ();
     juce::String getXfadeBCV ();
-    float getXfadeBWidth ();
+    double getXfadeBWidth ();
     juce::String getXfadeCCV ();
-    float getXfadeCWidth ();
+    double getXfadeCWidth ();
     juce::String getXfadeDCV ();
-    float getXfadeDWidth ();
+    double getXfadeDWidth ();
 
     std::function<void (bool data2AsCv)> onData2AsCVChange;
     std::function<void (juce::String name)> onNameChange;
     std::function<void (juce::String cvInput)> onXfadeACVChange;
-    std::function<void (float width)> onXfadeAWidthChange;
+    std::function<void (double width)> onXfadeAWidthChange;
     std::function<void (juce::String cvInput)> onXfadeBCVChange;
-    std::function<void (float width)> onXfadeBWidthChange;
+    std::function<void (double width)> onXfadeBWidthChange;
     std::function<void (juce::String cvInput)> onXfadeCCVChange;
-    std::function<void (float width)> onXfadeCWidthChange;
+    std::function<void (double width)> onXfadeCWidthChange;
     std::function<void (juce::String cvInput)> onXfadeDCVChange;
-    std::function<void (float width)> onXfadeDWidthChange;
+    std::function<void (double width)> onXfadeDWidthChange;
 
-    void addChannel ();
+    juce::ValueTree addChannel ();
     void forEachChannel (std::function<bool (juce::ValueTree channelVT)> channelVTCallback);
 
     static inline const juce::Identifier PresetTypeId { "Preset" };

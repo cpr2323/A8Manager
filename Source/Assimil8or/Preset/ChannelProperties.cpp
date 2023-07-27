@@ -2,23 +2,6 @@
 
 const auto kMaxZones { 8 };
 
-juce::String getCvInputAndValueString (juce::String cvInput, float value, int decimalPlaces)
-{
-    return cvInput + " " + juce::String (value, decimalPlaces);
-}
-
-AmountAndCvInput getCvInputAndValueFromString (juce::String cvInputAndValueString)
-{
-    return { cvInputAndValueString.substring (0,2), cvInputAndValueString.substring (4).getFloatValue () };
-}
-
-int ChannelProperties::getNumZones ()
-{
-    auto numZones { 0 };
-    forEachZone ([&numZones] (juce::ValueTree) { ++numZones; return true; });
-    return numZones;
-}
-
 void ChannelProperties::initValueTree ()
 {
     // normally in this function we create all of the properties
@@ -33,11 +16,12 @@ juce::ValueTree ChannelProperties::create ()
     return channelProperties.getValueTree ();
 }
 
-void ChannelProperties::addZone ()
+juce::ValueTree ChannelProperties::addZone ()
 {
     jassert (getNumZones () < kMaxZones);
     auto zoneProperties { ZoneProperties::create () };
     data.addChild (zoneProperties, -1, nullptr);
+    return zoneProperties;
 }
 
 void ChannelProperties::forEachZone (std::function<bool (juce::ValueTree zoneVT)> zoneVTCallback)
@@ -50,27 +34,44 @@ void ChannelProperties::forEachZone (std::function<bool (juce::ValueTree zoneVT)
     });
 }
 
+int ChannelProperties::getNumZones ()
+{
+    auto numZones { 0 };
+    forEachZone ([&numZones] (juce::ValueTree) { ++numZones; return true; });
+    return numZones;
+}
+
+juce::String ChannelProperties::getCvInputAndValueString(juce::String cvInput, double value, int decimalPlaces)
+{
+    return cvInput + " " + juce::String (value, decimalPlaces);
+}
+
+AmountAndCvInput ChannelProperties::getCvInputAndValueFromString (juce::String cvInputAndValueString)
+{
+    return { cvInputAndValueString.substring (0, 2), cvInputAndValueString.substring (4).getFloatValue () };
+}
+
 void ChannelProperties::setAliasing (int aliasing, bool includeSelfCallback)
 {
     setValue (aliasing, AliasingPropertyId, includeSelfCallback);
 }
 
-void ChannelProperties::setAliasingMod (juce::String cvInput, float aliasingMod, bool includeSelfCallback)
+void ChannelProperties::setAliasingMod (juce::String cvInput, double aliasingMod, bool includeSelfCallback)
 {
     setValue (getCvInputAndValueString (cvInput, aliasingMod, 4), AliasingModPropertyId, includeSelfCallback);
 }
 
-void ChannelProperties::setAttack (float attack, bool includeSelfCallback)
+void ChannelProperties::setAttack(double attack, bool includeSelfCallback)
 {
     setValue (attack, AttackPropertyId, includeSelfCallback);
 }
 
-void ChannelProperties::setAttackFromCurrent (int attackFromCurrent, bool includeSelfCallback)
+void ChannelProperties::setAttackFromCurrent (bool attackFromCurrent, bool includeSelfCallback)
 {
     setValue (attackFromCurrent, AttackFromCurrentPropertyId, includeSelfCallback);
 }
 
-void ChannelProperties::setAttackMod (juce::String cvInput, float attackMod, bool includeSelfCallback)
+void ChannelProperties::setAttackMod (juce::String cvInput, double attackMod, bool includeSelfCallback)
 {
     setValue (getCvInputAndValueString (cvInput, attackMod, 4), AttackModPropertyId, includeSelfCallback);
 }
@@ -80,12 +81,12 @@ void ChannelProperties::setAutoTrigger (bool autoTrigger, bool includeSelfCallba
     setValue (autoTrigger, AutoTriggerPropertyId, includeSelfCallback);
 }
 
-void ChannelProperties::setBits (float bits, bool includeSelfCallback)
+void ChannelProperties::setBits(double bits, bool includeSelfCallback)
 {
     setValue (bits, BitsPropertyId, includeSelfCallback);
 }
 
-void ChannelProperties::setBitsMod (juce::String cvInput, float bitsMod, bool includeSelfCallback)
+void ChannelProperties::setBitsMod (juce::String cvInput, double bitsMod, bool includeSelfCallback)
 {
     setValue (getCvInputAndValueString (cvInput, bitsMod, 4), BitsModPropertyId, includeSelfCallback);
 }
@@ -95,22 +96,22 @@ void ChannelProperties::setChannelMode (int channelMode, bool includeSelfCallbac
     setValue (channelMode, ChannelModePropertyId, includeSelfCallback);
 }
 
-void ChannelProperties::setExpAM (float expAM, bool includeSelfCallback)
+void ChannelProperties::setExpAM(double expAM, bool includeSelfCallback)
 {
     setValue (expAM, ExpAMPropertyId, includeSelfCallback);
 }
 
-void ChannelProperties::setExpFM (float expFM, bool includeSelfCallback)
+void ChannelProperties::setExpFM(double expFM, bool includeSelfCallback)
 {
     setValue (expFM, ExpFMPropertyId, includeSelfCallback);
 }
 
-void ChannelProperties::setLevel (float level, bool includeSelfCallback)
+void ChannelProperties::setLevel(double level, bool includeSelfCallback)
 {
     setValue (level, LevelPropertyId, includeSelfCallback);
 }
 
-void ChannelProperties::setLinAM (float linAM, bool includeSelfCallback)
+void ChannelProperties::setLinAM(double linAM, bool includeSelfCallback)
 {
     setValue (linAM, LinAMPropertyId, includeSelfCallback);
 }
@@ -120,12 +121,12 @@ void ChannelProperties::setLinAMisExtEnv (bool linAMisExtEnv, bool includeSelfCa
     setValue (linAMisExtEnv, LinAMisExtEnvPropertyId, includeSelfCallback);
 }
 
-void ChannelProperties::setLinFM (float linFM, bool includeSelfCallback)
+void ChannelProperties::setLinFM(double linFM, bool includeSelfCallback)
 {
     setValue (linFM, LinFMPropertyId, includeSelfCallback);
 }
 
-void ChannelProperties::setLoopLengthMod (juce::String cvInput, float loopLengthMod, bool includeSelfCallback)
+void ChannelProperties::setLoopLengthMod (juce::String cvInput, double loopLengthMod, bool includeSelfCallback)
 {
     setValue (getCvInputAndValueString (cvInput, loopLengthMod, 4), LoopLengthModPropertyId, includeSelfCallback);
 }
@@ -135,17 +136,17 @@ void ChannelProperties::setLoopMode (int loopMode, bool includeSelfCallback)
     setValue (loopMode, LoopModePropertyId, includeSelfCallback);
 }
 
-void ChannelProperties::setLoopStartMod (juce::String cvInput, float loopStartMod, bool includeSelfCallback)
+void ChannelProperties::setLoopStartMod (juce::String cvInput, double loopStartMod, bool includeSelfCallback)
 {
     setValue (getCvInputAndValueString (cvInput, loopStartMod, 4), LoopStartModPropertyId, includeSelfCallback);
 }
 
-void ChannelProperties::setMixLevel (float mixLevel, bool includeSelfCallback)
+void ChannelProperties::setMixLevel(double mixLevel, bool includeSelfCallback)
 {
     setValue (mixLevel, MixLevelPropertyId, includeSelfCallback);
 }
 
-void ChannelProperties::setMixMod (juce::String cvInput, float mixMod, bool includeSelfCallback)
+void ChannelProperties::setMixMod (juce::String cvInput, double mixMod, bool includeSelfCallback)
 {
     setValue (getCvInputAndValueString (cvInput, mixMod, 4), MixModPropertyId, includeSelfCallback);
 }
@@ -155,27 +156,27 @@ void ChannelProperties::setMixModIsFader (bool mixModIsFader, bool includeSelfCa
     setValue (mixModIsFader, MixModIsFaderPropertyId, includeSelfCallback);
 }
 
-void ChannelProperties::setPan (float pan, bool includeSelfCallback)
+void ChannelProperties::setPan(double pan, bool includeSelfCallback)
 {
     setValue (pan, PanPropertyId, includeSelfCallback);
 }
 
-void ChannelProperties::setPanMod (juce::String cvInput, float panMod, bool includeSelfCallback)
+void ChannelProperties::setPanMod (juce::String cvInput, double panMod, bool includeSelfCallback)
 {
     setValue (getCvInputAndValueString (cvInput, panMod, 4), PanModPropertyId, includeSelfCallback);
 }
 
-void ChannelProperties::setPhaseCV (juce::String cvInput, float phaseCV, bool includeSelfCallback)
+void ChannelProperties::setPhaseCV (juce::String cvInput, double phaseCV, bool includeSelfCallback)
 {
     setValue (getCvInputAndValueString (cvInput, phaseCV, 4), PhaseCVPropertyId, includeSelfCallback);
 }
 
-void ChannelProperties::setPitch (float pitch, bool includeSelfCallback)
+void ChannelProperties::setPitch(double pitch, bool includeSelfCallback)
 {
     setValue (pitch, PitchPropertyId, includeSelfCallback);
 }
 
-void ChannelProperties::setPitchCV (juce::String cvInput, float pitchCV, bool includeSelfCallback)
+void ChannelProperties::setPitchCV (juce::String cvInput, double pitchCV, bool includeSelfCallback)
 {
     setValue (getCvInputAndValueString (cvInput, pitchCV, 4), PitchCVPropertyId, includeSelfCallback);
 }
@@ -185,12 +186,12 @@ void ChannelProperties::setPlayMode (int PlayMode, bool includeSelfCallback)
     setValue (PlayMode, PlayModePropertyId, includeSelfCallback);
 }
 
-void ChannelProperties::setPMIndex (float pMIndex, bool includeSelfCallback)
+void ChannelProperties::setPMIndex(double pMIndex, bool includeSelfCallback)
 {
     setValue (pMIndex, PMIndexPropertyId, includeSelfCallback);
 }
 
-void ChannelProperties::setPMIndexMod (juce::String cvInput, float pMIndexMod, bool includeSelfCallback)
+void ChannelProperties::setPMIndexMod (juce::String cvInput, double pMIndexMod, bool includeSelfCallback)
 {
     setValue (getCvInputAndValueString (cvInput, pMIndexMod, 4), PMIndexModPropertyId, includeSelfCallback);
 }
@@ -200,12 +201,12 @@ void ChannelProperties::setPMSource (int pMSource, bool includeSelfCallback)
     setValue (pMSource, PMSourcePropertyId, includeSelfCallback);
 }
 
-void ChannelProperties::setRelease (float release, bool includeSelfCallback)
+void ChannelProperties::setRelease(double release, bool includeSelfCallback)
 {
     setValue (release, ReleasePropertyId, includeSelfCallback);
 }
 
-void ChannelProperties::setReleaseMod (juce::String cvInput, float releaseMod, bool includeSelfCallback)
+void ChannelProperties::setReleaseMod (juce::String cvInput, double releaseMod, bool includeSelfCallback)
 {
     setValue (getCvInputAndValueString (cvInput, releaseMod, 4), ReleaseModPropertyId, includeSelfCallback);
 }
@@ -215,12 +216,12 @@ void ChannelProperties::setReverse (bool reverse, bool includeSelfCallback)
     setValue (reverse, ReversePropertyId, includeSelfCallback);
 }
 
-void ChannelProperties::setSampleStartMod (juce::String cvInput, float sampleStartMod, bool includeSelfCallback)
+void ChannelProperties::setSampleStartMod (juce::String cvInput, double sampleStartMod, bool includeSelfCallback)
 {
     setValue (getCvInputAndValueString (cvInput, sampleStartMod, 4), SampleStartModPropertyId, includeSelfCallback);
 }
 
-void ChannelProperties::setSampleEndMod (juce::String cvInput, float sampleEndMod, bool includeSelfCallback)
+void ChannelProperties::setSampleEndMod (juce::String cvInput, double sampleEndMod, bool includeSelfCallback)
 {
     setValue (getCvInputAndValueString (cvInput, sampleEndMod, 4), SampleEndModPropertyId, includeSelfCallback);
 }
@@ -255,9 +256,9 @@ AmountAndCvInput ChannelProperties::getAliasingMod ()
     return getCvInputAndValueFromString (getValue<juce::String> (AliasingModPropertyId));
 }
 
-float ChannelProperties::getAttack ()
+double ChannelProperties::getAttack ()
 {
-    return getValue<float> (AttackPropertyId);
+    return getValue<double> (AttackPropertyId);
 }
 
 int ChannelProperties::getAttackFromCurrent ()
@@ -275,9 +276,9 @@ bool ChannelProperties::getAutoTrigger ()
     return getValue<bool> (AutoTriggerPropertyId);
 }
 
-float ChannelProperties::getBits ()
+double ChannelProperties::getBits ()
 {
-    return getValue<float> (BitsPropertyId);
+    return getValue<double> (BitsPropertyId);
 }
 
 AmountAndCvInput ChannelProperties::getBitsMod ()
@@ -290,24 +291,24 @@ int ChannelProperties::getChannelMode ()
     return getValue<int> (ChannelModePropertyId);
 }
 
-float ChannelProperties::getExpAM ()
+double ChannelProperties::getExpAM ()
 {
-    return getValue<float> (ExpAMPropertyId);
+    return getValue<double> (ExpAMPropertyId);
 }
 
-float ChannelProperties::getExpFM ()
+double ChannelProperties::getExpFM ()
 {
-    return getValue<float> (ExpFMPropertyId);
+    return getValue<double> (ExpFMPropertyId);
 }
 
-float ChannelProperties::getLevel ()
+double ChannelProperties::getLevel ()
 {
-    return getValue<float> (LevelPropertyId);
+    return getValue<double> (LevelPropertyId);
 }
 
-float ChannelProperties::getLinAM ()
+double ChannelProperties::getLinAM ()
 {
-    return getValue<float> (LinAMPropertyId);
+    return getValue<double> (LinAMPropertyId);
 }
 
 bool ChannelProperties::getLinAMisExtEnv ()
@@ -315,9 +316,9 @@ bool ChannelProperties::getLinAMisExtEnv ()
     return getValue<bool> (LinAMisExtEnvPropertyId);
 }
 
-float ChannelProperties::getLinFM ()
+double ChannelProperties::getLinFM ()
 {
-    return getValue<float> (LinFMPropertyId);
+    return getValue<double> (LinFMPropertyId);
 }
 
 AmountAndCvInput ChannelProperties::getLoopLengthMod ()
@@ -335,9 +336,9 @@ AmountAndCvInput ChannelProperties::getLoopStartMod ()
     return getCvInputAndValueFromString (getValue<juce::String> (LoopStartModPropertyId));
 }
 
-float ChannelProperties::getMixLevel ()
+double ChannelProperties::getMixLevel ()
 {
-    return getValue<float> (MixLevelPropertyId);
+    return getValue<double> (MixLevelPropertyId);
 }
 
 AmountAndCvInput ChannelProperties::getMixMod ()
@@ -350,9 +351,9 @@ bool ChannelProperties::getMixModIsFader ()
     return getValue<bool> (MixModIsFaderPropertyId);
 }
 
-float ChannelProperties::getPan ()
+double ChannelProperties::getPan ()
 {
-    return getValue<float> (PanPropertyId);
+    return getValue<double> (PanPropertyId);
 }
 
 AmountAndCvInput ChannelProperties::getPanMod ()
@@ -365,9 +366,9 @@ AmountAndCvInput ChannelProperties::getPhaseCV ()
     return getCvInputAndValueFromString (getValue<juce::String> (PhaseCVPropertyId));
 }
 
-float ChannelProperties::getPitch ()
+double ChannelProperties::getPitch ()
 {
-    return getValue<float> (PitchPropertyId);
+    return getValue<double> (PitchPropertyId);
 }
 
 AmountAndCvInput ChannelProperties::getPitchCV ()
@@ -380,9 +381,9 @@ int ChannelProperties::getPlayMode ()
     return getValue<int> (PlayModePropertyId);
 }
 
-float ChannelProperties::getPMIndex ()
+double ChannelProperties::getPMIndex ()
 {
-    return getValue<float> (PMIndexPropertyId);
+    return getValue<double> (PMIndexPropertyId);
 }
 
 AmountAndCvInput ChannelProperties::getPMIndexMod ()
@@ -395,9 +396,9 @@ int ChannelProperties::getPMSource ()
     return getValue<int> (PMSourcePropertyId);
 }
 
-float ChannelProperties::getRelease ()
+double ChannelProperties::getRelease ()
 {
-    return getValue<float> (ReleasePropertyId);
+    return getValue<double> (ReleasePropertyId);
 }
 
 AmountAndCvInput ChannelProperties::getReleaseMod ()

@@ -2,7 +2,7 @@
 #include "../Utility/RuntimeRootProperties.h"
 #include "../Assimil8or/Assimil8or.h"
 
-#define SCAN_ONLY 1
+#define SCAN_ONLY 0
 ToolWindow::ToolWindow ()
 {
 #if SCAN_ONLY
