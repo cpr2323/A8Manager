@@ -3,6 +3,7 @@
 #include <JuceHeader.h>
 #include "../AppProperties.h"
 #include "../Assimil8or/ValidatorProperties.h"
+#include "../Assimil8or/Preset/PresetProperties.h"
 #include "../Utility/PersistentRootProperties.h"
 
 class ToolWindow : public juce::Component, public juce::Timer, public juce::ValueTree::Listener
@@ -14,6 +15,7 @@ public:
 private:
     AppProperties appProperties;
     PersistentRootProperties persistentRootProperties;
+    PresetProperties presetProperties;
     juce::TimeSliceThread tst {"dcl"};
     juce::DirectoryContentsList directoryContentsList {nullptr, tst};
 
@@ -21,9 +23,12 @@ private:
     juce::Label progressUpdateLabel;
     std::unique_ptr<juce::FileChooser> fileChooser;
     juce::TextButton fileMenuButton;
+    juce::TextButton toolMenuButton;
     std::vector<juce::File> foldersToScan;
     ValidatorProperties validatorProperties;
 
+    void loadPreset (juce::File presetFile);
+    void loadPresetUi ();
     void updateProgress (juce::String progressUpdate);
     void updateScanStatus (juce::String scanStatus);
     void verifySdCardImage ();

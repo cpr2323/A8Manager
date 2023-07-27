@@ -16,6 +16,7 @@ void Assimil8orPresetComponent::init (juce::ValueTree rootPropertiesVT)
     runtimeRootProperties.wrap (rootPropertiesVT, ValueTreeWrapper::WrapperType::client, ValueTreeWrapper::EnableCallbacks::no);
     presetProperties.wrap (runtimeRootProperties.getValueTree (), ValueTreeWrapper::WrapperType::client, ValueTreeWrapper::EnableCallbacks::yes);
     presetProperties.onNameChange = [this] (juce::String name) { refreshName (name); };
+
     refreshName (presetProperties.getName ());
 }
 

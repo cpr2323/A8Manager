@@ -7,12 +7,12 @@ void ZoneProperties::initValueTree ()
     // we will emulate this by only adding properties when they change, or are in a preset file that is read in
 }
 
-void ZoneProperties::setLevelOffset (float levelOffset, bool includeSelfCallback)
+void ZoneProperties::setLevelOffset (double levelOffset, bool includeSelfCallback)
 {
     setValue (levelOffset, LevelOffsetPropertyId, includeSelfCallback);
 }
 
-void ZoneProperties::setLoopLength (float loopLength, bool includeSelfCallback)
+void ZoneProperties::setLoopLength (double loopLength, bool includeSelfCallback)
 {
     setValue (loopLength, LoopLengthPropertyId, includeSelfCallback);
 }
@@ -22,12 +22,12 @@ void ZoneProperties::setLoopStart (int loopStart, bool includeSelfCallback)
     setValue (loopStart, LoopStartPropertyId, includeSelfCallback);
 }
 
-void ZoneProperties::setMinVoltage (float minVoltage, bool includeSelfCallback)
+void ZoneProperties::setMinVoltage (double minVoltage, bool includeSelfCallback)
 {
     setValue (minVoltage, MinVoltagePropertyId, includeSelfCallback);
 }
 
-void ZoneProperties::setPitchOffset (float pitchOffset, bool includeSelfCallback)
+void ZoneProperties::setPitchOffset (double pitchOffset, bool includeSelfCallback)
 {
     setValue (pitchOffset, PitchOffsetPropertyId, includeSelfCallback);
 }
@@ -52,14 +52,14 @@ void ZoneProperties::setSide (int side, bool includeSelfCallback)
     setValue (side, SidePropertyId, includeSelfCallback);
 }
 
-float ZoneProperties::getLevelOffset ()
+double ZoneProperties::getLevelOffset ()
 {
-    return getValue<float> (LevelOffsetPropertyId);
+    return getValue<double> (LevelOffsetPropertyId);
 }
 
-float ZoneProperties::getLoopLength ()
+double ZoneProperties::getLoopLength ()
 {
-    return getValue<float> (LoopLengthPropertyId);
+    return getValue<double> (LoopLengthPropertyId);
 }
 
 int ZoneProperties::getLoopStart ()
@@ -67,14 +67,14 @@ int ZoneProperties::getLoopStart ()
     return getValue<int> (LoopStartPropertyId);
 }
 
-float ZoneProperties::getMinVoltage ()
+double ZoneProperties::getMinVoltage ()
 {
-    return getValue<float> (MinVoltagePropertyId);
+    return getValue<double> (MinVoltagePropertyId);
 }
 
-float ZoneProperties::getPitchOffset ()
+double ZoneProperties::getPitchOffset ()
 {
-    return getValue<float> (PitchOffsetPropertyId);
+    return getValue<double> (PitchOffsetPropertyId);
 }
 
 juce::String ZoneProperties::getSample ()
