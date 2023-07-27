@@ -443,6 +443,9 @@ int ChannelProperties::getZonesRT ()
 
 void ChannelProperties::valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property)
 {
+    if (vt != data)
+        return;
+
     if (property == AliasingPropertyId)
     {
         if (onAliasingChange != nullptr)

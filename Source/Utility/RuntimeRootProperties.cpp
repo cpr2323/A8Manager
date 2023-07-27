@@ -118,8 +118,11 @@ const RuntimeRootProperties::QuitState RuntimeRootProperties::getQuitState ()
     return (RuntimeRootProperties::QuitState) getValue<int> (QuitStatePropertyId);
 }
 
-void RuntimeRootProperties::valueTreePropertyChanged (juce::ValueTree&, const juce::Identifier& property)
+void RuntimeRootProperties::valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property)
 {
+    if (vt != data)
+        return;
+
     if (property == AppResumedId)
     {
         if (onAppResumed)
