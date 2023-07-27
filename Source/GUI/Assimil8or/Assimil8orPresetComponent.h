@@ -1,6 +1,7 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "../../Assimil8or/Preset/PresetProperties.h"
 
 class Assimil8orPresetComponent : public juce::Component
 {
@@ -11,9 +12,11 @@ public:
     void init (juce::ValueTree rootPropertiesVT);
 
 private:
-    juce::ValueTree assimil8orData;
-    juce::TreeView presetTreeView { "Assimil8orPreset" };
+    PresetProperties presetProperties;
+    juce::TextEditor nameEditor;
 
     void resized () override;
     void paint (juce::Graphics& g) override;
+    void refreshName (juce::String name);
+    void updateName (juce::String name);
 };

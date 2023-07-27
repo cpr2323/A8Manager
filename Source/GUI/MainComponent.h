@@ -12,6 +12,8 @@ public:
     ~MainComponent () override = default;
 
 private:
+        juce::TabbedComponent contentTab { juce::TabbedButtonBar::Orientation::TabsAtTop };
+
     Assimil8orPresetComponent assimil8orPresetComponent;
     Assimil8orSdCardComponent assimil8orSdCardComponent;
     ToolWindow toolWindow;

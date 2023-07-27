@@ -4,17 +4,19 @@
 Assimil8orPresetComponent::Assimil8orPresetComponent ()
 {
     setOpaque (true);
-    addAndMakeVisible (presetTreeView);
-//     auto treeViewRoot { presetTreeView.getRootItem () };
-//     treeViewRoot->
+
+    nameEditor.onFocusLost = [this] () { updateName (nameEditor.getText ()); };
+    nameEditor.onReturnKey = [this] () { updateName (nameEditor.getText ()); };
+    addAndMakeVisible (nameEditor);
 }
 
 void Assimil8orPresetComponent::init (juce::ValueTree rootPropertiesVT)
 {
     RuntimeRootProperties runtimeRootProperties;
     runtimeRootProperties.wrap (rootPropertiesVT, ValueTreeWrapper::WrapperType::client, ValueTreeWrapper::EnableCallbacks::no);
-    assimil8orData = runtimeRootProperties.getValueTree ().getChildWithName ("Assimil8or");
-    jassert (assimil8orData.isValid ());
+    presetProperties.wrap (runtimeRootProperties.getValueTree (), ValueTreeWrapper::WrapperType::client, ValueTreeWrapper::EnableCallbacks::yes);
+    presetProperties.onNameChange = [this] (juce::String name) { refreshName (name); };
+    refreshName (presetProperties.getName ());
 }
 
 void Assimil8orPresetComponent::paint ([[maybe_unused]] juce::Graphics& g)
@@ -22,8 +24,18 @@ void Assimil8orPresetComponent::paint ([[maybe_unused]] juce::Graphics& g)
     g.fillAll (juce::Colours::navajowhite);
 }
 
+void Assimil8orPresetComponent::refreshName (juce::String name)
+{
+    nameEditor.setText (name, false);
+}
+
+void Assimil8orPresetComponent::updateName (juce::String name)
+{
+    presetProperties.setName (name, false);
+}
+
 void Assimil8orPresetComponent::resized ()
 {
     auto localBounds { getLocalBounds () };
-    presetTreeView.setBounds (localBounds);
+    nameEditor.setBounds (10, 10, 150, 25);
 }
