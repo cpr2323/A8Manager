@@ -599,7 +599,7 @@ void Assimil8orPreset::write (juce::File presetFile, juce::ValueTree presetPrope
                 if (zoneProperties.getValueTree ().getNumProperties () > 1)
                 {
                     const auto zonePropertiesVT { zoneProperties.getValueTree () };
-                    addLine (zonePropertiesVT, "_index", Section::ZoneId+ " " + juce::String (zoneProperties.getIndex ()) + " :");
+                    addLine (zonePropertiesVT, "_index", Section::ZoneId + " " + juce::String (zoneProperties.getIndex ()) + " :");
                     ++indentAmount;
                     addLine (zonePropertiesVT, ZoneProperties::LevelOffsetPropertyId, Parameter::Zone::LevelOffsetId + " : " + juce::String (zoneProperties.getLevelOffset ()));
                     addLine (zonePropertiesVT, ZoneProperties::LoopLengthPropertyId, Parameter::Zone::LoopLengthId + " : " + juce::String (zoneProperties.getLoopLength ()));
@@ -672,12 +672,9 @@ void Assimil8orPreset::parse (juce::StringArray presetLines)
         {
             return key.upToFirstOccurrenceOf (" ", false, false) == desiredKey;
         };
-        auto addSection = [&key] (const juce::Identifier& sectionId, juce::ValueTree parent)
+        auto getParameterIndex = [&key] ()
         {
-            auto section { juce::ValueTree { sectionId } };
-            section.setProperty ("_index", key.fromFirstOccurrenceOf (" ", false, false), nullptr);
-            parent.addChild (section, -1, nullptr);
-            return section;
+            return key.fromFirstOccurrenceOf (" ", false, false).getIntValue ();
         };
         switch (parseState)
         {
@@ -705,7 +702,7 @@ void Assimil8orPreset::parse (juce::StringArray presetLines)
                 if (keyIs (Section::ChannelId))
                 {
                     // TODO - do we need to check for malformed data, i.e. more than 8 channels
-                    curChannelSection = presetProperties.addChannel (presetProperties.getNumChannels () + 1);
+                    curChannelSection = presetProperties.addChannel (getParameterIndex ());
                     channelProperties.wrap (curChannelSection, ValueTreeWrapper::WrapperType::client, ValueTreeWrapper::EnableCallbacks::no);
                     setParseState (ParseState::ParsingChannelSection);
                 }
@@ -800,7 +797,7 @@ void Assimil8orPreset::parse (juce::StringArray presetLines)
                 if (keyIs (Section::ZoneId))
                 {
                     // TODO - do we need to check for malformed data, ie more than 8 zones
-                    curZoneSection = channelProperties.addZone (channelProperties.getNumZones () + 1);
+                    curZoneSection = channelProperties.addZone (getParameterIndex ());
                     zoneProperties.wrap (curZoneSection, ValueTreeWrapper::WrapperType::client, ValueTreeWrapper::EnableCallbacks::no);
                     setParseState (ParseState::ParsingZoneSection);
                 }
