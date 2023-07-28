@@ -104,25 +104,25 @@ private:
     juce::String curText;
 };
 
-Assimil8orSDCardValidator::Assimil8orSDCardValidator () : Thread ("Assimil8orSDCardValidator")
+Assimil8orValidator::Assimil8orValidator () : Thread ("Assimil8orValidator")
 {
     // initialize format manager for sample file reading
     audioFormatManager.registerBasicFormats ();
 }
 
-void Assimil8orSDCardValidator::init (juce::ValueTree vt)
+void Assimil8orValidator::init (juce::ValueTree vt)
 {
     validatorProperties.wrap (vt, ValueTreeWrapper::WrapperType::owner, ValueTreeWrapper::EnableCallbacks::yes);
     validatorProperties.onStartScanAsync = [this] () { validate (); };
 }
 
-void Assimil8orSDCardValidator::validate ()
+void Assimil8orValidator::validate ()
 {
     validatorProperties.setScanStatus ("scanning", false);
     startThread ();
 }
 
-void Assimil8orSDCardValidator::addStatus (juce::String statusType, juce::String statusText)
+void Assimil8orValidator::addStatus (juce::String statusType, juce::String statusText)
 {
     auto newStatusChild { juce::ValueTree {"Status"} };
     newStatusChild.setProperty ("type", statusType, nullptr);
@@ -130,7 +130,7 @@ void Assimil8orSDCardValidator::addStatus (juce::String statusType, juce::String
     validatorProperties.getValidationStatusVT ().addChild (newStatusChild, -1, nullptr);
 };
 
-void Assimil8orSDCardValidator::doIfProgressTimeElapsed (std::function<void ()> functionToDo)
+void Assimil8orValidator::doIfProgressTimeElapsed (std::function<void ()> functionToDo)
 {
     jassert (functionToDo != nullptr);
     if (juce::Time::currentTimeMillis () - lastScanInProgressUpdate > 250)
@@ -140,12 +140,12 @@ void Assimil8orSDCardValidator::doIfProgressTimeElapsed (std::function<void ()> 
     }
 }
 
-bool Assimil8orSDCardValidator::isAudioFile (juce::File file)
+bool Assimil8orValidator::isAudioFile (juce::File file)
 {
     return file.getFileExtension () == ".wav";
 }
 
-bool Assimil8orSDCardValidator::isPresetFile (juce::File file)
+bool Assimil8orValidator::isPresetFile (juce::File file)
 {
     return file.getFileExtension () == ".yml" &&
            file.getFileNameWithoutExtension ().length () == 7 &&
@@ -153,14 +153,14 @@ bool Assimil8orSDCardValidator::isPresetFile (juce::File file)
            file.getFileNameWithoutExtension ().substring (4).containsOnly ("0123456789");
 }
 
-int Assimil8orSDCardValidator::getPresetNumberFromName (juce::File file)
+int Assimil8orValidator::getPresetNumberFromName (juce::File file)
 {
     if (! isPresetFile (file))
         return 9999;
     return file.getFileNameWithoutExtension ().substring (4).getIntValue ();
 }
 
-std::tuple<juce::String, juce::String, std::optional<uint64_t>> Assimil8orSDCardValidator::validateFile (juce::File file)
+std::tuple<juce::String, juce::String, std::optional<uint64_t>> Assimil8orValidator::validateFile (juce::File file)
 {
     const auto kMaxFileNameLength { 47 };
 
@@ -282,7 +282,7 @@ std::tuple<juce::String, juce::String, std::optional<uint64_t>> Assimil8orSDCard
     }
 }
 
-std::tuple<juce::String,juce::String> Assimil8orSDCardValidator::validateFolder (juce::File folder)
+std::tuple<juce::String,juce::String> Assimil8orValidator::validateFolder (juce::File folder)
 {
     const auto kMaxFolderNameLength { 31 };
 
@@ -305,7 +305,7 @@ std::tuple<juce::String,juce::String> Assimil8orSDCardValidator::validateFolder 
     }
 }
 
-void Assimil8orSDCardValidator::processFolder (juce::ValueTree folderVT)
+void Assimil8orValidator::processFolder (juce::ValueTree folderVT)
 {
     // iterate over file system
     // for directories
@@ -367,7 +367,7 @@ void Assimil8orSDCardValidator::processFolder (juce::ValueTree folderVT)
         addStatus ("error", "[Number of Presets (" + juce::String (numberOfPresets) + ") exceeds maximum allowed (" + juce::String (maxPresets) + ")]");
 }
 
-juce::ValueTree Assimil8orSDCardValidator::getContentsOfFolder (juce::File folder)
+juce::ValueTree Assimil8orValidator::getContentsOfFolder (juce::File folder)
 {
     juce::ValueTree folderVT {"Folder"};
     folderVT.setProperty ("name", folder.getFullPathName (), nullptr);
@@ -397,7 +397,7 @@ juce::ValueTree Assimil8orSDCardValidator::getContentsOfFolder (juce::File folde
     return folderVT;
 }
 
-void Assimil8orSDCardValidator::validateRootFolder ()
+void Assimil8orValidator::validateRootFolder ()
 {
     validatorProperties.getValidationStatusVT ().removeAllChildren (nullptr);
     lastScanInProgressUpdate = juce::Time::currentTimeMillis ();
@@ -438,12 +438,12 @@ void Assimil8orSDCardValidator::validateRootFolder ()
     });
 }
 
-void Assimil8orSDCardValidator::run ()
+void Assimil8orValidator::run ()
 {
     validateRootFolder ();
 }
 
-void Assimil8orSDCardValidator::sortContentsOfFolder (juce::ValueTree folderVT)
+void Assimil8orValidator::sortContentsOfFolder (juce::ValueTree folderVT)
 {
     jassert (folderVT.getType ().toString () == "Folder");
 
@@ -533,9 +533,9 @@ void Assimil8orPreset::write (juce::File presetFile, juce::ValueTree presetPrope
     jassert (presetPropertiesVT.isValid ());
     PresetProperties presetPropertiesToWrite;
     presetPropertiesToWrite.wrap (presetPropertiesVT, ValueTreeWrapper::WrapperType::client, ValueTreeWrapper::EnableCallbacks::no);
-    if (Assimil8orSDCardValidator::isPresetFile (presetFile))
+    if (Assimil8orValidator::isPresetFile (presetFile))
     {
-        const auto presetNumber { Assimil8orSDCardValidator::getPresetNumberFromName (presetFile) };
+        const auto presetNumber { Assimil8orValidator::getPresetNumberFromName (presetFile) };
         if (presetNumber != 9999)
             presetPropertiesToWrite.setIndex (presetNumber, false);
     }

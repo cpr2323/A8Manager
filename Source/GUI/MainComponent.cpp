@@ -7,14 +7,14 @@ MainComponent::MainComponent (juce::ValueTree rootPropertiesVT)
 {
     setSize (800, 600);
     
-    assimil8orSdCardComponent.init (rootPropertiesVT);
+    assimil8orValidatorComponent.init (rootPropertiesVT);
     assimil8orPresetComponent.init (rootPropertiesVT);
 #if ENABLE_EDITOR
-    contentTab.addTab ("Validator", juce::Colours::darkgrey, &assimil8orSdCardComponent, false);
+    contentTab.addTab ("Validator", juce::Colours::darkgrey, &assimil8orValidatorComponent, false);
     contentTab.addTab ("Editor", juce::Colours::darkgrey, &assimil8orPresetComponent, false);
     addAndMakeVisible (contentTab);
 #else
-    addAndMakeVisible (assimil8orSdCardComponent);
+    addAndMakeVisible (assimil8orValidatorComponent);
 #endif
     toolWindow.init (rootPropertiesVT);
     addAndMakeVisible (toolWindow);
@@ -31,6 +31,6 @@ void MainComponent::resized ()
 #if ENABLE_EDITOR
     contentTab.setBounds (localBounds);
 #else
-    assimil8orSdCardComponent.setBounds (localBounds);
+    assimil8orValidatorComponent.setBounds (localBounds);
 #endif
 }

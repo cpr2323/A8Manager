@@ -3,12 +3,12 @@
 #include <JuceHeader.h>
 #include "../../Assimil8or/ValidatorProperties.h"
 
-class Assimil8orSdCardComponent : public juce::Component,
+class Assimil8orValidatorComponent : public juce::Component,
                                   private juce::TableListBoxModel
 {
 public:
-    Assimil8orSdCardComponent ();
-    ~Assimil8orSdCardComponent () = default;
+    Assimil8orValidatorComponent ();
+    ~Assimil8orValidatorComponent () = default;
 
     void init (juce::ValueTree rootPropertiesVT);
 

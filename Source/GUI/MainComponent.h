@@ -3,7 +3,7 @@
 #include <JuceHeader.h>
 #include "ToolWindow.h"
 #include "Assimil8or/Assimil8orPresetComponent.h"
-#include "Assimil8or/Assimil8orSdCardComponent.h"
+#include "Assimil8or/Assimil8orValidatorComponent.h"
 
 class MainComponent  : public juce::Component
 {
@@ -15,7 +15,7 @@ private:
         juce::TabbedComponent contentTab { juce::TabbedButtonBar::Orientation::TabsAtTop };
 
     Assimil8orPresetComponent assimil8orPresetComponent;
-    Assimil8orSdCardComponent assimil8orSdCardComponent;
+    Assimil8orValidatorComponent assimil8orValidatorComponent;
     ToolWindow toolWindow;
 
     void resized () override;

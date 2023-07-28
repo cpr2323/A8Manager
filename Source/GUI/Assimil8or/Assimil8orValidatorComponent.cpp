@@ -1,7 +1,7 @@
-#include "Assimil8orSdCardComponent.h"
+#include "Assimil8orValidatorComponent.h"
 #include "../../Utility/RuntimeRootProperties.h"
 
-Assimil8orSdCardComponent::Assimil8orSdCardComponent ()
+Assimil8orValidatorComponent::Assimil8orValidatorComponent ()
 {
     setOpaque (true);
 
@@ -39,7 +39,7 @@ Assimil8orSdCardComponent::Assimil8orSdCardComponent ()
     repaint ();
 }
 
-void Assimil8orSdCardComponent::init (juce::ValueTree rootPropertiesVT)
+void Assimil8orValidatorComponent::init (juce::ValueTree rootPropertiesVT)
 {
     RuntimeRootProperties runtimeRootProperties;
     runtimeRootProperties.wrap (rootPropertiesVT, ValueTreeWrapper::WrapperType::client, ValueTreeWrapper::EnableCallbacks::no);
@@ -55,7 +55,7 @@ void Assimil8orSdCardComponent::init (juce::ValueTree rootPropertiesVT)
     };
 }
 
-void Assimil8orSdCardComponent::setupFilterList ()
+void Assimil8orValidatorComponent::setupFilterList ()
 {
     filterList.clearQuick ();
     if (idleFilterButton.getToggleState ())
@@ -65,7 +65,7 @@ void Assimil8orSdCardComponent::setupFilterList ()
     if (errorFilterButton.getToggleState ())
         filterList.add ("error");
 }
-void Assimil8orSdCardComponent::buildQuickLookupList ()
+void Assimil8orValidatorComponent::buildQuickLookupList ()
 {
     // iterate over the state message list, adding each one to the quick list
     ValueTreeHelpers::forEachChildOfType (validatorProperties.getValidationStatusVT (), "Status", [this] (juce::ValueTree child)
@@ -76,12 +76,12 @@ void Assimil8orSdCardComponent::buildQuickLookupList ()
     });
 }
 
-void Assimil8orSdCardComponent::paint ([[maybe_unused]] juce::Graphics& g)
+void Assimil8orValidatorComponent::paint ([[maybe_unused]] juce::Graphics& g)
 {
     g.fillAll (juce::Colours::navajowhite);
 }
 
-void Assimil8orSdCardComponent::resized ()
+void Assimil8orValidatorComponent::resized ()
 {
     auto localBounds { getLocalBounds () };
     scanStatusListBox.setBounds (localBounds);
@@ -94,12 +94,12 @@ void Assimil8orSdCardComponent::resized ()
     idleFilterButton.setBounds (filterButtonBounds.removeFromRight (filterButtonBounds.getHeight ()));
 }
 
-int Assimil8orSdCardComponent::getNumRows ()
+int Assimil8orValidatorComponent::getNumRows ()
 {
     return (int) scanStatusQuickLookupList.size ();
 }
 
-void Assimil8orSdCardComponent::paintRowBackground (juce::Graphics& g, int rowNumber, int /*width*/, int /*height*/, bool rowIsSelected)
+void Assimil8orValidatorComponent::paintRowBackground (juce::Graphics& g, int rowNumber, int /*width*/, int /*height*/, bool rowIsSelected)
 {
     if (rowNumber >= scanStatusQuickLookupList.size ())
         return;
@@ -117,7 +117,7 @@ void Assimil8orSdCardComponent::paintRowBackground (juce::Graphics& g, int rowNu
     }
 }
 
-void Assimil8orSdCardComponent::paintCell (juce::Graphics& g, int rowNumber, int columnId, int width, int height, [[maybe_unused]] bool rowIsSelected)
+void Assimil8orValidatorComponent::paintCell (juce::Graphics& g, int rowNumber, int columnId, int width, int height, [[maybe_unused]] bool rowIsSelected)
 {
     if (rowNumber < scanStatusQuickLookupList.size ())
     {
@@ -152,7 +152,7 @@ void Assimil8orSdCardComponent::paintCell (juce::Graphics& g, int rowNumber, int
     }
 }
 
-juce::Component* Assimil8orSdCardComponent::refreshComponentForCell (int rowNumber, [[maybe_unused]] int columnId, bool rowIsSelected,
+juce::Component* Assimil8orValidatorComponent::refreshComponentForCell (int rowNumber, [[maybe_unused]] int columnId, bool rowIsSelected,
                                                                      juce::Component* existingComponentToUpdate)
 {
     if (rowIsSelected)
@@ -170,7 +170,7 @@ juce::Component* Assimil8orSdCardComponent::refreshComponentForCell (int rowNumb
     return nullptr;
 }
 
-void Assimil8orSdCardComponent::cellDoubleClicked (int rowNumber, int columnId, const juce::MouseEvent& mouseEvent)
+void Assimil8orValidatorComponent::cellDoubleClicked (int rowNumber, int columnId, const juce::MouseEvent& mouseEvent)
 {
     //juce::Logger::outputDebugString ("rowNum: " + juce::String (rowNumber) + ", colId: " + juce::String (columnId));
 }

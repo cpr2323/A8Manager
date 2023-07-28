@@ -11,10 +11,10 @@
 //          Preset
 //          Audio (47 character len) (arbitrary name)
 //          Audio
-class Assimil8orSDCardValidator : public juce::Thread
+class Assimil8orValidator : public juce::Thread
 {
 public:
-    Assimil8orSDCardValidator ();
+    Assimil8orValidator ();
 
     void init (juce::ValueTree vt);
 
@@ -26,7 +26,7 @@ private:
     juce::AudioFormatManager audioFormatManager;
     ValidatorProperties validatorProperties;
     int64_t lastScanInProgressUpdate {};
-    juce::ValueTree rootFolderVT { "AssimilatorSdCardFileList" };
+    juce::ValueTree rootFolderVT { "AssimilatorFileList" };
 
     void addStatus (juce::String statusType, juce::String statusText);
     void doIfProgressTimeElapsed (std::function<void ()> functionToDo);

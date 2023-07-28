@@ -6,7 +6,7 @@
 class ValidatorProperties : public ValueTreeWrapper
 {
 public:
-    ValidatorProperties () noexcept : ValueTreeWrapper (Assimil8orSDCardValidatorId) {}
+    ValidatorProperties () noexcept : ValueTreeWrapper (Assimil8orValidatorId) {}
 
     void setRootFolder (juce::String rootFolder, bool includeSelfCallback);
     void setScanStatus (juce::String scanStatus, bool includeSelfCallback);
@@ -27,7 +27,7 @@ public:
         return data.getChildWithName (ValidationsStatusId);
     }
 
-    static inline const juce::Identifier Assimil8orSDCardValidatorId { "Assimil8orSDCardValidator" };
+    static inline const juce::Identifier Assimil8orValidatorId { "Assimil8orValidator" };
     static inline const juce::Identifier RootFolderPropertyId { "rootFolder" };
     static inline const juce::Identifier ScanStatusPropertyId { "scanStatus" };
     static inline const juce::Identifier StartScanAsyncPropertyId { "startScan" };

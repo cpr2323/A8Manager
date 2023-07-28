@@ -36,10 +36,10 @@
                 resource="0" file="Source/GUI/Assimil8or/Assimil8orPresetComponent.cpp"/>
           <FILE id="ayK2Bn" name="Assimil8orPresetComponent.h" compile="0" resource="0"
                 file="Source/GUI/Assimil8or/Assimil8orPresetComponent.h"/>
-          <FILE id="g474Kb" name="Assimil8orSdCardComponent.cpp" compile="1"
-                resource="0" file="Source/GUI/Assimil8or/Assimil8orSdCardComponent.cpp"/>
-          <FILE id="ns8GQt" name="Assimil8orSdCardComponent.h" compile="0" resource="0"
-                file="Source/GUI/Assimil8or/Assimil8orSdCardComponent.h"/>
+          <FILE id="g474Kb" name="Assimil8orValidatorComponent.cpp" compile="1"
+                resource="0" file="Source/GUI/Assimil8or/Assimil8orValidatorComponent.cpp"/>
+          <FILE id="ns8GQt" name="Assimil8orValidatorComponent.h" compile="0"
+                resource="0" file="Source/GUI/Assimil8or/Assimil8orValidatorComponent.h"/>
         </GROUP>
         <FILE id="Van35d" name="MainComponent.cpp" compile="1" resource="0"
               file="Source/GUI/MainComponent.cpp"/>
