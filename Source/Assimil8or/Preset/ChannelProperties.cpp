@@ -42,9 +42,15 @@ int ChannelProperties::getNumZones ()
     return numZones;
 }
 
-juce::String ChannelProperties::getCvInputAndValueString(juce::String cvInput, double value, int decimalPlaces)
+juce::String ChannelProperties::getCvInputAndValueString (juce::String cvInput, double value, int decimalPlaces)
 {
     return cvInput + " " + juce::String (value, decimalPlaces);
+}
+
+juce::String ChannelProperties::getCvInputAndValueString (AmountAndCvInput cvInputAndValue, int decimalPlaces)
+{
+    const auto& [cvInput, value] = cvInputAndValue;
+    return getCvInputAndValueString (cvInput, value, decimalPlaces);
 }
 
 AmountAndCvInput ChannelProperties::getCvInputAndValueFromString (juce::String cvInputAndValueString)

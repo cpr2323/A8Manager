@@ -67,7 +67,7 @@ public:
 
     static inline const juce::Identifier PresetTypeId { "Preset" };
     static inline const juce::Identifier Data2asCVPropertyId   { "data2asCV" };
-    static inline const juce::Identifier IndexPropertyId       { "index" };
+    static inline const juce::Identifier IndexPropertyId       { "_index" };
     static inline const juce::Identifier NamePropertyId        { "name" };
     static inline const juce::Identifier XfadeACVPropertyId    { "xfadeACV" };
     static inline const juce::Identifier XfadeAWidthPropertyId { "xfadeAWidth" };

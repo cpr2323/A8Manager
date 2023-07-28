@@ -43,7 +43,7 @@ public:
     static juce::ValueTree create (int index);
 
     static inline const juce::Identifier ZoneTypeId { "Zone" };
-    static inline const juce::Identifier IndexPropertyId       { "index" };
+    static inline const juce::Identifier IndexPropertyId       { "_index" };
     static inline const juce::Identifier LevelOffsetPropertyId { "levelOffset" };
     static inline const juce::Identifier LoopLengthPropertyId  { "loopLength" };
     static inline const juce::Identifier LoopStartPropertyId   { "loopStart" };

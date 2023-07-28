@@ -140,10 +140,11 @@ public:
 
     static juce::ValueTree create (int index);
     static juce::String getCvInputAndValueString (juce::String cvInput, double value, int decimalPlaces);
+    static juce::String getCvInputAndValueString (AmountAndCvInput cvInputAndValue, int decimalPlaces);
     static AmountAndCvInput getCvInputAndValueFromString (juce::String cvInputAndValueString);
 
     static inline const juce::Identifier ChannelTypeId { "Channel" };
-    static inline const juce::Identifier IndexPropertyId             { "index" };
+    static inline const juce::Identifier IndexPropertyId             { "_index" };
     static inline const juce::Identifier AliasingPropertyId          { "aliasing" };
     static inline const juce::Identifier AliasingModPropertyId       { "aliasingMod" };
     static inline const juce::Identifier AttackPropertyId            { "attack" };

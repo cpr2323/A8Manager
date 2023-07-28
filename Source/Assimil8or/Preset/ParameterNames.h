@@ -14,7 +14,7 @@ namespace Parameter
     namespace Preset
     {
         juce::String NameId        { "Name" };
-        juce::String Data2asCVId   { "Data2asCVId" };
+        juce::String Data2asCVId   { "Data2asCV" };
         juce::String XfadeACVId    { "XfadeACV" };
         juce::String XfadeAWidthId { "XfadeAWidth" };
         juce::String XfadeBCVId    { "XfadeBCV" };

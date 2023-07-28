@@ -48,6 +48,18 @@ namespace ValueTreeHelpers
         });
     }
 
+    void forEachProperty (juce::ValueTree vt, std::function<bool (juce::Identifier& property)> propertyCallback)
+    {
+        jassert (propertyCallback != nullptr);
+        const auto numProperties { vt.getNumProperties () };
+        for (auto propertyIndex { 0 }; propertyIndex < numProperties; ++propertyIndex)
+        {
+            if (! propertyCallback (vt.getPropertyName(propertyIndex)))
+                break;
+        }
+
+    }
+
     juce::ValueTree findChild (juce::ValueTree parent, std::function<bool (juce::ValueTree child)> findChildCallback)
     {
         const auto numChildren { parent.getNumChildren () };
