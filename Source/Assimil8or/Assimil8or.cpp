@@ -635,8 +635,8 @@ void Assimil8orPreset::write (juce::File presetFile, juce::ValueTree presetPrope
                 }
                 return true;
             });
+            --indentAmount;
         }
-        --indentAmount;
         return true;
     });
 
