@@ -18,7 +18,7 @@ Since the application is not signed (I don't want to pay the $99/yr) you will ha
 
 1. Download A8Manager.zip, the app will be automatically extracted during download.
 2. Use the following command to allow it to run
-3. **_xattr -d com.apple.quaratine ~/Downloads/A8Manager.app_**
+3. **_xattr -d com.apple.quarantine ~/Downloads/A8Manager.app_**
 4. You can now run it. You can move it to the Applications folder if you do desire.
 
 # Linux
