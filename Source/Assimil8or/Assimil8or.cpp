@@ -535,7 +535,28 @@ void Assimil8orPreset::write (juce::File presetFile, juce::ValueTree presetPrope
         if (vt.hasProperty (parameterName))
             lines.add (juce::String (lineToAdd).paddedLeft (' ', lineToAdd.length () + indentAmount * 2));
     };
-
+    auto hasContent = [] (juce::ValueTree vt)
+    {
+        auto doChildrenHaveContent = [&vt] ()
+        {
+            auto contentFound { false };
+            ValueTreeHelpers::forEachChild (vt, [&contentFound] (juce::ValueTree child)
+            {
+                if (child.getNumProperties() != 0)
+                {
+                    contentFound = true;
+                    return false;
+                }
+                return true;
+            });
+            return contentFound;
+        };
+        if (vt.getNumProperties () > 1)
+            return true;
+        if (vt.getNumChildren () == 0)
+            return false;
+        return doChildrenHaveContent ();
+    };
     addLine (presetPropertiesToWrite.getValueTree (), "_index", Section::PresetId + " " + juce::String (presetPropertiesToWrite.getIndex ()) + " :");
     ++indentAmount;
     addLine (presetPropertiesToWrite.getValueTree (), PresetProperties::NamePropertyId, Parameter::Preset::NameId + " : " + presetPropertiesToWrite.getName ());
@@ -543,11 +564,11 @@ void Assimil8orPreset::write (juce::File presetFile, juce::ValueTree presetPrope
     addLine (presetPropertiesToWrite.getValueTree (), PresetProperties::XfadeACVPropertyId, Parameter::Preset::XfadeACVId + " : " + presetPropertiesToWrite.getXfadeACV() );
     addLine (presetPropertiesToWrite.getValueTree (), PresetProperties::XfadeAWidthPropertyId, Parameter::Preset::XfadeAWidthId + " : " + juce::String(presetPropertiesToWrite.getXfadeAWidth (), 2));
 
-    presetPropertiesToWrite.forEachChannel ([this, &addLine, &indentAmount, &presetPropertiesToWrite] (juce::ValueTree channelVT)
+    presetPropertiesToWrite.forEachChannel ([this, &hasContent, &addLine, &indentAmount, &presetPropertiesToWrite] (juce::ValueTree channelVT)
     {
         ChannelProperties channelProperties;
         channelProperties.wrap (channelVT, ValueTreeWrapper::WrapperType::client, ValueTreeWrapper::EnableCallbacks::no);
-        if (channelProperties.getValueTree().getNumProperties() > 1)
+        if (hasContent(channelVT))
         {
             const auto channelPropertiesVT { channelProperties.getValueTree () };
             addLine (channelPropertiesVT, "_index", Section::ChannelId + " " + juce::String (channelProperties.getIndex ()) + " :");
@@ -592,11 +613,11 @@ void Assimil8orPreset::write (juce::File presetFile, juce::ValueTree presetPrope
             addLine (channelPropertiesVT, ChannelProperties::ZonesCVPropertyId, Parameter::Channel::ZonesCVId + " : " + channelProperties.getZonesCV ());
             addLine (channelPropertiesVT, ChannelProperties::ZonesRTPropertyId, Parameter::Channel::ZonesRTId + " : " + juce::String (channelProperties.getZonesRT ()));
 
-            channelProperties.forEachZone ([this, &indentAmount, &addLine] (juce::ValueTree zoneVT)
+            channelProperties.forEachZone ([this, &hasContent, &indentAmount, &addLine] (juce::ValueTree zoneVT)
             {
                 ZoneProperties zoneProperties;
                 zoneProperties.wrap (zoneVT, ValueTreeWrapper::WrapperType::client, ValueTreeWrapper::EnableCallbacks::no);
-                if (zoneProperties.getValueTree ().getNumProperties () > 1)
+                if (hasContent(zoneVT))
                 {
                     const auto zonePropertiesVT { zoneProperties.getValueTree () };
                     addLine (zonePropertiesVT, "_index", Section::ZoneId + " " + juce::String (zoneProperties.getIndex ()) + " :");
