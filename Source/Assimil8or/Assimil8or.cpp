@@ -509,7 +509,7 @@ void Assimil8orSDCardValidator::sortContentsOfFolder (juce::ValueTree folderVT)
             //   unknown files
             auto curFile { juce::File (folderEntryVT.getProperty ("name").toString ()) };
             jassert (curFile.exists ());
-            if ( isPresetFile (curFile))
+            if (isPresetFile (curFile))
                 insertSorted (folderIndex, SectionIndex::presetFiles);
             else if (isAudioFile (curFile))
                 insertSorted (folderIndex, SectionIndex::audioFiles);
@@ -531,18 +531,14 @@ Assimil8orPreset::Assimil8orPreset ()
 void Assimil8orPreset::write (juce::File presetFile, juce::ValueTree presetPropertiesVT)
 {
     jassert (presetPropertiesVT.isValid ());
+    PresetProperties presetPropertiesToWrite;
+    presetPropertiesToWrite.wrap (presetPropertiesVT, ValueTreeWrapper::WrapperType::client, ValueTreeWrapper::EnableCallbacks::no);
     if (Assimil8orSDCardValidator::isPresetFile (presetFile))
     {
         const auto presetNumber { Assimil8orSDCardValidator::getPresetNumberFromName (presetFile) };
         if (presetNumber != 9999)
-        {
-            PresetProperties pp;
-            pp.wrap (presetPropertiesVT, ValueTreeWrapper::WrapperType::client, ValueTreeWrapper::EnableCallbacks::no);
-            pp.setIndex (presetNumber, false);
-        }
+            presetPropertiesToWrite.setIndex (presetNumber, false);
     }
-    PresetProperties presetPropertiesToWrite;
-    presetPropertiesToWrite.wrap (presetPropertiesVT, ValueTreeWrapper::WrapperType::client, ValueTreeWrapper::EnableCallbacks::no);
 
     auto indentAmount { 0 };
     juce::StringArray lines;
