@@ -151,7 +151,13 @@ bool Assimil8orSDCardValidator::isPresetFile (juce::File file)
            file.getFileNameWithoutExtension ().length () == 7 &&
            file.getFileNameWithoutExtension ().startsWith ("prst") &&
            file.getFileNameWithoutExtension ().substring (4).containsOnly ("0123456789");
+}
 
+int Assimil8orSDCardValidator::getPresetNumberFromName (juce::File file)
+{
+    if (! isPresetFile (file))
+        return 9999;
+    return file.getFileNameWithoutExtension ().substring (4).getIntValue ();
 }
 
 std::tuple<juce::String, juce::String, std::optional<uint64_t>> Assimil8orSDCardValidator::validateFile (juce::File file)
@@ -525,6 +531,16 @@ Assimil8orPreset::Assimil8orPreset ()
 void Assimil8orPreset::write (juce::File presetFile, juce::ValueTree presetPropertiesVT)
 {
     jassert (presetPropertiesVT.isValid ());
+    if (Assimil8orSDCardValidator::isPresetFile (presetFile))
+    {
+        const auto presetNumber { Assimil8orSDCardValidator::getPresetNumberFromName (presetFile) };
+        if (presetNumber != 9999)
+        {
+            PresetProperties pp;
+            pp.wrap (presetPropertiesVT, ValueTreeWrapper::WrapperType::client, ValueTreeWrapper::EnableCallbacks::no);
+            pp.setIndex (presetNumber, false);
+        }
+    }
     PresetProperties presetPropertiesToWrite;
     presetPropertiesToWrite.wrap (presetPropertiesVT, ValueTreeWrapper::WrapperType::client, ValueTreeWrapper::EnableCallbacks::no);
 

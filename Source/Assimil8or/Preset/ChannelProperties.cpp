@@ -463,7 +463,12 @@ void ChannelProperties::valueTreePropertyChanged (juce::ValueTree& vt, const juc
     if (vt != data)
         return;
 
-    if (property == AliasingPropertyId)
+    if (property == IndexPropertyId)
+    {
+        if (onIndexChange != nullptr)
+            onIndexChange (getIndex ());
+    }
+    else if (property == AliasingPropertyId)
     {
         if (onAliasingChange != nullptr)
             onAliasingChange (getAliasing ());

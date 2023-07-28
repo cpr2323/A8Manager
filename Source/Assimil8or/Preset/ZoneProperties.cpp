@@ -119,7 +119,12 @@ void ZoneProperties::valueTreePropertyChanged (juce::ValueTree& vt, const juce::
 {
     if (data == vt)
     {
-        if (property == LevelOffsetPropertyId)
+        if (property == IndexPropertyId)
+        {
+            if (onIndexChange!= nullptr)
+                onIndexChange (getIndex ());
+        }
+        else if (property == LevelOffsetPropertyId)
         {
             if (onLevelOffsetChange != nullptr)
                 onLevelOffsetChange (getLevelOffset ());

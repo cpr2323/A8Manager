@@ -18,6 +18,10 @@ public:
 
     void init (juce::ValueTree vt);
 
+    static bool isAudioFile (juce::File file);
+    static bool isPresetFile (juce::File file);
+    static int  getPresetNumberFromName (juce::File file);
+
 private:
     juce::AudioFormatManager audioFormatManager;
     ValidatorProperties validatorProperties;
@@ -27,8 +31,6 @@ private:
     void addStatus (juce::String statusType, juce::String statusText);
     void doIfProgressTimeElapsed (std::function<void ()> functionToDo);
     juce::ValueTree getContentsOfFolder (juce::File folder);
-    bool isAudioFile (juce::File file);
-    bool isPresetFile (juce::File file);
     void processFolder (juce::ValueTree folder);
     void sortContentsOfFolder (juce::ValueTree rootFolderVT);
     void validate ();

@@ -50,6 +50,7 @@ public:
     juce::String getXfadeDCV ();
     double getXfadeDWidth ();
 
+    std::function<void (int index)> onIndexChange;
     std::function<void (juce::String data2AsCv)> onData2AsCVChange;
     std::function<void (juce::String name)> onNameChange;
     std::function<void (juce::String cvInput)> onXfadeACVChange;
@@ -66,8 +67,8 @@ public:
     int getNumChannels ();
 
     static inline const juce::Identifier PresetTypeId { "Preset" };
-    static inline const juce::Identifier Data2asCVPropertyId   { "data2asCV" };
     static inline const juce::Identifier IndexPropertyId       { "_index" };
+    static inline const juce::Identifier Data2asCVPropertyId   { "data2asCV" };
     static inline const juce::Identifier NamePropertyId        { "name" };
     static inline const juce::Identifier XfadeACVPropertyId    { "xfadeACV" };
     static inline const juce::Identifier XfadeAWidthPropertyId { "xfadeAWidth" };

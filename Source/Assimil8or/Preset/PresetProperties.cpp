@@ -152,7 +152,12 @@ void PresetProperties::valueTreePropertyChanged (juce::ValueTree& vt, const juce
 {
     if (vt == data)
     {
-        if (property == Data2asCVPropertyId)
+        if (property == IndexPropertyId)
+        {
+            if (onIndexChange != nullptr)
+                onIndexChange (getIndex ());
+        }
+        else if (property == Data2asCVPropertyId)
         {
             if (onData2AsCVChange != nullptr)
                 onData2AsCVChange (getData2AsCV ());

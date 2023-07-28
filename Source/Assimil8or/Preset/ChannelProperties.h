@@ -94,6 +94,7 @@ public:
     juce::String getZonesCV ();
     int getZonesRT ();
 
+    std::function<void (int index)> onIndexChange;
     std::function<void (int aliasing)> onAliasingChange;
     std::function<void (AmountAndCvInput amountAndCvInput)> onAliasingModChange;
     std::function<void (double attack)> onAttackChange;

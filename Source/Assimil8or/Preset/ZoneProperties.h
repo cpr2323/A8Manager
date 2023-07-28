@@ -30,6 +30,7 @@ public:
     int getSampleEnd ();
     int getSide ();
 
+    std::function<void (int index)> onIndexChange;
     std::function<void (double levelOffset)> onLevelOffsetChange;
     std::function<void (double loopLength)> onLoopLengthChange;
     std::function<void (int loopStart)> onLoopStartChange;
