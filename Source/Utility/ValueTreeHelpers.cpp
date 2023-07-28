@@ -48,7 +48,7 @@ namespace ValueTreeHelpers
         });
     }
 
-    void forEachProperty (juce::ValueTree vt, std::function<bool (juce::Identifier& property)> propertyCallback)
+    void forEachProperty (juce::ValueTree vt, std::function<bool (juce::Identifier property)> propertyCallback)
     {
         jassert (propertyCallback != nullptr);
         const auto numProperties { vt.getNumProperties () };
