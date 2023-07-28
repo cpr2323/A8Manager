@@ -12,6 +12,7 @@ class ChannelProperties : public ValueTreeWrapper
 public:
     ChannelProperties () noexcept : ValueTreeWrapper (ChannelTypeId) {}
 
+    void setIndex (int index, bool includeSelfCallback);
     void setAliasing (int aliasing, bool includeSelfCallback);
     void setAliasingMod (juce::String cvInput, double aliasingMod, bool includeSelfCallback);
     void setAttack (double attack, bool includeSelfCallback);
@@ -52,6 +53,7 @@ public:
     void setZonesCV (juce::String zonesCV, bool includeSelfCallback);
     void setZonesRT (int zonesRT, bool includeSelfCallback);
 
+    int getIndex ();
     int getAliasing ();
     AmountAndCvInput getAliasingMod ();
     double getAttack ();
@@ -132,14 +134,16 @@ public:
     std::function<void (juce::String zonesCV)> onZonesCVChange;
     std::function<void (int zonesRT)> onZonesRTChange;
 
-    juce::ValueTree addZone ();
+    juce::ValueTree addZone (int index);
     void forEachZone (std::function<bool (juce::ValueTree zoneVT)> zoneVTCallback);
+    int getNumZones ();
 
-    static juce::ValueTree create ();
+    static juce::ValueTree create (int index);
     static juce::String getCvInputAndValueString (juce::String cvInput, double value, int decimalPlaces);
     static AmountAndCvInput getCvInputAndValueFromString (juce::String cvInputAndValueString);
 
     static inline const juce::Identifier ChannelTypeId { "Channel" };
+    static inline const juce::Identifier IndexPropertyId             { "index" };
     static inline const juce::Identifier AliasingPropertyId          { "aliasing" };
     static inline const juce::Identifier AliasingModPropertyId       { "aliasingMod" };
     static inline const juce::Identifier AttackPropertyId            { "attack" };
@@ -181,8 +185,6 @@ public:
     static inline const juce::Identifier ZonesRTPropertyId           { "zonesRT" };
 
 private:
-    int getNumZones ();
-
     void initValueTree () override;
 
     void valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property) override;

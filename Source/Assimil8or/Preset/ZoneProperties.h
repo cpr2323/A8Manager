@@ -8,6 +8,7 @@ class ZoneProperties : public ValueTreeWrapper
 public:
     ZoneProperties () noexcept : ValueTreeWrapper (ZoneTypeId) {}
 
+    void setIndex (int index, bool includeSelfCallback);
     void setLevelOffset (double levelOffset, bool includeSelfCallback);
     void setLoopLength (double loopLength, bool includeSelfCallback);
     void setLoopStart (int loopStart, bool includeSelfCallback);
@@ -18,6 +19,7 @@ public:
     void setSampleEnd (int sampleEnd, bool includeSelfCallback);
     void setSide (int side, bool includeSelfCallback);
 
+    int getIndex ();
     double getLevelOffset ();
     double getLoopLength ();
     int getLoopStart ();
@@ -38,9 +40,10 @@ public:
     std::function<void (int sampleEnd)> onSampleEndChange;
     std::function<void (int side)> onSideChange;
 
-    static juce::ValueTree create ();
+    static juce::ValueTree create (int index);
 
     static inline const juce::Identifier ZoneTypeId { "Zone" };
+    static inline const juce::Identifier IndexPropertyId       { "index" };
     static inline const juce::Identifier LevelOffsetPropertyId { "levelOffset" };
     static inline const juce::Identifier LoopLengthPropertyId  { "loopLength" };
     static inline const juce::Identifier LoopStartPropertyId   { "loopStart" };

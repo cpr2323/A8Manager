@@ -11,6 +11,8 @@ ToolWindow::ToolWindow ()
     {
         juce::PopupMenu pm;
         pm.addItem ("Load Preset", true, false, [this] () { loadPresetUi (); });
+        pm.addItem ("Save Preset", true, false, [this] () { savePresetUi (); });
+        pm.addSeparator ();
         pm.addItem ("Validate Directory", true, false, [this] () { verifySdCardImage (); });
         pm.showMenuAsync ({}, [this] (int) {});
     };
@@ -44,7 +46,6 @@ void ToolWindow::init (juce::ValueTree rootPropertiesVT)
     presetProperties.wrap (runtimeRootProperties.getValueTree (), ValueTreeWrapper::WrapperType::client, ValueTreeWrapper::EnableCallbacks::no);
 }
 
-
 void ToolWindow::loadPresetUi ()
 {
     fileChooser.reset (new juce::FileChooser ("Please select the Assimil8or Preset file you want to load...",
@@ -71,6 +72,23 @@ void ToolWindow::loadPreset (juce::File presetFile)
     presetProperties.getValueTree ().removeAllChildren (nullptr);
     presetProperties.getValueTree ().removeAllProperties (nullptr);
     presetProperties.getValueTree ().copyPropertiesAndChildrenFrom (newPresetProperties.getValueTree (), nullptr);
+}
+
+void ToolWindow::savePresetUi ()
+{
+    fileChooser.reset (new juce::FileChooser ("Please select the Preset file you want to save to...",
+                                              appProperties.getMostRecentFolder (), "*.yml", true, false, this));
+    fileChooser->launchAsync (juce::FileBrowserComponent::saveMode | juce::FileBrowserComponent::canSelectFiles | juce::FileBrowserComponent::warnAboutOverwriting, [this] (const juce::FileChooser& fc)
+    {
+        if (fc.getURLResults ().size () == 1 && fc.getURLResults () [0].isLocalFile ())
+            savePreset (fc.getURLResults () [0].getLocalFile ());
+    });
+}
+
+void ToolWindow::savePreset (juce::File presetFile)
+{
+    Assimil8orPreset assimil8orPreset;
+    assimil8orPreset.write (presetFile, presetProperties.getValueTree());
 }
 
 void ToolWindow::updateScanStatus (juce::String scanStatus)

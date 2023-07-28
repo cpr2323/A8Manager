@@ -9,17 +9,18 @@ void ChannelProperties::initValueTree ()
     // we will emulate this by only adding properties when they change, or are in a preset file that is read in
 }
 
-juce::ValueTree ChannelProperties::create ()
+juce::ValueTree ChannelProperties::create (int index)
 {
     ChannelProperties channelProperties;
     channelProperties.wrap ({}, ValueTreeWrapper::WrapperType::owner, ValueTreeWrapper::EnableCallbacks::no);
+    channelProperties.setIndex (index, false);
     return channelProperties.getValueTree ();
 }
 
-juce::ValueTree ChannelProperties::addZone ()
+juce::ValueTree ChannelProperties::addZone(int index)
 {
     jassert (getNumZones () < kMaxZones);
-    auto zoneProperties { ZoneProperties::create () };
+    auto zoneProperties { ZoneProperties::create (index) };
     data.addChild (zoneProperties, -1, nullptr);
     return zoneProperties;
 }
@@ -49,6 +50,11 @@ juce::String ChannelProperties::getCvInputAndValueString(juce::String cvInput, d
 AmountAndCvInput ChannelProperties::getCvInputAndValueFromString (juce::String cvInputAndValueString)
 {
     return { cvInputAndValueString.substring (0, 2), cvInputAndValueString.substring (4).getFloatValue () };
+}
+
+void ChannelProperties::setIndex (int index, bool includeSelfCallback)
+{
+    setValue (index, IndexPropertyId, includeSelfCallback);
 }
 
 void ChannelProperties::setAliasing (int aliasing, bool includeSelfCallback)
@@ -244,6 +250,11 @@ void ChannelProperties::setZonesCV (juce::String zonesCV, bool includeSelfCallba
 void ChannelProperties::setZonesRT (int zonesRT, bool includeSelfCallback)
 {
     setValue (zonesRT, ZonesRTPropertyId, includeSelfCallback);
+}
+
+int ChannelProperties::getIndex ()
+{
+    return getValue<int> (IndexPropertyId);
 }
 
 int ChannelProperties::getAliasing ()

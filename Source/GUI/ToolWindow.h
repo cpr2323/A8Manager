@@ -29,6 +29,8 @@ private:
 
     void loadPreset (juce::File presetFile);
     void loadPresetUi ();
+    void savePreset (juce::File presetFile);
+    void savePresetUi ();
     void updateProgress (juce::String progressUpdate);
     void updateScanStatus (juce::String scanStatus);
     void verifySdCardImage ();

@@ -47,6 +47,8 @@ class Assimil8orPreset
 {
 public:
     Assimil8orPreset ();
+    void write (juce::File presetFile);
+    void write (juce::File presetFile, juce::ValueTree presetProperties);
     void parse (juce::StringArray presetLines);
 
     juce::ValueTree getPresetVT () { return presetProperties.getValueTree (); }

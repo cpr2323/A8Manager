@@ -16,13 +16,14 @@ void PresetProperties::initValueTree ()
     // we will emulate this by only adding properties when they change, or are in a preset file that is read in
 
     const auto kDefaultPresetName {"New"};
+    setIndex (1, false);
     setName (kDefaultPresetName, false);
 }
 
-juce::ValueTree PresetProperties::addChannel ()
+juce::ValueTree PresetProperties::addChannel (int index)
 {
     jassert (getNumChannels () < kMaxChannels);
-    auto channelProperties { ChannelProperties::create () };
+    auto channelProperties { ChannelProperties::create (index) };
     data.addChild (channelProperties, -1, nullptr);
     return channelProperties;
 }
@@ -37,7 +38,12 @@ void PresetProperties::forEachChannel (std::function<bool (juce::ValueTree chann
     });
 }
 
-void PresetProperties::setData2AsCV (bool data2AsCv, bool includeSelfCallback)
+void PresetProperties::setIndex (int index, bool includeSelfCallback)
+{
+    setValue (index, IndexPropertyId, includeSelfCallback);
+}
+
+void PresetProperties::setData2AsCV (juce::String data2AsCv, bool includeSelfCallback)
 {
     setValue (data2AsCv, Data2asCVPropertyId, includeSelfCallback);
 }
@@ -87,9 +93,14 @@ void PresetProperties::setXfadeDWidth (double width, bool includeSelfCallback)
     setValue (width, XfadeDWidthPropertyId, includeSelfCallback);
 }
 
-bool PresetProperties::getData2AsCV ()
+int PresetProperties::getIndex ()
 {
-    return getValue<bool> (Data2asCVPropertyId);
+    return getValue<int> (IndexPropertyId);
+}
+
+juce::String PresetProperties::getData2AsCV ()
+{
+    return getValue<juce::String> (Data2asCVPropertyId);
 }
 
 juce::String PresetProperties::getName ()

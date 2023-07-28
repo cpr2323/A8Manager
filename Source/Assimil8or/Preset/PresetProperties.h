@@ -26,7 +26,8 @@ class PresetProperties : public ValueTreeWrapper
 public:
     PresetProperties () noexcept : ValueTreeWrapper (PresetTypeId) {}
 
-    void setData2AsCV (bool data2AsCv, bool includeSelfCallback);
+    void setIndex (int index, bool includeSelfCallback);
+    void setData2AsCV (juce::String data2AsCv, bool includeSelfCallback);
     void setName (juce::String name, bool includeSelfCallback);
     void setXfadeACV (juce::String cvInput, bool includeSelfCallback);
     void setXfadeAWidth (double width, bool includeSelfCallback);
@@ -37,7 +38,8 @@ public:
     void setXfadeDCV (juce::String cvInput, bool includeSelfCallback);
     void setXfadeDWidth (double width, bool includeSelfCallback);
 
-    bool getData2AsCV ();
+    int getIndex ();
+    juce::String getData2AsCV ();
     juce::String getName ();
     juce::String getXfadeACV ();
     double getXfadeAWidth ();
@@ -48,7 +50,7 @@ public:
     juce::String getXfadeDCV ();
     double getXfadeDWidth ();
 
-    std::function<void (bool data2AsCv)> onData2AsCVChange;
+    std::function<void (juce::String data2AsCv)> onData2AsCVChange;
     std::function<void (juce::String name)> onNameChange;
     std::function<void (juce::String cvInput)> onXfadeACVChange;
     std::function<void (double width)> onXfadeAWidthChange;
@@ -59,11 +61,13 @@ public:
     std::function<void (juce::String cvInput)> onXfadeDCVChange;
     std::function<void (double width)> onXfadeDWidthChange;
 
-    juce::ValueTree addChannel ();
+    juce::ValueTree addChannel (int index);
     void forEachChannel (std::function<bool (juce::ValueTree channelVT)> channelVTCallback);
+    int getNumChannels ();
 
     static inline const juce::Identifier PresetTypeId { "Preset" };
     static inline const juce::Identifier Data2asCVPropertyId   { "data2asCV" };
+    static inline const juce::Identifier IndexPropertyId       { "index" };
     static inline const juce::Identifier NamePropertyId        { "name" };
     static inline const juce::Identifier XfadeACVPropertyId    { "xfadeACV" };
     static inline const juce::Identifier XfadeAWidthPropertyId { "xfadeAWidth" };
@@ -75,8 +79,6 @@ public:
     static inline const juce::Identifier XfadeDWidthPropertyId { "xfadeDWidth" };
 
 private:
-    int getNumChannels ();
-
     void initValueTree () override;
 
     void valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property) override;

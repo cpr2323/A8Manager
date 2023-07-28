@@ -7,6 +7,11 @@ void ZoneProperties::initValueTree ()
     // we will emulate this by only adding properties when they change, or are in a preset file that is read in
 }
 
+void ZoneProperties::setIndex (int index, bool includeSelfCallback)
+{
+    setValue (index, IndexPropertyId, includeSelfCallback);
+}
+
 void ZoneProperties::setLevelOffset (double levelOffset, bool includeSelfCallback)
 {
     setValue (levelOffset, LevelOffsetPropertyId, includeSelfCallback);
@@ -50,6 +55,11 @@ void ZoneProperties::setSampleEnd (int sampleEnd, bool includeSelfCallback)
 void ZoneProperties::setSide (int side, bool includeSelfCallback)
 {
     setValue (side, SidePropertyId, includeSelfCallback);
+}
+
+int ZoneProperties::getIndex ()
+{
+    return getValue<int> (IndexPropertyId);
 }
 
 double ZoneProperties::getLevelOffset ()
@@ -97,10 +107,11 @@ int ZoneProperties::getSide ()
     return getValue<int> (SidePropertyId);
 }
 
-juce::ValueTree ZoneProperties::create ()
+juce::ValueTree ZoneProperties::create (int index)
 {
     ZoneProperties zoneProperties;
     zoneProperties.wrap ({}, ValueTreeWrapper::WrapperType::owner, ValueTreeWrapper::EnableCallbacks::no);
+    zoneProperties.setIndex (index, false);
     return zoneProperties.getValueTree ();
 }
 

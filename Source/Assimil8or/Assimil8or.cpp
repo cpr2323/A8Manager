@@ -522,6 +522,54 @@ Assimil8orPreset::Assimil8orPreset ()
     presetProperties.wrap ({}, ValueTreeWrapper::WrapperType::owner, ValueTreeWrapper::EnableCallbacks::no);
 }
 
+void Assimil8orPreset::write (juce::File presetFile, juce::ValueTree presetPropertiesVT)
+{
+    jassert (presetPropertiesVT.isValid ());
+    PresetProperties presetPropertiesToWrite;
+    presetPropertiesToWrite.wrap (presetPropertiesVT, ValueTreeWrapper::WrapperType::client, ValueTreeWrapper::EnableCallbacks::no);
+
+    auto indentAmount { 0 };
+    juce::StringArray lines;
+    auto addLine = [this, &indentAmount, &lines, &presetPropertiesToWrite] (juce::Identifier parameterName, juce::String& lineToAdd)
+    {
+        if (presetPropertiesToWrite.getValueTree ().hasProperty (parameterName))
+            lines.add (juce::String (lineToAdd).paddedLeft (' ', lineToAdd.length () + indentAmount * 2));
+    };
+
+    addLine ("index", Section::PresetId + " " + juce::String (presetPropertiesToWrite.getIndex ()) + " :");
+    ++indentAmount;
+    addLine (PresetProperties::NamePropertyId, Parameter::Preset::NameId + " : " + presetPropertiesToWrite.getName ());
+    addLine (PresetProperties::Data2asCVPropertyId, Parameter::Preset::Data2asCVId+ " : " + presetPropertiesToWrite.getData2AsCV ());
+    addLine (PresetProperties::XfadeACVPropertyId, Parameter::Preset::XfadeACVId + " : " + presetPropertiesToWrite.getXfadeACV() );
+    addLine (PresetProperties::XfadeAWidthPropertyId, Parameter::Preset::XfadeAWidthId + " : " + juce::String(presetPropertiesToWrite.getXfadeAWidth (), 2));
+
+    presetPropertiesToWrite.forEachChannel ([this, &indentAmount] (juce::ValueTree channelVT)
+    {
+        ChannelProperties channelProperties;
+        channelProperties.wrap (channelVT, ValueTreeWrapper::WrapperType::client, ValueTreeWrapper::EnableCallbacks::no);
+        ++indentAmount;
+        channelProperties.forEachZone ([this, &indentAmount] (juce::ValueTree zoneVT)
+        {
+            ZoneProperties zoneProperties;
+            zoneProperties.wrap (zoneVT, ValueTreeWrapper::WrapperType::client, ValueTreeWrapper::EnableCallbacks::no);
+            ++indentAmount;
+            --indentAmount;
+            return true;
+        });
+        --indentAmount;
+        return true;
+    });
+
+    // write data out to preset file
+    const auto stringToWrite { lines.joinIntoString ("\r\n") };
+    presetFile.replaceWithText (stringToWrite);
+}
+
+void Assimil8orPreset::write (juce::File presetFile)
+{
+    write (presetFile, presetProperties.getValueTree ());
+}
+
 // NOTE: still very much under construction
 void Assimil8orPreset::parse (juce::StringArray presetLines)
 {
@@ -597,8 +645,8 @@ void Assimil8orPreset::parse (juce::StringArray presetLines)
                 // XfadeDWidth : 9.10
                 if (keyIs (Section::ChannelId))
                 {
-                    // TODO - do we need to check for malformed data, ie more than 8 channels
-                    curChannelSection = presetProperties.addChannel ();
+                    // TODO - do we need to check for malformed data, i.e. more than 8 channels
+                    curChannelSection = presetProperties.addChannel (presetProperties.getNumChannels ());
                     channelProperties.wrap (curChannelSection, ValueTreeWrapper::WrapperType::client, ValueTreeWrapper::EnableCallbacks::no);
                     setParseState (ParseState::ParsingChannelSection);
                 }
@@ -608,7 +656,7 @@ void Assimil8orPreset::parse (juce::StringArray presetLines)
                 }
                 else if (keyIs (Parameter::Preset::Data2asCVId))
                 {
-                    presetProperties.setData2AsCV (value.getIntValue () == 1, false);
+                    presetProperties.setData2AsCV (value, false);
                 }
                 else if (keyIs (Parameter::Preset::XfadeACVId))
                 {
@@ -693,7 +741,7 @@ void Assimil8orPreset::parse (juce::StringArray presetLines)
                 if (keyIs (Section::ZoneId))
                 {
                     // TODO - do we need to check for malformed data, ie more than 8 zones
-                    curZoneSection = channelProperties.addZone ();
+                    curZoneSection = channelProperties.addZone (channelProperties.getNumZones ());
                     zoneProperties.wrap (curZoneSection, ValueTreeWrapper::WrapperType::client, ValueTreeWrapper::EnableCallbacks::no);
                     setParseState (ParseState::ParsingZoneSection);
                 }
