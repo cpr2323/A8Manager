@@ -423,51 +423,6 @@ juce::ValueTree Assimil8orValidator::getContentsOfFolder (juce::File folder)
     return folderVT;
 }
 
-class ValidatorResultListProperties : public ValueTreeWrapper
-{
-public:
-    ValidatorResultListProperties () noexcept : ValueTreeWrapper (ValidatorResultListTypeId) {}
-
-    juce::ValueTree addResult(juce::ValueTree validatorResultVT);
-    void forEachResult (std::function<bool (juce::ValueTree validatorResultVT)> validatorResultVTCallback);
-    int getNumResults();
-
-    static inline const juce::Identifier ValidatorResultListTypeId { "VaildatorResultList" };
-
-private:
-    void initValueTree () override;
-
-    void valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property) override;
-};
-
-class ValidatorResultProperties : public ValueTreeWrapper
-{
-public:
-    ValidatorResultProperties () noexcept : ValueTreeWrapper (ValidatorResultTypeId) {}
-
-    void setType (juce::String resultType, bool includeSelfCallback);
-    void setText (juce::String resultText, bool includeSelfCallback);
-
-    juce::String getType ();
-    juce::String getText ();
-
-    std::function<void (juce::String resultType)> onTypeChange;
-    std::function<void (juce::String resultText)> onTextChange;
-
-    juce::ValueTree addTag (juce::String tag, juce::String description);
-    void forEachTag (std::function<bool (juce::ValueTree tagVT)> tagVTCallback);
-    int getNumTags ();
-
-    static inline const juce::Identifier ValidatorResultTypeId { "VaildatorResult" };
-    static inline const juce::Identifier TypePropertyId { "type" };
-    static inline const juce::Identifier TextPropertyId { "text" };
-
-private:
-    void initValueTree () override;
-
-    void valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property) override;
-
-};
 
 void Assimil8orValidator::validateRootFolder ()
 {

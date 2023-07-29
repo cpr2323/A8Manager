@@ -1,7 +1,8 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include "../Utility/ValueTreeWrapper.h"
+#include "../../Utility/ValueTreeWrapper.h"
+#include "ValidatorResultListProperties.h"
 
 class ValidatorProperties : public ValueTreeWrapper
 {
@@ -24,16 +25,15 @@ public:
 
     juce::ValueTree getValidationStatusVT ()
     {
-        return data.getChildWithName (ValidationsStatusId);
+        return data.getChildWithName (ValidatorResultListProperties::ValidatorResultListTypeId);
     }
 
     static inline const juce::Identifier Assimil8orValidatorId { "Assimil8orValidator" };
-    static inline const juce::Identifier RootFolderPropertyId { "rootFolder" };
-    static inline const juce::Identifier ScanStatusPropertyId { "scanStatus" };
+    static inline const juce::Identifier RootFolderPropertyId     { "rootFolder" };
+    static inline const juce::Identifier ScanStatusPropertyId     { "scanStatus" };
     static inline const juce::Identifier StartScanAsyncPropertyId { "startScan" };
     static inline const juce::Identifier ProgressUpdatePropertyId { "progressUpdate" };
 
-    static inline const juce::Identifier ValidationsStatusId { "ValidationStatus" };
 private:
     void initValueTree () override;
 

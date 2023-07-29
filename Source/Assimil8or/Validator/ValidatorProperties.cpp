@@ -3,7 +3,7 @@
 void ValidatorProperties::initValueTree ()
 {
     setScanStatus ("idle", false);
-    data.addChild (juce::ValueTree {ValidationsStatusId}, -1, nullptr);
+    data.addChild (juce::ValueTree { ValidatorResultListProperties::ValidatorResultListTypeId }, -1, nullptr);
 }
 
 void ValidatorProperties::setRootFolder (juce::String rootFolder, bool includeSelfCallback)

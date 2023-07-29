@@ -1,8 +1,8 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include "ValidatorProperties.h"
 #include "Preset/PresetProperties.h"
+#include "Validator/ValidatorProperties.h"
 
 // validate
 //  SD Card (max folders unknown)

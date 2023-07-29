@@ -2,8 +2,8 @@
 
 #include <JuceHeader.h>
 #include "../AppProperties.h"
-#include "../Assimil8or/ValidatorProperties.h"
 #include "../Assimil8or/Preset/PresetProperties.h"
+#include "../Assimil8or/Validator/ValidatorProperties.h"
 #include "../Utility/PersistentRootProperties.h"
 
 class ToolWindow : public juce::Component, public juce::Timer, public juce::ValueTree::Listener

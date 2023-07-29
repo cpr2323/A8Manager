@@ -1,7 +1,7 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include "../../Assimil8or/ValidatorProperties.h"
+#include "../../Assimil8or/Validator/ValidatorProperties.h"
 
 class Assimil8orValidatorComponent : public juce::Component,
                                   private juce::TableListBoxModel
