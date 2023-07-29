@@ -205,15 +205,20 @@ std::tuple<juce::String, juce::String, std::optional<uint64_t>> Assimil8orValida
         assimil8orPreset.parse (fileContents);
 
         uint64_t sizeRequiredForSamples {};
-        const auto presetVT { assimil8orPreset.getPresetVT () };
-        if (presetVT.isValid ())
+        PresetProperties presetProperties;
+        presetProperties.wrap (assimil8orPreset.getPresetVT (), ValueTreeWrapper::WrapperType::client, ValueTreeWrapper::EnableCallbacks::no);
+        if (presetProperties.isValid ())
         {
-            ValueTreeHelpers::forEachChildOfType (presetVT, "Channel", [this, &file, &scanStatusResult, &sizeRequiredForSamples] (juce::ValueTree child)
+            presetProperties.forEachChannel([this, &file, &scanStatusResult, &sizeRequiredForSamples] (juce::ValueTree channelVT)
             {
-                ValueTreeHelpers::forEachChildOfType (child, "Zone", [this, &file, &scanStatusResult, &sizeRequiredForSamples] (juce::ValueTree child)
+                ChannelProperties channelProperties;
+                channelProperties.wrap (channelVT, ValueTreeWrapper::WrapperType::client, ValueTreeWrapper::EnableCallbacks::no);
+                channelProperties.forEachZone([this, &file, &scanStatusResult, &sizeRequiredForSamples] (juce::ValueTree zoneVT)
                 {
+                    ZoneProperties zoneProperties;
+                    zoneProperties.wrap (zoneVT, ValueTreeWrapper::WrapperType::client, ValueTreeWrapper::EnableCallbacks::no);
                     // TODO - should we do doIfProgressTimeElapsed() here?
-                    const auto sampleFileName { child.getProperty ("sample").toString () };
+                    const auto sampleFileName { zoneProperties.getSample () };
                     const auto sampleFile { file.getParentDirectory ().getChildFile (sampleFileName) };
                     if (! sampleFile.exists ())
                     {
