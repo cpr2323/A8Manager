@@ -164,6 +164,26 @@ std::tuple<juce::String, juce::String, std::optional<uint64_t>> Assimil8orValida
 {
     const auto kMaxFileNameLength { 47 };
 
+    auto checkAudioFile = [this] (juce::File file)
+    {
+        if (file.getFileExtension () == ".wav")
+        {
+            // file type assimil8or wants
+        }
+        else
+        {
+            // possibly an audio file of a format not supported on the Assimil8or
+            auto* format { audioFormatManager.findFormatForFileExtension (file.getFileExtension ()) };
+            if (format != nullptr)
+            {
+                // this is a type we can read, so we can offer to convert it
+            }
+            else
+            {
+                // this is an unknown file type
+            }
+        }
+    };
     std::optional<uint64_t> optionalPresetInfo;
     LogValidation ("File: " + file.getFileName ());
     if (file.getFileName ().startsWithChar ('.'))
