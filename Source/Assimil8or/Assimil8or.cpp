@@ -37,6 +37,7 @@ juce::String getMemorySizeString (uint64_t memoryUsage)
         return formatString (static_cast<float>(memoryUsage), " bytes");
 };
 
+
 class ScanStatusResult
 {
 public:
@@ -204,7 +205,7 @@ std::tuple<juce::String, juce::String, std::optional<uint64_t>> Assimil8orValida
         assimil8orPreset.parse (fileContents);
 
         uint64_t sizeRequiredForSamples {};
-        const auto presetVT { assimil8orPreset.getPresetVT ().getChildWithName ("Preset") };
+        const auto presetVT { assimil8orPreset.getPresetVT () };
         if (presetVT.isValid ())
         {
             ValueTreeHelpers::forEachChildOfType (presetVT, "Channel", [this, &file, &scanStatusResult, &sizeRequiredForSamples] (juce::ValueTree child)
@@ -212,7 +213,7 @@ std::tuple<juce::String, juce::String, std::optional<uint64_t>> Assimil8orValida
                 ValueTreeHelpers::forEachChildOfType (child, "Zone", [this, &file, &scanStatusResult, &sizeRequiredForSamples] (juce::ValueTree child)
                 {
                     // TODO - should we do doIfProgressTimeElapsed() here?
-                    const auto sampleFileName { child.getProperty ("Sample").toString () };
+                    const auto sampleFileName { child.getProperty ("sample").toString () };
                     const auto sampleFile { file.getParentDirectory ().getChildFile (sampleFileName) };
                     if (! sampleFile.exists ())
                     {
@@ -417,6 +418,52 @@ juce::ValueTree Assimil8orValidator::getContentsOfFolder (juce::File folder)
     return folderVT;
 }
 
+class ValidatorResultListProperties : public ValueTreeWrapper
+{
+public:
+    ValidatorResultListProperties () noexcept : ValueTreeWrapper (ValidatorResultListTypeId) {}
+
+    juce::ValueTree addResult(juce::ValueTree validatorResultVT);
+    void forEachResult (std::function<bool (juce::ValueTree validatorResultVT)> validatorResultVTCallback);
+    int getNumResults();
+
+    static inline const juce::Identifier ValidatorResultListTypeId { "VaildatorResultList" };
+
+private:
+    void initValueTree () override;
+
+    void valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property) override;
+};
+
+class ValidatorResultProperties : public ValueTreeWrapper
+{
+public:
+    ValidatorResultProperties () noexcept : ValueTreeWrapper (ValidatorResultTypeId) {}
+
+    void setType (juce::String resultType, bool includeSelfCallback);
+    void setText (juce::String resultText, bool includeSelfCallback);
+
+    juce::String getType ();
+    juce::String getText ();
+
+    std::function<void (juce::String resultType)> onTypeChange;
+    std::function<void (juce::String resultText)> onTextChange;
+
+    juce::ValueTree addTag (juce::String tag, juce::String description);
+    void forEachTag (std::function<bool (juce::ValueTree tagVT)> tagVTCallback);
+    int getNumTags ();
+
+    static inline const juce::Identifier ValidatorResultTypeId { "VaildatorResult" };
+    static inline const juce::Identifier TypePropertyId { "type" };
+    static inline const juce::Identifier TextPropertyId { "text" };
+
+private:
+    void initValueTree () override;
+
+    void valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property) override;
+
+};
+
 void Assimil8orValidator::validateRootFolder ()
 {
     validatorProperties.getValidationStatusVT ().removeAllChildren (nullptr);
@@ -611,7 +658,7 @@ void Assimil8orPreset::write (juce::File presetFile, juce::ValueTree presetPrope
             addLine (channelPropertiesVT, ChannelProperties::AttackFromCurrentPropertyId, Parameter::Channel::AttackFromCurrentId + " : " + juce::String (channelProperties.getAttackFromCurrent ()));
             addLine (channelPropertiesVT, ChannelProperties::AttackModPropertyId, Parameter::Channel::AttackModId + " : " + ChannelProperties::getCvInputAndValueString (channelProperties.getAttackMod (), 4));
             addLine (channelPropertiesVT, ChannelProperties::AutoTriggerPropertyId, Parameter::Channel::AutoTriggerId + " : " + (channelProperties.getAutoTrigger () ? "1" : "0"));
-            addLine (channelPropertiesVT, ChannelProperties::BitsPropertyId, Parameter::Channel::BitsId + " : " + juce::String (channelProperties.getBits ()));
+            addLine (channelPropertiesVT, ChannelProperties::BitsPropertyId, Parameter::Channel::BitsId + " : " + juce::String (channelProperties.getBits (), 1));
             addLine (channelPropertiesVT, ChannelProperties::BitsModPropertyId, Parameter::Channel::BitsModId + " : " + ChannelProperties::getCvInputAndValueString (channelProperties.getBitsMod (), 4));
             addLine (channelPropertiesVT, ChannelProperties::ChannelModePropertyId, Parameter::Channel::ChannelModeId + " : " + juce::String (channelProperties.getChannelMode ()));
             addLine (channelPropertiesVT, ChannelProperties::ExpAMPropertyId, Parameter::Channel::ExpAMId + " : " + juce::String (channelProperties.getExpAM ()));
