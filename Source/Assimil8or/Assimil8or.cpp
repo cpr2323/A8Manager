@@ -46,7 +46,7 @@ Assimil8orValidator::Assimil8orValidator () : Thread ("Assimil8orValidator")
 
 void Assimil8orValidator::init (juce::ValueTree vt)
 {
-    validatorProperties.wrap (vt, ValueTreeWrapper::WrapperType::owner, ValueTreeWrapper::EnableCallbacks::yes);
+    validatorProperties.wrap (vt, ValidatorProperties::WrapperType::owner, ValidatorProperties::EnableCallbacks::yes);
     validatorProperties.onStartScanAsync = [this] () { validate (); };
 }
 
@@ -129,8 +129,6 @@ std::tuple<juce::String, juce::String, std::optional<uint64_t>> Assimil8orValida
     else if (isPresetFile (file))
     {
         ValidatorResultProperties validatorResultProperties;
-        validatorResultProperties.wrap ({}, ValueTreeWrapper::WrapperType::owner, ValueTreeWrapper::EnableCallbacks::no);
-
         validatorResultProperties.update (ValidatorResultProperties::ResultTypeInfo, "Preset", false);
 
         juce::StringArray fileContents;
@@ -141,17 +139,17 @@ std::tuple<juce::String, juce::String, std::optional<uint64_t>> Assimil8orValida
 
         uint64_t sizeRequiredForSamples {};
         PresetProperties presetProperties;
-        presetProperties.wrap (assimil8orPreset.getPresetVT (), ValueTreeWrapper::WrapperType::client, ValueTreeWrapper::EnableCallbacks::no);
+        presetProperties.wrap (assimil8orPreset.getPresetVT (), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
         if (presetProperties.isValid ())
         {
             presetProperties.forEachChannel([this, &file, &validatorResultProperties, &sizeRequiredForSamples] (juce::ValueTree channelVT)
             {
                 ChannelProperties channelProperties;
-                channelProperties.wrap (channelVT, ValueTreeWrapper::WrapperType::client, ValueTreeWrapper::EnableCallbacks::no);
+                channelProperties.wrap (channelVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
                 channelProperties.forEachZone([this, &file, &validatorResultProperties, &sizeRequiredForSamples] (juce::ValueTree zoneVT)
                 {
                     ZoneProperties zoneProperties;
-                    zoneProperties.wrap (zoneVT, ValueTreeWrapper::WrapperType::client, ValueTreeWrapper::EnableCallbacks::no);
+                    zoneProperties.wrap (zoneVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
                     // TODO - should we do doIfProgressTimeElapsed() here?
                     const auto sampleFileName { zoneProperties.getSample () };
                     const auto sampleFile { file.getParentDirectory ().getChildFile (sampleFileName) };
@@ -191,8 +189,6 @@ std::tuple<juce::String, juce::String, std::optional<uint64_t>> Assimil8orValida
     else if (isAudioFile (file))
     {
         ValidatorResultProperties validatorResultProperties;
-        validatorResultProperties.wrap ({}, ValueTreeWrapper::WrapperType::owner, ValueTreeWrapper::EnableCallbacks::no);
-
         validatorResultProperties.updateType (ValidatorResultProperties::ResultTypeInfo, false);
         if (file.getFileName ().length () > kMaxFileNameLength)
         {
@@ -282,8 +278,6 @@ void Assimil8orValidator::processFolder (juce::ValueTree folderVT)
     //      report if it does not match supported formats
     // report any other files as unused by assimil8or
     ValidatorResultProperties validatorResultProperties;
-    validatorResultProperties.wrap ({}, ValueTreeWrapper::WrapperType::owner, ValueTreeWrapper::EnableCallbacks::no);
-
     jassert (folderVT.getType ().toString () == "Folder");
     uint64_t totalSizeOfPresets {};
     int numberOfPresets {};
@@ -491,14 +485,13 @@ void Assimil8orValidator::sortContentsOfFolder (juce::ValueTree folderVT)
 
 Assimil8orPreset::Assimil8orPreset ()
 {
-    presetProperties.wrap ({}, ValueTreeWrapper::WrapperType::owner, ValueTreeWrapper::EnableCallbacks::no);
 }
 
 void Assimil8orPreset::write (juce::File presetFile, juce::ValueTree presetPropertiesVT)
 {
     jassert (presetPropertiesVT.isValid ());
     PresetProperties presetPropertiesToWrite;
-    presetPropertiesToWrite.wrap (presetPropertiesVT, ValueTreeWrapper::WrapperType::client, ValueTreeWrapper::EnableCallbacks::no);
+    presetPropertiesToWrite.wrap (presetPropertiesVT, PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
     if (Assimil8orValidator::isPresetFile (presetFile))
     {
         const auto presetNumber { Assimil8orValidator::getPresetNumberFromName (presetFile) };
@@ -545,7 +538,7 @@ void Assimil8orPreset::write (juce::File presetFile, juce::ValueTree presetPrope
     presetPropertiesToWrite.forEachChannel ([this, &hasContent, &addLine, &indentAmount, &presetPropertiesToWrite] (juce::ValueTree channelVT)
     {
         ChannelProperties channelProperties;
-        channelProperties.wrap (channelVT, ValueTreeWrapper::WrapperType::client, ValueTreeWrapper::EnableCallbacks::no);
+        channelProperties.wrap (channelVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
         if (hasContent(channelVT))
         {
             const auto channelPropertiesVT { channelProperties.getValueTree () };
@@ -594,7 +587,7 @@ void Assimil8orPreset::write (juce::File presetFile, juce::ValueTree presetPrope
             channelProperties.forEachZone ([this, &hasContent, &indentAmount, &addLine] (juce::ValueTree zoneVT)
             {
                 ZoneProperties zoneProperties;
-                zoneProperties.wrap (zoneVT, ValueTreeWrapper::WrapperType::client, ValueTreeWrapper::EnableCallbacks::no);
+                zoneProperties.wrap (zoneVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
                 if (hasContent(zoneVT))
                 {
                     const auto zonePropertiesVT { zoneProperties.getValueTree () };
@@ -702,7 +695,7 @@ void Assimil8orPreset::parse (juce::StringArray presetLines)
                 {
                     // TODO - do we need to check for malformed data, i.e. more than 8 channels
                     curChannelSection = presetProperties.addChannel (getParameterIndex ());
-                    channelProperties.wrap (curChannelSection, ValueTreeWrapper::WrapperType::client, ValueTreeWrapper::EnableCallbacks::no);
+                    channelProperties.wrap (curChannelSection, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
                     setParseState (ParseState::ParsingChannelSection);
                 }
                 else if (keyIs (Parameter::Preset::NameId))
@@ -797,7 +790,7 @@ void Assimil8orPreset::parse (juce::StringArray presetLines)
                 {
                     // TODO - do we need to check for malformed data, ie more than 8 zones
                     curZoneSection = channelProperties.addZone (getParameterIndex ());
-                    zoneProperties.wrap (curZoneSection, ValueTreeWrapper::WrapperType::client, ValueTreeWrapper::EnableCallbacks::no);
+                    zoneProperties.wrap (curZoneSection, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
                     setParseState (ParseState::ParsingZoneSection);
                 }
                 else if (keyIs (Parameter::Channel::AttackId))

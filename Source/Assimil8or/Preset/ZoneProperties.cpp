@@ -110,7 +110,6 @@ int ZoneProperties::getSide ()
 juce::ValueTree ZoneProperties::create (int index)
 {
     ZoneProperties zoneProperties;
-    zoneProperties.wrap ({}, ValueTreeWrapper::WrapperType::owner, ValueTreeWrapper::EnableCallbacks::no);
     zoneProperties.setIndex (index, false);
     return zoneProperties.getValueTree ();
 }

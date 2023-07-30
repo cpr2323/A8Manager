@@ -3,10 +3,10 @@
 #include <JuceHeader.h>
 #include "../../Utility/ValueTreeWrapper.h"
 
-class ValidatorResultProperties : public ValueTreeWrapper
+class ValidatorResultProperties : public ValueTreeWrapper<ValidatorResultProperties>
 {
 public:
-    ValidatorResultProperties () noexcept : ValueTreeWrapper (ValidatorResultTypeId) {}
+    ValidatorResultProperties () noexcept : ValueTreeWrapper<ValidatorResultProperties> (ValidatorResultTypeId) {}
 
     void reset (bool includeSelfCallback);
     void updateType (juce::String resultType, bool includeSelfCallback);
@@ -32,12 +32,13 @@ public:
     static inline const juce::Identifier TypePropertyId { "type" };
     static inline const juce::Identifier TextPropertyId { "text" };
 
+    void initValueTree ();
+    void processValueTree () {}
+
 private:
     juce::String getNewTypeBasedOnPriority (juce::String newType);
     void setType (juce::String resultType, bool includeSelfCallback);
     void setText (juce::String resultText, bool includeSelfCallback);
-
-    void initValueTree () override;
 
     void valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property) override;
 };

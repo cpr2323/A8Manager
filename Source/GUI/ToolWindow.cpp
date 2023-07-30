@@ -37,13 +37,13 @@ ToolWindow::ToolWindow ()
 void ToolWindow::init (juce::ValueTree rootPropertiesVT)
 {
     RuntimeRootProperties runtimeRootProperties;
-    runtimeRootProperties.wrap (rootPropertiesVT, ValueTreeWrapper::WrapperType::client, ValueTreeWrapper::EnableCallbacks::no);
-    persistentRootProperties.wrap (rootPropertiesVT, ValueTreeWrapper::WrapperType::client, ValueTreeWrapper::EnableCallbacks::no);
-    appProperties.wrap (persistentRootProperties.getValueTree (), ValueTreeWrapper::WrapperType::client, ValueTreeWrapper::EnableCallbacks::no);
-    validatorProperties.wrap (runtimeRootProperties.getValueTree (), ValueTreeWrapper::WrapperType::client, ValueTreeWrapper::EnableCallbacks::yes);
+    runtimeRootProperties.wrap (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
+    persistentRootProperties.wrap (rootPropertiesVT, PersistentRootProperties::WrapperType::client, PersistentRootProperties::EnableCallbacks::no);
+    appProperties.wrap (persistentRootProperties.getValueTree (), AppProperties::WrapperType::client, AppProperties::EnableCallbacks::no);
+    validatorProperties.wrap (runtimeRootProperties.getValueTree (), ValidatorProperties::WrapperType::client, ValidatorProperties::EnableCallbacks::yes);
     validatorProperties.onScanStatusChanged = [this] (juce::String scanStatus) { updateScanStatus (scanStatus); };
     validatorProperties.onProgressUpdateChanged = [this] (juce::String progressUpdate) { updateProgress (progressUpdate); };
-    presetProperties.wrap (runtimeRootProperties.getValueTree (), ValueTreeWrapper::WrapperType::client, ValueTreeWrapper::EnableCallbacks::no);
+    presetProperties.wrap (runtimeRootProperties.getValueTree (), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
 }
 
 void ToolWindow::loadPresetUi ()
@@ -67,7 +67,7 @@ void ToolWindow::loadPreset (juce::File presetFile)
     assimil8orPreset.parse (fileContents);
 
     PresetProperties newPresetProperties;
-    newPresetProperties.wrap (assimil8orPreset.getPresetVT (), ValueTreeWrapper::WrapperType::client, ValueTreeWrapper::EnableCallbacks::no);
+    newPresetProperties.wrap (assimil8orPreset.getPresetVT (), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
 
     presetProperties.getValueTree ().removeAllChildren (nullptr);
     presetProperties.getValueTree ().removeAllProperties (nullptr);

@@ -4,7 +4,7 @@
 #include "ValueTreeWrapper.h"
 
 // A ValueTreeWrapper for properties that are not saved to the properties file
-class RuntimeRootProperties : public ValueTreeWrapper
+class RuntimeRootProperties : public ValueTreeWrapper<RuntimeRootProperties>
 {
 public:
     enum class QuitState
@@ -14,7 +14,7 @@ public:
         cancel
     };
 
-    RuntimeRootProperties () noexcept : ValueTreeWrapper (RuntimeRootPropertiesId) {}
+    RuntimeRootProperties () noexcept : ValueTreeWrapper<RuntimeRootProperties> (RuntimeRootPropertiesId) {}
 
     juce::ValueTree addSection (juce::Identifier sectionType);
     bool removeSection (juce::Identifier sectionType);
@@ -67,8 +67,9 @@ public:
     static inline const juce::String LayoutPortrait   { "portrait" };
     static inline const juce::String LayoutLandscape  { "landscape" };
 
-private:
-    void initValueTree () override;
+    void initValueTree ();
+    void processValueTree () {}
 
+private:
     void valueTreePropertyChanged (juce::ValueTree& treeWhosePropertyHasChanged, const juce::Identifier& property) override;
 };

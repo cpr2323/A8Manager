@@ -42,8 +42,8 @@ Assimil8orValidatorComponent::Assimil8orValidatorComponent ()
 void Assimil8orValidatorComponent::init (juce::ValueTree rootPropertiesVT)
 {
     RuntimeRootProperties runtimeRootProperties;
-    runtimeRootProperties.wrap (rootPropertiesVT, ValueTreeWrapper::WrapperType::client, ValueTreeWrapper::EnableCallbacks::no);
-    validatorProperties.wrap (runtimeRootProperties.getValueTree (), ValueTreeWrapper::WrapperType::client, ValueTreeWrapper::EnableCallbacks::yes);
+    runtimeRootProperties.wrap (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
+    validatorProperties.wrap (runtimeRootProperties.getValueTree (), ValidatorProperties::WrapperType::client, ValidatorProperties::EnableCallbacks::yes);
     validatorProperties.onScanStatusChanged = [this] (juce::String scanStatus)
     {
         scanStatusQuickLookupList.clear ();

@@ -4,10 +4,10 @@
 #include "../../Utility/ValueTreeWrapper.h"
 #include "ValidatorResultListProperties.h"
 
-class ValidatorProperties : public ValueTreeWrapper
+class ValidatorProperties : public ValueTreeWrapper<ValidatorProperties>
 {
 public:
-    ValidatorProperties () noexcept : ValueTreeWrapper (Assimil8orValidatorId) {}
+    ValidatorProperties () noexcept : ValueTreeWrapper<ValidatorProperties> (Assimil8orValidatorId) {}
 
     void setRootFolder (juce::String rootFolder, bool includeSelfCallback);
     void setScanStatus (juce::String scanStatus, bool includeSelfCallback);
@@ -34,8 +34,9 @@ public:
     static inline const juce::Identifier StartScanAsyncPropertyId { "startScan" };
     static inline const juce::Identifier ProgressUpdatePropertyId { "progressUpdate" };
 
-private:
-    void initValueTree () override;
+    void initValueTree ();
+    void processValueTree () {}
 
+private:
     void valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property) override;
 };

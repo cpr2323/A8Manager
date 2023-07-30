@@ -7,7 +7,7 @@
 
 using AmountAndCvInput = std::tuple<juce::String, double>;
 
-class ChannelProperties : public ValueTreeWrapper
+class ChannelProperties : public ValueTreeWrapper<ChannelProperties>
 {
 public:
     ChannelProperties () noexcept : ValueTreeWrapper (ChannelTypeId) {}
@@ -186,8 +186,9 @@ public:
     static inline const juce::Identifier ZonesCVPropertyId           { "zonesCV" };
     static inline const juce::Identifier ZonesRTPropertyId           { "zonesRT" };
 
-private:
-    void initValueTree () override;
+    void initValueTree ();
+    void processValueTree () {}
 
+private:
     void valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property) override;
 };

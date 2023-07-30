@@ -12,7 +12,6 @@ void ChannelProperties::initValueTree ()
 juce::ValueTree ChannelProperties::create (int index)
 {
     ChannelProperties channelProperties;
-    channelProperties.wrap ({}, ValueTreeWrapper::WrapperType::owner, ValueTreeWrapper::EnableCallbacks::no);
     channelProperties.setIndex (index, false);
     return channelProperties.getValueTree ();
 }

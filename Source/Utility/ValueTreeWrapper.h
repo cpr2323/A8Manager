@@ -1,5 +1,4 @@
-#ifndef _VALUETREE_WRAPPER_H_
-#define _VALUETREE_WRAPPER_H_
+#pragma once 
 
 #include <JuceHeader.h>
 #include "ValueTreeHelpers.h"
@@ -10,12 +9,15 @@
     and allows clients to use them without doing ValueTree things.
 */
 
+template <class T>
 class ValueTreeWrapper : private juce::ValueTree::Listener
 {
 public:
-    ValueTreeWrapper (juce::Identifier type) noexcept;
-    ValueTreeWrapper (ValueTreeWrapper&&) = default;
-    ValueTreeWrapper& operator = (ValueTreeWrapper&&) = default;
+    enum class WrapperType { owner, client };
+    enum class EnableCallbacks { no, yes };
+    ValueTreeWrapper<T> (juce::Identifier type) noexcept;
+    ValueTreeWrapper<T> (ValueTreeWrapper&&) = default;
+    ValueTreeWrapper<T>& operator = (ValueTreeWrapper&&) = default;
 
     /*
         wrap will do one of four things:
@@ -25,8 +27,6 @@ public:
                 a. If there is a child of the initialized 'type' it will wrap that one
                 b. If there is not a child of the initialized 'type', is will create one, wrap that one, and add it to the passing in ValueTree
     */
-    enum class WrapperType { owner, client };
-    enum class EnableCallbacks { no, yes };
     void wrap (juce::ValueTree vt, WrapperType wrapperType, EnableCallbacks shouldEnableCallbacks);
 
     bool isValid () const noexcept { return data.isValid (); }
@@ -196,8 +196,8 @@ private:
     void init (juce::ValueTree vt, bool createIfNotFound);
 
     void createValueTree ();
-    virtual void initValueTree () = 0; // called when wrapping an empty ValueTree
-    virtual void processValueTree () {} // called after wrapping an initialized ValueTree
+    //void initValueTree () = 0; // called when wrapping an empty ValueTree
+    //void processValueTree () {} // called after wrapping an initialized ValueTree
 
     void valueTreePropertyChanged (juce::ValueTree&, const juce::Identifier&) override {};
     void valueTreeChildAdded (juce::ValueTree&, juce::ValueTree&) override {}
@@ -208,4 +208,82 @@ private:
     JUCE_DECLARE_NON_COPYABLE (ValueTreeWrapper)
 };
 
-#endif // _VALUETREE_WRAPPER_H_
+template <class T> ValueTreeWrapper<T>::ValueTreeWrapper (juce::Identifier newType) noexcept
+{
+    type = newType;
+    wrap ({}, WrapperType::owner, EnableCallbacks::no);
+}
+
+template <class T> void ValueTreeWrapper<T>::wrap (juce::ValueTree vt, ValueTreeWrapper::WrapperType wrapperType, ValueTreeWrapper::EnableCallbacks shouldEnableCallbacks)
+{
+    init (vt, wrapperType == ValueTreeWrapper::WrapperType::owner);
+    enableCallbacks (ValueTreeWrapper::EnableCallbacks::yes == shouldEnableCallbacks);
+}
+
+template <class T>void ValueTreeWrapper<T>::init (juce::ValueTree vt, bool createIfNotFound)
+{
+    const auto derviedClass { static_cast<T*>(this) };
+    dataWasRestored = false;
+
+    if (vt.isValid ())
+    {
+        if (vt.getType () == type)
+        {
+            data = vt;
+            dataWasRestored = true;
+            derviedClass->processValueTree ();
+        }
+        else
+        {
+            juce::ValueTree child { vt.getChildWithName (type) };
+            if (child.isValid ())
+            {
+                data = child;
+                dataWasRestored = true;
+                derviedClass->processValueTree ();
+            }
+            else if (createIfNotFound)
+            {
+                createValueTree ();
+                vt.appendChild (data, nullptr);
+            }
+            else
+            {
+                jassertfalse;
+            }
+        }
+    }
+    else if (createIfNotFound)
+    {
+        createValueTree ();
+    }
+    else
+    {
+        jassertfalse;
+    }
+}
+
+template <class T> void ValueTreeWrapper<T>::createValueTree ()
+{
+    data = juce::ValueTree (type);
+    const auto derviedClass { static_cast<T*>(this) };
+    derviedClass->initValueTree ();
+}
+
+template <class T> juce::ValueTree ValueTreeWrapper<T>::getValueTree () noexcept
+{
+    return data;
+}
+
+template <class T >juce::ValueTree& ValueTreeWrapper<T>::getValueTreeRef () noexcept
+{
+    return data;
+}
+
+template <class T>void ValueTreeWrapper<T>::enableCallbacks (bool enableCallbacks)
+{
+    if (enableCallbacks)
+        data.addListener (this);
+    else
+        data.removeListener (this);
+}

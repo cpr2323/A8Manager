@@ -4,10 +4,10 @@
 #include "ValueTreeWrapper.h"
 
 // A ValueTreeWrapper for properties that are saved to the properties file
-class PersistentRootProperties : public ValueTreeWrapper
+class PersistentRootProperties : public ValueTreeWrapper<PersistentRootProperties>
 {
 public:
-    PersistentRootProperties () noexcept : ValueTreeWrapper (PersistentRootPropertiesId) {}
+    PersistentRootProperties () noexcept : ValueTreeWrapper<PersistentRootProperties> (PersistentRootPropertiesId) {}
 
     juce::ValueTree addSection (juce::Identifier sectionType);
     bool removeSection (juce::Identifier sectionType);
@@ -15,6 +15,8 @@ public:
 
     static inline const juce::Identifier PersistentRootPropertiesId { "PersistentRoot" };
 
+    void initValueTree ();
+    void processValueTree () {}
+
 private:
-    void initValueTree () override;
 };

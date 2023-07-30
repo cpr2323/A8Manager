@@ -3,10 +3,10 @@
 #include <JuceHeader.h>
 #include "../../Utility/ValueTreeWrapper.h"
 
-class ZoneProperties : public ValueTreeWrapper
+class ZoneProperties : public ValueTreeWrapper<ZoneProperties>
 {
 public:
-    ZoneProperties () noexcept : ValueTreeWrapper (ZoneTypeId) {}
+    ZoneProperties () noexcept : ValueTreeWrapper<ZoneProperties> (ZoneTypeId) {}
 
     void setIndex (int index, bool includeSelfCallback);
     void setLevelOffset (double levelOffset, bool includeSelfCallback);
@@ -55,8 +55,9 @@ public:
     static inline const juce::Identifier SampleEndPropertyId   { "sampleEnd" };
     static inline const juce::Identifier SidePropertyId        { "side" };
 
-private:
-    void initValueTree () override;
+    void initValueTree ();
+    void processValueTree () {}
 
+private:
     void valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property) override;
 };

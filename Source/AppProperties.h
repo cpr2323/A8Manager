@@ -3,10 +3,10 @@
 #include <JuceHeader.h>
 #include "Utility/ValueTreeWrapper.h"
 
-class AppProperties : public ValueTreeWrapper
+class AppProperties : public ValueTreeWrapper<AppProperties>
 {
 public:
-    AppProperties () noexcept : ValueTreeWrapper (AppPropertiesId) {}
+    AppProperties () noexcept : ValueTreeWrapper<AppProperties> (AppPropertiesId) {}
 
     void setMostRecentFolder (juce::String folderName);
     juce::String getMostRecentFolder ();
@@ -27,10 +27,10 @@ public:
     static inline const juce::Identifier MRUEntryChildPropertiesId { "MRUEntry" };
     static inline const juce::Identifier MRUEntryNamePropertyId { "name" };
 
+    void initValueTree ();
+    void processValueTree ();
+
 private:
     juce::ValueTree getMRUListChildVT ();
     int getNumMRUEntries ();
-
-    void initValueTree () override;
-    void processValueTree () override;
 };

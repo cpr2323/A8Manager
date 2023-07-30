@@ -21,10 +21,10 @@ using ParameterSpecString = ParameterSpec<juce::String>;
 //
 ///////////////////////////////////////////////
 
-class PresetProperties : public ValueTreeWrapper
+class PresetProperties : public ValueTreeWrapper<PresetProperties>
 {
 public:
-    PresetProperties () noexcept : ValueTreeWrapper (PresetTypeId) {}
+    PresetProperties () noexcept : ValueTreeWrapper<PresetProperties> (PresetTypeId) {}
 
     void setIndex (int index, bool includeSelfCallback);
     void setData2AsCV (juce::String data2AsCv, bool includeSelfCallback);
@@ -79,8 +79,9 @@ public:
     static inline const juce::Identifier XfadeDCVPropertyId    { "xfadeDCV" };
     static inline const juce::Identifier XfadeDWidthPropertyId { "xfadeDWidth" };
 
-private:
-    void initValueTree () override;
+    void initValueTree ();
+    void processValueTree () {}
 
+private:
     void valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property) override;
 };

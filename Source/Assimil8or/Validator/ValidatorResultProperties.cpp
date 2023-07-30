@@ -59,7 +59,7 @@ void ValidatorResultProperties::updateText (juce::String resultText, bool includ
 
     auto curText{ getText() };
 
-    if (resultText.isNotEmpty ())
+    if (curText.isNotEmpty ())
         curText += ", ";
 
     curText += resultText;

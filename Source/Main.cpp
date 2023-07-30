@@ -220,7 +220,6 @@ public:
     void initAssimil8or ()
     {
         // hack the preset data on to the runtime root until we get a proper valuetreewrapper for the preset
-        presetProperties.wrap ({}, ValueTreeWrapper::WrapperType::owner, ValueTreeWrapper::EnableCallbacks::no);
         runtimeRootProperties.getValueTree ().addChild (presetProperties.getValueTree (), -1, nullptr);
         assimil8orValidator.init (runtimeRootProperties.getValueTree ());
     }
@@ -232,14 +231,12 @@ public:
 
     void initPropertyRoots ()
     {
-        rootProperties.wrap ({}, ValueTreeWrapper::WrapperType::owner, ValueTreeWrapper::EnableCallbacks::no);
-
-        persistentRootProperties.wrap (rootProperties.getValueTree (), ValueTreeWrapper::WrapperType::owner, ValueTreeWrapper::EnableCallbacks::no);
+        persistentRootProperties.wrap (rootProperties.getValueTree (), PersistentRootProperties::WrapperType::owner, PersistentRootProperties::EnableCallbacks::no);
         // connect the Properties file and the AppProperties ValueTree with the propertiesFile (ValueTreeFile with auto-save)
         persitentPropertiesFile.init (persistentRootProperties.getValueTree (), appDirectory.getChildFile ("app" + PropertiesFileExtension), true);
-        appProperties.wrap (persistentRootProperties.getValueTree (), ValueTreeWrapper::WrapperType::owner, ValueTreeWrapper::EnableCallbacks::no);
+        appProperties.wrap (persistentRootProperties.getValueTree (), AppProperties::WrapperType::owner, AppProperties::EnableCallbacks::no);
 
-        runtimeRootProperties.wrap (rootProperties.getValueTree (), ValueTreeWrapper::WrapperType::owner, ValueTreeWrapper::EnableCallbacks::no);
+        runtimeRootProperties.wrap (rootProperties.getValueTree (), RuntimeRootProperties::WrapperType::owner, RuntimeRootProperties::EnableCallbacks::no);
         runtimeRootProperties.setAppVersion (getApplicationVersion ());
         runtimeRootProperties.setAppDataPath (appDirectory.getFullPathName ());
     }
