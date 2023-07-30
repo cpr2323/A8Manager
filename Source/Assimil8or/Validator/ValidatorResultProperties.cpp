@@ -21,30 +21,35 @@ void ValidatorResultProperties::reset (bool includeSelfCallback)
     setText ({}, includeSelfCallback);
 }
 
-void ValidatorResultProperties::updateType (juce::String resultType, bool includeSelfCallback)
+juce::String ValidatorResultProperties::getNewTypeBasedOnPriority (juce::String newType)
 {
     const auto curType { getType () };
 
-    if (resultType == "" || curType == "error")
-        return;
-    if (curType == "")
+    if (newType == ResultTypeNone || curType == ResultTypeError)
+        return curType;
+    if (curType == ResultTypeNone)
     {
-        setType (resultType, includeSelfCallback);
+        return newType;
     }
-    else if (curType == "info")
+    else if (curType == ResultTypeInfo)
     {
-        if (resultType != "")
-            setType (resultType, includeSelfCallback);
+        if (newType != ResultTypeNone)
+            return newType;
     }
-    else if (curType == "warning")
+    else if (curType == ResultTypeWarning)
     {
-        if (resultType != "" && resultType != "info")
-            setType (resultType, includeSelfCallback);
+        if (newType != ResultTypeNone && newType != ResultTypeInfo)
+            return newType;
     }
-    else
     {
         jassertfalse;
+        return newType;
     }
+
+}
+void ValidatorResultProperties::updateType (juce::String resultType, bool includeSelfCallback)
+{
+    setType (getNewTypeBasedOnPriority(resultType), includeSelfCallback);
 }
 
 void ValidatorResultProperties::updateText (juce::String resultText, bool includeSelfCallback)
@@ -59,6 +64,12 @@ void ValidatorResultProperties::updateText (juce::String resultText, bool includ
 
     curText += resultText;
     setText (curText, includeSelfCallback);
+}
+
+void ValidatorResultProperties::update (juce::String resultType, juce::String resultText, bool includeSelfCallback)
+{
+    updateType (resultType, includeSelfCallback);
+    updateText (resultText, includeSelfCallback);
 }
 
 juce::String ValidatorResultProperties::getType ()

@@ -1,5 +1,6 @@
 #include "Assimil8or.h"
 #include "Preset/ParameterNames.h"
+#include "Validator/ValidatorResultProperties.h"
 
 #define LOG_VALIDATION 0
 #if LOG_VALIDATION
@@ -35,74 +36,6 @@ juce::String getMemorySizeString (uint64_t memoryUsage)
         return formatString (static_cast<float>(memoryUsage) / oneK, "k");
     else
         return formatString (static_cast<float>(memoryUsage), " bytes");
-};
-
-
-class ScanStatusResult
-{
-public:
-    ScanStatusResult () = default;
-
-    void reset ()
-    {
-        curType = {};
-        curText = {};
-    }
-
-    juce::String getType ()
-    {
-        return curType;
-    }
-
-    juce::String getText ()
-    {
-        return curText;
-    }
-
-    void update (const juce::String& newType, const juce::String& newText)
-    {
-        updateType (newType);
-        udpateText (newText);
-    }
-
-    void updateType (const juce::String& newType)
-    {
-        if (newType == "" || curType == "error")
-            return;
-
-        if (curType == "")
-        {
-            curType = newType;
-        }
-        else if (curType == "info")
-        {
-            if (newType != "")
-                curType = newType;
-        }
-        else if (curType == "warning")
-        {
-            if (newType != "info")
-                curType = newType;
-        }
-        else
-        {
-            jassertfalse;
-        }
-    }
-
-    void udpateText (const juce::String& newText)
-    {
-        if (newText.isEmpty ())
-            return;
-
-        if (curText.isNotEmpty ())
-            curText += ", ";
-
-        curText += newText;
-    }
-private:
-    juce::String curType;
-    juce::String curText;
 };
 
 Assimil8orValidator::Assimil8orValidator () : Thread ("Assimil8orValidator")
@@ -195,8 +128,10 @@ std::tuple<juce::String, juce::String, std::optional<uint64_t>> Assimil8orValida
     }
     else if (isPresetFile (file))
     {
-        ScanStatusResult scanStatusResult;
-        scanStatusResult.update ("info", "Preset");
+        ValidatorResultProperties validatorResultProperties;
+        validatorResultProperties.wrap ({}, ValueTreeWrapper::WrapperType::owner, ValueTreeWrapper::EnableCallbacks::no);
+
+        validatorResultProperties.update (ValidatorResultProperties::ResultTypeInfo, "Preset", false);
 
         juce::StringArray fileContents;
         file.readLines (fileContents);
@@ -209,11 +144,11 @@ std::tuple<juce::String, juce::String, std::optional<uint64_t>> Assimil8orValida
         presetProperties.wrap (assimil8orPreset.getPresetVT (), ValueTreeWrapper::WrapperType::client, ValueTreeWrapper::EnableCallbacks::no);
         if (presetProperties.isValid ())
         {
-            presetProperties.forEachChannel([this, &file, &scanStatusResult, &sizeRequiredForSamples] (juce::ValueTree channelVT)
+            presetProperties.forEachChannel([this, &file, &validatorResultProperties, &sizeRequiredForSamples] (juce::ValueTree channelVT)
             {
                 ChannelProperties channelProperties;
                 channelProperties.wrap (channelVT, ValueTreeWrapper::WrapperType::client, ValueTreeWrapper::EnableCallbacks::no);
-                channelProperties.forEachZone([this, &file, &scanStatusResult, &sizeRequiredForSamples] (juce::ValueTree zoneVT)
+                channelProperties.forEachZone([this, &file, &validatorResultProperties, &sizeRequiredForSamples] (juce::ValueTree zoneVT)
                 {
                     ZoneProperties zoneProperties;
                     zoneProperties.wrap (zoneVT, ValueTreeWrapper::WrapperType::client, ValueTreeWrapper::EnableCallbacks::no);
@@ -223,7 +158,7 @@ std::tuple<juce::String, juce::String, std::optional<uint64_t>> Assimil8orValida
                     if (! sampleFile.exists ())
                     {
                         // report error
-                        scanStatusResult.update ("error", "['" + sampleFileName + "' does not exist]");
+                        validatorResultProperties.update (ValidatorResultProperties::ResultTypeError, "['" + sampleFileName + "' does not exist]", false);
                     }
                     else
                     {
@@ -232,7 +167,7 @@ std::tuple<juce::String, juce::String, std::optional<uint64_t>> Assimil8orValida
                         if (reader == nullptr)
                         {
                             LogValidation ("    [ Warning : unknown audio format ]");
-                            scanStatusResult.update ("error", "['" + sampleFileName + "' unknown audio format. size = " + juce::String (file.getSize ()) + "]");
+                            validatorResultProperties.update (ValidatorResultProperties::ResultTypeError, "['" + sampleFileName + "' unknown audio format. size = " + juce::String (file.getSize ()) + "]", false);
                         }
                         else
                         {
@@ -246,30 +181,32 @@ std::tuple<juce::String, juce::String, std::optional<uint64_t>> Assimil8orValida
         }
         else
         {
-            scanStatusResult.update ("error", "[missing Preset section]");
+            validatorResultProperties.update ("error", "[missing Preset section]", false);
         }
-        scanStatusResult.update ("info", "RAM: " + getMemorySizeString (sizeRequiredForSamples));
+        validatorResultProperties.update (ValidatorResultProperties::ResultTypeInfo, "RAM: " + getMemorySizeString (sizeRequiredForSamples), false);
         optionalPresetInfo = sizeRequiredForSamples;
         LogValidation ("  File (preset)");
-        return { scanStatusResult.getType (), scanStatusResult.getText (), optionalPresetInfo };
+        return { validatorResultProperties.getType (), validatorResultProperties.getText (), optionalPresetInfo };
     }
     else if (isAudioFile (file))
     {
-        ScanStatusResult scanStatusResult;
-        scanStatusResult.updateType ("info");
+        ValidatorResultProperties validatorResultProperties;
+        validatorResultProperties.wrap ({}, ValueTreeWrapper::WrapperType::owner, ValueTreeWrapper::EnableCallbacks::no);
+
+        validatorResultProperties.updateType (ValidatorResultProperties::ResultTypeInfo, false);
         if (file.getFileName ().length () > kMaxFileNameLength)
         {
             LogValidation ("  [ Warning : file name too long ]");
-            scanStatusResult.update ("error",
+            validatorResultProperties.update (ValidatorResultProperties::ResultTypeError,
                                      "[name too long. " + juce::String (file.getFileName ().length ()) + "(length) vs " +
-                                       juce::String (kMaxFileNameLength) +"(max)]");
+                                       juce::String (kMaxFileNameLength) +"(max)]", false);
         }
 
         std::unique_ptr<juce::AudioFormatReader> reader (audioFormatManager.createReaderFor (file));
         if (reader == nullptr)
         {
             LogValidation ("    [ Warning : unknown audio format ]");
-            scanStatusResult.update ("error", "[unknown audio format. size = " + juce::String (file.getSize ()) + "]");
+            validatorResultProperties.update (ValidatorResultProperties::ResultTypeError, "[unknown audio format. size = " + juce::String (file.getSize ()) + "]", false);
         }
         else
         {
@@ -283,23 +220,23 @@ std::tuple<juce::String, juce::String, std::optional<uint64_t>> Assimil8orValida
 
             const auto memoryUsage { reader->numChannels * reader->lengthInSamples * 4 };
             const auto sampleRateString { juce::String (reader->sampleRate / 1000.0f, 2).trimCharactersAtEnd ("0.") };
-            scanStatusResult.udpateText (juce::String (" {") +
+            validatorResultProperties.updateText (juce::String (" {") +
                                          juce::String (reader->usesFloatingPointData == true ? "floating point" : "integer") + ", " +
                                          juce::String (reader->bitsPerSample) + "bits/" + sampleRateString + "k, " +
                                          juce::String (reader->numChannels == 1 ? "mono" : (reader->numChannels == 2 ? "stereo" : juce::String (reader->numChannels) + " channels")) + "}, " +
                                          juce::String (reader->lengthInSamples / reader->sampleRate, 2) + " seconds, " +
-                                         "RAM: " + getMemorySizeString (memoryUsage));
-            auto reportErrorIfTrue = [&scanStatusResult] (bool conditionalResult, juce::String newText)
+                                         "RAM: " + getMemorySizeString (memoryUsage), false);
+            auto reportErrorIfTrue = [&validatorResultProperties] (bool conditionalResult, juce::String newText)
             {
                 if (conditionalResult)
-                    scanStatusResult.update ("error", newText);
+                    validatorResultProperties.update (ValidatorResultProperties::ResultTypeError, newText, false);
             };
             reportErrorIfTrue (reader->usesFloatingPointData == true, "[sample format must be integer]");
             reportErrorIfTrue (reader->bitsPerSample < 8 || reader->bitsPerSample > 32, "[bit depth must be between 8 and 32]");
             reportErrorIfTrue (reader->numChannels < 1 || reader->numChannels > 2, "[only mono and stereo supported]");
             reportErrorIfTrue (reader->sampleRate > 192000, "[sample rate must not exceed 192k]");
         }
-        return { scanStatusResult.getType (), scanStatusResult.getText (), {} };
+        return { validatorResultProperties.getType (), validatorResultProperties.getText (), {} };
     }
     else
     {
@@ -344,7 +281,9 @@ void Assimil8orValidator::processFolder (juce::ValueTree folderVT)
     //      report if name over 47 characters
     //      report if it does not match supported formats
     // report any other files as unused by assimil8or
-    ScanStatusResult scanStatusResult;
+    ValidatorResultProperties validatorResultProperties;
+    validatorResultProperties.wrap ({}, ValueTreeWrapper::WrapperType::owner, ValueTreeWrapper::EnableCallbacks::no);
+
     jassert (folderVT.getType ().toString () == "Folder");
     uint64_t totalSizeOfPresets {};
     int numberOfPresets {};
@@ -353,7 +292,7 @@ void Assimil8orValidator::processFolder (juce::ValueTree folderVT)
         if (isThreadRunning () && threadShouldExit ())
             break;
 
-        scanStatusResult.reset ();
+        validatorResultProperties.reset (false);
         const auto curEntry { juce::File (folderEntryVT.getProperty ("name")) };
         doIfProgressTimeElapsed ([this, fileName = curEntry.getFileName ()] ()
         {
@@ -364,25 +303,25 @@ void Assimil8orValidator::processFolder (juce::ValueTree folderVT)
         });
         if (curEntry.isDirectory ())
         {
-            scanStatusResult.update ("info", "Folder: " + curEntry.getFileName ());
+            validatorResultProperties.update (ValidatorResultProperties::ResultTypeInfo, "Folder: " + curEntry.getFileName (), false);
             const auto [newStatusType, newStatusText] = validateFolder (curEntry);
-            scanStatusResult.update (newStatusType, newStatusText);
-            addStatus (scanStatusResult.getType (), scanStatusResult.getText ());
+            validatorResultProperties.update (newStatusType, newStatusText, false);
+            addStatus (validatorResultProperties.getType (), validatorResultProperties.getText ());
             processFolder (folderEntryVT);
         }
         else
         {
-            scanStatusResult.update ("info", "File: " + curEntry.getFileName ());
+            validatorResultProperties.update (ValidatorResultProperties::ResultTypeInfo, "File: " + curEntry.getFileName (), false);
             const auto [newStatusType, newStatusText, presetUpdate] = validateFile (curEntry);
             if (presetUpdate.has_value ())
             {
                 totalSizeOfPresets += presetUpdate.value ();
                 ++numberOfPresets;
             }
-            scanStatusResult.update (newStatusType, newStatusText);
-            jassert (scanStatusResult.getType () != "");
-            if (scanStatusResult.getType () != "")
-                addStatus (scanStatusResult.getType (), scanStatusResult.getText ());
+            validatorResultProperties.update (newStatusType, newStatusText, false);
+            jassert (validatorResultProperties.getType () != "");
+            if (validatorResultProperties.getType () != "")
+                addStatus (validatorResultProperties.getType (), validatorResultProperties.getText ());
         }
     }
     const auto folderName { juce::File (folderVT.getProperty ("name")).getFileName () };

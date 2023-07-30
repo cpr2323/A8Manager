@@ -11,6 +11,7 @@ public:
     void reset (bool includeSelfCallback);
     void updateType (juce::String resultType, bool includeSelfCallback);
     void updateText (juce::String resultText, bool includeSelfCallback);
+    void update(juce::String resultType, juce::String resultText, bool includeSelfCallback);
 
     juce::String getType ();
     juce::String getText ();
@@ -22,11 +23,17 @@ public:
     void forEachTag (std::function<bool (juce::ValueTree tagVT)> tagVTCallback);
     int getNumTags ();
 
+    static inline const juce::String ResultTypeNone    { "" };
+    static inline const juce::String ResultTypeInfo    { "info" };
+    static inline const juce::String ResultTypeWarning { "warning" };
+    static inline const juce::String ResultTypeError   { "error" };
+
     static inline const juce::Identifier ValidatorResultTypeId { "VaildatorResult" };
     static inline const juce::Identifier TypePropertyId { "type" };
     static inline const juce::Identifier TextPropertyId { "text" };
 
 private:
+    juce::String getNewTypeBasedOnPriority (juce::String newType);
     void setType (juce::String resultType, bool includeSelfCallback);
     void setText (juce::String resultText, bool includeSelfCallback);
 
