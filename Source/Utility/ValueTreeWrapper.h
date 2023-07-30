@@ -9,16 +9,16 @@
     and allows clients to use them without doing ValueTree things.
 */
 
-template <class T>
+template <class derived>
 class ValueTreeWrapper : private juce::ValueTree::Listener
 {
 public:
     enum class WrapperType { owner, client };
     enum class EnableCallbacks { no, yes };
-    ValueTreeWrapper<T> (juce::Identifier type) noexcept;
-    ValueTreeWrapper<T> (juce::Identifier type, juce::ValueTree vt, WrapperType wrapperType, EnableCallbacks shouldEnableCallbacks) noexcept;
-    ValueTreeWrapper<T> (ValueTreeWrapper&&) = default;
-    ValueTreeWrapper<T>& operator = (ValueTreeWrapper&&) = default;
+    ValueTreeWrapper<derived> (juce::Identifier type) noexcept;
+    ValueTreeWrapper<derived> (juce::Identifier type, juce::ValueTree vt, WrapperType wrapperType, EnableCallbacks shouldEnableCallbacks) noexcept;
+    ValueTreeWrapper<derived> (ValueTreeWrapper&&) = default;
+    ValueTreeWrapper<derived>& operator = (ValueTreeWrapper&&) = default;
 
     /*
         wrap will do one of four things:
@@ -209,28 +209,28 @@ private:
     JUCE_DECLARE_NON_COPYABLE (ValueTreeWrapper)
 };
 
-template <class T> ValueTreeWrapper<T>::ValueTreeWrapper (juce::Identifier newType) noexcept
+template <class derived> ValueTreeWrapper<derived>::ValueTreeWrapper (juce::Identifier newType) noexcept
 {
     type = newType;
     wrap ({}, WrapperType::owner, EnableCallbacks::no);
 }
 
-template <class T> ValueTreeWrapper<T>::ValueTreeWrapper (juce::Identifier newType, juce::ValueTree vt,
+template <class derived> ValueTreeWrapper<derived>::ValueTreeWrapper (juce::Identifier newType, juce::ValueTree vt,
                                                           ValueTreeWrapper::WrapperType wrapperType, ValueTreeWrapper::EnableCallbacks shouldEnableCallbacks) noexcept
 {
     type = newType;
     wrap (vt, wrapperType, shouldEnableCallbacks);
 }
 
-template <class T> void ValueTreeWrapper<T>::wrap (juce::ValueTree vt, ValueTreeWrapper::WrapperType wrapperType, ValueTreeWrapper::EnableCallbacks shouldEnableCallbacks)
+template <class derived> void ValueTreeWrapper<derived>::wrap (juce::ValueTree vt, ValueTreeWrapper::WrapperType wrapperType, ValueTreeWrapper::EnableCallbacks shouldEnableCallbacks)
 {
     init (vt, wrapperType == ValueTreeWrapper::WrapperType::owner);
     enableCallbacks (ValueTreeWrapper::EnableCallbacks::yes == shouldEnableCallbacks);
 }
 
-template <class T>void ValueTreeWrapper<T>::init (juce::ValueTree vt, bool createIfNotFound)
+template <class derived>void ValueTreeWrapper<derived>::init (juce::ValueTree vt, bool createIfNotFound)
 {
-    const auto derviedClass { static_cast<T*>(this) };
+    const auto derviedClass { static_cast<derived*>(this) };
     dataWasRestored = false;
 
     if (vt.isValid ())
@@ -271,24 +271,24 @@ template <class T>void ValueTreeWrapper<T>::init (juce::ValueTree vt, bool creat
     }
 }
 
-template <class T> void ValueTreeWrapper<T>::createValueTree ()
+template <class derived> void ValueTreeWrapper<derived>::createValueTree ()
 {
     data = juce::ValueTree (type);
-    const auto derviedClass { static_cast<T*>(this) };
+    const auto derviedClass { static_cast<derived*>(this) };
     derviedClass->initValueTree ();
 }
 
-template <class T> juce::ValueTree ValueTreeWrapper<T>::getValueTree () noexcept
+template <class derived> juce::ValueTree ValueTreeWrapper<derived>::getValueTree () noexcept
 {
     return data;
 }
 
-template <class T >juce::ValueTree& ValueTreeWrapper<T>::getValueTreeRef () noexcept
+template <class derived>juce::ValueTree& ValueTreeWrapper<derived>::getValueTreeRef () noexcept
 {
     return data;
 }
 
-template <class T>void ValueTreeWrapper<T>::enableCallbacks (bool enableCallbacks)
+template <class derived>void ValueTreeWrapper<derived>::enableCallbacks (bool enableCallbacks)
 {
     if (enableCallbacks)
         data.addListener (this);
