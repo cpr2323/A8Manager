@@ -8,8 +8,9 @@ class ValidatorResultProperties : public ValueTreeWrapper
 public:
     ValidatorResultProperties () noexcept : ValueTreeWrapper (ValidatorResultTypeId) {}
 
-    void setType (juce::String resultType, bool includeSelfCallback);
-    void setText (juce::String resultText, bool includeSelfCallback);
+    void reset (bool includeSelfCallback);
+    void updateType (juce::String resultType, bool includeSelfCallback);
+    void updateText (juce::String resultText, bool includeSelfCallback);
 
     juce::String getType ();
     juce::String getText ();
@@ -26,8 +27,10 @@ public:
     static inline const juce::Identifier TextPropertyId { "text" };
 
 private:
+    void setType (juce::String resultType, bool includeSelfCallback);
+    void setText (juce::String resultText, bool includeSelfCallback);
+
     void initValueTree () override;
 
     void valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property) override;
-
 };

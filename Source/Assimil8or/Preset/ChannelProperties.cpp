@@ -55,7 +55,9 @@ juce::String ChannelProperties::getCvInputAndValueString (AmountAndCvInput cvInp
 
 AmountAndCvInput ChannelProperties::getCvInputAndValueFromString (juce::String cvInputAndValueString)
 {
-    return { cvInputAndValueString.substring (0, 2), cvInputAndValueString.substring (4).getFloatValue () };
+    const auto delimiterLocation { cvInputAndValueString.indexOfChar (0, ' ') };
+    jassert (delimiterLocation != 0);
+    return { cvInputAndValueString.substring (0, delimiterLocation), cvInputAndValueString.substring (delimiterLocation + 1).getFloatValue () };
 }
 
 void ChannelProperties::setIndex (int index, bool includeSelfCallback)
