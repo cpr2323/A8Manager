@@ -7,6 +7,20 @@
   <MAINGROUP id="JDgvjc" name="A8Manager">
     <GROUP id="{26A00EED-F319-636E-6162-8A113C6EE925}" name="Source">
       <GROUP id="{B33B27D7-84B5-739E-6EF4-3DA0243B11AC}" name="Assimil8or">
+        <GROUP id="{FFCC55CE-5847-C60B-915E-27F62A58650C}" name="Validator">
+          <FILE id="hqDHiE" name="ValidatorProperties.cpp" compile="1" resource="0"
+                file="Source/Assimil8or/Validator/ValidatorProperties.cpp"/>
+          <FILE id="E48kqe" name="ValidatorProperties.h" compile="0" resource="0"
+                file="Source/Assimil8or/Validator/ValidatorProperties.h"/>
+          <FILE id="MVgPnR" name="ValidatorResultListProperties.cpp" compile="1"
+                resource="0" file="Source/Assimil8or/Validator/ValidatorResultListProperties.cpp"/>
+          <FILE id="egTQqo" name="ValidatorResultListProperties.h" compile="0"
+                resource="0" file="Source/Assimil8or/Validator/ValidatorResultListProperties.h"/>
+          <FILE id="vv9kY9" name="ValidatorResultProperties.cpp" compile="1"
+                resource="0" file="Source/Assimil8or/Validator/ValidatorResultProperties.cpp"/>
+          <FILE id="FbH6Eo" name="ValidatorResultProperties.h" compile="0" resource="0"
+                file="Source/Assimil8or/Validator/ValidatorResultProperties.h"/>
+        </GROUP>
         <GROUP id="{F93A3946-B57B-8541-1536-2BE5E57D6EED}" name="Preset">
           <FILE id="SOUChx" name="ChannelProperties.cpp" compile="1" resource="0"
                 file="Source/Assimil8or/Preset/ChannelProperties.cpp"/>
@@ -23,10 +37,6 @@
           <FILE id="m51pzF" name="ZoneProperties.h" compile="0" resource="0"
                 file="Source/Assimil8or/Preset/ZoneProperties.h"/>
         </GROUP>
-        <FILE id="uhqsFr" name="ValidatorProperties.cpp" compile="1" resource="0"
-              file="Source/Assimil8or/ValidatorProperties.cpp"/>
-        <FILE id="w8jVEF" name="ValidatorProperties.h" compile="0" resource="0"
-              file="Source/Assimil8or/ValidatorProperties.h"/>
         <FILE id="o7xiMd" name="Assimil8or.cpp" compile="1" resource="0" file="Source/Assimil8or/Assimil8or.cpp"/>
         <FILE id="EQ0pG9" name="Assimil8or.h" compile="0" resource="0" file="Source/Assimil8or/Assimil8or.h"/>
       </GROUP>
