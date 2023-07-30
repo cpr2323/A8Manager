@@ -7,6 +7,8 @@ class ZoneProperties : public ValueTreeWrapper<ZoneProperties>
 {
 public:
     ZoneProperties () noexcept : ValueTreeWrapper<ZoneProperties> (ZoneTypeId) {}
+    ZoneProperties (juce::ValueTree vt, WrapperType wrapperType, EnableCallbacks shouldEnableCallbacks) noexcept
+        : ValueTreeWrapper<ZoneProperties> (ZoneTypeId, vt, wrapperType, shouldEnableCallbacks) {}
 
     void setIndex (int index, bool includeSelfCallback);
     void setLevelOffset (double levelOffset, bool includeSelfCallback);

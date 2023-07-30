@@ -25,6 +25,8 @@ class PresetProperties : public ValueTreeWrapper<PresetProperties>
 {
 public:
     PresetProperties () noexcept : ValueTreeWrapper<PresetProperties> (PresetTypeId) {}
+    PresetProperties (juce::ValueTree vt, WrapperType wrapperType, EnableCallbacks shouldEnableCallbacks) noexcept
+        : ValueTreeWrapper<PresetProperties> (PresetTypeId, vt, wrapperType, shouldEnableCallbacks) {}
 
     void setIndex (int index, bool includeSelfCallback);
     void setData2AsCV (juce::String data2AsCv, bool includeSelfCallback);

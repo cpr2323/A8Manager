@@ -16,6 +16,7 @@ public:
     enum class WrapperType { owner, client };
     enum class EnableCallbacks { no, yes };
     ValueTreeWrapper<T> (juce::Identifier type) noexcept;
+    ValueTreeWrapper<T> (juce::Identifier type, juce::ValueTree vt, WrapperType wrapperType, EnableCallbacks shouldEnableCallbacks) noexcept;
     ValueTreeWrapper<T> (ValueTreeWrapper&&) = default;
     ValueTreeWrapper<T>& operator = (ValueTreeWrapper&&) = default;
 
@@ -212,6 +213,13 @@ template <class T> ValueTreeWrapper<T>::ValueTreeWrapper (juce::Identifier newTy
 {
     type = newType;
     wrap ({}, WrapperType::owner, EnableCallbacks::no);
+}
+
+template <class T> ValueTreeWrapper<T>::ValueTreeWrapper (juce::Identifier newType, juce::ValueTree vt,
+                                                          ValueTreeWrapper::WrapperType wrapperType, ValueTreeWrapper::EnableCallbacks shouldEnableCallbacks) noexcept
+{
+    type = newType;
+    wrap (vt, wrapperType, shouldEnableCallbacks);
 }
 
 template <class T> void ValueTreeWrapper<T>::wrap (juce::ValueTree vt, ValueTreeWrapper::WrapperType wrapperType, ValueTreeWrapper::EnableCallbacks shouldEnableCallbacks)

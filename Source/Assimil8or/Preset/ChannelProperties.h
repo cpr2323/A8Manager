@@ -11,6 +11,8 @@ class ChannelProperties : public ValueTreeWrapper<ChannelProperties>
 {
 public:
     ChannelProperties () noexcept : ValueTreeWrapper (ChannelTypeId) {}
+    ChannelProperties (juce::ValueTree vt, WrapperType wrapperType, EnableCallbacks shouldEnableCallbacks) noexcept
+        : ValueTreeWrapper (ChannelTypeId, vt, wrapperType, shouldEnableCallbacks) {}
 
     void setIndex (int index, bool includeSelfCallback);
     void setAliasing (int aliasing, bool includeSelfCallback);

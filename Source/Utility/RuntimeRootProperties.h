@@ -15,6 +15,8 @@ public:
     };
 
     RuntimeRootProperties () noexcept : ValueTreeWrapper<RuntimeRootProperties> (RuntimeRootPropertiesId) {}
+    RuntimeRootProperties (juce::ValueTree vt, WrapperType wrapperType, EnableCallbacks shouldEnableCallbacks) noexcept
+        : ValueTreeWrapper<RuntimeRootProperties> (RuntimeRootPropertiesId, vt, wrapperType, shouldEnableCallbacks) {}
 
     juce::ValueTree addSection (juce::Identifier sectionType);
     bool removeSection (juce::Identifier sectionType);

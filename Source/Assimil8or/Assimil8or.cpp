@@ -138,18 +138,15 @@ std::tuple<juce::String, juce::String, std::optional<uint64_t>> Assimil8orValida
         assimil8orPreset.parse (fileContents);
 
         uint64_t sizeRequiredForSamples {};
-        PresetProperties presetProperties;
-        presetProperties.wrap (assimil8orPreset.getPresetVT (), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
+        PresetProperties presetProperties (assimil8orPreset.getPresetVT (), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
         if (presetProperties.isValid ())
         {
             presetProperties.forEachChannel([this, &file, &validatorResultProperties, &sizeRequiredForSamples] (juce::ValueTree channelVT)
             {
-                ChannelProperties channelProperties;
-                channelProperties.wrap (channelVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
+                ChannelProperties channelProperties (channelVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
                 channelProperties.forEachZone([this, &file, &validatorResultProperties, &sizeRequiredForSamples] (juce::ValueTree zoneVT)
                 {
-                    ZoneProperties zoneProperties;
-                    zoneProperties.wrap (zoneVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
+                    ZoneProperties zoneProperties (zoneVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
                     // TODO - should we do doIfProgressTimeElapsed() here?
                     const auto sampleFileName { zoneProperties.getSample () };
                     const auto sampleFile { file.getParentDirectory ().getChildFile (sampleFileName) };
@@ -490,8 +487,7 @@ Assimil8orPreset::Assimil8orPreset ()
 void Assimil8orPreset::write (juce::File presetFile, juce::ValueTree presetPropertiesVT)
 {
     jassert (presetPropertiesVT.isValid ());
-    PresetProperties presetPropertiesToWrite;
-    presetPropertiesToWrite.wrap (presetPropertiesVT, PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
+    PresetProperties presetPropertiesToWrite (presetPropertiesVT, PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
     if (Assimil8orValidator::isPresetFile (presetFile))
     {
         const auto presetNumber { Assimil8orValidator::getPresetNumberFromName (presetFile) };
@@ -537,8 +533,7 @@ void Assimil8orPreset::write (juce::File presetFile, juce::ValueTree presetPrope
 
     presetPropertiesToWrite.forEachChannel ([this, &hasContent, &addLine, &indentAmount, &presetPropertiesToWrite] (juce::ValueTree channelVT)
     {
-        ChannelProperties channelProperties;
-        channelProperties.wrap (channelVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
+        ChannelProperties channelProperties (channelVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
         if (hasContent(channelVT))
         {
             const auto channelPropertiesVT { channelProperties.getValueTree () };
@@ -586,8 +581,7 @@ void Assimil8orPreset::write (juce::File presetFile, juce::ValueTree presetPrope
 
             channelProperties.forEachZone ([this, &hasContent, &indentAmount, &addLine] (juce::ValueTree zoneVT)
             {
-                ZoneProperties zoneProperties;
-                zoneProperties.wrap (zoneVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
+                ZoneProperties zoneProperties (zoneVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
                 if (hasContent(zoneVT))
                 {
                     const auto zonePropertiesVT { zoneProperties.getValueTree () };

@@ -36,8 +36,7 @@ ToolWindow::ToolWindow ()
 
 void ToolWindow::init (juce::ValueTree rootPropertiesVT)
 {
-    RuntimeRootProperties runtimeRootProperties;
-    runtimeRootProperties.wrap (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
+    RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
     persistentRootProperties.wrap (rootPropertiesVT, PersistentRootProperties::WrapperType::client, PersistentRootProperties::EnableCallbacks::no);
     appProperties.wrap (persistentRootProperties.getValueTree (), AppProperties::WrapperType::client, AppProperties::EnableCallbacks::no);
     validatorProperties.wrap (runtimeRootProperties.getValueTree (), ValidatorProperties::WrapperType::client, ValidatorProperties::EnableCallbacks::yes);
@@ -66,8 +65,7 @@ void ToolWindow::loadPreset (juce::File presetFile)
     Assimil8orPreset assimil8orPreset;
     assimil8orPreset.parse (fileContents);
 
-    PresetProperties newPresetProperties;
-    newPresetProperties.wrap (assimil8orPreset.getPresetVT (), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
+    PresetProperties newPresetProperties (assimil8orPreset.getPresetVT (), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
 
     presetProperties.getValueTree ().removeAllChildren (nullptr);
     presetProperties.getValueTree ().removeAllProperties (nullptr);
