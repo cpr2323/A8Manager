@@ -2,6 +2,7 @@
 
 #include <JuceHeader.h>
 #include "../../Utility/ValueTreeWrapper.h"
+#include "../Fixer/FixerEntryProperties.h"
 
 class ValidatorResultProperties : public ValueTreeWrapper<ValidatorResultProperties>
 {
@@ -21,9 +22,9 @@ public:
     std::function<void (juce::String resultType)> onTypeChange;
     std::function<void (juce::String resultText)> onTextChange;
 
-    juce::ValueTree addTag (juce::String tag, juce::String description);
-    void forEachTag (std::function<bool (juce::ValueTree tagVT)> tagVTCallback);
-    int getNumTags ();
+    void addFixerEntry (juce::String fixerType, juce::String fileName);
+    void forEachFixerEntry (std::function<bool (juce::ValueTree fixerEntryVT)> fixerEntryVTCallback);
+    int getNumFixerEntries ();
 
     static inline const juce::String ResultTypeNone    { "" };
     static inline const juce::String ResultTypeInfo    { "info" };

@@ -166,6 +166,7 @@ std::optional<uint64_t> Assimil8orValidator::validateFile (juce::File file, juce
                     {
                         // report error
                         validatorResultProperties.update (ValidatorResultProperties::ResultTypeError, "['" + sampleFileName + "' does not exist]", false);
+                        validatorResultProperties.addFixerEntry (FixerEntryProperties::FixerTypeNotFound, sampleFile.getFullPathName ());
                     }
                     else
                     {
@@ -204,6 +205,7 @@ std::optional<uint64_t> Assimil8orValidator::validateFile (juce::File file, juce
             validatorResultProperties.update (ValidatorResultProperties::ResultTypeError,
                                      "[name too long. " + juce::String (file.getFileName ().length ()) + "(length) vs " +
                                        juce::String (kMaxFileNameLength) +"(max)]", false);
+            validatorResultProperties.addFixerEntry (FixerEntryProperties::FixerTypeRename, file.getFullPathName ());
         }
 
         std::unique_ptr<juce::AudioFormatReader> reader (audioFormatManager.createReaderFor (file));
@@ -225,10 +227,15 @@ std::optional<uint64_t> Assimil8orValidator::validateFile (juce::File file, juce
                                          juce::String (reader->numChannels == 1 ? "mono" : (reader->numChannels == 2 ? "stereo" : juce::String (reader->numChannels) + " channels")) + "}, " +
                                          juce::String (reader->lengthInSamples / reader->sampleRate, 2) + " seconds, " +
                                          "RAM: " + getMemorySizeString (memoryUsage), false);
-            auto reportErrorIfTrue = [&validatorResultProperties] (bool conditionalResult, juce::String newText)
+            auto reportErrorIfTrue = [&validatorResultProperties, &file] (bool conditionalResult, juce::String newText)
             {
                 if (conditionalResult)
+                {
                     validatorResultProperties.update (ValidatorResultProperties::ResultTypeError, newText, false);
+                    // TODO - this will create multiple fixer entries for multiple format mismatches. there should only be one
+                    //        I think the fix should be in addFixerEntry, as there should never be more than one type
+                    validatorResultProperties.addFixerEntry (FixerEntryProperties::FixerTypeConvert, file.getFullPathName ());
+                }
             };
             reportErrorIfTrue (reader->usesFloatingPointData == true, "[sample format must be integer]");
             reportErrorIfTrue (reader->bitsPerSample < 8 || reader->bitsPerSample > 32, "[bit depth must be between 8 and 32]");
@@ -270,6 +277,7 @@ void Assimil8orValidator::validateFolder (juce::File folder, juce::ValueTree val
         validatorResultProperties.update (ValidatorResultProperties::ResultTypeError, "[name too long. " +
                                           juce::String (folder.getFileName ().length ()) + "(length) vs " +
                                           juce::String (kMaxFolderNameLength) + "(max)]", false);
+        validatorResultProperties.addFixerEntry (FixerEntryProperties::FixerTypeRename, folder.getFullPathName ());
     }
 }
 

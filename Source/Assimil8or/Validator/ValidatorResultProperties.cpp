@@ -82,19 +82,28 @@ juce::String ValidatorResultProperties::getText ()
     return getValue<juce::String> (TextPropertyId);
 }
 
-juce::ValueTree ValidatorResultProperties::addTag (juce::String tag, juce::String description)
+void ValidatorResultProperties::addFixerEntry (juce::String fixerType, juce::String fileName)
 {
-    return {};
+    FixerEntryProperties fixerEntryProperties;
+    fixerEntryProperties.setType (fixerType, false);
+    fixerEntryProperties.setFileName (fileName, false);
+    data.addChild (fixerEntryProperties.getValueTree (), -1, nullptr);
 }
 
-void ValidatorResultProperties::forEachTag (std::function<bool (juce::ValueTree tagVT)> tagVTCallback)
+void ValidatorResultProperties::forEachFixerEntry (std::function<bool (juce::ValueTree fixerEntryVT)> fixerEntryVTCallback)
 {
-
+    jassert (fixerEntryVTCallback != nullptr);
+    ValueTreeHelpers::forEachChildOfType (data, FixerEntryProperties::FixerEntryTypeId, [this, fixerEntryVTCallback] (juce::ValueTree validatorResultsVT)
+    {
+        return fixerEntryVTCallback (validatorResultsVT);
+    });
 }
 
-int ValidatorResultProperties::getNumTags ()
+int ValidatorResultProperties::getNumFixerEntries ()
 {
-    return 0;
+    auto numFixerEntries { 0 };
+    forEachFixerEntry ([&numFixerEntries] (juce::ValueTree) { ++numFixerEntries; return true; });
+    return numFixerEntries;
 }
 
 void ValidatorResultProperties::valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property)
