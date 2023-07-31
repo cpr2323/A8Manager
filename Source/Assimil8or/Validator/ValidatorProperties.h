@@ -23,7 +23,7 @@ public:
     std::function<void (juce::String progressUpdate)> onProgressUpdateChanged;
     std::function<void ()> onStartScanAsync;
 
-    juce::ValueTree getValidationStatusVT ()
+    juce::ValueTree getValidatorResultListVT ()
     {
         return data.getChildWithName (ValidatorResultListProperties::ValidatorResultListTypeId);
     }

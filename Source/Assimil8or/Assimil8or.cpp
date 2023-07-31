@@ -48,6 +48,8 @@ void Assimil8orValidator::init (juce::ValueTree vt)
 {
     validatorProperties.wrap (vt, ValidatorProperties::WrapperType::owner, ValidatorProperties::EnableCallbacks::yes);
     validatorProperties.onStartScanAsync = [this] () { validate (); };
+    validatorResultListProperties.wrap (validatorProperties.getValueTree (),
+                                        ValidatorResultListProperties::WrapperType::client, ValidatorResultListProperties::EnableCallbacks::no);
 }
 
 void Assimil8orValidator::validate ()
@@ -56,12 +58,20 @@ void Assimil8orValidator::validate ()
     startThread ();
 }
 
-void Assimil8orValidator::addStatus (juce::String statusType, juce::String statusText)
+void Assimil8orValidator::addResult (juce::String statusType, juce::String statusText)
 {
-    auto newStatusChild { juce::ValueTree {"Status"} };
-    newStatusChild.setProperty ("type", statusType, nullptr);
-    newStatusChild.setProperty ("text", statusText, nullptr);
-    validatorProperties.getValidationStatusVT ().addChild (newStatusChild, -1, nullptr);
+    ValidatorResultProperties validatorResultProperties;
+    validatorResultProperties.update (statusType, statusText, false);
+    addResult (validatorResultProperties.getValueTree ());
+};
+
+void Assimil8orValidator::addResult (juce::ValueTree validatorResultsVT)
+{
+    ValidatorResultProperties validatorResultProperties (validatorResultsVT,
+                                                         ValidatorResultProperties::WrapperType::client, ValidatorResultProperties::EnableCallbacks::no);
+    jassert (validatorResultProperties.getType () != ValidatorResultProperties::ResultTypeNone);
+    if (validatorResultProperties.getType() != ValidatorResultProperties::ResultTypeNone)
+        validatorResultListProperties.addResult (validatorResultsVT);
 };
 
 void Assimil8orValidator::doIfProgressTimeElapsed (std::function<void ()> functionToDo)
@@ -94,9 +104,11 @@ int Assimil8orValidator::getPresetNumberFromName (juce::File file)
     return file.getFileNameWithoutExtension ().substring (4).getIntValue ();
 }
 
-std::tuple<juce::String, juce::String, std::optional<uint64_t>> Assimil8orValidator::validateFile (juce::File file)
+std::optional<uint64_t> Assimil8orValidator::validateFile (juce::File file, juce::ValueTree validatorResultsVT)
 {
     const auto kMaxFileNameLength { 47 };
+    ValidatorResultProperties validatorResultProperties (validatorResultsVT,
+                                                         ValidatorResultProperties::WrapperType::client, ValidatorResultProperties::EnableCallbacks::no);
 
     auto checkAudioFile = [this] (juce::File file)
     {
@@ -124,11 +136,11 @@ std::tuple<juce::String, juce::String, std::optional<uint64_t>> Assimil8orValida
     {
         // ignore file
         LogValidation ("  File (ignored)");
-        return { "warning", "(ignored)", {} };
+		validatorResultProperties.update (ValidatorResultProperties::ResultTypeWarning, "(ignored)", false);
+        return {};
     }
     else if (isPresetFile (file))
     {
-        ValidatorResultProperties validatorResultProperties;
         validatorResultProperties.update (ValidatorResultProperties::ResultTypeInfo, "Preset", false);
 
         juce::StringArray fileContents;
@@ -181,11 +193,10 @@ std::tuple<juce::String, juce::String, std::optional<uint64_t>> Assimil8orValida
         validatorResultProperties.update (ValidatorResultProperties::ResultTypeInfo, "RAM: " + getMemorySizeString (sizeRequiredForSamples), false);
         optionalPresetInfo = sizeRequiredForSamples;
         LogValidation ("  File (preset)");
-        return { validatorResultProperties.getType (), validatorResultProperties.getText (), optionalPresetInfo };
+        return optionalPresetInfo;
     }
     else if (isAudioFile (file))
     {
-        ValidatorResultProperties validatorResultProperties;
         validatorResultProperties.updateType (ValidatorResultProperties::ResultTypeInfo, false);
         if (file.getFileName ().length () > kMaxFileNameLength)
         {
@@ -229,35 +240,36 @@ std::tuple<juce::String, juce::String, std::optional<uint64_t>> Assimil8orValida
             reportErrorIfTrue (reader->numChannels < 1 || reader->numChannels > 2, "[only mono and stereo supported]");
             reportErrorIfTrue (reader->sampleRate > 192000, "[sample rate must not exceed 192k]");
         }
-        return { validatorResultProperties.getType (), validatorResultProperties.getText (), {} };
+        return {};
     }
     else
     {
         LogValidation ("  File (unknown)");
-        return { "warning", "(unknown file type)", {} };
+        validatorResultProperties.update (ValidatorResultProperties::ResultTypeWarning, "(unknown file type)", false);
     }
+
+    return {};
 }
 
-std::tuple<juce::String,juce::String> Assimil8orValidator::validateFolder (juce::File folder)
+void Assimil8orValidator::validateFolder (juce::File folder, juce::ValueTree validatorResultsVT)
 {
     const auto kMaxFolderNameLength { 31 };
+    ValidatorResultProperties validatorResultProperties (validatorResultsVT,
+                                                         ValidatorResultProperties::WrapperType::client, ValidatorResultProperties::EnableCallbacks::no );
 
+    LogValidation ("Folder: " + folder.getFileName ());
     if (folder.getFileName ().startsWithChar ('.'))
     {
         // ignore file
         LogValidation ("  Folder (ignored) : " + folder.getFileName ());
-        return { "warning", "(ignored)" };
+        validatorResultProperties.update (ValidatorResultProperties::ResultTypeWarning, "(ignored)", false);
     }
     else if (folder.getFileName ().length () > kMaxFolderNameLength)
     {
         LogValidation ("  [ Warning : folder name too long ]");
-        return { "error", "[name too long. " +
-                            juce::String (folder.getFileName ().length ()) + "(length) vs " +
-                            juce::String (kMaxFolderNameLength) + "(max)]" };
-    }
-    else
-    {
-        return { "info", "" };
+        validatorResultProperties.update (ValidatorResultProperties::ResultTypeError, "[name too long. " +
+                                          juce::String (folder.getFileName ().length ()) + "(length) vs " +
+                                          juce::String (kMaxFolderNameLength) + "(max)]", false);
     }
 }
 
@@ -274,7 +286,6 @@ void Assimil8orValidator::processFolder (juce::ValueTree folderVT)
     //      report if name over 47 characters
     //      report if it does not match supported formats
     // report any other files as unused by assimil8or
-    ValidatorResultProperties validatorResultProperties;
     jassert (folderVT.getType ().toString () == "Folder");
     uint64_t totalSizeOfPresets {};
     int numberOfPresets {};
@@ -283,7 +294,6 @@ void Assimil8orValidator::processFolder (juce::ValueTree folderVT)
         if (isThreadRunning () && threadShouldExit ())
             break;
 
-        validatorResultProperties.reset (false);
         const auto curEntry { juce::File (folderEntryVT.getProperty ("name")) };
         doIfProgressTimeElapsed ([this, fileName = curEntry.getFileName ()] ()
         {
@@ -294,33 +304,31 @@ void Assimil8orValidator::processFolder (juce::ValueTree folderVT)
         });
         if (curEntry.isDirectory ())
         {
+            ValidatorResultProperties validatorResultProperties;
             validatorResultProperties.update (ValidatorResultProperties::ResultTypeInfo, "Folder: " + curEntry.getFileName (), false);
-            const auto [newStatusType, newStatusText] = validateFolder (curEntry);
-            validatorResultProperties.update (newStatusType, newStatusText, false);
-            addStatus (validatorResultProperties.getType (), validatorResultProperties.getText ());
+            validateFolder (curEntry, validatorResultProperties.getValueTree ());
+            addResult (validatorResultProperties.getValueTree ());
             processFolder (folderEntryVT);
         }
         else
         {
+            ValidatorResultProperties validatorResultProperties;
             validatorResultProperties.update (ValidatorResultProperties::ResultTypeInfo, "File: " + curEntry.getFileName (), false);
-            const auto [newStatusType, newStatusText, presetUpdate] = validateFile (curEntry);
+            const auto presetUpdate = validateFile (curEntry, validatorResultProperties.getValueTree ());
             if (presetUpdate.has_value ())
             {
                 totalSizeOfPresets += presetUpdate.value ();
                 ++numberOfPresets;
             }
-            validatorResultProperties.update (newStatusType, newStatusText, false);
-            jassert (validatorResultProperties.getType () != "");
-            if (validatorResultProperties.getType () != "")
-                addStatus (validatorResultProperties.getType (), validatorResultProperties.getText ());
+            addResult (validatorResultProperties.getValueTree ());
         }
     }
     const auto folderName { juce::File (folderVT.getProperty ("name")).getFileName () };
-    addStatus ("info", "Total RAM Usage for `" + folderName + "': " + getMemorySizeString (totalSizeOfPresets));
+    addResult ("info", "Total RAM Usage for `" + folderName + "': " + getMemorySizeString (totalSizeOfPresets));
     if (totalSizeOfPresets > maxMemory)
-        addStatus ("error", "[RAM Usage exceeds memory capacity by " + getMemorySizeString (totalSizeOfPresets - maxMemory) + "]");
+        addResult ("error", "[RAM Usage exceeds memory capacity by " + getMemorySizeString (totalSizeOfPresets - maxMemory) + "]");
     if (numberOfPresets > maxPresets)
-        addStatus ("error", "[Number of Presets (" + juce::String (numberOfPresets) + ") exceeds maximum allowed (" + juce::String (maxPresets) + ")]");
+        addResult ("error", "[Number of Presets (" + juce::String (numberOfPresets) + ") exceeds maximum allowed (" + juce::String (maxPresets) + ")]");
 }
 
 juce::ValueTree Assimil8orValidator::getContentsOfFolder (juce::File folder)
@@ -356,12 +364,12 @@ juce::ValueTree Assimil8orValidator::getContentsOfFolder (juce::File folder)
 
 void Assimil8orValidator::validateRootFolder ()
 {
-    validatorProperties.getValidationStatusVT ().removeAllChildren (nullptr);
+    validatorResultListProperties.clear ();
     lastScanInProgressUpdate = juce::Time::currentTimeMillis ();
     const auto rootFolderName { validatorProperties.getRootFolder () };
 
     const auto rootEntry { juce::File (rootFolderName) };
-    addStatus ("info", "Root Folder: " + rootEntry.getFileName ());
+    addResult (ValidatorResultProperties::ResultTypeInfo, "Root Folder: " + rootEntry.getFileName ());
     // do one initial progress update to fill in the first one
     juce::MessageManager::callAsync ([this, folderName = rootEntry.getFileName ()] ()
     {

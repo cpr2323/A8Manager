@@ -1,4 +1,6 @@
 #include "Assimil8orValidatorComponent.h"
+#include "../../Assimil8or/Validator/ValidatorResultProperties.h"
+#include "../../Assimil8or/Validator/ValidatorResultListProperties.h"
 #include "../../Utility/RuntimeRootProperties.h"
 
 Assimil8orValidatorComponent::Assimil8orValidatorComponent ()
@@ -66,11 +68,14 @@ void Assimil8orValidatorComponent::setupFilterList ()
 }
 void Assimil8orValidatorComponent::buildQuickLookupList ()
 {
+    ValidatorResultListProperties validatorResultListProperties (validatorProperties.getValidatorResultListVT (),
+        ValidatorResultListProperties::WrapperType::client, ValidatorResultListProperties::EnableCallbacks::no);
     // iterate over the state message list, adding each one to the quick list
-    ValueTreeHelpers::forEachChildOfType (validatorProperties.getValidationStatusVT (), "Status", [this] (juce::ValueTree child)
+    validatorResultListProperties.forEachResult ([this] (juce::ValueTree validatorResultVT)
     {
-        if (filterList.contains (child.getProperty ("type").toString ()))
-            scanStatusQuickLookupList.emplace_back (child);
+        ValidatorResultProperties validatorResultProperties (validatorResultVT, ValidatorResultProperties::WrapperType::client, ValidatorResultProperties::EnableCallbacks::no);
+        if (filterList.contains (validatorResultProperties.getType ()))
+            scanStatusQuickLookupList.emplace_back (validatorResultVT);
         return true;
     });
 }

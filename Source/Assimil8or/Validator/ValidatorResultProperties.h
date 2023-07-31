@@ -6,7 +6,9 @@
 class ValidatorResultProperties : public ValueTreeWrapper<ValidatorResultProperties>
 {
 public:
-    ValidatorResultProperties () noexcept : ValueTreeWrapper<ValidatorResultProperties> (ValidatorResultTypeId) {}
+     ValidatorResultProperties () noexcept : ValueTreeWrapper<ValidatorResultProperties> (ValidatorResultTypeId) {}
+     ValidatorResultProperties (juce::ValueTree vt, WrapperType wrapperType, EnableCallbacks shouldEnableCallbacks)
+         : ValueTreeWrapper<ValidatorResultProperties> (ValidatorResultTypeId, vt, wrapperType, shouldEnableCallbacks) {}
 
     void reset (bool includeSelfCallback);
     void updateType (juce::String resultType, bool includeSelfCallback);

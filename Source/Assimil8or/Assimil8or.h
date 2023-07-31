@@ -3,6 +3,7 @@
 #include <JuceHeader.h>
 #include "Preset/PresetProperties.h"
 #include "Validator/ValidatorProperties.h"
+#include "Validator/ValidatorResultListProperties.h"
 
 // validate
 //  SD Card (max folders unknown)
@@ -25,17 +26,19 @@ public:
 private:
     juce::AudioFormatManager audioFormatManager;
     ValidatorProperties validatorProperties;
+    ValidatorResultListProperties validatorResultListProperties;
     int64_t lastScanInProgressUpdate {};
     juce::ValueTree rootFolderVT { "AssimilatorFileList" };
 
-    void addStatus (juce::String statusType, juce::String statusText);
+    void addResult (juce::String statusType, juce::String statusText);
+    void addResult (juce::ValueTree validatorResultsVT);
     void doIfProgressTimeElapsed (std::function<void ()> functionToDo);
     juce::ValueTree getContentsOfFolder (juce::File folder);
     void processFolder (juce::ValueTree folder);
     void sortContentsOfFolder (juce::ValueTree rootFolderVT);
     void validate ();
-    std::tuple<juce::String, juce::String, std::optional<uint64_t>> validateFile (juce::File file);
-    std::tuple<juce::String, juce::String> validateFolder (juce::File folder);
+    std::optional<uint64_t> validateFile (juce::File file, juce::ValueTree validatorResultsVT);
+    void validateFolder (juce::File folder, juce::ValueTree validatorResultsVT);
     void validateRootFolder ();
 
     void run () override;
