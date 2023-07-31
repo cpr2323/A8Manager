@@ -33,8 +33,7 @@ void PresetProperties::forEachChannel (std::function<bool (juce::ValueTree chann
     jassert (channelVTCallback != nullptr);
     ValueTreeHelpers::forEachChildOfType (data, ChannelProperties::ChannelTypeId, [this, channelVTCallback] (juce::ValueTree channelVT)
     {
-        channelVTCallback (channelVT);
-        return true;
+        return channelVTCallback (channelVT);
     });
 }
 

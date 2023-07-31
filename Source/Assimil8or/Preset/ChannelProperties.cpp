@@ -29,8 +29,7 @@ void ChannelProperties::forEachZone (std::function<bool (juce::ValueTree zoneVT)
     jassert (zoneVTCallback != nullptr);
     ValueTreeHelpers::forEachChildOfType (data, ZoneProperties::ZoneTypeId, [this, zoneVTCallback] (juce::ValueTree zoneVT)
     {
-        zoneVTCallback (zoneVT);
-        return true;
+        return zoneVTCallback (zoneVT);
     });
 }
 
