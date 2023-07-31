@@ -171,14 +171,14 @@ std::optional<uint64_t> Assimil8orValidator::validateFile (juce::File file, juce
                     {
                         // open as audio file, calculate memory requirements
                         std::unique_ptr<juce::AudioFormatReader> reader (audioFormatManager.createReaderFor (sampleFile));
-                        if (reader == nullptr)
+                        if (reader != nullptr)
                         {
-                            LogValidation ("    [ Warning : unknown audio format ]");
-                            validatorResultProperties.update (ValidatorResultProperties::ResultTypeError, "['" + sampleFileName + "' unknown audio format. size = " + juce::String (file.getSize ()) + "]", false);
+                            sizeRequiredForSamples += reader->numChannels * reader->lengthInSamples * 4;
                         }
                         else
                         {
-                            sizeRequiredForSamples += reader->numChannels * reader->lengthInSamples * 4;
+                            LogValidation ("    [ Warning : unknown audio format ]");
+                            validatorResultProperties.update (ValidatorResultProperties::ResultTypeError, "['" + sampleFileName + "' unknown audio format. size = " + juce::String (file.getSize ()) + "]", false);
                         }
                     }
                     return true;
@@ -207,12 +207,7 @@ std::optional<uint64_t> Assimil8orValidator::validateFile (juce::File file, juce
         }
 
         std::unique_ptr<juce::AudioFormatReader> reader (audioFormatManager.createReaderFor (file));
-        if (reader == nullptr)
-        {
-            LogValidation ("    [ Warning : unknown audio format ]");
-            validatorResultProperties.update (ValidatorResultProperties::ResultTypeError, "[unknown audio format. size = " + juce::String (file.getSize ()) + "]", false);
-        }
-        else
+        if (reader != nullptr)
         {
             LogValidation ("    Format: " + reader->getFormatName ());
             LogValidation ("    Sample data: " + juce::String (reader->usesFloatingPointData == true ? "floating point" : "integer"));
@@ -239,6 +234,11 @@ std::optional<uint64_t> Assimil8orValidator::validateFile (juce::File file, juce
             reportErrorIfTrue (reader->bitsPerSample < 8 || reader->bitsPerSample > 32, "[bit depth must be between 8 and 32]");
             reportErrorIfTrue (reader->numChannels < 1 || reader->numChannels > 2, "[only mono and stereo supported]");
             reportErrorIfTrue (reader->sampleRate > 192000, "[sample rate must not exceed 192k]");
+        }
+        else
+        {
+            LogValidation ("    [ Warning : unknown audio format ]");
+            validatorResultProperties.update (ValidatorResultProperties::ResultTypeError, "[unknown audio format. size = " + juce::String (file.getSize ()) + "]", false);
         }
         return {};
     }
@@ -310,7 +310,7 @@ void Assimil8orValidator::processFolder (juce::ValueTree folderVT)
             addResult (validatorResultProperties.getValueTree ());
             processFolder (folderEntryVT);
         }
-        else
+        else // curEntry is a file
         {
             ValidatorResultProperties validatorResultProperties;
             validatorResultProperties.update (ValidatorResultProperties::ResultTypeInfo, "File: " + curEntry.getFileName (), false);
