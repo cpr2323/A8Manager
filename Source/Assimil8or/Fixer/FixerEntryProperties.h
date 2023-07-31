@@ -20,9 +20,10 @@ public:
     std::function<void (juce::String fileName)> onFileNameChange;
 
     static inline const juce::String FixerTypeNone { "" };
-    static inline const juce::String FixerTypeRename { "rename" };
-    static inline const juce::String FixerTypeConvert { "convert" };
-    static inline const juce::String FixerTypeNotFound { "notFound" };
+    static inline const juce::String FixerTypeRenameFile   { "renameFile" };
+    static inline const juce::String FixerTypeRenameFolder { "renameFolder" };
+    static inline const juce::String FixerTypeConvert      { "convert" };
+    static inline const juce::String FixerTypeNotFound     { "notFound" };
 
     static inline const juce::Identifier FixerEntryTypeId { "FixerEntry" };
     static inline const juce::Identifier FixTypePropertyId     { "type" };

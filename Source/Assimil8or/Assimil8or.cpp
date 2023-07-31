@@ -205,7 +205,7 @@ std::optional<uint64_t> Assimil8orValidator::validateFile (juce::File file, juce
             validatorResultProperties.update (ValidatorResultProperties::ResultTypeError,
                                      "[name too long. " + juce::String (file.getFileName ().length ()) + "(length) vs " +
                                        juce::String (kMaxFileNameLength) +"(max)]", false);
-            validatorResultProperties.addFixerEntry (FixerEntryProperties::FixerTypeRename, file.getFullPathName ());
+            validatorResultProperties.addFixerEntry (FixerEntryProperties::FixerTypeRenameFile, file.getFullPathName ());
         }
 
         std::unique_ptr<juce::AudioFormatReader> reader (audioFormatManager.createReaderFor (file));
@@ -277,7 +277,7 @@ void Assimil8orValidator::validateFolder (juce::File folder, juce::ValueTree val
         validatorResultProperties.update (ValidatorResultProperties::ResultTypeError, "[name too long. " +
                                           juce::String (folder.getFileName ().length ()) + "(length) vs " +
                                           juce::String (kMaxFolderNameLength) + "(max)]", false);
-        validatorResultProperties.addFixerEntry (FixerEntryProperties::FixerTypeRename, folder.getFullPathName ());
+        validatorResultProperties.addFixerEntry (FixerEntryProperties::FixerTypeRenameFolder, folder.getFullPathName ());
     }
 }
 

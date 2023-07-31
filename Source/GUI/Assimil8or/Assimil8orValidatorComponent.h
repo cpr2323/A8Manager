@@ -2,9 +2,10 @@
 
 #include <JuceHeader.h>
 #include "../../Assimil8or/Validator/ValidatorProperties.h"
+#include "../../Assimil8or/Validator/ValidatorResultProperties.h"
 
 class Assimil8orValidatorComponent : public juce::Component,
-                                  private juce::TableListBoxModel
+                                     private juce::TableListBoxModel
 {
 public:
     Assimil8orValidatorComponent ();
@@ -13,15 +14,24 @@ public:
     void init (juce::ValueTree rootPropertiesVT);
 
 private:
+    enum Columns
+    {
+        resultType = 1,
+        fix,
+        text
+    };
     ValidatorProperties validatorProperties;
     juce::TableListBox scanStatusListBox { {}, this };
-    std::vector<juce::ValueTree> scanStatusQuickLookupList;
-    juce::StringArray filterList {"idle"};
+    std::vector<juce::ValueTree> validatorResultsQuickLookupList;
+    juce::StringArray filterList { ValidatorResultProperties::ResultTypeInfo };
     juce::TextButton idleFilterButton;
     juce::TextButton warningFilterButton;
     juce::TextButton errorFilterButton;
 
     void buildQuickLookupList ();
+    void rename (juce::File file, int maxLength);
+    void convert (juce::File file);
+    void locate (juce::File file);
     void setupFilterList ();
 
     void resized () override;
@@ -30,5 +40,5 @@ private:
     void paintRowBackground (juce::Graphics&, int rowNumber, int width, int height, bool rowIsSelected) override;
     void paintCell (juce::Graphics&, int rowNumber, int columnId, int width, int height, bool rowIsSelected) override;
     juce::Component* refreshComponentForCell (int rowNumber, int columnId, bool isRowSelected, juce::Component* existingComponentToUpdate) override;
-    void cellDoubleClicked (int rowNumber, int columnId, const juce::MouseEvent& mouseEvent) override;
+    void cellClicked (int rowNumber, int columnId, const juce::MouseEvent& mouseEvent) override;
 };
