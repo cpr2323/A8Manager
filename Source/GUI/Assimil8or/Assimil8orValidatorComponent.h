@@ -9,7 +9,7 @@ class Assimil8orValidatorComponent : public juce::Component,
 {
 public:
     Assimil8orValidatorComponent ();
-    ~Assimil8orValidatorComponent () = default;
+    ~Assimil8orValidatorComponent ();
 
     void init (juce::ValueTree rootPropertiesVT);
 
@@ -27,6 +27,7 @@ private:
     juce::TextButton idleFilterButton;
     juce::TextButton warningFilterButton;
     juce::TextButton errorFilterButton;
+    SafePointer<juce::DialogWindow> renameDialog;
 
     void buildQuickLookupList ();
     void rename (juce::File file, int maxLength);

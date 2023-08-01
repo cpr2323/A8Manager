@@ -41,6 +41,18 @@ Assimil8orValidatorComponent::Assimil8orValidatorComponent ()
     repaint ();
 }
 
+Assimil8orValidatorComponent::~Assimil8orValidatorComponent ()
+{
+    if (renameDialog != nullptr)
+    {
+        renameDialog->exitModalState (0);
+
+        // we are shutting down: can't wait for the message manager
+        // to eventually delete this
+        delete renameDialog;
+    }
+}
+
 void Assimil8orValidatorComponent::init (juce::ValueTree rootPropertiesVT)
 {
     RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
@@ -183,14 +195,97 @@ juce::Component* Assimil8orValidatorComponent::refreshComponentForCell (int rowN
     return nullptr;
 }
 
+class RenameDialogContent : public juce::Component
+{
+public:
+    RenameDialogContent (juce::File oldFile, int maxNameLength)
+    {
+        oldNameLabel.setColour (juce::Label::ColourIds::textColourId, juce::Colours::black);
+        oldNameLabel.setText ("Current Name: " + oldFile.getFileName(), juce::NotificationType::dontSendNotification);
+        addAndMakeVisible (oldNameLabel);
+        newNamePromptLabel.setColour (juce::Label::ColourIds::textColourId, juce::Colours::black);
+        newNamePromptLabel.setText ("New Name:", juce::NotificationType::dontSendNotification);
+        addAndMakeVisible (newNamePromptLabel);
+        addAndMakeVisible (newNameEditor);
+        okButton.setButtonText ("OK");
+        addAndMakeVisible (okButton);
+        cancelButton.setButtonText ("Cancel");
+        addAndMakeVisible (cancelButton);
+
+        cancelButton.onClick = [this] ()
+        {
+            closeDialog ();
+        };
+        okButton.onClick = [this, oldFile] ()
+        {
+            // try to do rename
+            oldFile.moveFileTo (oldFile.getParentDirectory ().getChildFile (newNameEditor.getText ()));
+            closeDialog ();
+        };
+    }
+private:
+    juce::Label oldNameLabel;
+    juce::Label newNamePromptLabel;
+    juce::TextEditor newNameEditor;
+    juce::TextButton okButton;
+    juce::TextButton cancelButton;
+
+    void closeDialog ()
+    {
+        if (juce::DialogWindow* dw = findParentComponentOfClass<juce::DialogWindow> ())
+            dw->exitModalState (0);
+        delete this;
+    }
+
+    void paint (juce::Graphics& g) override
+    {
+        g.fillAll (juce::Colours::lightgrey);
+    }
+
+    void resized () override
+    {
+        auto localBounds { getLocalBounds () };
+        auto bottomRow { localBounds.removeFromBottom (35).withTrimmedBottom(5) };
+        okButton.setColour (juce::TextButton::ColourIds::textColourOnId, juce::Colours::white);
+        okButton.setColour (juce::TextButton::ColourIds::textColourOffId, juce::Colours::white);
+        okButton.setBounds (bottomRow.removeFromLeft (65).withTrimmedLeft (5));
+        cancelButton.setColour (juce::TextButton::ColourIds::textColourOnId, juce::Colours::white);
+        cancelButton.setColour (juce::TextButton::ColourIds::textColourOffId, juce::Colours::white);
+        cancelButton.setBounds (bottomRow.removeFromLeft (65).withTrimmedLeft (5));
+
+        oldNameLabel.setBounds (localBounds.removeFromTop(35).withTrimmedTop(5));
+        localBounds.removeFromTop (5);
+        auto newNameRow { localBounds.removeFromTop (35).withTrimmedTop (5) };
+        newNamePromptLabel.setBounds (newNameRow.removeFromLeft(80).withTrimmedLeft(5));
+        newNameEditor.setBounds (newNameRow.withTrimmedLeft (5));
+    }
+};
+
 void Assimil8orValidatorComponent::rename (juce::File file, int maxLength)
 {
     // bring up a dialog showing the old name, a field for typing the new name (length constrained), and an ok/cancel button
+    juce::DialogWindow::LaunchOptions options;
+    auto renameContent { std::make_unique<RenameDialogContent> (file, maxLength) };
+    options.content.setOwned (renameContent.release ());
+
+    juce::Rectangle<int> area (0, 0, 300, 200);
+
+    options.content->setSize (area.getWidth (), area.getHeight ());
+
+    options.dialogTitle = "Rename";
+    options.dialogBackgroundColour = juce::Colour (juce::Colours::whitesmoke);
+    options.escapeKeyTriggersCloseButton = true;
+    options.useNativeTitleBar = false;
+    options.resizable = false;
+    options.componentToCentreAround = this;
+
+    renameDialog = options.launchAsync ();
 }
 
 void Assimil8orValidatorComponent::convert (juce::File file)
 {
     // display prompt describing conversion with ok and cancel buttons
+    // for conversion we need a reader and a writer
 }
 
 void Assimil8orValidatorComponent::locate (juce::File file)
