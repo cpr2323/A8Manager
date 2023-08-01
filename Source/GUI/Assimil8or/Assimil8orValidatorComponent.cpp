@@ -185,17 +185,17 @@ juce::Component* Assimil8orValidatorComponent::refreshComponentForCell (int rowN
 
 void Assimil8orValidatorComponent::rename (juce::File file, int maxLength)
 {
-
+    // bring up a dialog showing the old name, a field for typing the new name (length constrained), and an ok/cancel button
 }
 
 void Assimil8orValidatorComponent::convert (juce::File file)
 {
-
+    // display prompt describing conversion with ok and cancel buttons
 }
 
 void Assimil8orValidatorComponent::locate (juce::File file)
 {
-
+    // bring up a file browser to locate
 }
 
 void Assimil8orValidatorComponent::cellClicked (int rowNumber, int columnId, const juce::MouseEvent&)
