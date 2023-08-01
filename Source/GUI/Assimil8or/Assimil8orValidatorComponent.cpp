@@ -39,6 +39,7 @@ Assimil8orValidatorComponent::Assimil8orValidatorComponent ()
     validatorResultsQuickLookupList.clear ();
     buildQuickLookupList ();
     repaint ();
+    audioFormatManager.registerBasicFormats ();
 }
 
 Assimil8orValidatorComponent::~Assimil8orValidatorComponent ()
@@ -206,6 +207,11 @@ public:
         newNamePromptLabel.setColour (juce::Label::ColourIds::textColourId, juce::Colours::black);
         newNamePromptLabel.setText ("New Name:", juce::NotificationType::dontSendNotification);
         addAndMakeVisible (newNamePromptLabel);
+
+        newNameEditor.setIndents (0, 0);
+        newNameEditor.setInputRestrictions (maxNameLength, {});
+        //newNameEditor.onReturnKey = [this, textEdited, &textEditor] () { juce::Logger::outputDebugString ("onReturnKey"); textEdited (textEditor.getText ()); };
+
         addAndMakeVisible (newNameEditor);
         okButton.setButtonText ("OK");
         addAndMakeVisible (okButton);
@@ -219,8 +225,15 @@ public:
         okButton.onClick = [this, oldFile] ()
         {
             // try to do rename
-            oldFile.moveFileTo (oldFile.getParentDirectory ().getChildFile (newNameEditor.getText ()));
-            closeDialog ();
+            if (oldFile.moveFileTo (oldFile.getParentDirectory ().getChildFile (newNameEditor.getText ())) == true)
+            {
+                closeDialog ();
+            }
+            else
+            {
+                // rename failed
+                jassertfalse;
+            }
         };
     }
 private:
@@ -286,6 +299,73 @@ void Assimil8orValidatorComponent::convert (juce::File file)
 {
     // display prompt describing conversion with ok and cancel buttons
     // for conversion we need a reader and a writer
+    
+    if (std::unique_ptr<juce::AudioFormatReader> reader (audioFormatManager.createReaderFor (file)); reader != nullptr)
+    {
+        auto tempFile { juce::File::createTempFile (".wav") };
+        auto fileStream { std::make_unique<juce::FileOutputStream> (tempFile) };
+        fileStream->setPosition (0);
+        fileStream->truncate ();
+
+        auto sampleRate { reader->sampleRate };
+        auto numChannels { reader->numChannels };
+        auto bitsPerSample { reader->bitsPerSample };
+
+        if (bitsPerSample < 8)
+        {
+            bitsPerSample = 8;
+        }
+        else if (bitsPerSample > 32)
+        {
+            bitsPerSample = 32;
+        }
+        if (numChannels < 1 || numChannels > 2)
+        {
+            // do we simply drop the other channels, or offer a mix down?
+            jassertfalse;
+        }
+        if (reader->sampleRate > 192000)
+        {
+            // we need to do sample rate conversion
+            jassertfalse;
+        }
+
+        juce::WavAudioFormat wavAudioFormat;
+        if (std::unique_ptr<juce::AudioFormatWriter> writer { wavAudioFormat.createWriterFor (fileStream.get (),
+                                                              sampleRate, numChannels, bitsPerSample, {}, 0) }; writer != nullptr)
+        {
+            // audioFormatWriter will delete the file stream when done
+            fileStream.release ();
+            // copy the whole thing
+            // TODO - two things
+            //   a) this needs to be done in a thread
+            //   b) we should locally read into a buffer and then write that, so we can display progress if needed
+            if (writer->writeFromAudioReader (*reader.get (), 0, -1) == true)
+            {
+                // close the writer and reader, so that we can manipulate the files
+                writer.reset ();
+                reader.reset ();
+
+                file.deleteFile ();
+                tempFile.moveFileTo (file);
+            }
+            else
+            {
+                // failure to copy all data
+                jassertfalse;
+            }
+        }
+        else
+        {
+            //failure to create writer
+            jassertfalse;
+        }
+    }
+    else
+    {
+        // failure to create reader
+        jassertfalse;
+    }
 }
 
 void Assimil8orValidatorComponent::locate (juce::File file)

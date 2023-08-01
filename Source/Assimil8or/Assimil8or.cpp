@@ -40,7 +40,6 @@ juce::String getMemorySizeString (uint64_t memoryUsage)
 
 Assimil8orValidator::Assimil8orValidator () : Thread ("Assimil8orValidator")
 {
-    // initialize format manager for sample file reading
     audioFormatManager.registerBasicFormats ();
 }
 
