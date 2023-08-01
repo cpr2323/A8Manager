@@ -69,19 +69,19 @@ private:
     ParseState parseState { ParseState::ParsingGlobalSection };
     PresetProperties presetProperties;
     
-    std::map<juce::String, std::function<void(const juce::String & value)>> presetActions;
-    std::map<juce::String, std::function<void(const juce::String & value)>> channelActions;
-    std::map<juce::String, std::function<void(const juce::String & value)>> zoneActions;
-//
-//    juce::ValueTree curPresetSection;
-//    ChannelProperties channelProperties;
-//    juce::ValueTree curChannelSection;
-//    ZoneProperties zoneProperties;
-//    juce::ValueTree curZoneSection;
-//    juce::String key;
-//    juce::String value;
+    std::map<juce::String, std::function<void()>> actions;
+//    std::map<juce::String, std::function<void(const juce::String & value)>> channelActions;
+//    std::map<juce::String, std::function<void(const juce::String & value)>> zoneActions;
+    juce::ValueTree curPresetSection;
+    ChannelProperties channelProperties;
+    juce::ValueTree curChannelSection;
+    ZoneProperties zoneProperties;
+    juce::ValueTree curZoneSection;
+    juce::String key;
+    juce::String value;
 
     juce::String getParseStateString (ParseState parseState);
     void setParseState (ParseState newParseState);
-    void dispatch(std::map<juce::String, std::function<void()>>& actions, juce::String assertText, const juce::String& key, const juce::String& value);
+    void dispatch();
+    void clearVars();
 };
