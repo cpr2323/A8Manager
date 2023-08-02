@@ -142,6 +142,10 @@ std::optional<uint64_t> Assimil8orValidator::validateFile (juce::File file, juce
     {
         validatorResultProperties.update (ValidatorResultProperties::ResultTypeInfo, "Preset", false);
 
+        const auto presetNumber { getPresetNumberFromName (file) };
+        if (presetNumber > maxPresets)
+            validatorResultProperties.update (ValidatorResultProperties::ResultTypeWarning, "(Preset number (" + juce::String(presetNumber) + ") above max of 199. Preset will be ignored)", false);
+
         juce::StringArray fileContents;
         file.readLines (fileContents);
 

@@ -41,10 +41,8 @@ juce::String ValidatorResultProperties::getNewTypeBasedOnPriority (juce::String 
         if (newType != ResultTypeNone && newType != ResultTypeInfo)
             return newType;
     }
-    {
-        jassertfalse;
-        return newType;
-    }
+
+    return curType;
 
 }
 void ValidatorResultProperties::updateType (juce::String resultType, bool includeSelfCallback)
