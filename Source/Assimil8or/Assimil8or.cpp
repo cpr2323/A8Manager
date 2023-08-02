@@ -173,7 +173,8 @@ std::optional<uint64_t> Assimil8orValidator::validateFile (juce::File file, juce
                         std::unique_ptr<juce::AudioFormatReader> reader (audioFormatManager.createReaderFor (sampleFile));
                         if (reader != nullptr)
                         {
-                            sizeRequiredForSamples += reader->numChannels * reader->lengthInSamples * 4;
+                            const auto bytesPerSampleInAssimMemory { 4 };
+                            sizeRequiredForSamples += reader->numChannels * reader->lengthInSamples * bytesPerSampleInAssimMemory;
                         }
                         else
                         {
@@ -238,7 +239,10 @@ std::optional<uint64_t> Assimil8orValidator::validateFile (juce::File file, juce
             };
             reportErrorIfTrue (reader->usesFloatingPointData == true, "[sample format must be integer]");
             reportErrorIfTrue (reader->bitsPerSample < 8 || reader->bitsPerSample > 32, "[bit depth must be between 8 and 32]");
-            reportErrorIfTrue (reader->numChannels < 1 || reader->numChannels > 2, "[only mono and stereo supported]");
+            if (reader->numChannels == 0)
+                validatorResultProperties.update (ValidatorResultProperties::ResultTypeError, "[no channels in file]", false);
+            else
+                reportErrorIfTrue (reader->numChannels > 2, "[only mono and stereo supported]");
             reportErrorIfTrue (reader->sampleRate > 192000, "[sample rate must not exceed 192k]");
         }
         else

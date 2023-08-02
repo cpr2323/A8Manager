@@ -224,9 +224,6 @@ void Assimil8orValidatorComponent::rename (juce::File file, int maxLength)
 
 void Assimil8orValidatorComponent::convert (juce::File file)
 {
-    // display prompt describing conversion with ok and cancel buttons
-    // for conversion we need a reader and a writer
-    
     if (std::unique_ptr<juce::AudioFormatReader> reader (audioFormatManager.createReaderFor (file)); reader != nullptr)
     {
         auto tempFile { juce::File::createTempFile (".wav") };
@@ -239,18 +236,12 @@ void Assimil8orValidatorComponent::convert (juce::File file)
         auto bitsPerSample { reader->bitsPerSample };
 
         if (bitsPerSample < 8)
-        {
             bitsPerSample = 8;
-        }
         else if (bitsPerSample > 32)
-        {
             bitsPerSample = 32;
-        }
-        if (numChannels < 1 || numChannels > 2)
-        {
-            // do we simply drop the other channels, or offer a mix down?
-            jassertfalse;
-        }
+        jassert (numChannels != 0);
+        if (numChannels > 2)
+            numChannels = 2;
         if (reader->sampleRate > 192000)
         {
             // we need to do sample rate conversion
