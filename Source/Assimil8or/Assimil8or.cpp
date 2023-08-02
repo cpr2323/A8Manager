@@ -496,239 +496,6 @@ void Assimil8orValidator::sortContentsOfFolder (juce::ValueTree folderVT)
     }
 }
 
-Assimil8orPreset::Assimil8orPreset ()
-{
-    auto getParameterIndex = [this] ()
-    {
-        auto index = key.fromFirstOccurrenceOf (" ", false, false).getIntValue ();
-        jassert(index > 0);
-        return index;
-    };
-    
-    
-    // Global Action
-    globalActions.insert ({
-        {Section::PresetId, [this] () {
-            curPresetSection = presetProperties.getValueTree();
-            setParseState (ParseState::ParsingPresetSection, &presetActions, "global");
-        }}
-    });
-    
-    // Preset Actions
-    presetActions.insert({
-        {Section::ChannelId, [this, getParameterIndex] () {
-            curChannelSection = presetProperties.addChannel (getParameterIndex ());
-            channelProperties.wrap (curChannelSection, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
-            curActions = &channelActions;
-            sectionName = {"channel"};
-            setParseState (ParseState::ParsingChannelSection, &channelActions, "channel");
-        }},
-        {Parameter::Preset::NameId, [this] () {
-            presetProperties.setName(value, false);
-        }},
-        {Parameter::Preset::Data2asCVId, [this] () {
-            presetProperties.setData2AsCV(value, false);
-        }},
-        {Parameter::Preset::XfadeACVId, [this] () {
-            presetProperties.setXfadeACV(value, false);
-        }},
-        {Parameter::Preset::XfadeAWidthId, [this] () {
-            presetProperties.setXfadeAWidth(value.getDoubleValue(), false);
-        }},
-        {Parameter::Preset::XfadeBCVId, [this] () {
-            presetProperties.setXfadeBCV(value, false);
-        }},
-        {Parameter::Preset::XfadeBWidthId, [this] () {
-            presetProperties.setXfadeBWidth(value.getDoubleValue(), false);
-        }},
-        {Parameter::Preset::XfadeCCVId, [this] () {
-            presetProperties.setXfadeCCV(value, false);
-        }},
-        {Parameter::Preset::XfadeCWidthId, [this] () {
-            presetProperties.setXfadeCWidth(value.getDoubleValue(), false);
-        }},
-        {Parameter::Preset::XfadeDCVId, [this] () {
-            presetProperties.setXfadeDCV(value, false);
-        }},
-        {Parameter::Preset::XfadeDWidthId, [this] () {
-            presetProperties.setXfadeDWidth(value.getDoubleValue(), false);
-        }}
-    });
-    
-    // Channel Actions
-    channelActions.insert({
-        {Section::ZoneId, [this, getParameterIndex]() {
-            // TODO - do we need to check for malformed data, ie more than 8 zones
-            curZoneSection = channelProperties.addZone(getParameterIndex());
-            zoneProperties.wrap(curZoneSection, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
-            curActions = &zoneActions;
-            sectionName = {"zone"};
-            setParseState(ParseState::ParsingZoneSection, &zoneActions, "zone");
-        }},
-        {Parameter::Channel::AttackId, [this] () {
-            channelProperties.setAttack(value.getDoubleValue(), false);
-        }},
-        {Parameter::Channel::AttackFromCurrentId, [this] () {
-            channelProperties.setAttackFromCurrent(value.getIntValue() == 1, false);
-        }},
-        {Parameter::Channel::AttackModId, [this] () {
-            auto [cvInput, attackModAmount] = ChannelProperties::getCvInputAndValueFromString(value);
-            channelProperties.setAttackMod(cvInput, attackModAmount, false);
-        }},
-        {Parameter::Channel::AliasingId, [this] () {
-            channelProperties.setAliasing(value.getIntValue(), false);
-        }},
-        {Parameter::Channel::AliasingModId, [this] () {
-            auto [cvInput, aliasingModAmount] = ChannelProperties::getCvInputAndValueFromString(value);
-            channelProperties.setAliasingMod(cvInput, aliasingModAmount, false);
-        }},
-        {Parameter::Channel::AutoTriggerId, [this] () {
-            channelProperties.setAutoTrigger(value.getIntValue() == 1, false);
-        }},
-        {Parameter::Channel::BitsId, [this] () {
-            channelProperties.setBits(value.getDoubleValue(), false);
-        }},
-        {Parameter::Channel::BitsModId, [this] () {
-            auto [cvInput, bitsModAmount] = ChannelProperties::getCvInputAndValueFromString(value);
-            channelProperties.setBitsMod(cvInput, bitsModAmount, false);
-        }},
-        {Parameter::Channel::ChannelModeId, [this] () {
-            channelProperties.setChannelMode(value.getIntValue(), false);
-        }},
-        {Parameter::Channel::ExpAMId, [this] () {
-            channelProperties.setExpAM(value.getDoubleValue(), false);
-        }},
-        {Parameter::Channel::ExpFMId, [this] () {
-            channelProperties.setExpFM(value.getDoubleValue(), false);
-        }},
-        {Parameter::Channel::LevelId, [this] () {
-            channelProperties.setLevel(value.getDoubleValue(), false);
-        }},
-        {Parameter::Channel::LinAMId, [this] () {
-            channelProperties.setLinAM(value.getDoubleValue(), false);
-        }},
-        {Parameter::Channel::LinAMisExtEnvId, [this] () {
-            channelProperties.setLinAMisExtEnv(value.getIntValue() == 1, false);
-        }},
-        {Parameter::Channel::LinFMId, [this] () {
-            channelProperties.setLinFM(value.getDoubleValue(), false);
-        }},
-        {Parameter::Channel::LoopLengthModId, [this] () {
-            auto [cvInput, loopLengthModAmount] = ChannelProperties::getCvInputAndValueFromString (value);
-            channelProperties.setLoopLengthMod (cvInput, loopLengthModAmount, false);
-        }},
-        {Parameter::Channel::LoopModeId, [this] () {
-            channelProperties.setLoopMode(value.getIntValue(), false);
-        }},
-        {Parameter::Channel::LoopStartModId, [this] () {
-            auto [cvInput, loopStartModAmount] = ChannelProperties::getCvInputAndValueFromString (value);
-            channelProperties.setLoopStartMod (cvInput, loopStartModAmount, false);
-        }},
-        {Parameter::Channel::MixLevelId, [this] () {
-            channelProperties.setMixLevel(value.getDoubleValue(), false);
-        }},
-        {Parameter::Channel::MixModId, [this] () {
-            auto [cvInput, mixModAmount] = ChannelProperties::getCvInputAndValueFromString (value);
-            channelProperties.setMixMod (cvInput, mixModAmount, false);
-        }},
-        {Parameter::Channel::MixModIsFaderId, [this] () {
-            channelProperties.setMixModIsFader (value.getIntValue() == 1, false);
-        }},
-        {Parameter::Channel::PanId, [this] () {
-            channelProperties.setPan (value.getDoubleValue(), false);
-        }},
-        {Parameter::Channel::PanModId, [this] () {
-            auto [cvInput, panModAmount] = ChannelProperties::getCvInputAndValueFromString (value);
-            channelProperties.setPanMod (cvInput, panModAmount, false);
-        }},
-        {Parameter::Channel::PhaseCVId, [this] () {
-            auto [cvInput, phaseCvAmount] = ChannelProperties::getCvInputAndValueFromString (value);
-            channelProperties.setPhaseCV (cvInput, phaseCvAmount, false);
-        }},
-        {Parameter::Channel::PitchId, [this] () {
-            channelProperties.setPitch (value.getDoubleValue(), false);
-        }},
-        {Parameter::Channel::PitchCVId, [this] () {
-            auto [cvInput, pitchCvAmount] = ChannelProperties::getCvInputAndValueFromString (value);
-            channelProperties.setPitchCV (cvInput, pitchCvAmount, false);
-        }},
-        {Parameter::Channel::PlayModeId, [this] () {
-            channelProperties.setPlayMode (value.getIntValue(), false);
-        }},
-        {Parameter::Channel::PMIndexId, [this] () {
-            channelProperties.setPMIndex (value.getDoubleValue(), false);
-        }},
-        {Parameter::Channel::PMIndexModId, [this] () {
-            auto [cvInput, pMIndexModAmount] = ChannelProperties::getCvInputAndValueFromString (value);
-            channelProperties.setPMIndexMod (cvInput, pMIndexModAmount, false);
-        }},
-        {Parameter::Channel::PMSourceId, [this] () {
-            channelProperties.setPMSource (value.getIntValue(), false);
-        }},
-        {Parameter::Channel::ReleaseId, [this] () {
-            channelProperties.setRelease (value.getDoubleValue(), false);
-        }},
-        {Parameter::Channel::ReleaseModId, [this] () {
-            auto [cvInput, releaseModAmount] = ChannelProperties::getCvInputAndValueFromString (value);
-            channelProperties.setReleaseMod (cvInput, releaseModAmount, false);
-        }},
-        {Parameter::Channel::ReverseId, [this] () {
-            channelProperties.setReverse (value.getIntValue() == 1, false);
-        }},
-        {Parameter::Channel::SampleEndModId, [this] () {
-            auto [cvInput, sampleEndModAmount] = ChannelProperties::getCvInputAndValueFromString (value);
-            channelProperties.setSampleEndMod (cvInput, sampleEndModAmount, false);
-        }},
-        {Parameter::Channel::SampleStartModId, [this] () {
-            auto [cvInput, sampleStartModAmount] = ChannelProperties::getCvInputAndValueFromString (value);
-            channelProperties.setSampleStartMod (cvInput, sampleStartModAmount, false);
-        }},
-        {Parameter::Channel::SpliceSmoothingId, [this] () {
-            channelProperties.setSpliceSmoothing (value.getIntValue() == 1, false);
-        }},
-        {Parameter::Channel::XfadeGroupId, [this] () {
-            channelProperties.setXfadeGroup (value, false);
-        }},
-        {Parameter::Channel::ZonesCVId, [this] () {
-            channelProperties.setZonesCV (value, false);
-        }},
-        {Parameter::Channel::ZonesRTId, [this] () {
-            channelProperties.setZonesRT (value.getIntValue(), false);
-        }}
-    });
-    
-    // Zone Actions
-    zoneActions.insert({
-        {Parameter::Zone::LevelOffsetId, [this] () {
-            zoneProperties.setLevelOffset (value.getDoubleValue (), false);
-        }},
-        {Parameter::Zone::LoopLengthId, [this] () {
-            zoneProperties.setLoopLength (value.getDoubleValue (), false);
-        }},
-        {Parameter::Zone::LoopStartId, [this] () {
-            zoneProperties.setLoopStart (value.getIntValue (), false);
-        }},
-        {Parameter::Zone::MinVoltageId, [this] () {
-            zoneProperties.setMinVoltage (value.getDoubleValue (), false);
-        }},
-        {Parameter::Zone::PitchOffsetId, [this] () {
-            zoneProperties.setPitchOffset (value.getDoubleValue (), false);
-        }},
-        {Parameter::Zone::SampleId, [this] () {
-            zoneProperties.setSample (value, false);
-        }},
-        {Parameter::Zone::SampleStartId, [this] () {
-            zoneProperties.setSampleStart (value.getIntValue (), false);
-        }},
-        {Parameter::Zone::SampleEndId, [this] () {
-            zoneProperties.setSampleEnd (value.getIntValue (), false);
-        }},
-        {Parameter::Zone::SideId, [this] () {
-            zoneProperties.setSide (value.getIntValue (), false);
-        }}
-    });
-}
-
 void Assimil8orPreset::write (juce::File presetFile, juce::ValueTree presetPropertiesVT)
 {
     jassert (presetPropertiesVT.isValid ());
@@ -875,7 +642,7 @@ void Assimil8orPreset::parse (juce::StringArray presetLines)
     zoneProperties = {};
     curZoneSection = {};
     
-    for (auto& presetLine : presetLines)
+    for (const auto& presetLine : presetLines)
     {
         const auto indent { presetLine.initialSectionContainingOnly (" ") };
         const auto previousScopeDepth { scopeDepth };
@@ -890,22 +657,32 @@ void Assimil8orPreset::parse (juce::StringArray presetLines)
                 switch (parseState)
                 {
                     case ParseState::ParsingGlobalSection: { jassertfalse; } break;
-                    case ParseState::ParsingPresetSection: { curPresetSection = {}; setParseState (ParseState::ParsingGlobalSection, &globalActions, "global"); } break;
-                    case ParseState::ParsingChannelSection: { curChannelSection = {}; setParseState (ParseState::ParsingPresetSection, &presetActions, "preset"); } break;
-                    case ParseState::ParsingZoneSection: { curZoneSection = {}; setParseState (ParseState::ParsingChannelSection, &channelActions, "channel"); } break;
+                    case ParseState::ParsingPresetSection:
+                    {
+                        curPresetSection = {};
+                        setParseState (ParseState::ParsingGlobalSection, &globalActions, "global");
+                    } break;
+                    case ParseState::ParsingChannelSection:
+                    {
+                        curChannelSection = {};
+                        setParseState (ParseState::ParsingPresetSection, &presetActions, "preset");
+                    } break;
+                    case ParseState::ParsingZoneSection: {
+                        curZoneSection = {};
+                        setParseState (ParseState::ParsingChannelSection, &channelActions, "channel");
+                    } break;
                     default: { jassertfalse; } break;
                 }
             }
         }
 
         LogParsing (juce::String (scopeDepth) + "-" + presetLine.trimStart ());
-        key = presetLine.upToFirstOccurrenceOf (":", false, false).trim ();
-        value = presetLine.fromFirstOccurrenceOf (":", false, false).trim ();
-        auto paramName = key.upToFirstOccurrenceOf (" ", false, false);
-
-        if (paramName != juce::String {})
+        if (!presetLine.trim ().isEmpty ())
         {
-            auto action = curActions->find (paramName);
+            key = presetLine.upToFirstOccurrenceOf (":", false, false).trim ();
+            value = presetLine.fromFirstOccurrenceOf (":", false, false).trim ();
+            const auto paramName = key.upToFirstOccurrenceOf (" ", false, false);
+            const auto action = curActions->find (paramName);
             if (action != curActions->end ())
             {
                 action->second ();
@@ -918,8 +695,7 @@ void Assimil8orPreset::parse (juce::StringArray presetLines)
         }
         else
         {
-            LogParsing ("Empty Param");
-            // jassertfalse;
+            LogParsing ("Empty Line");
         }
     }
 }
@@ -941,5 +717,233 @@ void Assimil8orPreset::setParseState (ParseState newParseState, ActionMap * newA
     parseState = newParseState;
     curActions = newActions;
     sectionName = {newSectionName};
-    // juce::Logger::outputDebugString ("new state: " + getParseStateString (parseState));
+}
+
+Assimil8orPreset::Assimil8orPreset ()
+{
+    auto getParameterIndex = [this] ()
+    {
+        const auto index = key.fromFirstOccurrenceOf (" ", false, false).getIntValue ();
+        jassert(index > 0);
+        return index;
+    };
+    
+    
+    // Global Action
+    globalActions.insert ({
+        {Section::PresetId, [this] () {
+            curPresetSection = presetProperties.getValueTree();
+            setParseState (ParseState::ParsingPresetSection, &presetActions, "preset");
+        }}
+    });
+    
+    // Preset Actions
+    presetActions.insert({
+        {Section::ChannelId, [this, getParameterIndex] () {
+            curChannelSection = presetProperties.addChannel (getParameterIndex ());
+            channelProperties.wrap (curChannelSection, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
+            setParseState (ParseState::ParsingChannelSection, &channelActions, "channel");
+        }},
+        {Parameter::Preset::NameId, [this] () {
+            presetProperties.setName(value, false);
+        }},
+        {Parameter::Preset::Data2asCVId, [this] () {
+            presetProperties.setData2AsCV(value, false);
+        }},
+        {Parameter::Preset::XfadeACVId, [this] () {
+            presetProperties.setXfadeACV(value, false);
+        }},
+        {Parameter::Preset::XfadeAWidthId, [this] () {
+            presetProperties.setXfadeAWidth(value.getDoubleValue(), false);
+        }},
+        {Parameter::Preset::XfadeBCVId, [this] () {
+            presetProperties.setXfadeBCV(value, false);
+        }},
+        {Parameter::Preset::XfadeBWidthId, [this] () {
+            presetProperties.setXfadeBWidth(value.getDoubleValue(), false);
+        }},
+        {Parameter::Preset::XfadeCCVId, [this] () {
+            presetProperties.setXfadeCCV(value, false);
+        }},
+        {Parameter::Preset::XfadeCWidthId, [this] () {
+            presetProperties.setXfadeCWidth(value.getDoubleValue(), false);
+        }},
+        {Parameter::Preset::XfadeDCVId, [this] () {
+            presetProperties.setXfadeDCV(value, false);
+        }},
+        {Parameter::Preset::XfadeDWidthId, [this] () {
+            presetProperties.setXfadeDWidth(value.getDoubleValue(), false);
+        }}
+    });
+    
+    // Channel Actions
+    channelActions.insert({
+        {Section::ZoneId, [this, getParameterIndex]() {
+            // TODO - do we need to check for malformed data, ie more than 8 zones
+            curZoneSection = channelProperties.addZone(getParameterIndex());
+            zoneProperties.wrap(curZoneSection, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
+            setParseState(ParseState::ParsingZoneSection, &zoneActions, "zone");
+        }},
+        {Parameter::Channel::AttackId, [this] () {
+            channelProperties.setAttack(value.getDoubleValue(), false);
+        }},
+        {Parameter::Channel::AttackFromCurrentId, [this] () {
+            channelProperties.setAttackFromCurrent(value.getIntValue() == 1, false);
+        }},
+        {Parameter::Channel::AttackModId, [this] () {
+            const auto [cvInput, attackModAmount] = ChannelProperties::getCvInputAndValueFromString(value);
+            channelProperties.setAttackMod(cvInput, attackModAmount, false);
+        }},
+        {Parameter::Channel::AliasingId, [this] () {
+            channelProperties.setAliasing(value.getIntValue(), false);
+        }},
+        {Parameter::Channel::AliasingModId, [this] () {
+            const auto [cvInput, aliasingModAmount] = ChannelProperties::getCvInputAndValueFromString(value);
+            channelProperties.setAliasingMod(cvInput, aliasingModAmount, false);
+        }},
+        {Parameter::Channel::AutoTriggerId, [this] () {
+            channelProperties.setAutoTrigger(value.getIntValue() == 1, false);
+        }},
+        {Parameter::Channel::BitsId, [this] () {
+            channelProperties.setBits(value.getDoubleValue(), false);
+        }},
+        {Parameter::Channel::BitsModId, [this] () {
+            const auto [cvInput, bitsModAmount] = ChannelProperties::getCvInputAndValueFromString(value);
+            channelProperties.setBitsMod(cvInput, bitsModAmount, false);
+        }},
+        {Parameter::Channel::ChannelModeId, [this] () {
+            channelProperties.setChannelMode(value.getIntValue(), false);
+        }},
+        {Parameter::Channel::ExpAMId, [this] () {
+            channelProperties.setExpAM(value.getDoubleValue(), false);
+        }},
+        {Parameter::Channel::ExpFMId, [this] () {
+            channelProperties.setExpFM(value.getDoubleValue(), false);
+        }},
+        {Parameter::Channel::LevelId, [this] () {
+            channelProperties.setLevel(value.getDoubleValue(), false);
+        }},
+        {Parameter::Channel::LinAMId, [this] () {
+            channelProperties.setLinAM(value.getDoubleValue(), false);
+        }},
+        {Parameter::Channel::LinAMisExtEnvId, [this] () {
+            channelProperties.setLinAMisExtEnv(value.getIntValue() == 1, false);
+        }},
+        {Parameter::Channel::LinFMId, [this] () {
+            channelProperties.setLinFM(value.getDoubleValue(), false);
+        }},
+        {Parameter::Channel::LoopLengthModId, [this] () {
+            const auto [cvInput, loopLengthModAmount] = ChannelProperties::getCvInputAndValueFromString (value);
+            channelProperties.setLoopLengthMod (cvInput, loopLengthModAmount, false);
+        }},
+        {Parameter::Channel::LoopModeId, [this] () {
+            channelProperties.setLoopMode(value.getIntValue(), false);
+        }},
+        {Parameter::Channel::LoopStartModId, [this] () {
+            const auto [cvInput, loopStartModAmount] = ChannelProperties::getCvInputAndValueFromString (value);
+            channelProperties.setLoopStartMod (cvInput, loopStartModAmount, false);
+        }},
+        {Parameter::Channel::MixLevelId, [this] () {
+            channelProperties.setMixLevel(value.getDoubleValue(), false);
+        }},
+        {Parameter::Channel::MixModId, [this] () {
+            const auto [cvInput, mixModAmount] = ChannelProperties::getCvInputAndValueFromString (value);
+            channelProperties.setMixMod (cvInput, mixModAmount, false);
+        }},
+        {Parameter::Channel::MixModIsFaderId, [this] () {
+            channelProperties.setMixModIsFader (value.getIntValue() == 1, false);
+        }},
+        {Parameter::Channel::PanId, [this] () {
+            channelProperties.setPan (value.getDoubleValue(), false);
+        }},
+        {Parameter::Channel::PanModId, [this] () {
+            const auto [cvInput, panModAmount] = ChannelProperties::getCvInputAndValueFromString (value);
+            channelProperties.setPanMod (cvInput, panModAmount, false);
+        }},
+        {Parameter::Channel::PhaseCVId, [this] () {
+            const auto [cvInput, phaseCvAmount] = ChannelProperties::getCvInputAndValueFromString (value);
+            channelProperties.setPhaseCV (cvInput, phaseCvAmount, false);
+        }},
+        {Parameter::Channel::PitchId, [this] () {
+            channelProperties.setPitch (value.getDoubleValue(), false);
+        }},
+        {Parameter::Channel::PitchCVId, [this] () {
+            const auto [cvInput, pitchCvAmount] = ChannelProperties::getCvInputAndValueFromString (value);
+            channelProperties.setPitchCV (cvInput, pitchCvAmount, false);
+        }},
+        {Parameter::Channel::PlayModeId, [this] () {
+            channelProperties.setPlayMode (value.getIntValue(), false);
+        }},
+        {Parameter::Channel::PMIndexId, [this] () {
+            channelProperties.setPMIndex (value.getDoubleValue(), false);
+        }},
+        {Parameter::Channel::PMIndexModId, [this] () {
+            const auto [cvInput, pMIndexModAmount] = ChannelProperties::getCvInputAndValueFromString (value);
+            channelProperties.setPMIndexMod (cvInput, pMIndexModAmount, false);
+        }},
+        {Parameter::Channel::PMSourceId, [this] () {
+            channelProperties.setPMSource (value.getIntValue(), false);
+        }},
+        {Parameter::Channel::ReleaseId, [this] () {
+            channelProperties.setRelease (value.getDoubleValue(), false);
+        }},
+        {Parameter::Channel::ReleaseModId, [this] () {
+            const auto [cvInput, releaseModAmount] = ChannelProperties::getCvInputAndValueFromString (value);
+            channelProperties.setReleaseMod (cvInput, releaseModAmount, false);
+        }},
+        {Parameter::Channel::ReverseId, [this] () {
+            channelProperties.setReverse (value.getIntValue() == 1, false);
+        }},
+        {Parameter::Channel::SampleEndModId, [this] () {
+            const auto [cvInput, sampleEndModAmount] = ChannelProperties::getCvInputAndValueFromString (value);
+            channelProperties.setSampleEndMod (cvInput, sampleEndModAmount, false);
+        }},
+        {Parameter::Channel::SampleStartModId, [this] () {
+            const auto [cvInput, sampleStartModAmount] = ChannelProperties::getCvInputAndValueFromString (value);
+            channelProperties.setSampleStartMod (cvInput, sampleStartModAmount, false);
+        }},
+        {Parameter::Channel::SpliceSmoothingId, [this] () {
+            channelProperties.setSpliceSmoothing (value.getIntValue() == 1, false);
+        }},
+        {Parameter::Channel::XfadeGroupId, [this] () {
+            channelProperties.setXfadeGroup (value, false);
+        }},
+        {Parameter::Channel::ZonesCVId, [this] () {
+            channelProperties.setZonesCV (value, false);
+        }},
+        {Parameter::Channel::ZonesRTId, [this] () {
+            channelProperties.setZonesRT (value.getIntValue(), false);
+        }}
+    });
+    
+    // Zone Actions
+    zoneActions.insert({
+        {Parameter::Zone::LevelOffsetId, [this] () {
+            zoneProperties.setLevelOffset (value.getDoubleValue (), false);
+        }},
+        {Parameter::Zone::LoopLengthId, [this] () {
+            zoneProperties.setLoopLength (value.getDoubleValue (), false);
+        }},
+        {Parameter::Zone::LoopStartId, [this] () {
+            zoneProperties.setLoopStart (value.getIntValue (), false);
+        }},
+        {Parameter::Zone::MinVoltageId, [this] () {
+            zoneProperties.setMinVoltage (value.getDoubleValue (), false);
+        }},
+        {Parameter::Zone::PitchOffsetId, [this] () {
+            zoneProperties.setPitchOffset (value.getDoubleValue (), false);
+        }},
+        {Parameter::Zone::SampleId, [this] () {
+            zoneProperties.setSample (value, false);
+        }},
+        {Parameter::Zone::SampleStartId, [this] () {
+            zoneProperties.setSampleStart (value.getIntValue (), false);
+        }},
+        {Parameter::Zone::SampleEndId, [this] () {
+            zoneProperties.setSampleEnd (value.getIntValue (), false);
+        }},
+        {Parameter::Zone::SideId, [this] () {
+            zoneProperties.setSide (value.getIntValue (), false);
+        }}
+    });
 }
