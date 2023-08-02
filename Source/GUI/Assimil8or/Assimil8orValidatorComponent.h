@@ -29,6 +29,7 @@ private:
     juce::TextButton errorFilterButton;
     SafePointer<juce::DialogWindow> renameDialog;
     juce::AudioFormatManager audioFormatManager;
+    std::unique_ptr<juce::FileChooser> fileChooser;
 
     void buildQuickLookupList ();
     void rename (juce::File file, int maxLength);

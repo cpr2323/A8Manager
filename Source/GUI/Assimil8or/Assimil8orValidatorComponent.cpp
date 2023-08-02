@@ -371,6 +371,16 @@ void Assimil8orValidatorComponent::convert (juce::File file)
 void Assimil8orValidatorComponent::locate (juce::File file)
 {
     // bring up a file browser to locate
+    fileChooser.reset (new juce::FileChooser ("Please locate the missing file...", {}, {}));
+    fileChooser->launchAsync (juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles, [this, file] (const juce::FileChooser& fc) mutable
+    {
+        if (fc.getURLResults ().size () == 1 && fc.getURLResults () [0].isLocalFile ())
+        {
+            // copy selected file to missing file location
+            auto sourceFile { fc.getURLResults () [0].getLocalFile () };
+            sourceFile.copyFileTo (file);
+        }
+    }, nullptr);
 }
 
 void Assimil8orValidatorComponent::cellClicked (int rowNumber, int columnId, const juce::MouseEvent&)
