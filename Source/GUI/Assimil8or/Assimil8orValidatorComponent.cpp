@@ -210,7 +210,7 @@ public:
 
         newNameEditor.setIndents (0, 0);
         newNameEditor.setInputRestrictions (maxNameLength, {});
-        //newNameEditor.onReturnKey = [this, textEdited, &textEditor] () { juce::Logger::outputDebugString ("onReturnKey"); textEdited (textEditor.getText ()); };
+        newNameEditor.onReturnKey = [this, oldFile] () { doRename (oldFile); };
 
         addAndMakeVisible (newNameEditor);
         okButton.setButtonText ("OK");
@@ -224,17 +224,26 @@ public:
         };
         okButton.onClick = [this, oldFile] ()
         {
-            // try to do rename
-            if (oldFile.moveFileTo (oldFile.getParentDirectory ().getChildFile (newNameEditor.getText ())) == true)
-            {
-                closeDialog ();
-            }
-            else
-            {
-                // rename failed
-                jassertfalse;
-            }
+            doRename (oldFile);
         };
+    }
+    void doRename (juce::File oldFile)
+    {
+        auto newFile { oldFile.getParentDirectory ().getChildFile (newNameEditor.getText ()) };
+        if (! oldFile.isDirectory () && newFile.getFileExtension () == "")
+            newFile = newFile.withFileExtension (oldFile.getFileExtension ());
+
+        // try to do rename
+        if (oldFile.moveFileTo (newFile) == true)
+        {
+            closeDialog ();
+        }
+        else
+        {
+            // rename failed
+            jassertfalse;
+        }
+
     }
 private:
     juce::Label oldNameLabel;
