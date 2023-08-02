@@ -323,6 +323,7 @@ void Assimil8orValidatorComponent::locate (juce::File file)
                 // TODO - handle error
                 jassertfalse;
             }
+            validatorProperties.startAsyncScan (false);
         }
     }, nullptr);
 }
