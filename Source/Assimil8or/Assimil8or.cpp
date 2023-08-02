@@ -501,18 +501,16 @@ Assimil8orPreset::Assimil8orPreset ()
     auto getParameterIndex = [this] ()
     {
         auto index = key.fromFirstOccurrenceOf (" ", false, false).getIntValue ();
-        if (index < 1)
-        {
-            jassertfalse;
-        }
+        jassert(index > 0);
         return index;
     };
+    
     
     // Global Action
     globalActions.insert ({
         {Section::PresetId, [this] () {
             curPresetSection = presetProperties.getValueTree();
-            setParseState (ParseState::ParsingPresetSection);
+            setParseState (ParseState::ParsingPresetSection, &presetActions, "global");
         }}
     });
     
@@ -521,7 +519,9 @@ Assimil8orPreset::Assimil8orPreset ()
         {Section::ChannelId, [this, getParameterIndex] () {
             curChannelSection = presetProperties.addChannel (getParameterIndex ());
             channelProperties.wrap (curChannelSection, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
-            setParseState (ParseState::ParsingChannelSection);
+            curActions = &channelActions;
+            sectionName = {"channel"};
+            setParseState (ParseState::ParsingChannelSection, &channelActions, "channel");
         }},
         {Parameter::Preset::NameId, [this] () {
             presetProperties.setName(value, false);
@@ -561,7 +561,9 @@ Assimil8orPreset::Assimil8orPreset ()
             // TODO - do we need to check for malformed data, ie more than 8 zones
             curZoneSection = channelProperties.addZone(getParameterIndex());
             zoneProperties.wrap(curZoneSection, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
-            setParseState(ParseState::ParsingZoneSection);
+            curActions = &zoneActions;
+            sectionName = {"zone"};
+            setParseState(ParseState::ParsingZoneSection, &zoneActions, "zone");
         }},
         {Parameter::Channel::AttackId, [this] () {
             channelProperties.setAttack(value.getDoubleValue(), false);
@@ -858,14 +860,6 @@ void Assimil8orPreset::write (juce::File presetFile)
     write (presetFile, presetProperties.getValueTree ());
 }
 
-void Assimil8orPreset::clearVars()
-{
-    curPresetSection = {};
-    channelProperties = {};
-    curChannelSection = {};
-    zoneProperties = {};
-    curZoneSection = {};
-}
 
 // NOTE: still very much under construction
 void Assimil8orPreset::parse (juce::StringArray presetLines)
@@ -873,28 +867,13 @@ void Assimil8orPreset::parse (juce::StringArray presetLines)
     jassert (presetProperties.isValid ());
 
     auto scopeDepth { 0 };
-    clearVars ();
     
-    auto dispatch = [this] (std::map<juce::String, std::function<void ()>> & actions, juce::String assertMessage)
-    {
-        auto paramName = key.upToFirstOccurrenceOf (" ", false, false);
-
-        if (paramName != juce::String (""))
-        {
-            auto action = actions.find (paramName);
-            if (action != actions.end ()) {
-                action->second (); // Call the function associated with the presetLine key
-            } else {
-                LogParsing (assertMessage);
-                jassertfalse;
-            }
-        }
-        else
-        {
-            LogParsing ("Empty Param");
-            // jassertfalse;
-        }
-    };
+    curActions = &globalActions;
+    curPresetSection = {};
+    channelProperties = {};
+    curChannelSection = {};
+    zoneProperties = {};
+    curZoneSection = {};
     
     for (auto& presetLine : presetLines)
     {
@@ -911,9 +890,9 @@ void Assimil8orPreset::parse (juce::StringArray presetLines)
                 switch (parseState)
                 {
                     case ParseState::ParsingGlobalSection: { jassertfalse; } break;
-                    case ParseState::ParsingPresetSection: { curPresetSection = {}; setParseState (ParseState::ParsingGlobalSection); } break;
-                    case ParseState::ParsingChannelSection: { curChannelSection = {}; setParseState (ParseState::ParsingPresetSection); } break;
-                    case ParseState::ParsingZoneSection: { curZoneSection = {}; setParseState (ParseState::ParsingChannelSection); } break;
+                    case ParseState::ParsingPresetSection: { curPresetSection = {}; setParseState (ParseState::ParsingGlobalSection, &globalActions, "global"); } break;
+                    case ParseState::ParsingChannelSection: { curChannelSection = {}; setParseState (ParseState::ParsingPresetSection, &presetActions, "preset"); } break;
+                    case ParseState::ParsingZoneSection: { curZoneSection = {}; setParseState (ParseState::ParsingChannelSection, &channelActions, "channel"); } break;
                     default: { jassertfalse; } break;
                 }
             }
@@ -922,23 +901,25 @@ void Assimil8orPreset::parse (juce::StringArray presetLines)
         LogParsing (juce::String (scopeDepth) + "-" + presetLine.trimStart ());
         key = presetLine.upToFirstOccurrenceOf (":", false, false).trim ();
         value = presetLine.fromFirstOccurrenceOf (":", false, false).trim ();
-        switch (parseState)
+        auto paramName = key.upToFirstOccurrenceOf (" ", false, false);
+
+        if (paramName != juce::String {})
         {
-            case ParseState::ParsingGlobalSection:
-                dispatch (globalActions, "unknown global key: " + key);
-                break;
-            case ParseState::ParsingPresetSection:
-                dispatch (presetActions, "unknown preset key: " + key);
-                break;
-            case ParseState::ParsingChannelSection:
-                dispatch (channelActions, "unknown channel key: " + key);
-                break;
-            case ParseState::ParsingZoneSection:
-                dispatch (zoneActions, "unknown zone key: " + key);
-                break;
-            default:
+            auto action = curActions->find (paramName);
+            if (action != curActions->end ())
+            {
+                action->second ();
+            }
+            else
+            {
+                LogParsing ("unknown " + sectionName + " key: " + key);
                 jassertfalse;
-                break;
+            }
+        }
+        else
+        {
+            LogParsing ("Empty Param");
+            // jassertfalse;
         }
     }
 }
@@ -955,8 +936,10 @@ juce::String Assimil8orPreset::getParseStateString (ParseState theParseState)
     }
 };
 
-void Assimil8orPreset::setParseState (ParseState newParseState)
+void Assimil8orPreset::setParseState (ParseState newParseState, ActionMap * newActions, juce::String newSectionName)
 {
     parseState = newParseState;
+    curActions = newActions;
+    sectionName = {newSectionName};
     // juce::Logger::outputDebugString ("new state: " + getParseStateString (parseState));
 }
