@@ -202,13 +202,16 @@ void Assimil8orValidatorComponent::rename (juce::File file, int maxLength)
 {
     // bring up a dialog showing the old name, a field for typing the new name (length constrained), and an ok/cancel button
     juce::DialogWindow::LaunchOptions options;
-    auto renameContent { std::make_unique<RenameDialogContent> (file, maxLength) };
+    auto renameContent { std::make_unique<RenameDialogContent> (file, maxLength, [this] (bool wasRenamed)
+        {
+            if (wasRenamed)
+                validatorProperties.startAsyncScan (false);
+        }) };
     options.content.setOwned (renameContent.release ());
 
     juce::Rectangle<int> area (0, 0, 300, 200);
 
     options.content->setSize (area.getWidth (), area.getHeight ());
-
     options.dialogTitle = "Rename";
     options.dialogBackgroundColour = juce::Colour (juce::Colours::whitesmoke);
     options.escapeKeyTriggersCloseButton = true;

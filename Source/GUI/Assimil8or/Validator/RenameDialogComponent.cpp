@@ -1,7 +1,9 @@
 #include "RenameDialogComponent.h"
 
-RenameDialogContent::RenameDialogContent (juce::File oldFile, int maxNameLength)
+RenameDialogContent::RenameDialogContent (juce::File oldFile, int maxNameLength, std::function<void (bool)> theDoneCallback)
 {
+    doneCallback = theDoneCallback;
+
     oldNameLabel.setColour (juce::Label::ColourIds::textColourId, juce::Colours::black);
     oldNameLabel.setText ("Current Name: " + oldFile.getFileName (), juce::NotificationType::dontSendNotification);
     addAndMakeVisible (oldNameLabel);
@@ -32,6 +34,7 @@ void RenameDialogContent::doRename (juce::File oldFile)
     // try to do rename
     if (oldFile.moveFileTo (newFile) == true)
     {
+        renamed = true;
         closeDialog ();
     }
     else
@@ -43,6 +46,8 @@ void RenameDialogContent::doRename (juce::File oldFile)
 
 void RenameDialogContent::closeDialog ()
 {
+    if (doneCallback != nullptr)
+        doneCallback (renamed);
     if (juce::DialogWindow* dw = findParentComponentOfClass<juce::DialogWindow> ())
         dw->exitModalState (0);
     delete this;
