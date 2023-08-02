@@ -8,10 +8,10 @@ MainComponent::MainComponent (juce::ValueTree rootPropertiesVT)
     setSize (800, 600);
     
     assimil8orValidatorComponent.init (rootPropertiesVT);
-    assimil8orPresetComponent.init (rootPropertiesVT);
+    assimil8orEditorComponent.init (rootPropertiesVT);
 #if ENABLE_EDITOR
     contentTab.addTab ("Validator", juce::Colours::darkgrey, &assimil8orValidatorComponent, false);
-    contentTab.addTab ("Editor", juce::Colours::darkgrey, &assimil8orPresetComponent, false);
+    contentTab.addTab ("Editor", juce::Colours::darkgrey, &assimil8orEditorComponent, false);
     addAndMakeVisible (contentTab);
 #else
     addAndMakeVisible (assimil8orValidatorComponent);

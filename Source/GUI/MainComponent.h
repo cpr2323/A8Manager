@@ -2,8 +2,8 @@
 
 #include <JuceHeader.h>
 #include "ToolWindow.h"
-#include "Assimil8or/Assimil8orPresetComponent.h"
-#include "Assimil8or/Assimil8orValidatorComponent.h"
+#include "Assimil8or/Editor/Assimil8orEditorComponent.h"
+#include "Assimil8or/Validator/Assimil8orValidatorComponent.h"
 
 class MainComponent  : public juce::Component
 {
@@ -14,7 +14,7 @@ public:
 private:
         juce::TabbedComponent contentTab { juce::TabbedButtonBar::Orientation::TabsAtTop };
 
-    Assimil8orPresetComponent assimil8orPresetComponent;
+    Assimil8orEditorComponent assimil8orEditorComponent;
     Assimil8orValidatorComponent assimil8orValidatorComponent;
     ToolWindow toolWindow;
 

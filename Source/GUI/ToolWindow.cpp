@@ -13,7 +13,7 @@ ToolWindow::ToolWindow ()
         pm.addItem ("Load Preset", true, false, [this] () { loadPresetUi (); });
         pm.addItem ("Save Preset", true, false, [this] () { savePresetUi (); });
         pm.addSeparator ();
-        pm.addItem ("Validate Directory", true, false, [this] () { verifySdCardImage (); });
+        pm.addItem ("Validate Directory", true, false, [this] () { verifyDirectory (); });
         pm.showMenuAsync ({}, [this] (int) {});
     };
     addAndMakeVisible (fileMenuButton);
@@ -110,18 +110,18 @@ void ToolWindow::updateProgress (juce::String progressUpdate)
     progressUpdateLabel.setText (progressUpdate, juce::NotificationType::dontSendNotification);
 }
 
-void ToolWindow::verifySdCardImage ()
+void ToolWindow::verifyDirectory ()
 {
     fileChooser.reset (new juce::FileChooser ("Please select the folder to scan as an Assimil8or SD Card...",
                                               appProperties.getMostRecentFolder (), ""));
     fileChooser->launchAsync (juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectDirectories, [this] (const juce::FileChooser& fc) mutable
+    {
+        if (fc.getURLResults ().size () == 1 && fc.getURLResults () [0].isLocalFile ())
         {
-            if (fc.getURLResults ().size () == 1 && fc.getURLResults () [0].isLocalFile ())
-            {
-                validatorProperties.setRootFolder (fc.getURLResults () [0].getLocalFile ().getFullPathName (), false);
-                validatorProperties.startAsyncScan (false);
-            }
-        }, nullptr);
+            validatorProperties.setRootFolder (fc.getURLResults () [0].getLocalFile ().getFullPathName (), false);
+            validatorProperties.startAsyncScan (false);
+        }
+    }, nullptr);
 }
 
 void ToolWindow::verifyFileUi ()

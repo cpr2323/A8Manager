@@ -33,7 +33,7 @@ private:
     void savePresetUi ();
     void updateProgress (juce::String progressUpdate);
     void updateScanStatus (juce::String scanStatus);
-    void verifySdCardImage ();
+    void verifyDirectory ();
     void verifyFileUi ();
     void verifyFile (juce::File presetFile);
     void verifyFoldersUi ();
