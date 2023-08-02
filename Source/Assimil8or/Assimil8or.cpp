@@ -85,12 +85,12 @@ void Assimil8orValidator::doIfProgressTimeElapsed (std::function<void ()> functi
 
 bool Assimil8orValidator::isAudioFile (juce::File file)
 {
-    return file.getFileExtension () == ".wav";
+    return file.getFileExtension ().toLowerCase() == ".wav";
 }
 
 bool Assimil8orValidator::isPresetFile (juce::File file)
 {
-    return file.getFileExtension () == ".yml" &&
+    return file.getFileExtension ().toLowerCase () == ".yml" &&
            file.getFileNameWithoutExtension ().length () == 7 &&
            file.getFileNameWithoutExtension ().startsWith ("prst") &&
            file.getFileNameWithoutExtension ().substring (4).containsOnly ("0123456789");
@@ -109,26 +109,6 @@ std::optional<uint64_t> Assimil8orValidator::validateFile (juce::File file, juce
     ValidatorResultProperties validatorResultProperties (validatorResultsVT,
                                                          ValidatorResultProperties::WrapperType::client, ValidatorResultProperties::EnableCallbacks::no);
 
-    auto checkAudioFile = [this] (juce::File file)
-    {
-        if (file.getFileExtension () == ".wav")
-        {
-            // file type assimil8or wants
-        }
-        else
-        {
-            // possibly an audio file of a format not supported on the Assimil8or
-            auto* format { audioFormatManager.findFormatForFileExtension (file.getFileExtension ()) };
-            if (format != nullptr)
-            {
-                // this is a type we can read, so we can offer to convert it
-            }
-            else
-            {
-                // this is an unknown file type
-            }
-        }
-    };
     std::optional<uint64_t> optionalPresetInfo;
     LogValidation ("File: " + file.getFileName ());
     if (file.getFileName ().startsWithChar ('.'))
@@ -258,8 +238,21 @@ std::optional<uint64_t> Assimil8orValidator::validateFile (juce::File file, juce
     }
     else
     {
-        LogValidation ("  File (unknown)");
-        validatorResultProperties.update (ValidatorResultProperties::ResultTypeWarning, "(unknown file type)", false);
+#if 0
+        // this is crashing on occassion, will debug later
+        // possibly an audio file of a format not supported on the Assimil8or
+        if (std::unique_ptr <juce::AudioFormat> format (audioFormatManager.findFormatForFileExtension (file.getFileExtension ())); format != nullptr)
+        {
+            // this is a type we can read, so we can offer to convert it
+            LogValidation ("  File (unsupported audio format)");
+            validatorResultProperties.update (ValidatorResultProperties::ResultTypeWarning, "(unsupported audio format)", false);
+        }
+        else
+#endif // 0
+        {
+            LogValidation ("  File (unknown)");
+            validatorResultProperties.update (ValidatorResultProperties::ResultTypeWarning, "(unknown file type)", false);
+        }
     }
 
     return {};
