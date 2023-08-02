@@ -48,14 +48,22 @@
       </GROUP>
       <GROUP id="{CF0C93A7-2DC9-863C-8999-5F753D262369}" name="GUI">
         <GROUP id="{E38BD768-EC43-B8F0-AB46-78F18BDF75B0}" name="Assimil8or">
-          <FILE id="v55hIs" name="Assimil8orPresetComponent.cpp" compile="1"
-                resource="0" file="Source/GUI/Assimil8or/Assimil8orPresetComponent.cpp"/>
-          <FILE id="ayK2Bn" name="Assimil8orPresetComponent.h" compile="0" resource="0"
-                file="Source/GUI/Assimil8or/Assimil8orPresetComponent.h"/>
-          <FILE id="g474Kb" name="Assimil8orValidatorComponent.cpp" compile="1"
-                resource="0" file="Source/GUI/Assimil8or/Assimil8orValidatorComponent.cpp"/>
-          <FILE id="ns8GQt" name="Assimil8orValidatorComponent.h" compile="0"
-                resource="0" file="Source/GUI/Assimil8or/Assimil8orValidatorComponent.h"/>
+          <GROUP id="{E38A382D-990E-A82D-2924-1AE3B97D907B}" name="Editor">
+            <FILE id="liNFVw" name="Assimil8orEditorComponent.cpp" compile="1"
+                  resource="0" file="Source/GUI/Assimil8or/Editor/Assimil8orEditorComponent.cpp"/>
+            <FILE id="HH5ILq" name="Assimil8orEditorComponent.h" compile="0" resource="0"
+                  file="Source/GUI/Assimil8or/Editor/Assimil8orEditorComponent.h"/>
+          </GROUP>
+          <GROUP id="{4795A860-BF58-C090-2CA5-50CBED6DB470}" name="Validator">
+            <FILE id="WyOqUC" name="Assimil8orValidatorComponent.cpp" compile="1"
+                  resource="0" file="Source/GUI/Assimil8or/Validator/Assimil8orValidatorComponent.cpp"/>
+            <FILE id="PhfQ11" name="Assimil8orValidatorComponent.h" compile="0"
+                  resource="0" file="Source/GUI/Assimil8or/Validator/Assimil8orValidatorComponent.h"/>
+            <FILE id="aVQZjM" name="RenameDialogComponent.cpp" compile="1" resource="0"
+                  file="Source/GUI/Assimil8or/Validator/RenameDialogComponent.cpp"/>
+            <FILE id="pHRbjm" name="RenameDialogComponent.h" compile="0" resource="0"
+                  file="Source/GUI/Assimil8or/Validator/RenameDialogComponent.h"/>
+          </GROUP>
         </GROUP>
         <FILE id="Van35d" name="MainComponent.cpp" compile="1" resource="0"
               file="Source/GUI/MainComponent.cpp"/>

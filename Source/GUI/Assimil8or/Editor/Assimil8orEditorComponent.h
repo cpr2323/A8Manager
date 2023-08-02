@@ -1,13 +1,13 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include "../../Assimil8or/Preset/PresetProperties.h"
+#include "../../../Assimil8or/Preset/PresetProperties.h"
 
-class Assimil8orPresetComponent : public juce::Component
+class Assimil8orEditorComponent : public juce::Component
 {
 public:
-    Assimil8orPresetComponent ();
-    ~Assimil8orPresetComponent () = default;
+    Assimil8orEditorComponent ();
+    ~Assimil8orEditorComponent () = default;
 
     void init (juce::ValueTree rootPropertiesVT);
 

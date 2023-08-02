@@ -1,7 +1,7 @@
-#include "Assimil8orPresetComponent.h"
-#include "../../Utility/RuntimeRootProperties.h"
+#include "Assimil8orEditorComponent.h"
+#include "../../../Utility/RuntimeRootProperties.h"
 
-Assimil8orPresetComponent::Assimil8orPresetComponent ()
+Assimil8orEditorComponent::Assimil8orEditorComponent ()
 {
     setOpaque (true);
 
@@ -10,7 +10,7 @@ Assimil8orPresetComponent::Assimil8orPresetComponent ()
     addAndMakeVisible (nameEditor);
 }
 
-void Assimil8orPresetComponent::init (juce::ValueTree rootPropertiesVT)
+void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
 {
     RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
     presetProperties.wrap (runtimeRootProperties.getValueTree (), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::yes);
@@ -19,22 +19,22 @@ void Assimil8orPresetComponent::init (juce::ValueTree rootPropertiesVT)
     refreshName (presetProperties.getName ());
 }
 
-void Assimil8orPresetComponent::paint ([[maybe_unused]] juce::Graphics& g)
+void Assimil8orEditorComponent::paint ([[maybe_unused]] juce::Graphics& g)
 {
     g.fillAll (juce::Colours::navajowhite);
 }
 
-void Assimil8orPresetComponent::refreshName (juce::String name)
+void Assimil8orEditorComponent::refreshName (juce::String name)
 {
     nameEditor.setText (name, false);
 }
 
-void Assimil8orPresetComponent::updateName (juce::String name)
+void Assimil8orEditorComponent::updateName (juce::String name)
 {
     presetProperties.setName (name, false);
 }
 
-void Assimil8orPresetComponent::resized ()
+void Assimil8orEditorComponent::resized ()
 {
     auto localBounds { getLocalBounds () };
     nameEditor.setBounds (10, 10, 150, 25);
