@@ -346,8 +346,20 @@ void Assimil8orValidatorComponent::convert (juce::File file)
                 writer.reset ();
                 reader.reset ();
 
-                file.deleteFile ();
-                tempFile.moveFileTo (file);
+                // TODO - should we rename the original, until we have succeeded in copying of the new file, and only then delete it
+                if (file.deleteFile () == true)
+                {
+                    if (tempFile.moveFileTo (file) == false)
+                    {
+                        // failure to move temp file to new file
+                        jassertfalse;
+                    }
+                }
+                else
+                {
+                    // failure to delete original file
+                    jassertfalse;
+                }
             }
             else
             {
@@ -378,7 +390,12 @@ void Assimil8orValidatorComponent::locate (juce::File file)
         {
             // copy selected file to missing file location
             auto sourceFile { fc.getURLResults () [0].getLocalFile () };
-            sourceFile.copyFileTo (file);
+            // TODO - this should probably be in a thread
+            if (sourceFile.copyFileTo (file) == false)
+            {
+                // TODO - handle error
+                jassertfalse;
+            }
         }
     }, nullptr);
 }
