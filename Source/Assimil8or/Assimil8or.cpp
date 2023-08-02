@@ -21,6 +21,7 @@ const double oneMB { oneK * oneK };
 const double oneGB { oneMB * oneK };
 const auto maxMemory { static_cast<int> (422 * oneMB) };
 const auto maxPresets { 199 };
+const juce::String kFolderPrefsFileName { "folderprefs.yml" };
 
 juce::String getMemorySizeString (uint64_t memoryUsage)
 {
@@ -116,6 +117,11 @@ std::optional<uint64_t> Assimil8orValidator::validateFile (juce::File file, juce
         // ignore file
         LogValidation ("  File (ignored)");
 		validatorResultProperties.update (ValidatorResultProperties::ResultTypeWarning, "(ignored)", false);
+        return {};
+    }
+    else if (isFolderPrefsFile (file))
+    {
+        validatorResultProperties.update (ValidatorResultProperties::ResultTypeInfo, "Folder Preferences", false);
         return {};
     }
     else if (isPresetFile (file))
@@ -414,6 +420,11 @@ void Assimil8orValidator::validateRootFolder ()
 void Assimil8orValidator::run ()
 {
     validateRootFolder ();
+}
+
+bool Assimil8orValidator::isFolderPrefsFile(juce::File file)
+{
+    return file.getFileName ().toLowerCase () == kFolderPrefsFileName;
 }
 
 void Assimil8orValidator::sortContentsOfFolder (juce::ValueTree folderVT)
