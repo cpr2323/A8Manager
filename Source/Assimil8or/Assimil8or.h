@@ -69,9 +69,11 @@ private:
     ParseState parseState { ParseState::ParsingGlobalSection };
     PresetProperties presetProperties;
     
-    std::map<juce::String, std::function<void()>> actions;
-//    std::map<juce::String, std::function<void(const juce::String & value)>> channelActions;
-//    std::map<juce::String, std::function<void(const juce::String & value)>> zoneActions;
+    std::map<juce::String, std::function<void ()>> globalActions;
+    std::map<juce::String, std::function<void ()>> presetActions;
+    std::map<juce::String, std::function<void ()>> channelActions;
+    std::map<juce::String, std::function<void ()>> zoneActions;
+    
     juce::ValueTree curPresetSection;
     ChannelProperties channelProperties;
     juce::ValueTree curChannelSection;
@@ -82,6 +84,5 @@ private:
 
     juce::String getParseStateString (ParseState parseState);
     void setParseState (ParseState newParseState);
-    void dispatch();
     void clearVars();
 };
