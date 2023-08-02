@@ -272,6 +272,7 @@ void Assimil8orValidatorComponent::convert (juce::File file)
                         // failure to move temp file to new file
                         jassertfalse;
                     }
+                    validatorProperties.startAsyncScan (false);
                 }
                 else
                 {
