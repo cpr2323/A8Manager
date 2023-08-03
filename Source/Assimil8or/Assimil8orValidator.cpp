@@ -21,6 +21,7 @@ const juce::String kWaveFileExtension { ".wav" };
 const juce::String kYmlFileExtension { ".yml" };
 const juce::String kFolderPrefsFileName { "folderprefs.yml" };
 const auto kBadPresetNumber { 9999 };
+const auto bytesPerSampleInAssimMemory { 4 };
 
 juce::String getMemorySizeString (uint64_t memoryUsage)
 {
@@ -113,7 +114,7 @@ int Assimil8orValidator::getPresetNumberFromName (juce::File file)
     return file.getFileNameWithoutExtension ().substring (kPresetFileNameLen).getIntValue ();
 }
 
-std::optional<uint64_t> Assimil8orValidator::validateFile (juce::File file, juce::ValueTree validatorResultsVT)
+std::tuple<uint64_t, std::optional<uint64_t>> Assimil8orValidator::validateFile (juce::File file, juce::ValueTree validatorResultsVT)
 {
     const auto kMaxFileNameLength { 47 };
     ValidatorResultProperties validatorResultProperties (validatorResultsVT,
@@ -189,7 +190,6 @@ std::optional<uint64_t> Assimil8orValidator::validateFile (juce::File file, juce
                         std::unique_ptr<juce::AudioFormatReader> reader (audioFormatManager.createReaderFor (sampleFile));
                         if (reader != nullptr)
                         {
-                            const auto bytesPerSampleInAssimMemory { 4 };
                             sizeRequiredForSamples += reader->numChannels * reader->lengthInSamples * bytesPerSampleInAssimMemory;
                         }
                         else
@@ -211,7 +211,7 @@ std::optional<uint64_t> Assimil8orValidator::validateFile (juce::File file, juce
         if (! isIgnored)
             optionalPresetInfo = sizeRequiredForSamples;
         LogValidation ("  File (preset)");
-        return optionalPresetInfo;
+        return { 0, optionalPresetInfo };
     }
     else if (isAudioFile (file))
     {
@@ -226,6 +226,7 @@ std::optional<uint64_t> Assimil8orValidator::validateFile (juce::File file, juce
         }
 
         std::unique_ptr<juce::AudioFormatReader> reader (audioFormatManager.createReaderFor (file));
+        uint64_t sizeRequiredForSamples { 0 };
         if (reader != nullptr)
         {
             LogValidation ("    Format: " + reader->getFormatName ());
@@ -244,6 +245,7 @@ std::optional<uint64_t> Assimil8orValidator::validateFile (juce::File file, juce
                                                  juce::String (reader->numChannels == 1 ? "mono" : (reader->numChannels == 2 ? "stereo" : juce::String (reader->numChannels) + " channels")) + "}, " +
                                                  juce::String (reader->lengthInSamples / reader->sampleRate, 2) + " seconds, " +
                                                  "RAM: " + getMemorySizeString (memoryUsage), false);
+            sizeRequiredForSamples = reader->numChannels * reader->lengthInSamples * bytesPerSampleInAssimMemory;
             auto reportErrorIfTrue = [&validatorResultProperties, &file] (bool conditionalResult, juce::String newText)
             {
                 if (conditionalResult)
@@ -267,7 +269,7 @@ std::optional<uint64_t> Assimil8orValidator::validateFile (juce::File file, juce
             LogValidation ("    [ Warning : unknown audio format ]");
             validatorResultProperties.update (ValidatorResultProperties::ResultTypeError, "[unknown audio format. size = " + juce::String (file.getSize ()) + "]", false);
         }
-        return {};
+        return { sizeRequiredForSamples, {} };
     }
     else
     {
@@ -325,7 +327,8 @@ void Assimil8orValidator::processFolder (juce::ValueTree folderVT)
     //      report if it does not match supported formats
     // report any other files as unused by assimil8or
     jassert (folderVT.getType ().toString () == "Folder");
-    uint64_t totalSizeOfPresets {};
+    uint64_t totalSizeOfRamRequiredPresets {};
+    uint64_t totalSizeOfRamRequiredAllAudioFiles {};
     int numberOfPresets {};
     for (auto folderEntryVT : folderVT)
     {
@@ -352,19 +355,21 @@ void Assimil8orValidator::processFolder (juce::ValueTree folderVT)
         {
             ValidatorResultProperties validatorResultProperties;
             validatorResultProperties.update (ValidatorResultProperties::ResultTypeInfo, "File: " + curEntry.getFileName (), false);
-            const auto presetUpdate { validateFile (curEntry, validatorResultProperties.getValueTree ()) };
+            const auto [ramRequired, presetUpdate] { validateFile (curEntry, validatorResultProperties.getValueTree ()) };
+            totalSizeOfRamRequiredAllAudioFiles += ramRequired;
             if (presetUpdate.has_value ())
             {
-                totalSizeOfPresets += presetUpdate.value ();
+                totalSizeOfRamRequiredPresets += presetUpdate.value ();
                 ++numberOfPresets;
             }
             addResult (validatorResultProperties.getValueTree ());
         }
     }
     const auto folderName { juce::File (folderVT.getProperty ("name")).getFileName () };
-    addResult ("info", "Total RAM Usage for `" + folderName + "': " + getMemorySizeString (totalSizeOfPresets));
-    if (totalSizeOfPresets > maxMemory)
-        addResult ("error", "[RAM Usage exceeds memory capacity by " + getMemorySizeString (totalSizeOfPresets - maxMemory) + "]");
+    addResult ("info", "Total RAM Usage for Presets in`" + folderName + "': " + getMemorySizeString (totalSizeOfRamRequiredPresets));
+    addResult ("info", "Total RAM Usage for all audio files in `" + folderName + "': " + getMemorySizeString (totalSizeOfRamRequiredAllAudioFiles));
+    if (totalSizeOfRamRequiredPresets > maxMemory)
+        addResult ("error", "[Preset RAM Usage exceeds memory capacity by " + getMemorySizeString (totalSizeOfRamRequiredPresets - maxMemory) + "]");
     if (numberOfPresets > maxPresets)
         addResult ("error", "[Number of Presets (" + juce::String (numberOfPresets) + ") exceeds maximum allowed (" + juce::String (maxPresets) + ")]");
 }

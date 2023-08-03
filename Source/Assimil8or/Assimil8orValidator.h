@@ -37,7 +37,7 @@ private:
     void processFolder (juce::ValueTree folder);
     void sortContentsOfFolder (juce::ValueTree rootFolderVT);
     void validate ();
-    std::optional<uint64_t> validateFile (juce::File file, juce::ValueTree validatorResultsVT);
+    std::tuple<uint64_t, std::optional<uint64_t>> validateFile (juce::File file, juce::ValueTree validatorResultsVT);
     void validateFolder (juce::File folder, juce::ValueTree validatorResultsVT);
     void validateRootFolder ();
 
