@@ -12,7 +12,7 @@ Assimil8orValidatorComponent::Assimil8orValidatorComponent ()
     scanStatusListBox.setOutlineThickness (1);
     scanStatusListBox.getHeader ().addColumn ("Status", Columns::resultType, 60, 10, 60, juce::TableHeaderComponent::visible);
     scanStatusListBox.getHeader ().addColumn ("Fix", Columns::fix, 60, 10, 60, juce::TableHeaderComponent::visible);
-    scanStatusListBox.getHeader ().addColumn ("Message (0 items)", Columns::text, 100, 10, 3000, juce::TableHeaderComponent::visible);
+    scanStatusListBox.getHeader ().addColumn ("Message", Columns::text, 100, 10, 3000, juce::TableHeaderComponent::visible);
     addAndMakeVisible (scanStatusListBox);
 
     auto setupFilterButton = [this] (juce::TextButton& button, juce::String text)
@@ -28,6 +28,7 @@ Assimil8orValidatorComponent::Assimil8orValidatorComponent ()
             setupFilterList ();
             validatorResultsQuickLookupList.clear ();
             buildQuickLookupList ();
+            udpateHeader ();
             scanStatusListBox.updateContent ();
         };
         addAndMakeVisible (button);
@@ -39,6 +40,7 @@ Assimil8orValidatorComponent::Assimil8orValidatorComponent ()
     setupFilterList ();
     validatorResultsQuickLookupList.clear ();
     buildQuickLookupList ();
+    udpateHeader ();
     scanStatusListBox.updateContent ();
     audioFormatManager.registerBasicFormats ();
 }
@@ -65,8 +67,7 @@ void Assimil8orValidatorComponent::init (juce::ValueTree rootPropertiesVT)
         if (scanStatus == "idle")
             buildQuickLookupList ();
 
-        scanStatusListBox.getHeader ().setColumnName (Columns::text, "Message (" + juce::String (validatorResultsQuickLookupList.size ()) + " items)");
-        scanStatusListBox.repaint ();
+        udpateHeader ();
     };
 }
 
@@ -81,13 +82,21 @@ void Assimil8orValidatorComponent::setupFilterList ()
         filterList.add (ValidatorResultProperties::ResultTypeError);
 }
 
+void Assimil8orValidatorComponent::udpateHeader ()
+{
+    scanStatusListBox.getHeader ().setColumnName (Columns::text, "Message (" + juce::String (validatorResultsQuickLookupList.size ()) + " of " + juce::String (totalItems) + " items)");
+    scanStatusListBox.repaint ();
+}
+
 void Assimil8orValidatorComponent::buildQuickLookupList ()
 {
+    totalItems = 0;
     ValidatorResultListProperties validatorResultListProperties (validatorProperties.getValidatorResultListVT (),
-        ValidatorResultListProperties::WrapperType::client, ValidatorResultListProperties::EnableCallbacks::no);
+                                                                 ValidatorResultListProperties::WrapperType::client, ValidatorResultListProperties::EnableCallbacks::no);
     // iterate over the state message list, adding each one to the quick list
     validatorResultListProperties.forEachResult ([this] (juce::ValueTree validatorResultVT)
     {
+        ++totalItems;
         ValidatorResultProperties validatorResultProperties (validatorResultVT, ValidatorResultProperties::WrapperType::client, ValidatorResultProperties::EnableCallbacks::no);
         if (filterList.contains (validatorResultProperties.getType ()))
             validatorResultsQuickLookupList.emplace_back (validatorResultVT);

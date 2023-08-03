@@ -133,13 +133,15 @@ std::optional<uint64_t> Assimil8orValidator::validateFile (juce::File file, juce
         if (presetNumber > maxPresets)
         {
             isIgnored = true;
-            validatorResultProperties.update (ValidatorResultProperties::ResultTypeWarning, "(Preset number (" + juce::String (presetNumber) + ") above max of 199. Preset will be ignored)", false);
+            validatorResultProperties.update (ValidatorResultProperties::ResultTypeError, "(Preset number (" + juce::String (presetNumber) + ") above max of 199. Preset will be ignored)", false);
+            validatorResultProperties.addFixerEntry (FixerEntryProperties::FixerTypeRenameFile, file.getFullPathName ());
         }
 
         if (file.getFileNameWithoutExtension ().startsWith (kPresetFileNamePrefix) == false)
         {
             isIgnored = true;
-            validatorResultProperties.update (ValidatorResultProperties::ResultTypeWarning, "(Preset file must begin with lowercase 'psrt'. Preset will be ignored)", false);
+            validatorResultProperties.update (ValidatorResultProperties::ResultTypeError, "(Preset file must begin with lowercase 'psrt'. Preset will be ignored)", false);
+            validatorResultProperties.addFixerEntry (FixerEntryProperties::FixerTypeRenameFile, file.getFullPathName ());
         }
 
         juce::StringArray fileContents;

@@ -30,12 +30,14 @@ private:
     SafePointer<juce::DialogWindow> renameDialog;
     juce::AudioFormatManager audioFormatManager;
     std::unique_ptr<juce::FileChooser> fileChooser;
+    int totalItems { 0 };
 
     void buildQuickLookupList ();
-    void rename (juce::File file, int maxLength);
     void convert (juce::File file);
     void locate (juce::File file);
+    void rename (juce::File file, int maxLength);
     void setupFilterList ();
+    void udpateHeader ();
 
     void resized () override;
     void paint (juce::Graphics& g) override;
