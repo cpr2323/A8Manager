@@ -160,39 +160,43 @@ std::optional<uint64_t> Assimil8orValidator::validateFile (juce::File file, juce
         if (presetProperties.isValid ())
         {
             presetProperties.forEachChannel ([this, &file, &validatorResultProperties, &sizeRequiredForSamples] (juce::ValueTree channelVT)
+            {
+                if (threadShouldExit ())
+                    return false;
+                ChannelProperties channelProperties (channelVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
+                channelProperties.forEachZone ([this, &file, &validatorResultProperties, &sizeRequiredForSamples] (juce::ValueTree zoneVT)
                 {
-                    ChannelProperties channelProperties (channelVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
-                    channelProperties.forEachZone ([this, &file, &validatorResultProperties, &sizeRequiredForSamples] (juce::ValueTree zoneVT)
+                    if (threadShouldExit ())
+                        return false;
+                    ZoneProperties zoneProperties (zoneVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
+                    // TODO - should we do doIfProgressTimeElapsed () here?
+                    const auto sampleFileName { zoneProperties.getSample () };
+                    const auto sampleFile { file.getParentDirectory ().getChildFile (sampleFileName) };
+                    if (!sampleFile.exists ())
+                    {
+                        // report error
+                        validatorResultProperties.update (ValidatorResultProperties::ResultTypeError, "['" + sampleFileName + "' does not exist]", false);
+                        validatorResultProperties.addFixerEntry (FixerEntryProperties::FixerTypeNotFound, sampleFile.getFullPathName ());
+                    }
+                    else
+                    {
+                        // open as audio file, calculate memory requirements
+                        std::unique_ptr<juce::AudioFormatReader> reader (audioFormatManager.createReaderFor (sampleFile));
+                        if (reader != nullptr)
                         {
-                            ZoneProperties zoneProperties (zoneVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
-                            // TODO - should we do doIfProgressTimeElapsed () here?
-                            const auto sampleFileName { zoneProperties.getSample () };
-                            const auto sampleFile { file.getParentDirectory ().getChildFile (sampleFileName) };
-                            if (!sampleFile.exists ())
-                            {
-                                // report error
-                                validatorResultProperties.update (ValidatorResultProperties::ResultTypeError, "['" + sampleFileName + "' does not exist]", false);
-                                validatorResultProperties.addFixerEntry (FixerEntryProperties::FixerTypeNotFound, sampleFile.getFullPathName ());
-                            }
-                            else
-                            {
-                                // open as audio file, calculate memory requirements
-                                std::unique_ptr<juce::AudioFormatReader> reader (audioFormatManager.createReaderFor (sampleFile));
-                                if (reader != nullptr)
-                                {
-                                    const auto bytesPerSampleInAssimMemory { 4 };
-                                    sizeRequiredForSamples += reader->numChannels * reader->lengthInSamples * bytesPerSampleInAssimMemory;
-                                }
-                                else
-                                {
-                                    LogValidation ("    [ Warning : unknown audio format ]");
-                                    validatorResultProperties.update (ValidatorResultProperties::ResultTypeError, "['" + sampleFileName + "' unknown audio format. size = " + juce::String (file.getSize ()) + "]", false);
-                                }
-                            }
-                            return true;
-                        });
+                            const auto bytesPerSampleInAssimMemory { 4 };
+                            sizeRequiredForSamples += reader->numChannels * reader->lengthInSamples * bytesPerSampleInAssimMemory;
+                        }
+                        else
+                        {
+                            LogValidation ("    [ Warning : unknown audio format ]");
+                            validatorResultProperties.update (ValidatorResultProperties::ResultTypeError, "['" + sampleFileName + "' unknown audio format. size = " + juce::String (file.getSize ()) + "]", false);
+                        }
+                    }
                     return true;
                 });
+                return true;
+            });
         }
         else
         {
@@ -320,7 +324,7 @@ void Assimil8orValidator::processFolder (juce::ValueTree folderVT)
     int numberOfPresets {};
     for (auto folderEntryVT : folderVT)
     {
-        if (isThreadRunning () && threadShouldExit ())
+        if (threadShouldExit ())
             break;
 
         const auto curEntry { juce::File (folderEntryVT.getProperty ("name")) };
@@ -366,7 +370,7 @@ juce::ValueTree Assimil8orValidator::getContentsOfFolder (juce::File folder)
     folderVT.setProperty ("name", folder.getFullPathName (), nullptr);
     for (const auto& entry : juce::RangedDirectoryIterator (folder, false, "*", juce::File::findFilesAndDirectories))
     {
-        if (isThreadRunning () && threadShouldExit ())
+        if (threadShouldExit ())
             break;
 
         doIfProgressTimeElapsed ([this, fileName = entry.getFile ().getFileName ()] ()
@@ -400,35 +404,23 @@ void Assimil8orValidator::validateRootFolder ()
     addResult (ValidatorResultProperties::ResultTypeInfo, "Root Folder: " + rootEntry.getFileName ());
     // do one initial progress update to fill in the first one
     juce::MessageManager::callAsync ([this, folderName = rootEntry.getFileName ()] ()
-        {
-            validatorProperties.setProgressUpdate (folderName, false);
-        });
+    {
+        validatorProperties.setProgressUpdate (folderName, false);
+    });
 
-    rootFolderVT = getContentsOfFolder (rootFolderName);
-    // FolderVT
-    // <Folder name= "">
-    //   <Folder name= "">
-    //   <File name= "">
-    //   <File name= "">
-    // </Folder>
-    //   <File name= "">
-    //   <Folder name= "">
-    //   <Folder name= "">
-    //
-    // TODO sort each Folder as such
-    //   Folders
-    //   Preset files
-    //   Audio files
-    //   unknown files
-    sortContentsOfFolder (rootFolderVT);
-    processFolder (rootFolderVT);
+    if (! threadShouldExit ())
+        rootFolderVT = getContentsOfFolder (rootFolderName);
+    if (! threadShouldExit ())
+        sortContentsOfFolder (rootFolderVT);
+    if (! threadShouldExit ())
+        processFolder (rootFolderVT);
     rootFolderVT = {};
 
     juce::MessageManager::callAsync ([this] ()
-        {
-            validatorProperties.setProgressUpdate ("", false);
-            validatorProperties.setScanStatus ("idle", false);
-        });
+    {
+        validatorProperties.setProgressUpdate ("", false);
+        validatorProperties.setScanStatus ("idle", false);
+    });
 }
 
 void Assimil8orValidator::run ()
