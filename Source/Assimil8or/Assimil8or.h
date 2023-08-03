@@ -49,6 +49,9 @@ private:
 //      Preset 1 (1-8 channels)
 //          Channel 1 (? zones)
 //              Zone 1
+
+using ActionMap = std::map<juce::String, std::function<void ()>>;
+
 class Assimil8orPreset
 {
 public:
@@ -69,7 +72,22 @@ private:
     };
     ParseState parseState { ParseState::ParsingGlobalSection };
     PresetProperties presetProperties;
+    
+    ActionMap globalActions;
+    ActionMap presetActions;
+    ActionMap channelActions;
+    ActionMap zoneActions;
+    ActionMap * curActions;
+    juce::String sectionName;
+    
+    juce::ValueTree curPresetSection;
+    ChannelProperties channelProperties;
+    juce::ValueTree curChannelSection;
+    ZoneProperties zoneProperties;
+    juce::ValueTree curZoneSection;
+    juce::String key;
+    juce::String value;
 
     juce::String getParseStateString (ParseState parseState);
-    void setParseState (ParseState newParseState);
+    void setParseState (ParseState newParseState, ActionMap * newActions, juce::String newSectionName);
 };
