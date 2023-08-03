@@ -2,7 +2,7 @@
 #include "Assimil8orPreset.h"
 #include "Validator/ValidatorResultProperties.h"
 
-#define LOG_VALIDATION 1
+#define LOG_VALIDATION 0
 #if LOG_VALIDATION
 #define LogValidation(text) juce::Logger::outputDebugString (text);
 #else
