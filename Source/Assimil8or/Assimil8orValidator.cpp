@@ -14,8 +14,13 @@ const double oneMB { oneK * oneK };
 const double oneGB { oneMB * oneK };
 const auto maxMemory { static_cast<int> (422 * oneMB) };
 const auto maxPresets { 199 };
-const juce::String kFolderPrefsFileName { "folderprefs.yml" };
 const juce::String kPresetFileNamePrefix { "prst" };
+const auto kPresetFileNameLen { 7 };
+const auto kPresetFileNumberOffset { 4 };
+const juce::String kWaveFileExtension { ".wav" };
+const juce::String kYmlFileExtension { ".yml" };
+const juce::String kFolderPrefsFileName { "folderprefs.yml" };
+const auto kBadPresetNumber { 9999 };
 
 juce::String getMemorySizeString (uint64_t memoryUsage)
 {
@@ -48,7 +53,7 @@ void Assimil8orValidator::init (juce::ValueTree vt)
     validatorProperties.wrap (vt, ValidatorProperties::WrapperType::owner, ValidatorProperties::EnableCallbacks::yes);
     validatorProperties.onStartScanAsync = [this] () { validate (); };
     validatorResultListProperties.wrap (validatorProperties.getValueTree (),
-        ValidatorResultListProperties::WrapperType::client, ValidatorResultListProperties::EnableCallbacks::no);
+                                        ValidatorResultListProperties::WrapperType::client, ValidatorResultListProperties::EnableCallbacks::no);
 }
 
 void Assimil8orValidator::validate ()
@@ -67,7 +72,7 @@ void Assimil8orValidator::addResult (juce::String statusType, juce::String statu
 void Assimil8orValidator::addResult (juce::ValueTree validatorResultsVT)
 {
     ValidatorResultProperties validatorResultProperties (validatorResultsVT,
-        ValidatorResultProperties::WrapperType::client, ValidatorResultProperties::EnableCallbacks::no);
+                                                         ValidatorResultProperties::WrapperType::client, ValidatorResultProperties::EnableCallbacks::no);
     jassert (validatorResultProperties.getType () != ValidatorResultProperties::ResultTypeNone);
     if (validatorResultProperties.getType () != ValidatorResultProperties::ResultTypeNone)
         validatorResultListProperties.addResult (validatorResultsVT);
@@ -85,7 +90,7 @@ void Assimil8orValidator::doIfProgressTimeElapsed (std::function<void ()> functi
 
 bool Assimil8orValidator::isAudioFile (juce::File file)
 {
-    return file.getFileExtension ().toLowerCase () == ".wav";
+    return file.getFileExtension ().toLowerCase () == kWaveFileExtension;
 }
 
 bool Assimil8orValidator::isFolderPrefsFile (juce::File file)
@@ -95,24 +100,24 @@ bool Assimil8orValidator::isFolderPrefsFile (juce::File file)
 
 bool Assimil8orValidator::isPresetFile (juce::File file)
 {
-    return file.getFileExtension ().toLowerCase () == ".yml" &&
-           file.getFileNameWithoutExtension ().length () == 7 &&
+    return file.getFileExtension ().toLowerCase () == kYmlFileExtension &&
+           file.getFileNameWithoutExtension ().length () == kPresetFileNameLen &&
            file.getFileNameWithoutExtension ().toLowerCase().startsWith (kPresetFileNamePrefix) &&
-           file.getFileNameWithoutExtension ().substring (4).containsOnly ("0123456789");
+           file.getFileNameWithoutExtension ().substring (kPresetFileNumberOffset).containsOnly ("0123456789");
 }
 
 int Assimil8orValidator::getPresetNumberFromName (juce::File file)
 {
     if (!isPresetFile (file))
-        return 9999;
-    return file.getFileNameWithoutExtension ().substring (4).getIntValue ();
+        return kBadPresetNumber;
+    return file.getFileNameWithoutExtension ().substring (kPresetFileNameLen).getIntValue ();
 }
 
 std::optional<uint64_t> Assimil8orValidator::validateFile (juce::File file, juce::ValueTree validatorResultsVT)
 {
     const auto kMaxFileNameLength { 47 };
     ValidatorResultProperties validatorResultProperties (validatorResultsVT,
-        ValidatorResultProperties::WrapperType::client, ValidatorResultProperties::EnableCallbacks::no);
+                                                         ValidatorResultProperties::WrapperType::client, ValidatorResultProperties::EnableCallbacks::no);
 
     std::optional<uint64_t> optionalPresetInfo;
     LogValidation ("File: " + file.getFileName ());
@@ -234,11 +239,11 @@ std::optional<uint64_t> Assimil8orValidator::validateFile (juce::File file, juce
             const auto memoryUsage { reader->numChannels * reader->lengthInSamples * 4 };
             const auto sampleRateString { juce::String (reader->sampleRate / 1000.0f, 2).trimCharactersAtEnd ("0.") };
             validatorResultProperties.updateText (juce::String (" {") +
-                juce::String (reader->usesFloatingPointData == true ? "floating point" : "integer") + ", " +
-                juce::String (reader->bitsPerSample) + "bits/" + sampleRateString + "k, " +
-                juce::String (reader->numChannels == 1 ? "mono" : (reader->numChannels == 2 ? "stereo" : juce::String (reader->numChannels) + " channels")) + "}, " +
-                juce::String (reader->lengthInSamples / reader->sampleRate, 2) + " seconds, " +
-                "RAM: " + getMemorySizeString (memoryUsage), false);
+                                                 juce::String (reader->usesFloatingPointData == true ? "floating point" : "integer") + ", " +
+                                                 juce::String (reader->bitsPerSample) + "bits/" + sampleRateString + "k, " +
+                                                 juce::String (reader->numChannels == 1 ? "mono" : (reader->numChannels == 2 ? "stereo" : juce::String (reader->numChannels) + " channels")) + "}, " +
+                                                 juce::String (reader->lengthInSamples / reader->sampleRate, 2) + " seconds, " +
+                                                 "RAM: " + getMemorySizeString (memoryUsage), false);
             auto reportErrorIfTrue = [&validatorResultProperties, &file] (bool conditionalResult, juce::String newText)
             {
                 if (conditionalResult)
@@ -287,7 +292,7 @@ void Assimil8orValidator::validateFolder (juce::File folder, juce::ValueTree val
 {
     const auto kMaxFolderNameLength { 31 };
     ValidatorResultProperties validatorResultProperties (validatorResultsVT,
-        ValidatorResultProperties::WrapperType::client, ValidatorResultProperties::EnableCallbacks::no);
+                                                         ValidatorResultProperties::WrapperType::client, ValidatorResultProperties::EnableCallbacks::no);
 
     LogValidation ("Folder: " + folder.getFileName ());
     if (folder.getFileName ().startsWithChar ('.'))
@@ -300,8 +305,8 @@ void Assimil8orValidator::validateFolder (juce::File folder, juce::ValueTree val
     {
         LogValidation ("  [ Warning : folder name too long ]");
         validatorResultProperties.update (ValidatorResultProperties::ResultTypeError, "[name too long. " +
-            juce::String (folder.getFileName ().length ()) + "(length) vs " +
-            juce::String (kMaxFolderNameLength) + "(max)]", false);
+                                                                                      juce::String (folder.getFileName ().length ()) + "(length) vs " +
+                                                                                      juce::String (kMaxFolderNameLength) + "(max)]", false);
         validatorResultProperties.addFixerEntry (FixerEntryProperties::FixerTypeRenameFolder, folder.getFullPathName ());
     }
 }
@@ -331,9 +336,9 @@ void Assimil8orValidator::processFolder (juce::ValueTree folderVT)
         doIfProgressTimeElapsed ([this, fileName = curEntry.getFileName ()] ()
         {
             juce::MessageManager::callAsync ([this, fileName] ()
-                {
-                    validatorProperties.setProgressUpdate (fileName, false);
-                });
+            {
+                validatorProperties.setProgressUpdate (fileName, false);
+            });
         });
         if (curEntry.isDirectory ())
         {
