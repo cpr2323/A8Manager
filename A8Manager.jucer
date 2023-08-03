@@ -43,8 +43,14 @@
           <FILE id="FbH6Eo" name="ValidatorResultProperties.h" compile="0" resource="0"
                 file="Source/Assimil8or/Validator/ValidatorResultProperties.h"/>
         </GROUP>
-        <FILE id="o7xiMd" name="Assimil8or.cpp" compile="1" resource="0" file="Source/Assimil8or/Assimil8or.cpp"/>
-        <FILE id="EQ0pG9" name="Assimil8or.h" compile="0" resource="0" file="Source/Assimil8or/Assimil8or.h"/>
+        <FILE id="aU5vMV" name="Assimil8orPreset.cpp" compile="1" resource="0"
+              file="Source/Assimil8or/Assimil8orPreset.cpp"/>
+        <FILE id="wYayHF" name="Assimil8orPreset.h" compile="0" resource="0"
+              file="Source/Assimil8or/Assimil8orPreset.h"/>
+        <FILE id="db0Bhn" name="Assimil8orValidator.cpp" compile="1" resource="0"
+              file="Source/Assimil8or/Assimil8orValidator.cpp"/>
+        <FILE id="IxMRZR" name="Assimil8orValidator.h" compile="0" resource="0"
+              file="Source/Assimil8or/Assimil8orValidator.h"/>
       </GROUP>
       <GROUP id="{CF0C93A7-2DC9-863C-8999-5F753D262369}" name="GUI">
         <GROUP id="{E38BD768-EC43-B8F0-AB46-78F18BDF75B0}" name="Assimil8or">
