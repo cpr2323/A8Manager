@@ -2,7 +2,7 @@
 #include "Assimil8orPreset.h"
 #include "Validator/ValidatorResultProperties.h"
 
-#define LOG_VALIDATION 0
+#define LOG_VALIDATION 1
 #if LOG_VALIDATION
 #define LogValidation(text) juce::Logger::outputDebugString (text);
 #else
@@ -83,12 +83,17 @@ bool Assimil8orValidator::isAudioFile (juce::File file)
     return file.getFileExtension ().toLowerCase () == ".wav";
 }
 
+bool Assimil8orValidator::isFolderPrefsFile (juce::File file)
+{
+    return file.getFileName ().toLowerCase () == kFolderPrefsFileName;
+}
+
 bool Assimil8orValidator::isPresetFile (juce::File file)
 {
     return file.getFileExtension ().toLowerCase () == ".yml" &&
-        file.getFileNameWithoutExtension ().length () == 7 &&
-        file.getFileNameWithoutExtension ().toLowerCase().startsWith (kPresetFileNamePrefix) &&
-        file.getFileNameWithoutExtension ().substring (4).containsOnly ("0123456789");
+           file.getFileNameWithoutExtension ().length () == 7 &&
+           file.getFileNameWithoutExtension ().toLowerCase().startsWith (kPresetFileNamePrefix) &&
+           file.getFileNameWithoutExtension ().substring (4).containsOnly ("0123456789");
 }
 
 int Assimil8orValidator::getPresetNumberFromName (juce::File file)
@@ -250,17 +255,14 @@ std::optional<uint64_t> Assimil8orValidator::validateFile (juce::File file, juce
     }
     else
     {
-#if 0
-        // this is crashing on occassion, will debug later
         // possibly an audio file of a format not supported on the Assimil8or
-        if (std::unique_ptr <juce::AudioFormat> format (audioFormatManager.findFormatForFileExtension (file.getFileExtension ())); format != nullptr)
+        if (auto* format { audioFormatManager.findFormatForFileExtension (file.getFileExtension ()) }; format != nullptr)
         {
             // this is a type we can read, so we can offer to convert it
             LogValidation ("  File (unsupported audio format)");
             validatorResultProperties.update (ValidatorResultProperties::ResultTypeWarning, "(unsupported audio format)", false);
         }
         else
-#endif // 0
         {
             LogValidation ("  File (unknown)");
             validatorResultProperties.update (ValidatorResultProperties::ResultTypeWarning, "(unknown file type)", false);
@@ -316,12 +318,12 @@ void Assimil8orValidator::processFolder (juce::ValueTree folderVT)
 
         const auto curEntry { juce::File (folderEntryVT.getProperty ("name")) };
         doIfProgressTimeElapsed ([this, fileName = curEntry.getFileName ()] ()
-            {
-                juce::MessageManager::callAsync ([this, fileName] ()
-                    {
-                        validatorProperties.setProgressUpdate (fileName, false);
-                    });
-            });
+        {
+            juce::MessageManager::callAsync ([this, fileName] ()
+                {
+                    validatorProperties.setProgressUpdate (fileName, false);
+                });
+        });
         if (curEntry.isDirectory ())
         {
             ValidatorResultProperties validatorResultProperties;
@@ -361,12 +363,12 @@ juce::ValueTree Assimil8orValidator::getContentsOfFolder (juce::File folder)
             break;
 
         doIfProgressTimeElapsed ([this, fileName = entry.getFile ().getFileName ()] ()
-            {
-                juce::MessageManager::callAsync ([this, fileName] ()
-                    {
-                        validatorProperties.setProgressUpdate (fileName, false);
-                    });
-            });
+        {
+            juce::MessageManager::callAsync ([this, fileName] ()
+                {
+                    validatorProperties.setProgressUpdate (fileName, false);
+                });
+        });
         if (const auto& curFile { entry.getFile () }; curFile.isDirectory ())
         {
             folderVT.addChild (getContentsOfFolder (curFile), -1, nullptr);
@@ -425,11 +427,6 @@ void Assimil8orValidator::validateRootFolder ()
 void Assimil8orValidator::run ()
 {
     validateRootFolder ();
-}
-
-bool Assimil8orValidator::isFolderPrefsFile (juce::File file)
-{
-    return file.getFileName ().toLowerCase () == kFolderPrefsFileName;
 }
 
 void Assimil8orValidator::sortContentsOfFolder (juce::ValueTree folderVT)
