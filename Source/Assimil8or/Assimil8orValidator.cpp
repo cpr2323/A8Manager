@@ -15,6 +15,7 @@ const double oneGB { oneMB * oneK };
 const auto maxMemory { static_cast<int> (422 * oneMB) };
 const auto maxPresets { 199 };
 const juce::String kFolderPrefsFileName { "folderprefs.yml" };
+const juce::String kPresetFileNamePrefix { "prst" };
 
 juce::String getMemorySizeString (uint64_t memoryUsage)
 {
@@ -86,7 +87,7 @@ bool Assimil8orValidator::isPresetFile (juce::File file)
 {
     return file.getFileExtension ().toLowerCase () == ".yml" &&
         file.getFileNameWithoutExtension ().length () == 7 &&
-        file.getFileNameWithoutExtension ().startsWith ("prst") &&
+        file.getFileNameWithoutExtension ().toLowerCase().startsWith (kPresetFileNamePrefix) &&
         file.getFileNameWithoutExtension ().substring (4).containsOnly ("0123456789");
 }
 
@@ -119,11 +120,22 @@ std::optional<uint64_t> Assimil8orValidator::validateFile (juce::File file, juce
     }
     else if (isPresetFile (file))
     {
+        bool isIgnored { false };
+
         validatorResultProperties.update (ValidatorResultProperties::ResultTypeInfo, "Preset", false);
 
         const auto presetNumber { getPresetNumberFromName (file) };
         if (presetNumber > maxPresets)
+        {
+            isIgnored = true;
             validatorResultProperties.update (ValidatorResultProperties::ResultTypeWarning, "(Preset number (" + juce::String (presetNumber) + ") above max of 199. Preset will be ignored)", false);
+        }
+
+        if (file.getFileNameWithoutExtension ().startsWith (kPresetFileNamePrefix) == false)
+        {
+            isIgnored = true;
+            validatorResultProperties.update (ValidatorResultProperties::ResultTypeWarning, "(Preset file must begin with lowercase 'psrt'. Preset will be ignored)", false);
+        }
 
         juce::StringArray fileContents;
         file.readLines (fileContents);
@@ -175,7 +187,8 @@ std::optional<uint64_t> Assimil8orValidator::validateFile (juce::File file, juce
             validatorResultProperties.update ("error", "[missing Preset section]", false);
         }
         validatorResultProperties.update (ValidatorResultProperties::ResultTypeInfo, "RAM: " + getMemorySizeString (sizeRequiredForSamples), false);
-        optionalPresetInfo = sizeRequiredForSamples;
+        if (! isIgnored)
+            optionalPresetInfo = sizeRequiredForSamples;
         LogValidation ("  File (preset)");
         return optionalPresetInfo;
     }
