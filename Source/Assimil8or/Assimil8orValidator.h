@@ -14,6 +14,7 @@ class Assimil8orValidator : public juce::Thread
 {
 public:
     Assimil8orValidator ();
+    ~Assimil8orValidator ();
 
     void init (juce::ValueTree vt);
 

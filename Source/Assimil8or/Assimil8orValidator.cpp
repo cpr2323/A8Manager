@@ -38,6 +38,11 @@ Assimil8orValidator::Assimil8orValidator () : Thread ("Assimil8orValidator")
     audioFormatManager.registerBasicFormats ();
 }
 
+Assimil8orValidator::~Assimil8orValidator ()
+{
+    stopThread (500);
+}
+
 void Assimil8orValidator::init (juce::ValueTree vt)
 {
     validatorProperties.wrap (vt, ValidatorProperties::WrapperType::owner, ValidatorProperties::EnableCallbacks::yes);
