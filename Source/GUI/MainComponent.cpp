@@ -6,7 +6,7 @@ const auto toolWindowHeight { 30 };
 MainComponent::MainComponent (juce::ValueTree rootPropertiesVT)
 {
     setSize (800, 600);
-    
+
     assimil8orValidatorComponent.init (rootPropertiesVT);
     assimil8orEditorComponent.init (rootPropertiesVT);
 #if ENABLE_EDITOR

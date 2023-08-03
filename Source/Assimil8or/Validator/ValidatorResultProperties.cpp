@@ -47,7 +47,7 @@ juce::String ValidatorResultProperties::getNewTypeBasedOnPriority (juce::String 
 }
 void ValidatorResultProperties::updateType (juce::String resultType, bool includeSelfCallback)
 {
-    setType (getNewTypeBasedOnPriority(resultType), includeSelfCallback);
+    setType (getNewTypeBasedOnPriority (resultType), includeSelfCallback);
 }
 
 void ValidatorResultProperties::updateText (juce::String resultText, bool includeSelfCallback)
@@ -55,7 +55,7 @@ void ValidatorResultProperties::updateText (juce::String resultText, bool includ
     if (resultText.isEmpty ())
         return;
 
-    auto curText{ getText() };
+    auto curText { getText () };
 
     if (curText.isNotEmpty ())
         curText += ", ";

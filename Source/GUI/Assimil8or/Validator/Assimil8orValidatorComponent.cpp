@@ -18,7 +18,7 @@ Assimil8orValidatorComponent::Assimil8orValidatorComponent ()
     auto setupFilterButton = [this] (juce::TextButton& button, juce::String text)
     {
         button.setColour (juce::TextButton::ColourIds::buttonColourId, juce::Colours::grey);
-        button.setColour (juce::TextButton::ColourIds::buttonOnColourId, juce::Colours::green.darker(0.5f));
+        button.setColour (juce::TextButton::ColourIds::buttonOnColourId, juce::Colours::green.darker (0.5f));
         button.setClickingTogglesState (true);
         button.setToggleable (true);
         button.setButtonText (text);
@@ -107,7 +107,7 @@ void Assimil8orValidatorComponent::resized ()
     scanStatusListBox.getHeader ().setColumnWidth (Columns::text, scanStatusListBox.getWidth () - 2 -
                                                    scanStatusListBox.getHeader ().getColumnWidth (Columns::resultType) -
                                                    scanStatusListBox.getHeader ().getColumnWidth (Columns::fix));
-    auto filterButtonBounds { getLocalBounds().removeFromBottom(45).withTrimmedBottom(15).withTrimmedRight(15) };
+    auto filterButtonBounds { getLocalBounds ().removeFromBottom (45).withTrimmedBottom (15).withTrimmedRight (15) };
     errorFilterButton.setBounds (filterButtonBounds.removeFromRight (filterButtonBounds.getHeight ()));
     filterButtonBounds.removeFromRight (5);
     warningFilterButton.setBounds (filterButtonBounds.removeFromRight (filterButtonBounds.getHeight ()));
@@ -196,7 +196,6 @@ juce::Component* Assimil8orValidatorComponent::refreshComponentForCell (int rowN
     jassert (existingComponentToUpdate == nullptr);
     return nullptr;
 }
-
 
 void Assimil8orValidatorComponent::rename (juce::File file, int maxLength)
 {
@@ -342,7 +341,7 @@ void Assimil8orValidatorComponent::cellClicked (int rowNumber, int columnId, con
                     return false; // exit after the first one (since there is only one)
                 });
                 FixerEntryProperties fixerEntryProperties (fixerEntryVT, FixerEntryProperties::WrapperType::client, FixerEntryProperties::EnableCallbacks::no);
-                
+
                 // just do the fix
                 if (fixerEntryProperties.getType () == FixerEntryProperties::FixerTypeRenameFile)
                 {

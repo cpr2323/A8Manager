@@ -28,7 +28,7 @@ RenameDialogContent::RenameDialogContent (juce::File oldFile, int maxNameLength,
 void RenameDialogContent::doRename (juce::File oldFile)
 {
     auto newFile { oldFile.getParentDirectory ().getChildFile (newNameEditor.getText ()) };
-    if (!oldFile.isDirectory () && newFile.getFileExtension () == "")
+    if (! oldFile.isDirectory () && newFile.getFileExtension () == "")
         newFile = newFile.withFileExtension (oldFile.getFileExtension ());
 
     // try to do rename
@@ -48,7 +48,7 @@ void RenameDialogContent::closeDialog ()
 {
     if (doneCallback != nullptr)
         doneCallback (renamed);
-    if (juce::DialogWindow* dw = findParentComponentOfClass<juce::DialogWindow> ())
+    if (juce::DialogWindow * dw { findParentComponentOfClass<juce::DialogWindow> () })
         dw->exitModalState (0);
     delete this;
 }

@@ -92,7 +92,7 @@ public:
         {
             juce::Logger::outputDebugString ("valueTreeChildOrderChanged(" + vtBeingListened.getType ().toString () + ")");
             if (vt == vtBeingListened)
-                juce::Logger::outputDebugString ("  old index: " + juce::String(oldIndex) + ", new index: " + juce::String (newIndex));
+                juce::Logger::outputDebugString ("  old index: " + juce::String (oldIndex) + ", new index: " + juce::String (newIndex));
             else
                 juce::Logger::outputDebugString ("  vt: " + vt.getType ().toString () +
                                                  ", old index: " + juce::String (oldIndex) + ", new index: " + juce::String (newIndex));
@@ -193,21 +193,21 @@ public:
 
     void suspended () override
     {
-        runtimeRootProperties.triggerAppSuspended ();
+        runtimeRootProperties.triggerAppSuspended (false);
     }
 
     void resumed () override
     {
-        runtimeRootProperties.triggerAppResumed ();
+        runtimeRootProperties.triggerAppResumed (false);
     }
 
     void systemRequestedQuit () override
     {
         // reset preferred quit state
-        runtimeRootProperties.setPreferredQuitState (RuntimeRootProperties::QuitState::now);
+        runtimeRootProperties.setPreferredQuitState (RuntimeRootProperties::QuitState::now, false);
         // listeners for 'onSystemRequestedQuit' can do runtimeRootPropertiesVT.setPreferredQuitState (RuntimeRootProperties::QuitState::idle);
         // if they need to do something, which also makes them responsible for calling runtimeRootPropertiesVT.setQuitState (RuntimeRootProperties::QuitState::now); when they are done...
-        runtimeRootProperties.triggerSystemRequestedQuit ();
+        runtimeRootProperties.triggerSystemRequestedQuit (false);
         localQuitState.store (runtimeRootProperties.getPreferredQuitState ());
     }
 
@@ -237,8 +237,8 @@ public:
         appProperties.wrap (persistentRootProperties.getValueTree (), AppProperties::WrapperType::owner, AppProperties::EnableCallbacks::no);
 
         runtimeRootProperties.wrap (rootProperties.getValueTree (), RuntimeRootProperties::WrapperType::owner, RuntimeRootProperties::EnableCallbacks::no);
-        runtimeRootProperties.setAppVersion (getApplicationVersion ());
-        runtimeRootProperties.setAppDataPath (appDirectory.getFullPathName ());
+        runtimeRootProperties.setAppVersion (getApplicationVersion (), false);
+        runtimeRootProperties.setAppDataPath (appDirectory.getFullPathName (), false);
     }
 
     void initAppDirectory ()

@@ -105,7 +105,6 @@ protected:
 
 };
 
-
 template <>
 void SumHelper<uint8_t>::updateBuffer(uint8_t* data, int len)
 {

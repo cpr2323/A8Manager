@@ -14,7 +14,7 @@ public:
     void reset (bool includeSelfCallback);
     void updateType (juce::String resultType, bool includeSelfCallback);
     void updateText (juce::String resultText, bool includeSelfCallback);
-    void update(juce::String resultType, juce::String resultText, bool includeSelfCallback);
+    void update (juce::String resultType, juce::String resultText, bool includeSelfCallback);
 
     juce::String getType ();
     juce::String getText ();

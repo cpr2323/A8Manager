@@ -2,16 +2,16 @@
 
 void RuntimeRootProperties::initValueTree ()
 {
-    setAppDataPath ("");
-    setAppVersion ("0.0.0");
-    setLayout (LayoutUnknown);
-    setQuitState (QuitState::idle);
-    triggerAppSuspended ();
-    triggerAppResumed ();
-    triggerMinimiseButtonPressed ();
-    triggerMaximiseButtonPressed ();
-    triggerSystemRequestedQuit ();
-    triggerWindowMoved ();
+    setAppDataPath ("", false);
+    setAppVersion ("0.0.0", false);
+    setLayout (LayoutUnknown, false);
+    setQuitState (QuitState::idle, false);
+    triggerAppSuspended (false);
+    triggerAppResumed (false);
+    triggerMinimiseButtonPressed (false);
+    triggerMaximiseButtonPressed (false);
+    triggerSystemRequestedQuit (false);
+    triggerWindowMoved (false);
 }
 juce::ValueTree RuntimeRootProperties::addSection (juce::Identifier sectionType)
 {

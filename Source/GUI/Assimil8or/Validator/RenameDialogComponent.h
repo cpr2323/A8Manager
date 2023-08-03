@@ -5,7 +5,7 @@
 class RenameDialogContent : public juce::Component
 {
 public:
-    RenameDialogContent (juce::File oldFile, int maxNameLength, std::function<void(bool)> theDoneCallback);
+    RenameDialogContent (juce::File oldFile, int maxNameLength, std::function<void (bool)> theDoneCallback);
     void doRename (juce::File oldFile);
 
 private:

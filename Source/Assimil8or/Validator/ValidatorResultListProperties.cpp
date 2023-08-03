@@ -1,7 +1,7 @@
 #include "ValidatorResultListProperties.h"
 #include "ValidatorResultProperties.h"
 
-void ValidatorResultListProperties::addResult(juce::ValueTree validatorResultVT)
+void ValidatorResultListProperties::addResult (juce::ValueTree validatorResultVT)
 {
     jassert (validatorResultVT.getType () == ValidatorResultProperties::ValidatorResultTypeId);
     data.addChild (validatorResultVT, -1, nullptr);

@@ -86,7 +86,7 @@ void ToolWindow::savePresetUi ()
 void ToolWindow::savePreset (juce::File presetFile)
 {
     Assimil8orPreset assimil8orPreset;
-    assimil8orPreset.write (presetFile, presetProperties.getValueTree());
+    assimil8orPreset.write (presetFile, presetProperties.getValueTree ());
 }
 
 void ToolWindow::updateScanStatus (juce::String scanStatus)

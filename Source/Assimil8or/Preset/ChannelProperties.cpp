@@ -16,7 +16,7 @@ juce::ValueTree ChannelProperties::create (int index)
     return channelProperties.getValueTree ();
 }
 
-juce::ValueTree ChannelProperties::addZone(int index)
+juce::ValueTree ChannelProperties::addZone (int index)
 {
     jassert (getNumZones () < kMaxZones);
     auto zoneProperties { ZoneProperties::create (index) };
@@ -47,7 +47,7 @@ juce::String ChannelProperties::getCvInputAndValueString (juce::String cvInput, 
 
 juce::String ChannelProperties::getCvInputAndValueString (AmountAndCvInput cvInputAndValue, int decimalPlaces)
 {
-    const auto& [cvInput, value] = cvInputAndValue;
+    const auto& [cvInput, value] { cvInputAndValue };
     return getCvInputAndValueString (cvInput, value, decimalPlaces);
 }
 
@@ -73,7 +73,7 @@ void ChannelProperties::setAliasingMod (juce::String cvInput, double aliasingMod
     setValue (getCvInputAndValueString (cvInput, aliasingMod, 4), AliasingModPropertyId, includeSelfCallback);
 }
 
-void ChannelProperties::setAttack(double attack, bool includeSelfCallback)
+void ChannelProperties::setAttack (double attack, bool includeSelfCallback)
 {
     setValue (attack, AttackPropertyId, includeSelfCallback);
 }
@@ -93,7 +93,7 @@ void ChannelProperties::setAutoTrigger (bool autoTrigger, bool includeSelfCallba
     setValue (autoTrigger, AutoTriggerPropertyId, includeSelfCallback);
 }
 
-void ChannelProperties::setBits(double bits, bool includeSelfCallback)
+void ChannelProperties::setBits (double bits, bool includeSelfCallback)
 {
     setValue (bits, BitsPropertyId, includeSelfCallback);
 }
@@ -108,22 +108,22 @@ void ChannelProperties::setChannelMode (int channelMode, bool includeSelfCallbac
     setValue (channelMode, ChannelModePropertyId, includeSelfCallback);
 }
 
-void ChannelProperties::setExpAM(double expAM, bool includeSelfCallback)
+void ChannelProperties::setExpAM (double expAM, bool includeSelfCallback)
 {
     setValue (expAM, ExpAMPropertyId, includeSelfCallback);
 }
 
-void ChannelProperties::setExpFM(double expFM, bool includeSelfCallback)
+void ChannelProperties::setExpFM (double expFM, bool includeSelfCallback)
 {
     setValue (expFM, ExpFMPropertyId, includeSelfCallback);
 }
 
-void ChannelProperties::setLevel(double level, bool includeSelfCallback)
+void ChannelProperties::setLevel (double level, bool includeSelfCallback)
 {
     setValue (level, LevelPropertyId, includeSelfCallback);
 }
 
-void ChannelProperties::setLinAM(double linAM, bool includeSelfCallback)
+void ChannelProperties::setLinAM (double linAM, bool includeSelfCallback)
 {
     setValue (linAM, LinAMPropertyId, includeSelfCallback);
 }
@@ -133,7 +133,7 @@ void ChannelProperties::setLinAMisExtEnv (bool linAMisExtEnv, bool includeSelfCa
     setValue (linAMisExtEnv, LinAMisExtEnvPropertyId, includeSelfCallback);
 }
 
-void ChannelProperties::setLinFM(double linFM, bool includeSelfCallback)
+void ChannelProperties::setLinFM (double linFM, bool includeSelfCallback)
 {
     setValue (linFM, LinFMPropertyId, includeSelfCallback);
 }
@@ -153,7 +153,7 @@ void ChannelProperties::setLoopStartMod (juce::String cvInput, double loopStartM
     setValue (getCvInputAndValueString (cvInput, loopStartMod, 4), LoopStartModPropertyId, includeSelfCallback);
 }
 
-void ChannelProperties::setMixLevel(double mixLevel, bool includeSelfCallback)
+void ChannelProperties::setMixLevel (double mixLevel, bool includeSelfCallback)
 {
     setValue (mixLevel, MixLevelPropertyId, includeSelfCallback);
 }
@@ -168,7 +168,7 @@ void ChannelProperties::setMixModIsFader (bool mixModIsFader, bool includeSelfCa
     setValue (mixModIsFader, MixModIsFaderPropertyId, includeSelfCallback);
 }
 
-void ChannelProperties::setPan(double pan, bool includeSelfCallback)
+void ChannelProperties::setPan (double pan, bool includeSelfCallback)
 {
     setValue (pan, PanPropertyId, includeSelfCallback);
 }
@@ -183,7 +183,7 @@ void ChannelProperties::setPhaseCV (juce::String cvInput, double phaseCV, bool i
     setValue (getCvInputAndValueString (cvInput, phaseCV, 4), PhaseCVPropertyId, includeSelfCallback);
 }
 
-void ChannelProperties::setPitch(double pitch, bool includeSelfCallback)
+void ChannelProperties::setPitch (double pitch, bool includeSelfCallback)
 {
     setValue (pitch, PitchPropertyId, includeSelfCallback);
 }
@@ -198,7 +198,7 @@ void ChannelProperties::setPlayMode (int PlayMode, bool includeSelfCallback)
     setValue (PlayMode, PlayModePropertyId, includeSelfCallback);
 }
 
-void ChannelProperties::setPMIndex(double pMIndex, bool includeSelfCallback)
+void ChannelProperties::setPMIndex (double pMIndex, bool includeSelfCallback)
 {
     setValue (pMIndex, PMIndexPropertyId, includeSelfCallback);
 }
@@ -213,7 +213,7 @@ void ChannelProperties::setPMSource (int pMSource, bool includeSelfCallback)
     setValue (pMSource, PMSourcePropertyId, includeSelfCallback);
 }
 
-void ChannelProperties::setRelease(double release, bool includeSelfCallback)
+void ChannelProperties::setRelease (double release, bool includeSelfCallback)
 {
     setValue (release, ReleasePropertyId, includeSelfCallback);
 }

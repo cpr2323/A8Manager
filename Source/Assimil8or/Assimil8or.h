@@ -72,14 +72,14 @@ private:
     };
     ParseState parseState { ParseState::ParsingGlobalSection };
     PresetProperties presetProperties;
-    
+
     ActionMap globalActions;
     ActionMap presetActions;
     ActionMap channelActions;
     ActionMap zoneActions;
     ActionMap * curActions;
     juce::String sectionName;
-    
+
     juce::ValueTree curPresetSection;
     ChannelProperties channelProperties;
     juce::ValueTree curChannelSection;

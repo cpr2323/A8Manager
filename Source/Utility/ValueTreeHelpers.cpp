@@ -54,7 +54,7 @@ namespace ValueTreeHelpers
         const auto numProperties { vt.getNumProperties () };
         for (auto propertyIndex { 0 }; propertyIndex < numProperties; ++propertyIndex)
         {
-            if (! propertyCallback (vt.getPropertyName(propertyIndex)))
+            if (! propertyCallback (vt.getPropertyName (propertyIndex)))
                 break;
         }
 
@@ -156,7 +156,7 @@ namespace ValueTreeHelpers
             const auto propertyName { firstVT.getPropertyName (propertyIndex) };
             if (logCompareFailures == LogCompareFailures::yes)
             {
-                //DebugLog ("checking property("+String(propertyIndex)+"): " + propertyName);
+                //DebugLog ("checking property("+String (propertyIndex)+"): " + propertyName);
 //                 if (! secondVT.hasProperty (propertyName))
 //                     DebugLog ("comparePropertiesUnOrdered - ! secondVT.hasProperty (" + propertyName + ")");
 //                 if (firstVT.getProperty (propertyName) != secondVT.getProperty (propertyName))
