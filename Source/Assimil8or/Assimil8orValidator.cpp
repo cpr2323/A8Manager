@@ -59,6 +59,8 @@ void Assimil8orValidator::init (juce::ValueTree vt)
 
 void Assimil8orValidator::validate ()
 {
+    if (isThreadRunning ())
+        return;
     validatorProperties.setScanStatus ("scanning", false);
     startThread ();
 }
