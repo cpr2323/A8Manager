@@ -15,11 +15,12 @@ Assimil8orValidatorComponent::Assimil8orValidatorComponent ()
     scanStatusListBox.getHeader ().addColumn ("Message", Columns::text, 100, 10, 3000, juce::TableHeaderComponent::visible);
     addAndMakeVisible (scanStatusListBox);
 
-    auto setupFilterButton = [this] (juce::TextButton& button, juce::String text)
+    auto setupFilterButton = [this] (juce::TextButton& button, juce::String text, juce::String tooltip)
     {
         button.setColour (juce::TextButton::ColourIds::buttonColourId, juce::Colours::grey);
         button.setColour (juce::TextButton::ColourIds::buttonOnColourId, juce::Colours::green.darker (0.5f));
         button.setClickingTogglesState (true);
+        button.setTooltip (tooltip);
         button.setToggleable (true);
         button.setButtonText (text);
         button.setToggleState (true, juce::NotificationType::dontSendNotification);
@@ -33,9 +34,9 @@ Assimil8orValidatorComponent::Assimil8orValidatorComponent ()
         };
         addAndMakeVisible (button);
     };
-    setupFilterButton (idleFilterButton, "I");
-    setupFilterButton (warningFilterButton, "W");
-    setupFilterButton (errorFilterButton, "E");
+    setupFilterButton (idleFilterButton, "I", "Toggles viewing of Info messages");
+    setupFilterButton (warningFilterButton, "W", "Toggles viewing of Warning messages");
+    setupFilterButton (errorFilterButton, "E", "Toggles viewing of Error messages");
 
     setupFilterList ();
     validatorResultsQuickLookupList.clear ();

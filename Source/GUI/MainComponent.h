@@ -17,6 +17,7 @@ private:
     Assimil8orEditorComponent assimil8orEditorComponent;
     Assimil8orValidatorComponent assimil8orValidatorComponent;
     ToolWindow toolWindow;
+    juce::TooltipWindow tooltipWindow;
 
     void resized () override;
     void paint (juce::Graphics& g) override;
