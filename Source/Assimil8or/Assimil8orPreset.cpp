@@ -2,13 +2,12 @@
 #include "Assimil8orValidator.h"
 #include "Preset/ParameterNames.h"
 
-#define LOG_PARSING 0
+#define LOG_PARSING 1
 #if LOG_PARSING
 #define LogParsing(text) juce::Logger::outputDebugString (text);
 #else
 #define LogParsing(text) ;
 #endif
-
 
 void Assimil8orPreset::write (juce::File presetFile, juce::ValueTree presetPropertiesVT)
 {
@@ -211,11 +210,11 @@ juce::String Assimil8orPreset::getParseStateString (ParseState theParseState)
 {
     switch (theParseState)
     {
-    case ParseState::ParsingGlobalSection: { return "ParsinGlobalSection"; } break;
-    case ParseState::ParsingPresetSection: { return "ParsingPresetSection"; } break;
-    case ParseState::ParsingChannelSection: { return "ParsingChannelSection"; } break;
-    case ParseState::ParsingZoneSection: { return "ParsingZoneSection"; } break;
-    default: { return "[error]"; } break;
+        case ParseState::ParsingGlobalSection: { return "ParsinGlobalSection"; } break;
+        case ParseState::ParsingPresetSection: { return "ParsingPresetSection"; } break;
+        case ParseState::ParsingChannelSection: { return "ParsingChannelSection"; } break;
+        case ParseState::ParsingZoneSection: { return "ParsingZoneSection"; } break;
+        default: { return "[error]"; } break;
     }
 };
 
@@ -223,7 +222,8 @@ void Assimil8orPreset::setParseState (ParseState newParseState, ActionMap* newAc
 {
     parseState = newParseState;
     curActions = newActions;
-    sectionName = { newSectionName };
+    sectionName = newSectionName;
+    LogParsing ("state switch: " + getParseStateString (parseState));
 }
 
 Assimil8orPreset::Assimil8orPreset ()
