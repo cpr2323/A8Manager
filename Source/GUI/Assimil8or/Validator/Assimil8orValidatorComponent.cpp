@@ -28,7 +28,7 @@ Assimil8orValidatorComponent::Assimil8orValidatorComponent ()
             setupFilterList ();
             validatorResultsQuickLookupList.clear ();
             buildQuickLookupList ();
-            repaint ();
+            scanStatusListBox.updateContent ();
         };
         addAndMakeVisible (button);
     };
@@ -39,7 +39,7 @@ Assimil8orValidatorComponent::Assimil8orValidatorComponent ()
     setupFilterList ();
     validatorResultsQuickLookupList.clear ();
     buildQuickLookupList ();
-    repaint ();
+    scanStatusListBox.updateContent ();
     audioFormatManager.registerBasicFormats ();
 }
 
