@@ -14,14 +14,14 @@ RenameDialogContent::RenameDialogContent (juce::File oldFile, int maxNameLength,
     newNameEditor.setIndents (0, 0);
     newNameEditor.setInputRestrictions (maxNameLength, {});
     newNameEditor.onReturnKey = [this, oldFile] () { doRename (oldFile); };
-
     addAndMakeVisible (newNameEditor);
+
     okButton.setButtonText ("OK");
     addAndMakeVisible (okButton);
     cancelButton.setButtonText ("Cancel");
     addAndMakeVisible (cancelButton);
 
-    cancelButton.onClick = [this] () { closeDialog (); };
+    cancelButton.onClick = [this] () { closeDialog (false); };
     okButton.onClick = [this, oldFile] () { doRename (oldFile); };
 }
 
@@ -34,8 +34,7 @@ void RenameDialogContent::doRename (juce::File oldFile)
     // try to do rename
     if (oldFile.moveFileTo (newFile) == true)
     {
-        renamed = true;
-        closeDialog ();
+        closeDialog (true);
     }
     else
     {
@@ -44,7 +43,7 @@ void RenameDialogContent::doRename (juce::File oldFile)
     }
 }
 
-void RenameDialogContent::closeDialog ()
+void RenameDialogContent::closeDialog (bool renamed)
 {
     if (doneCallback != nullptr)
         doneCallback (renamed);
