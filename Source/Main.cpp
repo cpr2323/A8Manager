@@ -6,7 +6,7 @@
 #include "Utility/RootProperties.h"
 #include "Utility/RuntimeRootProperties.h"
 #include "Utility/ValueTreeFile.h"
-#include "Assimil8or/Assimil8or.h"
+#include "Assimil8or/Assimil8orValidator.h"
 #include "Assimil8or/Preset/PresetProperties.h"
 
 const juce::String PropertiesFileExtension { ".properties" };
