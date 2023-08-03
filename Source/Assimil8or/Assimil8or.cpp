@@ -627,8 +627,6 @@ void Assimil8orPreset::write (juce::File presetFile)
     write (presetFile, presetProperties.getValueTree ());
 }
 
-
-// NOTE: still very much under construction
 void Assimil8orPreset::parse (juce::StringArray presetLines)
 {
     jassert (presetProperties.isValid ());
@@ -677,13 +675,16 @@ void Assimil8orPreset::parse (juce::StringArray presetLines)
         }
 
         LogParsing (juce::String (scopeDepth) + "-" + presetLine.trimStart ());
-        if (!presetLine.trim ().isEmpty ())
+        if (presetLine.trim ().isEmpty ())
+        {
+            continue;
+        }
+        else
         {
             key = presetLine.upToFirstOccurrenceOf (":", false, false).trim ();
             value = presetLine.fromFirstOccurrenceOf (":", false, false).trim ();
             const auto paramName = key.upToFirstOccurrenceOf (" ", false, false);
-            const auto action = curActions->find (paramName);
-            if (action != curActions->end ())
+            if (const auto action = curActions->find (paramName); action != curActions->end ())
             {
                 action->second ();
             }
@@ -692,10 +693,6 @@ void Assimil8orPreset::parse (juce::StringArray presetLines)
                 LogParsing ("unknown " + sectionName + " key: " + key);
                 jassertfalse;
             }
-        }
-        else
-        {
-            LogParsing ("Empty Line");
         }
     }
 }
