@@ -20,6 +20,8 @@ public:
 
     juce::ValueTree getPresetVT () { return presetProperties.getValueTree (); }
 
+    juce::ValueTree getParseErrorsVT () { return parseErrorList; }
+
 private:
     enum class ParseState
     {
@@ -30,6 +32,7 @@ private:
     };
     ParseState parseState { ParseState::ParsingGlobalSection };
     PresetProperties presetProperties;
+    juce::ValueTree parseErrorList { "ParseErrorList" };
 
     ActionMap globalActions;
     ActionMap presetActions;

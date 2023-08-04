@@ -163,6 +163,17 @@ std::tuple<uint64_t, std::optional<uint64_t>> Assimil8orValidator::validateFile 
         Assimil8orPreset assimil8orPreset;
         assimil8orPreset.parse (fileContents);
 
+        if (auto presetErrorList { assimil8orPreset.getParseErrorsVT () }; presetErrorList.getNumChildren () > 0)
+        {
+            ValueTreeHelpers::forEachChildOfType (presetErrorList, "ParseError", [this, &validatorResultProperties] (juce::ValueTree childVT)
+            {
+                const auto parseErrorType { childVT.getProperty ("type").toString ()};
+                const auto parseErrorDescription { childVT.getProperty ("description").toString () };
+                validatorResultProperties.update (ValidatorResultProperties::ResultTypeError,
+                                                  "[Parse error '" + parseErrorDescription + "']", false);
+                return true;
+            });
+        }
         uint64_t sizeRequiredForSamples {};
         PresetProperties presetProperties (assimil8orPreset.getPresetVT (), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
         if (presetProperties.isValid ())

@@ -143,6 +143,9 @@ void Assimil8orPreset::write (juce::File presetFile)
 void Assimil8orPreset::parse (juce::StringArray presetLines)
 {
     jassert (presetProperties.isValid ());
+    presetProperties.clear ();
+    parseErrorList.removeAllChildren (nullptr);
+    parseErrorList.removeAllProperties (nullptr);
 
     auto scopeDepth { 0 };
 
@@ -200,8 +203,12 @@ void Assimil8orPreset::parse (juce::StringArray presetLines)
         }
         else
         {
-            LogParsing ("unknown " + sectionName + " key: " + key);
-            //jassertfalse;
+            const auto unknownParameterError { "unknown " + sectionName + " parameter: " + key };
+            LogParsing (unknownParameterError);
+            juce::ValueTree newParseError ("ParseError");
+            newParseError.setProperty ("type", "UnknownParameterError", nullptr);
+            newParseError.setProperty ("description", unknownParameterError, nullptr);
+            parseErrorList.addChild (newParseError, -1, nullptr);
         }
     }
 }
@@ -239,7 +246,7 @@ Assimil8orPreset::Assimil8orPreset ()
     globalActions.insert ({
         {Section::PresetId, [this] () {
             curPresetSection = presetProperties.getValueTree ();
-            setParseState (ParseState::ParsingPresetSection, &presetActions, "preset");
+            setParseState (ParseState::ParsingPresetSection, &presetActions, "Preset");
         }}
         });
 
@@ -248,7 +255,7 @@ Assimil8orPreset::Assimil8orPreset ()
         {Section::ChannelId, [this, getParameterIndex] () {
             curChannelSection = presetProperties.addChannel (getParameterIndex ());
             channelProperties.wrap (curChannelSection, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
-            setParseState (ParseState::ParsingChannelSection, &channelActions, "channel");
+            setParseState (ParseState::ParsingChannelSection, &channelActions, "Channel");
         }},
         {Parameter::Preset::NameId, [this] () {
             presetProperties.setName (value, false);
@@ -288,7 +295,7 @@ Assimil8orPreset::Assimil8orPreset ()
             // TODO - do we need to check for malformed data, ie more than 8 zones
             curZoneSection = channelProperties.addZone (getParameterIndex ());
             zoneProperties.wrap (curZoneSection, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
-            setParseState (ParseState::ParsingZoneSection, &zoneActions, "zone");
+            setParseState (ParseState::ParsingZoneSection, &zoneActions, "Zone");
         }},
         {Parameter::Channel::AttackId, [this] () {
             channelProperties.setAttack (value.getDoubleValue (), false);

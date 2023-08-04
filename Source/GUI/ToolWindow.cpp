@@ -71,8 +71,7 @@ void ToolWindow::loadPreset (juce::File presetFile)
 
     PresetProperties newPresetProperties (assimil8orPreset.getPresetVT (), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
 
-    presetProperties.getValueTree ().removeAllChildren (nullptr);
-    presetProperties.getValueTree ().removeAllProperties (nullptr);
+    presetProperties.clear ();
     presetProperties.getValueTree ().copyPropertiesAndChildrenFrom (newPresetProperties.getValueTree (), nullptr);
 }
 
