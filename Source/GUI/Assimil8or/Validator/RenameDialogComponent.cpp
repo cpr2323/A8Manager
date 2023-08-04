@@ -11,8 +11,9 @@ RenameDialogContent::RenameDialogContent (juce::File oldFile, int maxNameLength,
     newNamePromptLabel.setText ("New Name:", juce::NotificationType::dontSendNotification);
     addAndMakeVisible (newNamePromptLabel);
 
-    newNameEditor.setIndents (0, 0);
+    newNameEditor.setIndents (2, 0);
     newNameEditor.setInputRestrictions (maxNameLength, {});
+    newNameEditor.setJustification (juce::Justification::centredLeft);
     newNameEditor.onReturnKey = [this, oldFile] () { doRename (oldFile); };
     addAndMakeVisible (newNameEditor);
 
@@ -23,11 +24,16 @@ RenameDialogContent::RenameDialogContent (juce::File oldFile, int maxNameLength,
 
     cancelButton.onClick = [this] () { closeDialog (false); };
     okButton.onClick = [this, oldFile] () { doRename (oldFile); };
+
+    newNameEditor.setWantsKeyboardFocus (true);
 }
 
 void RenameDialogContent::doRename (juce::File oldFile)
 {
-    auto newFile { oldFile.getParentDirectory ().getChildFile (newNameEditor.getText ()) };
+    if (newNameEditor.getText ().trim ().isEmpty ())
+        return;
+
+    auto newFile { oldFile.getParentDirectory ().getChildFile (newNameEditor.getText ().trim ()) };
     if (! oldFile.isDirectory () && newFile.getFileExtension () == "")
         newFile = newFile.withFileExtension (oldFile.getFileExtension ());
 
@@ -54,13 +60,18 @@ void RenameDialogContent::closeDialog (bool renamed)
 
 void RenameDialogContent::paint (juce::Graphics& g)
 {
+    if (isVisible () && neverVisible)
+    {
+        neverVisible = true;
+        newNameEditor.grabKeyboardFocus ();
+    }
     g.fillAll (juce::Colours::lightgrey);
 }
 
 void RenameDialogContent::resized ()
 {
     auto localBounds { getLocalBounds () };
-    auto bottomRow { localBounds.removeFromBottom (35).withTrimmedBottom (5) };
+    auto bottomRow { localBounds.removeFromBottom (28).withTrimmedBottom (5) };
     okButton.setColour (juce::TextButton::ColourIds::textColourOnId, juce::Colours::white);
     okButton.setColour (juce::TextButton::ColourIds::textColourOffId, juce::Colours::white);
     okButton.setBounds (bottomRow.removeFromLeft (65).withTrimmedLeft (5));
@@ -69,8 +80,9 @@ void RenameDialogContent::resized ()
     cancelButton.setBounds (bottomRow.removeFromLeft (65).withTrimmedLeft (5));
 
     oldNameLabel.setBounds (localBounds.removeFromTop (35).withTrimmedTop (5));
-    localBounds.removeFromTop (5);
+
+    //localBounds.removeFromTop (5);
     auto newNameRow { localBounds.removeFromTop (35).withTrimmedTop (5) };
     newNamePromptLabel.setBounds (newNameRow.removeFromLeft (80).withTrimmedLeft (5));
-    newNameEditor.setBounds (newNameRow.withTrimmedLeft (5));
+    newNameEditor.setBounds (newNameRow.reduced(5,2));
 }

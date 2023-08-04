@@ -218,11 +218,11 @@ void Assimil8orValidatorComponent::rename (juce::File file, int maxLength)
         }) };
     options.content.setOwned (renameContent.release ());
 
-    juce::Rectangle<int> area (0, 0, 300, 200);
+    juce::Rectangle<int> area (0, 0, 380, 110);
 
     options.content->setSize (area.getWidth (), area.getHeight ());
     options.dialogTitle = "Rename";
-    options.dialogBackgroundColour = juce::Colour (juce::Colours::whitesmoke);
+    options.dialogBackgroundColour = juce::Colour (juce::Colours::lightgrey);
     options.escapeKeyTriggersCloseButton = true;
     options.useNativeTitleBar = false;
     options.resizable = false;

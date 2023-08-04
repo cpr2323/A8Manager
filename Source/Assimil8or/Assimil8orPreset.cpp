@@ -201,7 +201,7 @@ void Assimil8orPreset::parse (juce::StringArray presetLines)
         else
         {
             LogParsing ("unknown " + sectionName + " key: " + key);
-            jassertfalse;
+            //jassertfalse;
         }
     }
 }

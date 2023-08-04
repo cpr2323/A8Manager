@@ -14,6 +14,7 @@ private:
     juce::TextButton okButton;
     juce::TextButton cancelButton;
     std::function<void (bool wasRenamed)> doneCallback;
+    bool neverVisible { true };
 
     void closeDialog (bool renamed);
     void doRename (juce::File oldFile);
