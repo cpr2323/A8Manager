@@ -165,25 +165,11 @@ void Assimil8orPreset::parse (juce::StringArray presetLines)
             // for each scope we are exiting, reset the appropriate parent objects
             for (auto remainingScopes { scopeDifference * -1 }; remainingScopes > 0; --remainingScopes)
             {
-                switch (parseState)
-                {
-                case ParseState::ParsingGlobalSection: { jassertfalse; } break;
-                case ParseState::ParsingPresetSection:
-                {
-                    curPresetSection = {};
-                    setParseState (ParseState::ParsingGlobalSection, &globalActions, "global");
-                } break;
-                case ParseState::ParsingChannelSection:
-                {
-                    curChannelSection = {};
-                    setParseState (ParseState::ParsingPresetSection, &presetActions, "preset");
-                } break;
-                case ParseState::ParsingZoneSection: {
-                    curZoneSection = {};
-                    setParseState (ParseState::ParsingChannelSection, &channelActions, "channel");
-                } break;
-                default: { jassertfalse; } break;
-                }
+                // parseStack should have items to reset!
+                jassert(!parseStack.empty());
+                auto resetFunc = parseStack.top();
+                parseStack.pop();
+                resetFunc();
             }
         }
 
@@ -206,26 +192,6 @@ void Assimil8orPreset::parse (juce::StringArray presetLines)
     }
 }
 
-juce::String Assimil8orPreset::getParseStateString (ParseState theParseState)
-{
-    switch (theParseState)
-    {
-        case ParseState::ParsingGlobalSection: { return "ParsinGlobalSection"; } break;
-        case ParseState::ParsingPresetSection: { return "ParsingPresetSection"; } break;
-        case ParseState::ParsingChannelSection: { return "ParsingChannelSection"; } break;
-        case ParseState::ParsingZoneSection: { return "ParsingZoneSection"; } break;
-        default: { return "[error]"; } break;
-    }
-};
-
-void Assimil8orPreset::setParseState (ParseState newParseState, ActionMap* newActions, juce::String newSectionName)
-{
-    parseState = newParseState;
-    curActions = newActions;
-    sectionName = newSectionName;
-    LogParsing ("state switch: " + getParseStateString (parseState));
-}
-
 Assimil8orPreset::Assimil8orPreset ()
 {
     auto getParameterIndex = [this] ()
@@ -234,21 +200,50 @@ Assimil8orPreset::Assimil8orPreset ()
         jassert (index > 0);
         return index;
     };
-
+    
+    auto setParseState = [this] (ActionMap* newActions, juce::String newSectionName)
+    {
+        curActions = newActions;
+        sectionName = newSectionName;
+    };
+    
+    auto revertParseState = [this, setParseState] (ActionMap* newActions, juce::String newSectionName, juce::ValueTree & sectionToRevert)
+    {
+        sectionToRevert = {};
+        setParseState (newActions, newSectionName);
+    };
+    
+    auto revertZoneSection = [this, revertParseState]
+    {
+        revertParseState(&channelActions, "channel", curZoneSection);
+    };
+    
+    auto revertPresetSection = [this, revertParseState]
+    {
+        revertParseState(&globalActions, "global", curPresetSection);
+    };
+    
+    auto revertChannelSection = [this, revertParseState]
+    {
+        revertParseState(&presetActions, "preset", curChannelSection);
+    };
+    
     // Global Action
     globalActions.insert ({
-        {Section::PresetId, [this] () {
+        {Section::PresetId, [this, revertPresetSection, setParseState] () {
             curPresetSection = presetProperties.getValueTree ();
-            setParseState (ParseState::ParsingPresetSection, &presetActions, "preset");
+            setParseState (&presetActions, "preset");
+            parseStack.push(revertPresetSection);
         }}
         });
 
     // Preset Actions
     presetActions.insert ({
-        {Section::ChannelId, [this, getParameterIndex] () {
+        {Section::ChannelId, [this, getParameterIndex, revertChannelSection, setParseState] () {
             curChannelSection = presetProperties.addChannel (getParameterIndex ());
             channelProperties.wrap (curChannelSection, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
-            setParseState (ParseState::ParsingChannelSection, &channelActions, "channel");
+            setParseState (&channelActions, "channel");
+            parseStack.push(revertChannelSection);
         }},
         {Parameter::Preset::NameId, [this] () {
             presetProperties.setName (value, false);
@@ -284,11 +279,12 @@ Assimil8orPreset::Assimil8orPreset ()
 
     // Channel Actions
     channelActions.insert ({
-        {Section::ZoneId, [this, getParameterIndex] () {
+        {Section::ZoneId, [this, getParameterIndex, revertZoneSection, setParseState] () {
             // TODO - do we need to check for malformed data, ie more than 8 zones
             curZoneSection = channelProperties.addZone (getParameterIndex ());
             zoneProperties.wrap (curZoneSection, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
-            setParseState (ParseState::ParsingZoneSection, &zoneActions, "zone");
+            setParseState (&zoneActions, "zone");
+            parseStack.push(revertZoneSection);
         }},
         {Parameter::Channel::AttackId, [this] () {
             channelProperties.setAttack (value.getDoubleValue (), false);
@@ -451,5 +447,5 @@ Assimil8orPreset::Assimil8orPreset ()
         {Parameter::Zone::SideId, [this] () {
             zoneProperties.setSide (value.getIntValue (), false);
         }}
-        });
+    });
 }

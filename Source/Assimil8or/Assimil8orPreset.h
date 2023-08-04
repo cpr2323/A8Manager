@@ -2,6 +2,7 @@
 
 #include <JuceHeader.h>
 #include "Preset/PresetProperties.h"
+#include <Stack>
 
 // File Contents
 //      Preset 1 (1-8 channels)
@@ -21,14 +22,10 @@ public:
     juce::ValueTree getPresetVT () { return presetProperties.getValueTree (); }
 
 private:
-    enum class ParseState
-    {
-        ParsingGlobalSection,
-        ParsingPresetSection,
-        ParsingChannelSection,
-        ParsingZoneSection,
-    };
-    ParseState parseState { ParseState::ParsingGlobalSection };
+    
+    std::stack<std::function<void()>> parseStack;
+    juce::String sectionName;
+    
     PresetProperties presetProperties;
 
     ActionMap globalActions;
@@ -36,16 +33,13 @@ private:
     ActionMap channelActions;
     ActionMap zoneActions;
     ActionMap* curActions;
-    juce::String sectionName;
 
     juce::ValueTree curPresetSection;
     ChannelProperties channelProperties;
     juce::ValueTree curChannelSection;
     ZoneProperties zoneProperties;
     juce::ValueTree curZoneSection;
+    
     juce::String key;
     juce::String value;
-
-    juce::String getParseStateString (ParseState parseState);
-    void setParseState (ParseState newParseState, ActionMap* newActions, juce::String newSectionName);
 };
