@@ -233,6 +233,12 @@ void Assimil8orValidatorComponent::rename (juce::File file, int maxLength)
 
 void Assimil8orValidatorComponent::convert (juce::File file)
 {
+    auto errorDialog = [this] (juce::String message)
+    {
+        juce::AlertWindow::showMessageBoxAsync (juce::AlertWindow::WarningIcon, "Conversion Failed", message, {}, nullptr,
+                                                juce::ModalCallbackFunction::create ([this] (int) {}));
+    };
+
     if (std::unique_ptr<juce::AudioFormatReader> reader (audioFormatManager.createReaderFor (file)); reader != nullptr)
     {
         auto tempFile { juce::File::createTempFile (".wav") };
@@ -279,6 +285,7 @@ void Assimil8orValidatorComponent::convert (juce::File file)
                     if (tempFile.moveFileTo (file) == false)
                     {
                         // failure to move temp file to new file
+                        errorDialog ("Failure to move converted file to original file");
                         jassertfalse;
                     }
                     validatorProperties.startAsyncScan (false);
@@ -286,24 +293,28 @@ void Assimil8orValidatorComponent::convert (juce::File file)
                 else
                 {
                     // failure to delete original file
+                    errorDialog ("Failure to delete original file");
                     jassertfalse;
                 }
             }
             else
             {
-                // failure to copy all data
+                // failure to convert
+                errorDialog ("Failure to write new file");
                 jassertfalse;
             }
         }
         else
         {
             //failure to create writer
+            errorDialog ("Failure to create writer");
             jassertfalse;
         }
     }
     else
     {
         // failure to create reader
+        errorDialog ("Failure to create reader");
         jassertfalse;
     }
 }
@@ -321,8 +332,9 @@ void Assimil8orValidatorComponent::locate (juce::File file)
             // TODO - this should probably be in a thread
             if (sourceFile.copyFileTo (file) == false)
             {
-                // TODO - handle error
-                jassertfalse;
+                juce::AlertWindow::showMessageBoxAsync (juce::AlertWindow::WarningIcon, "Copy Failed",
+                                                       "Unable to rename '" + sourceFile.getFileName () + "' to '" + file.getFileName () + "'", {}, nullptr,
+                                                       juce::ModalCallbackFunction::create ([this] (int) {}));
             }
             validatorProperties.startAsyncScan (false);
         }
