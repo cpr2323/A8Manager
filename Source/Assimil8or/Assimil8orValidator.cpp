@@ -153,7 +153,7 @@ std::tuple<uint64_t, std::optional<uint64_t>> Assimil8orValidator::validateFile 
         if (file.getFileNameWithoutExtension ().startsWith (kPresetFileNamePrefix) == false)
         {
             isIgnored = true;
-            validatorResultProperties.update (ValidatorResultProperties::ResultTypeError, "(Preset file must begin with lowercase 'psrt'. Preset will be ignored)", false);
+            validatorResultProperties.update (ValidatorResultProperties::ResultTypeError, "(Preset file must begin with lowercase '" + kPresetFileNamePrefix + "'. Preset will be ignored)", false);
             validatorResultProperties.addFixerEntry (FixerEntryProperties::FixerTypeRenameFile, file.getFullPathName ());
         }
 
