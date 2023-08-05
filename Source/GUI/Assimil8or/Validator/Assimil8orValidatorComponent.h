@@ -21,7 +21,7 @@ private:
         text
     };
     ValidatorProperties validatorProperties;
-    juce::TableListBox scanStatusListBox { {}, this };
+    juce::TableListBox validationResultsListBox { {}, this };
     std::vector<juce::ValueTree> validatorResultsQuickLookupList;
     juce::StringArray filterList { ValidatorResultProperties::ResultTypeInfo };
     juce::TextButton idleFilterButton;

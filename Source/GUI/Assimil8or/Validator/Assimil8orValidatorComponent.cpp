@@ -7,13 +7,14 @@ Assimil8orValidatorComponent::Assimil8orValidatorComponent ()
 {
     setOpaque (true);
 
-    scanStatusListBox.setClickingTogglesRowSelection (false);
-    scanStatusListBox.setColour (juce::ListBox::outlineColourId, juce::Colours::grey);
-    scanStatusListBox.setOutlineThickness (1);
-    scanStatusListBox.getHeader ().addColumn ("Status", Columns::resultType, 60, 10, 60, juce::TableHeaderComponent::visible);
-    scanStatusListBox.getHeader ().addColumn ("Fix", Columns::fix, 60, 10, 60, juce::TableHeaderComponent::visible);
-    scanStatusListBox.getHeader ().addColumn ("Message", Columns::text, 100, 10, 3000, juce::TableHeaderComponent::visible);
-    addAndMakeVisible (scanStatusListBox);
+    validationResultsListBox.setClickingTogglesRowSelection (false);
+    validationResultsListBox.setColour (juce::ListBox::outlineColourId, juce::Colours::grey);
+    validationResultsListBox.setOutlineThickness (1);
+    validationResultsListBox.getHeader ().addColumn ("Status", Columns::resultType, 60, 60, 60, juce::TableHeaderComponent::visible | juce::TableHeaderComponent::notResizable);
+    validationResultsListBox.getHeader ().addColumn ("Fix", Columns::fix, 60, 60, 60, juce::TableHeaderComponent::visible | juce::TableHeaderComponent::notResizable);
+    validationResultsListBox.getHeader ().addColumn ("Message", Columns::text, 100, 10, 3000, juce::TableHeaderComponent::visible);
+    validationResultsListBox.getHeader ().setStretchToFitActive (true);
+    addAndMakeVisible (validationResultsListBox);
 
     auto setupFilterButton = [this] (juce::TextButton& button, juce::String text, juce::String tooltip)
     {
@@ -29,8 +30,8 @@ Assimil8orValidatorComponent::Assimil8orValidatorComponent ()
             setupFilterList ();
             validatorResultsQuickLookupList.clear ();
             buildQuickLookupList ();
+            validationResultsListBox.updateContent ();
             udpateHeader ();
-            scanStatusListBox.updateContent ();
         };
         addAndMakeVisible (button);
     };
@@ -41,8 +42,9 @@ Assimil8orValidatorComponent::Assimil8orValidatorComponent ()
     setupFilterList ();
     validatorResultsQuickLookupList.clear ();
     buildQuickLookupList ();
+    validationResultsListBox.updateContent ();
     udpateHeader ();
-    scanStatusListBox.updateContent ();
+
     audioFormatManager.registerBasicFormats ();
 }
 
@@ -68,7 +70,12 @@ void Assimil8orValidatorComponent::init (juce::ValueTree rootPropertiesVT)
         if (scanStatus == "idle")
             buildQuickLookupList ();
 
+        validationResultsListBox.updateContent ();
         udpateHeader ();
+        // TODO - this is a crazy work around because when I am getting the initial list, a horizontal scroll bar is appearing
+        //        the only experiment that worked was doing this
+        setSize (getWidth(), getHeight() + 1);
+        setSize (getWidth (), getHeight () - 1);
     };
 }
 
@@ -85,8 +92,8 @@ void Assimil8orValidatorComponent::setupFilterList ()
 
 void Assimil8orValidatorComponent::udpateHeader ()
 {
-    scanStatusListBox.getHeader ().setColumnName (Columns::text, "Message (" + juce::String (validatorResultsQuickLookupList.size ()) + " of " + juce::String (totalItems) + " items)");
-    scanStatusListBox.repaint ();
+    validationResultsListBox.getHeader ().setColumnName (Columns::text, "Message (" + juce::String (validatorResultsQuickLookupList.size ()) + " of " + juce::String (totalItems) + " items)");
+    validationResultsListBox.repaint ();
 }
 
 void Assimil8orValidatorComponent::buildQuickLookupList ()
@@ -113,10 +120,7 @@ void Assimil8orValidatorComponent::paint ([[maybe_unused]] juce::Graphics& g)
 void Assimil8orValidatorComponent::resized ()
 {
     auto localBounds { getLocalBounds () };
-    scanStatusListBox.setBounds (localBounds);
-    scanStatusListBox.getHeader ().setColumnWidth (Columns::text, scanStatusListBox.getWidth () - 2 -
-                                                   scanStatusListBox.getHeader ().getColumnWidth (Columns::resultType) -
-                                                   scanStatusListBox.getHeader ().getColumnWidth (Columns::fix));
+    validationResultsListBox.setBounds (localBounds);
     auto filterButtonBounds { getLocalBounds ().removeFromBottom (45).withTrimmedBottom (15).withTrimmedRight (15) };
     errorFilterButton.setBounds (filterButtonBounds.removeFromRight (filterButtonBounds.getHeight ()));
     filterButtonBounds.removeFromRight (5);
@@ -155,7 +159,7 @@ void Assimil8orValidatorComponent::paintCell (juce::Graphics& g, int rowNumber, 
         g.setColour (juce::Colours::lightsteelblue);
         g.fillRect (width - 1, 0, 1, height);
         ValidatorResultProperties validatorResultProperties (validatorResultsQuickLookupList [rowNumber],
-            ValidatorResultProperties::WrapperType::client, ValidatorResultProperties::EnableCallbacks::no);
+                                                             ValidatorResultProperties::WrapperType::client, ValidatorResultProperties::EnableCallbacks::no);
         auto textColor { juce::Colours::black };
         if (validatorResultProperties.getType () == ValidatorResultProperties::ResultTypeWarning)
             textColor = juce::Colours::orange.darker (0.3f);
@@ -351,7 +355,7 @@ void Assimil8orValidatorComponent::cellClicked (int rowNumber, int columnId, con
     if (columnId == Columns::fix)
     {
         ValidatorResultProperties validatorResultProperties (validatorResultsQuickLookupList [rowNumber],
-            ValidatorResultProperties::WrapperType::client, ValidatorResultProperties::EnableCallbacks::no);
+                                                             ValidatorResultProperties::WrapperType::client, ValidatorResultProperties::EnableCallbacks::no);
         if (validatorResultProperties.getNumFixerEntries () > 0)
         {
             if (validatorResultProperties.getNumFixerEntries () == 1)
