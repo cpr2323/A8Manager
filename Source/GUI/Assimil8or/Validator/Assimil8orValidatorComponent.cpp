@@ -278,8 +278,8 @@ void Assimil8orValidatorComponent::convert (juce::File file)
         jassert (numChannels != 0);
         if (numChannels > 1)
             numChannels = 1;
-//         if (numChannels > 2)
-//             numChannels = 2;
+        if (numChannels > 2)
+            numChannels = 2;
         if (reader->sampleRate > 192000)
         {
             // we need to do sample rate conversion
