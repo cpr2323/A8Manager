@@ -10,8 +10,8 @@ Assimil8orValidatorComponent::Assimil8orValidatorComponent ()
     validationResultsListBox.setClickingTogglesRowSelection (false);
     validationResultsListBox.setColour (juce::ListBox::outlineColourId, juce::Colours::grey);
     validationResultsListBox.setOutlineThickness (1);
-    validationResultsListBox.getHeader ().addColumn ("Status", Columns::resultType, 60, 60, 60, juce::TableHeaderComponent::visible | juce::TableHeaderComponent::notResizable);
-    validationResultsListBox.getHeader ().addColumn ("Fix", Columns::fix, 60, 60, 60, juce::TableHeaderComponent::visible | juce::TableHeaderComponent::notResizable);
+    validationResultsListBox.getHeader ().addColumn ("Status", Columns::resultType, 60, 60, 60, juce::TableHeaderComponent::visible);
+    validationResultsListBox.getHeader ().addColumn ("Fix", Columns::fix, 60, 60, 60, juce::TableHeaderComponent::visible);
     validationResultsListBox.getHeader ().addColumn ("Message", Columns::text, 100, 10, 3000, juce::TableHeaderComponent::visible);
     validationResultsListBox.getHeader ().setStretchToFitActive (true);
     addAndMakeVisible (validationResultsListBox);
@@ -117,6 +117,15 @@ void Assimil8orValidatorComponent::paint ([[maybe_unused]] juce::Graphics& g)
     g.fillAll (juce::Colours::navajowhite);
 }
 
+juce::String Assimil8orValidatorComponent::getCellTooltip (int rowNumber, int columnId)
+{
+    if (columnId != Columns::text)
+        return {};
+
+    ValidatorResultProperties validatorResultProperties (validatorResultsQuickLookupList [rowNumber],
+                                                         ValidatorResultProperties::WrapperType::client, ValidatorResultProperties::EnableCallbacks::no);
+    return validatorResultProperties.getText ();
+}
 void Assimil8orValidatorComponent::resized ()
 {
     auto localBounds { getLocalBounds () };
