@@ -124,7 +124,15 @@ juce::String Assimil8orValidatorComponent::getCellTooltip (int rowNumber, int co
 
     ValidatorResultProperties validatorResultProperties (validatorResultsQuickLookupList [rowNumber],
                                                          ValidatorResultProperties::WrapperType::client, ValidatorResultProperties::EnableCallbacks::no);
-    return validatorResultProperties.getText ();
+    auto getPrefix = [this, &validatorResultProperties] () -> juce::String
+    {
+        if (!validatorResultProperties.getValueTree ().hasProperty ("fullFileName"))
+            return {};
+
+        juce::File file (validatorResultProperties.getValueTree ().getProperty ("fullFileName").toString ());
+        return file.getParentDirectory ().getFileName () + file.getSeparatorString () + file.getFileName () + "\r\n";
+    };
+    return getPrefix () + validatorResultProperties.getText ();
 }
 void Assimil8orValidatorComponent::resized ()
 {
@@ -268,8 +276,10 @@ void Assimil8orValidatorComponent::convert (juce::File file)
         else if (bitsPerSample > 32)
             bitsPerSample = 32;
         jassert (numChannels != 0);
-        if (numChannels > 2)
-            numChannels = 2;
+        if (numChannels > 1)
+            numChannels = 1;
+//         if (numChannels > 2)
+//             numChannels = 2;
         if (reader->sampleRate > 192000)
         {
             // we need to do sample rate conversion
@@ -282,6 +292,7 @@ void Assimil8orValidatorComponent::convert (juce::File file)
         {
             // audioFormatWriter will delete the file stream when done
             fileStream.release ();
+
             // copy the whole thing
             // TODO - two things
             //   a) this needs to be done in a thread

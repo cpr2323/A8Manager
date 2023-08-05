@@ -390,6 +390,7 @@ void Assimil8orValidator::processFolder (juce::ValueTree folderVT)
         {
             ValidatorResultProperties validatorResultProperties;
             validatorResultProperties.update (ValidatorResultProperties::ResultTypeInfo, "File: " + curEntry.getFileName (), false);
+            validatorResultProperties.getValueTree ().setProperty ("fullFileName", curEntry.getFullPathName (), nullptr);
             const auto [ramRequired, presetUpdate] { validateFile (curEntry, validatorResultProperties.getValueTree ()) };
             totalSizeOfRamRequiredAllAudioFiles += ramRequired;
             if (presetUpdate.has_value ())
