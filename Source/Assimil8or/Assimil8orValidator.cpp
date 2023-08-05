@@ -20,6 +20,9 @@ const auto kPresetFileNumberOffset { 4 };
 const juce::String kWaveFileExtension { ".wav" };
 const juce::String kYmlFileExtension { ".yml" };
 const juce::String kFolderPrefsFileName { "folderprefs.yml" };
+const juce::String kLastFolderFileName { "lastfolder.yml" };
+const juce::String kLastPresetFileName { "lastpreset.yml" };
+
 const auto kBadPresetNumber { 9999 };
 const auto bytesPerSampleInAssimMemory { 4 };
 
@@ -100,6 +103,15 @@ bool Assimil8orValidator::isFolderPrefsFile (juce::File file)
 {
     return file.getFileName ().toLowerCase () == kFolderPrefsFileName;
 }
+bool Assimil8orValidator::isLastFolderFile (juce::File file)
+{
+    return file.getFileName ().toLowerCase () == kLastFolderFileName;
+}
+
+bool Assimil8orValidator::isLastPresetFile (juce::File file)
+{
+    return file.getFileName ().toLowerCase () == kLastPresetFileName;
+}
 
 bool Assimil8orValidator::isPresetFile (juce::File file)
 {
@@ -113,7 +125,7 @@ int Assimil8orValidator::getPresetNumberFromName (juce::File file)
 {
     if (!isPresetFile (file))
         return kBadPresetNumber;
-    return file.getFileNameWithoutExtension ().substring (kPresetFileNameLen).getIntValue ();
+    return file.getFileNameWithoutExtension ().substring (kPresetFileNumberOffset).getIntValue ();
 }
 
 std::tuple<uint64_t, std::optional<uint64_t>> Assimil8orValidator::validateFile (juce::File file, juce::ValueTree validatorResultsVT)
@@ -134,6 +146,16 @@ std::tuple<uint64_t, std::optional<uint64_t>> Assimil8orValidator::validateFile 
     else if (isFolderPrefsFile (file))
     {
         validatorResultProperties.update (ValidatorResultProperties::ResultTypeInfo, "Folder Preferences", false);
+        return {};
+    }
+    else if (isLastFolderFile (file))
+    {
+        validatorResultProperties.update (ValidatorResultProperties::ResultTypeInfo, "Last Folder", false);
+        return {};
+    }
+    else if (isLastPresetFile(file))
+    {
+        validatorResultProperties.update (ValidatorResultProperties::ResultTypeInfo, "Last Preset", false);
         return {};
     }
     else if (isPresetFile (file))
