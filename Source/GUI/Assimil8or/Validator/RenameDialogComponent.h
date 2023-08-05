@@ -16,6 +16,8 @@ private:
     std::function<void (bool wasRenamed)> doneCallback;
     bool neverVisible { true };
 
+    void addExtensionIfNeeded (juce::File oldFile, juce::File newFile);
+    void checkNameAvailable (juce::File oldFile);
     void closeDialog (bool renamed);
     void doRename (juce::File oldFile);
 

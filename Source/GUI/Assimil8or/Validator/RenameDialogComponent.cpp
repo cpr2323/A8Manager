@@ -15,9 +15,11 @@ RenameDialogContent::RenameDialogContent (juce::File oldFile, int maxNameLength,
     newNameEditor.setInputRestrictions (maxNameLength, {});
     newNameEditor.setJustification (juce::Justification::centredLeft);
     newNameEditor.onReturnKey = [this, oldFile] () { doRename (oldFile); };
+    newNameEditor.onTextChange = [this, oldFile] () { checkNameAvailable (oldFile); };
     addAndMakeVisible (newNameEditor);
 
     okButton.setButtonText ("OK");
+    okButton.setEnabled (false);
     addAndMakeVisible (okButton);
     cancelButton.setButtonText ("Cancel");
     addAndMakeVisible (cancelButton);
@@ -30,12 +32,9 @@ RenameDialogContent::RenameDialogContent (juce::File oldFile, int maxNameLength,
 
 void RenameDialogContent::doRename (juce::File oldFile)
 {
-    if (newNameEditor.getText ().trim ().isEmpty ())
-        return;
-
+    jassert (! newNameEditor.getText ().trim ().isEmpty ());
     auto newFile { oldFile.getParentDirectory ().getChildFile (newNameEditor.getText ().trim ()) };
-    if (! oldFile.isDirectory () && newFile.getFileExtension () == "")
-        newFile = newFile.withFileExtension (oldFile.getFileExtension ());
+    addExtensionIfNeeded (oldFile, newFile);
 
     // try to do rename
     if (oldFile.moveFileTo (newFile) == true)
@@ -49,6 +48,22 @@ void RenameDialogContent::doRename (juce::File oldFile)
                                                 "Unable to rename '" + oldFile.getFileName() + "' to '" + newFile.getFileName () + "'", {}, nullptr,
                                                 juce::ModalCallbackFunction::create ([this] (int) {}));
     }
+}
+
+void RenameDialogContent::addExtensionIfNeeded (juce::File oldFile, juce::File newFile)
+{
+    // if the filename entered is not a directory, and does not have an extension, then get the extension from the old file name
+    if (! oldFile.isDirectory () && newFile.getFileExtension () == "")
+        newFile = newFile.withFileExtension (oldFile.getFileExtension ());
+}
+
+void RenameDialogContent::checkNameAvailable (juce::File oldFile)
+{
+    const auto newFileName { newNameEditor.getText ().trim () };
+    auto newFile { oldFile.getParentDirectory ().getChildFile (newFileName) };
+
+    addExtensionIfNeeded(oldFile, newFile);
+    okButton.setEnabled (newFileName.isNotEmpty () && ! newFile.exists());
 }
 
 void RenameDialogContent::closeDialog (bool renamed)
