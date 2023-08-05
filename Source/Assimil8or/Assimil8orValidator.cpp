@@ -296,7 +296,12 @@ std::tuple<uint64_t, std::optional<uint64_t>> Assimil8orValidator::validateFile 
             if (reader->numChannels == 0)
                 validatorResultProperties.update (ValidatorResultProperties::ResultTypeError, "[no channels in file]", false);
             else
+#define ONLY_MONO_TEST 0
+#if ONLY_MONO_TEST
+                reportErrorIfTrue (reader->numChannels > 1, "[only mono supported]");
+#else
                 reportErrorIfTrue (reader->numChannels > 2, "[only mono and stereo supported]");
+#endif
             reportErrorIfTrue (reader->sampleRate > 192000, "[sample rate must not exceed 192k]");
         }
         else

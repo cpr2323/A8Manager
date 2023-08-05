@@ -263,9 +263,9 @@ void Assimil8orValidatorComponent::convert (juce::File file)
     if (std::unique_ptr<juce::AudioFormatReader> reader (audioFormatManager.createReaderFor (file)); reader != nullptr)
     {
         auto tempFile { juce::File::createTempFile (".wav") };
-        auto fileStream { std::make_unique<juce::FileOutputStream> (tempFile) };
-        fileStream->setPosition (0);
-        fileStream->truncate ();
+        auto tempFileStream { std::make_unique<juce::FileOutputStream> (tempFile) };
+        tempFileStream->setPosition (0);
+        tempFileStream->truncate ();
 
         auto sampleRate { reader->sampleRate };
         auto numChannels { reader->numChannels };
@@ -273,13 +273,19 @@ void Assimil8orValidatorComponent::convert (juce::File file)
 
         if (bitsPerSample < 8)
             bitsPerSample = 8;
-        else if (bitsPerSample > 32)
-            bitsPerSample = 32;
+        else if (bitsPerSample > 24) // the wave writer supports int 8/16/24
+            bitsPerSample = 24;
         jassert (numChannels != 0);
         if (numChannels > 1)
             numChannels = 1;
+#define ONLY_MONO_TEST 0
+#if ONLY_MONO_TEST
+        if (numChannels > 1)
+            numChannels = 1;
+#else
         if (numChannels > 2)
             numChannels = 2;
+#endif
         if (reader->sampleRate > 192000)
         {
             // we need to do sample rate conversion
@@ -287,11 +293,11 @@ void Assimil8orValidatorComponent::convert (juce::File file)
         }
 
         juce::WavAudioFormat wavAudioFormat;
-        if (std::unique_ptr<juce::AudioFormatWriter> writer { wavAudioFormat.createWriterFor (fileStream.get (),
+        if (std::unique_ptr<juce::AudioFormatWriter> writer { wavAudioFormat.createWriterFor (tempFileStream.get (),
                                                               sampleRate, numChannels, bitsPerSample, {}, 0) }; writer != nullptr)
         {
             // audioFormatWriter will delete the file stream when done
-            fileStream.release ();
+            tempFileStream.release ();
 
             // copy the whole thing
             // TODO - two things
