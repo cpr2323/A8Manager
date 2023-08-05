@@ -145,17 +145,17 @@ std::tuple<uint64_t, std::optional<uint64_t>> Assimil8orValidator::validateFile 
     }
     else if (isFolderPrefsFile (file))
     {
-        validatorResultProperties.update (ValidatorResultProperties::ResultTypeInfo, "Folder Preferences", false);
+        validatorResultProperties.update (ValidatorResultProperties::ResultTypeInfo, "System, Folder Preferences", false);
         return {};
     }
     else if (isLastFolderFile (file))
     {
-        validatorResultProperties.update (ValidatorResultProperties::ResultTypeInfo, "Last Folder", false);
+        validatorResultProperties.update (ValidatorResultProperties::ResultTypeInfo, "System, Last Folder", false);
         return {};
     }
     else if (isLastPresetFile(file))
     {
-        validatorResultProperties.update (ValidatorResultProperties::ResultTypeInfo, "Last Preset", false);
+        validatorResultProperties.update (ValidatorResultProperties::ResultTypeInfo, "System, Last Preset", false);
         return {};
     }
     else if (isPresetFile (file))
