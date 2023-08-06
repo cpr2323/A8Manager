@@ -11,6 +11,7 @@ public:
     void setComponents (juce::Component* firstComponent, juce::Component* secondComponent);
     bool getHorizontalSplit ();
     void setHorizontalSplit (bool horizontalSplit);
+    void setLayout (int componentIndex, double size);
 
 private:
     juce::Component* firstComponent { nullptr };

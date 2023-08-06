@@ -28,21 +28,24 @@ const auto toolWindowHeight { 30 };
 
 MainComponent::MainComponent (juce::ValueTree rootPropertiesVT)
 {
-    setSize (800, 600);
+    setSize (1000, 600);
 
     assimil8orEditorComponent.init (rootPropertiesVT);
     assimil8orValidatorComponent.init (rootPropertiesVT);
     // presetList.init (rootPropertiesVT);
     toolWindow.init (rootPropertiesVT);
 
-    presetListEditorSplitter.setComponents (&presetList, &assimil8orEditorComponent);
+    presetListEditorSplitter.setComponents (&presetListComponent, &assimil8orEditorComponent);
     presetListEditorSplitter.setHorizontalSplit (false);
+    presetListEditorSplitter.setLayout (0, -0.10);
 
-    folderBrowserEditorSplitter.setComponents (&folderContentsTree, &presetListEditorSplitter);
+    folderBrowserEditorSplitter.setComponents (&fileViewComponent, &presetListEditorSplitter);
     folderBrowserEditorSplitter.setHorizontalSplit (false);
+    folderBrowserEditorSplitter.setLayout (0, -0.13);
 
     topAndBottomSplitter.setComponents (&folderBrowserEditorSplitter, &assimil8orValidatorComponent);
     topAndBottomSplitter.setHorizontalSplit (true);
+    topAndBottomSplitter.setLayout (2, -0.22);
 
     addAndMakeVisible (topAndBottomSplitter);
     addAndMakeVisible (toolWindow);
@@ -57,38 +60,18 @@ MainComponent::MainComponent (juce::ValueTree rootPropertiesVT)
     validatorProperties.wrap (runtimeRootProperties.getValueTree (), ValidatorProperties::WrapperType::client, ValidatorProperties::EnableCallbacks::yes);
 
     startFolderScan (appProperties.getMostRecentFolder ());
+    fileViewComponent.init (rootPropertiesVT);
 }
 
 void MainComponent::startFolderScan (juce::File folderToScan)
 {
-    juce::Logger::outputDebugString ("MainComponent::startFolderScan : " + folderToScan.getFileName ());
-    folderContentsThread.startThread ();
-    folderContentsDirectoryList.clear ();
-    folderContentsDirectoryList.setDirectory (folderToScan, true, true);
-    folderContentsDirectoryList.refresh ();
-    startTimer (5);
-
     validatorProperties.setRootFolder (folderToScan.getFullPathName (), false);
     validatorProperties.startAsyncScan (false);
-
 }
 
 void MainComponent::paint ([[maybe_unused]] juce::Graphics& g)
 {
     g.setColour (juce::Colours::red);
-    g.drawRect (folderContentsTree.getBounds ());
-}
-
-void MainComponent::timerCallback ()
-{
-    if (folderContentsDirectoryList.isStillLoading ())
-        return;
-    juce::Logger::outputDebugString ("MainComponent::timerCallback : scan complete");
-    for (auto directoryIndex { 0 }; directoryIndex < folderContentsDirectoryList.getNumFiles (); ++directoryIndex)
-        juce::Logger::outputDebugString (juce::String (directoryIndex + 1) + ": " + folderContentsDirectoryList.getFile (directoryIndex).getFullPathName ());
-    stopTimer ();
-    folderContentsThread.stopThread (100);
-    folderContentsTree.refresh ();
 }
 
 void MainComponent::resized ()

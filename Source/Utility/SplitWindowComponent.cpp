@@ -88,6 +88,15 @@ void SplitWindowComponent::setHorizontalSplit (bool theHorizontalSplit)
     resized ();
 }
 
+void SplitWindowComponent::setLayout (int componentIndex, double size)
+{
+    if (componentIndex > 2)
+        return;
+
+    stretchableManager.setItemLayout (componentIndex, -0.1, -0.9, size);
+    resized ();
+}
+
 void SplitWindowComponent::resized ()
 {
     const auto r { getLocalBounds ().reduced (4) };
