@@ -16,15 +16,17 @@ public:
     void setMaxMruEntries (int maxMruEntries);
     int getMaxMruEntries ();
 
+    std::function<void (juce::String folderName)> onMostRecentFolderChange;
+
     static inline const juce::Identifier AppPropertiesId { "App" };
 
-    static inline const juce::Identifier FileChildPropertiesId { "Files" };
+    static inline const juce::Identifier FileTypeId { "Files" };
     static inline const juce::Identifier MostRecentFolderPropertyId { "mostRecentFolder" };
 
-    static inline const juce::Identifier MRUListChildPropertiesId { "MRUList" };
+    static inline const juce::Identifier MRUListTypeId { "MRUList" };
     static inline const juce::Identifier MaxMRUEntriesPropertyId { "maxMruEntries" };
 
-    static inline const juce::Identifier MRUEntryChildPropertiesId { "MRUEntry" };
+    static inline const juce::Identifier MRUEntryTypeId { "MRUEntry" };
     static inline const juce::Identifier MRUEntryNamePropertyId { "name" };
 
     void initValueTree ();
@@ -33,4 +35,7 @@ public:
 private:
     juce::ValueTree getMRUListChildVT ();
     int getNumMRUEntries ();
+
+
+    void valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property) override;
 };

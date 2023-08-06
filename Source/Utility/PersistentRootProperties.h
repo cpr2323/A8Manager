@@ -8,6 +8,8 @@ class PersistentRootProperties : public ValueTreeWrapper<PersistentRootPropertie
 {
 public:
     PersistentRootProperties () noexcept : ValueTreeWrapper<PersistentRootProperties> (PersistentRootPropertiesId) {}
+    PersistentRootProperties (juce::ValueTree vt, WrapperType wrapperType, EnableCallbacks shouldEnableCallbacks)
+        : ValueTreeWrapper<PersistentRootProperties> (PersistentRootPropertiesId, vt, wrapperType, shouldEnableCallbacks) {}
 
     juce::ValueTree addSection (juce::Identifier sectionType);
     bool removeSection (juce::Identifier sectionType);

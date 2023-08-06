@@ -122,6 +122,9 @@ juce::String Assimil8orValidatorComponent::getCellTooltip (int rowNumber, int co
     if (columnId != Columns::text)
         return {};
 
+    if (rowNumber >= validatorResultsQuickLookupList.size ())
+        return {};
+
     ValidatorResultProperties validatorResultProperties (validatorResultsQuickLookupList [rowNumber],
                                                          ValidatorResultProperties::WrapperType::client, ValidatorResultProperties::EnableCallbacks::no);
     auto getPrefix = [this, &validatorResultProperties] () -> juce::String

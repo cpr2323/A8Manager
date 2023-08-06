@@ -121,8 +121,8 @@ void ToolWindow::verifyDirectory ()
     {
         if (fc.getURLResults ().size () == 1 && fc.getURLResults () [0].isLocalFile ())
         {
-            validatorProperties.setRootFolder (fc.getURLResults () [0].getLocalFile ().getFullPathName (), false);
-            validatorProperties.startAsyncScan (false);
+            const auto selectedFolderFullpath { fc.getURLResults () [0].getLocalFile ().getFullPathName () };
+            appProperties.setMostRecentFolder (selectedFolderFullpath);
         }
     }, nullptr);
 }

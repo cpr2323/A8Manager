@@ -4,21 +4,58 @@
 #include "ToolWindow.h"
 #include "Assimil8or/Editor/Assimil8orEditorComponent.h"
 #include "Assimil8or/Validator/Assimil8orValidatorComponent.h"
+#include "../AppProperties.h"
+#include "../Utility/SplitWindowComponent.h"
 
-class MainComponent  : public juce::Component
+//  +----------------+-------------+-----------------------------------+
+//  |Folder Contents | Preset List | Preset Editor                     |
+//  +----------------+-------------+-----------------------------------+
+//  | ..             | Preset 1    |                                   |
+//  | folderX        | Preset 2    |                                   |
+//  | folder34       | Preset 3    |                                   |
+//  | fileAbc        | Preset 4    |                                   |
+//  | fileElif       | Preset ...  |                                   |
+// ...              ...           ...                                 ...
+//  |                | Preset 199  |                                   |
+//  +----------------+-------------+-----------------------------------+
+//  | Type | Fix | Message (X items)                                   |
+//  +------+-----+-----------------------------------------------------+
+//  |      |     |                                                     |
+//  |      |     |                                                     |
+//  |      |     |                                                     |
+//  |      |     |                                                     |
+//  |      |     |                                                     |
+//  +------+-----+-----------------------------------------------------+
+//  |  Tool Bar                                                        |
+//  +------------------------------------------------------------------+
+
+class MainComponent : public juce::Component,
+                      private juce::Timer
 {
 public:
     MainComponent (juce::ValueTree rootPropertiesVT);
     ~MainComponent () override = default;
 
+    void startFolderScan (juce::File folderToScan);
+
 private:
-        juce::TabbedComponent contentTab { juce::TabbedButtonBar::Orientation::TabsAtTop };
+    AppProperties appProperties;
+    ValidatorProperties validatorProperties;
+
+    juce::Component presetList;
+    SplitWindowComponent topAndBottomSplitter;
+    SplitWindowComponent presetListEditorSplitter;
+    SplitWindowComponent folderBrowserEditorSplitter;
+    juce::TimeSliceThread folderContentsThread {"FolderContentsThread"};
+    juce::DirectoryContentsList folderContentsDirectoryList {nullptr, folderContentsThread};
+    juce::FileTreeComponent folderContentsTree { folderContentsDirectoryList };
 
     Assimil8orEditorComponent assimil8orEditorComponent;
     Assimil8orValidatorComponent assimil8orValidatorComponent;
     ToolWindow toolWindow;
     juce::TooltipWindow tooltipWindow;
 
+    void timerCallback () override;
     void resized () override;
     void paint (juce::Graphics& g) override;
 
