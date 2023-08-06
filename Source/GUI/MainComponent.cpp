@@ -32,7 +32,7 @@ MainComponent::MainComponent (juce::ValueTree rootPropertiesVT)
 
     assimil8orEditorComponent.init (rootPropertiesVT);
     assimil8orValidatorComponent.init (rootPropertiesVT);
-    // presetList.init (rootPropertiesVT);
+    presetListComponent.init (rootPropertiesVT);
     toolWindow.init (rootPropertiesVT);
 
     presetListEditorSplitter.setComponents (&presetListComponent, &assimil8orEditorComponent);
