@@ -2,7 +2,7 @@
 
 <JUCERPROJECT id="wWHbxR" name="A8Manager" projectType="guiapp" useAppConfig="0"
               addUsingNamespaceToJuceHeader="0" displaySplashScreen="0" jucerFormatVersion="1"
-              companyName="OmOhmProductions" cppLanguageStandard="17" version="1.4"
+              companyName="OmOhmProductions" cppLanguageStandard="17" version="2.0"
               companyWebsite="www.omohmproductions.com">
   <MAINGROUP id="JDgvjc" name="A8Manager">
     <GROUP id="{26A00EED-F319-636E-6162-8A113C6EE925}" name="Source">
@@ -95,6 +95,10 @@
               file="Source/Utility/RuntimeRootProperties.cpp"/>
         <FILE id="bVL7gX" name="RuntimeRootProperties.h" compile="0" resource="0"
               file="Source/Utility/RuntimeRootProperties.h"/>
+        <FILE id="FboCdx" name="SplitWindowComponent.cpp" compile="1" resource="0"
+              file="Source/Utility/SplitWindowComponent.cpp"/>
+        <FILE id="oat4mf" name="SplitWindowComponent.h" compile="0" resource="0"
+              file="Source/Utility/SplitWindowComponent.h"/>
         <FILE id="QZJhHU" name="ValueTreeFile.cpp" compile="1" resource="0"
               file="Source/Utility/ValueTreeFile.cpp"/>
         <FILE id="CNxuPk" name="ValueTreeFile.h" compile="0" resource="0" file="Source/Utility/ValueTreeFile.h"/>
