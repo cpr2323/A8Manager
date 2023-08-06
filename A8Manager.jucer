@@ -54,6 +54,18 @@
       </GROUP>
       <GROUP id="{CF0C93A7-2DC9-863C-8999-5F753D262369}" name="GUI">
         <GROUP id="{E38BD768-EC43-B8F0-AB46-78F18BDF75B0}" name="Assimil8or">
+          <GROUP id="{91280F2E-C070-E7FC-F150-447ABE395FFD}" name="FileView">
+            <FILE id="ftRIc7" name="FileViewComponent.cpp" compile="1" resource="0"
+                  file="Source/GUI/Assimil8or/FileView/FileViewComponent.cpp"/>
+            <FILE id="zqHPvq" name="FileViewComponent.h" compile="0" resource="0"
+                  file="Source/GUI/Assimil8or/FileView/FileViewComponent.h"/>
+          </GROUP>
+          <GROUP id="{61BC93EF-3ED8-1898-EC8D-0EF6927D16ED}" name="PresetList">
+            <FILE id="NxljVl" name="PresetListComponent.cpp" compile="1" resource="0"
+                  file="Source/GUI/Assimil8or/PresetList/PresetListComponent.cpp"/>
+            <FILE id="L0qrUm" name="PresetListComponent.h" compile="0" resource="0"
+                  file="Source/GUI/Assimil8or/PresetList/PresetListComponent.h"/>
+          </GROUP>
           <GROUP id="{E38A382D-990E-A82D-2924-1AE3B97D907B}" name="Editor">
             <FILE id="liNFVw" name="Assimil8orEditorComponent.cpp" compile="1"
                   resource="0" file="Source/GUI/Assimil8or/Editor/Assimil8orEditorComponent.cpp"/>
