@@ -2,13 +2,13 @@
 #include "../Utility/RuntimeRootProperties.h"
 #include "../Assimil8or/Assimil8orPreset.h"
 
-#define VALIDATE_ONLY 1
+#define OPEN_ONLY 1
 
 ToolWindow::ToolWindow ()
 {
-#if VALIDATE_ONLY
-    fileMenuButton.setButtonText ("Validate Folder");
-    fileMenuButton.onClick = [this] () { verifyDirectory (); };
+#if OPEN_ONLY
+    fileMenuButton.setButtonText ("Open Folder");
+    fileMenuButton.onClick = [this] () { openFolder (); };
     addAndMakeVisible (fileMenuButton);
 #else
     fileMenuButton.setButtonText ("File");
@@ -18,7 +18,7 @@ ToolWindow::ToolWindow ()
         pm.addItem ("Load Preset", true, false, [this] () { loadPresetUi (); });
         pm.addItem ("Save Preset", true, false, [this] () { savePresetUi (); });
         pm.addSeparator ();
-        pm.addItem ("Validate Directory", true, false, [this] () { verifyDirectory (); });
+        pm.addItem ("Validate Directory", true, false, [this] () { openFolder (); });
         pm.showMenuAsync ({}, [this] (int) {});
     };
     addAndMakeVisible (fileMenuButton);
@@ -113,7 +113,7 @@ void ToolWindow::updateProgress (juce::String progressUpdate)
     progressUpdateLabel.setText (progressUpdate, juce::NotificationType::dontSendNotification);
 }
 
-void ToolWindow::verifyDirectory ()
+void ToolWindow::openFolder ()
 {
     fileChooser.reset (new juce::FileChooser ("Please select the folder to scan as an Assimil8or SD Card...",
                                               appProperties.getMostRecentFolder (), ""));
