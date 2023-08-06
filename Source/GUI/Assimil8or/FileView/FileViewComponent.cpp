@@ -12,7 +12,8 @@ FileViewComponent::FileViewComponent ()
             return;
         juce::MessageManager::callAsync ([this] ()
         {
-            appProperties.setMostRecentFolder (fileTreeView.getSelectedFile (0).getFullPathName ());
+            if (fileTreeView.getSelectedFile (0).isDirectory ())
+                appProperties.setMostRecentFolder (fileTreeView.getSelectedFile (0).getFullPathName ());
         });
     };
 }
