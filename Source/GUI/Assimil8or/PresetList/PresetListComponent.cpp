@@ -12,19 +12,24 @@ void PresetListComponent::init (juce::ValueTree rootPropertiesVT)
     appProperties.wrap (persistentRootProperties.getValueTree (), AppProperties::WrapperType::client, AppProperties::EnableCallbacks::yes);
     appProperties.onMostRecentFolderChange = [this] (juce::String folderName)
     {
-        startFolderScan (juce::File (folderName));
+        checkForPresets (juce::File (folderName));
+        presetListBox.updateContent ();
+        presetListBox.repaint ();
     };
-    startFolderScan (appProperties.getMostRecentFolder ());
+    checkForPresets (appProperties.getMostRecentFolder ());
     presetListBox.updateContent ();
 }
 
-void PresetListComponent::startFolderScan (juce::File folderToScan)
+void PresetListComponent::checkForPresets (juce::File folderToScan)
 {
-//     folderContentsThread.startThread ();
-//     folderContentsDirectoryList.clear ();
-//     folderContentsDirectoryList.setDirectory (folderToScan, true, true);
-//     folderContentsDirectoryList.refresh ();
-//     startTimer (5);
+    for (auto presetIndex { 0 }; presetIndex < kMaxPresets; ++presetIndex)
+    {
+        const auto rawPresetIndexString { juce::String (presetIndex + 1) };
+        const auto presetIndexString { juce::String ("000").substring (0,3 - rawPresetIndexString.length ()) + rawPresetIndexString };
+        const auto presetFileName { "prst" + presetIndexString };
+        auto presetFile { folderToScan.getChildFile (presetFileName).withFileExtension(".yml")};
+        presetExitsts [presetIndex] = presetFile.exists ();
+    }
 }
 
 void PresetListComponent::resized ()

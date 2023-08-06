@@ -5,7 +5,7 @@
 
 const auto kMaxPresets { 199 };
 class PresetListComponent : public juce::Component,
-    private juce::ListBoxModel
+                            private juce::ListBoxModel
 {
 public:
     PresetListComponent ();
@@ -15,7 +15,7 @@ private:
     AppProperties appProperties;
     juce::ListBox presetListBox { {}, this };
     std::array<bool, kMaxPresets> presetExitsts {false};
-    void startFolderScan (juce::File folderToScan);
+    void checkForPresets (juce::File folderToScan);
 
     void resized () override;
     int getNumRows () override;
