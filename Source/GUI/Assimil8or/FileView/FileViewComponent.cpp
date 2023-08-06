@@ -5,7 +5,16 @@ FileViewComponent::FileViewComponent ()
 {
     navigateUpButton.setButtonText ("..");
     addAndMakeVisible (navigateUpButton);
-    addAndMakeVisible (folderContentsTree);
+    addAndMakeVisible (fileTreeView);
+    treeViewMouseDown.onItemSelected = [this] (int row)
+    {
+        if (row >= fileTreeView.getNumRowsInTree ())
+            return;
+        juce::MessageManager::callAsync ([this] ()
+        {
+            appProperties.setMostRecentFolder (fileTreeView.getSelectedFile (0).getFullPathName ());
+        });
+    };
 }
 
 void FileViewComponent::init (juce::ValueTree rootPropertiesVT)
@@ -30,7 +39,7 @@ void FileViewComponent::resized ()
     };
     navigateUpButton.setBounds (localBounds.removeFromTop (25).removeFromLeft (25));
     localBounds.removeFromTop (3);
-    folderContentsTree.setBounds (localBounds);
+    fileTreeView.setBounds (localBounds);
 }
 
 void FileViewComponent::startFolderScan (juce::File folderToScan)
@@ -47,5 +56,5 @@ void FileViewComponent::timerCallback ()
     if (folderContentsDirectoryList.isStillLoading ())
         return;
     folderContentsThread.stopThread (100);
-    folderContentsTree.refresh ();
+    fileTreeView.refresh ();
 }
