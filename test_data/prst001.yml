@@ -1,0 +1,46 @@
+Preset 1 :
+  Name : New1
+  Channel 1 :
+    ExpAM : 1C -0.75
+    LoopMode : 1
+    Zone 1 :
+      Sample : 14156-7833-19970.wav
+  Channel 2 :
+    ChannelMode : 2
+    Zone 1 :
+      Sample : 14156-7833-19970.wav
+      Side : 1
+  Channel 3 :
+    ExpAM : 1C 0.75
+    LoopMode : 1
+    Zone 1 :
+      Sample : 17039-29767-2660.wav
+  Channel 4 :
+    ChannelMode : 2
+    Zone 1 :
+      Sample : 17039-29767-2660.wav
+      Side : 1
+  Channel 5 :
+    Pitch : +1.79
+    Level : -0.1
+    LinFM : 0B 1.00
+    ExpFM : 0C 1.00
+    PitchCV : 0A 0.50
+    LinAM : 2A 0.75
+    ExpAM : 2B -0.38
+    Zone 1 :
+      Sample : 19247-22778-29151.wav
+      LevelOffset : +0.1
+  Channel 6 :
+    ChannelMode : 2
+    Zone 1 :
+      Sample : 19247-22778-29151.wav
+      Side : 1
+  Channel 7 :
+    Zone 1 :
+      Sample : 27006-5571-13499.wav
+  Channel 8 :
+    ChannelMode : 2
+    Zone 1 :
+      Sample : 27006-5571-13499.wav
+      Side : 1

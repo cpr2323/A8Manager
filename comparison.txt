@@ -1,0 +1,10 @@
+Parameter					a8					a8Manager
+Bits :						08.0				8
+SampleStartMod :			0A 1.00				0A 0.0000
+Pitch :						+7.15				7.15
+PMIndex :					0.50				0.5
+PMIndexMod :				0B -0.50			0B 0.5000
+MixLevel :					-90.0				-90
+PitchCV	:					0B 0.00				0B 0.0000
+
+There is also an extra blank line at the bottom of the a8 created preset.

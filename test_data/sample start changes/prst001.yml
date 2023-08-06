@@ -1,0 +1,68 @@
+Preset 1 :
+  Name : Comp
+  Channel 1 :
+    Pitch : -0.43
+    Bits : 08.0
+    Aliasing : 88
+    SampleStartMod : 0A 1.00
+    LoopMode : 1
+    SpliceSmoothing : 1
+    Zone 1 :
+      Sample : S009T00.wav
+      SampleEnd : 135324
+  Channel 3 :
+    Pitch : +7.15
+    Bits : 08.0
+    Aliasing : 88
+    SampleStartMod : 1A 1.00
+    LoopMode : 1
+    SpliceSmoothing : 1
+    Zone 1 :
+      Sample : S005T00.wav
+      SampleEnd : 103115
+  Channel 4 :
+    Pitch : +6.95
+    Bits : 08.0
+    Aliasing : 91
+    SampleStartMod : 1A 1.00
+    LoopMode : 1
+    SpliceSmoothing : 1
+    Zone 1 :
+      Sample : S006T00.wav
+      SampleEnd : 104475
+  Channel 5 :
+    Pitch : +8.50
+    Bits : 08.0
+    Aliasing : 90
+    PMSource : 6
+    PMIndex : 0.50
+    PMIndexMod : 0B -0.50
+    SampleStartMod : 1A 1.00
+    LoopMode : 1
+    SpliceSmoothing : 1
+    Zone 1 :
+      Sample : S004T00.wav
+      SampleEnd : 231184
+  Channel 7 :
+    Pitch : +7.88
+    Bits : 08.0
+    Aliasing : 89
+    MixLevel : -90.0
+    PitchCV : 0B 0.00
+    SampleStartMod : 5A 1.00
+    LoopMode : 1
+    SpliceSmoothing : 1
+    Zone 1 :
+      Sample : S003T00.wav
+      SampleEnd : 111240
+  Channel 8 :
+    Pitch : +7.42
+    Release :  0.7200
+    Bits : 08.1
+    Aliasing : 92
+    SampleStartMod : 0A 1.00
+    LoopMode : 1
+    SpliceSmoothing : 1
+    Zone 1 :
+      Sample : S007T00.wav
+      SampleEnd : 211725
