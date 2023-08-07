@@ -73,7 +73,7 @@ void PresetListComponent::run ()
 juce::String PresetListComponent::getPresetName (int presetIndex)
 {
     const auto rawPresetIndexString { juce::String (presetIndex + 1) };
-    const auto presetIndexString { juce::String ("000").substring (0,3 - rawPresetIndexString.length ()) + rawPresetIndexString };
+    const auto presetIndexString { juce::String ("000").substring (0, 3 - rawPresetIndexString.length ()) + rawPresetIndexString };
     return "prst" + presetIndexString;
 }
 

@@ -204,7 +204,10 @@ void ToolWindow::resized ()
 
     fileMenuButton.setBounds (localBounds.removeFromLeft (100));
     localBounds.removeFromLeft (5);
+#if !OPEN_ONLY
     toolMenuButton.setBounds (localBounds.removeFromLeft (100));
-    progressUpdateLabel.setBounds (localBounds.removeFromRight (100));
-    scanningStatusLabel.setBounds (localBounds.removeFromRight (100));
+    localBounds.removeFromLeft (5);
+#endif
+    scanningStatusLabel.setBounds (localBounds.removeFromLeft (100));
+    progressUpdateLabel.setBounds (localBounds);
 }
