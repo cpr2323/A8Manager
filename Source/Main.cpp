@@ -235,7 +235,7 @@ public:
         // connect the Properties file and the AppProperties ValueTree with the propertiesFile (ValueTreeFile with auto-save)
         persitentPropertiesFile.init (persistentRootProperties.getValueTree (), appDirectory.getChildFile ("app" + PropertiesFileExtension), true);
         appProperties.wrap (persistentRootProperties.getValueTree (), AppProperties::WrapperType::owner, AppProperties::EnableCallbacks::no);
-
+        appProperties.setMaxMruEntries (1);
         runtimeRootProperties.wrap (rootProperties.getValueTree (), RuntimeRootProperties::WrapperType::owner, RuntimeRootProperties::EnableCallbacks::no);
         runtimeRootProperties.setAppVersion (getApplicationVersion (), false);
         runtimeRootProperties.setAppDataPath (appDirectory.getFullPathName (), false);

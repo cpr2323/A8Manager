@@ -39,15 +39,16 @@ void PresetListComponent::loadFirstPreset ()
         presetListBox.selectRow (presetIndex, false, true);
         presetListBox.scrollToEnsureRowIsOnscreen (presetIndex);
         loadPreset (presetFile);
+        appProperties.addRecentlyUsedFile (presetFile.getFullPathName ());
         presetLoaded = true;
         break;
     }
 
-    if (!presetLoaded)
+    if (! presetLoaded)
     {
         presetListBox.selectRow (0, false, true);
         presetListBox.scrollToEnsureRowIsOnscreen (0);
-        presetProperties.setName ("New", false);
+        presetProperties.clear ();
     }
 }
 
@@ -133,14 +134,10 @@ juce::String PresetListComponent::getTooltipForRow (int row)
 
 void PresetListComponent::listBoxItemClicked (int row, const juce::MouseEvent& me)
 {
+    auto presetFile { juce::File (appProperties.getMostRecentFolder ()).getChildFile (getPresetName (row)).withFileExtension (".yml") };
     if (presetExists [row])
-    {
-        auto presetFile { juce::File(appProperties.getMostRecentFolder ()).getChildFile (getPresetName (row)).withFileExtension (".yml") };
         loadPreset (presetFile);
-    }
     else
-    {
-        // TODO - init to defaults
-        presetProperties.setName ("New", false);
-    }
+        presetProperties.clear ();
+    appProperties.addRecentlyUsedFile (presetFile.getFullPathName ());
 }
