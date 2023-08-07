@@ -239,6 +239,9 @@ public:
         runtimeRootProperties.wrap (rootProperties.getValueTree (), RuntimeRootProperties::WrapperType::owner, RuntimeRootProperties::EnableCallbacks::no);
         runtimeRootProperties.setAppVersion (getApplicationVersion (), false);
         runtimeRootProperties.setAppDataPath (appDirectory.getFullPathName (), false);
+
+        if (appProperties.getMostRecentFolder ().isEmpty ())
+            appProperties.setMostRecentFolder (appDirectory.getFullPathName ());
     }
 
     void initAppDirectory ()
