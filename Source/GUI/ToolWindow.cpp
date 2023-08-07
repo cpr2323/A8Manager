@@ -69,10 +69,8 @@ void ToolWindow::loadPreset (juce::File presetFile)
     Assimil8orPreset assimil8orPreset;
     assimil8orPreset.parse (fileContents);
 
-    PresetProperties newPresetProperties (assimil8orPreset.getPresetVT (), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
-
     presetProperties.clear ();
-    presetProperties.getValueTree ().copyPropertiesAndChildrenFrom (newPresetProperties.getValueTree (), nullptr);
+    presetProperties.getValueTree ().copyPropertiesAndChildrenFrom (assimil8orPreset.getPresetVT (), nullptr);
 }
 
 void ToolWindow::savePresetUi ()

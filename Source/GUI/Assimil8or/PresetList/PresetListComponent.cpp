@@ -3,7 +3,7 @@
 #include "../../../Utility/RuntimeRootProperties.h"
 #include "../../../Assimil8or/Assimil8orPreset.h"
 
-PresetListComponent::PresetListComponent ()
+PresetListComponent::PresetListComponent () : Thread ("PresetListComponent")
 {
     addAndMakeVisible (presetListBox);
 }
@@ -16,14 +16,15 @@ void PresetListComponent::init (juce::ValueTree rootPropertiesVT)
     appProperties.wrap (persistentRootProperties.getValueTree (), AppProperties::WrapperType::client, AppProperties::EnableCallbacks::yes);
     appProperties.onMostRecentFolderChange = [this] (juce::String folderName)
     {
-        checkForPresets (juce::File (folderName));
-        presetListBox.updateContent ();
-        presetListBox.repaint ();
-        loadFirstPreset ();
+        startScan (juce::File (folderName));
     };
-    checkForPresets (appProperties.getMostRecentFolder ());
-    presetListBox.updateContent ();
-    loadFirstPreset ();
+    startScan (appProperties.getMostRecentFolder ());
+}
+
+void PresetListComponent::startScan (juce::File folderToScan)
+{
+    rootFolder = folderToScan;
+    startThread ();
 }
 
 void PresetListComponent::loadFirstPreset ()
@@ -31,7 +32,7 @@ void PresetListComponent::loadFirstPreset ()
     bool presetLoaded { false };
     for (auto presetIndex { 0 }; presetIndex < kMaxPresets; ++presetIndex)
     {
-        if (!presetExists [presetIndex])
+        if (! presetExists [presetIndex])
             continue;
 
         auto presetFile { juce::File (appProperties.getMostRecentFolder ()).getChildFile (getPresetName (presetIndex)).withFileExtension (".yml") };
@@ -48,13 +49,25 @@ void PresetListComponent::loadFirstPreset ()
     }
 }
 
-void PresetListComponent::checkForPresets (juce::File folderToScan)
+void PresetListComponent::checkForPresets ()
 {
     for (auto presetIndex { 0 }; presetIndex < kMaxPresets; ++presetIndex)
     {
-        auto presetFile { folderToScan.getChildFile (getPresetName (presetIndex)).withFileExtension (".yml")};
+        auto presetFile { rootFolder.getChildFile (getPresetName (presetIndex)).withFileExtension (".yml")};
         presetExists [presetIndex] = presetFile.exists ();
     }
+
+    juce::MessageManager::callAsync ([this] ()
+    {
+        presetListBox.updateContent ();
+        presetListBox.repaint ();
+        loadFirstPreset ();
+    });
+}
+
+void PresetListComponent::run ()
+{
+    checkForPresets ();
 }
 
 juce::String PresetListComponent::getPresetName (int presetIndex)
@@ -62,6 +75,19 @@ juce::String PresetListComponent::getPresetName (int presetIndex)
     const auto rawPresetIndexString { juce::String (presetIndex + 1) };
     const auto presetIndexString { juce::String ("000").substring (0,3 - rawPresetIndexString.length ()) + rawPresetIndexString };
     return "prst" + presetIndexString;
+}
+
+void PresetListComponent::loadPreset (juce::File presetFile)
+{
+    jassert (presetProperties.isValid ());
+    juce::StringArray fileContents;
+    presetFile.readLines (fileContents);
+
+    Assimil8orPreset assimil8orPreset;
+    assimil8orPreset.parse (fileContents);
+
+    presetProperties.clear ();
+    presetProperties.getValueTree ().copyPropertiesAndChildrenFrom (assimil8orPreset.getPresetVT (), nullptr);
 }
 
 void PresetListComponent::resized ()
@@ -111,22 +137,7 @@ void PresetListComponent::listBoxItemClicked (int row, const juce::MouseEvent& m
     }
     else
     {
-        // init to defaults
+        // TODO - init to defaults
         presetProperties.setName ("New", false);
     }
-}
-
-void PresetListComponent::loadPreset (juce::File presetFile)
-{
-    jassert (presetProperties.isValid ());
-    juce::StringArray fileContents;
-    presetFile.readLines (fileContents);
-
-    Assimil8orPreset assimil8orPreset;
-    assimil8orPreset.parse (fileContents);
-
-    PresetProperties newPresetProperties (assimil8orPreset.getPresetVT (), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
-
-    presetProperties.clear ();
-    presetProperties.getValueTree ().copyPropertiesAndChildrenFrom (newPresetProperties.getValueTree (), nullptr);
 }

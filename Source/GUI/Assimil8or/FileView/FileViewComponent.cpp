@@ -58,4 +58,5 @@ void FileViewComponent::timerCallback ()
         return;
     folderContentsThread.stopThread (100);
     fileTreeView.refresh ();
+    fileTreeView.repaint ();
 }

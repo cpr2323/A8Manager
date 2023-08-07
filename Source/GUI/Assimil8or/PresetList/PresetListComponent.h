@@ -6,7 +6,8 @@
 
 const auto kMaxPresets { 199 };
 class PresetListComponent : public juce::Component,
-                            private juce::ListBoxModel
+                            private juce::ListBoxModel,
+                            private juce::Thread
 {
 public:
     PresetListComponent ();
@@ -17,8 +18,10 @@ private:
     PresetProperties presetProperties;
     juce::ListBox presetListBox { {}, this };
     std::array<bool, kMaxPresets> presetExists {false};
+    juce::File rootFolder;
 
-    void checkForPresets (juce::File folderToScan);
+    void startScan (juce::File folderToScan);
+    void checkForPresets ();
     juce::String getPresetName (int presetIndex);
     void loadFirstPreset ();
     void loadPreset (juce::File presetFile);
@@ -28,4 +31,5 @@ private:
     void paintListBoxItem (int rowNumber, juce::Graphics& g, int width, int height, bool rowIsSelected) override;
     juce::String getTooltipForRow (int row) override;
     void listBoxItemClicked (int row, const juce::MouseEvent& me) override;
+    void run () override;
 };

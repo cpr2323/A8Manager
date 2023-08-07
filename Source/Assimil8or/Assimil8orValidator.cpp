@@ -123,7 +123,7 @@ bool Assimil8orValidator::isPresetFile (juce::File file)
 
 int Assimil8orValidator::getPresetNumberFromName (juce::File file)
 {
-    if (!isPresetFile (file))
+    if (! isPresetFile (file))
         return kBadPresetNumber;
     return file.getFileNameWithoutExtension ().substring (kPresetFileNumberOffset).getIntValue ();
 }

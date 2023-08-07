@@ -45,6 +45,7 @@ private:
     AppProperties appProperties;
     ValidatorProperties validatorProperties;
 
+    juce::Component component;
     FileViewComponent fileViewComponent;
     PresetListComponent presetListComponent;
     Assimil8orEditorComponent assimil8orEditorComponent;
