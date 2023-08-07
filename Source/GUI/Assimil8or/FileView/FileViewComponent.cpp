@@ -12,6 +12,7 @@ FileViewComponent::FileViewComponent ()
     openFolderButton.setButtonText ("Open Folder");
     openFolderButton.onClick = [this] () { openFolder (); };
     addAndMakeVisible (openFolderButton);
+    addAndMakeVisible (directoryContentsListBox);
 }
 
 void FileViewComponent::init (juce::ValueTree rootPropertiesVT)
@@ -46,7 +47,7 @@ void FileViewComponent::resized ()
     navigationRow.removeFromLeft (5);
     openFolderButton.setBounds (navigationRow.removeFromLeft (100));
     localBounds.removeFromTop (3);
-    // place list
+    directoryContentsListBox.setBounds (localBounds);
 }
 
 void FileViewComponent::startFolderScan (juce::File folderToScan)
@@ -63,4 +64,48 @@ void FileViewComponent::timerCallback ()
     if (folderContentsDirectoryList.isStillLoading ())
         return;
     folderContentsThread.stopThread (100);
+    directoryContentsListBox.updateContent ();
+    directoryContentsListBox.scrollToEnsureRowIsOnscreen (0);
+    directoryContentsListBox.repaint ();
+    stopTimer ();
+}
+
+int FileViewComponent::getNumRows ()
+{
+    return folderContentsDirectoryList.getNumFiles ();
+}
+
+void FileViewComponent::paintListBoxItem (int row, juce::Graphics& g, int width, int height, bool rowIsSelected)
+{
+    if (row >= getNumRows ())
+        return;
+
+    g.setColour (juce::Colours::darkslategrey);
+    g.fillRect (width - 1, 0, 1, height);
+
+    g.setColour (juce::Colours::whitesmoke);
+    auto file { folderContentsDirectoryList.getFile (row) };
+    juce::String filePrefix;
+    if (file.isDirectory ())
+        filePrefix = "> ";
+    else
+        filePrefix = "  ";
+    g.drawText (" " + filePrefix + folderContentsDirectoryList.getFile (row).getFileName (), juce::Rectangle<float>{ 0.0f, 0.0f, (float) width, (float) height }, juce::Justification::centredLeft, true);
+}
+
+juce::String FileViewComponent::getTooltipForRow (int row)
+{
+    if (row >= getNumRows ())
+        return {};
+
+    return folderContentsDirectoryList.getFile(row).getFileName();
+}
+
+void FileViewComponent::listBoxItemClicked (int row, const juce::MouseEvent& me)
+{
+    if (row >= getNumRows ())
+        return;
+
+    if (auto file { folderContentsDirectoryList.getFile (row) }; file.isDirectory ())
+        appProperties.setMostRecentFolder (file.getFullPathName ());
 }

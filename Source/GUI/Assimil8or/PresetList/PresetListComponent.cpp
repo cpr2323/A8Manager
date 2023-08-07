@@ -36,8 +36,9 @@ void PresetListComponent::loadFirstPreset ()
             continue;
 
         auto presetFile { juce::File (appProperties.getMostRecentFolder ()).getChildFile (getPresetName (presetIndex)).withFileExtension (".yml") };
-        loadPreset (presetFile);
         presetListBox.selectRow (presetIndex, false, true);
+        presetListBox.scrollToEnsureRowIsOnscreen (presetIndex);
+        loadPreset (presetFile);
         presetLoaded = true;
         break;
     }
@@ -45,6 +46,7 @@ void PresetListComponent::loadFirstPreset ()
     if (!presetLoaded)
     {
         presetListBox.selectRow (0, false, true);
+        presetListBox.scrollToEnsureRowIsOnscreen (0);
         presetProperties.setName ("New", false);
     }
 }
@@ -60,6 +62,7 @@ void PresetListComponent::checkForPresets ()
     juce::MessageManager::callAsync ([this] ()
     {
         presetListBox.updateContent ();
+        presetListBox.scrollToEnsureRowIsOnscreen (0);
         presetListBox.repaint ();
         loadFirstPreset ();
     });
