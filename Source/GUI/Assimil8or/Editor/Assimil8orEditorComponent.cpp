@@ -5,6 +5,8 @@ Assimil8orEditorComponent::Assimil8orEditorComponent ()
 {
     setOpaque (true);
 
+    nameEditor.setColour (juce::TextEditor::ColourIds::backgroundColourId, juce::Colours::navajowhite);
+    nameEditor.setColour (juce::TextEditor::ColourIds::textColourId, juce::Colours::black);
     nameEditor.onFocusLost = [this] () { updateName (nameEditor.getText ()); };
     nameEditor.onReturnKey = [this] () { updateName (nameEditor.getText ()); };
     addAndMakeVisible (nameEditor);
@@ -21,7 +23,7 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
 
 void Assimil8orEditorComponent::paint ([[maybe_unused]] juce::Graphics& g)
 {
-    g.fillAll (juce::Colours::navajowhite);
+    g.fillAll (juce::Colours::darkgrey.darker(0.7f));
 }
 
 void Assimil8orEditorComponent::refreshName (juce::String name)
