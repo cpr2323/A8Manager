@@ -4,18 +4,14 @@
 FileViewComponent::FileViewComponent ()
 {
     navigateUpButton.setButtonText ("..");
-    addAndMakeVisible (navigateUpButton);
-    addAndMakeVisible (fileTreeView);
-    treeViewMouseDown.onItemSelected = [this] (int row)
+    navigateUpButton.onClick = [this] ()
     {
-        if (row >= fileTreeView.getNumRowsInTree ())
-            return;
-        juce::MessageManager::callAsync ([this] ()
-        {
-            if (fileTreeView.getSelectedFile (0).isDirectory ())
-                appProperties.setMostRecentFolder (fileTreeView.getSelectedFile (0).getFullPathName ());
-        });
+        appProperties.setMostRecentFolder (folderContentsDirectoryList.getDirectory ().getParentDirectory ().getFullPathName ());
     };
+    addAndMakeVisible (navigateUpButton);
+    openFolderButton.setButtonText ("Open Folder");
+    openFolderButton.onClick = [this] () { openFolder (); };
+    addAndMakeVisible (openFolderButton);
 }
 
 void FileViewComponent::init (juce::ValueTree rootPropertiesVT)
@@ -29,18 +25,28 @@ void FileViewComponent::init (juce::ValueTree rootPropertiesVT)
     startFolderScan (appProperties.getMostRecentFolder ());
 }
 
+void FileViewComponent::openFolder ()
+{
+    fileChooser.reset (new juce::FileChooser ("Please select the folder to scan as an Assimil8or SD Card...",
+                                               appProperties.getMostRecentFolder (), ""));
+    fileChooser->launchAsync (juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectDirectories, [this] (const juce::FileChooser& fc) mutable
+    {
+        if (fc.getURLResults ().size () == 1 && fc.getURLResults () [0].isLocalFile ())
+            appProperties.setMostRecentFolder (fc.getURLResults () [0].getLocalFile ().getFullPathName ());
+    }, nullptr);
+}
+
 void FileViewComponent::resized ()
 {
     auto localBounds { getLocalBounds () };
 
     localBounds.reduce (3, 3);
-    navigateUpButton.onClick = [this] ()
-    {
-        appProperties.setMostRecentFolder (folderContentsDirectoryList.getDirectory ().getParentDirectory ().getFullPathName ());
-    };
-    navigateUpButton.setBounds (localBounds.removeFromTop (25).removeFromLeft (25));
+    auto navigationRow { localBounds.removeFromTop (25) };
+    navigateUpButton.setBounds (navigationRow.removeFromLeft (25));
+    navigationRow.removeFromLeft (5);
+    openFolderButton.setBounds (navigationRow.removeFromLeft (100));
     localBounds.removeFromTop (3);
-    fileTreeView.setBounds (localBounds);
+    // place list
 }
 
 void FileViewComponent::startFolderScan (juce::File folderToScan)
@@ -57,6 +63,4 @@ void FileViewComponent::timerCallback ()
     if (folderContentsDirectoryList.isStillLoading ())
         return;
     folderContentsThread.stopThread (100);
-    fileTreeView.refresh ();
-    fileTreeView.repaint ();
 }
