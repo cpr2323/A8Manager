@@ -11,28 +11,6 @@
 #include "../AppProperties.h"
 #include "../Utility/SplitWindowComponent.h"
 
-//  +----------------+-------------+-----------------------------------+
-//  |Folder Contents | Preset List | Preset Editor                     |
-//  +----------------+-------------+-----------------------------------+
-//  | ..             | Preset 1    |                                   |
-//  | folderX        | Preset 2    |                                   |
-//  | folder34       | Preset 3    |                                   |
-//  | fileAbc        | Preset 4    |                                   |
-//  | fileElif       | Preset ...  |                                   |
-// ...              ...           ...                                 ...
-//  |                | Preset 199  |                                   |
-//  +----------------+-------------+-----------------------------------+
-//  | Type | Fix | Message (X items)                                   |
-//  +------+-----+-----------------------------------------------------+
-//  |      |     |                                                     |
-//  |      |     |                                                     |
-//  |      |     |                                                     |
-//  |      |     |                                                     |
-//  |      |     |                                                     |
-//  +------+-----+-----------------------------------------------------+
-//  |  Tool Bar                                                        |
-//  +------------------------------------------------------------------+
-
 class MainComponent : public juce::Component
 {
 public:
@@ -45,7 +23,7 @@ private:
     AppProperties appProperties;
     ValidatorProperties validatorProperties;
 
-    juce::Component component;
+    juce::Label currentFolder;
     FileViewComponent fileViewComponent;
     PresetListComponent presetListComponent;
     Assimil8orEditorComponent assimil8orEditorComponent;

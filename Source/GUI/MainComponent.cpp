@@ -5,7 +5,7 @@
 const auto toolWindowHeight { 30 };
 
 //  +----------------+-------------+-----------------------------------+
-//  |Folder Contents | Preset List | Preset Editor                     |
+//  |Current Path                                                      |
 //  +----------------+-------------+-----------------------------------+
 //  | ..             | Preset 1    |                                   |
 //  | folderX        | Preset 2    |                                   |
@@ -29,6 +29,8 @@ const auto toolWindowHeight { 30 };
 MainComponent::MainComponent (juce::ValueTree rootPropertiesVT)
 {
     setSize (1000, 600);
+
+    addAndMakeVisible (currentFolder);
 
     assimil8orEditorComponent.init (rootPropertiesVT);
     assimil8orValidatorComponent.init (rootPropertiesVT);
@@ -55,12 +57,15 @@ MainComponent::MainComponent (juce::ValueTree rootPropertiesVT)
     appProperties.wrap (persistentRootProperties.getValueTree (), AppProperties::WrapperType::client, AppProperties::EnableCallbacks::yes);
     appProperties.onMostRecentFolderChange = [this] (juce::String folderName)
     {
+        currentFolder.setText (folderName, juce::NotificationType::dontSendNotification);
         startFolderScan (juce::File (folderName));
     };
     validatorProperties.wrap (runtimeRootProperties.getValueTree (), ValidatorProperties::WrapperType::client, ValidatorProperties::EnableCallbacks::yes);
 
     startFolderScan (appProperties.getMostRecentFolder ());
     fileViewComponent.init (rootPropertiesVT);
+
+    currentFolder.setText (appProperties.getMostRecentFolder (), juce::NotificationType::dontSendNotification);
 }
 
 void MainComponent::startFolderScan (juce::File folderToScan)
@@ -77,6 +82,8 @@ void MainComponent::paint ([[maybe_unused]] juce::Graphics& g)
 void MainComponent::resized ()
 {
     auto localBounds { getLocalBounds () };
+    currentFolder.setBounds (localBounds.removeFromTop (30));
     toolWindow.setBounds (localBounds.removeFromBottom (toolWindowHeight));
+    localBounds.reduce (3, 3);
     topAndBottomSplitter.setBounds (localBounds);
 }
