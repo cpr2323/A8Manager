@@ -36,10 +36,10 @@ juce::String getMemorySizeString (uint64_t memoryUsage)
 Assimil8orValidator::Assimil8orValidator () : Thread ("Assimil8orValidator")
 {
     audioFormatManager.registerBasicFormats ();
-    directoryValueTree.onReadStatusChange = [this] (bool readStatus)
+    directoryValueTree.onComplete = [this] () { startThread (); };
+    directoryValueTree.onStatusChange = [this] (juce::String operation, juce::String fileName)
     {
-        if (! readStatus && ! isThreadRunning ())
-            startThread ();
+        validatorProperties.setProgressUpdate (operation + ": " + fileName, false);
     };
 }
 
@@ -62,7 +62,7 @@ void Assimil8orValidator::validate ()
     if (isThreadRunning ())
         return;
     validatorProperties.setScanStatus ("scanning", false);
-    directoryValueTree.startAsyncRead ();
+    directoryValueTree.startAsyncScan ();
 }
 
 void Assimil8orValidator::addResult (juce::String statusType, juce::String statusText)
@@ -343,7 +343,7 @@ void Assimil8orValidator::processFolder (juce::ValueTree folderVT)
         {
             juce::MessageManager::callAsync ([this, fileName] ()
             {
-                validatorProperties.setProgressUpdate (fileName, false);
+                validatorProperties.setProgressUpdate ("Validating: " + fileName, false);
             });
         });
         if (curEntry.isDirectory ())
@@ -389,7 +389,7 @@ void Assimil8orValidator::validateRootFolder ()
     // do one initial progress update to fill in the first one
     juce::MessageManager::callAsync ([this, folderName = rootEntry.getFileName ()] ()
     {
-        validatorProperties.setProgressUpdate (folderName, false);
+        validatorProperties.setProgressUpdate ("Validating: " + folderName, false);
     });
 
     processFolder (directoryValueTree.getDirectoryVT());

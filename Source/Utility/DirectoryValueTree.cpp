@@ -16,6 +16,11 @@ void DirectoryValueTree::setRootFolder (juce::String theRootFolderName)
     rootFolderName = theRootFolderName;
 }
 
+void DirectoryValueTree::setScanDepth (int theScanDepth)
+{
+    scanDepth = theScanDepth;
+}
+
 juce::ValueTree DirectoryValueTree::getDirectoryVT ()
 {
     return rootFolderVT;
@@ -26,51 +31,58 @@ void DirectoryValueTree::clear ()
     rootFolderVT = {};
 }
 
-bool DirectoryValueTree::getReadStatus ()
+bool DirectoryValueTree::getScanStatus ()
 {
     return isThreadRunning ();
 }
 
-void DirectoryValueTree::startAsyncRead ()
+void DirectoryValueTree::startAsyncScan ()
 {
     if (isThreadRunning ())
         return;
     startThread ();
-    if (onReadStatusChange != nullptr)
-        onReadStatusChange (true);
 }
 
 void DirectoryValueTree::run ()
 {
     rootFolderVT = {};
-    validateRootFolder ();
+    doScan ();
+    // reset the output if scan was canceled
     if (threadShouldExit ())
         rootFolderVT = {};
-    if (onReadStatusChange != nullptr)
-        juce::MessageManager::callAsync ([this] () { onReadStatusChange (false); });
+    if (onComplete != nullptr)
+        juce::MessageManager::callAsync ([this] () { onComplete (); });
 }
 
-void DirectoryValueTree::validateRootFolder ()
+void DirectoryValueTree::doStatusUpdate (juce::String operation, juce::String fileName)
+{
+    if (onStatusChange != nullptr)
+        juce::MessageManager::callAsync ([this, operation, fileName] () { onStatusChange (operation, fileName); });
+}
+
+void DirectoryValueTree::doIfProgressTimeElapsed (std::function<void ()> functionToDo)
+{
+    jassert (functionToDo != nullptr);
+    if (juce::Time::currentTimeMillis () - lastScanInProgressUpdate > 250)
+    {
+        lastScanInProgressUpdate = juce::Time::currentTimeMillis ();
+        functionToDo ();
+    }
+}
+
+void DirectoryValueTree::doScan ()
 {
     lastScanInProgressUpdate = juce::Time::currentTimeMillis ();
     const auto rootEntry { juce::File (rootFolderName) };
     // do one initial progress update to fill in the first one
     juce::MessageManager::callAsync ([this, folderName = rootEntry.getFileName ()] ()
-        {
-            // TODO provide progress updates
-            // validatorProperties.setProgressUpdate (rootFolderName, false);
-        });
+    {
+        doStatusUpdate ("Reading File System", rootFolderName);
+    });
     if (! threadShouldExit ())
         rootFolderVT = getContentsOfFolder (rootFolderName);
     if (! threadShouldExit ())
         sortContentsOfFolder (rootFolderVT);
-
-    juce::MessageManager::callAsync ([this] ()
-        {
-            // TODO provide progress updates
-            // validatorProperties.setProgressUpdate ("", false);
-            // validatorProperties.setScanStatus ("idle", false);
-        });
 }
 
 juce::ValueTree DirectoryValueTree::getContentsOfFolder (juce::File folder)
@@ -82,14 +94,10 @@ juce::ValueTree DirectoryValueTree::getContentsOfFolder (juce::File folder)
         if (threadShouldExit ())
             break;
 
-        // TODO provide progress updates
-        // doIfProgressTimeElapsed ([this, fileName = entry.getFile ().getFileName ()] ()
-        // {
-        //     juce::MessageManager::callAsync ([this, fileName] ()
-        //         {
-        //             validatorProperties.setProgressUpdate (fileName, false);
-        //         });
-        // });
+        doIfProgressTimeElapsed ([this, fileName = entry.getFile ().getFileName ()] ()
+        {
+            doStatusUpdate ("Reading File System", fileName);
+        });
         if (const auto& curFile { entry.getFile () }; curFile.isDirectory ())
         {
             folderVT.addChild (getContentsOfFolder (curFile), -1, nullptr);
@@ -159,6 +167,10 @@ void DirectoryValueTree::sortContentsOfFolder (juce::ValueTree folderVT)
     for (auto folderIndex { 0 }; folderIndex < numFolderEntries; ++folderIndex)
     {
         auto folderEntryVT { folderVT.getChild (folderIndex) };
+        doIfProgressTimeElapsed ([this, fileName = folderEntryVT.getProperty ("name").toString ()] ()
+        {
+            doStatusUpdate ("Sorting File System", fileName);
+        });
         if (folderEntryVT.getType ().toString () == "Folder")
         {
             insertSorted (folderIndex, SectionIndex::folders);

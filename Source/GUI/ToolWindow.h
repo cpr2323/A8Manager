@@ -11,15 +11,10 @@ public:
     void init (juce::ValueTree rootPropertiesVT);
 
 private: 
-    juce::TimeSliceThread scanThread {"DirectoryContentsListThread"};
-    juce::DirectoryContentsList directoryContentsList {nullptr, scanThread};
-
-    juce::Label scanningStatusLabel;
     juce::Label progressUpdateLabel;
     ValidatorProperties validatorProperties;
 
     void updateProgress (juce::String progressUpdate);
-    void updateScanStatus (juce::String scanStatus);
 
     void paint (juce::Graphics& g) override;
     void resized () override;
