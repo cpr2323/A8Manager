@@ -103,7 +103,7 @@ namespace ValueTreeHelpers
 
     void overwriteExistingProperties (juce::ValueTree source, juce::ValueTree dest)
     {
-        for (int i = 0; i < source.getNumProperties (); i++)
+        for (int i { 0 }; i < source.getNumProperties (); i++)
             dest.setProperty (source.getPropertyName (i), source.getProperty (source.getPropertyName (i)), nullptr);
     }
 
@@ -180,7 +180,7 @@ namespace ValueTreeHelpers
 
         tree.writeToStream (stream);
 
-        for (size_t i = 0; i < stream.getDataSize (); i++)
+        for (size_t i { 0 }; i < stream.getDataSize (); i++)
             crc.update (((uint8_t*) stream.getData ()) [i]);
 
         return crc.getCrc ();

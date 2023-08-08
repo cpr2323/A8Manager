@@ -114,7 +114,6 @@ void SumHelper<uint8_t>::updateBuffer(uint8_t* data, int len)
     }
 }
 
-
 template <>
 void SumHelper<uint32_t>::updateBuffer(uint8_t* data, int len)
 {

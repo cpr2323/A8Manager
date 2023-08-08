@@ -74,7 +74,7 @@ void Assimil8orValidatorComponent::init (juce::ValueTree rootPropertiesVT)
         udpateHeader ();
         // TODO - this is a crazy work around because when I am getting the initial list, a horizontal scroll bar is appearing
         //        the only experiment that worked was doing this
-        setSize (getWidth(), getHeight() + 1);
+        setSize (getWidth (), getHeight () + 1);
         setSize (getWidth (), getHeight () - 1);
     };
 }
@@ -129,7 +129,7 @@ juce::String Assimil8orValidatorComponent::getCellTooltip (int rowNumber, int co
                                                          ValidatorResultProperties::WrapperType::client, ValidatorResultProperties::EnableCallbacks::no);
     auto getPrefix = [this, &validatorResultProperties] () -> juce::String
     {
-        if (!validatorResultProperties.getValueTree ().hasProperty ("fullFileName"))
+        if (! validatorResultProperties.getValueTree ().hasProperty ("fullFileName"))
             return {};
 
         juce::File file (validatorResultProperties.getValueTree ().getProperty ("fullFileName").toString ());

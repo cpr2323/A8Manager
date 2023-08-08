@@ -102,7 +102,7 @@ void SplitWindowComponent::resized ()
     const auto r { getLocalBounds ().reduced (4) };
 
     // make a list of two of our child components that we want to reposition
-    Component* comps[] = { firstComponent, resizerBar.get (), secondComponent };
+    Component* comps[] { firstComponent, resizerBar.get (), secondComponent };
 
     // this will position the 3 components, one above, or next to, the other, to fit
     // it into the rectangle provided.

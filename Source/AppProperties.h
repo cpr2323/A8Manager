@@ -39,6 +39,5 @@ private:
     juce::ValueTree getMRUListChildVT ();
     int getNumMRUEntries ();
 
-
     void valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property) override;
 };

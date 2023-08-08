@@ -6,7 +6,7 @@ FileViewComponent::FileViewComponent ()
     navigateUpButton.setButtonText ("..");
     navigateUpButton.onClick = [this] ()
     {
-        appProperties.setMostRecentFolder (juce::File (directoryValueTree.getRootFolder ()).getParentDirectory().getFullPathName ());
+        appProperties.setMostRecentFolder (juce::File (directoryValueTree.getRootFolder ()).getParentDirectory ().getFullPathName ());
     };
     addAndMakeVisible (navigateUpButton);
     openFolderButton.setButtonText ("Open Folder");
@@ -81,7 +81,7 @@ void FileViewComponent::startFolderScan (juce::File folderToScan)
 
 int FileViewComponent::getNumRows ()
 {
-    return static_cast<int>(directoryListQuickLookupList.size ());
+    return static_cast<int> (directoryListQuickLookupList.size ());
 }
 
 void FileViewComponent::paintListBoxItem (int row, juce::Graphics& g, int width, int height, [[maybe_unused]] bool rowIsSelected)
@@ -107,7 +107,7 @@ juce::String FileViewComponent::getTooltipForRow (int row)
     if (row >= getNumRows ())
         return {};
 
-    return juce::File (directoryListQuickLookupList [row].getProperty ("name").toString ()).getFileName();
+    return juce::File (directoryListQuickLookupList [row].getProperty ("name").toString ()).getFileName ();
 }
 
 void FileViewComponent::listBoxItemClicked (int row, [[maybe_unused]] const juce::MouseEvent& me)

@@ -10,7 +10,7 @@ public:
     ToolWindow ();
     void init (juce::ValueTree rootPropertiesVT);
 
-private: 
+private:
     juce::Label progressUpdateLabel;
     ValidatorProperties validatorProperties;
 

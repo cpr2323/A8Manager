@@ -13,7 +13,7 @@ Assimil8orEditorComponent::Assimil8orEditorComponent ()
     nameEditor.onReturnKey = [this] () { updateName (nameEditor.getText ()); };
     addAndMakeVisible (nameEditor);
 
-    auto setupButton = [this] (juce::TextButton& button, juce::String text, std::function<void()> buttonFunction)
+    auto setupButton = [this] (juce::TextButton& button, juce::String text, std::function<void ()> buttonFunction)
     {
         button.setButtonText (text);
         button.onClick = buttonFunction;
@@ -61,7 +61,7 @@ void Assimil8orEditorComponent::savePreset ()
 
 void Assimil8orEditorComponent::paint ([[maybe_unused]] juce::Graphics& g)
 {
-    g.fillAll (juce::Colours::darkgrey.darker(0.7f));
+    g.fillAll (juce::Colours::darkgrey.darker (0.7f));
 }
 
 void Assimil8orEditorComponent::resized ()

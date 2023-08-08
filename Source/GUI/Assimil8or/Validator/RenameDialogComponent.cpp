@@ -45,7 +45,7 @@ void RenameDialogContent::doRename (juce::File oldFile)
     {
         // rename failed
         juce::AlertWindow::showMessageBoxAsync (juce::AlertWindow::WarningIcon, "Rename Failed",
-                                                "Unable to rename '" + oldFile.getFileName() + "' to '" + newFile.getFileName () + "'", {}, nullptr,
+                                                "Unable to rename '" + oldFile.getFileName () + "' to '" + newFile.getFileName () + "'", {}, nullptr,
                                                 juce::ModalCallbackFunction::create ([this] (int) {}));
     }
 }
@@ -62,8 +62,8 @@ void RenameDialogContent::checkNameAvailable (juce::File oldFile)
     const auto newFileName { newNameEditor.getText ().trim () };
     auto newFile { oldFile.getParentDirectory ().getChildFile (newFileName) };
 
-    addExtensionIfNeeded(oldFile, newFile);
-    okButton.setEnabled (newFileName.isNotEmpty () && ! newFile.exists());
+    addExtensionIfNeeded (oldFile, newFile);
+    okButton.setEnabled (newFileName.isNotEmpty () && ! newFile.exists ());
 }
 
 void RenameDialogContent::closeDialog (bool renamed)
@@ -101,5 +101,5 @@ void RenameDialogContent::resized ()
     //localBounds.removeFromTop (5);
     auto newNameRow { localBounds.removeFromTop (35).withTrimmedTop (5) };
     newNamePromptLabel.setBounds (newNameRow.removeFromLeft (80).withTrimmedLeft (5));
-    newNameEditor.setBounds (newNameRow.reduced(5,2));
+    newNameEditor.setBounds (newNameRow.reduced (5, 2));
 }

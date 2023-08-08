@@ -13,7 +13,7 @@ void AppProperties::initValueTree ()
 
 void AppProperties::processValueTree ()
 {
-    if (auto XmruListChildVT { getMRUListChildVT () }; !XmruListChildVT.hasProperty (MaxMRUEntriesPropertyId))
+    if (auto XmruListChildVT { getMRUListChildVT () }; ! XmruListChildVT.hasProperty (MaxMRUEntriesPropertyId))
         XmruListChildVT.setProperty (MaxMRUEntriesPropertyId, 10, nullptr);
 }
 

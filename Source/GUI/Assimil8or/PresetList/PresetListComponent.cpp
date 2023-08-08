@@ -133,7 +133,7 @@ juce::String PresetListComponent::getTooltipForRow (int row)
     return "Preset " + juce::String (row + 1);
 }
 
-void PresetListComponent::listBoxItemClicked (int row, const juce::MouseEvent& me)
+void PresetListComponent::listBoxItemClicked (int row, [[maybe_unused]] const juce::MouseEvent& me)
 {
     auto presetFile { juce::File (appProperties.getMostRecentFolder ()).getChildFile (getPresetName (row)).withFileExtension (".yml") };
     if (presetExists [row])

@@ -36,7 +36,7 @@ namespace FileTypeHelpers
 
     int getPresetNumberFromName (juce::File file)
     {
-        if (!isPresetFile (file))
+        if (! isPresetFile (file))
             return kBadPresetNumber;
         return file.getFileNameWithoutExtension ().substring (kPresetFileNumberOffset).getIntValue ();
     }
