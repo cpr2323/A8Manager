@@ -2,14 +2,16 @@
 
 #include <JuceHeader.h>
 #include "Preset/PresetProperties.h"
-#include <Stack>
+#include <stack>
 
 // File Contents
 //      Preset 1 (1-8 channels)
 //          Channel 1 (? zones)
 //              Zone 1
 
-using ActionMap = std::map<juce::String, std::function<void ()>>;
+
+using Action = std::function<void ()>;
+using ActionMap = std::map<juce::String, Action>;
 
 class Assimil8orPreset
 {
@@ -23,8 +25,9 @@ public:
 
 private:
     
-    std::stack<std::function<void()>> parseStack;
-    juce::String sectionName;
+    juce::String getSectionName ();
+    
+    std::stack<Action> undoActionsStack;
     
     PresetProperties presetProperties;
 
@@ -32,7 +35,7 @@ private:
     ActionMap presetActions;
     ActionMap channelActions;
     ActionMap zoneActions;
-    ActionMap* curActions;
+    ActionMap * curActions;
 
     juce::ValueTree curPresetSection;
     ChannelProperties channelProperties;

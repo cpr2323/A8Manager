@@ -166,10 +166,10 @@ void Assimil8orPreset::parse (juce::StringArray presetLines)
             for (auto remainingScopes { scopeDifference * -1 }; remainingScopes > 0; --remainingScopes)
             {
                 // parseStack should have items to reset!
-                jassert(!parseStack.empty());
-                auto resetFunc = parseStack.top();
-                parseStack.pop();
-                resetFunc();
+                jassert(! undoActionsStack.empty ());
+                auto undoAction = undoActionsStack.top ();
+                undoActionsStack.pop ();
+                undoAction ();
             }
         }
 
@@ -186,13 +186,29 @@ void Assimil8orPreset::parse (juce::StringArray presetLines)
         }
         else
         {
-            LogParsing ("unknown " + sectionName + " key: " + key);
+            LogParsing ("unknown " + getSectionName() + " key: " + key);
             jassertfalse;
         }
     }
 }
 
-Assimil8orPreset::Assimil8orPreset ()
+juce::String Assimil8orPreset::getSectionName ()
+{
+    if (curActions == &globalActions)
+        return "global";
+    else if (curActions == &presetActions)
+        return "preset";
+    else if (curActions == &channelActions)
+        return "channel";
+    else if (curActions == &zoneActions)
+        return "zone";
+    else
+        // curActions is not pointing to an action map!
+        jassertfalse;
+        return "";
+}
+
+Assimil8orPreset::Assimil8orPreset () : curActions(nullptr)
 {
     auto getParameterIndex = [this] ()
     {
@@ -201,49 +217,36 @@ Assimil8orPreset::Assimil8orPreset ()
         return index;
     };
     
-    auto setParseState = [this] (ActionMap* newActions, juce::String newSectionName)
+    auto setActions = [this] (ActionMap* newActions, Action undoAction)
     {
         curActions = newActions;
-        sectionName = newSectionName;
+        undoActionsStack.push (undoAction);
     };
     
-    auto revertParseState = [this, setParseState] (ActionMap* newActions, juce::String newSectionName, juce::ValueTree & sectionToRevert)
+    auto undoAction = [this, setActions] (ActionMap* newActions, juce::ValueTree & sectionToRevert)
     {
+        curActions = newActions;
         sectionToRevert = {};
-        setParseState (newActions, newSectionName);
-    };
-    
-    auto revertZoneSection = [this, revertParseState]
-    {
-        revertParseState(&channelActions, "channel", curZoneSection);
-    };
-    
-    auto revertPresetSection = [this, revertParseState]
-    {
-        revertParseState(&globalActions, "global", curPresetSection);
-    };
-    
-    auto revertChannelSection = [this, revertParseState]
-    {
-        revertParseState(&presetActions, "preset", curChannelSection);
     };
     
     // Global Action
     globalActions.insert ({
-        {Section::PresetId, [this, revertPresetSection, setParseState] () {
+        {Section::PresetId, [this, undoAction, setActions] () {
             curPresetSection = presetProperties.getValueTree ();
-            setParseState (&presetActions, "preset");
-            parseStack.push(revertPresetSection);
+            setActions (&presetActions, [this, undoAction]{
+                undoAction (&globalActions, curPresetSection);
+            });
         }}
         });
 
     // Preset Actions
     presetActions.insert ({
-        {Section::ChannelId, [this, getParameterIndex, revertChannelSection, setParseState] () {
+        {Section::ChannelId, [this, getParameterIndex, undoAction, setActions] () {
             curChannelSection = presetProperties.addChannel (getParameterIndex ());
             channelProperties.wrap (curChannelSection, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
-            setParseState (&channelActions, "channel");
-            parseStack.push(revertChannelSection);
+            setActions (&channelActions, [this, undoAction]{
+                undoAction (&presetActions, curChannelSection);
+            });
         }},
         {Parameter::Preset::NameId, [this] () {
             presetProperties.setName (value, false);
@@ -279,12 +282,13 @@ Assimil8orPreset::Assimil8orPreset ()
 
     // Channel Actions
     channelActions.insert ({
-        {Section::ZoneId, [this, getParameterIndex, revertZoneSection, setParseState] () {
+        {Section::ZoneId, [this, getParameterIndex, undoAction, setActions] () {
             // TODO - do we need to check for malformed data, ie more than 8 zones
             curZoneSection = channelProperties.addZone (getParameterIndex ());
             zoneProperties.wrap (curZoneSection, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
-            setParseState (&zoneActions, "zone");
-            parseStack.push(revertZoneSection);
+            setActions (&zoneActions, [this, undoAction]{
+                undoAction (&channelActions, curZoneSection);
+            });
         }},
         {Parameter::Channel::AttackId, [this] () {
             channelProperties.setAttack (value.getDoubleValue (), false);
