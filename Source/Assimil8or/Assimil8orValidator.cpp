@@ -52,8 +52,14 @@ Assimil8orValidator::~Assimil8orValidator ()
 void Assimil8orValidator::init (juce::ValueTree vt)
 {
     validatorProperties.wrap (vt, ValidatorProperties::WrapperType::owner, ValidatorProperties::EnableCallbacks::yes);
-    validatorProperties.onRootFolderChanged = [this] (juce::String folderName) { directoryValueTree.setRootFolder (folderName); };
-    validatorProperties.onStartScanAsync = [this] () { validate (); };
+    validatorProperties.onRootFolderChanged = [this] (juce::String folderName)
+    {
+        directoryValueTree.setRootFolder (folderName);
+    };
+    validatorProperties.onStartScanAsync = [this] ()
+    {
+        validate ();
+    };
     validatorResultListProperties.wrap (validatorProperties.getValueTree (),
                                         ValidatorResultListProperties::WrapperType::client, ValidatorResultListProperties::EnableCallbacks::no);
 }
@@ -86,6 +92,7 @@ void Assimil8orValidator::doIfProgressTimeElapsed (std::function<void ()> functi
 
 void Assimil8orValidator::validate ()
 {
+    // TODO - need to cancel any current scan and start
     if (isThreadRunning ())
         return;
     validatorProperties.setScanStatus ("scanning", false);

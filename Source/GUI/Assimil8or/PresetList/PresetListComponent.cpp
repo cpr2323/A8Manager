@@ -18,12 +18,12 @@ void PresetListComponent::init (juce::ValueTree rootPropertiesVT)
     {
         startScan (juce::File (folderName));
     };
-    //appProperties.on
     startScan (appProperties.getMostRecentFolder ());
 }
 
 void PresetListComponent::startScan (juce::File folderToScan)
 {
+    // TODO - need to cancel any current scan and start
     rootFolder = folderToScan;
     startThread ();
 }

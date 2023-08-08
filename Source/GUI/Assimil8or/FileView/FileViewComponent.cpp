@@ -39,6 +39,14 @@ void FileViewComponent::init (juce::ValueTree rootPropertiesVT)
     startFolderScan (appProperties.getMostRecentFolder ());
 }
 
+void FileViewComponent::startFolderScan (juce::File folderToScan)
+{
+    // TODO - need to cancel any current scan and start
+    directoryListQuickLookupList.clear ();
+    directoryValueTree.setRootFolder (folderToScan.getFullPathName ());
+    directoryValueTree.startAsyncScan ();
+}
+
 void FileViewComponent::openFolder ()
 {
     fileChooser.reset (new juce::FileChooser ("Please select the folder to scan as an Assimil8or SD Card...",
@@ -57,26 +65,6 @@ void FileViewComponent::buildQuickLookupList ()
         directoryListQuickLookupList.emplace_back (child);
         return true;
     });
-}
-
-void FileViewComponent::resized ()
-{
-    auto localBounds { getLocalBounds () };
-
-    localBounds.reduce (3, 3);
-    auto navigationRow { localBounds.removeFromTop (25) };
-    navigateUpButton.setBounds (navigationRow.removeFromLeft (25));
-    navigationRow.removeFromLeft (5);
-    openFolderButton.setBounds (navigationRow.removeFromLeft (100));
-    localBounds.removeFromTop (3);
-    directoryContentsListBox.setBounds (localBounds);
-}
-
-void FileViewComponent::startFolderScan (juce::File folderToScan)
-{
-    directoryListQuickLookupList.clear ();
-    directoryValueTree.setRootFolder (folderToScan.getFullPathName ());
-    directoryValueTree.startAsyncScan ();
 }
 
 int FileViewComponent::getNumRows ()
@@ -118,3 +106,17 @@ void FileViewComponent::listBoxItemClicked (int row, [[maybe_unused]] const juce
     if (auto file { juce::File (directoryListQuickLookupList [row].getProperty ("name").toString ()) }; file.isDirectory ())
         appProperties.setMostRecentFolder (file.getFullPathName ());
 }
+
+void FileViewComponent::resized ()
+{
+    auto localBounds { getLocalBounds () };
+
+    localBounds.reduce (3, 3);
+    auto navigationRow { localBounds.removeFromTop (25) };
+    navigateUpButton.setBounds (navigationRow.removeFromLeft (25));
+    navigationRow.removeFromLeft (5);
+    openFolderButton.setBounds (navigationRow.removeFromLeft (100));
+    localBounds.removeFromTop (3);
+    directoryContentsListBox.setBounds (localBounds);
+}
+
