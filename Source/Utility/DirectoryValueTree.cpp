@@ -16,6 +16,11 @@ void DirectoryValueTree::setRootFolder (juce::String theRootFolderName)
     rootFolderName = theRootFolderName;
 }
 
+juce::String DirectoryValueTree::getRootFolder ()
+{
+    return rootFolderName;
+}
+
 void DirectoryValueTree::setScanDepth (int theScanDepth)
 {
     scanDepth = theScanDepth;

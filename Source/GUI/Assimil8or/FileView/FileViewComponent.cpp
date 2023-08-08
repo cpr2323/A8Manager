@@ -6,13 +6,26 @@ FileViewComponent::FileViewComponent ()
     navigateUpButton.setButtonText ("..");
     navigateUpButton.onClick = [this] ()
     {
-        appProperties.setMostRecentFolder (folderContentsDirectoryList.getDirectory ().getParentDirectory ().getFullPathName ());
+        appProperties.setMostRecentFolder (juce::File (directoryValueTree.getRootFolder ()).getParentDirectory().getFullPathName ());
     };
     addAndMakeVisible (navigateUpButton);
     openFolderButton.setButtonText ("Open Folder");
     openFolderButton.onClick = [this] () { openFolder (); };
     addAndMakeVisible (openFolderButton);
     addAndMakeVisible (directoryContentsListBox);
+
+    directoryValueTree.setScanDepth (0); // no depth, only scan root folder
+    directoryValueTree.onComplete = [this] ()
+    {
+        buildQuickLookupList ();
+        directoryContentsListBox.updateContent ();
+        directoryContentsListBox.scrollToEnsureRowIsOnscreen (0);
+        directoryContentsListBox.repaint ();
+    };
+    directoryValueTree.onStatusChange = [this] (juce::String operation, juce::String fileName)
+    {
+        //validatorProperties.setProgressUpdate (operation + ": " + fileName, false);
+    };
 }
 
 void FileViewComponent::init (juce::ValueTree rootPropertiesVT)
@@ -37,6 +50,15 @@ void FileViewComponent::openFolder ()
     }, nullptr);
 }
 
+void FileViewComponent::buildQuickLookupList ()
+{
+    ValueTreeHelpers::forEachChild (directoryValueTree.getDirectoryVT (), [this] (juce::ValueTree child)
+    {
+        directoryListQuickLookupList.emplace_back (child);
+        return true;
+    });
+}
+
 void FileViewComponent::resized ()
 {
     auto localBounds { getLocalBounds () };
@@ -52,27 +74,14 @@ void FileViewComponent::resized ()
 
 void FileViewComponent::startFolderScan (juce::File folderToScan)
 {
-    folderContentsThread.startThread ();
-    folderContentsDirectoryList.clear ();
-    folderContentsDirectoryList.setDirectory (folderToScan, true, true);
-    folderContentsDirectoryList.refresh ();
-    startTimer (5);
-}
-
-void FileViewComponent::timerCallback ()
-{
-    if (folderContentsDirectoryList.isStillLoading ())
-        return;
-    folderContentsThread.stopThread (100);
-    directoryContentsListBox.updateContent ();
-    directoryContentsListBox.scrollToEnsureRowIsOnscreen (0);
-    directoryContentsListBox.repaint ();
-    stopTimer ();
+    directoryListQuickLookupList.clear ();
+    directoryValueTree.setRootFolder (folderToScan.getFullPathName ());
+    directoryValueTree.startAsyncScan ();
 }
 
 int FileViewComponent::getNumRows ()
 {
-    return folderContentsDirectoryList.getNumFiles ();
+    return directoryListQuickLookupList.size ();
 }
 
 void FileViewComponent::paintListBoxItem (int row, juce::Graphics& g, int width, int height, bool rowIsSelected)
@@ -84,13 +93,13 @@ void FileViewComponent::paintListBoxItem (int row, juce::Graphics& g, int width,
     g.fillRect (width - 1, 0, 1, height);
 
     g.setColour (juce::Colours::whitesmoke);
-    auto file { folderContentsDirectoryList.getFile (row) };
+    auto file { juce::File (directoryListQuickLookupList[row].getProperty ("name").toString ())};
     juce::String filePrefix;
     if (file.isDirectory ())
         filePrefix = "> ";
     else
         filePrefix = "  ";
-    g.drawText (" " + filePrefix + folderContentsDirectoryList.getFile (row).getFileName (), juce::Rectangle<float>{ 0.0f, 0.0f, (float) width, (float) height }, juce::Justification::centredLeft, true);
+    g.drawText (" " + filePrefix + file.getFileName (), juce::Rectangle<float>{ 0.0f, 0.0f, (float) width, (float) height }, juce::Justification::centredLeft, true);
 }
 
 juce::String FileViewComponent::getTooltipForRow (int row)
@@ -98,7 +107,7 @@ juce::String FileViewComponent::getTooltipForRow (int row)
     if (row >= getNumRows ())
         return {};
 
-    return folderContentsDirectoryList.getFile(row).getFileName();
+    return juce::File (directoryListQuickLookupList [row].getProperty ("name").toString ()).getFileName();
 }
 
 void FileViewComponent::listBoxItemClicked (int row, const juce::MouseEvent& me)
@@ -106,6 +115,6 @@ void FileViewComponent::listBoxItemClicked (int row, const juce::MouseEvent& me)
     if (row >= getNumRows ())
         return;
 
-    if (auto file { folderContentsDirectoryList.getFile (row) }; file.isDirectory ())
+    if (auto file { juce::File (directoryListQuickLookupList [row].getProperty ("name").toString ()) }; file.isDirectory ())
         appProperties.setMostRecentFolder (file.getFullPathName ());
 }

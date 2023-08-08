@@ -10,6 +10,7 @@ public:
     ~DirectoryValueTree ();
 
     void setRootFolder (juce::String theRootFolderName);
+    juce::String getRootFolder ();
     void setScanDepth (int theScanDepth);
     void startAsyncScan ();
     bool getScanStatus ();

@@ -2,10 +2,10 @@
 
 #include <JuceHeader.h>
 #include "../../../AppProperties.h"
+#include "../../../Utility/DirectoryValueTree.h"
 
 class FileViewComponent : public juce::Component,
-                          private juce::ListBoxModel,
-                          private juce::Timer
+                          private juce::ListBoxModel
 {
 public:
     FileViewComponent ();
@@ -19,14 +19,14 @@ private:
     std::unique_ptr<juce::FileChooser> fileChooser;
     juce::ListBox directoryContentsListBox { {}, this };
 
-    juce::TimeSliceThread folderContentsThread { "FolderContentsThread" };
-    juce::DirectoryContentsList folderContentsDirectoryList { nullptr, folderContentsThread };
+    DirectoryValueTree directoryValueTree;
+    std::vector<juce::ValueTree> directoryListQuickLookupList;
 
+    void buildQuickLookupList ();
     void openFolder ();
     void startFolderScan (juce::File folderToScan);
 
     void resized () override;
-    void timerCallback () override;
     int getNumRows () override;
     void paintListBoxItem (int rowNumber, juce::Graphics& g, int width, int height, bool rowIsSelected) override;
     juce::String getTooltipForRow (int row) override;
