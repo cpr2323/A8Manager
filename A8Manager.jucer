@@ -51,6 +51,10 @@
               file="Source/Assimil8or/Assimil8orValidator.cpp"/>
         <FILE id="IxMRZR" name="Assimil8orValidator.h" compile="0" resource="0"
               file="Source/Assimil8or/Assimil8orValidator.h"/>
+        <FILE id="AZKBbE" name="FileTypeHelpers.cpp" compile="1" resource="0"
+              file="Source/Assimil8or/FileTypeHelpers.cpp"/>
+        <FILE id="tZ8qTH" name="FileTypeHelpers.h" compile="0" resource="0"
+              file="Source/Assimil8or/FileTypeHelpers.h"/>
       </GROUP>
       <GROUP id="{CF0C93A7-2DC9-863C-8999-5F753D262369}" name="GUI">
         <GROUP id="{E38BD768-EC43-B8F0-AB46-78F18BDF75B0}" name="Assimil8or">
@@ -95,6 +99,10 @@
         <FILE id="i75h2A" name="DebugLog.h" compile="0" resource="0" file="Source/Utility/DebugLog.h"/>
         <FILE id="rv1w6s" name="DebugLogImplementation.h" compile="0" resource="0"
               file="Source/Utility/DebugLogImplementation.h"/>
+        <FILE id="GeHdy1" name="DirectoryValueTree.cpp" compile="1" resource="0"
+              file="Source/Utility/DirectoryValueTree.cpp"/>
+        <FILE id="eO3HdP" name="DirectoryValueTree.h" compile="0" resource="0"
+              file="Source/Utility/DirectoryValueTree.h"/>
         <FILE id="e2rm9l" name="PersistentRootProperties.cpp" compile="1" resource="0"
               file="Source/Utility/PersistentRootProperties.cpp"/>
         <FILE id="mF5R47" name="PersistentRootProperties.h" compile="0" resource="0"
