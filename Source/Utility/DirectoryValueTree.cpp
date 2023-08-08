@@ -80,33 +80,36 @@ void DirectoryValueTree::doScan ()
         doStatusUpdate ("Reading File System", rootFolderName);
     });
     if (! threadShouldExit ())
-        rootFolderVT = getContentsOfFolder (rootFolderName);
+        rootFolderVT = getContentsOfFolder (rootFolderName, 0);
     if (! threadShouldExit ())
         sortContentsOfFolder (rootFolderVT);
 }
 
-juce::ValueTree DirectoryValueTree::getContentsOfFolder (juce::File folder)
+juce::ValueTree DirectoryValueTree::getContentsOfFolder (juce::File folder, int curDepth)
 {
     juce::ValueTree folderVT {"Folder"};
     folderVT.setProperty ("name", folder.getFullPathName (), nullptr);
-    for (const auto& entry : juce::RangedDirectoryIterator (folder, false, "*", juce::File::findFilesAndDirectories))
+    if (scanDepth == -1 || curDepth <= scanDepth)
     {
-        if (threadShouldExit ())
-            break;
+        for (const auto& entry : juce::RangedDirectoryIterator (folder, false, "*", juce::File::findFilesAndDirectories))
+        {
+            if (threadShouldExit ())
+                break;
 
-        doIfProgressTimeElapsed ([this, fileName = entry.getFile ().getFileName ()] ()
-        {
-            doStatusUpdate ("Reading File System", fileName);
-        });
-        if (const auto& curFile { entry.getFile () }; curFile.isDirectory ())
-        {
-            folderVT.addChild (getContentsOfFolder (curFile), -1, nullptr);
-        }
-        else
-        {
-            juce::ValueTree fileVT {"File"};
-            fileVT.setProperty ("name", curFile.getFullPathName (), nullptr);
-            folderVT.addChild (fileVT, -1, nullptr);
+            doIfProgressTimeElapsed ([this, fileName = entry.getFile ().getFileName ()] ()
+            {
+                doStatusUpdate ("Reading File System", fileName);
+            });
+            if (const auto& curFile { entry.getFile () }; curFile.isDirectory ())
+            {
+                folderVT.addChild (getContentsOfFolder (curFile, curDepth + 1), -1, nullptr);
+            }
+            else
+            {
+                juce::ValueTree fileVT {"File"};
+                fileVT.setProperty ("name", curFile.getFullPathName (), nullptr);
+                folderVT.addChild (fileVT, -1, nullptr);
+            }
         }
     }
     return folderVT;

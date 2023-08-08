@@ -28,7 +28,7 @@ private:
     void doIfProgressTimeElapsed (std::function<void ()> functionToDo);
     void doScan ();
     void doStatusUpdate (juce::String operation, juce::String fileName);
-    juce::ValueTree getContentsOfFolder (juce::File folder);
+    juce::ValueTree getContentsOfFolder (juce::File folder, int curDepth);
     void sortContentsOfFolder (juce::ValueTree rootFolderVT);
 
     void run () override;

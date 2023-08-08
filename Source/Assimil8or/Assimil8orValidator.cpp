@@ -36,6 +36,7 @@ juce::String getMemorySizeString (uint64_t memoryUsage)
 Assimil8orValidator::Assimil8orValidator () : Thread ("Assimil8orValidator")
 {
     audioFormatManager.registerBasicFormats ();
+    directoryValueTree.setScanDepth (-1); // no depth limit
     directoryValueTree.onComplete = [this] () { startThread (); };
     directoryValueTree.onStatusChange = [this] (juce::String operation, juce::String fileName)
     {
