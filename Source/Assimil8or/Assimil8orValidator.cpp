@@ -1,5 +1,6 @@
 #include "Assimil8orValidator.h"
 #include "Assimil8orPreset.h"
+#include "FileTypeHelpers.h"
 #include "Validator/ValidatorResultProperties.h"
 
 #define LOG_VALIDATION 0
@@ -14,16 +15,6 @@ const double oneMB { oneK * oneK };
 const double oneGB { oneMB * oneK };
 const auto maxMemory { static_cast<int> (422 * oneMB) };
 const auto maxPresets { 199 };
-const juce::String kPresetFileNamePrefix { "prst" };
-const auto kPresetFileNameLen { 7 };
-const auto kPresetFileNumberOffset { 4 };
-const juce::String kWaveFileExtension { ".wav" };
-const juce::String kYmlFileExtension { ".yml" };
-const juce::String kFolderPrefsFileName { "folderprefs.yml" };
-const juce::String kLastFolderFileName { "lastfolder.yml" };
-const juce::String kLastPresetFileName { "lastpreset.yml" };
-
-const auto kBadPresetNumber { 9999 };
 const auto bytesPerSampleInAssimMemory { 4 };
 
 juce::String getMemorySizeString (uint64_t memoryUsage)
@@ -45,6 +36,11 @@ juce::String getMemorySizeString (uint64_t memoryUsage)
 Assimil8orValidator::Assimil8orValidator () : Thread ("Assimil8orValidator")
 {
     audioFormatManager.registerBasicFormats ();
+    directoryValueTree.onReadStatusChange = [this] (bool readStatus)
+    {
+        if (! readStatus && ! isThreadRunning ())
+            startThread ();
+    };
 }
 
 Assimil8orValidator::~Assimil8orValidator ()
@@ -55,6 +51,7 @@ Assimil8orValidator::~Assimil8orValidator ()
 void Assimil8orValidator::init (juce::ValueTree vt)
 {
     validatorProperties.wrap (vt, ValidatorProperties::WrapperType::owner, ValidatorProperties::EnableCallbacks::yes);
+    validatorProperties.onRootFolderChanged = [this] (juce::String folderName) { directoryValueTree.setRootFolder (folderName); };
     validatorProperties.onStartScanAsync = [this] () { validate (); };
     validatorResultListProperties.wrap (validatorProperties.getValueTree (),
                                         ValidatorResultListProperties::WrapperType::client, ValidatorResultListProperties::EnableCallbacks::no);
@@ -65,7 +62,7 @@ void Assimil8orValidator::validate ()
     if (isThreadRunning ())
         return;
     validatorProperties.setScanStatus ("scanning", false);
-    startThread ();
+    directoryValueTree.startAsyncRead ();
 }
 
 void Assimil8orValidator::addResult (juce::String statusType, juce::String statusText)
@@ -94,40 +91,6 @@ void Assimil8orValidator::doIfProgressTimeElapsed (std::function<void ()> functi
     }
 }
 
-bool Assimil8orValidator::isAudioFile (juce::File file)
-{
-    return file.getFileExtension ().toLowerCase () == kWaveFileExtension;
-}
-
-bool Assimil8orValidator::isFolderPrefsFile (juce::File file)
-{
-    return file.getFileName ().toLowerCase () == kFolderPrefsFileName;
-}
-bool Assimil8orValidator::isLastFolderFile (juce::File file)
-{
-    return file.getFileName ().toLowerCase () == kLastFolderFileName;
-}
-
-bool Assimil8orValidator::isLastPresetFile (juce::File file)
-{
-    return file.getFileName ().toLowerCase () == kLastPresetFileName;
-}
-
-bool Assimil8orValidator::isPresetFile (juce::File file)
-{
-    return file.getFileExtension ().toLowerCase () == kYmlFileExtension &&
-           file.getFileNameWithoutExtension ().length () == kPresetFileNameLen &&
-           file.getFileNameWithoutExtension ().toLowerCase().startsWith (kPresetFileNamePrefix) &&
-           file.getFileNameWithoutExtension ().substring (kPresetFileNumberOffset).containsOnly ("0123456789");
-}
-
-int Assimil8orValidator::getPresetNumberFromName (juce::File file)
-{
-    if (! isPresetFile (file))
-        return kBadPresetNumber;
-    return file.getFileNameWithoutExtension ().substring (kPresetFileNumberOffset).getIntValue ();
-}
-
 std::tuple<uint64_t, std::optional<uint64_t>> Assimil8orValidator::validateFile (juce::File file, juce::ValueTree validatorResultsVT)
 {
     const auto kMaxFileNameLength { 47 };
@@ -143,28 +106,28 @@ std::tuple<uint64_t, std::optional<uint64_t>> Assimil8orValidator::validateFile 
         validatorResultProperties.update (ValidatorResultProperties::ResultTypeWarning, "(ignored)", false);
         return {};
     }
-    else if (isFolderPrefsFile (file))
+    else if (FileTypeHelpers::isFolderPrefsFile (file))
     {
         validatorResultProperties.update (ValidatorResultProperties::ResultTypeInfo, "System, Folder Preferences", false);
         return {};
     }
-    else if (isLastFolderFile (file))
+    else if (FileTypeHelpers::isLastFolderFile (file))
     {
         validatorResultProperties.update (ValidatorResultProperties::ResultTypeInfo, "System, Last Folder", false);
         return {};
     }
-    else if (isLastPresetFile(file))
+    else if (FileTypeHelpers::isLastPresetFile(file))
     {
         validatorResultProperties.update (ValidatorResultProperties::ResultTypeInfo, "System, Last Preset", false);
         return {};
     }
-    else if (isPresetFile (file))
+    else if (FileTypeHelpers::isPresetFile (file))
     {
         bool isIgnored { false };
 
         validatorResultProperties.update (ValidatorResultProperties::ResultTypeInfo, "Preset", false);
 
-        const auto presetNumber { getPresetNumberFromName (file) };
+        const auto presetNumber { FileTypeHelpers::getPresetNumberFromName (file) };
         if (presetNumber > maxPresets)
         {
             isIgnored = true;
@@ -172,10 +135,10 @@ std::tuple<uint64_t, std::optional<uint64_t>> Assimil8orValidator::validateFile 
             validatorResultProperties.addFixerEntry (FixerEntryProperties::FixerTypeRenameFile, file.getFullPathName ());
         }
 
-        if (file.getFileNameWithoutExtension ().startsWith (kPresetFileNamePrefix) == false)
+        if (file.getFileNameWithoutExtension ().startsWith (FileTypeHelpers::kPresetFileNamePrefix) == false)
         {
             isIgnored = true;
-            validatorResultProperties.update (ValidatorResultProperties::ResultTypeError, "(Preset file must begin with lowercase '" + kPresetFileNamePrefix + "'. Preset will be ignored)", false);
+            validatorResultProperties.update (ValidatorResultProperties::ResultTypeError, "(Preset file must begin with lowercase '" + FileTypeHelpers::kPresetFileNamePrefix + "'. Preset will be ignored)", false);
             validatorResultProperties.addFixerEntry (FixerEntryProperties::FixerTypeRenameFile, file.getFullPathName ());
         }
 
@@ -248,7 +211,7 @@ std::tuple<uint64_t, std::optional<uint64_t>> Assimil8orValidator::validateFile 
         LogValidation ("  File (preset)");
         return { 0, optionalPresetInfo };
     }
-    else if (isAudioFile (file))
+    else if (FileTypeHelpers::isAudioFile (file))
     {
         validatorResultProperties.updateType (ValidatorResultProperties::ResultTypeInfo, false);
         if (file.getFileName ().length () > kMaxFileNameLength)
@@ -415,36 +378,6 @@ void Assimil8orValidator::processFolder (juce::ValueTree folderVT)
         addResult ("error", "[Number of Presets (" + juce::String (numberOfPresets) + ") exceeds maximum allowed (" + juce::String (maxPresets) + ")]");
 }
 
-juce::ValueTree Assimil8orValidator::getContentsOfFolder (juce::File folder)
-{
-    juce::ValueTree folderVT {"Folder"};
-    folderVT.setProperty ("name", folder.getFullPathName (), nullptr);
-    for (const auto& entry : juce::RangedDirectoryIterator (folder, false, "*", juce::File::findFilesAndDirectories))
-    {
-        if (threadShouldExit ())
-            break;
-
-        doIfProgressTimeElapsed ([this, fileName = entry.getFile ().getFileName ()] ()
-        {
-            juce::MessageManager::callAsync ([this, fileName] ()
-                {
-                    validatorProperties.setProgressUpdate (fileName, false);
-                });
-        });
-        if (const auto& curFile { entry.getFile () }; curFile.isDirectory ())
-        {
-            folderVT.addChild (getContentsOfFolder (curFile), -1, nullptr);
-        }
-        else
-        {
-            juce::ValueTree fileVT {"File"};
-            fileVT.setProperty ("name", curFile.getFullPathName (), nullptr);
-            folderVT.addChild (fileVT, -1, nullptr);
-        }
-    }
-    return folderVT;
-}
-
 void Assimil8orValidator::validateRootFolder ()
 {
     validatorResultListProperties.clear ();
@@ -459,13 +392,8 @@ void Assimil8orValidator::validateRootFolder ()
         validatorProperties.setProgressUpdate (folderName, false);
     });
 
-    if (! threadShouldExit ())
-        rootFolderVT = getContentsOfFolder (rootFolderName);
-    if (! threadShouldExit ())
-        sortContentsOfFolder (rootFolderVT);
-    if (! threadShouldExit ())
-        processFolder (rootFolderVT);
-    rootFolderVT = {};
+    processFolder (directoryValueTree.getDirectoryVT());
+    directoryValueTree.clear ();
 
     juce::MessageManager::callAsync ([this] ()
     {
@@ -477,84 +405,4 @@ void Assimil8orValidator::validateRootFolder ()
 void Assimil8orValidator::run ()
 {
     validateRootFolder ();
-}
-
-void Assimil8orValidator::sortContentsOfFolder (juce::ValueTree folderVT)
-{
-    jassert (folderVT.getType ().toString () == "Folder");
-
-    //   Folders
-    //   Preset files
-    //   Audio files
-    //   unknown files
-    struct SectionInfo
-    {
-        int startIndex { 0 };
-        int length { 0 };
-    };
-    enum SectionIndex
-    {
-        folders,
-        presetFiles,
-        audioFiles,
-        unknownFiles,
-        size
-    };
-    std::array<SectionInfo, SectionIndex::size> sections;
-    const auto numFolderEntries { folderVT.getNumChildren () };
-
-    auto insertSorted = [&sections, &folderVT] (int itemIndex, int sectionIndex)
-    {
-        jassert (sectionIndex < SectionIndex::size);
-        auto& section { sections [sectionIndex] };
-        jassert (itemIndex >= section.startIndex + section.length);
-        auto startingSectionLength { section.length };
-        auto insertItem = [&folderVT, &section, &sections] (int itemIndex, int insertIndex)
-        {
-            auto tempVT { folderVT.getChild (itemIndex) };
-            folderVT.removeChild (itemIndex, nullptr);
-            folderVT.addChild (tempVT, insertIndex, nullptr);
-            ++section.length;
-            for (auto curSectionIndex { 1 }; curSectionIndex < SectionIndex::size; ++curSectionIndex)
-                sections [curSectionIndex].startIndex = sections [curSectionIndex - 1].startIndex + sections [curSectionIndex - 1].length;
-        };
-        for (auto sectionEntryIndex { section.startIndex }; sectionEntryIndex < section.startIndex + section.length; ++sectionEntryIndex)
-        {
-            if (folderVT.getChild (itemIndex).getProperty ("name").toString () < folderVT.getChild (sectionEntryIndex).getProperty ("name").toString ())
-            {
-                insertItem (itemIndex, sectionEntryIndex);
-                break;
-            }
-        }
-        if (section.length == startingSectionLength)
-            insertItem (itemIndex, section.startIndex + section.length);
-    };
-    for (auto folderIndex { 0 }; folderIndex < numFolderEntries; ++folderIndex)
-    {
-        auto folderEntryVT { folderVT.getChild (folderIndex) };
-        if (folderEntryVT.getType ().toString () == "Folder")
-        {
-            insertSorted (folderIndex, SectionIndex::folders);
-            sortContentsOfFolder (folderEntryVT);
-        }
-        else if (folderEntryVT.getType ().toString () == "File")
-        {
-            // alphabetize in these lists
-            //   Preset files
-            //   Audio files
-            //   unknown files
-            auto curFile { juce::File (folderEntryVT.getProperty ("name").toString ()) };
-            jassert (curFile.exists ());
-            if (isPresetFile (curFile))
-                insertSorted (folderIndex, SectionIndex::presetFiles);
-            else if (isAudioFile (curFile))
-                insertSorted (folderIndex, SectionIndex::audioFiles);
-            else // unknown file
-                insertSorted (folderIndex, SectionIndex::unknownFiles);
-        }
-        else
-        {
-            jassertfalse;
-        }
-    }
 }

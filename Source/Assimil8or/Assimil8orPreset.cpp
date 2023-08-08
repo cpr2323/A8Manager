@@ -1,5 +1,6 @@
 #include "Assimil8orPreset.h"
 #include "Assimil8orValidator.h"
+#include "FileTypeHelpers.h"
 #include "Preset/ParameterNames.h"
 
 #define LOG_PARSING 0
@@ -13,10 +14,10 @@ void Assimil8orPreset::write (juce::File presetFile, juce::ValueTree presetPrope
 {
     jassert (presetPropertiesVT.isValid ());
     PresetProperties presetPropertiesToWrite (presetPropertiesVT, PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
-    if (Assimil8orValidator::isPresetFile (presetFile))
+    if (FileTypeHelpers::isPresetFile (presetFile))
     {
-        const auto presetNumber { Assimil8orValidator::getPresetNumberFromName (presetFile) };
-        if (presetNumber != 9999)
+        const auto presetNumber { FileTypeHelpers::getPresetNumberFromName (presetFile) };
+        if (presetNumber != FileTypeHelpers::kBadPresetNumber)
             presetPropertiesToWrite.setIndex (presetNumber, false);
     }
 

@@ -18,6 +18,7 @@ void PresetListComponent::init (juce::ValueTree rootPropertiesVT)
     {
         startScan (juce::File (folderName));
     };
+    //appProperties.on
     startScan (appProperties.getMostRecentFolder ());
 }
 
