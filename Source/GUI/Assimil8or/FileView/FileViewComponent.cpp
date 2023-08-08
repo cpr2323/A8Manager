@@ -81,10 +81,10 @@ void FileViewComponent::startFolderScan (juce::File folderToScan)
 
 int FileViewComponent::getNumRows ()
 {
-    return directoryListQuickLookupList.size ();
+    return static_cast<int>(directoryListQuickLookupList.size ());
 }
 
-void FileViewComponent::paintListBoxItem (int row, juce::Graphics& g, int width, int height, bool rowIsSelected)
+void FileViewComponent::paintListBoxItem (int row, juce::Graphics& g, int width, int height, [[maybe_unused]] bool rowIsSelected)
 {
     if (row >= getNumRows ())
         return;
@@ -110,7 +110,7 @@ juce::String FileViewComponent::getTooltipForRow (int row)
     return juce::File (directoryListQuickLookupList [row].getProperty ("name").toString ()).getFileName();
 }
 
-void FileViewComponent::listBoxItemClicked (int row, const juce::MouseEvent& me)
+void FileViewComponent::listBoxItemClicked (int row, [[maybe_unused]] const juce::MouseEvent& me)
 {
     if (row >= getNumRows ())
         return;
