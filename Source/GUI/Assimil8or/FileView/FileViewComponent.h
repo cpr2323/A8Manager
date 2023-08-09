@@ -21,14 +21,12 @@ private:
     juce::ListBox directoryContentsListBox { {}, this };
     juce::CriticalSection queuedFolderLock;
     juce::File queuedFolderToScan;
-    std::atomic<bool> newItemQueued { false };
 
     DirectoryValueTree directoryValueTree;
     std::vector<juce::ValueTree> directoryListQuickLookupList;
 
     void buildQuickLookupList ();
     void openFolder ();
-    bool shouldCancelOperation ();
     void startScan (juce::File folderToScan);
 
     void resized () override;

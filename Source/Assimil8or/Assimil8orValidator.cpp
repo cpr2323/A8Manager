@@ -5,7 +5,7 @@
 #include "../Utility/PersistentRootProperties.h"
 #include "../Utility/RuntimeRootProperties.h"
 
-#define LOG_VALIDATION 0
+#define LOG_VALIDATION 1
 #if LOG_VALIDATION
 #define LogValidation(text) juce::Logger::outputDebugString (text);
 #else
@@ -39,11 +39,18 @@ Assimil8orValidator::Assimil8orValidator () : Thread ("Assimil8orValidator")
 {
     audioFormatManager.registerBasicFormats ();
     directoryValueTree.setScanDepth (-1); // no depth limit
-    directoryValueTree.onComplete = [this] () { startThread (); };
+    directoryValueTree.onComplete = [this] ()
+    {
+        LogValidation ("Assimil8orValidator::Assimil8orValidator - directoryValueTree.onComplete");
+        valdatationState = ValdatationState::validating;
+        notify ();
+    };
     directoryValueTree.onStatusChange = [this] (juce::String operation, juce::String fileName)
     {
         validatorProperties.setProgressUpdate (operation + ": " + fileName, false);
     };
+
+    startThread ();
 }
 
 Assimil8orValidator::~Assimil8orValidator ()
@@ -58,20 +65,18 @@ void Assimil8orValidator::init (juce::ValueTree rootPropertiesVT)
     validatorProperties.wrap (runtimeRootProperties.getValueTree (), ValidatorProperties::WrapperType::owner, ValidatorProperties::EnableCallbacks::yes);
     validatorProperties.onStartScan = [this] ()
     {
-        validate ();
+        startValidation (rootFolderToScan.getFullPathName ());
     };
 
     appProperties.wrap (persistentRootProperties.getValueTree (), AppProperties::WrapperType::owner, AppProperties::EnableCallbacks::yes);
     appProperties.onMostRecentFolderChange = [this] (juce::String folderName)
     {
-        directoryValueTree.setRootFolder (folderName);
-        validate ();
+        startValidation (folderName);
     };
     validatorResultListProperties.wrap (validatorProperties.getValueTree (),
                                         ValidatorResultListProperties::WrapperType::client, ValidatorResultListProperties::EnableCallbacks::no);
 
-    directoryValueTree.setRootFolder (appProperties.getMostRecentFolder());
-    validate ();
+    startValidation (appProperties.getMostRecentFolder ());
 }
 
 void Assimil8orValidator::addResult (juce::String statusType, juce::String statusText)
@@ -100,30 +105,66 @@ void Assimil8orValidator::doIfProgressTimeElapsed (std::function<void ()> functi
     }
 }
 
-void Assimil8orValidator::validate ()
+void Assimil8orValidator::startValidation (juce::String folderToScan)
 {
-    // TODO - need to cancel any current scan and start
-    if (isThreadRunning ())
-        return;
+    {
+        juce::ScopedLock sl (queuedFolderLock);
+        queuedFolderToScan = folderToScan;
+        newItemQueued = true;
+        directoryValueTree.cancel ();
+        LogValidation ("Assimil8orValidator::startValidation: " + queuedFolderToScan.getFullPathName ());
+    }
     validatorProperties.setScanStatus ("scanning", false);
-    directoryValueTree.startAsyncScan ();
+    valdatationState = ValdatationState::readingFolder;
+    notify ();
 }
 
 void Assimil8orValidator::run ()
 {
-    validateRootFolder ();
+    while (wait (-1) && ! threadShouldExit ())
+    {
+        LogValidation ("Assimil8orValidator::run: state " + juce::String(static_cast<int>(valdatationState)));
+        switch (valdatationState)
+        {
+            case Assimil8orValidator::ValdatationState::idle:
+            break;
+            case Assimil8orValidator::ValdatationState::readingFolder:
+            {
+                juce::File rootFolder;
+                {
+                    juce::ScopedLock sl (queuedFolderLock);
+                    rootFolder = queuedFolderToScan;
+                    newItemQueued = false;
+                    queuedFolderToScan = juce::File ();
+                    LogValidation ("Assimil8orValidator::run - reading folder: " + rootFolder.getFullPathName ());
+                }
+                // TODO - probably want to do something else to not get deadlocked, ie. track time and try and catch deadlock
+                //        maybe request an exit again here
+                while (directoryValueTree.isScanning ());
+                directoryValueTree.setRootFolder (rootFolder.getFullPathName ());
+                directoryValueTree.startScan ();
+            }
+            break;
+            case Assimil8orValidator::ValdatationState::validating:
+            {
+                LogValidation ("Assimil8orValidator::run: validating");
+                validateRootFolder ();
+                valdatationState = Assimil8orValidator::ValdatationState::idle;
+            }
+            break;
+            default: jassertfalse; break;
+        }
+    }
 }
 
 void Assimil8orValidator::validateRootFolder ()
 {
     validatorResultListProperties.clear ();
     lastScanInProgressUpdate = juce::Time::currentTimeMillis ();
-    const auto rootFolderName { appProperties.getMostRecentFolder () };
 
-    const auto rootEntry { juce::File (rootFolderName) };
-    addResult (ValidatorResultProperties::ResultTypeInfo, "Root Folder: " + rootEntry.getFileName ());
+    addResult (ValidatorResultProperties::ResultTypeInfo, "Root Folder: " + rootFolderToScan.getFileName ());
     // do one initial progress update to fill in the first one
-    juce::MessageManager::callAsync ([this, folderName = rootEntry.getFileName ()] ()
+    juce::MessageManager::callAsync ([this, folderName = rootFolderToScan.getFileName ()] ()
     {
         validatorProperties.setProgressUpdate ("Validating: " + folderName, false);
     });
@@ -157,7 +198,7 @@ void Assimil8orValidator::processFolder (juce::ValueTree folderVT)
     int numberOfPresets {};
     for (auto folderEntryVT : folderVT)
     {
-        if (threadShouldExit ())
+        if (shouldCancelOperation ())
             break;
 
         const auto curEntry { juce::File (folderEntryVT.getProperty ("name")) };
@@ -198,6 +239,11 @@ void Assimil8orValidator::processFolder (juce::ValueTree folderVT)
         addResult ("error", "[Preset RAM Usage exceeds memory capacity by " + getMemorySizeString (totalSizeOfRamRequiredPresets - maxMemory) + "]");
     if (numberOfPresets > maxPresets)
         addResult ("error", "[Number of Presets (" + juce::String (numberOfPresets) + ") exceeds maximum allowed (" + juce::String (maxPresets) + ")]");
+}
+
+bool Assimil8orValidator::shouldCancelOperation ()
+{
+    return threadShouldExit () || newItemQueued;
 }
 
 void Assimil8orValidator::validateFolder (juce::File folder, juce::ValueTree validatorResultsVT)
@@ -296,12 +342,12 @@ std::tuple<uint64_t, std::optional<uint64_t>> Assimil8orValidator::validateFile 
         {
             presetProperties.forEachChannel ([this, &file, &validatorResultProperties, &sizeRequiredForSamples] (juce::ValueTree channelVT)
             {
-                if (threadShouldExit ())
+                if (shouldCancelOperation ())
                     return false;
                 ChannelProperties channelProperties (channelVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
                 channelProperties.forEachZone ([this, &file, &validatorResultProperties, &sizeRequiredForSamples] (juce::ValueTree zoneVT)
                 {
-                    if (threadShouldExit ())
+                    if (shouldCancelOperation ())
                         return false;
                     ZoneProperties zoneProperties (zoneVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
                     // TODO - should we do doIfProgressTimeElapsed () here?

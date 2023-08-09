@@ -16,7 +16,7 @@ public:
     bool isScanning ();
     void setRootFolder (juce::String theRootFolderName);
     void setScanDepth (int theScanDepth);
-    void startAsyncScan ();
+    void startScan ();
 
     std::function<void ()> onComplete;
     std::function<void (juce::String operation, juce::String fileName)> onStatusChange;

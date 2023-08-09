@@ -46,7 +46,7 @@ bool DirectoryValueTree::isScanning ()
     return isThreadRunning ();
 }
 
-void DirectoryValueTree::startAsyncScan ()
+void DirectoryValueTree::startScan ()
 {
     if (isThreadRunning ())
         return;

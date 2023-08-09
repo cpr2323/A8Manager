@@ -1,7 +1,7 @@
 #include "FileViewComponent.h"
 #include "../../../Utility/PersistentRootProperties.h"
 
-#define LOG_FILE_VIEW 1
+#define LOG_FILE_VIEW 0
 #if LOG_FILE_VIEW
 #define LogFileView(text) juce::Logger::outputDebugString (text);
 #else
@@ -58,7 +58,6 @@ void FileViewComponent::startScan (juce::File folderToScan)
     {
         juce::ScopedLock sl (queuedFolderLock);
         queuedFolderToScan = folderToScan;
-        newItemQueued = true;
         directoryValueTree.cancel ();
         LogFileView ("FileViewComponent::startScan: " + queuedFolderToScan.getFullPathName ());
     }
@@ -73,7 +72,6 @@ void FileViewComponent::run ()
         {
             juce::ScopedLock sl (queuedFolderLock);
             rootFolder = queuedFolderToScan;
-            newItemQueued = false;
             queuedFolderToScan = juce::File ();
             LogFileView ("FileViewComponent::run: " + rootFolder.getFullPathName ());
         }
@@ -82,13 +80,8 @@ void FileViewComponent::run ()
         while (directoryValueTree.isScanning());
         directoryListQuickLookupList.clear ();
         directoryValueTree.setRootFolder (rootFolder.getFullPathName ());
-        directoryValueTree.startAsyncScan ();
+        directoryValueTree.startScan ();
     }
-}
-
-bool FileViewComponent::shouldCancelOperation ()
-{
-    return threadShouldExit () || newItemQueued;
 }
 
 void FileViewComponent::openFolder ()
