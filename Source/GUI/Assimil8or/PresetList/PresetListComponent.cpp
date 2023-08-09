@@ -83,10 +83,10 @@ void PresetListComponent::checkForPresets ()
     forEachPresetFile ([this] (juce::File presetFile, int index)
     {
         presetExists [index] = presetFile.exists ();
-        return ! shouldCancelOperation();
+        return ! shouldCancelOperation ();
     });
 
-    if (! threadShouldExit ())
+    if (! shouldCancelOperation ())
         juce::MessageManager::callAsync ([this] ()
         {
             presetListBox.updateContent ();
@@ -110,7 +110,7 @@ void PresetListComponent::loadFirstPreset ()
         loadPreset (presetFile);
         appProperties.addRecentlyUsedFile (presetFile.getFullPathName ());
         presetLoaded = true;
-        return true;
+        return false;
     });
 
     if (! presetLoaded)
