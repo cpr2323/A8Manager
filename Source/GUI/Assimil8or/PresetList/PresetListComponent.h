@@ -29,7 +29,7 @@ private:
     juce::String getPresetName (int presetIndex);
     void loadFirstPreset ();
     void loadPreset (juce::File presetFile);
-    bool shouldExit ();
+    bool shouldCancelOperation ();
     void startScan (juce::File folderToScan);
 
     void resized () override;

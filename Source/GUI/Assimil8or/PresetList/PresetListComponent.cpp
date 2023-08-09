@@ -46,9 +46,9 @@ void PresetListComponent::startScan (juce::File folderToScan)
     notify ();
 }
 
-bool PresetListComponent::shouldExit ()
+bool PresetListComponent::shouldCancelOperation ()
 {
-    return !threadShouldExit () && newItemQueued;
+    return threadShouldExit () || newItemQueued;
 }
 
 void PresetListComponent::run ()
@@ -69,7 +69,7 @@ void PresetListComponent::run ()
 void PresetListComponent::forEachPresetFile (std::function<bool (juce::File presetFile, int index)> presetFileCallback)
 {
     jassert (presetFileCallback != nullptr);
-    for (auto presetIndex { 0 }; presetIndex < kMaxPresets && ! shouldExit (); ++presetIndex)
+    for (auto presetIndex { 0 }; presetIndex < kMaxPresets && ! shouldCancelOperation (); ++presetIndex)
     {
         auto presetFile { rootFolder.getChildFile (getPresetName (presetIndex)).withFileExtension (".yml") };
         if (! presetFileCallback (presetFile, presetIndex))
@@ -83,7 +83,7 @@ void PresetListComponent::checkForPresets ()
     forEachPresetFile ([this] (juce::File presetFile, int index)
     {
         presetExists [index] = presetFile.exists ();
-        return ! shouldExit();
+        return ! shouldCancelOperation();
     });
 
     if (! threadShouldExit ())
@@ -103,7 +103,7 @@ void PresetListComponent::loadFirstPreset ()
     forEachPresetFile ([this, &presetLoaded] (juce::File presetFile, int index)
     {
         if (! presetExists [index])
-            return ! shouldExit ();
+            return ! shouldCancelOperation ();
 
         presetListBox.selectRow (index, false, true);
         presetListBox.scrollToEnsureRowIsOnscreen (index);
