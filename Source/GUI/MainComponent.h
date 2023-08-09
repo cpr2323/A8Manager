@@ -17,8 +17,6 @@ public:
     MainComponent (juce::ValueTree rootPropertiesVT);
     ~MainComponent () override = default;
 
-    void startFolderScan (juce::File folderToScan);
-
 private:
     AppProperties appProperties;
     ValidatorProperties validatorProperties;

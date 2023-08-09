@@ -58,20 +58,12 @@ MainComponent::MainComponent (juce::ValueTree rootPropertiesVT)
     appProperties.onMostRecentFolderChange = [this] (juce::String folderName)
     {
         currentFolder.setText (folderName, juce::NotificationType::dontSendNotification);
-        startFolderScan (juce::File (folderName));
     };
     validatorProperties.wrap (runtimeRootProperties.getValueTree (), ValidatorProperties::WrapperType::client, ValidatorProperties::EnableCallbacks::yes);
 
-    startFolderScan (appProperties.getMostRecentFolder ());
     fileViewComponent.init (rootPropertiesVT);
 
     currentFolder.setText (appProperties.getMostRecentFolder (), juce::NotificationType::dontSendNotification);
-}
-
-void MainComponent::startFolderScan (juce::File folderToScan)
-{
-    validatorProperties.setRootFolder (folderToScan.getFullPathName (), false);
-    validatorProperties.startAsyncScan (false);
 }
 
 void MainComponent::paint ([[maybe_unused]] juce::Graphics& g)

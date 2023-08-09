@@ -2,6 +2,8 @@
 #include "Assimil8orPreset.h"
 #include "FileTypeHelpers.h"
 #include "Validator/ValidatorResultProperties.h"
+#include "../Utility/PersistentRootProperties.h"
+#include "../Utility/RuntimeRootProperties.h"
 
 #define LOG_VALIDATION 0
 #if LOG_VALIDATION
@@ -49,19 +51,27 @@ Assimil8orValidator::~Assimil8orValidator ()
     stopThread (500);
 }
 
-void Assimil8orValidator::init (juce::ValueTree vt)
+void Assimil8orValidator::init (juce::ValueTree rootPropertiesVT)
 {
-    validatorProperties.wrap (vt, ValidatorProperties::WrapperType::owner, ValidatorProperties::EnableCallbacks::yes);
-    validatorProperties.onRootFolderChanged = [this] (juce::String folderName)
+    PersistentRootProperties persistentRootProperties (rootPropertiesVT, PersistentRootProperties::WrapperType::client, PersistentRootProperties::EnableCallbacks::no);
+    RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
+    validatorProperties.wrap (runtimeRootProperties.getValueTree (), ValidatorProperties::WrapperType::owner, ValidatorProperties::EnableCallbacks::yes);
+    validatorProperties.onStartScan = [this] ()
+    {
+        validate ();
+    };
+
+    appProperties.wrap (persistentRootProperties.getValueTree (), AppProperties::WrapperType::owner, AppProperties::EnableCallbacks::yes);
+    appProperties.onMostRecentFolderChange = [this] (juce::String folderName)
     {
         directoryValueTree.setRootFolder (folderName);
-    };
-    validatorProperties.onStartScanAsync = [this] ()
-    {
         validate ();
     };
     validatorResultListProperties.wrap (validatorProperties.getValueTree (),
                                         ValidatorResultListProperties::WrapperType::client, ValidatorResultListProperties::EnableCallbacks::no);
+
+    directoryValueTree.setRootFolder (appProperties.getMostRecentFolder());
+    validate ();
 }
 
 void Assimil8orValidator::addResult (juce::String statusType, juce::String statusText)
@@ -108,7 +118,7 @@ void Assimil8orValidator::validateRootFolder ()
 {
     validatorResultListProperties.clear ();
     lastScanInProgressUpdate = juce::Time::currentTimeMillis ();
-    const auto rootFolderName { validatorProperties.getRootFolder () };
+    const auto rootFolderName { appProperties.getMostRecentFolder () };
 
     const auto rootEntry { juce::File (rootFolderName) };
     addResult (ValidatorResultProperties::ResultTypeInfo, "Root Folder: " + rootEntry.getFileName ());

@@ -221,7 +221,7 @@ public:
     {
         // hack the preset data on to the runtime root until we get a proper valuetreewrapper for the preset
         runtimeRootProperties.getValueTree ().addChild (presetProperties.getValueTree (), -1, nullptr);
-        assimil8orValidator.init (runtimeRootProperties.getValueTree ());
+        assimil8orValidator.init (rootProperties.getValueTree ());
     }
 
     void initUi ()

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "../AppProperties.h"
 #include "../Utility/DirectoryValueTree.h"
 #include "Validator/ValidatorProperties.h"
 
@@ -17,12 +18,13 @@ public:
     Assimil8orValidator ();
     ~Assimil8orValidator ();
 
-    void init (juce::ValueTree vt);
+    void init (juce::ValueTree rootPropertiesVT);
 
 private:
-    juce::AudioFormatManager audioFormatManager;
+    AppProperties appProperties;
     ValidatorProperties validatorProperties;
     ValidatorResultListProperties validatorResultListProperties;
+    juce::AudioFormatManager audioFormatManager;
     int64_t lastScanInProgressUpdate {};
     juce::ValueTree rootFolderVT;
     DirectoryValueTree directoryValueTree;

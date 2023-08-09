@@ -72,7 +72,7 @@ void Assimil8orValidatorComponent::init (juce::ValueTree rootPropertiesVT)
 
         validationResultsListBox.updateContent ();
         udpateHeader ();
-        // TODO - this is a crazy work around because when I am getting the initial list, a horizontal scroll bar is appearing
+        // TODO - this is a crazy work around because when I am getting the initial list, a horizontal scroll bar is appearing.
         //        the only experiment that worked was doing this
         setSize (getWidth (), getHeight () + 1);
         setSize (getWidth (), getHeight () - 1);
@@ -236,10 +236,10 @@ void Assimil8orValidatorComponent::rename (juce::File file, int maxLength)
     // bring up a dialog showing the old name, a field for typing the new name (length constrained), and an ok/cancel button
     juce::DialogWindow::LaunchOptions options;
     auto renameContent { std::make_unique<RenameDialogContent> (file, maxLength, [this] (bool wasRenamed)
-        {
-            if (wasRenamed)
-                validatorProperties.startAsyncScan (false);
-        }) };
+    {
+        if (wasRenamed)
+            validatorProperties.startScan (false);
+    }) };
     options.content.setOwned (renameContent.release ());
 
     juce::Rectangle<int> area (0, 0, 380, 110);
@@ -321,7 +321,7 @@ void Assimil8orValidatorComponent::convert (juce::File file)
                         errorDialog ("Failure to move converted file to original file");
                         jassertfalse;
                     }
-                    validatorProperties.startAsyncScan (false);
+                    validatorProperties.startScan (false);
                 }
                 else
                 {
@@ -369,7 +369,7 @@ void Assimil8orValidatorComponent::locate (juce::File file)
                                                        "Unable to rename '" + sourceFile.getFileName () + "' to '" + file.getFileName () + "'", {}, nullptr,
                                                        juce::ModalCallbackFunction::create ([this] (int) {}));
             }
-            validatorProperties.startAsyncScan (false);
+            validatorProperties.startScan (false);
         }
     }, nullptr);
 }
