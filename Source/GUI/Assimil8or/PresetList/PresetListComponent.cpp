@@ -59,7 +59,7 @@ void PresetListComponent::run ()
             juce::ScopedLock sl (queuedFolderLock);
             rootFolder = queuedFolderToScan;
             newItemQueued = false;
-            queuedFolderToScan = {};
+            queuedFolderToScan = juce::File ();
             LogPresetList ("PresetListComponent::run: " + rootFolder.getFullPathName ());
         }
         checkForPresets ();
