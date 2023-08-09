@@ -7,7 +7,6 @@
 #include "Assimil8or/FileView/FileViewComponent.h"
 #include "Assimil8or/PresetList/PresetListComponent.h"
 #include "Assimil8or/Validator/Assimil8orValidatorComponent.h"
-#include "Assimil8or/Validator/Assimil8orValidatorComponent.h"
 #include "../AppProperties.h"
 #include "../Utility/SplitWindowComponent.h"
 
@@ -19,7 +18,6 @@ public:
 
 private:
     AppProperties appProperties;
-    ValidatorProperties validatorProperties;
 
     juce::Label currentFolder;
     FileViewComponent fileViewComponent;

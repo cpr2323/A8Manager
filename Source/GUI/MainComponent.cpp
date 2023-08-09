@@ -34,6 +34,7 @@ MainComponent::MainComponent (juce::ValueTree rootPropertiesVT)
 
     assimil8orEditorComponent.init (rootPropertiesVT);
     assimil8orValidatorComponent.init (rootPropertiesVT);
+    fileViewComponent.init (rootPropertiesVT);
     presetListComponent.init (rootPropertiesVT);
     toolWindow.init (rootPropertiesVT);
 
@@ -59,9 +60,6 @@ MainComponent::MainComponent (juce::ValueTree rootPropertiesVT)
     {
         currentFolder.setText (folderName, juce::NotificationType::dontSendNotification);
     };
-    validatorProperties.wrap (runtimeRootProperties.getValueTree (), ValidatorProperties::WrapperType::client, ValidatorProperties::EnableCallbacks::yes);
-
-    fileViewComponent.init (rootPropertiesVT);
 
     currentFolder.setText (appProperties.getMostRecentFolder (), juce::NotificationType::dontSendNotification);
 }
