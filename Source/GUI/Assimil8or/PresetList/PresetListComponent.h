@@ -11,6 +11,7 @@ class PresetListComponent : public juce::Component,
 {
 public:
     PresetListComponent ();
+    ~PresetListComponent ();
     void init (juce::ValueTree rootPropertiesVT);
 
 private:
@@ -18,13 +19,18 @@ private:
     PresetProperties presetProperties;
     juce::ListBox presetListBox { {}, this };
     std::array<bool, kMaxPresets> presetExists {false};
+    juce::CriticalSection queuedFolderLock;
+    juce::File queuedFolderToScan;
     juce::File rootFolder;
+    std::atomic<bool> newItemQueued { false };
 
-    void startScan (juce::File folderToScan);
     void checkForPresets ();
+    void forEachPresetFile (std::function<bool (juce::File presetFile, int index)> presetFileCallback);
     juce::String getPresetName (int presetIndex);
     void loadFirstPreset ();
     void loadPreset (juce::File presetFile);
+    bool shouldExit ();
+    void startScan (juce::File folderToScan);
 
     void resized () override;
     int getNumRows () override;
