@@ -36,7 +36,12 @@ void DirectoryValueTree::clear ()
     rootFolderVT = {};
 }
 
-bool DirectoryValueTree::getScanStatus ()
+void DirectoryValueTree::cancel ()
+{
+    signalThreadShouldExit ();
+}
+
+bool DirectoryValueTree::isScanning ()
 {
     return isThreadRunning ();
 }

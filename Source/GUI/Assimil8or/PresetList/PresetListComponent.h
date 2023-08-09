@@ -18,10 +18,10 @@ private:
     AppProperties appProperties;
     PresetProperties presetProperties;
     juce::ListBox presetListBox { {}, this };
+    juce::File rootFolder;
     std::array<bool, kMaxPresets> presetExists {false};
     juce::CriticalSection queuedFolderLock;
     juce::File queuedFolderToScan;
-    juce::File rootFolder;
     std::atomic<bool> newItemQueued { false };
 
     void checkForPresets ();

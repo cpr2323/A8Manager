@@ -1,7 +1,14 @@
 #include "FileViewComponent.h"
 #include "../../../Utility/PersistentRootProperties.h"
 
-FileViewComponent::FileViewComponent ()
+#define LOG_FILE_VIEW 1
+#if LOG_FILE_VIEW
+#define LogFileView(text) juce::Logger::outputDebugString (text);
+#else
+#define LogFileView(text) ;
+#endif
+
+FileViewComponent::FileViewComponent () : Thread ("FileViewComponentThread")
 {
     navigateUpButton.setButtonText ("..");
     navigateUpButton.onClick = [this] ()
@@ -26,6 +33,13 @@ FileViewComponent::FileViewComponent ()
     {
         //validatorProperties.setProgressUpdate (operation + ": " + fileName, false);
     };
+
+    startThread ();
+}
+
+FileViewComponent::~FileViewComponent ()
+{
+    stopThread (100);
 }
 
 void FileViewComponent::init (juce::ValueTree rootPropertiesVT)
@@ -34,17 +48,45 @@ void FileViewComponent::init (juce::ValueTree rootPropertiesVT)
     appProperties.wrap (persistentRootProperties.getValueTree (), AppProperties::WrapperType::client, AppProperties::EnableCallbacks::yes);
     appProperties.onMostRecentFolderChange = [this] (juce::String folderName)
     {
-        startFolderScan (juce::File (folderName));
+        startScan (juce::File (folderName));
     };
-    startFolderScan (appProperties.getMostRecentFolder ());
+    startScan (appProperties.getMostRecentFolder ());
 }
 
-void FileViewComponent::startFolderScan (juce::File folderToScan)
+void FileViewComponent::startScan (juce::File folderToScan)
 {
-    // TODO - need to cancel any current scan and start
-    directoryListQuickLookupList.clear ();
-    directoryValueTree.setRootFolder (folderToScan.getFullPathName ());
-    directoryValueTree.startAsyncScan ();
+    {
+        juce::ScopedLock sl (queuedFolderLock);
+        queuedFolderToScan = folderToScan;
+        newItemQueued = true;
+        directoryValueTree.cancel ();
+        LogFileView ("FileViewComponent::startScan: " + queuedFolderToScan.getFullPathName ());
+    }
+    notify ();
+}
+
+void FileViewComponent::run ()
+{
+    while (wait (-1) && ! threadShouldExit ())
+    {
+        juce::File rootFolder;
+        {
+            juce::ScopedLock sl (queuedFolderLock);
+            rootFolder = queuedFolderToScan;
+            newItemQueued = false;
+            queuedFolderToScan = juce::File ();
+            LogFileView ("FileViewComponent::run: " + rootFolder.getFullPathName ());
+        }
+        while (directoryValueTree.isScanning()); // probably want to do something else to not get deadlocked
+        directoryListQuickLookupList.clear ();
+        directoryValueTree.setRootFolder (rootFolder.getFullPathName ());
+        directoryValueTree.startAsyncScan ();
+    }
+}
+
+bool FileViewComponent::shouldCancelOperation ()
+{
+    return threadShouldExit () || newItemQueued;
 }
 
 void FileViewComponent::openFolder ()
@@ -119,4 +161,3 @@ void FileViewComponent::resized ()
     localBounds.removeFromTop (3);
     directoryContentsListBox.setBounds (localBounds);
 }
-

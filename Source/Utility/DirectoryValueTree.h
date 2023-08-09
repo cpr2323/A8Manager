@@ -9,13 +9,14 @@ public:
     DirectoryValueTree (juce::String theRootFolderName);
     ~DirectoryValueTree ();
 
-    void setRootFolder (juce::String theRootFolderName);
+    void clear ();
+    void cancel ();
+    juce::ValueTree getDirectoryVT ();
     juce::String getRootFolder ();
+    bool isScanning ();
+    void setRootFolder (juce::String theRootFolderName);
     void setScanDepth (int theScanDepth);
     void startAsyncScan ();
-    bool getScanStatus ();
-    void clear ();
-    juce::ValueTree getDirectoryVT ();
 
     std::function<void ()> onComplete;
     std::function<void (juce::String operation, juce::String fileName)> onStatusChange;
