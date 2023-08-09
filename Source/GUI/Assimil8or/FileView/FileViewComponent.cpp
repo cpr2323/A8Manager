@@ -77,7 +77,9 @@ void FileViewComponent::run ()
             queuedFolderToScan = juce::File ();
             LogFileView ("FileViewComponent::run: " + rootFolder.getFullPathName ());
         }
-        while (directoryValueTree.isScanning()); // probably want to do something else to not get deadlocked
+        // TODO - probably want to do something else to not get deadlocked, ie. track time and try and catch deadlock
+        //        maybe request an exit again here
+        while (directoryValueTree.isScanning());
         directoryListQuickLookupList.clear ();
         directoryValueTree.setRootFolder (rootFolder.getFullPathName ());
         directoryValueTree.startAsyncScan ();
