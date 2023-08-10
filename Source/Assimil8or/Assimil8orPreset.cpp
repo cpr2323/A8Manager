@@ -168,7 +168,7 @@ void Assimil8orPreset::parse (juce::StringArray presetLines)
             // for each scope we are exiting, reset the appropriate parent objects
             for (auto remainingScopes { scopeDifference * -1 }; remainingScopes > 0; --remainingScopes)
             {
-                // parseStack should have items to reset!
+                // undoActionsStack should have items to reset
                 jassert(! undoActionsStack.empty ());
                 auto undoAction = undoActionsStack.top ();
                 undoActionsStack.pop ();
