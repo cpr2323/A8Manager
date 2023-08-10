@@ -3,6 +3,13 @@
 #include "../../../Utility/RuntimeRootProperties.h"
 #include "../../../Utility/PersistentRootProperties.h"
 
+// TODO - short list
+//  Visual Edited indicator
+//  Query for save if switching from edited Preset
+//  Only enable Save button if preset was edited
+//  Update Preset List (switch from dim to highlighted) when new preset created
+//  Add editor fields
+
 Assimil8orEditorComponent::Assimil8orEditorComponent ()
 {
     setOpaque (true);
@@ -22,6 +29,8 @@ Assimil8orEditorComponent::Assimil8orEditorComponent ()
     setupButton (saveButton, "Save", [this] () { savePreset ();  });
     setupButton (importButton, "Import", [this] () { importPreset ();  });
     setupButton (exportButton, "Export", [this] () { exportPreset (); });
+    importButton.setEnabled (false);
+    exportButton.setEnabled (false);
 }
 
 void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
