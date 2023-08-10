@@ -9,6 +9,7 @@ public:
     DirectoryValueTree (juce::String theRootFolderName);
     ~DirectoryValueTree ();
 
+    void tempEnableLogging () { doLogging = true; }
     void clear ();
     void cancel ();
     juce::ValueTree getDirectoryVT ();
@@ -18,7 +19,7 @@ public:
     void setScanDepth (int theScanDepth);
     void startScan ();
 
-    std::function<void ()> onComplete;
+    std::function<void (bool success)> onComplete;
     std::function<void (juce::String operation, juce::String fileName)> onStatusChange;
 
 private:
@@ -26,6 +27,7 @@ private:
     int scanDepth { 0 };
     int64_t lastScanInProgressUpdate {};
     juce::ValueTree rootFolderVT;
+    bool doLogging { false };
 
     void doIfProgressTimeElapsed (std::function<void ()> functionToDo);
     void doScan ();

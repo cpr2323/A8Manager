@@ -3,6 +3,7 @@
 #include <JuceHeader.h>
 #include "../AppProperties.h"
 #include "../Utility/DirectoryValueTree.h"
+#include "../Utility/LambdaThread.h"
 #include "Validator/ValidatorProperties.h"
 
 // validate
@@ -24,8 +25,9 @@ private:
     enum class ValdatationState
     {
         idle,
-        readingFolder,
-        validating
+        reading,
+        validating,
+        restarting
     };
     AppProperties appProperties;
     ValidatorProperties validatorProperties;
@@ -34,11 +36,12 @@ private:
     DirectoryValueTree directoryValueTree;
     juce::ValueTree rootFolderVT;
     int64_t lastScanInProgressUpdate {};
-    ValdatationState valdatationState { ValdatationState::readingFolder };
+    ValdatationState valdatationState { ValdatationState::reading };
     juce::File rootFolderToScan;
     juce::File queuedFolderToScan;
-    juce::CriticalSection queuedFolderLock;
+    juce::CriticalSection threadManagmentLock;
     std::atomic<bool> newItemQueued { false };
+    LambdaThread validateThread { "ValidateThread", 100 };
 
     void addResult (juce::String statusType, juce::String statusText);
     void addResult (juce::ValueTree validatorResultsVT);

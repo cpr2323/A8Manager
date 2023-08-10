@@ -1,6 +1,13 @@
 #include "DirectoryValueTree.h"
 #include "../Assimil8or/FileTypeHelpers.h"
 
+#define LOG_DIRECTORY_VALUE_TREE 1
+#if LOG_DIRECTORY_VALUE_TREE
+#define LogDirectoryValueTree(cond, text) if (cond) {juce::Logger::outputDebugString (text); }
+#else
+#define LogDirectoryValueTree(cond, text) ;
+#endif
+
 DirectoryValueTree::DirectoryValueTree (juce::String theRootFolderName)
     : Thread ("Assimil8orValidator"), rootFolderName { theRootFolderName }
 {
@@ -33,6 +40,7 @@ juce::ValueTree DirectoryValueTree::getDirectoryVT ()
 
 void DirectoryValueTree::clear ()
 {
+    LogDirectoryValueTree (doLogging, "DirectoryValueTree::clear - enter");
     rootFolderVT = {};
 }
 
@@ -48,20 +56,27 @@ bool DirectoryValueTree::isScanning ()
 
 void DirectoryValueTree::startScan ()
 {
-    if (isThreadRunning ())
-        return;
+    LogDirectoryValueTree (doLogging, "DirectoryValueTree::startScan - enter");
+    jassert (! isThreadRunning ());
     startThread ();
+    LogDirectoryValueTree (doLogging, "DirectoryValueTree::startScan - exit");
 }
 
 void DirectoryValueTree::run ()
 {
+    LogDirectoryValueTree (doLogging, "DirectoryValueTree::run - enter");
+    LogDirectoryValueTree (doLogging, "DirectoryValueTree::run - rootFolderVT = {}");
     rootFolderVT = {};
     doScan ();
     // reset the output if scan was canceled
     if (threadShouldExit ())
+    {
+        LogDirectoryValueTree (doLogging, "DirectoryValueTree::run - threadShouldExit = true, rootFolderVT = {}");
         rootFolderVT = {};
+    }
     if (onComplete != nullptr)
-        juce::MessageManager::callAsync ([this] () { onComplete (); });
+        onComplete (! threadShouldExit());
+    LogDirectoryValueTree (doLogging, "DirectoryValueTree::run - exit");
 }
 
 void DirectoryValueTree::doStatusUpdate (juce::String operation, juce::String fileName)
@@ -91,6 +106,7 @@ void DirectoryValueTree::doScan ()
     });
     if (! threadShouldExit ())
         rootFolderVT = getContentsOfFolder (rootFolderName, 0);
+
     if (! threadShouldExit ())
         sortContentsOfFolder (rootFolderVT);
 }

@@ -2,11 +2,11 @@
 
 #include <JuceHeader.h>
 
-class ArtiLogger : private juce::Thread
+class ThreadedLogger : private juce::Thread
 {
 public:
-    ArtiLogger () : juce::Thread ("ArtiLogger") { startThread (); }
-    ~ArtiLogger () { flush ();  stopThread (5000); }
+    ThreadedLogger () : juce::Thread ("ArtiLogger") { startThread (); }
+    ~ThreadedLogger () { flush ();  stopThread (5000); }
 
     void logMsg (juce::String msg)
     {

@@ -103,6 +103,7 @@
               file="Source/Utility/DirectoryValueTree.cpp"/>
         <FILE id="eO3HdP" name="DirectoryValueTree.h" compile="0" resource="0"
               file="Source/Utility/DirectoryValueTree.h"/>
+        <FILE id="GjhfJa" name="LambdaThread.h" compile="0" resource="0" file="Source/Utility/LambdaThread.h"/>
         <FILE id="e2rm9l" name="PersistentRootProperties.cpp" compile="1" resource="0"
               file="Source/Utility/PersistentRootProperties.cpp"/>
         <FILE id="mF5R47" name="PersistentRootProperties.h" compile="0" resource="0"

@@ -37,7 +37,7 @@ private:
     void locate (juce::File file);
     void rename (juce::File file, int maxLength);
     void setupFilterList ();
-    void udpateHeader ();
+    void updateHeader ();
 
     void resized () override;
     void paint (juce::Graphics& g) override;

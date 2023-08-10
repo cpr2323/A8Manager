@@ -31,7 +31,7 @@ Assimil8orValidatorComponent::Assimil8orValidatorComponent ()
             validatorResultsQuickLookupList.clear ();
             buildQuickLookupList ();
             validationResultsListBox.updateContent ();
-            udpateHeader ();
+            updateHeader ();
         };
         addAndMakeVisible (button);
     };
@@ -43,7 +43,7 @@ Assimil8orValidatorComponent::Assimil8orValidatorComponent ()
     validatorResultsQuickLookupList.clear ();
     buildQuickLookupList ();
     validationResultsListBox.updateContent ();
-    udpateHeader ();
+    updateHeader ();
 
     audioFormatManager.registerBasicFormats ();
 }
@@ -66,12 +66,13 @@ void Assimil8orValidatorComponent::init (juce::ValueTree rootPropertiesVT)
     validatorProperties.wrap (runtimeRootProperties.getValueTree (), ValidatorProperties::WrapperType::client, ValidatorProperties::EnableCallbacks::yes);
     validatorProperties.onScanStatusChanged = [this] (juce::String scanStatus)
     {
+        juce::Logger::outputDebugString ("Assimil8orValidatorComponent::init - validatorProperties.onScanStatusChanged: " + scanStatus);
         validatorResultsQuickLookupList.clear ();
         if (scanStatus == "idle")
             buildQuickLookupList ();
 
         validationResultsListBox.updateContent ();
-        udpateHeader ();
+        updateHeader ();
         // TODO - this is a crazy work around because when I am getting the initial list, a horizontal scroll bar is appearing.
         //        the only experiment that worked was doing this
         setSize (getWidth (), getHeight () + 1);
@@ -90,7 +91,7 @@ void Assimil8orValidatorComponent::setupFilterList ()
         filterList.add (ValidatorResultProperties::ResultTypeError);
 }
 
-void Assimil8orValidatorComponent::udpateHeader ()
+void Assimil8orValidatorComponent::updateHeader ()
 {
     validationResultsListBox.getHeader ().setColumnName (Columns::text, "Message (" + juce::String (validatorResultsQuickLookupList.size ()) + " of " + juce::String (totalItems) + " items)");
     validationResultsListBox.repaint ();

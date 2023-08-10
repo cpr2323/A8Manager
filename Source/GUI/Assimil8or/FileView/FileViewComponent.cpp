@@ -22,12 +22,16 @@ FileViewComponent::FileViewComponent () : Thread ("FileViewComponentThread")
     addAndMakeVisible (directoryContentsListBox);
 
     directoryValueTree.setScanDepth (0); // no depth, only scan root folder
-    directoryValueTree.onComplete = [this] ()
+    directoryValueTree.onComplete = [this] (bool success)
     {
-        buildQuickLookupList ();
-        directoryContentsListBox.updateContent ();
-        directoryContentsListBox.scrollToEnsureRowIsOnscreen (0);
-        directoryContentsListBox.repaint ();
+        if (success)
+            juce::MessageManager::callAsync ([this] ()
+            {
+                buildQuickLookupList ();
+                directoryContentsListBox.updateContent ();
+                directoryContentsListBox.scrollToEnsureRowIsOnscreen (0);
+                directoryContentsListBox.repaint ();
+            });
     };
     directoryValueTree.onStatusChange = [this] (juce::String operation, juce::String fileName)
     {

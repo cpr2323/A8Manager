@@ -5,7 +5,7 @@
 #include "../Utility/PersistentRootProperties.h"
 #include "../Utility/RuntimeRootProperties.h"
 
-#define LOG_VALIDATION 1
+#define LOG_VALIDATION 0
 #if LOG_VALIDATION
 #define LogValidation(text) juce::Logger::outputDebugString (text);
 #else
@@ -38,18 +38,29 @@ juce::String getMemorySizeString (uint64_t memoryUsage)
 Assimil8orValidator::Assimil8orValidator () : Thread ("Assimil8orValidator")
 {
     audioFormatManager.registerBasicFormats ();
+    directoryValueTree.tempEnableLogging ();
     directoryValueTree.setScanDepth (-1); // no depth limit
-    directoryValueTree.onComplete = [this] ()
+    directoryValueTree.onComplete = [this] (bool success)
     {
         LogValidation ("Assimil8orValidator::Assimil8orValidator - directoryValueTree.onComplete");
-        valdatationState = ValdatationState::validating;
-        notify ();
+        if (success)
+        {
+            valdatationState = ValdatationState::validating;
+            LogValidation ("Assimil8orValidator::Assimil8orValidator - directoryValueTree.onComplete - notify");
+            notify ();
+        }
     };
     directoryValueTree.onStatusChange = [this] (juce::String operation, juce::String fileName)
     {
         validatorProperties.setProgressUpdate (operation + ": " + fileName, false);
     };
 
+    validateThread.onThreadLoop = [this] ()
+    {
+        validateRootFolder ();
+        valdatationState = Assimil8orValidator::ValdatationState::idle;
+        return false;
+    };
     startThread ();
 }
 
@@ -107,16 +118,39 @@ void Assimil8orValidator::doIfProgressTimeElapsed (std::function<void ()> functi
 
 void Assimil8orValidator::startValidation (juce::String folderToScan)
 {
+    LogValidation ("Assimil8orValidator::startValidation - enter");
+    auto waitForRestart { false };
     {
-        juce::ScopedLock sl (queuedFolderLock);
+        juce::ScopedLock sl (threadManagmentLock);
+        const auto isReading { directoryValueTree.isScanning () };
+        const auto isValidating { validateThread.isThreadRunning () };
         queuedFolderToScan = folderToScan;
-        newItemQueued = true;
-        directoryValueTree.cancel ();
-        LogValidation ("Assimil8orValidator::startValidation: " + queuedFolderToScan.getFullPathName ());
+        if (isValidating)
+        {
+            newItemQueued = true;
+            waitForRestart = true;
+        }
+        if (isReading)
+        {
+            directoryValueTree.cancel ();
+            LogValidation ("Assimil8orValidator::startValidation: directoryValueTree.cancel ()");
+            waitForRestart = true;
+        }
     }
-    validatorProperties.setScanStatus ("scanning", false);
-    valdatationState = ValdatationState::readingFolder;
+    if (waitForRestart)
+    {
+        valdatationState = ValdatationState::restarting;
+        LogValidation ("Assimil8orValidator::startValidation: wait for restart");
+    }
+    else
+    {
+        LogValidation ("Assimil8orValidator::startValidation: " + queuedFolderToScan.getFullPathName ());
+        validatorProperties.setScanStatus ("scanning", false);
+        valdatationState = ValdatationState::reading;
+    }
+    LogValidation ("Assimil8orValidator::startValidation - notify");
     notify ();
+    LogValidation ("Assimil8orValidator::startValidation - exit");
 }
 
 void Assimil8orValidator::run ()
@@ -128,28 +162,39 @@ void Assimil8orValidator::run ()
         {
             case Assimil8orValidator::ValdatationState::idle:
             break;
-            case Assimil8orValidator::ValdatationState::readingFolder:
+            case Assimil8orValidator::ValdatationState::reading:
             {
-                juce::File rootFolder;
                 {
-                    juce::ScopedLock sl (queuedFolderLock);
-                    rootFolder = queuedFolderToScan;
-                    newItemQueued = false;
+                    juce::ScopedLock sl (threadManagmentLock);
+                    rootFolderToScan = queuedFolderToScan;
                     queuedFolderToScan = juce::File ();
-                    LogValidation ("Assimil8orValidator::run - reading folder: " + rootFolder.getFullPathName ());
+                    LogValidation ("Assimil8orValidator::run - reading folder: " + rootFolderToScan.getFullPathName ());
                 }
-                // TODO - probably want to do something else to not get deadlocked, ie. track time and try and catch deadlock
-                //        maybe request an exit again here
-                while (directoryValueTree.isScanning ());
-                directoryValueTree.setRootFolder (rootFolder.getFullPathName ());
+                directoryValueTree.setRootFolder (rootFolderToScan.getFullPathName ());
                 directoryValueTree.startScan ();
             }
             break;
             case Assimil8orValidator::ValdatationState::validating:
             {
                 LogValidation ("Assimil8orValidator::run: validating");
-                validateRootFolder ();
-                valdatationState = Assimil8orValidator::ValdatationState::idle;
+                validateThread.startThread ();
+            }
+            break;
+            case ValdatationState::restarting:
+            {
+                LogValidation ("Assimil8orValidator::run - ValdatationState::restarting");
+                // TODO - probably want to do something else to not get deadlocked, ie. track time and try and catch deadlock
+                //        maybe request an exit again here
+                while (directoryValueTree.isScanning () || validateThread.isThreadRunning ());
+                newItemQueued = false;
+                LogValidation ("Assimil8orValidator::startValidation: " + queuedFolderToScan.getFullPathName ());
+                juce::MessageManager::callAsync ([this] ()
+                {
+                    validatorProperties.setScanStatus ("scanning", false);
+                });
+                valdatationState = ValdatationState::reading;
+                LogValidation ("Assimil8orValidator::run - ValdatationState::restarting - notify");
+                notify ();
             }
             break;
             default: jassertfalse; break;
@@ -159,6 +204,8 @@ void Assimil8orValidator::run ()
 
 void Assimil8orValidator::validateRootFolder ()
 {
+    LogValidation ("Assimil8orValidator::validateRootFolder - enter");
+    jassert (rootFolderToScan.getFileName ().isNotEmpty ());
     validatorResultListProperties.clear ();
     lastScanInProgressUpdate = juce::Time::currentTimeMillis ();
 
@@ -177,6 +224,7 @@ void Assimil8orValidator::validateRootFolder ()
         validatorProperties.setProgressUpdate ("", false);
         validatorProperties.setScanStatus ("idle", false);
     });
+    LogValidation ("Assimil8orValidator::validateRootFolder - exit");
 }
 
 void Assimil8orValidator::processFolder (juce::ValueTree folderVT)
@@ -404,13 +452,13 @@ std::tuple<uint64_t, std::optional<uint64_t>> Assimil8orValidator::validateFile 
         uint64_t sizeRequiredForSamples { 0 };
         if (reader != nullptr)
         {
-            LogValidation ("    Format: " + reader->getFormatName ());
-            LogValidation ("    Sample data: " + juce::String (reader->usesFloatingPointData == true ? "floating point" : "integer"));
-            LogValidation ("    Bit Depth: " + juce::String (reader->bitsPerSample));
-            LogValidation ("    Sample Rate: " + juce::String (reader->sampleRate));
-            LogValidation ("    Channels: " + juce::String (reader->numChannels));
-            LogValidation ("    Length/Samples: " + juce::String (reader->lengthInSamples));
-            LogValidation ("    Length/Time: " + juce::String (reader->lengthInSamples / reader->sampleRate));
+//             LogValidation ("    Format: " + reader->getFormatName ());
+//             LogValidation ("    Sample data: " + juce::String (reader->usesFloatingPointData == true ? "floating point" : "integer"));
+//             LogValidation ("    Bit Depth: " + juce::String (reader->bitsPerSample));
+//             LogValidation ("    Sample Rate: " + juce::String (reader->sampleRate));
+//             LogValidation ("    Channels: " + juce::String (reader->numChannels));
+//             LogValidation ("    Length/Samples: " + juce::String (reader->lengthInSamples));
+//             LogValidation ("    Length/Time: " + juce::String (reader->lengthInSamples / reader->sampleRate));
 
             const auto memoryUsage { reader->numChannels * reader->lengthInSamples * 4 };
             const auto sampleRateString { juce::String (reader->sampleRate / 1000.0f, 2).trimCharactersAtEnd ("0.") };
