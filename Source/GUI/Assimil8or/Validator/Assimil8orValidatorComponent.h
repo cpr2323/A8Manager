@@ -21,7 +21,7 @@ private:
         text
     };
     ValidatorProperties validatorProperties;
-    juce::TableListBox scanStatusListBox { {}, this };
+    juce::TableListBox validationResultsListBox { {}, this };
     std::vector<juce::ValueTree> validatorResultsQuickLookupList;
     juce::StringArray filterList { ValidatorResultProperties::ResultTypeInfo };
     juce::TextButton idleFilterButton;
@@ -41,6 +41,7 @@ private:
 
     void resized () override;
     void paint (juce::Graphics& g) override;
+    juce::String getCellTooltip (int rowNumber, int columnId) override;
     int getNumRows () override;
     void paintRowBackground (juce::Graphics&, int rowNumber, int width, int height, bool rowIsSelected) override;
     void paintCell (juce::Graphics&, int rowNumber, int columnId, int width, int height, bool rowIsSelected) override;

@@ -23,6 +23,8 @@ public:
 
     juce::ValueTree getPresetVT () { return presetProperties.getValueTree (); }
 
+    juce::ValueTree getParseErrorsVT () { return parseErrorList; }
+
 private:
     
     juce::String getSectionName ();
@@ -30,6 +32,7 @@ private:
     std::stack<Action> undoActionsStack;
     
     PresetProperties presetProperties;
+    juce::ValueTree parseErrorList { "ParseErrorList" };
 
     ActionMap globalActions;
     ActionMap presetActions;

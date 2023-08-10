@@ -20,6 +20,9 @@ const auto kPresetFileNumberOffset { 4 };
 const juce::String kWaveFileExtension { ".wav" };
 const juce::String kYmlFileExtension { ".yml" };
 const juce::String kFolderPrefsFileName { "folderprefs.yml" };
+const juce::String kLastFolderFileName { "lastfolder.yml" };
+const juce::String kLastPresetFileName { "lastpreset.yml" };
+
 const auto kBadPresetNumber { 9999 };
 const auto bytesPerSampleInAssimMemory { 4 };
 
@@ -100,6 +103,15 @@ bool Assimil8orValidator::isFolderPrefsFile (juce::File file)
 {
     return file.getFileName ().toLowerCase () == kFolderPrefsFileName;
 }
+bool Assimil8orValidator::isLastFolderFile (juce::File file)
+{
+    return file.getFileName ().toLowerCase () == kLastFolderFileName;
+}
+
+bool Assimil8orValidator::isLastPresetFile (juce::File file)
+{
+    return file.getFileName ().toLowerCase () == kLastPresetFileName;
+}
 
 bool Assimil8orValidator::isPresetFile (juce::File file)
 {
@@ -113,7 +125,7 @@ int Assimil8orValidator::getPresetNumberFromName (juce::File file)
 {
     if (!isPresetFile (file))
         return kBadPresetNumber;
-    return file.getFileNameWithoutExtension ().substring (kPresetFileNameLen).getIntValue ();
+    return file.getFileNameWithoutExtension ().substring (kPresetFileNumberOffset).getIntValue ();
 }
 
 std::tuple<uint64_t, std::optional<uint64_t>> Assimil8orValidator::validateFile (juce::File file, juce::ValueTree validatorResultsVT)
@@ -133,7 +145,17 @@ std::tuple<uint64_t, std::optional<uint64_t>> Assimil8orValidator::validateFile 
     }
     else if (isFolderPrefsFile (file))
     {
-        validatorResultProperties.update (ValidatorResultProperties::ResultTypeInfo, "Folder Preferences", false);
+        validatorResultProperties.update (ValidatorResultProperties::ResultTypeInfo, "System, Folder Preferences", false);
+        return {};
+    }
+    else if (isLastFolderFile (file))
+    {
+        validatorResultProperties.update (ValidatorResultProperties::ResultTypeInfo, "System, Last Folder", false);
+        return {};
+    }
+    else if (isLastPresetFile(file))
+    {
+        validatorResultProperties.update (ValidatorResultProperties::ResultTypeInfo, "System, Last Preset", false);
         return {};
     }
     else if (isPresetFile (file))
@@ -153,7 +175,7 @@ std::tuple<uint64_t, std::optional<uint64_t>> Assimil8orValidator::validateFile 
         if (file.getFileNameWithoutExtension ().startsWith (kPresetFileNamePrefix) == false)
         {
             isIgnored = true;
-            validatorResultProperties.update (ValidatorResultProperties::ResultTypeError, "(Preset file must begin with lowercase 'psrt'. Preset will be ignored)", false);
+            validatorResultProperties.update (ValidatorResultProperties::ResultTypeError, "(Preset file must begin with lowercase '" + kPresetFileNamePrefix + "'. Preset will be ignored)", false);
             validatorResultProperties.addFixerEntry (FixerEntryProperties::FixerTypeRenameFile, file.getFullPathName ());
         }
 
@@ -163,6 +185,17 @@ std::tuple<uint64_t, std::optional<uint64_t>> Assimil8orValidator::validateFile 
         Assimil8orPreset assimil8orPreset;
         assimil8orPreset.parse (fileContents);
 
+        if (auto presetErrorList { assimil8orPreset.getParseErrorsVT () }; presetErrorList.getNumChildren () > 0)
+        {
+            ValueTreeHelpers::forEachChildOfType (presetErrorList, "ParseError", [this, &validatorResultProperties] (juce::ValueTree childVT)
+            {
+                const auto parseErrorType { childVT.getProperty ("type").toString ()};
+                const auto parseErrorDescription { childVT.getProperty ("description").toString () };
+                validatorResultProperties.update (ValidatorResultProperties::ResultTypeError,
+                                                  "[Parse error '" + parseErrorDescription + "']", false);
+                return true;
+            });
+        }
         uint64_t sizeRequiredForSamples {};
         PresetProperties presetProperties (assimil8orPreset.getPresetVT (), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
         if (presetProperties.isValid ())
@@ -263,7 +296,12 @@ std::tuple<uint64_t, std::optional<uint64_t>> Assimil8orValidator::validateFile 
             if (reader->numChannels == 0)
                 validatorResultProperties.update (ValidatorResultProperties::ResultTypeError, "[no channels in file]", false);
             else
+#define ONLY_MONO_TEST 0
+#if ONLY_MONO_TEST
+                reportErrorIfTrue (reader->numChannels > 1, "[only mono supported]");
+#else
                 reportErrorIfTrue (reader->numChannels > 2, "[only mono and stereo supported]");
+#endif
             reportErrorIfTrue (reader->sampleRate > 192000, "[sample rate must not exceed 192k]");
         }
         else
@@ -357,6 +395,7 @@ void Assimil8orValidator::processFolder (juce::ValueTree folderVT)
         {
             ValidatorResultProperties validatorResultProperties;
             validatorResultProperties.update (ValidatorResultProperties::ResultTypeInfo, "File: " + curEntry.getFileName (), false);
+            validatorResultProperties.getValueTree ().setProperty ("fullFileName", curEntry.getFullPathName (), nullptr);
             const auto [ramRequired, presetUpdate] { validateFile (curEntry, validatorResultProperties.getValueTree ()) };
             totalSizeOfRamRequiredAllAudioFiles += ramRequired;
             if (presetUpdate.has_value ())

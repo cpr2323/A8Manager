@@ -2,10 +2,15 @@
 #include "../Utility/RuntimeRootProperties.h"
 #include "../Assimil8or/Assimil8orPreset.h"
 
-#define SCAN_ONLY 0
+#define VALIDATE_ONLY 1
 
 ToolWindow::ToolWindow ()
 {
+#if VALIDATE_ONLY
+    fileMenuButton.setButtonText ("Validate Folder");
+    fileMenuButton.onClick = [this] () { verifyDirectory (); };
+    addAndMakeVisible (fileMenuButton);
+#else
     fileMenuButton.setButtonText ("File");
     fileMenuButton.onClick = [this] ()
     {
@@ -21,13 +26,12 @@ ToolWindow::ToolWindow ()
     toolMenuButton.onClick = [this] ()
     {
         juce::PopupMenu pm;
-#if !SCAN_ONLY
         pm.addItem ("Verify File", true, false, [this] () { verifyFileUi (); });
         pm.addItem ("Verify Folders", true, false, [this] () { verifyFoldersUi (); });
-#endif
         pm.showMenuAsync ({}, [this] (int) {});
     };
     addAndMakeVisible (toolMenuButton);
+#endif
     scanningStatusLabel.setColour (juce::Label::ColourIds::textColourId, juce::Colours::black);
     addAndMakeVisible (scanningStatusLabel);
     progressUpdateLabel.setColour (juce::Label::ColourIds::textColourId, juce::Colours::darkgreen);
@@ -67,8 +71,7 @@ void ToolWindow::loadPreset (juce::File presetFile)
 
     PresetProperties newPresetProperties (assimil8orPreset.getPresetVT (), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
 
-    presetProperties.getValueTree ().removeAllChildren (nullptr);
-    presetProperties.getValueTree ().removeAllProperties (nullptr);
+    presetProperties.clear ();
     presetProperties.getValueTree ().copyPropertiesAndChildrenFrom (newPresetProperties.getValueTree (), nullptr);
 }
 

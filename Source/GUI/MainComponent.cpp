@@ -1,6 +1,6 @@
 #include "MainComponent.h"
 
-#define ENABLE_EDITOR 1
+#define ENABLE_EDITOR 0
 const auto toolWindowHeight { 30 };
 
 MainComponent::MainComponent (juce::ValueTree rootPropertiesVT)

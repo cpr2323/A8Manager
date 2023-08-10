@@ -15,7 +15,15 @@ void PresetProperties::initValueTree ()
     // but, as the Assimil8or only writes out parameters that have changed from the defaults
     // we will emulate this by only adding properties when they change, or are in a preset file that is read in
 
-    const auto kDefaultPresetName {"New"};
+    clear ();
+}
+
+void PresetProperties::clear ()
+{
+    data.removeAllChildren (nullptr);
+    data.removeAllProperties (nullptr);
+
+    const auto kDefaultPresetName { "New" };
     setIndex (1, false);
     setName (kDefaultPresetName, false);
 }

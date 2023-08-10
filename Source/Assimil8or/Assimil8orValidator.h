@@ -21,6 +21,8 @@ public:
     static bool isAudioFile (juce::File file);
     static bool isPresetFile (juce::File file);
     static bool isFolderPrefsFile (juce::File file);
+    static bool isLastFolderFile (juce::File file);
+    static bool isLastPresetFile (juce::File file);
     static int  getPresetNumberFromName (juce::File file);
 
 private:

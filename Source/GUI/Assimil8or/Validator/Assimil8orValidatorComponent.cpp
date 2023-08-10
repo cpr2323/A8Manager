@@ -7,13 +7,14 @@ Assimil8orValidatorComponent::Assimil8orValidatorComponent ()
 {
     setOpaque (true);
 
-    scanStatusListBox.setClickingTogglesRowSelection (false);
-    scanStatusListBox.setColour (juce::ListBox::outlineColourId, juce::Colours::grey);
-    scanStatusListBox.setOutlineThickness (1);
-    scanStatusListBox.getHeader ().addColumn ("Status", Columns::resultType, 60, 10, 60, juce::TableHeaderComponent::visible);
-    scanStatusListBox.getHeader ().addColumn ("Fix", Columns::fix, 60, 10, 60, juce::TableHeaderComponent::visible);
-    scanStatusListBox.getHeader ().addColumn ("Message", Columns::text, 100, 10, 3000, juce::TableHeaderComponent::visible);
-    addAndMakeVisible (scanStatusListBox);
+    validationResultsListBox.setClickingTogglesRowSelection (false);
+    validationResultsListBox.setColour (juce::ListBox::outlineColourId, juce::Colours::grey);
+    validationResultsListBox.setOutlineThickness (1);
+    validationResultsListBox.getHeader ().addColumn ("Status", Columns::resultType, 60, 60, 60, juce::TableHeaderComponent::visible);
+    validationResultsListBox.getHeader ().addColumn ("Fix", Columns::fix, 60, 60, 60, juce::TableHeaderComponent::visible);
+    validationResultsListBox.getHeader ().addColumn ("Message", Columns::text, 100, 10, 3000, juce::TableHeaderComponent::visible);
+    validationResultsListBox.getHeader ().setStretchToFitActive (true);
+    addAndMakeVisible (validationResultsListBox);
 
     auto setupFilterButton = [this] (juce::TextButton& button, juce::String text, juce::String tooltip)
     {
@@ -29,8 +30,8 @@ Assimil8orValidatorComponent::Assimil8orValidatorComponent ()
             setupFilterList ();
             validatorResultsQuickLookupList.clear ();
             buildQuickLookupList ();
+            validationResultsListBox.updateContent ();
             udpateHeader ();
-            scanStatusListBox.updateContent ();
         };
         addAndMakeVisible (button);
     };
@@ -41,8 +42,9 @@ Assimil8orValidatorComponent::Assimil8orValidatorComponent ()
     setupFilterList ();
     validatorResultsQuickLookupList.clear ();
     buildQuickLookupList ();
+    validationResultsListBox.updateContent ();
     udpateHeader ();
-    scanStatusListBox.updateContent ();
+
     audioFormatManager.registerBasicFormats ();
 }
 
@@ -68,7 +70,12 @@ void Assimil8orValidatorComponent::init (juce::ValueTree rootPropertiesVT)
         if (scanStatus == "idle")
             buildQuickLookupList ();
 
+        validationResultsListBox.updateContent ();
         udpateHeader ();
+        // TODO - this is a crazy work around because when I am getting the initial list, a horizontal scroll bar is appearing
+        //        the only experiment that worked was doing this
+        setSize (getWidth(), getHeight() + 1);
+        setSize (getWidth (), getHeight () - 1);
     };
 }
 
@@ -85,8 +92,8 @@ void Assimil8orValidatorComponent::setupFilterList ()
 
 void Assimil8orValidatorComponent::udpateHeader ()
 {
-    scanStatusListBox.getHeader ().setColumnName (Columns::text, "Message (" + juce::String (validatorResultsQuickLookupList.size ()) + " of " + juce::String (totalItems) + " items)");
-    scanStatusListBox.repaint ();
+    validationResultsListBox.getHeader ().setColumnName (Columns::text, "Message (" + juce::String (validatorResultsQuickLookupList.size ()) + " of " + juce::String (totalItems) + " items)");
+    validationResultsListBox.repaint ();
 }
 
 void Assimil8orValidatorComponent::buildQuickLookupList ()
@@ -110,13 +117,27 @@ void Assimil8orValidatorComponent::paint ([[maybe_unused]] juce::Graphics& g)
     g.fillAll (juce::Colours::navajowhite);
 }
 
+juce::String Assimil8orValidatorComponent::getCellTooltip (int rowNumber, int columnId)
+{
+    if (columnId != Columns::text)
+        return {};
+
+    ValidatorResultProperties validatorResultProperties (validatorResultsQuickLookupList [rowNumber],
+                                                         ValidatorResultProperties::WrapperType::client, ValidatorResultProperties::EnableCallbacks::no);
+    auto getPrefix = [this, &validatorResultProperties] () -> juce::String
+    {
+        if (!validatorResultProperties.getValueTree ().hasProperty ("fullFileName"))
+            return {};
+
+        juce::File file (validatorResultProperties.getValueTree ().getProperty ("fullFileName").toString ());
+        return file.getParentDirectory ().getFileName () + file.getSeparatorString () + file.getFileName () + "\r\n";
+    };
+    return getPrefix () + validatorResultProperties.getText ();
+}
 void Assimil8orValidatorComponent::resized ()
 {
     auto localBounds { getLocalBounds () };
-    scanStatusListBox.setBounds (localBounds);
-    scanStatusListBox.getHeader ().setColumnWidth (Columns::text, scanStatusListBox.getWidth () - 2 -
-                                                   scanStatusListBox.getHeader ().getColumnWidth (Columns::resultType) -
-                                                   scanStatusListBox.getHeader ().getColumnWidth (Columns::fix));
+    validationResultsListBox.setBounds (localBounds);
     auto filterButtonBounds { getLocalBounds ().removeFromBottom (45).withTrimmedBottom (15).withTrimmedRight (15) };
     errorFilterButton.setBounds (filterButtonBounds.removeFromRight (filterButtonBounds.getHeight ()));
     filterButtonBounds.removeFromRight (5);
@@ -155,7 +176,7 @@ void Assimil8orValidatorComponent::paintCell (juce::Graphics& g, int rowNumber, 
         g.setColour (juce::Colours::lightsteelblue);
         g.fillRect (width - 1, 0, 1, height);
         ValidatorResultProperties validatorResultProperties (validatorResultsQuickLookupList [rowNumber],
-            ValidatorResultProperties::WrapperType::client, ValidatorResultProperties::EnableCallbacks::no);
+                                                             ValidatorResultProperties::WrapperType::client, ValidatorResultProperties::EnableCallbacks::no);
         auto textColor { juce::Colours::black };
         if (validatorResultProperties.getType () == ValidatorResultProperties::ResultTypeWarning)
             textColor = juce::Colours::orange.darker (0.3f);
@@ -218,11 +239,11 @@ void Assimil8orValidatorComponent::rename (juce::File file, int maxLength)
         }) };
     options.content.setOwned (renameContent.release ());
 
-    juce::Rectangle<int> area (0, 0, 300, 200);
+    juce::Rectangle<int> area (0, 0, 380, 110);
 
     options.content->setSize (area.getWidth (), area.getHeight ());
     options.dialogTitle = "Rename";
-    options.dialogBackgroundColour = juce::Colour (juce::Colours::whitesmoke);
+    options.dialogBackgroundColour = juce::Colour (juce::Colours::lightgrey);
     options.escapeKeyTriggersCloseButton = true;
     options.useNativeTitleBar = false;
     options.resizable = false;
@@ -233,12 +254,18 @@ void Assimil8orValidatorComponent::rename (juce::File file, int maxLength)
 
 void Assimil8orValidatorComponent::convert (juce::File file)
 {
+    auto errorDialog = [this] (juce::String message)
+    {
+        juce::AlertWindow::showMessageBoxAsync (juce::AlertWindow::WarningIcon, "Conversion Failed", message, {}, nullptr,
+                                                juce::ModalCallbackFunction::create ([this] (int) {}));
+    };
+
     if (std::unique_ptr<juce::AudioFormatReader> reader (audioFormatManager.createReaderFor (file)); reader != nullptr)
     {
         auto tempFile { juce::File::createTempFile (".wav") };
-        auto fileStream { std::make_unique<juce::FileOutputStream> (tempFile) };
-        fileStream->setPosition (0);
-        fileStream->truncate ();
+        auto tempFileStream { std::make_unique<juce::FileOutputStream> (tempFile) };
+        tempFileStream->setPosition (0);
+        tempFileStream->truncate ();
 
         auto sampleRate { reader->sampleRate };
         auto numChannels { reader->numChannels };
@@ -246,11 +273,19 @@ void Assimil8orValidatorComponent::convert (juce::File file)
 
         if (bitsPerSample < 8)
             bitsPerSample = 8;
-        else if (bitsPerSample > 32)
-            bitsPerSample = 32;
+        else if (bitsPerSample > 24) // the wave writer supports int 8/16/24
+            bitsPerSample = 24;
         jassert (numChannels != 0);
+        if (numChannels > 1)
+            numChannels = 1;
+#define ONLY_MONO_TEST 0
+#if ONLY_MONO_TEST
+        if (numChannels > 1)
+            numChannels = 1;
+#else
         if (numChannels > 2)
             numChannels = 2;
+#endif
         if (reader->sampleRate > 192000)
         {
             // we need to do sample rate conversion
@@ -258,11 +293,12 @@ void Assimil8orValidatorComponent::convert (juce::File file)
         }
 
         juce::WavAudioFormat wavAudioFormat;
-        if (std::unique_ptr<juce::AudioFormatWriter> writer { wavAudioFormat.createWriterFor (fileStream.get (),
+        if (std::unique_ptr<juce::AudioFormatWriter> writer { wavAudioFormat.createWriterFor (tempFileStream.get (),
                                                               sampleRate, numChannels, bitsPerSample, {}, 0) }; writer != nullptr)
         {
             // audioFormatWriter will delete the file stream when done
-            fileStream.release ();
+            tempFileStream.release ();
+
             // copy the whole thing
             // TODO - two things
             //   a) this needs to be done in a thread
@@ -279,6 +315,7 @@ void Assimil8orValidatorComponent::convert (juce::File file)
                     if (tempFile.moveFileTo (file) == false)
                     {
                         // failure to move temp file to new file
+                        errorDialog ("Failure to move converted file to original file");
                         jassertfalse;
                     }
                     validatorProperties.startAsyncScan (false);
@@ -286,24 +323,28 @@ void Assimil8orValidatorComponent::convert (juce::File file)
                 else
                 {
                     // failure to delete original file
+                    errorDialog ("Failure to delete original file");
                     jassertfalse;
                 }
             }
             else
             {
-                // failure to copy all data
+                // failure to convert
+                errorDialog ("Failure to write new file");
                 jassertfalse;
             }
         }
         else
         {
             //failure to create writer
+            errorDialog ("Failure to create writer");
             jassertfalse;
         }
     }
     else
     {
         // failure to create reader
+        errorDialog ("Failure to create reader");
         jassertfalse;
     }
 }
@@ -321,8 +362,9 @@ void Assimil8orValidatorComponent::locate (juce::File file)
             // TODO - this should probably be in a thread
             if (sourceFile.copyFileTo (file) == false)
             {
-                // TODO - handle error
-                jassertfalse;
+                juce::AlertWindow::showMessageBoxAsync (juce::AlertWindow::WarningIcon, "Copy Failed",
+                                                       "Unable to rename '" + sourceFile.getFileName () + "' to '" + file.getFileName () + "'", {}, nullptr,
+                                                       juce::ModalCallbackFunction::create ([this] (int) {}));
             }
             validatorProperties.startAsyncScan (false);
         }
@@ -339,7 +381,7 @@ void Assimil8orValidatorComponent::cellClicked (int rowNumber, int columnId, con
     if (columnId == Columns::fix)
     {
         ValidatorResultProperties validatorResultProperties (validatorResultsQuickLookupList [rowNumber],
-            ValidatorResultProperties::WrapperType::client, ValidatorResultProperties::EnableCallbacks::no);
+                                                             ValidatorResultProperties::WrapperType::client, ValidatorResultProperties::EnableCallbacks::no);
         if (validatorResultProperties.getNumFixerEntries () > 0)
         {
             if (validatorResultProperties.getNumFixerEntries () == 1)
