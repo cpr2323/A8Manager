@@ -2,13 +2,16 @@
 
 #include <JuceHeader.h>
 #include "Preset/PresetProperties.h"
+#include <stack>
 
 // File Contents
 //      Preset 1 (1-8 channels)
 //          Channel 1 (? zones)
 //              Zone 1
 
-using ActionMap = std::map<juce::String, std::function<void ()>>;
+
+using Action = std::function<void ()>;
+using ActionMap = std::map<juce::String, Action>;
 
 class Assimil8orPreset
 {
@@ -23,14 +26,11 @@ public:
     juce::ValueTree getParseErrorsVT () { return parseErrorList; }
 
 private:
-    enum class ParseState
-    {
-        ParsingGlobalSection,
-        ParsingPresetSection,
-        ParsingChannelSection,
-        ParsingZoneSection,
-    };
-    ParseState parseState { ParseState::ParsingGlobalSection };
+    
+    juce::String getSectionName ();
+    
+    std::stack<Action> undoActionsStack;
+    
     PresetProperties presetProperties;
     juce::ValueTree parseErrorList { "ParseErrorList" };
 
@@ -38,17 +38,14 @@ private:
     ActionMap presetActions;
     ActionMap channelActions;
     ActionMap zoneActions;
-    ActionMap* curActions;
-    juce::String sectionName;
+    ActionMap * curActions {nullptr};
 
     juce::ValueTree curPresetSection;
     ChannelProperties channelProperties;
     juce::ValueTree curChannelSection;
     ZoneProperties zoneProperties;
     juce::ValueTree curZoneSection;
+    
     juce::String key;
     juce::String value;
-
-    juce::String getParseStateString (ParseState parseState);
-    void setParseState (ParseState newParseState, ActionMap* newActions, juce::String newSectionName);
 };
