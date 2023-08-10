@@ -186,7 +186,7 @@ void Assimil8orPreset::parse (juce::StringArray presetLines)
         }
         else
         {
-            LogParsing ("unknown " + getSectionName() + " key: " + key);
+            LogParsing ("unknown " + getSectionName () + " key: " + key);
             jassertfalse;
         }
     }
@@ -195,20 +195,20 @@ void Assimil8orPreset::parse (juce::StringArray presetLines)
 juce::String Assimil8orPreset::getSectionName ()
 {
     if (curActions == &globalActions)
-        return "global";
+        return "Global";
     else if (curActions == &presetActions)
-        return "preset";
+        return "Preset";
     else if (curActions == &channelActions)
-        return "channel";
+        return "Channel";
     else if (curActions == &zoneActions)
-        return "zone";
+        return "Zone";
     else
         // curActions is not pointing to an action map!
         jassertfalse;
         return "";
 }
 
-Assimil8orPreset::Assimil8orPreset () : curActions(nullptr)
+Assimil8orPreset::Assimil8orPreset ()
 {
     auto getParameterIndex = [this] ()
     {

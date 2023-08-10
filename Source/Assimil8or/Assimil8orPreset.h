@@ -35,7 +35,7 @@ private:
     ActionMap presetActions;
     ActionMap channelActions;
     ActionMap zoneActions;
-    ActionMap * curActions;
+    ActionMap * curActions {nullptr};
 
     juce::ValueTree curPresetSection;
     ChannelProperties channelProperties;
