@@ -52,12 +52,23 @@ void Assimil8orEditorComponent::setupPresetControls ()
         data2AsCvUiChanged (data2AsCvComboBox.getSelectedItemText ());
     };
     addAndMakeVisible (data2AsCvComboBox);
+#if ! XFADE_GROUPS_HORIZONTAL
+    xfadeGroupSectionLabel.setText ("Crossfade Groups", juce::NotificationType::dontSendNotification);
+    xfadeGroupSectionLabel.setJustificationType (juce::Justification::centredTop);
+    addAndMakeVisible (xfadeGroupSectionLabel);
+#endif
     for (auto xfadeGroupIndex { 0 }; xfadeGroupIndex < XfadeGroupIndex::numberOfGroups; ++xfadeGroupIndex)
     {
         auto& xfadeGroup { xfadeGroups [xfadeGroupIndex] };
 
         xfadeGroup.xfadeGroupLabel.setBorderSize ({ 0, 0, 0, 0 });
+#if XFADE_GROUPS_HORIZONTAL
+        xfadeGroup.xfadeGroupLabel.setJustificationType (juce::Justification::centredTop);
         xfadeGroup.xfadeGroupLabel.setText ("Crossfade\rGroup " + juce::String::charToString('A' + xfadeGroupIndex), juce::NotificationType::dontSendNotification);
+#else
+        xfadeGroup.xfadeGroupLabel.setJustificationType (juce::Justification::centredLeft);
+        xfadeGroup.xfadeGroupLabel.setText (juce::String::charToString ('A' + xfadeGroupIndex), juce::NotificationType::dontSendNotification);
+#endif
         addAndMakeVisible (xfadeGroup.xfadeGroupLabel);
 
         xfadeGroup.xfadeCvLabel.setBorderSize ({ 0, 0, 0, 0 });
@@ -140,6 +151,13 @@ void Assimil8orEditorComponent::savePreset ()
 void Assimil8orEditorComponent::paint ([[maybe_unused]] juce::Graphics& g)
 {
     g.fillAll (juce::Colours::darkgrey.darker (0.7f));
+    //g.setColour (juce::Colours::red);
+    //g.drawRect (xfadeGroupSectionLabel.getBounds ());
+#if ! XFADE_GROUPS_HORIZONTAL
+    g.setColour (juce::Colours::black);
+    g.drawRoundedRectangle (10, xfadeGroupSectionLabel.getBottom (), xfadeGroupSectionLabel.getWidth (),
+                            xfadeGroups [3].xfadeWidthEditor.getBottom () - xfadeGroupSectionLabel.getBottom () + 2, 0.8, 1.0);
+#endif
 }
 
 void Assimil8orEditorComponent::resized ()
@@ -162,11 +180,15 @@ void Assimil8orEditorComponent::resized ()
     data2AsCvComboBox.setBounds (data2AsCvLabel.getRight () + 3, data2AsCvLabel.getY () + 3, 67, 20);
 
     // Cross fade groups
+#if ! XFADE_GROUPS_HORIZONTAL
+    xfadeGroupSectionLabel.setBounds (10, data2AsCvLabel.getBottom () + 3, data2AsCvComboBox.getRight() - data2AsCvLabel.getX (), 20);
+#endif
+
     auto startX { nameEditor.getRight () };
     for (auto xfadeGroupIndex { 0 }; xfadeGroupIndex < XfadeGroupIndex::numberOfGroups; ++xfadeGroupIndex)
     {
         auto& xfadeGroup { xfadeGroups [xfadeGroupIndex] };
-        xfadeGroup.xfadeGroupLabel.setJustificationType (juce::Justification::centredTop);
+#if XFADE_GROUPS_HORIZONTAL
         xfadeGroup.xfadeGroupLabel.setBounds (startX + 18 + (xfadeGroupIndex * 100), nameEditor.getY (), 100, 35);
 
         xfadeGroup.xfadeCvLabel.setBounds (startX + 20 + (xfadeGroupIndex * 100), xfadeGroup.xfadeGroupLabel.getBottom () + 3, 20, 20);
@@ -174,6 +196,17 @@ void Assimil8orEditorComponent::resized ()
 
         xfadeGroup.xfadeWidthLabel.setBounds (startX + 20 + (xfadeGroupIndex * 100), xfadeGroup.xfadeCvLabel.getBottom () + 3, 40, 20);
         xfadeGroup.xfadeWidthEditor.setBounds (xfadeGroup.xfadeWidthLabel.getRight () + 3, xfadeGroup.xfadeWidthLabel.getY (), 40, 20);
+#else
+        const auto groupHeight { 55 };
+
+        xfadeGroup.xfadeGroupLabel.setBounds (20, xfadeGroupSectionLabel.getBottom() + 4 + (xfadeGroupIndex * groupHeight) + 7, 10, 35);
+
+        xfadeGroup.xfadeCvLabel.setBounds (xfadeGroup.xfadeGroupLabel.getRight () + 6, xfadeGroupSectionLabel.getBottom () + 3 + xfadeGroupIndex * groupHeight, 20, 20);
+        xfadeGroup.xfadeCvComboBox.setBounds (xfadeGroup.xfadeCvLabel.getRight () + 3, xfadeGroup.xfadeCvLabel.getY (), 60, 20);
+
+        xfadeGroup.xfadeWidthLabel.setBounds (xfadeGroup.xfadeGroupLabel.getRight () + 6, xfadeGroup.xfadeCvLabel.getBottom () + 3, 40, 20);
+        xfadeGroup.xfadeWidthEditor.setBounds (xfadeGroup.xfadeWidthLabel.getRight () + 3, xfadeGroup.xfadeWidthLabel.getY (), 40, 20);
+#endif
     }
 }
 

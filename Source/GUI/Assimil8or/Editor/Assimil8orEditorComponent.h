@@ -4,6 +4,8 @@
 #include "../../../AppProperties.h"
 #include "../../../Assimil8or/Preset/PresetProperties.h"
 
+#define XFADE_GROUPS_HORIZONTAL 1
+
 class CvInputComboBox : public juce::Component
 {
 public:
@@ -90,6 +92,9 @@ private:
     juce::TextEditor nameEditor;
     juce::Label data2AsCvLabel;
     CvInputComboBox data2AsCvComboBox;
+#if ! XFADE_GROUPS_HORIZONTAL
+    juce::Label xfadeGroupSectionLabel;
+#endif
     struct XfadeGroupControls
     {
         juce::Label xfadeGroupLabel;
