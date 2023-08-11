@@ -82,7 +82,7 @@ void DirectoryValueTree::run ()
 void DirectoryValueTree::doStatusUpdate (juce::String operation, juce::String fileName)
 {
     if (onStatusChange != nullptr)
-        juce::MessageManager::callAsync ([this, operation, fileName] () { onStatusChange (operation, fileName); });
+        onStatusChange (operation, fileName);
 }
 
 void DirectoryValueTree::doIfProgressTimeElapsed (std::function<void ()> functionToDo)
@@ -100,10 +100,7 @@ void DirectoryValueTree::doScan ()
     lastScanInProgressUpdate = juce::Time::currentTimeMillis ();
     const auto rootEntry { juce::File (rootFolderName) };
     // do one initial progress update to fill in the first one
-    juce::MessageManager::callAsync ([this, folderName = rootEntry.getFileName ()] ()
-    {
-        doStatusUpdate ("Reading File System", rootFolderName);
-    });
+    doStatusUpdate ("Reading File System", rootEntry.getFileName ());
     if (! threadShouldExit ())
         rootFolderVT = getContentsOfFolder (rootFolderName, 0);
 

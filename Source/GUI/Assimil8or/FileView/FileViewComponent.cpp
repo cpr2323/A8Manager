@@ -27,6 +27,7 @@ FileViewComponent::FileViewComponent () : Thread ("FileViewComponentThread")
         if (success)
             juce::MessageManager::callAsync ([this] ()
             {
+                // the call to buildQuickLookupList does not need to happen on the MM thread, but that protects us from some threading issues
                 buildQuickLookupList ();
                 directoryContentsListBox.updateContent ();
                 directoryContentsListBox.scrollToEnsureRowIsOnscreen (0);

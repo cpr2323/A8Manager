@@ -67,17 +67,27 @@ void Assimil8orValidatorComponent::init (juce::ValueTree rootPropertiesVT)
     validatorProperties.onScanStatusChanged = [this] (juce::String scanStatus)
     {
         juce::Logger::outputDebugString ("Assimil8orValidatorComponent::init - validatorProperties.onScanStatusChanged: " + scanStatus);
-        validatorResultsQuickLookupList.clear ();
-        if (scanStatus == "idle")
-            buildQuickLookupList ();
-
-        validationResultsListBox.updateContent ();
-        updateHeader ();
-        // TODO - this is a crazy work around because when I am getting the initial list, a horizontal scroll bar is appearing.
-        //        the only experiment that worked was doing this
-        setSize (getWidth (), getHeight () + 1);
-        setSize (getWidth (), getHeight () - 1);
+        juce::MessageManager::callAsync ([this, scanStatus] ()
+        {
+            juce::Logger::outputDebugString ("Assimil8orValidatorComponent::init (execution on MM thread)- validatorProperties.onScanStatusChanged: " + scanStatus);
+            updateListFromScan (scanStatus);
+        });
     };
+    updateListFromScan ("idle");
+}
+
+void Assimil8orValidatorComponent::updateListFromScan (juce::String scanStatus)
+{
+    validatorResultsQuickLookupList.clear ();
+    if (scanStatus == "idle")
+        buildQuickLookupList ();
+
+    validationResultsListBox.updateContent ();
+    updateHeader ();
+    // TODO - this is a crazy work around because when I am getting the initial list, a horizontal scroll bar is appearing.
+    //        the only experiment that worked was doing this
+    setSize (getWidth (), getHeight () + 1);
+    setSize (getWidth (), getHeight () - 1);
 }
 
 void Assimil8orValidatorComponent::setupFilterList ()
@@ -100,6 +110,7 @@ void Assimil8orValidatorComponent::updateHeader ()
 void Assimil8orValidatorComponent::buildQuickLookupList ()
 {
     totalItems = 0;
+    //auto tempCopy {}
     ValidatorResultListProperties validatorResultListProperties (validatorProperties.getValidatorResultListVT (),
                                                                  ValidatorResultListProperties::WrapperType::client, ValidatorResultListProperties::EnableCallbacks::no);
     // iterate over the state message list, adding each one to the quick list

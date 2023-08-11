@@ -5,7 +5,7 @@
 #include "../Utility/PersistentRootProperties.h"
 #include "../Utility/RuntimeRootProperties.h"
 
-#define LOG_VALIDATION 0
+#define LOG_VALIDATION 1
 #if LOG_VALIDATION
 #define LogValidation(text) juce::Logger::outputDebugString (text);
 #else
@@ -188,10 +188,7 @@ void Assimil8orValidator::run ()
                 while (directoryValueTree.isScanning () || validateThread.isThreadRunning ());
                 newItemQueued = false;
                 LogValidation ("Assimil8orValidator::startValidation: " + queuedFolderToScan.getFullPathName ());
-                juce::MessageManager::callAsync ([this] ()
-                {
-                    validatorProperties.setScanStatus ("scanning", false);
-                });
+                validatorProperties.setScanStatus ("scanning", false);
                 valdatationState = ValdatationState::reading;
                 LogValidation ("Assimil8orValidator::run - ValdatationState::restarting - notify");
                 notify ();
@@ -211,19 +208,13 @@ void Assimil8orValidator::validateRootFolder ()
 
     addResult (ValidatorResultProperties::ResultTypeInfo, "Root Folder: " + rootFolderToScan.getFileName ());
     // do one initial progress update to fill in the first one
-    juce::MessageManager::callAsync ([this, folderName = rootFolderToScan.getFileName ()] ()
-    {
-        validatorProperties.setProgressUpdate ("Validating: " + folderName, false);
-    });
+    validatorProperties.setProgressUpdate ("Validating: " + rootFolderToScan.getFileName (), false);
 
     processFolder (directoryValueTree.getDirectoryVT ());
     directoryValueTree.clear ();
 
-    juce::MessageManager::callAsync ([this] ()
-    {
-        validatorProperties.setProgressUpdate ("", false);
-        validatorProperties.setScanStatus ("idle", false);
-    });
+    validatorProperties.setProgressUpdate ("", false);
+    validatorProperties.setScanStatus ("idle", false);
     LogValidation ("Assimil8orValidator::validateRootFolder - exit");
 }
 
@@ -252,10 +243,7 @@ void Assimil8orValidator::processFolder (juce::ValueTree folderVT)
         const auto curEntry { juce::File (folderEntryVT.getProperty ("name")) };
         doIfProgressTimeElapsed ([this, fileName = curEntry.getFileName ()] ()
         {
-            juce::MessageManager::callAsync ([this, fileName] ()
-            {
-                validatorProperties.setProgressUpdate ("Validating: " + fileName, false);
-            });
+            validatorProperties.setProgressUpdate ("Validating: " + fileName, false);
         });
         if (curEntry.isDirectory ())
         {

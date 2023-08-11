@@ -38,6 +38,7 @@ private:
     void rename (juce::File file, int maxLength);
     void setupFilterList ();
     void updateHeader ();
+    void updateListFromScan (juce::String scanStatus);
 
     void resized () override;
     void paint (juce::Graphics& g) override;
