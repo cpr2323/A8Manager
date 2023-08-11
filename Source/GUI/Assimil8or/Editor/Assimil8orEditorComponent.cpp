@@ -72,7 +72,7 @@ void Assimil8orEditorComponent::setupPresetControls ()
         xfadeGroup.xfadeWidthLabel.setBorderSize ({ 0, 0, 0, 0 });
         xfadeGroup.xfadeWidthLabel.setText ("Width:", juce::NotificationType::dontSendNotification);
         addAndMakeVisible (xfadeGroup.xfadeWidthLabel);
-        xfadeGroup.xfadeWidthEditor.setIndents (2, 1);
+        xfadeGroup.xfadeWidthEditor.setIndents (2, 2);
         xfadeGroup.xfadeWidthEditor.setInputRestrictions (0, ".0123456789");
         xfadeGroup.xfadeWidthEditor.onFocusLost = [this, xfadeGroupIndex] () { xfadeWidthUiChanged (xfadeGroupIndex, xfadeGroups [xfadeGroupIndex].xfadeWidthEditor.getText ()); };
         xfadeGroup.xfadeWidthEditor.onReturnKey = [this, xfadeGroupIndex] () { xfadeWidthUiChanged (xfadeGroupIndex, xfadeGroups [xfadeGroupIndex].xfadeWidthEditor.getText ()); };
@@ -154,17 +154,20 @@ void Assimil8orEditorComponent::resized ()
     buttonRow.removeFromLeft (3);
     exportButton.setBounds (buttonRow.removeFromLeft (100));
 
+    // Name
     nameEditor.setBounds ({ 10, 10, 150, 25 });
 
+    // Data2 as CV
     data2AsCvLabel.setBounds (10, nameEditor.getBottom () + yOffsetBetweenControls, 80, 25);
     data2AsCvComboBox.setBounds (data2AsCvLabel.getRight () + 3, data2AsCvLabel.getY () + 3, 67, 20);
 
+    // Cross fade groups
     auto startX { nameEditor.getRight () };
     for (auto xfadeGroupIndex { 0 }; xfadeGroupIndex < XfadeGroupIndex::numberOfGroups; ++xfadeGroupIndex)
     {
         auto& xfadeGroup { xfadeGroups [xfadeGroupIndex] };
         xfadeGroup.xfadeGroupLabel.setJustificationType (juce::Justification::centredTop);
-        xfadeGroup.xfadeGroupLabel.setBounds (startX + 20 + (xfadeGroupIndex * 100), nameEditor.getY (), 100, 35);
+        xfadeGroup.xfadeGroupLabel.setBounds (startX + 18 + (xfadeGroupIndex * 100), nameEditor.getY (), 100, 35);
 
         xfadeGroup.xfadeCvLabel.setBounds (startX + 20 + (xfadeGroupIndex * 100), xfadeGroup.xfadeGroupLabel.getBottom () + 3, 20, 20);
         xfadeGroup.xfadeCvComboBox.setBounds (xfadeGroup.xfadeCvLabel.getRight () + 3, xfadeGroup.xfadeCvLabel.getY (), 60, 20);
