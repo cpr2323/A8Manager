@@ -14,12 +14,6 @@ Assimil8orEditorComponent::Assimil8orEditorComponent ()
 {
     setOpaque (true);
 
-    nameEditor.setColour (juce::TextEditor::ColourIds::backgroundColourId, juce::Colours::navajowhite);
-    nameEditor.setColour (juce::TextEditor::ColourIds::textColourId, juce::Colours::black);
-    nameEditor.onFocusLost = [this] () { updateName (nameEditor.getText ()); };
-    nameEditor.onReturnKey = [this] () { updateName (nameEditor.getText ()); };
-    addAndMakeVisible (nameEditor);
-
     auto setupButton = [this] (juce::TextButton& button, juce::String text, std::function<void ()> buttonFunction)
     {
         button.setButtonText (text);
@@ -31,17 +25,61 @@ Assimil8orEditorComponent::Assimil8orEditorComponent ()
     setupButton (exportButton, "Export", [this] () { exportPreset (); });
     importButton.setEnabled (false);
     exportButton.setEnabled (false);
-}
 
+    setupPresetControls ();
+    setupChannelControls ();
+    setupZoneControls ();
+}
+void Assimil8orEditorComponent::setupChannelControls ()
+{
+}
+void Assimil8orEditorComponent::setupZoneControls ()
+{
+}
+void Assimil8orEditorComponent::setupPresetControls ()
+{
+    nameEditor.setColour (juce::TextEditor::ColourIds::backgroundColourId, juce::Colours::navajowhite);
+    nameEditor.setColour (juce::TextEditor::ColourIds::textColourId, juce::Colours::black);
+    nameEditor.onFocusLost = [this] () { nameUiChanged (nameEditor.getText ()); };
+    nameEditor.onReturnKey = [this] () { nameUiChanged (nameEditor.getText ()); };
+    addAndMakeVisible (nameEditor);
+
+    data2AsCvLabel.setText ("Data2 As CV", juce::NotificationType::dontSendNotification);
+    addAndMakeVisible (data2AsCvLabel);
+    {
+        auto menuId { 1 };
+        data2AsCvComboBox.addItem ("Off", menuId);
+        ++menuId;
+        for (auto channelIndex { 0 }; channelIndex < 8; ++channelIndex)
+            for (auto columnIndex { 0 }; columnIndex < 3; ++columnIndex)
+            {
+                data2AsCvComboBox.addItem (juce::String::charToString('1' + channelIndex) + juce::String::charToString ('A' + columnIndex), menuId);
+                ++menuId;
+            }
+    }
+    data2AsCvComboBox.onChange = [this] ()
+    {
+        data2AsCvUiChanged (data2AsCvComboBox.getItemText (data2AsCvComboBox.getSelectedItemIndex ()));
+    };
+    addAndMakeVisible (data2AsCvComboBox);
+    for (auto xfadeGroupIndex { 0 }; xfadeGroupIndex < XfadeGroupIndex::numberOfGroups; ++xfadeGroupIndex)
+    {
+        addAndMakeVisible (xfadeGroups [xfadeGroupIndex].xfadeCvLabel);
+        addAndMakeVisible (xfadeGroups [xfadeGroupIndex].xfadeCvEditor);
+        addAndMakeVisible (xfadeGroups [xfadeGroupIndex].xfadeWidthLabel);
+        addAndMakeVisible (xfadeGroups [xfadeGroupIndex].xfadeWidthLabel);
+    }
+}
 void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
 {
     PersistentRootProperties persistentRootProperties (rootPropertiesVT, PersistentRootProperties::WrapperType::client, PersistentRootProperties::EnableCallbacks::no);
     RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
     presetProperties.wrap (runtimeRootProperties.getValueTree (), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::yes);
-    presetProperties.onNameChange = [this] (juce::String name) { refreshName (name); };
+    presetProperties.onNameChange = [this] (juce::String name) { nameDataChanged (name); };
+    presetProperties.onData2AsCVChange = [this] (juce::String name) { data2AsCvDataChanged (name); };
     appProperties.wrap (persistentRootProperties.getValueTree (), AppProperties::WrapperType::client, AppProperties::EnableCallbacks::yes);
 
-    refreshName (presetProperties.getName ());
+    nameDataChanged (presetProperties.getName ());
 }
 
 void Assimil8orEditorComponent::importPreset ()
@@ -75,6 +113,7 @@ void Assimil8orEditorComponent::paint ([[maybe_unused]] juce::Graphics& g)
 
 void Assimil8orEditorComponent::resized ()
 {
+    const auto yOffsetBetweenControls { 3 };
     auto localBounds { getLocalBounds () };
 
     auto buttonRow { localBounds.removeFromBottom (28).withTrimmedLeft (3).withTrimmedBottom (3)};
@@ -84,15 +123,38 @@ void Assimil8orEditorComponent::resized ()
     buttonRow.removeFromLeft (3);
     exportButton.setBounds (buttonRow.removeFromLeft (100));
 
-    nameEditor.setBounds (10, 10, 150, 25);
+    nameEditor.setBounds ({ 10, 10, 150, 25 });
+
+    data2AsCvLabel.setBorderSize ({ 1, 0, 1, 0 });
+    data2AsCvLabel.setBounds (10, nameEditor.getBottom () + yOffsetBetweenControls, 80, 25);
+    data2AsCvComboBox.setTextWhenNothingSelected ("");
+    data2AsCvComboBox.setBounds (data2AsCvLabel.getRight () + 3, data2AsCvLabel.getY (), 67, 25);
 }
 
-void Assimil8orEditorComponent::refreshName (juce::String name)
+void Assimil8orEditorComponent::nameDataChanged (juce::String name)
 {
     nameEditor.setText (name, false);
 }
 
-void Assimil8orEditorComponent::updateName (juce::String name)
+void Assimil8orEditorComponent::nameUiChanged (juce::String name)
 {
     presetProperties.setName (name, false);
+}
+
+void Assimil8orEditorComponent::data2AsCvDataChanged (juce::String data2AsCvString)
+{
+    auto itemId { 1 };
+    if (data2AsCvString.isEmpty ())
+    {
+        data2AsCvComboBox.setText ("", juce::NotificationType::sendNotification);
+        return;
+    }
+    if (data2AsCvString.toLowerCase () != "off")
+        itemId = 2 + ((data2AsCvString [0] - '1') * 3) + data2AsCvString [1] - 'A';
+    data2AsCvComboBox.setSelectedId (itemId, false);
+}
+
+void Assimil8orEditorComponent::data2AsCvUiChanged (juce::String data2AsCvString)
+{
+    presetProperties.setData2AsCV (data2AsCvString, false);
 }
