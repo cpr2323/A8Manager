@@ -64,10 +64,18 @@ void Assimil8orEditorComponent::setupPresetControls ()
     addAndMakeVisible (data2AsCvComboBox);
     for (auto xfadeGroupIndex { 0 }; xfadeGroupIndex < XfadeGroupIndex::numberOfGroups; ++xfadeGroupIndex)
     {
-        addAndMakeVisible (xfadeGroups [xfadeGroupIndex].xfadeCvLabel);
-        addAndMakeVisible (xfadeGroups [xfadeGroupIndex].xfadeCvEditor);
-        addAndMakeVisible (xfadeGroups [xfadeGroupIndex].xfadeWidthLabel);
-        addAndMakeVisible (xfadeGroups [xfadeGroupIndex].xfadeWidthLabel);
+        auto& xfadeGroup { xfadeGroups [xfadeGroupIndex] };
+
+        xfadeGroup.xfadeGroupLabel.setText ("Crossfade\rGroup " + juce::String::charToString('A' + xfadeGroupIndex), juce::NotificationType::dontSendNotification);
+        addAndMakeVisible (xfadeGroup.xfadeGroupLabel);
+
+        xfadeGroup.xfadeCvLabel.setText ("CV:", juce::NotificationType::dontSendNotification);
+        addAndMakeVisible (xfadeGroup.xfadeCvLabel);
+        addAndMakeVisible (xfadeGroup.xfadeCvEditor);
+
+        xfadeGroup.xfadeWidthLabel.setText ("Width:", juce::NotificationType::dontSendNotification);
+        addAndMakeVisible (xfadeGroup.xfadeWidthLabel);
+        addAndMakeVisible (xfadeGroup.xfadeWidthLabel);
     }
 }
 void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
@@ -129,6 +137,24 @@ void Assimil8orEditorComponent::resized ()
     data2AsCvLabel.setBounds (10, nameEditor.getBottom () + yOffsetBetweenControls, 80, 25);
     data2AsCvComboBox.setTextWhenNothingSelected ("");
     data2AsCvComboBox.setBounds (data2AsCvLabel.getRight () + 3, data2AsCvLabel.getY (), 67, 25);
+
+    auto startX { nameEditor.getRight () };
+    for (auto xfadeGroupIndex { 0 }; xfadeGroupIndex < XfadeGroupIndex::numberOfGroups; ++xfadeGroupIndex)
+    {
+        auto& xfadeGroup { xfadeGroups [xfadeGroupIndex] };
+        xfadeGroup.xfadeGroupLabel.setBorderSize ({ 0, 0, 0, 0 });
+        xfadeGroup.xfadeGroupLabel.setJustificationType (juce::Justification::centredTop);
+        xfadeGroup.xfadeGroupLabel.setBounds (startX + 20 + (xfadeGroupIndex * 100), nameEditor.getY (), 100, 35);
+
+        xfadeGroup.xfadeCvLabel.setBorderSize ({ 0, 0, 0, 0 });
+        xfadeGroup.xfadeCvLabel.setBounds (startX + 20 + (xfadeGroupIndex * 100), xfadeGroup.xfadeGroupLabel.getBottom () + 3, 100, 20);
+//        xfadeGroup.xfadeCvEditor.setBounds ();
+
+        xfadeGroup.xfadeWidthLabel.setBorderSize ({ 0, 0, 0, 0 });
+        xfadeGroup.xfadeWidthLabel.setBounds (startX + 20 + (xfadeGroupIndex * 100), xfadeGroup.xfadeCvLabel.getBottom () + 3, 100, 20);
+//        xfadeGroup.xfadeWidthLabel.setBounds ();
+    }
+
 }
 
 void Assimil8orEditorComponent::nameDataChanged (juce::String name)

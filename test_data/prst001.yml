@@ -1,7 +1,8 @@
 Preset 1 :
   Name : New1
+  Data2asCV : 1A
   Channel 1 :
-    ExpAM : 1C -0.75
+    ExpAM : 1
     LoopMode : 1
     Zone 1 :
       Sample : 14156-7833-19970.wav
@@ -11,7 +12,7 @@ Preset 1 :
       Sample : 14156-7833-19970.wav
       Side : 1
   Channel 3 :
-    ExpAM : 1C 0.75
+    ExpAM : 1
     LoopMode : 1
     Zone 1 :
       Sample : 17039-29767-2660.wav
@@ -21,16 +22,16 @@ Preset 1 :
       Sample : 17039-29767-2660.wav
       Side : 1
   Channel 5 :
-    Pitch : +1.79
+    ExpAM : 2
+    ExpFM : 0
     Level : -0.1
-    LinFM : 0B 1.00
-    ExpFM : 0C 1.00
-    PitchCV : 0A 0.50
-    LinAM : 2A 0.75
-    ExpAM : 2B -0.38
+    LinAM : 2
+    LinFM : 0
+    Pitch : 1.79
+    PitchCV : 0A 0.5000
     Zone 1 :
+      LevelOffset : 0.1
       Sample : 19247-22778-29151.wav
-      LevelOffset : +0.1
   Channel 6 :
     ChannelMode : 2
     Zone 1 :

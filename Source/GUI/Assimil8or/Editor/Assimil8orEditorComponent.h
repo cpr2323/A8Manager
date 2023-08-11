@@ -36,6 +36,7 @@ private:
     juce::ComboBox data2AsCvComboBox;
     struct XfadeGroupControls
     {
+        juce::Label xfadeGroupLabel;
         juce::Label xfadeCvLabel;
         juce::TextEditor xfadeCvEditor;
         juce::Label xfadeWidthLabel;
