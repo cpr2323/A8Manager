@@ -38,9 +38,9 @@ public:
         }
         if (cvInputString.toLowerCase () != "off")
         {
-            jassert (juce::String ("123").containsChar (cvInputString [0]) && juce::String ("ABC").containsChar (cvInputString [1]));
+            jassert (juce::String ("12345678").containsChar (cvInputString [0]) && juce::String ("ABC").containsChar (cvInputString [1]));
             itemId = 2 + ((cvInputString [0] - '1') * 3) + cvInputString [1] - 'A';
-            jassert (itemId > 1 && itemId < 25);
+            jassert (itemId > 1 && itemId < 26);
         }
         cvInputComboBox.setSelectedId (itemId, false);
     }
