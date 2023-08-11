@@ -4,6 +4,62 @@
 #include "../../../AppProperties.h"
 #include "../../../Assimil8or/Preset/PresetProperties.h"
 
+class CvInputComboBox : public juce::Component
+{
+public:
+    CvInputComboBox ()
+    {
+        addAndMakeVisible (cvInputComboBox);
+        {
+            auto menuId { 1 };
+            cvInputComboBox.addItem ("Off", menuId);
+            ++menuId;
+            for (auto channelIndex { 0 }; channelIndex < 8; ++channelIndex)
+                for (auto columnIndex { 0 }; columnIndex < 3; ++columnIndex)
+                {
+                    cvInputComboBox.addItem (juce::String::charToString ('1' + channelIndex) + juce::String::charToString ('A' + columnIndex), menuId);
+                    ++menuId;
+                }
+        }
+        cvInputComboBox.onChange = [this] ()
+        {
+            if (onChange != nullptr)
+                onChange ();
+        };
+    }
+
+    void setSelectedItemText (juce::String cvInputString)
+    {
+        auto itemId { 1 };
+        if (cvInputString.isEmpty ())
+        {
+            cvInputComboBox.setText ("", juce::NotificationType::sendNotification);
+            return;
+        }
+        if (cvInputString.toLowerCase () != "off")
+        {
+            jassert (juce::String ("123").containsChar (cvInputString [0]) && juce::String ("ABC").containsChar (cvInputString [1]));
+            itemId = 2 + ((cvInputString [0] - '1') * 3) + cvInputString [1] - 'A';
+            jassert (itemId > 1 && itemId < 25);
+        }
+        cvInputComboBox.setSelectedId (itemId, false);
+    }
+
+    juce::String getSelectedItemText ()
+    {
+        return cvInputComboBox.getItemText (cvInputComboBox.getSelectedItemIndex ());
+    }
+
+    std::function<void ()> onChange;
+private:
+    juce::ComboBox cvInputComboBox;
+
+    void resized () override
+    {
+        cvInputComboBox.setBounds (getLocalBounds ());
+    }
+};
+
 class Assimil8orEditorComponent : public juce::Component
 {
 public:
@@ -33,12 +89,12 @@ private:
     // XfadeDWidth
     juce::TextEditor nameEditor;
     juce::Label data2AsCvLabel;
-    juce::ComboBox data2AsCvComboBox;
+    CvInputComboBox data2AsCvComboBox;
     struct XfadeGroupControls
     {
         juce::Label xfadeGroupLabel;
         juce::Label xfadeCvLabel;
-        juce::TextEditor xfadeCvEditor;
+        CvInputComboBox xfadeCvComboBox;
         juce::Label xfadeWidthLabel;
         juce::TextEditor xfadeWidthEditor;
     };
@@ -58,6 +114,7 @@ private:
     void savePreset ();
     void setupChannelControls ();
     void setupPresetControls ();
+    void setupPresetPropertiesCallbacks ();
     void setupZoneControls ();
 
     void nameDataChanged (juce::String name);
@@ -65,6 +122,12 @@ private:
 
     void data2AsCvDataChanged (juce::String data2AsCvString);
     void data2AsCvUiChanged (juce::String data2AsCvString);
+
+    void xfadeCvDataChanged (int group, juce::String data2AsCvString);
+    void xfadeCvUiChanged (int group, juce::String data2AsCvString);
+
+    void xfadeWidthDataChanged (int group, juce::String width);
+    void xfadeWidthUiChanged (int group, juce::String width);
 
     void resized () override;
     void paint (juce::Graphics& g) override;

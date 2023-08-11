@@ -57,6 +57,13 @@ void Assimil8orPreset::write (juce::File presetFile, juce::ValueTree presetPrope
     addLine (presetPropertiesToWrite.getValueTree (), PresetProperties::XfadeACVPropertyId, Parameter::Preset::XfadeACVId + " : " + presetPropertiesToWrite.getXfadeACV ());
     addLine (presetPropertiesToWrite.getValueTree (), PresetProperties::XfadeAWidthPropertyId, Parameter::Preset::XfadeAWidthId + " : " + juce::String (presetPropertiesToWrite.getXfadeAWidth (), 2));
 
+    addLine (presetPropertiesToWrite.getValueTree (), PresetProperties::XfadeBCVPropertyId, Parameter::Preset::XfadeBCVId + " : " + presetPropertiesToWrite.getXfadeBCV ());
+    addLine (presetPropertiesToWrite.getValueTree (), PresetProperties::XfadeBWidthPropertyId, Parameter::Preset::XfadeBWidthId + " : " + juce::String (presetPropertiesToWrite.getXfadeBWidth (), 2));
+    addLine (presetPropertiesToWrite.getValueTree (), PresetProperties::XfadeCCVPropertyId, Parameter::Preset::XfadeCCVId + " : " + presetPropertiesToWrite.getXfadeCCV ());
+    addLine (presetPropertiesToWrite.getValueTree (), PresetProperties::XfadeCWidthPropertyId, Parameter::Preset::XfadeCWidthId + " : " + juce::String (presetPropertiesToWrite.getXfadeCWidth (), 2));
+    addLine (presetPropertiesToWrite.getValueTree (), PresetProperties::XfadeDCVPropertyId, Parameter::Preset::XfadeCCVId + " : " + presetPropertiesToWrite.getXfadeDCV ());
+    addLine (presetPropertiesToWrite.getValueTree (), PresetProperties::XfadeDWidthPropertyId, Parameter::Preset::XfadeCWidthId + " : " + juce::String (presetPropertiesToWrite.getXfadeDWidth (), 2));
+
     presetPropertiesToWrite.forEachChannel ([this, &hasContent, &addLine, &indentAmount, &presetPropertiesToWrite] (juce::ValueTree channelVT)
     {
         ChannelProperties channelProperties (channelVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);

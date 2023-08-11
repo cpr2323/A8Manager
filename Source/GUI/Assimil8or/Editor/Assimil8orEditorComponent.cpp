@@ -4,11 +4,11 @@
 #include "../../../Utility/PersistentRootProperties.h"
 
 // TODO - short list
+//  Add editor fields
 //  Visual Edited indicator
 //  Query for save if switching from edited Preset
 //  Only enable Save button if preset was edited
 //  Update Preset List (switch from dim to highlighted) when new preset created
-//  Add editor fields
 
 Assimil8orEditorComponent::Assimil8orEditorComponent ()
 {
@@ -44,50 +44,67 @@ void Assimil8orEditorComponent::setupPresetControls ()
     nameEditor.onReturnKey = [this] () { nameUiChanged (nameEditor.getText ()); };
     addAndMakeVisible (nameEditor);
 
+    data2AsCvLabel.setBorderSize ({ 1, 0, 1, 0 });
     data2AsCvLabel.setText ("Data2 As CV", juce::NotificationType::dontSendNotification);
     addAndMakeVisible (data2AsCvLabel);
-    {
-        auto menuId { 1 };
-        data2AsCvComboBox.addItem ("Off", menuId);
-        ++menuId;
-        for (auto channelIndex { 0 }; channelIndex < 8; ++channelIndex)
-            for (auto columnIndex { 0 }; columnIndex < 3; ++columnIndex)
-            {
-                data2AsCvComboBox.addItem (juce::String::charToString('1' + channelIndex) + juce::String::charToString ('A' + columnIndex), menuId);
-                ++menuId;
-            }
-    }
     data2AsCvComboBox.onChange = [this] ()
     {
-        data2AsCvUiChanged (data2AsCvComboBox.getItemText (data2AsCvComboBox.getSelectedItemIndex ()));
+        data2AsCvUiChanged (data2AsCvComboBox.getSelectedItemText ());
     };
     addAndMakeVisible (data2AsCvComboBox);
     for (auto xfadeGroupIndex { 0 }; xfadeGroupIndex < XfadeGroupIndex::numberOfGroups; ++xfadeGroupIndex)
     {
         auto& xfadeGroup { xfadeGroups [xfadeGroupIndex] };
 
+        xfadeGroup.xfadeGroupLabel.setBorderSize ({ 0, 0, 0, 0 });
         xfadeGroup.xfadeGroupLabel.setText ("Crossfade\rGroup " + juce::String::charToString('A' + xfadeGroupIndex), juce::NotificationType::dontSendNotification);
         addAndMakeVisible (xfadeGroup.xfadeGroupLabel);
 
+        xfadeGroup.xfadeCvLabel.setBorderSize ({ 0, 0, 0, 0 });
         xfadeGroup.xfadeCvLabel.setText ("CV:", juce::NotificationType::dontSendNotification);
         addAndMakeVisible (xfadeGroup.xfadeCvLabel);
-        addAndMakeVisible (xfadeGroup.xfadeCvEditor);
+        xfadeGroup.xfadeCvComboBox.onChange = [this, xfadeGroupIndex] ()
+        {
+            xfadeCvUiChanged (xfadeGroupIndex, xfadeGroups [xfadeGroupIndex].xfadeCvComboBox.getSelectedItemText ());
+        };
+        addAndMakeVisible (xfadeGroup.xfadeCvComboBox);
 
+        xfadeGroup.xfadeWidthLabel.setBorderSize ({ 0, 0, 0, 0 });
         xfadeGroup.xfadeWidthLabel.setText ("Width:", juce::NotificationType::dontSendNotification);
         addAndMakeVisible (xfadeGroup.xfadeWidthLabel);
-        addAndMakeVisible (xfadeGroup.xfadeWidthLabel);
+        xfadeGroup.xfadeWidthEditor.setIndents (2, 1);
+        xfadeGroup.xfadeWidthEditor.setInputRestrictions (0, ".0123456789");
+        xfadeGroup.xfadeWidthEditor.onFocusLost = [this, xfadeGroupIndex] () { xfadeWidthUiChanged (xfadeGroupIndex, xfadeGroups [xfadeGroupIndex].xfadeWidthEditor.getText ()); };
+        xfadeGroup.xfadeWidthEditor.onReturnKey = [this, xfadeGroupIndex] () { xfadeWidthUiChanged (xfadeGroupIndex, xfadeGroups [xfadeGroupIndex].xfadeWidthEditor.getText ()); };
+        addAndMakeVisible (xfadeGroup.xfadeWidthEditor);
     }
 }
+
 void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
 {
     PersistentRootProperties persistentRootProperties (rootPropertiesVT, PersistentRootProperties::WrapperType::client, PersistentRootProperties::EnableCallbacks::no);
     RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
     presetProperties.wrap (runtimeRootProperties.getValueTree (), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::yes);
-    presetProperties.onNameChange = [this] (juce::String name) { nameDataChanged (name); };
-    presetProperties.onData2AsCVChange = [this] (juce::String name) { data2AsCvDataChanged (name); };
+    setupPresetPropertiesCallbacks ();
     appProperties.wrap (persistentRootProperties.getValueTree (), AppProperties::WrapperType::client, AppProperties::EnableCallbacks::yes);
 
     nameDataChanged (presetProperties.getName ());
+}
+
+void Assimil8orEditorComponent::setupPresetPropertiesCallbacks ()
+{
+    presetProperties.onNameChange = [this] (juce::String name) { nameDataChanged (name); };
+    presetProperties.onData2AsCVChange = [this] (juce::String name) { data2AsCvDataChanged (name); };
+    // Xfade_CV
+    presetProperties.onXfadeACVChange = [this] (juce::String name) { xfadeCvDataChanged (0, name); };
+    presetProperties.onXfadeBCVChange = [this] (juce::String name) { xfadeCvDataChanged (1, name); };
+    presetProperties.onXfadeCCVChange = [this] (juce::String name) { xfadeCvDataChanged (2, name); };
+    presetProperties.onXfadeDCVChange = [this] (juce::String name) { xfadeCvDataChanged (3, name); };
+    // Xfade_Width
+    presetProperties.onXfadeAWidthChange = [this] (double width) { xfadeWidthDataChanged (0, juce::String (width)); };
+    presetProperties.onXfadeBWidthChange = [this] (double width) { xfadeWidthDataChanged (1, juce::String (width)); };
+    presetProperties.onXfadeCWidthChange = [this] (double width) { xfadeWidthDataChanged (2, juce::String (width)); };
+    presetProperties.onXfadeDWidthChange = [this] (double width) { xfadeWidthDataChanged (3, juce::String (width)); };
 }
 
 void Assimil8orEditorComponent::importPreset ()
@@ -133,28 +150,22 @@ void Assimil8orEditorComponent::resized ()
 
     nameEditor.setBounds ({ 10, 10, 150, 25 });
 
-    data2AsCvLabel.setBorderSize ({ 1, 0, 1, 0 });
     data2AsCvLabel.setBounds (10, nameEditor.getBottom () + yOffsetBetweenControls, 80, 25);
-    data2AsCvComboBox.setTextWhenNothingSelected ("");
-    data2AsCvComboBox.setBounds (data2AsCvLabel.getRight () + 3, data2AsCvLabel.getY (), 67, 25);
+    data2AsCvComboBox.setBounds (data2AsCvLabel.getRight () + 3, data2AsCvLabel.getY () + 3, 67, 20);
 
     auto startX { nameEditor.getRight () };
     for (auto xfadeGroupIndex { 0 }; xfadeGroupIndex < XfadeGroupIndex::numberOfGroups; ++xfadeGroupIndex)
     {
         auto& xfadeGroup { xfadeGroups [xfadeGroupIndex] };
-        xfadeGroup.xfadeGroupLabel.setBorderSize ({ 0, 0, 0, 0 });
         xfadeGroup.xfadeGroupLabel.setJustificationType (juce::Justification::centredTop);
         xfadeGroup.xfadeGroupLabel.setBounds (startX + 20 + (xfadeGroupIndex * 100), nameEditor.getY (), 100, 35);
 
-        xfadeGroup.xfadeCvLabel.setBorderSize ({ 0, 0, 0, 0 });
-        xfadeGroup.xfadeCvLabel.setBounds (startX + 20 + (xfadeGroupIndex * 100), xfadeGroup.xfadeGroupLabel.getBottom () + 3, 100, 20);
-//        xfadeGroup.xfadeCvEditor.setBounds ();
+        xfadeGroup.xfadeCvLabel.setBounds (startX + 20 + (xfadeGroupIndex * 100), xfadeGroup.xfadeGroupLabel.getBottom () + 3, 20, 20);
+        xfadeGroup.xfadeCvComboBox.setBounds (xfadeGroup.xfadeCvLabel.getRight () + 3, xfadeGroup.xfadeCvLabel.getY (), 60, 20);
 
-        xfadeGroup.xfadeWidthLabel.setBorderSize ({ 0, 0, 0, 0 });
-        xfadeGroup.xfadeWidthLabel.setBounds (startX + 20 + (xfadeGroupIndex * 100), xfadeGroup.xfadeCvLabel.getBottom () + 3, 100, 20);
-//        xfadeGroup.xfadeWidthLabel.setBounds ();
+        xfadeGroup.xfadeWidthLabel.setBounds (startX + 20 + (xfadeGroupIndex * 100), xfadeGroup.xfadeCvLabel.getBottom () + 3, 40, 20);
+        xfadeGroup.xfadeWidthEditor.setBounds (xfadeGroup.xfadeWidthLabel.getRight () + 3, xfadeGroup.xfadeWidthLabel.getY (), 40, 20);
     }
-
 }
 
 void Assimil8orEditorComponent::nameDataChanged (juce::String name)
@@ -169,18 +180,46 @@ void Assimil8orEditorComponent::nameUiChanged (juce::String name)
 
 void Assimil8orEditorComponent::data2AsCvDataChanged (juce::String data2AsCvString)
 {
-    auto itemId { 1 };
-    if (data2AsCvString.isEmpty ())
-    {
-        data2AsCvComboBox.setText ("", juce::NotificationType::sendNotification);
-        return;
-    }
-    if (data2AsCvString.toLowerCase () != "off")
-        itemId = 2 + ((data2AsCvString [0] - '1') * 3) + data2AsCvString [1] - 'A';
-    data2AsCvComboBox.setSelectedId (itemId, false);
+    data2AsCvComboBox.setSelectedItemText (data2AsCvString);
 }
 
 void Assimil8orEditorComponent::data2AsCvUiChanged (juce::String data2AsCvString)
 {
     presetProperties.setData2AsCV (data2AsCvString, false);
+}
+
+void Assimil8orEditorComponent::xfadeCvDataChanged (int group, juce::String data2AsCvString)
+{
+    jassert (group >= 0 && group < 4);
+    xfadeGroups [group].xfadeCvComboBox.setSelectedItemText (data2AsCvString);
+}
+
+void Assimil8orEditorComponent::xfadeCvUiChanged (int group, juce::String data2AsCvString)
+{
+    switch (group)
+    {
+        case XfadeGroupIndex::groupA : presetProperties.setXfadeACV (data2AsCvString, false); break;
+        case XfadeGroupIndex::groupB : presetProperties.setXfadeBCV (data2AsCvString, false); break;
+        case XfadeGroupIndex::groupC : presetProperties.setXfadeCCV (data2AsCvString, false); break;
+        case XfadeGroupIndex::groupD : presetProperties.setXfadeDCV (data2AsCvString, false); break;
+        default: jassertfalse; break;
+    }
+}
+
+void Assimil8orEditorComponent::xfadeWidthDataChanged (int group, juce::String widthString)
+{
+    jassert (group >= 0 && group < 4);
+    xfadeGroups [group].xfadeWidthEditor.setText (widthString);
+}
+
+void Assimil8orEditorComponent::xfadeWidthUiChanged (int group, juce::String widthString)
+{
+    switch (group)
+    {
+        case XfadeGroupIndex::groupA: presetProperties.setXfadeAWidth (widthString.getDoubleValue (), false); break;
+        case XfadeGroupIndex::groupB: presetProperties.setXfadeBWidth (widthString.getDoubleValue (), false); break;
+        case XfadeGroupIndex::groupC: presetProperties.setXfadeCWidth (widthString.getDoubleValue (), false); break;
+        case XfadeGroupIndex::groupD: presetProperties.setXfadeDWidth (widthString.getDoubleValue (), false); break;
+        default: jassertfalse; break;
+    }
 }
