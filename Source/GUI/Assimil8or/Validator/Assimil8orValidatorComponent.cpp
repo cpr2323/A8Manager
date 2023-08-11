@@ -39,11 +39,6 @@ Assimil8orValidatorComponent::Assimil8orValidatorComponent ()
     setupFilterButton (warningFilterButton, "W", "Toggles viewing of Warning messages");
     setupFilterButton (errorFilterButton, "E", "Toggles viewing of Error messages");
 
-    setupFilterList ();
-    validatorResultsQuickLookupList.clear ();
-    buildQuickLookupList ();
-    validationResultsListBox.updateContent ();
-    updateHeader ();
 
     audioFormatManager.registerBasicFormats ();
 }
@@ -66,13 +61,13 @@ void Assimil8orValidatorComponent::init (juce::ValueTree rootPropertiesVT)
     validatorProperties.wrap (runtimeRootProperties.getValueTree (), ValidatorProperties::WrapperType::client, ValidatorProperties::EnableCallbacks::yes);
     validatorProperties.onScanStatusChanged = [this] (juce::String scanStatus)
     {
-        juce::Logger::outputDebugString ("Assimil8orValidatorComponent::init - validatorProperties.onScanStatusChanged: " + scanStatus);
+        localCopyOfValidatorResultsList = validatorProperties.getValidatorResultListVT ().createCopy ();
         juce::MessageManager::callAsync ([this, scanStatus] ()
         {
-            juce::Logger::outputDebugString ("Assimil8orValidatorComponent::init (execution on MM thread)- validatorProperties.onScanStatusChanged: " + scanStatus);
             updateListFromScan (scanStatus);
         });
     };
+    localCopyOfValidatorResultsList = validatorProperties.getValidatorResultListVT ().createCopy ();
     updateListFromScan ("idle");
 }
 
@@ -110,8 +105,10 @@ void Assimil8orValidatorComponent::updateHeader ()
 void Assimil8orValidatorComponent::buildQuickLookupList ()
 {
     totalItems = 0;
-    //auto tempCopy {}
-    ValidatorResultListProperties validatorResultListProperties (validatorProperties.getValidatorResultListVT (),
+    if (! localCopyOfValidatorResultsList.isValid ())
+        return;
+
+    ValidatorResultListProperties validatorResultListProperties (localCopyOfValidatorResultsList,
                                                                  ValidatorResultListProperties::WrapperType::client, ValidatorResultListProperties::EnableCallbacks::no);
     // iterate over the state message list, adding each one to the quick list
     validatorResultListProperties.forEachResult ([this] (juce::ValueTree validatorResultVT)

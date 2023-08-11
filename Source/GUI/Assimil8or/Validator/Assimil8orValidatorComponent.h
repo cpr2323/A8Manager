@@ -31,6 +31,7 @@ private:
     juce::AudioFormatManager audioFormatManager;
     std::unique_ptr<juce::FileChooser> fileChooser;
     int totalItems { 0 };
+    juce::ValueTree localCopyOfValidatorResultsList;
 
     void buildQuickLookupList ();
     void convert (juce::File file);

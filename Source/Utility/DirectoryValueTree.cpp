@@ -1,7 +1,7 @@
 #include "DirectoryValueTree.h"
 #include "../Assimil8or/FileTypeHelpers.h"
 
-#define LOG_DIRECTORY_VALUE_TREE 1
+#define LOG_DIRECTORY_VALUE_TREE 0
 #if LOG_DIRECTORY_VALUE_TREE
 #define LogDirectoryValueTree(cond, text) if (cond) {juce::Logger::outputDebugString (text); }
 #else
