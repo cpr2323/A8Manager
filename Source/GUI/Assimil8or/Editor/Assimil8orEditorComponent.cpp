@@ -93,6 +93,12 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
 
 void Assimil8orEditorComponent::setupPresetPropertiesCallbacks ()
 {
+    auto getDoubleString = [this] (const juce::Identifier& propertyId, double value)
+    {
+        if (presetProperties.getValueTree ().hasProperty (propertyId))
+            return juce::String (value);
+        return juce::String ();
+    };
     presetProperties.onNameChange = [this] (juce::String name) { nameDataChanged (name); };
     presetProperties.onData2AsCVChange = [this] (juce::String name) { data2AsCvDataChanged (name); };
     // Xfade_CV
@@ -101,10 +107,10 @@ void Assimil8orEditorComponent::setupPresetPropertiesCallbacks ()
     presetProperties.onXfadeCCVChange = [this] (juce::String name) { xfadeCvDataChanged (2, name); };
     presetProperties.onXfadeDCVChange = [this] (juce::String name) { xfadeCvDataChanged (3, name); };
     // Xfade_Width
-    presetProperties.onXfadeAWidthChange = [this] (double width) { xfadeWidthDataChanged (0, juce::String (width)); };
-    presetProperties.onXfadeBWidthChange = [this] (double width) { xfadeWidthDataChanged (1, juce::String (width)); };
-    presetProperties.onXfadeCWidthChange = [this] (double width) { xfadeWidthDataChanged (2, juce::String (width)); };
-    presetProperties.onXfadeDWidthChange = [this] (double width) { xfadeWidthDataChanged (3, juce::String (width)); };
+    presetProperties.onXfadeAWidthChange = [this, getDoubleString] (double width) { xfadeWidthDataChanged (0, getDoubleString (PresetProperties::XfadeAWidthPropertyId, width)); };
+    presetProperties.onXfadeBWidthChange = [this, getDoubleString] (double width) { xfadeWidthDataChanged (1, getDoubleString (PresetProperties::XfadeBWidthPropertyId, width)); };
+    presetProperties.onXfadeCWidthChange = [this, getDoubleString] (double width) { xfadeWidthDataChanged (2, getDoubleString (PresetProperties::XfadeCWidthPropertyId, width)); };
+    presetProperties.onXfadeDWidthChange = [this, getDoubleString] (double width) { xfadeWidthDataChanged (3, getDoubleString (PresetProperties::XfadeDWidthPropertyId, width)); };
 }
 
 void Assimil8orEditorComponent::importPreset ()
