@@ -44,7 +44,7 @@ public:
             itemId = 2 + ((cvInputString [0] - '1') * 3) + cvInputString [1] - 'A';
             jassert (itemId > 1 && itemId < 26);
         }
-        cvInputComboBox.setSelectedId (itemId, false);
+        cvInputComboBox.setSelectedId (itemId, juce::NotificationType::dontSendNotification);
     }
 
     juce::String getSelectedItemText ()
