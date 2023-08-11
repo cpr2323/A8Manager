@@ -4,6 +4,8 @@
 #include "../../../Utility/PersistentRootProperties.h"
 
 // TODO - short list
+//  Implement defaults/min/max data structures
+//  Implement default support in the editor and preset data model
 //  Add editor fields
 //  Visual Edited indicator
 //  Query for save if switching from edited Preset

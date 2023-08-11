@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Assimil8orParameterValues>
+  <Preset>
+    <Parameter name="Data2asCV" type="cvInputGlobal" default="Off"/>
+    <Parameter name="Name" type="string" default="New"/>
+	<Parameter name="XfadeACV" type="cvInputGlobal" default="Off"/>
+	<Parameter name="XfadeAWidth" type="double" min="0.01" max="10" default="1.0"/>
+	<Parameter name="XfadeBCV" type="cvInputGlobal" default="Off"/>
+	<Parameter name="XfadeBWidth" type="double" min="0.01" max="10" default="1.0"/>
+	<Parameter name="XfadeCCV" type="cvInputGlobal" default="Off"/>
+	<Parameter name="XfadeCWidth" type="double" min="0.01" max="10" default="1.0"/>
+	<Parameter name="XfadeDCV" type="cvInputGlobal" default="Off"/>
+	<Parameter name="XfadeDWidth" type="double" min="0.01" max="10" default="1.0"/>
+  </Preset>
+  <Channel>
+    <Parameter name="Aliasing" type="integer" min="0" max="100" default="0"/>
+	<Parameter name="AliasingMod" type="cvInputWithDouble" min="-1" max="1" default="Off 1.0"/>
+	<Parameter name="Attack" type="double" min="0" max="99" default="1.0"/>
+	<Parameter name="AttackFromCurrent" type="integer" min="0" max="100" default="0"/>
+	<Parameter name="AttackMod" type="cvInputWithDouble" min="-1" max="1" default="Off 1.0"/>
+	<Parameter name="AutoTrigger" type="bool" default="false"/>
+	<Parameter name="Bits" type="double" min="1" max="32" default="32"/>
+	<Parameter name="BitsMod" type="cvInputWithDouble" min="-1" max="1" default="Off 1.0"/>
+	<Parameter name="ChannelMode" type="integer" min="0" max="3" default="0"/>
+	<Parameter name="ExpAM" type="double" default="1.0"/>
+	<Parameter name="ExpFM" type="double" default="1.0"/>
+	<Parameter name="Level" type="double" min= "-90" max="6" default="0"/>
+	<Parameter name="LinAM" type="double" default="1.0"/>
+	<Parameter name="LinAMisExtEnv" type="bool" default="false"/>
+	<Parameter name="LinFM" type="double" default="1.0"/>
+	<Parameter name="LoopLengthMod" type="cvInputWithDouble" min="-1" max="1" default="Off 1.0"/>
+	<Parameter name="LoopMode" type="integer" min="0" max="2" default="0"/>
+	<Parameter name="LoopStartMod" type="cvInputWithDouble" min="-1" max="1" default="Off 1.0"/>
+	<Parameter name="MixLevel" type="double" min= "-90" max="6" default="1.0"/>
+	<Parameter name="MixMod" type="cvInputWithDouble" min="-1" max="1" default="Off 1.0"/>
+	<Parameter name="MixModIsFader" type="bool" default="false"/>
+	<Parameter name="Pan" type="double" default="1.0"/>
+	<Parameter name="PanMod" type="cvInputWithDouble" min="-1" max="1" default="Off 1.0"/>
+	<Parameter name="PhaseCV" type="cvInputWithDouble" min="-1" max="1" default="Off 1.0"/>
+	<Parameter name="Pitch" type="double" min="-96" max="60" default="0"/>
+	<Parameter name="PitchCV" type="cvInputWithDouble" min="-1" max="1" default="Off 0.5"/>
+	<Parameter name="PlayMode" type="integer" min="0" max="1" default="0"/>
+	<Parameter name="PMIndex" type="double" default="1.0"/>
+	<Parameter name="PMIndexMod" type="cvInputWithDouble" min="-1" max="1" default="Off 1.0"/>
+	<Parameter name="PMSource" type="integer" min="0" max="10" default="0"/>
+	<Parameter name="Release" type="double" min="0" max="0.99" default="0.1"/>
+	<Parameter name="ReleaseMod" type="cvInputWithDouble" min="-1" max="1" default="Off 1.0"/>
+	<Parameter name="Reverse" type="bool" default="false"/>
+	<Parameter name="SampleStartMod" type="cvInputWithDouble" min="-1" max="1" default="Off 1.0"/>
+	<Parameter name="SampleEndMod" type="cvInputWithDouble" min="-1" max="1" default="Off 1.0"/>
+	<Parameter name="SpliceSmoothing" type="bool" default="false"/>
+	<Parameter name="XfadeGroup" type="stringList" list="None,A,B,C,D" default=""/>
+	<Parameter name="ZonesCV" type="cvInputChannel" default="Off"/>
+	<Parameter name="ZonesRT" type="integer" min="0" max="3" default="0"/>
+  </Channel>
+  <Zone>
+    <Parameter name="LevelOffset" type="double" default="0"/>
+    <Parameter name="LoopLength" type="double" min= "0" max="[sampleEnd]" default="[sampleEnd]"/>
+    <Parameter name="LoopStart" type="integer" min="0" max="[sampleEnd]" default="0"/>
+    <Parameter name="MinVoltage" type="double" min="-5" max="4.99" default="[unknown]"/>
+    <Parameter name="PitchOffset" type="double" default="0"/>
+    <Parameter name="Sample" type="string" default="">
+    <Parameter name="SampleStart" type="integer" min="0" max="[sampleEnd]" default="0"/>
+    <Parameter name="SampleEnd" type="integer" min="0" max="[sampleLength]" default="[sampleLength]"/>
+    <Parameter name="Side" type="integer" min="0" max="1" default="0"/>
+  </Zone>
+</Assimil8orParameterValues>

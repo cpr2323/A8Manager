@@ -9,6 +9,14 @@
 //          Channel 1 (? zones)
 //              Zone 1
 
+// everything has a default
+// some things have min/max
+// type info:
+//      bool
+//      int
+//      fp, decimal places?
+//      fp, +/-
+//      string
 
 using Action = std::function<void ()>;
 using ActionMap = std::map<juce::String, Action>;
