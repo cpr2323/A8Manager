@@ -101,7 +101,23 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
     setupPresetPropertiesCallbacks ();
     appProperties.wrap (persistentRootProperties.getValueTree (), AppProperties::WrapperType::client, AppProperties::EnableCallbacks::yes);
 
+    auto getDoubleString = [this] (const juce::Identifier& propertyId, double value)
+    {
+        if (presetProperties.getValueTree ().hasProperty (propertyId))
+            return juce::String (value);
+        return juce::String ();
+    };
+
     nameDataChanged (presetProperties.getName ());
+    data2AsCvDataChanged (presetProperties.getData2AsCV ());
+    xfadeCvDataChanged (0, presetProperties.getXfadeACV());
+    xfadeWidthDataChanged (0, getDoubleString (PresetProperties::XfadeAWidthPropertyId, presetProperties.getXfadeAWidth ()));
+    xfadeCvDataChanged (1, presetProperties.getXfadeBCV ());
+    xfadeWidthDataChanged (1, getDoubleString (PresetProperties::XfadeAWidthPropertyId, presetProperties.getXfadeBWidth ()));
+    xfadeCvDataChanged (2, presetProperties.getXfadeCCV ());
+    xfadeWidthDataChanged (2, getDoubleString (PresetProperties::XfadeAWidthPropertyId, presetProperties.getXfadeCWidth ()));
+    xfadeCvDataChanged (3, presetProperties.getXfadeDCV ());
+    xfadeWidthDataChanged (3, getDoubleString (PresetProperties::XfadeAWidthPropertyId, presetProperties.getXfadeDWidth ()));
 }
 
 void Assimil8orEditorComponent::setupPresetPropertiesCallbacks ()
