@@ -3,28 +3,12 @@
 #include <JuceHeader.h>
 #include "ChannelProperties.h"
 #include "../../Utility/ValueTreeWrapper.h"
-
-// TODO - under construction - idea exploration
-///////////////////////////////////////////////
-//
-template <typename T>
-struct ParameterSpec
-{
-    T min;
-    T max;
-    T dflt;
-};
-
-using ParameterSpecInt = ParameterSpec<int>;
-using ParameterSpecFloat = ParameterSpec<float>;
-using ParameterSpecString = ParameterSpec<juce::String>;
-//
-///////////////////////////////////////////////
+#include "BinaryData.h"
 
 class PresetProperties : public ValueTreeWrapper<PresetProperties>
 {
 public:
-    PresetProperties () noexcept : ValueTreeWrapper<PresetProperties> (PresetTypeId) {}
+    PresetProperties () noexcept;
     PresetProperties (juce::ValueTree vt, WrapperType wrapperType, EnableCallbacks shouldEnableCallbacks) noexcept
         : ValueTreeWrapper<PresetProperties> (PresetTypeId, vt, wrapperType, shouldEnableCallbacks) {}
 
@@ -86,5 +70,9 @@ public:
     void processValueTree () {}
 
 private:
+    juce::ValueTree parameterData;
+
+    void validateParameterData ();
+
     void valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property) override;
 };

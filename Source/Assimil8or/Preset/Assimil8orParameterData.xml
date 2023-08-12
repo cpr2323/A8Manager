@@ -1,6 +1,14 @@
-<?xml version="1.0" encoding="UTF-8"?>
-
 <Assimil8orParameterValues>
+  <TypeDocs>
+    <Type name="bool" desc="a true/false value">
+    <Type name="cvInputChannel" desc="a cv input from 0A - 8C">
+    <Type name="cvInputGlobal" desc="a cv input from 1A - 8C">
+    <Type name="cvInputWithDouble" desc="a cv input from 0A - 8C with an assoicated double value">
+    <Type name="double" desc="a floating point number">
+    <Type name="integer" desc="an integer number">
+    <Type name="string" desc="a string">
+    <Type name="stringList" desc="a list of possible strings">
+  </TypeDocs>
   <Preset>
     <Parameter name="Data2asCV" type="cvInputGlobal" default="Off"/>
     <Parameter name="Name" type="string" default="New"/>
@@ -50,7 +58,7 @@
 	<Parameter name="SampleStartMod" type="cvInputWithDouble" min="-1" max="1" default="Off 1.0"/>
 	<Parameter name="SampleEndMod" type="cvInputWithDouble" min="-1" max="1" default="Off 1.0"/>
 	<Parameter name="SpliceSmoothing" type="bool" default="false"/>
-	<Parameter name="XfadeGroup" type="stringList" list="None,A,B,C,D" default=""/>
+	<Parameter name="XfadeGroup" type="stringList" list="None,A,B,C,D" default="None"/>
 	<Parameter name="ZonesCV" type="cvInputChannel" default="Off"/>
 	<Parameter name="ZonesRT" type="integer" min="0" max="3" default="0"/>
   </Channel>
@@ -58,9 +66,9 @@
     <Parameter name="LevelOffset" type="double" default="0"/>
     <Parameter name="LoopLength" type="double" min= "0" max="[sampleEnd]" default="[sampleEnd]"/>
     <Parameter name="LoopStart" type="integer" min="0" max="[sampleEnd]" default="0"/>
-    <Parameter name="MinVoltage" type="double" min="-5" max="4.99" default="[unknown]"/>
+    <Parameter name="MinVoltage" type="double" min="-5" max="4.99" default="0"/>
     <Parameter name="PitchOffset" type="double" default="0"/>
-    <Parameter name="Sample" type="string" default="">
+    <Parameter name="Sample" type="string" default=""/>
     <Parameter name="SampleStart" type="integer" min="0" max="[sampleEnd]" default="0"/>
     <Parameter name="SampleEnd" type="integer" min="0" max="[sampleLength]" default="[sampleLength]"/>
     <Parameter name="Side" type="integer" min="0" max="1" default="0"/>

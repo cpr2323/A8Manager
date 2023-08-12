@@ -2,6 +2,103 @@
 
 const auto kMaxChannels { 8 };
 
+PresetProperties::PresetProperties () noexcept : ValueTreeWrapper<PresetProperties> (PresetTypeId)
+{
+    auto xmlToRead { juce::XmlDocument::parse(BinaryData::Assimil8orParameterData_xml)};
+    parameterData = juce::ValueTree::fromXml (*xmlToRead);
+    validateParameterData ();
+}
+
+void PresetProperties::validateParameterData ()
+{
+    juce::Logger::outputDebugString ("PresetProperties::validateParameterData");
+    jassert (parameterData.getType ().toString () == "Assimil8orParameterValues");
+    auto presetSection { parameterData.getChildWithName ("Preset") };
+    jassert (presetSection.isValid ());
+    auto channelSection { parameterData.getChildWithName ("Channel") };
+    jassert (channelSection.isValid ());
+    auto zoneSection { parameterData.getChildWithName ("Zone") };
+    jassert (zoneSection.isValid ());
+
+    auto validateParameters = [] (juce::ValueTree vt)
+    {
+        juce::Logger::outputDebugString ("Section: " + vt.getType ().toString ());
+        ValueTreeHelpers::forEachChild (vt, [] (juce::ValueTree child)
+            {
+                // make sure there are no unexpected children
+                jassert (child.getType ().toString () == "Parameter");
+                // make sure the require properties are there
+                jassert (child.hasProperty ("name"));
+                jassert (child.hasProperty ("type"));
+                jassert (child.hasProperty ("default"));
+                const auto name { child.getProperty ("name").toString () };
+                const auto parameterType { child.getProperty ("type").toString () };
+                const auto parameterDefault { child.getProperty ("default").toString () };
+                auto optionalProperties { juce::String {} };
+                auto addOptional = [&optionalProperties, child] (juce::String property)
+                {
+                    jassert (child.hasProperty (property));
+                    if (optionalProperties.isEmpty ())
+                        optionalProperties = ", [";
+                    else
+                        optionalProperties = optionalProperties.trimCharactersAtEnd ("]") + ", ";
+                    const auto value { child.getProperty (property).toString () };
+                    optionalProperties += property + ": '" + value + "']";
+                };
+                auto ouptutString { juce::String ("  name: " + name + ", type: " + parameterType + ", default: '" + parameterDefault + "'") };
+                if (parameterType == "bool")
+                {
+                    jassert (parameterDefault == "false" || parameterDefault == "true");
+                }
+                else if (parameterType == "cvInputChannel")
+                {
+
+                }
+                else if (parameterType == "cvInputGlobal")
+                {
+
+                }
+                else if (parameterType == "cvInputWithDouble")
+                {
+
+                }
+                else if (parameterType == "double")
+                {
+
+                }
+                else if (parameterType == "integer")
+                {
+
+                }
+                else if (parameterType == "string")
+                {
+
+                }
+                else if (parameterType == "stringList")
+                {
+                    jassert (child.hasProperty ("list"));
+                    addOptional ("list");
+                }
+                else
+                {
+                    // unknown type
+                    jassertfalse;
+                }
+                if (child.hasProperty ("min") || child.hasProperty ("max"))
+                {
+                    jassert (child.hasProperty ("min") && child.hasProperty ("max"));
+                    addOptional ("min");
+                    addOptional ("max");
+                }
+            juce::Logger::outputDebugString (ouptutString + optionalProperties);
+            return true;
+        });
+    };
+    validateParameters (presetSection);
+    validateParameters (channelSection);
+    validateParameters (zoneSection);
+}
+
 int PresetProperties::getNumChannels ()
 {
     auto numChannels { 0 };
