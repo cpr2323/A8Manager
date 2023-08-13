@@ -101,9 +101,9 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
     xfadeWidthDataChanged (3, getDoubleString (PresetProperties::XfadeDWidthPropertyId, presetProperties.getXfadeDWidth (), presetProperties.getXfadeDWidthDefault ()));
 }
 
-juce::String Assimil8orEditorComponent::getDoubleString (const juce::Identifier& propertyId, double value, double default)
+juce::String Assimil8orEditorComponent::getDoubleString (const juce::Identifier& propertyId, double value, double defaultValue)
 {
-    return juce::String (presetProperties.getValueTree ().hasProperty (propertyId) ? value : default);
+    return juce::String (presetProperties.getValueTree ().hasProperty (propertyId) ? value : defaultValue);
 };
 
 void Assimil8orEditorComponent::setupPresetPropertiesCallbacks ()
