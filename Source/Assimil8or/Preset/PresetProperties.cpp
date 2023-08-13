@@ -1,31 +1,9 @@
 #include "PresetProperties.h"
+#include "DefaultHelpers.h"
 #include "ParameterDataProperties.h"
 #include "ParameterNames.h"
 
 const auto kMaxChannels { 8 };
-
-template <typename T>
-void setAndHandleDefault (juce::ValueTree vt, juce::Identifier id, T value, bool includeSelfCallback, juce::ValueTree::Listener* vtListener, std::function<T ()> getDefaultValue)
-{
-    jassert (vtListener != nullptr);
-    jassert (getDefaultValue != nullptr);
-    if (includeSelfCallback)
-        vt.setProperty (id, value, nullptr);
-    else
-        vt.setPropertyExcludingListener (vtListener, id, value, nullptr);
-    if (value == getDefaultValue ())
-        vt.removeProperty (id, nullptr);
-}
-
-template <typename T>
-T getAndHandleDefault (const juce::ValueTree vt, const juce::Identifier id, std::function<T ()> getDefaultValue)
-{
-    jassert (getDefaultValue != nullptr);
-    if (vt.hasProperty (id))
-        return vt.getProperty (id);
-    else
-        return getDefaultValue ();
-}
 
 int PresetProperties::getNumChannels ()
 {
@@ -79,7 +57,7 @@ void PresetProperties::setIndex (int index, bool includeSelfCallback)
 
 void PresetProperties::setData2AsCV (juce::String data2AsCv, bool includeSelfCallback)
 {
-    setAndHandleDefault<juce::String> (data, Data2asCVPropertyId, data2AsCv, includeSelfCallback, this, [this] () { return getData2AsCVDefault (); });
+    DefaultHelpers::setAndHandleDefault<juce::String> (data, Data2asCVPropertyId, data2AsCv, includeSelfCallback, this, [this] () { return getData2AsCVDefault (); });
 }
 
 void PresetProperties::setName (juce::String name, bool includeSelfCallback)
@@ -137,7 +115,7 @@ int PresetProperties::getIndex ()
 
 juce::String PresetProperties::getData2AsCV ()
 {
-    return getAndHandleDefault<juce::String> (data, Data2asCVPropertyId, [this] () { return getData2AsCVDefault (); });
+    return DefaultHelpers::getAndHandleDefault<juce::String> (data, Data2asCVPropertyId, [this] () { return getData2AsCVDefault (); });
 }
 
 juce::String PresetProperties::getName ()

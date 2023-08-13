@@ -1,6 +1,7 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "ParameterDataListProperties.h"
 #include "../../Utility/ValueTreeWrapper.h"
 
 class ZoneProperties : public ValueTreeWrapper<ZoneProperties>
@@ -32,6 +33,16 @@ public:
     int getSampleEnd ();
     int getSide ();
 
+    double getLevelOffsetDefault ();
+    double getLoopLengthDefault ();
+    int getLoopStartDefault ();
+    double getMinVoltageDefault ();
+    double getPitchOffsetDefault ();
+    juce::String getSampleDefault ();
+    int getSampleStartDefault ();
+    int getSampleEndDefault ();
+    int getSideDefault ();
+
     std::function<void (int index)> onIndexChange;
     std::function<void (double levelOffset)> onLevelOffsetChange;
     std::function<void (double loopLength)> onLoopLengthChange;
@@ -61,5 +72,7 @@ public:
     void processValueTree () {}
 
 private:
+    ParameterDataListProperties parameterDataListProperties;
+
     void valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property) override;
 };

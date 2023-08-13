@@ -63,7 +63,6 @@ public:
     std::function<void (juce::String cvInput)> onXfadeDCVChange;
     std::function<void (double width)> onXfadeDWidthChange;
 
-    void initDefaults ();
     void clear ();
     juce::ValueTree addChannel (int index);
     void forEachChannel (std::function<bool (juce::ValueTree channelVT)> channelVTCallback);
