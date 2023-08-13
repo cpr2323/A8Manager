@@ -62,47 +62,47 @@ void PresetProperties::setData2AsCV (juce::String data2AsCv, bool includeSelfCal
 
 void PresetProperties::setName (juce::String name, bool includeSelfCallback)
 {
-    setValue (name, NamePropertyId, includeSelfCallback);
+    setValue(name, NamePropertyId, includeSelfCallback);
 }
 
 void PresetProperties::setXfadeACV (juce::String cvInput, bool includeSelfCallback)
 {
-    setValue (cvInput, XfadeACVPropertyId, includeSelfCallback);
+    DefaultHelpers::setAndHandleDefault<juce::String> (data, XfadeACVPropertyId, cvInput, includeSelfCallback, this, [this] () { return getXfadeACVDefault(); });
 }
 
 void PresetProperties::setXfadeAWidth (double width, bool includeSelfCallback)
 {
-    setValue (width, XfadeAWidthPropertyId, includeSelfCallback);
+    DefaultHelpers::setAndHandleDefault<double> (data, XfadeAWidthPropertyId, width, includeSelfCallback, this, [this] () { return getXfadeAWidthDefault(); });
 }
 
 void PresetProperties::setXfadeBCV (juce::String cvInput, bool includeSelfCallback)
 {
-    setValue (cvInput, XfadeBCVPropertyId, includeSelfCallback);
+    DefaultHelpers::setAndHandleDefault<juce::String> (data, XfadeBCVPropertyId, cvInput, includeSelfCallback, this, [this] () { return getXfadeBCVDefault(); });
 }
 
 void PresetProperties::setXfadeBWidth (double width, bool includeSelfCallback)
 {
-    setValue (width, XfadeBWidthPropertyId, includeSelfCallback);
+    DefaultHelpers::setAndHandleDefault<double> (data, XfadeBWidthPropertyId, width, includeSelfCallback, this, [this] () { return getXfadeBWidthDefault(); });
 }
 
 void PresetProperties::setXfadeCCV (juce::String cvInput, bool includeSelfCallback)
 {
-    setValue (cvInput, XfadeCCVPropertyId, includeSelfCallback);
+    DefaultHelpers::setAndHandleDefault<juce::String> (data, XfadeCCVPropertyId, cvInput, includeSelfCallback, this, [this] () { return getXfadeCCVDefault(); });
 }
 
 void PresetProperties::setXfadeCWidth (double width, bool includeSelfCallback)
 {
-    setValue (width, XfadeCWidthPropertyId, includeSelfCallback);
+    DefaultHelpers::setAndHandleDefault<double> (data, XfadeCWidthPropertyId, width, includeSelfCallback, this, [this] () { return getXfadeCWidthDefault(); });
 }
 
 void PresetProperties::setXfadeDCV (juce::String cvInput, bool includeSelfCallback)
 {
-    setValue (cvInput, XfadeDCVPropertyId, includeSelfCallback);
+    DefaultHelpers::setAndHandleDefault<juce::String> (data, XfadeDCVPropertyId, cvInput, includeSelfCallback, this, [this] () { return getXfadeDCVDefault(); });
 }
 
 void PresetProperties::setXfadeDWidth (double width, bool includeSelfCallback)
 {
-    setValue (width, XfadeDWidthPropertyId, includeSelfCallback);
+    DefaultHelpers::setAndHandleDefault<double> (data, XfadeDWidthPropertyId, width, includeSelfCallback, this, [this] () { return getXfadeDWidthDefault(); });
 }
 
 ////////////////////////////////////////////////////////////////////
@@ -120,47 +120,47 @@ juce::String PresetProperties::getData2AsCV ()
 
 juce::String PresetProperties::getName ()
 {
-    return getValue<juce::String> (NamePropertyId);
+    return getValue<juce::String>(NamePropertyId);
 }
 
 juce::String PresetProperties::getXfadeACV ()
 {
-    return getValue<juce::String> (XfadeACVPropertyId);
+    return DefaultHelpers::getAndHandleDefault<juce::String> (data, XfadeACVPropertyId, [this] () { return getXfadeACVDefault(); });
 }
 
 double PresetProperties::getXfadeAWidth ()
 {
-    return getValue<double> (XfadeAWidthPropertyId);
+    return DefaultHelpers::getAndHandleDefault<double> (data, XfadeAWidthPropertyId, [this] () { return getXfadeAWidthDefault(); });
 }
 
 juce::String PresetProperties::getXfadeBCV ()
 {
-    return getValue<juce::String> (XfadeBCVPropertyId);
+    return DefaultHelpers::getAndHandleDefault<juce::String> (data, XfadeBCVPropertyId, [this] () { return getXfadeBCVDefault(); });
 }
 
 double PresetProperties::getXfadeBWidth ()
 {
-    return getValue<double> (XfadeBWidthPropertyId);
+    return DefaultHelpers::getAndHandleDefault<double> (data, XfadeBWidthPropertyId, [this] () { return getXfadeBWidthDefault(); });
 }
 
 juce::String PresetProperties::getXfadeCCV ()
 {
-    return getValue<juce::String> (XfadeCCVPropertyId);
+    return DefaultHelpers::getAndHandleDefault<juce::String> (data, XfadeCCVPropertyId, [this] () { return getXfadeCCVDefault(); });
 }
 
 double PresetProperties::getXfadeCWidth ()
 {
-    return getValue<double> (XfadeCWidthPropertyId);
+    return DefaultHelpers::getAndHandleDefault<double> (data, XfadeCWidthPropertyId, [this] () { return getXfadeCWidthDefault(); });
 }
 
 juce::String PresetProperties::getXfadeDCV ()
 {
-    return getValue<juce::String> (XfadeDCVPropertyId);
+    return DefaultHelpers::getAndHandleDefault<juce::String> (data, XfadeDCVPropertyId, [this] () { return getXfadeDCVDefault(); });
 }
 
 double PresetProperties::getXfadeDWidth ()
 {
-    return getValue<double> (XfadeDWidthPropertyId);
+    return DefaultHelpers::getAndHandleDefault<double> (data, XfadeDWidthPropertyId, [this] () { return getXfadeDWidthDefault(); });
 }
 
 ////////////////////////////////////////////////////////////////////
@@ -169,6 +169,51 @@ double PresetProperties::getXfadeDWidth ()
 juce::String PresetProperties::getData2AsCVDefault ()
 {
     return ParameterDataProperties::getDefaultString (parameterDataListProperties.getParameter (Section::PresetId, Parameter::Preset::Data2asCVId));
+}
+
+juce::String PresetProperties::getNameDefault()
+{
+    return ParameterDataProperties::getDefaultString (parameterDataListProperties.getParameter (Section::PresetId, Parameter::Preset::NameId));
+}
+
+juce::String PresetProperties::getXfadeACVDefault()
+{
+    return ParameterDataProperties::getDefaultString (parameterDataListProperties.getParameter (Section::PresetId, Parameter::Preset::XfadeACVId));
+}
+
+double PresetProperties::getXfadeAWidthDefault()
+{
+    return ParameterDataProperties::getDefaultDouble (parameterDataListProperties.getParameter (Section::PresetId, Parameter::Preset::XfadeAWidthId));
+}
+
+juce::String PresetProperties::getXfadeBCVDefault()
+{
+    return ParameterDataProperties::getDefaultString (parameterDataListProperties.getParameter (Section::PresetId, Parameter::Preset::XfadeBCVId));
+}
+
+double PresetProperties::getXfadeBWidthDefault()
+{
+    return ParameterDataProperties::getDefaultDouble (parameterDataListProperties.getParameter (Section::PresetId, Parameter::Preset::XfadeBWidthId));
+}
+
+juce::String PresetProperties::getXfadeCCVDefault()
+{
+    return ParameterDataProperties::getDefaultString (parameterDataListProperties.getParameter (Section::PresetId, Parameter::Preset::XfadeCCVId));
+}
+
+double PresetProperties::getXfadeCWidthDefault()
+{
+    return ParameterDataProperties::getDefaultDouble (parameterDataListProperties.getParameter (Section::PresetId, Parameter::Preset::XfadeCWidthId));
+}
+
+juce::String PresetProperties::getXfadeDCVDefault()
+{
+    return ParameterDataProperties::getDefaultString (parameterDataListProperties.getParameter (Section::PresetId, Parameter::Preset::XfadeDCVId));
+}
+
+double PresetProperties::getXfadeDWidthDefault()
+{
+    return ParameterDataProperties::getDefaultDouble (parameterDataListProperties.getParameter (Section::PresetId, Parameter::Preset::XfadeDWidthId));
 }
 
 void PresetProperties::valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property)
