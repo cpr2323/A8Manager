@@ -1,9 +1,9 @@
 #include "PresetProperties.h"
+#include "ParameterDataProperties.h"
 #include "ParameterNames.h"
 
 const auto kMaxChannels { 8 };
 
-// TODO - refactor idea
 template <typename T>
 void setAndHandleDefault (juce::ValueTree vt, juce::Identifier id, T value, bool includeSelfCallback, juce::ValueTree::Listener* vtListener, std::function<T ()> getDefaultValue)
 {
