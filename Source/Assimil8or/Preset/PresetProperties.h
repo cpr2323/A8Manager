@@ -14,9 +14,11 @@ public:
 
     juce::String getName () { return data.getProperty ("name"); }
     juce::String getType () { return data.getProperty ("type"); }
+
     juce::String getDefaultString () { return data.getProperty ("default"); }
     int getDefaultInt () { return static_cast<int>(data.getProperty ("default")); }
     double getDefaultDouble () { return static_cast<double>(data.getProperty ("default")); }
+
     juce::StringPairArray getOptionalProperties ()
     {
         juce::StringPairArray optionalProperties;
@@ -27,6 +29,11 @@ public:
                 optionalProperties.set (propertyName, data.getProperty (propertyName));
         }
     }
+
+    static juce::String getDefaultString (juce::ValueTree vt) { return vt.getProperty ("default"); }
+    static int getDefaultInt (juce::ValueTree vt) { return static_cast<int>(vt.getProperty ("default")); }
+    static double getDefaultDouble (juce::ValueTree vt) { return static_cast<double>(vt.getProperty ("default")); }
+
     static inline const juce::Identifier ParameterTypeId { "Parameter" };
 
     void initValueTree () {}
@@ -66,7 +73,20 @@ public:
     static inline const juce::Identifier ZoneSectionTypeId { "Zone" };
     static inline const juce::Identifier ParameterTypeId { "Parameter" };
 
-    void initValueTree () {}
+    void initValueTree ()
+    {
+        juce::XmlDocument xmlDoc { BinaryData::Assimil8orParameterData_xml };
+        auto xmlElement { xmlDoc.getDocumentElement (false) };
+        if (auto parseError { xmlDoc.getLastParseError () }; parseError != "")
+            juce::Logger::outputDebugString ("XML Parsing Error: " + parseError);
+        // NOTE: this is a hard failure, which indicates there is a problem in the file Assimil8orParameterData.xml
+        jassert (xmlDoc.getLastParseError () == "");
+        if (xmlElement != nullptr)
+        {
+            auto parameterData { juce::ValueTree::fromXml (*xmlElement) };
+            wrap (parameterData, ParameterDataListProperties::WrapperType::owner, ParameterDataListProperties::EnableCallbacks::no);
+        }
+    }
     void processValueTree ()
     {
         validateParameterData ();
@@ -168,12 +188,10 @@ class PresetProperties : public ValueTreeWrapper<PresetProperties>
 public:
     PresetProperties () noexcept : ValueTreeWrapper<PresetProperties> (PresetTypeId)
     {
-        initDefaults ();
     }
     PresetProperties (juce::ValueTree vt, WrapperType wrapperType, EnableCallbacks shouldEnableCallbacks) noexcept
         : ValueTreeWrapper<PresetProperties> (PresetTypeId, vt, wrapperType, shouldEnableCallbacks)
     {
-        initDefaults ();
     }
 
     void setIndex (int index, bool includeSelfCallback);
@@ -247,7 +265,6 @@ public:
 
 private:
     ParameterDataListProperties parameterDataListProperties;
-    std::map<juce::String, juce::var> defaults;
 
     void valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property) override;
 };

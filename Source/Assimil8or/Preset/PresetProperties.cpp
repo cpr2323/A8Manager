@@ -42,26 +42,6 @@ void PresetProperties::initValueTree ()
     clear ();
 }
 
-void PresetProperties::initDefaults ()
-{
-    juce::XmlDocument xmlDoc { BinaryData::Assimil8orParameterData_xml };
-    auto xmlElement { xmlDoc.getDocumentElement (false) };
-    if (auto parseError { xmlDoc.getLastParseError () }; parseError != "")
-        juce::Logger::outputDebugString ("XML Parsing Error: " + parseError);
-    // NOTE: this is a hard failure, which indicates there is a problem in the file Assimil8orParameterData.xml
-    jassert (xmlDoc.getLastParseError () == "");
-    if (xmlElement != nullptr)
-    {
-        auto parameterData { juce::ValueTree::fromXml (*xmlElement) };
-        parameterDataListProperties.wrap (parameterData, ParameterDataListProperties::WrapperType::owner, ParameterDataListProperties::EnableCallbacks::no);
-        parameterDataListProperties.forEachParameter (Section::PresetId, [this] (juce::ValueTree parameterVT)
-        {
-            defaults [parameterVT.getProperty ("name")] = parameterVT.getProperty ("default");
-            return true;
-        });
-    }
-}
-
 void PresetProperties::clear ()
 {
     data.removeAllChildren (nullptr);
@@ -89,6 +69,9 @@ void PresetProperties::forEachChannel (std::function<bool (juce::ValueTree chann
     });
 }
 
+////////////////////////////////////////////////////////////////////
+// set___
+////////////////////////////////////////////////////////////////////
 void PresetProperties::setIndex (int index, bool includeSelfCallback)
 {
     setValue (index, IndexPropertyId, includeSelfCallback);
@@ -144,6 +127,9 @@ void PresetProperties::setXfadeDWidth (double width, bool includeSelfCallback)
     setValue (width, XfadeDWidthPropertyId, includeSelfCallback);
 }
 
+////////////////////////////////////////////////////////////////////
+// get___
+////////////////////////////////////////////////////////////////////
 int PresetProperties::getIndex ()
 {
     return getValue<int> (IndexPropertyId);
@@ -199,9 +185,12 @@ double PresetProperties::getXfadeDWidth ()
     return getValue<double> (XfadeDWidthPropertyId);
 }
 
+////////////////////////////////////////////////////////////////////
+// get___Defaults
+////////////////////////////////////////////////////////////////////
 juce::String PresetProperties::getData2AsCVDefault ()
 {
-    return defaults [Parameter::Preset::Data2asCVId];
+    return ParameterDataProperties::getDefaultString (parameterDataListProperties.getParameter (Section::PresetId, Parameter::Preset::Data2asCVId));
 }
 
 void PresetProperties::valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property)
