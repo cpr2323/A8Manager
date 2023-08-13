@@ -28,6 +28,7 @@ public:
             if (propertyName != "name" && propertyName != "type" && propertyName != "default")
                 optionalProperties.set (propertyName, data.getProperty (propertyName));
         }
+        return optionalProperties;
     }
 
     static juce::String getDefaultString (juce::ValueTree vt) { return vt.getProperty ("default"); }

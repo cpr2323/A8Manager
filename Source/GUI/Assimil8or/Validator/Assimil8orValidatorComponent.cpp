@@ -39,8 +39,8 @@ Assimil8orValidatorComponent::Assimil8orValidatorComponent ()
     setupFilterButton (warningFilterButton, "W", "Toggles viewing of Warning messages");
     setupFilterButton (errorFilterButton, "E", "Toggles viewing of Error messages");
 
-
     audioFormatManager.registerBasicFormats ();
+    setupFilterList ();
 }
 
 Assimil8orValidatorComponent::~Assimil8orValidatorComponent ()
