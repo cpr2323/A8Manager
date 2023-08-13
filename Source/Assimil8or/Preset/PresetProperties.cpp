@@ -3,25 +3,6 @@
 
 const auto kMaxChannels { 8 };
 
-PresetProperties::PresetProperties () noexcept : ValueTreeWrapper<PresetProperties> (PresetTypeId)
-{
-    auto len { std::strlen (BinaryData::Assimil8orParameterData_xml) };
-    juce::XmlDocument xmlDoc { BinaryData::Assimil8orParameterData_xml };
-    jassert (xmlDoc.getLastParseError () == "");
-    if (auto parseError { xmlDoc.getLastParseError () }; parseError != "")
-        juce::Logger::outputDebugString ("XML Parsing Error: " + parseError);
-    auto parameterData { juce::ValueTree::fromXml (*xmlDoc.getDocumentElement(false)) };
-    parameterDataListProperties.wrap (parameterData, ParameterDataListProperties::WrapperType::owner, ParameterDataListProperties::EnableCallbacks::no);
-
-    //std::map<juce::String, juce::Value> defaults;
-    parameterDataListProperties.forEachParameter (Section::PresetId, [this] (juce::ValueTree parameterVT)
-    { 
-        defaults [parameterVT.getProperty ("name")] = parameterVT.getProperty ("default");
-        return true;
-    });
-}
-
-
 int PresetProperties::getNumChannels ()
 {
     auto numChannels { 0 };
@@ -34,8 +15,27 @@ void PresetProperties::initValueTree ()
     // normally in this function we create all of the properties
     // but, as the Assimil8or only writes out parameters that have changed from the defaults
     // we will emulate this by only adding properties when they change, or are in a preset file that is read in
-
     clear ();
+}
+
+void PresetProperties::initDefaults ()
+{
+    juce::XmlDocument xmlDoc { BinaryData::Assimil8orParameterData_xml };
+    auto xmlElement { xmlDoc.getDocumentElement (false) };
+    if (auto parseError { xmlDoc.getLastParseError () }; parseError != "")
+        juce::Logger::outputDebugString ("XML Parsing Error: " + parseError);
+    // NOTE: this is a hard failure, which indicates there is a problem in the file Assimil8orParameterData.xml
+    jassert (xmlDoc.getLastParseError () == "");
+    if (xmlElement != nullptr)
+    {
+        auto parameterData { juce::ValueTree::fromXml (*xmlElement) };
+        parameterDataListProperties.wrap (parameterData, ParameterDataListProperties::WrapperType::owner, ParameterDataListProperties::EnableCallbacks::no);
+        parameterDataListProperties.forEachParameter (Section::PresetId, [this] (juce::ValueTree parameterVT)
+        {
+            defaults [parameterVT.getProperty ("name")] = parameterVT.getProperty ("default");
+            return true;
+        });
+    }
 }
 
 void PresetProperties::clear ()

@@ -166,9 +166,15 @@ private:
 class PresetProperties : public ValueTreeWrapper<PresetProperties>
 {
 public:
-    PresetProperties () noexcept;
+    PresetProperties () noexcept : ValueTreeWrapper<PresetProperties> (PresetTypeId)
+    {
+        initDefaults ();
+    }
     PresetProperties (juce::ValueTree vt, WrapperType wrapperType, EnableCallbacks shouldEnableCallbacks) noexcept
-        : ValueTreeWrapper<PresetProperties> (PresetTypeId, vt, wrapperType, shouldEnableCallbacks) {}
+        : ValueTreeWrapper<PresetProperties> (PresetTypeId, vt, wrapperType, shouldEnableCallbacks)
+    {
+        initDefaults ();
+    }
 
     void setIndex (int index, bool includeSelfCallback);
     void setData2AsCV (juce::String data2AsCv, bool includeSelfCallback);
@@ -217,6 +223,7 @@ public:
     std::function<void (juce::String cvInput)> onXfadeDCVChange;
     std::function<void (double width)> onXfadeDWidthChange;
 
+    void initDefaults ();
     void clear ();
     juce::ValueTree addChannel (int index);
     void forEachChannel (std::function<bool (juce::ValueTree channelVT)> channelVTCallback);

@@ -1,13 +1,13 @@
 <Assimil8orParameterValues>
   <TypeDocs>
-    <Type name="bool" desc="a true/false value">
-    <Type name="cvInputChannel" desc="a cv input from 0A - 8C">
-    <Type name="cvInputGlobal" desc="a cv input from 1A - 8C">
-    <Type name="cvInputWithDouble" desc="a cv input from 0A - 8C with an assoicated double value">
-    <Type name="double" desc="a floating point number">
-    <Type name="integer" desc="an integer number">
-    <Type name="string" desc="a string">
-    <Type name="stringList" desc="a list of possible strings">
+    <Type name="bool" desc="a true/false value"/>
+    <Type name="cvInputChannel" desc="a cv input from 0A - 8C"/>
+    <Type name="cvInputGlobal" desc="a cv input from 1A - 8C"/>
+    <Type name="cvInputWithDouble" desc="a cv input from 0A - 8C with an assoicated double value"/>
+    <Type name="double" desc="a floating point number"/>
+    <Type name="integer" desc="an integer number"/>
+    <Type name="string" desc="a string"/>
+    <Type name="stringList" desc="a list of possible strings"/>
   </TypeDocs>
   <Preset>
     <Parameter name="Data2asCV" type="cvInputGlobal" default="Off"/>
