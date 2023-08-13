@@ -1,5 +1,4 @@
 #include "ZoneProperties.h"
-#include "DefaultHelpers.h"
 #include "ParameterDataProperties.h"
 #include "ParameterNames.h"
 
@@ -27,27 +26,27 @@ void ZoneProperties::setIndex (int index, bool includeSelfCallback)
 
 void ZoneProperties::setLevelOffset (double levelOffset, bool includeSelfCallback)
 {
-    DefaultHelpers::setAndHandleDefault<double> (data, LevelOffsetPropertyId, levelOffset, includeSelfCallback, this, [this] () { return getLevelOffsetDefault (); });
+    setValue (levelOffset, LevelOffsetPropertyId, includeSelfCallback);
 }
 
 void ZoneProperties::setLoopLength (double loopLength, bool includeSelfCallback)
 {
-    DefaultHelpers::setAndHandleDefault<double> (data, LoopLengthPropertyId, loopLength, includeSelfCallback, this, [this] () { return getLoopLengthDefault (); });
+    setValue (loopLength, LoopLengthPropertyId, includeSelfCallback);
 }
 
 void ZoneProperties::setLoopStart (int loopStart, bool includeSelfCallback)
 {
-    DefaultHelpers::setAndHandleDefault<double> (data, LoopStartPropertyId, loopStart, includeSelfCallback, this, [this] () { return getLoopStartDefault (); });
+    setValue (loopStart, LoopStartPropertyId, includeSelfCallback);
 }
 
 void ZoneProperties::setMinVoltage (double minVoltage, bool includeSelfCallback)
 {
-    DefaultHelpers::setAndHandleDefault<double> (data, MinVoltagePropertyId, minVoltage, includeSelfCallback, this, [this] () { return getMinVoltageDefault (); });
+    setValue (minVoltage, MinVoltagePropertyId, includeSelfCallback);
 }
 
 void ZoneProperties::setPitchOffset (double pitchOffset, bool includeSelfCallback)
 {
-    DefaultHelpers::setAndHandleDefault<double> (data, PitchOffsetPropertyId, pitchOffset, includeSelfCallback, this, [this] () { return getPitchOffsetDefault (); });
+    setValue (pitchOffset, PitchOffsetPropertyId, includeSelfCallback);
 }
 
 void ZoneProperties::setSample (juce::String sampleFileName, bool includeSelfCallback)
@@ -57,17 +56,17 @@ void ZoneProperties::setSample (juce::String sampleFileName, bool includeSelfCal
 
 void ZoneProperties::setSampleStart (int sampleStart, bool includeSelfCallback)
 {
-    DefaultHelpers::setAndHandleDefault<int> (data, SampleStartPropertyId, sampleStart, includeSelfCallback, this, [this] () { return getSampleStartDefault (); });
+    setValue (sampleStart, SampleStartPropertyId, includeSelfCallback);
 }
 
 void ZoneProperties::setSampleEnd (int sampleEnd, bool includeSelfCallback)
 {
-    DefaultHelpers::setAndHandleDefault<int> (data, SampleEndPropertyId, sampleEnd, includeSelfCallback, this, [this] () { return getSampleEndDefault (); });
+    setValue (sampleEnd, SampleEndPropertyId, includeSelfCallback);
 }
 
 void ZoneProperties::setSide (int side, bool includeSelfCallback)
 {
-    DefaultHelpers::setAndHandleDefault<int> (data, SidePropertyId, side, includeSelfCallback, this, [this] () { return getSideDefault (); });
+    setValue (side, SidePropertyId, includeSelfCallback);
 }
 
 ////////////////////////////////////////////////////////////////////
@@ -80,27 +79,27 @@ int ZoneProperties::getIndex ()
 
 double ZoneProperties::getLevelOffset ()
 {
-    return DefaultHelpers::getAndHandleDefault<double> (data, LevelOffsetPropertyId, [this] () { return getLevelOffsetDefault (); });
+    return getValue<double> (LevelOffsetPropertyId);
 }
 
 double ZoneProperties::getLoopLength ()
 {
-    return DefaultHelpers::getAndHandleDefault<double> (data, LoopLengthPropertyId, [this] () { return getLoopLengthDefault (); });
+    return getValue<double> (LoopLengthPropertyId);
 }
 
 int ZoneProperties::getLoopStart ()
 {
-    return DefaultHelpers::getAndHandleDefault<int> (data, LoopStartPropertyId, [this] () { return getLoopStartDefault (); });
+    return getValue<int> (LoopStartPropertyId);
 }
 
 double ZoneProperties::getMinVoltage ()
 {
-    return DefaultHelpers::getAndHandleDefault<double> (data, MinVoltagePropertyId, [this] () { return getMinVoltageDefault (); });
+    return getValue<double> (MinVoltagePropertyId);
 }
 
 double ZoneProperties::getPitchOffset ()
 {
-    return DefaultHelpers::getAndHandleDefault<double> (data, PitchOffsetPropertyId, [this] () { return getPitchOffsetDefault (); });
+    return getValue<double> (PitchOffsetPropertyId);
 }
 
 juce::String ZoneProperties::getSample ()
@@ -110,17 +109,17 @@ juce::String ZoneProperties::getSample ()
 
 int ZoneProperties::getSampleStart ()
 {
-    return DefaultHelpers::getAndHandleDefault<int> (data, SampleStartPropertyId, [this] () { return getSampleStartDefault (); });
+    return getValue<int> (SampleStartPropertyId);
 }
 
 int ZoneProperties::getSampleEnd ()
 {
-    return DefaultHelpers::getAndHandleDefault<int> (data, SampleEndPropertyId, [this] () { return getSampleEndDefault (); });
+    return getValue<int> (SampleEndPropertyId);
 }
 
 int ZoneProperties::getSide ()
 {
-    return DefaultHelpers::getAndHandleDefault<int> (data, SidePropertyId, [this] () { return getSideDefault (); });
+    return getValue<int> (SidePropertyId);
 }
 
 ////////////////////////////////////////////////////////////////////

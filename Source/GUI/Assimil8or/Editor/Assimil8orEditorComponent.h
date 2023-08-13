@@ -109,7 +109,6 @@ private:
     std::array<XfadeGroupControls, 4> xfadeGroups;
 
     void exportPreset ();
-    juce::String getDoubleString (const juce::Identifier& propertyId, double value, double defaultValue);
     juce::String getPresetFileName (int presetIndex);
     void importPreset ();
     void savePreset ();

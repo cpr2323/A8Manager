@@ -117,7 +117,7 @@ void PresetListComponent::loadFirstPreset ()
     {
         presetListBox.selectRow (0, false, true);
         presetListBox.scrollToEnsureRowIsOnscreen (0);
-        presetProperties.clear ();
+        presetProperties.initToDefaults ();
     }
 }
 
@@ -137,7 +137,7 @@ void PresetListComponent::loadPreset (juce::File presetFile)
     Assimil8orPreset assimil8orPreset;
     assimil8orPreset.parse (fileContents);
 
-    presetProperties.clear ();
+    presetProperties.initToDefaults ();
     presetProperties.getValueTree ().copyPropertiesAndChildrenFrom (assimil8orPreset.getPresetVT (), nullptr);
 }
 
@@ -185,6 +185,6 @@ void PresetListComponent::listBoxItemClicked (int row, [[maybe_unused]] const ju
     if (presetExists [row])
         loadPreset (presetFile);
     else
-        presetProperties.clear ();
+        presetProperties.initToDefaults ();
     appProperties.addRecentlyUsedFile (presetFile.getFullPathName ());
 }

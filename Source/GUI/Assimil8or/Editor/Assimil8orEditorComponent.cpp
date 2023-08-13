@@ -30,12 +30,7 @@ Assimil8orEditorComponent::Assimil8orEditorComponent ()
     setupChannelControls ();
     setupZoneControls ();
 }
-void Assimil8orEditorComponent::setupChannelControls ()
-{
-}
-void Assimil8orEditorComponent::setupZoneControls ()
-{
-}
+
 void Assimil8orEditorComponent::setupPresetControls ()
 {
     nameEditor.setColour (juce::TextEditor::ColourIds::backgroundColourId, juce::Colours::navajowhite);
@@ -81,6 +76,14 @@ void Assimil8orEditorComponent::setupPresetControls ()
     }
 }
 
+void Assimil8orEditorComponent::setupChannelControls ()
+{
+}
+
+void Assimil8orEditorComponent::setupZoneControls ()
+{
+}
+
 void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
 {
     PersistentRootProperties persistentRootProperties (rootPropertiesVT, PersistentRootProperties::WrapperType::client, PersistentRootProperties::EnableCallbacks::no);
@@ -95,16 +98,11 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
     xfadeCvDataChanged (1, presetProperties.getXfadeBCV ());
     xfadeCvDataChanged (2, presetProperties.getXfadeCCV ());
     xfadeCvDataChanged (3, presetProperties.getXfadeDCV ());
-    xfadeWidthDataChanged (0, getDoubleString (PresetProperties::XfadeAWidthPropertyId, presetProperties.getXfadeAWidth (), presetProperties.getXfadeAWidthDefault ()));
-    xfadeWidthDataChanged (1, getDoubleString (PresetProperties::XfadeBWidthPropertyId, presetProperties.getXfadeBWidth (), presetProperties.getXfadeBWidthDefault ()));
-    xfadeWidthDataChanged (2, getDoubleString (PresetProperties::XfadeCWidthPropertyId, presetProperties.getXfadeCWidth (), presetProperties.getXfadeCWidthDefault ()));
-    xfadeWidthDataChanged (3, getDoubleString (PresetProperties::XfadeDWidthPropertyId, presetProperties.getXfadeDWidth (), presetProperties.getXfadeDWidthDefault ()));
+    xfadeWidthDataChanged (0, juce::String (presetProperties.getXfadeAWidth ()));
+    xfadeWidthDataChanged (1, juce::String (presetProperties.getXfadeBWidth ()));
+    xfadeWidthDataChanged (2, juce::String (presetProperties.getXfadeCWidth ()));
+    xfadeWidthDataChanged (3, juce::String (presetProperties.getXfadeDWidth ()));
 }
-
-juce::String Assimil8orEditorComponent::getDoubleString (const juce::Identifier& propertyId, double value, double defaultValue)
-{
-    return juce::String (presetProperties.getValueTree ().hasProperty (propertyId) ? value : defaultValue);
-};
 
 void Assimil8orEditorComponent::setupPresetPropertiesCallbacks ()
 {
@@ -116,14 +114,10 @@ void Assimil8orEditorComponent::setupPresetPropertiesCallbacks ()
     presetProperties.onXfadeCCVChange = [this] (juce::String dataAndCv) { xfadeCvDataChanged (2, dataAndCv); };
     presetProperties.onXfadeDCVChange = [this] (juce::String dataAndCv) { xfadeCvDataChanged (3, dataAndCv); };
     // Xfade_Width
-    presetProperties.onXfadeAWidthChange = [this] (double width) { xfadeWidthDataChanged (0, getDoubleString (PresetProperties::XfadeAWidthPropertyId, width,
-                                                                                          presetProperties.getXfadeAWidthDefault ())); };
-    presetProperties.onXfadeBWidthChange = [this] (double width) { xfadeWidthDataChanged (1, getDoubleString (PresetProperties::XfadeBWidthPropertyId, width,
-                                                                                          presetProperties.getXfadeBWidthDefault ())); };
-    presetProperties.onXfadeCWidthChange = [this] (double width) { xfadeWidthDataChanged (2, getDoubleString (PresetProperties::XfadeCWidthPropertyId, width,
-                                                                                          presetProperties.getXfadeCWidthDefault ())); };
-    presetProperties.onXfadeDWidthChange = [this] (double width) { xfadeWidthDataChanged (3, getDoubleString (PresetProperties::XfadeDWidthPropertyId, width,
-                                                                                          presetProperties.getXfadeDWidthDefault ())); };
+    presetProperties.onXfadeAWidthChange = [this] (double width) { xfadeWidthDataChanged (0, juce::String (width)); };
+    presetProperties.onXfadeBWidthChange = [this] (double width) { xfadeWidthDataChanged (1, juce::String (width)); };
+    presetProperties.onXfadeCWidthChange = [this] (double width) { xfadeWidthDataChanged (2, juce::String (width)); };
+    presetProperties.onXfadeDWidthChange = [this] (double width) { xfadeWidthDataChanged (3, juce::String (width)); };
 }
 
 void Assimil8orEditorComponent::importPreset ()
@@ -232,6 +226,7 @@ void Assimil8orEditorComponent::xfadeWidthDataChanged (int group, juce::String w
 {
     juce::Logger::outputDebugString ("Assimil8orEditorComponent::xfadeWidthDataChanged: group: " + juce::String(group) + "= '" + widthString + "'");
     jassert (group >= 0 && group < 4);
+    jassert (widthString != "0");
     xfadeGroups [group].xfadeWidthEditor.setText (widthString);
 }
 

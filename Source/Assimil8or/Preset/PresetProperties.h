@@ -8,12 +8,14 @@
 class PresetProperties : public ValueTreeWrapper<PresetProperties>
 {
 public:
-    PresetProperties () noexcept : ValueTreeWrapper<PresetProperties> (PresetTypeId)
+    PresetProperties () noexcept : parameterDataListProperties (ParameterDataListProperties()), ValueTreeWrapper<PresetProperties> (PresetTypeId)
     {
+        initToDefaultIsMissing ();
     }
     PresetProperties (juce::ValueTree vt, WrapperType wrapperType, EnableCallbacks shouldEnableCallbacks) noexcept
-        : ValueTreeWrapper<PresetProperties> (PresetTypeId, vt, wrapperType, shouldEnableCallbacks)
+        : parameterDataListProperties (ParameterDataListProperties ()), ValueTreeWrapper<PresetProperties> (PresetTypeId, vt, wrapperType, shouldEnableCallbacks)
     {
+        initToDefaultIsMissing ();
     }
 
     void setIndex (int index, bool includeSelfCallback);
@@ -63,7 +65,6 @@ public:
     std::function<void (juce::String cvInput)> onXfadeDCVChange;
     std::function<void (double width)> onXfadeDWidthChange;
 
-    void clear ();
     juce::ValueTree addChannel (int index);
     void forEachChannel (std::function<bool (juce::ValueTree channelVT)> channelVTCallback);
     int getNumChannels ();
@@ -81,11 +82,16 @@ public:
     static inline const juce::Identifier XfadeDCVPropertyId    { "xfadeDCV" };
     static inline const juce::Identifier XfadeDWidthPropertyId { "xfadeDWidth" };
 
-    void initValueTree ();
+    void initValueTree () {}
     void processValueTree () {}
+
+    void initToDefaults ();
+    void initToDefaultIsMissing ();
 
 private:
     ParameterDataListProperties parameterDataListProperties;
+
+    void clear (bool onlyClearIfPropertyMissing);
 
     void valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property) override;
 };

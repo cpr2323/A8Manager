@@ -141,7 +141,7 @@ public:
     std::function<void (int aliasing)> onAliasingChange;
     std::function<void (AmountAndCvInput amountAndCvInput)> onAliasingModChange;
     std::function<void (double attack)> onAttackChange;
-    std::function<void (int attackFromCurrent)> onAttackFromCurrentChange;
+    std::function<void (bool attackFromCurrent)> onAttackFromCurrentChange;
     std::function<void (AmountAndCvInput amountAndCvInput)> onAttackModChange;
     std::function<void (bool autoTrigger)> onAutoTriggerChange;
     std::function<void (double bits)> onBitsChange;

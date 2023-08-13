@@ -12,22 +12,41 @@ int PresetProperties::getNumChannels ()
     return numChannels;
 }
 
-void PresetProperties::initValueTree ()
+void PresetProperties::initToDefaults ()
 {
-    // normally in this function we create all of the properties
-    // but, as the Assimil8or only writes out parameters that have changed from the defaults
-    // we will emulate this by only adding properties when they change, or are in a preset file that is read in, and removing them when they are set to the default value
-    clear ();
+    clear (false); // clear everything
 }
 
-void PresetProperties::clear ()
+void PresetProperties::initToDefaultIsMissing ()
 {
-    data.removeAllChildren (nullptr);
-    data.removeAllProperties (nullptr);
+    clear (true); // only init the missing things
+}
 
+void PresetProperties::clear (bool onlyClearIfPropertyMissing)
+{
     const auto kDefaultPresetName { "New" };
     setIndex (1, false);
     setName (kDefaultPresetName, false);
+
+    if (! onlyClearIfPropertyMissing || ! data.hasProperty (Data2asCVPropertyId))
+        setData2AsCV (getData2AsCVDefault (), false);
+    //setName (juce::String name, false); this is currently set in the clear function
+    if (! onlyClearIfPropertyMissing || ! data.hasProperty (XfadeACVPropertyId))
+        setXfadeACV (getXfadeACVDefault (), false);
+    if (! onlyClearIfPropertyMissing || ! data.hasProperty (XfadeAWidthPropertyId))
+        setXfadeAWidth (getXfadeAWidthDefault (), false);
+    if (! onlyClearIfPropertyMissing || ! data.hasProperty (XfadeBCVPropertyId))
+        setXfadeBCV (getXfadeBCVDefault (), false);
+    if (! onlyClearIfPropertyMissing || ! data.hasProperty (XfadeBWidthPropertyId))
+        setXfadeBWidth (getXfadeBWidthDefault (), false);
+    if (! onlyClearIfPropertyMissing || ! data.hasProperty (XfadeCCVPropertyId))
+        setXfadeCCV (getXfadeCCVDefault (), false);
+    if (! onlyClearIfPropertyMissing || ! data.hasProperty (XfadeCWidthPropertyId))
+        setXfadeCWidth (getXfadeCWidthDefault (), false);
+    if (! onlyClearIfPropertyMissing || ! data.hasProperty (XfadeDCVPropertyId))
+        setXfadeDCV (getXfadeDCVDefault (), false);
+    if (! onlyClearIfPropertyMissing || ! data.hasProperty (XfadeDWidthPropertyId))
+        setXfadeDWidth (getXfadeDWidthDefault (), false);
 }
 
 juce::ValueTree PresetProperties::addChannel (int index)
@@ -57,52 +76,52 @@ void PresetProperties::setIndex (int index, bool includeSelfCallback)
 
 void PresetProperties::setData2AsCV (juce::String data2AsCv, bool includeSelfCallback)
 {
-    DefaultHelpers::setAndHandleDefault<juce::String> (data, Data2asCVPropertyId, data2AsCv, includeSelfCallback, this, [this] () { return getData2AsCVDefault (); });
+    setValue (data2AsCv, Data2asCVPropertyId, includeSelfCallback);
 }
 
 void PresetProperties::setName (juce::String name, bool includeSelfCallback)
 {
-    setValue(name, NamePropertyId, includeSelfCallback);
+    setValue (name, NamePropertyId, includeSelfCallback);
 }
 
 void PresetProperties::setXfadeACV (juce::String cvInput, bool includeSelfCallback)
 {
-    DefaultHelpers::setAndHandleDefault<juce::String> (data, XfadeACVPropertyId, cvInput, includeSelfCallback, this, [this] () { return getXfadeACVDefault(); });
+    setValue (cvInput, XfadeACVPropertyId, includeSelfCallback);
 }
 
 void PresetProperties::setXfadeAWidth (double width, bool includeSelfCallback)
 {
-    DefaultHelpers::setAndHandleDefault<double> (data, XfadeAWidthPropertyId, width, includeSelfCallback, this, [this] () { return getXfadeAWidthDefault(); });
+    setValue (width, XfadeAWidthPropertyId, includeSelfCallback);
 }
 
 void PresetProperties::setXfadeBCV (juce::String cvInput, bool includeSelfCallback)
 {
-    DefaultHelpers::setAndHandleDefault<juce::String> (data, XfadeBCVPropertyId, cvInput, includeSelfCallback, this, [this] () { return getXfadeBCVDefault(); });
+    setValue (cvInput, XfadeBCVPropertyId, includeSelfCallback);
 }
 
 void PresetProperties::setXfadeBWidth (double width, bool includeSelfCallback)
 {
-    DefaultHelpers::setAndHandleDefault<double> (data, XfadeBWidthPropertyId, width, includeSelfCallback, this, [this] () { return getXfadeBWidthDefault(); });
+    setValue (width, XfadeBWidthPropertyId, includeSelfCallback);
 }
 
 void PresetProperties::setXfadeCCV (juce::String cvInput, bool includeSelfCallback)
 {
-    DefaultHelpers::setAndHandleDefault<juce::String> (data, XfadeCCVPropertyId, cvInput, includeSelfCallback, this, [this] () { return getXfadeCCVDefault(); });
+    setValue (cvInput, XfadeCCVPropertyId, includeSelfCallback);
 }
 
 void PresetProperties::setXfadeCWidth (double width, bool includeSelfCallback)
 {
-    DefaultHelpers::setAndHandleDefault<double> (data, XfadeCWidthPropertyId, width, includeSelfCallback, this, [this] () { return getXfadeCWidthDefault(); });
+    setValue (width, XfadeCWidthPropertyId, includeSelfCallback);
 }
 
 void PresetProperties::setXfadeDCV (juce::String cvInput, bool includeSelfCallback)
 {
-    DefaultHelpers::setAndHandleDefault<juce::String> (data, XfadeDCVPropertyId, cvInput, includeSelfCallback, this, [this] () { return getXfadeDCVDefault(); });
+    setValue (cvInput, XfadeDCVPropertyId, includeSelfCallback);
 }
 
 void PresetProperties::setXfadeDWidth (double width, bool includeSelfCallback)
 {
-    DefaultHelpers::setAndHandleDefault<double> (data, XfadeDWidthPropertyId, width, includeSelfCallback, this, [this] () { return getXfadeDWidthDefault(); });
+    setValue (width, XfadeDWidthPropertyId, includeSelfCallback);
 }
 
 ////////////////////////////////////////////////////////////////////
@@ -115,52 +134,52 @@ int PresetProperties::getIndex ()
 
 juce::String PresetProperties::getData2AsCV ()
 {
-    return DefaultHelpers::getAndHandleDefault<juce::String> (data, Data2asCVPropertyId, [this] () { return getData2AsCVDefault (); });
+    return getValue<juce::String> (Data2asCVPropertyId);
 }
 
 juce::String PresetProperties::getName ()
 {
-    return getValue<juce::String>(NamePropertyId);
+    return getValue<juce::String> (NamePropertyId);
 }
 
 juce::String PresetProperties::getXfadeACV ()
 {
-    return DefaultHelpers::getAndHandleDefault<juce::String> (data, XfadeACVPropertyId, [this] () { return getXfadeACVDefault(); });
+    return getValue<juce::String> (XfadeACVPropertyId);
 }
 
 double PresetProperties::getXfadeAWidth ()
 {
-    return DefaultHelpers::getAndHandleDefault<double> (data, XfadeAWidthPropertyId, [this] () { return getXfadeAWidthDefault(); });
+    return getValue<double> (XfadeAWidthPropertyId);
 }
 
 juce::String PresetProperties::getXfadeBCV ()
 {
-    return DefaultHelpers::getAndHandleDefault<juce::String> (data, XfadeBCVPropertyId, [this] () { return getXfadeBCVDefault(); });
+    return getValue<juce::String> (XfadeBCVPropertyId);
 }
 
 double PresetProperties::getXfadeBWidth ()
 {
-    return DefaultHelpers::getAndHandleDefault<double> (data, XfadeBWidthPropertyId, [this] () { return getXfadeBWidthDefault(); });
+    return getValue<double> (XfadeBWidthPropertyId);
 }
 
 juce::String PresetProperties::getXfadeCCV ()
 {
-    return DefaultHelpers::getAndHandleDefault<juce::String> (data, XfadeCCVPropertyId, [this] () { return getXfadeCCVDefault(); });
+    return getValue<juce::String> (XfadeCCVPropertyId);
 }
 
 double PresetProperties::getXfadeCWidth ()
 {
-    return DefaultHelpers::getAndHandleDefault<double> (data, XfadeCWidthPropertyId, [this] () { return getXfadeCWidthDefault(); });
+    return getValue<double> (XfadeCWidthPropertyId);
 }
 
 juce::String PresetProperties::getXfadeDCV ()
 {
-    return DefaultHelpers::getAndHandleDefault<juce::String> (data, XfadeDCVPropertyId, [this] () { return getXfadeDCVDefault(); });
+    return getValue<juce::String> (XfadeDCVPropertyId);
 }
 
 double PresetProperties::getXfadeDWidth ()
 {
-    return DefaultHelpers::getAndHandleDefault<double> (data, XfadeDWidthPropertyId, [this] () { return getXfadeDWidthDefault(); });
+    return getValue<double> (XfadeDWidthPropertyId);
 }
 
 ////////////////////////////////////////////////////////////////////

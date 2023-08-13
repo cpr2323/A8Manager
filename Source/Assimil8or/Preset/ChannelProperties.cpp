@@ -1,5 +1,4 @@
 #include "ChannelProperties.h"
-#include "DefaultHelpers.h"
 #include "ParameterDataProperties.h"
 #include "ParameterNames.h"
 
