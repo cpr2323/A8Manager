@@ -5,8 +5,12 @@ const auto kMaxChannels { 8 };
 
 PresetProperties::PresetProperties () noexcept : ValueTreeWrapper<PresetProperties> (PresetTypeId)
 {
-    auto xmlToRead { juce::XmlDocument::parse(BinaryData::Assimil8orParameterData_xml)};
-    auto parameterData { juce::ValueTree::fromXml (*xmlToRead) };
+    auto len { std::strlen (BinaryData::Assimil8orParameterData_xml) };
+    juce::XmlDocument xmlDoc { BinaryData::Assimil8orParameterData_xml };
+    jassert (xmlDoc.getLastParseError () == "");
+    if (auto parseError { xmlDoc.getLastParseError () }; parseError != "")
+        juce::Logger::outputDebugString ("XML Parsing Error: " + parseError);
+    auto parameterData { juce::ValueTree::fromXml (*xmlDoc.getDocumentElement(false)) };
     parameterDataListProperties.wrap (parameterData, ParameterDataListProperties::WrapperType::owner, ParameterDataListProperties::EnableCallbacks::no);
 
     //std::map<juce::String, juce::Value> defaults;
