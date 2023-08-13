@@ -14,7 +14,7 @@ void PresetProperties::initValueTree ()
 {
     // normally in this function we create all of the properties
     // but, as the Assimil8or only writes out parameters that have changed from the defaults
-    // we will emulate this by only adding properties when they change, or are in a preset file that is read in
+    // we will emulate this by only adding properties when they change, or are in a preset file that is read in, and removing them when they are set to the default value
     clear ();
 }
 
@@ -70,12 +70,20 @@ void PresetProperties::setIndex (int index, bool includeSelfCallback)
     setValue (index, IndexPropertyId, includeSelfCallback);
 }
 
+// TODO - refactor idea. need to handle callback when doing remove
+// template <typename T>
+// void setAndHandleDefault (juce::ValueTree vt, juce::Identifier id, T value, bool includeSelfCallback)
+// {
+//     if (value == getData2AsCVDefault ())
+//         vt.removeProperty (id, nullptr);
+//     else
+//         setValue (value, id, includeSelfCallback);
+// }
 void PresetProperties::setData2AsCV (juce::String data2AsCv, bool includeSelfCallback)
 {
+    setValue (data2AsCv, Data2asCVPropertyId, includeSelfCallback);
     if (data2AsCv == getData2AsCVDefault ())
         data.removeProperty (Data2asCVPropertyId, nullptr);
-    else
-        setValue (data2AsCv, Data2asCVPropertyId, includeSelfCallback);
 }
 
 void PresetProperties::setName (juce::String name, bool includeSelfCallback)
