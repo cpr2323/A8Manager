@@ -10,7 +10,7 @@
 */
 
 template <class derived>
-class ValueTreeWrapper : private juce::ValueTree::Listener
+class ValueTreeWrapper : public juce::ValueTree::Listener
 {
 public:
     enum class WrapperType { owner, client };

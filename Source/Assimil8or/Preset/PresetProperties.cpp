@@ -3,6 +3,30 @@
 
 const auto kMaxChannels { 8 };
 
+// TODO - refactor idea
+template <typename T>
+void setAndHandleDefault (juce::ValueTree vt, juce::Identifier id, T value, bool includeSelfCallback, juce::ValueTree::Listener* vtListener, std::function<T ()> getDefaultValue)
+{
+    jassert (vtListener != nullptr);
+    jassert (getDefaultValue != nullptr);
+    if (includeSelfCallback)
+        vt.setProperty (id, value, nullptr);
+    else
+        vt.setPropertyExcludingListener (vtListener, id, value, nullptr);
+    if (value == getDefaultValue ())
+        vt.removeProperty (id, nullptr);
+}
+
+template <typename T>
+T getAndHandleDefault (const juce::ValueTree vt, const juce::Identifier id, std::function<T ()> getDefaultValue)
+{
+    jassert (getDefaultValue != nullptr);
+    if (vt.hasProperty (id))
+        return vt.getProperty (id);
+    else
+        return getDefaultValue ();
+}
+
 int PresetProperties::getNumChannels ()
 {
     auto numChannels { 0 };
@@ -70,20 +94,9 @@ void PresetProperties::setIndex (int index, bool includeSelfCallback)
     setValue (index, IndexPropertyId, includeSelfCallback);
 }
 
-// TODO - refactor idea. need to handle callback when doing remove
-// template <typename T>
-// void setAndHandleDefault (juce::ValueTree vt, juce::Identifier id, T value, bool includeSelfCallback)
-// {
-//     if (value == getData2AsCVDefault ())
-//         vt.removeProperty (id, nullptr);
-//     else
-//         setValue (value, id, includeSelfCallback);
-// }
 void PresetProperties::setData2AsCV (juce::String data2AsCv, bool includeSelfCallback)
 {
-    setValue (data2AsCv, Data2asCVPropertyId, includeSelfCallback);
-    if (data2AsCv == getData2AsCVDefault ())
-        data.removeProperty (Data2asCVPropertyId, nullptr);
+    setAndHandleDefault<juce::String> (data, Data2asCVPropertyId, data2AsCv, includeSelfCallback, this, [this] () { return getData2AsCVDefault (); });
 }
 
 void PresetProperties::setName (juce::String name, bool includeSelfCallback)
@@ -138,10 +151,7 @@ int PresetProperties::getIndex ()
 
 juce::String PresetProperties::getData2AsCV ()
 {
-    if (data.hasProperty (Data2asCVPropertyId))
-        return getValue<juce::String> (Data2asCVPropertyId);
-    else
-        return getData2AsCVDefault ();
+    return getAndHandleDefault<juce::String> (data, Data2asCVPropertyId, [this] () { return getData2AsCVDefault (); });
 }
 
 juce::String PresetProperties::getName ()
