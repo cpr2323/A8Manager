@@ -13,6 +13,7 @@
 void Assimil8orPreset::write (juce::File presetFile, juce::ValueTree presetPropertiesVT)
 {
     jassert (presetPropertiesVT.isValid ());
+
     PresetProperties presetPropertiesToWrite (presetPropertiesVT, PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
     if (FileTypeHelpers::isPresetFile (presetFile))
     {
@@ -23,11 +24,6 @@ void Assimil8orPreset::write (juce::File presetFile, juce::ValueTree presetPrope
 
     auto indentAmount { 0 };
     juce::StringArray lines;
-    auto addLine = [this, &indentAmount, &lines] (juce::ValueTree vt, juce::Identifier parameterName, juce::String lineToAdd)
-    {
-        if (vt.hasProperty (parameterName))
-            lines.add (juce::String (lineToAdd).paddedLeft (' ', lineToAdd.length () + indentAmount * 2));
-    };
     auto hasContent = [] (juce::ValueTree vt)
     {
         auto doChildrenHaveContent = [&vt] ()
@@ -50,18 +46,24 @@ void Assimil8orPreset::write (juce::File presetFile, juce::ValueTree presetPrope
             return false;
         return doChildrenHaveContent ();
     };
-    addLine (presetPropertiesToWrite.getValueTree (), "_index", Section::PresetId + " " + juce::String (presetPropertiesToWrite.getIndex ()) + " :");
+    auto addLine = [this, &indentAmount, &lines] (juce::Identifier parameterName, bool doAdd, juce::String lineToAdd)
+    {
+        if (doAdd)
+            lines.add (juce::String (lineToAdd).paddedLeft (' ', lineToAdd.length () + indentAmount * 2));
+    };
+
+    addLine ("_index", true, Section::PresetId + " " + juce::String (presetPropertiesToWrite.getIndex ()) + " :");
     ++indentAmount;
-    addLine (presetPropertiesToWrite.getValueTree (), PresetProperties::NamePropertyId, Parameter::Preset::NameId + " : " + presetPropertiesToWrite.getName ());
-    addLine (presetPropertiesToWrite.getValueTree (), PresetProperties::Data2asCVPropertyId, Parameter::Preset::Data2asCVId + " : " + presetPropertiesToWrite.getData2AsCV ());
-    addLine (presetPropertiesToWrite.getValueTree (), PresetProperties::XfadeACVPropertyId, Parameter::Preset::XfadeACVId + " : " + presetPropertiesToWrite.getXfadeACV ());
-    addLine (presetPropertiesToWrite.getValueTree (), PresetProperties::XfadeAWidthPropertyId, Parameter::Preset::XfadeAWidthId + " : " + juce::String (presetPropertiesToWrite.getXfadeAWidth (), 2));
-    addLine (presetPropertiesToWrite.getValueTree (), PresetProperties::XfadeBCVPropertyId, Parameter::Preset::XfadeBCVId + " : " + presetPropertiesToWrite.getXfadeBCV ());
-    addLine (presetPropertiesToWrite.getValueTree (), PresetProperties::XfadeBWidthPropertyId, Parameter::Preset::XfadeBWidthId + " : " + juce::String (presetPropertiesToWrite.getXfadeBWidth (), 2));
-    addLine (presetPropertiesToWrite.getValueTree (), PresetProperties::XfadeCCVPropertyId, Parameter::Preset::XfadeCCVId + " : " + presetPropertiesToWrite.getXfadeCCV ());
-    addLine (presetPropertiesToWrite.getValueTree (), PresetProperties::XfadeCWidthPropertyId, Parameter::Preset::XfadeCWidthId + " : " + juce::String (presetPropertiesToWrite.getXfadeCWidth (), 2));
-    addLine (presetPropertiesToWrite.getValueTree (), PresetProperties::XfadeDCVPropertyId, Parameter::Preset::XfadeDCVId + " : " + presetPropertiesToWrite.getXfadeDCV ());
-    addLine (presetPropertiesToWrite.getValueTree (), PresetProperties::XfadeDWidthPropertyId, Parameter::Preset::XfadeDWidthId + " : " + juce::String (presetPropertiesToWrite.getXfadeDWidth (), 2));
+    addLine (PresetProperties::NamePropertyId, true, Parameter::Preset::NameId + " : " + presetPropertiesToWrite.getName ());
+
+    addLine (PresetProperties::XfadeACVPropertyId, presetPropertiesToWrite.getXfadeACV () != presetPropertiesToWrite.getXfadeACVDefault (), Parameter::Preset::XfadeACVId + " : " + presetPropertiesToWrite.getXfadeACV ());
+    addLine (PresetProperties::XfadeAWidthPropertyId, presetPropertiesToWrite.getXfadeAWidth () != presetPropertiesToWrite.getXfadeAWidthDefault (), Parameter::Preset::XfadeAWidthId + " : " + juce::String (presetPropertiesToWrite.getXfadeAWidth (), 2));
+    addLine (PresetProperties::XfadeBCVPropertyId, presetPropertiesToWrite.getXfadeBCV () != presetPropertiesToWrite.getXfadeBCVDefault (), Parameter::Preset::XfadeBCVId + " : " + presetPropertiesToWrite.getXfadeBCV ());
+    addLine (PresetProperties::XfadeBWidthPropertyId, presetPropertiesToWrite.getXfadeBWidth () != presetPropertiesToWrite.getXfadeBWidthDefault (), Parameter::Preset::XfadeBWidthId + " : " + juce::String (presetPropertiesToWrite.getXfadeBWidth (), 2));
+    addLine (PresetProperties::XfadeCCVPropertyId, presetPropertiesToWrite.getXfadeCCV () != presetPropertiesToWrite.getXfadeCCVDefault (), Parameter::Preset::XfadeCCVId + " : " + presetPropertiesToWrite.getXfadeCCV ());
+    addLine (PresetProperties::XfadeCWidthPropertyId, presetPropertiesToWrite.getXfadeCWidth () != presetPropertiesToWrite.getXfadeCWidthDefault (), Parameter::Preset::XfadeCWidthId + " : " + juce::String (presetPropertiesToWrite.getXfadeCWidth (), 2));
+    addLine (PresetProperties::XfadeDCVPropertyId, presetPropertiesToWrite.getXfadeDCV () != presetPropertiesToWrite.getXfadeDCVDefault (), Parameter::Preset::XfadeDCVId + " : " + presetPropertiesToWrite.getXfadeDCV ());
+    addLine (PresetProperties::XfadeDWidthPropertyId, presetPropertiesToWrite.getXfadeDWidth () != presetPropertiesToWrite.getXfadeDWidthDefault (), Parameter::Preset::XfadeDWidthId + " : " + juce::String (presetPropertiesToWrite.getXfadeDWidth (), 2));
 
     presetPropertiesToWrite.forEachChannel ([this, &hasContent, &addLine, &indentAmount, &presetPropertiesToWrite] (juce::ValueTree channelVT)
     {
