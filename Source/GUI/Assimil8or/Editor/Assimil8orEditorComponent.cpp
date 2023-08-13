@@ -94,12 +94,12 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
     nameDataChanged (presetProperties.getName ());
     data2AsCvDataChanged (presetProperties.getData2AsCV ());
     xfadeCvDataChanged (0, presetProperties.getXfadeACV());
-    xfadeWidthDataChanged (0, getDoubleString (PresetProperties::XfadeAWidthPropertyId, presetProperties.getXfadeAWidth (), presetProperties.getXfadeAWidthDefault ()));
     xfadeCvDataChanged (1, presetProperties.getXfadeBCV ());
-    xfadeWidthDataChanged (1, getDoubleString (PresetProperties::XfadeBWidthPropertyId, presetProperties.getXfadeBWidth (), presetProperties.getXfadeBWidthDefault ()));
     xfadeCvDataChanged (2, presetProperties.getXfadeCCV ());
-    xfadeWidthDataChanged (2, getDoubleString (PresetProperties::XfadeCWidthPropertyId, presetProperties.getXfadeCWidth (), presetProperties.getXfadeCWidthDefault ()));
     xfadeCvDataChanged (3, presetProperties.getXfadeDCV ());
+    xfadeWidthDataChanged (0, getDoubleString (PresetProperties::XfadeAWidthPropertyId, presetProperties.getXfadeAWidth (), presetProperties.getXfadeAWidthDefault ()));
+    xfadeWidthDataChanged (1, getDoubleString (PresetProperties::XfadeBWidthPropertyId, presetProperties.getXfadeBWidth (), presetProperties.getXfadeBWidthDefault ()));
+    xfadeWidthDataChanged (2, getDoubleString (PresetProperties::XfadeCWidthPropertyId, presetProperties.getXfadeCWidth (), presetProperties.getXfadeCWidthDefault ()));
     xfadeWidthDataChanged (3, getDoubleString (PresetProperties::XfadeDWidthPropertyId, presetProperties.getXfadeDWidth (), presetProperties.getXfadeDWidthDefault ()));
 }
 
@@ -111,12 +111,12 @@ juce::String Assimil8orEditorComponent::getDoubleString (const juce::Identifier&
 void Assimil8orEditorComponent::setupPresetPropertiesCallbacks ()
 {
     presetProperties.onNameChange = [this] (juce::String name) { nameDataChanged (name); };
-    presetProperties.onData2AsCVChange = [this] (juce::String name) { data2AsCvDataChanged (name); };
+    presetProperties.onData2AsCVChange = [this] (juce::String cvInput) { data2AsCvDataChanged (cvInput); };
     // Xfade_CV
-    presetProperties.onXfadeACVChange = [this] (juce::String name) { xfadeCvDataChanged (0, name); };
-    presetProperties.onXfadeBCVChange = [this] (juce::String name) { xfadeCvDataChanged (1, name); };
-    presetProperties.onXfadeCCVChange = [this] (juce::String name) { xfadeCvDataChanged (2, name); };
-    presetProperties.onXfadeDCVChange = [this] (juce::String name) { xfadeCvDataChanged (3, name); };
+    presetProperties.onXfadeACVChange = [this] (juce::String dataAndCv) { xfadeCvDataChanged (0, dataAndCv); };
+    presetProperties.onXfadeBCVChange = [this] (juce::String dataAndCv) { xfadeCvDataChanged (1, dataAndCv); };
+    presetProperties.onXfadeCCVChange = [this] (juce::String dataAndCv) { xfadeCvDataChanged (2, dataAndCv); };
+    presetProperties.onXfadeDCVChange = [this] (juce::String dataAndCv) { xfadeCvDataChanged (3, dataAndCv); };
     // Xfade_Width
     presetProperties.onXfadeAWidthChange = [this] (double width) { xfadeWidthDataChanged (0, getDoubleString (PresetProperties::XfadeAWidthPropertyId, width,
                                                                                           presetProperties.getXfadeAWidthDefault ())); };
