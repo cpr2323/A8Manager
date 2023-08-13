@@ -1,4 +1,7 @@
 #include "ChannelProperties.h"
+#include "DefaultHelpers.h"
+#include "ParameterDataProperties.h"
+#include "ParameterNames.h"
 
 const auto kMaxZones { 8 };
 
@@ -58,6 +61,9 @@ AmountAndCvInput ChannelProperties::getCvInputAndValueFromString (juce::String c
     return { cvInputAndValueString.substring (0, delimiterLocation), cvInputAndValueString.substring (delimiterLocation + 1).getFloatValue () };
 }
 
+////////////////////////////////////////////////////////////////////
+// set___
+////////////////////////////////////////////////////////////////////
 void ChannelProperties::setIndex (int index, bool includeSelfCallback)
 {
     setValue (index, IndexPropertyId, includeSelfCallback);
@@ -258,6 +264,9 @@ void ChannelProperties::setZonesRT (int zonesRT, bool includeSelfCallback)
     setValue (zonesRT, ZonesRTPropertyId, includeSelfCallback);
 }
 
+////////////////////////////////////////////////////////////////////
+// get___
+////////////////////////////////////////////////////////////////////
 int ChannelProperties::getIndex ()
 {
     return getValue<int> (IndexPropertyId);
@@ -278,9 +287,9 @@ double ChannelProperties::getAttack ()
     return getValue<double> (AttackPropertyId);
 }
 
-int ChannelProperties::getAttackFromCurrent ()
+bool ChannelProperties::getAttackFromCurrent ()
 {
-    return getValue<int> (AttackFromCurrentPropertyId);
+    return getValue<bool> (AttackFromCurrentPropertyId);
 }
 
 AmountAndCvInput ChannelProperties::getAttackMod ()
@@ -458,6 +467,204 @@ int ChannelProperties::getZonesRT ()
     return getValue<int> (ZonesRTPropertyId);
 }
 
+////////////////////////////////////////////////////////////////////
+// get___Defaults
+////////////////////////////////////////////////////////////////////
+int ChannelProperties::getAliasingDefault ()
+{
+    return ParameterDataProperties::getDefaultInt (parameterDataListProperties.getParameter (Section::ChannelId, Parameter::Channel::AliasingId));
+}
+
+AmountAndCvInput ChannelProperties::getAliasingModDefault ()
+{
+    return getCvInputAndValueFromString (ParameterDataProperties::getDefaultString (parameterDataListProperties.getParameter (Section::ChannelId, Parameter::Channel::AliasingModId)));
+}
+
+double ChannelProperties::getAttackDefault ()
+{
+    return ParameterDataProperties::getDefaultDouble (parameterDataListProperties.getParameter (Section::ChannelId, Parameter::Channel::AttackId));
+}
+
+bool ChannelProperties::getAttackFromCurrentDefault ()
+{
+    return ParameterDataProperties::getDefaultInt (parameterDataListProperties.getParameter (Section::ChannelId, Parameter::Channel::AttackFromCurrentId)) != 0;
+}
+
+AmountAndCvInput ChannelProperties::getAttackModDefault ()
+{
+    return getCvInputAndValueFromString (ParameterDataProperties::getDefaultString (parameterDataListProperties.getParameter (Section::ChannelId, Parameter::Channel::AttackModId)));
+}
+
+bool ChannelProperties::getAutoTriggerDefault ()
+{
+    return ParameterDataProperties::getDefaultInt (parameterDataListProperties.getParameter (Section::ChannelId, Parameter::Channel::AutoTriggerId)) != 0;
+}
+
+double ChannelProperties::getBitsDefault ()
+{
+    return ParameterDataProperties::getDefaultDouble (parameterDataListProperties.getParameter (Section::ChannelId, Parameter::Channel::BitsId));
+}
+
+AmountAndCvInput ChannelProperties::getBitsModDefault ()
+{
+    return getCvInputAndValueFromString (ParameterDataProperties::getDefaultString (parameterDataListProperties.getParameter (Section::ChannelId, Parameter::Channel::BitsModId)));
+}
+
+int ChannelProperties::getChannelModeDefault ()
+{
+    return ParameterDataProperties::getDefaultInt (parameterDataListProperties.getParameter (Section::ChannelId, Parameter::Channel::ChannelModeId));
+}
+
+double ChannelProperties::getExpAMDefault ()
+{
+    return ParameterDataProperties::getDefaultDouble (parameterDataListProperties.getParameter (Section::ChannelId, Parameter::Channel::ExpAMId));
+}
+
+double ChannelProperties::getExpFMDefault ()
+{
+    return ParameterDataProperties::getDefaultDouble (parameterDataListProperties.getParameter (Section::ChannelId, Parameter::Channel::ExpFMId));
+}
+
+double ChannelProperties::getLevelDefault ()
+{
+    return ParameterDataProperties::getDefaultDouble (parameterDataListProperties.getParameter (Section::ChannelId, Parameter::Channel::LevelId));
+}
+
+double ChannelProperties::getLinAMDefault ()
+{
+    return ParameterDataProperties::getDefaultDouble (parameterDataListProperties.getParameter (Section::ChannelId, Parameter::Channel::LinAMId));
+}
+
+bool ChannelProperties::getLinAMisExtEnvDefault ()
+{
+    return ParameterDataProperties::getDefaultInt (parameterDataListProperties.getParameter (Section::ChannelId, Parameter::Channel::LinAMisExtEnvId)) != 0;
+}
+
+double ChannelProperties::getLinFMDefault ()
+{
+    return ParameterDataProperties::getDefaultDouble (parameterDataListProperties.getParameter (Section::ChannelId, Parameter::Channel::LinFMId));
+}
+
+AmountAndCvInput ChannelProperties::getLoopLengthModDefault ()
+{
+    return getCvInputAndValueFromString (ParameterDataProperties::getDefaultString (parameterDataListProperties.getParameter (Section::ChannelId, Parameter::Channel::LoopLengthModId)));
+}
+
+int ChannelProperties::getLoopModeDefault ()
+{
+    return ParameterDataProperties::getDefaultInt (parameterDataListProperties.getParameter (Section::ChannelId, Parameter::Channel::LoopModeId));
+}
+
+AmountAndCvInput ChannelProperties::getLoopStartModDefault ()
+{
+    return getCvInputAndValueFromString (ParameterDataProperties::getDefaultString (parameterDataListProperties.getParameter (Section::ChannelId, Parameter::Channel::LoopStartModId)));
+}
+
+double ChannelProperties::getMixLevelDefault ()
+{
+    return ParameterDataProperties::getDefaultDouble (parameterDataListProperties.getParameter (Section::ChannelId, Parameter::Channel::MixLevelId));
+}
+
+AmountAndCvInput ChannelProperties::getMixModDefault ()
+{
+    return getCvInputAndValueFromString (ParameterDataProperties::getDefaultString (parameterDataListProperties.getParameter (Section::ChannelId, Parameter::Channel::MixModId)));
+}
+
+bool ChannelProperties::getMixModIsFaderDefault ()
+{
+    return ParameterDataProperties::getDefaultInt (parameterDataListProperties.getParameter (Section::ChannelId, Parameter::Channel::MixModIsFaderId)) != 0;
+}
+
+double ChannelProperties::getPanDefault ()
+{
+    return ParameterDataProperties::getDefaultDouble (parameterDataListProperties.getParameter (Section::ChannelId, Parameter::Channel::PanId));
+}
+
+AmountAndCvInput ChannelProperties::getPanModDefault ()
+{
+    return getCvInputAndValueFromString (ParameterDataProperties::getDefaultString (parameterDataListProperties.getParameter (Section::ChannelId, Parameter::Channel::PanModId)));
+}
+
+AmountAndCvInput ChannelProperties::getPhaseCVDefault ()
+{
+    return getCvInputAndValueFromString (ParameterDataProperties::getDefaultString (parameterDataListProperties.getParameter (Section::ChannelId, Parameter::Channel::PhaseCVId)));
+}
+
+double ChannelProperties::getPitchDefault ()
+{
+    return ParameterDataProperties::getDefaultDouble (parameterDataListProperties.getParameter (Section::ChannelId, Parameter::Channel::PitchCVId));
+}
+
+AmountAndCvInput ChannelProperties::getPitchCVDefault ()
+{
+    return getCvInputAndValueFromString (ParameterDataProperties::getDefaultString (parameterDataListProperties.getParameter (Section::ChannelId, Parameter::Channel::PitchCVId)));
+}
+
+int ChannelProperties::getPlayModeDefault ()
+{
+    return ParameterDataProperties::getDefaultInt (parameterDataListProperties.getParameter (Section::ChannelId, Parameter::Channel::PlayModeId));
+}
+
+double ChannelProperties::getPMIndexDefault ()
+{
+    return ParameterDataProperties::getDefaultDouble (parameterDataListProperties.getParameter (Section::ChannelId, Parameter::Channel::PMIndexId));
+}
+
+AmountAndCvInput ChannelProperties::getPMIndexModDefault ()
+{
+    return getCvInputAndValueFromString (ParameterDataProperties::getDefaultString (parameterDataListProperties.getParameter (Section::ChannelId, Parameter::Channel::PMIndexModId)));
+}
+
+int ChannelProperties::getPMSourceDefault ()
+{
+    return ParameterDataProperties::getDefaultInt (parameterDataListProperties.getParameter (Section::ChannelId, Parameter::Channel::PMSourceId));
+}
+
+double ChannelProperties::getReleaseDefault ()
+{
+    return ParameterDataProperties::getDefaultDouble (parameterDataListProperties.getParameter (Section::ChannelId, Parameter::Channel::ReleaseId));
+}
+
+AmountAndCvInput ChannelProperties::getReleaseModDefault ()
+{
+    return getCvInputAndValueFromString (ParameterDataProperties::getDefaultString (parameterDataListProperties.getParameter (Section::ChannelId, Parameter::Channel::ReleaseModId)));
+}
+
+bool ChannelProperties::getReverseDefault ()
+{
+    return ParameterDataProperties::getDefaultInt (parameterDataListProperties.getParameter (Section::ChannelId, Parameter::Channel::ReverseId)) != 0;
+}
+
+AmountAndCvInput ChannelProperties::getSampleStartModDefault ()
+{
+    return getCvInputAndValueFromString (ParameterDataProperties::getDefaultString (parameterDataListProperties.getParameter (Section::ChannelId, Parameter::Channel::SampleStartModId)));
+}
+
+AmountAndCvInput ChannelProperties::getSampleEndModDefault ()
+{
+    return getCvInputAndValueFromString (ParameterDataProperties::getDefaultString (parameterDataListProperties.getParameter (Section::ChannelId, Parameter::Channel::SampleEndModId)));
+}
+
+bool ChannelProperties::getSpliceSmoothingDefault ()
+{
+    return ParameterDataProperties::getDefaultInt (parameterDataListProperties.getParameter (Section::ChannelId, Parameter::Channel::SpliceSmoothingId)) != 0;
+}
+
+juce::String ChannelProperties::getXfadeGroupDefault ()
+{
+    return ParameterDataProperties::getDefaultString (parameterDataListProperties.getParameter (Section::ChannelId, Parameter::Channel::XfadeGroupId));
+}
+
+juce::String ChannelProperties::getZonesCVDefault ()
+{
+    return ParameterDataProperties::getDefaultString (parameterDataListProperties.getParameter (Section::ChannelId, Parameter::Channel::ZonesCVId));
+}
+
+int ChannelProperties::getZonesRTDefault ()
+{
+    return ParameterDataProperties::getDefaultInt (parameterDataListProperties.getParameter (Section::ChannelId, Parameter::Channel::ZonesRTId));
+}
+
 void ChannelProperties::valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property)
 {
     if (vt != data)
@@ -476,9 +683,7 @@ void ChannelProperties::valueTreePropertyChanged (juce::ValueTree& vt, const juc
     else if (property == AliasingModPropertyId)
     {
         if (onAliasingModChange != nullptr)
-        {
             onAliasingModChange (getAliasingMod ());
-        }
     }
     else if (property == AttackPropertyId)
     {

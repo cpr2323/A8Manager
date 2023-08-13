@@ -2,6 +2,7 @@
 
 #include <JuceHeader.h>
 #include <tuple>
+#include "ParameterDataListProperties.h"
 #include "ZoneProperties.h"
 #include "../../Utility/ValueTreeWrapper.h"
 
@@ -59,7 +60,7 @@ public:
     int getAliasing ();
     AmountAndCvInput getAliasingMod ();
     double getAttack ();
-    int getAttackFromCurrent ();
+    bool getAttackFromCurrent ();
     AmountAndCvInput getAttackMod ();
     bool getAutoTrigger ();
     double getBits ();
@@ -95,6 +96,46 @@ public:
     juce::String getXfadeGroup ();
     juce::String getZonesCV ();
     int getZonesRT ();
+
+    int getAliasingDefault ();
+    AmountAndCvInput getAliasingModDefault ();
+    double getAttackDefault ();
+    bool getAttackFromCurrentDefault ();
+    AmountAndCvInput getAttackModDefault ();
+    bool getAutoTriggerDefault ();
+    double getBitsDefault ();
+    AmountAndCvInput getBitsModDefault ();
+    int getChannelModeDefault ();
+    double getExpAMDefault ();
+    double getExpFMDefault ();
+    double getLevelDefault ();
+    double getLinAMDefault ();
+    bool getLinAMisExtEnvDefault ();
+    double getLinFMDefault ();
+    AmountAndCvInput getLoopLengthModDefault ();
+    int getLoopModeDefault ();
+    AmountAndCvInput getLoopStartModDefault ();
+    double getMixLevelDefault ();
+    AmountAndCvInput getMixModDefault ();
+    bool getMixModIsFaderDefault ();
+    double getPanDefault ();
+    AmountAndCvInput getPanModDefault ();
+    AmountAndCvInput getPhaseCVDefault ();
+    double getPitchDefault ();
+    AmountAndCvInput getPitchCVDefault ();
+    int getPlayModeDefault ();
+    double getPMIndexDefault ();
+    AmountAndCvInput getPMIndexModDefault ();
+    int getPMSourceDefault ();
+    double getReleaseDefault ();
+    AmountAndCvInput getReleaseModDefault ();
+    bool getReverseDefault ();
+    AmountAndCvInput getSampleStartModDefault ();
+    AmountAndCvInput getSampleEndModDefault ();
+    bool getSpliceSmoothingDefault ();
+    juce::String getXfadeGroupDefault ();
+    juce::String getZonesCVDefault ();
+    int getZonesRTDefault ();
 
     std::function<void (int index)> onIndexChange;
     std::function<void (int aliasing)> onAliasingChange;
@@ -192,5 +233,7 @@ public:
     void processValueTree () {}
 
 private:
+    ParameterDataListProperties parameterDataListProperties;
+
     void valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property) override;
 };

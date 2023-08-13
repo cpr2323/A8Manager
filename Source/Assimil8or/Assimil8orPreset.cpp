@@ -74,7 +74,7 @@ void Assimil8orPreset::write (juce::File presetFile, juce::ValueTree presetPrope
             addLine (channelPropertiesVT, ChannelProperties::AliasingPropertyId, Parameter::Channel::AliasingId + " : " + juce::String (channelProperties.getAliasing ()));
             addLine (channelPropertiesVT, ChannelProperties::AliasingModPropertyId, Parameter::Channel::AliasingModId + " : " + ChannelProperties::getCvInputAndValueString (channelProperties.getAliasingMod (), 4));
             addLine (channelPropertiesVT, ChannelProperties::AttackPropertyId, Parameter::Channel::AttackId + " : " + juce::String (channelProperties.getAttack ()));
-            addLine (channelPropertiesVT, ChannelProperties::AttackFromCurrentPropertyId, Parameter::Channel::AttackFromCurrentId + " : " + juce::String (channelProperties.getAttackFromCurrent ()));
+            addLine (channelPropertiesVT, ChannelProperties::AttackFromCurrentPropertyId, Parameter::Channel::AttackFromCurrentId + " : " + (channelProperties.getAttackFromCurrent () ? "1" : "0"));
             addLine (channelPropertiesVT, ChannelProperties::AttackModPropertyId, Parameter::Channel::AttackModId + " : " + ChannelProperties::getCvInputAndValueString (channelProperties.getAttackMod (), 4));
             addLine (channelPropertiesVT, ChannelProperties::AutoTriggerPropertyId, Parameter::Channel::AutoTriggerId + " : " + (channelProperties.getAutoTrigger () ? "1" : "0"));
             addLine (channelPropertiesVT, ChannelProperties::BitsPropertyId, Parameter::Channel::BitsId + " : " + juce::String (channelProperties.getBits (), 1));
