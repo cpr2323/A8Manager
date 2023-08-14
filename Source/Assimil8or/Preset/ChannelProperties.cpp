@@ -4,13 +4,6 @@
 
 const auto kMaxZones { 8 };
 
-void ChannelProperties::initValueTree ()
-{
-    // normally in this function we create all of the properties
-    // but, as the Assimil8or only writes out parameters that have changed from the defaults
-    // we will emulate this by only adding properties when they change, or are in a preset file that is read in
-}
-
 juce::ValueTree ChannelProperties::create (int index)
 {
     ChannelProperties channelProperties;
@@ -58,6 +51,137 @@ AmountAndCvInput ChannelProperties::getCvInputAndValueFromString (juce::String c
     const auto delimiterLocation { cvInputAndValueString.indexOfChar (0, ' ') };
     jassert (delimiterLocation != 0);
     return { cvInputAndValueString.substring (0, delimiterLocation), cvInputAndValueString.substring (delimiterLocation + 1).getFloatValue () };
+}
+
+void ChannelProperties::initToDefaults ()
+{
+    clear (false); // clear everything
+}
+
+void ChannelProperties::initToDefaultIsMissing ()
+{
+    clear (true); // only init the missing things
+}
+
+void ChannelProperties::clear (bool onlyClearIfPropertyMissing)
+{
+    if (! onlyClearIfPropertyMissing || ! data.hasProperty (AliasingPropertyId))
+        setAliasing (getAliasingDefault (), false);
+    if (! onlyClearIfPropertyMissing || ! data.hasProperty (AliasingModPropertyId))
+    {
+        const auto [cvInput, aliasingModAmount] { getAliasingModDefault () };
+        setAliasingMod (cvInput, aliasingModAmount, false);
+    }
+    if (! onlyClearIfPropertyMissing || ! data.hasProperty (AttackPropertyId))
+        setAttack (getAttackDefault (), false);
+    if (! onlyClearIfPropertyMissing || ! data.hasProperty (AttackFromCurrentPropertyId))
+        setAttackFromCurrent (getAttackFromCurrentDefault (), false);
+    if (! onlyClearIfPropertyMissing || ! data.hasProperty (AttackModPropertyId))
+    {
+        const auto [cvInput, attackModAmount] { getAttackModDefault () };
+        setAttackMod (cvInput, attackModAmount, false);
+    }
+    if (! onlyClearIfPropertyMissing || ! data.hasProperty (AutoTriggerPropertyId))
+        setAutoTrigger (getAutoTriggerDefault (), false);
+    if (! onlyClearIfPropertyMissing || ! data.hasProperty (BitsPropertyId))
+        setBits (getBitsDefault (), false);
+    if (! onlyClearIfPropertyMissing || ! data.hasProperty (BitsModPropertyId))
+    {
+        const auto [cvInput, bitsModAmount] { getBitsModDefault () };
+        setBitsMod (cvInput, bitsModAmount, false);
+    }
+    if (! onlyClearIfPropertyMissing || ! data.hasProperty (ChannelModePropertyId))
+        setChannelMode (getChannelModeDefault (), false);
+    if (! onlyClearIfPropertyMissing || ! data.hasProperty (ExpAMPropertyId))
+        setExpAM (getExpAMDefault (), false);
+    if (! onlyClearIfPropertyMissing || ! data.hasProperty (ExpFMPropertyId))
+        setExpFM (getExpFMDefault (), false);
+    if (! onlyClearIfPropertyMissing || ! data.hasProperty (LevelPropertyId))
+        setLevel (getLevelDefault (), false);
+    if (! onlyClearIfPropertyMissing || ! data.hasProperty (LinAMPropertyId))
+        setLinAM (getLinAMDefault (), false);
+    if (! onlyClearIfPropertyMissing || ! data.hasProperty (LinAMisExtEnvPropertyId))
+        setLinAMisExtEnv (getLinAMisExtEnvDefault (), false);
+    if (! onlyClearIfPropertyMissing || ! data.hasProperty (LinFMPropertyId))
+        setLinFM (getLinFMDefault (), false);
+    if (! onlyClearIfPropertyMissing || ! data.hasProperty (LoopLengthModPropertyId))
+    {
+        const auto [cvInput, loopLengthModAmount] { getLoopLengthModDefault () };
+        setLoopLengthMod (cvInput, loopLengthModAmount, false);
+    }
+    if (! onlyClearIfPropertyMissing || ! data.hasProperty (LoopModePropertyId))
+        setLoopMode (getLoopModeDefault (), false);
+    if (! onlyClearIfPropertyMissing || ! data.hasProperty (LoopStartModPropertyId))
+    {
+        const auto [cvInput, loopStartModAmount] { getLoopStartModDefault () };
+        setLoopStartMod (cvInput, loopStartModAmount, false);
+    }
+    if (! onlyClearIfPropertyMissing || ! data.hasProperty (MixLevelPropertyId))
+        setMixLevel (getMixLevelDefault (), false);
+    if (! onlyClearIfPropertyMissing || ! data.hasProperty (MixModPropertyId))
+    {
+        const auto [cvInput, mixModAmount] { getMixModDefault () };
+        setMixMod (cvInput, mixModAmount, false);
+    }
+    if (! onlyClearIfPropertyMissing || ! data.hasProperty (MixModIsFaderPropertyId))
+        setMixModIsFader (getMixModIsFaderDefault (), false);
+    if (! onlyClearIfPropertyMissing || ! data.hasProperty (PanPropertyId))
+        setPan (getPanDefault (), false);
+    if (! onlyClearIfPropertyMissing || ! data.hasProperty (PanModPropertyId))
+    {
+        const auto [cvInput, panModAmount] { getPanModDefault () };
+        setPanMod (cvInput, panModAmount, false);
+    }
+    if (! onlyClearIfPropertyMissing || ! data.hasProperty (PhaseCVPropertyId))
+    {
+        const auto [cvInput, phaseCvModAmount] { getPhaseCVDefault () };
+        setPhaseCV (cvInput, phaseCvModAmount, false);
+    }
+    if (! onlyClearIfPropertyMissing || ! data.hasProperty (PitchPropertyId))
+        setPitch (getPitchDefault (), false);
+    if (! onlyClearIfPropertyMissing || ! data.hasProperty (PitchCVPropertyId))
+    {
+        const auto [cvInput, pitchCvModAmount] { getPitchCVDefault () };
+        setPitchCV (cvInput, pitchCvModAmount, false);
+    }
+    if (! onlyClearIfPropertyMissing || ! data.hasProperty (PlayModePropertyId))
+        setPlayMode (getPlayModeDefault (), false);
+    if (! onlyClearIfPropertyMissing || ! data.hasProperty (PMIndexPropertyId))
+        setPMIndex (getPMIndexDefault (), false);
+    if (! onlyClearIfPropertyMissing || ! data.hasProperty (PMIndexModPropertyId))
+    {
+        const auto [cvInput, pmIndexModAmount] { getPMIndexModDefault () };
+        setPMIndexMod (cvInput, pmIndexModAmount, false);
+    }
+    if (! onlyClearIfPropertyMissing || ! data.hasProperty (PMSourcePropertyId))
+        setPMSource (getPMSourceDefault (), false);
+    if (! onlyClearIfPropertyMissing || ! data.hasProperty (ReleasePropertyId))
+        setRelease (getReleaseDefault (), false);
+    if (! onlyClearIfPropertyMissing || ! data.hasProperty (ReleaseModPropertyId))
+    {
+        const auto [cvInput, releaseModAmount] { getReleaseModDefault () };
+        setReleaseMod (cvInput, releaseModAmount, false);
+    }
+    if (! onlyClearIfPropertyMissing || ! data.hasProperty (ReversePropertyId))
+        setReverse (getReverseDefault (), false);
+    if (! onlyClearIfPropertyMissing || ! data.hasProperty (SampleStartModPropertyId))
+    {
+        const auto [cvInput, sampleStartModAmount] { getSampleStartModDefault () };
+        setSampleStartMod (cvInput, sampleStartModAmount, false);
+    }
+    if (! onlyClearIfPropertyMissing || ! data.hasProperty (SampleEndModPropertyId))
+    {
+        const auto [cvInput, sampleEndModAmount] { getSampleEndModDefault () };
+        setSampleEndMod (cvInput, sampleEndModAmount, false);
+    }
+    if (! onlyClearIfPropertyMissing || ! data.hasProperty (SpliceSmoothingPropertyId))
+        setSpliceSmoothing (getSpliceSmoothingDefault (), false);
+    if (! onlyClearIfPropertyMissing || ! data.hasProperty (XfadeGroupPropertyId))
+        setXfadeGroup (getXfadeGroupDefault (), false);
+    if (! onlyClearIfPropertyMissing || ! data.hasProperty (ZonesCVPropertyId))
+        setZonesCV (getZonesCVDefault (), false);
+    if (! onlyClearIfPropertyMissing || ! data.hasProperty (ZonesRTPropertyId))
+        setZonesRT (getZonesRTDefault (), false);
 }
 
 ////////////////////////////////////////////////////////////////////

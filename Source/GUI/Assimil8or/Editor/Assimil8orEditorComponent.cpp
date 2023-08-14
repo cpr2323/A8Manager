@@ -169,7 +169,6 @@ void Assimil8orEditorComponent::resized ()
     data2AsCvComboBox.setBounds (data2AsCvLabel.getRight () + 3, data2AsCvLabel.getY () + 3, 67, 20);
 
     // Cross fade groups
-
     auto startX { nameEditor.getRight () };
     for (auto xfadeGroupIndex { 0 }; xfadeGroupIndex < XfadeGroupIndex::numberOfGroups; ++xfadeGroupIndex)
     {
@@ -224,15 +223,12 @@ void Assimil8orEditorComponent::xfadeCvUiChanged (int group, juce::String data2A
 
 void Assimil8orEditorComponent::xfadeWidthDataChanged (int group, juce::String widthString)
 {
-    juce::Logger::outputDebugString ("Assimil8orEditorComponent::xfadeWidthDataChanged: group: " + juce::String(group) + "= '" + widthString + "'");
     jassert (group >= 0 && group < 4);
-    jassert (widthString != "0");
     xfadeGroups [group].xfadeWidthEditor.setText (widthString);
 }
 
 void Assimil8orEditorComponent::xfadeWidthUiChanged (int group, juce::String widthString)
 {
-    juce::Logger::outputDebugString ("Assimil8orEditorComponent::xfadeWidthUiChanged : group: " + juce::String (group) + "= '" + widthString + "'");
     switch (group)
     {
         case XfadeGroupIndex::groupA: presetProperties.setXfadeAWidth (widthString.getDoubleValue (), false); break;

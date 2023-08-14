@@ -2,18 +2,43 @@
 #include "ParameterDataProperties.h"
 #include "ParameterNames.h"
 
-void ZoneProperties::initValueTree ()
-{
-    // normally in this function we create all of the properties
-    // but, as the Assimil8or only writes out parameters that have changed from the defaults
-    // we will emulate this by only adding properties when they change, or are in a preset file that is read in
-}
-
 juce::ValueTree ZoneProperties::create (int index)
 {
     ZoneProperties zoneProperties;
     zoneProperties.setIndex (index, false);
     return zoneProperties.getValueTree ();
+}
+
+void ZoneProperties::initToDefaults ()
+{
+    clear (false); // clear everything
+}
+
+void ZoneProperties::initToDefaultIsMissing ()
+{
+    clear (true); // only init the missing things
+}
+
+void ZoneProperties::clear (bool onlyClearIfPropertyMissing)
+{
+    if (! onlyClearIfPropertyMissing || ! data.hasProperty (LevelOffsetPropertyId))
+        setLevelOffset (getLevelOffsetDefault (), false);
+    if (! onlyClearIfPropertyMissing || ! data.hasProperty (LoopLengthPropertyId))
+        setLoopLength (getLoopLengthDefault (), false);
+    if (! onlyClearIfPropertyMissing || ! data.hasProperty (LoopStartPropertyId))
+        setLoopStart (getLoopStartDefault (), false);
+    if (! onlyClearIfPropertyMissing || ! data.hasProperty (MinVoltagePropertyId))
+        setMinVoltage (getMinVoltageDefault (), false);
+    if (! onlyClearIfPropertyMissing || ! data.hasProperty (PitchOffsetPropertyId))
+        setPitchOffset (getPitchOffsetDefault (), false);
+    if (! onlyClearIfPropertyMissing || ! data.hasProperty (SamplePropertyId))
+        setSample (getSampleDefault (), false);
+    if (! onlyClearIfPropertyMissing || ! data.hasProperty (SampleStartPropertyId))
+        setSampleStart (getSampleStartDefault (), false);
+    if (! onlyClearIfPropertyMissing || ! data.hasProperty (SampleEndPropertyId))
+        setSampleEnd (getSampleEndDefault (), false);
+    if (! onlyClearIfPropertyMissing || ! data.hasProperty (SidePropertyId))
+        setSide (getSideDefault (), false);
 }
 
 ////////////////////////////////////////////////////////////////////
@@ -148,6 +173,11 @@ double ZoneProperties::getMinVoltageDefault ()
 double ZoneProperties::getPitchOffsetDefault ()
 {
     return ParameterDataProperties::getDefaultDouble (parameterDataListProperties.getParameter (Section::ZoneId, Parameter::Zone::PitchOffsetId));
+}
+
+juce::String ZoneProperties::getSampleDefault ()
+{
+    return ParameterDataProperties::getDefaultString (parameterDataListProperties.getParameter (Section::ZoneId, Parameter::Zone::SampleId));
 }
 
 int ZoneProperties::getSampleStartDefault ()

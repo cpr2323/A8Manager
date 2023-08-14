@@ -11,9 +11,16 @@ using AmountAndCvInput = std::tuple<juce::String, double>;
 class ChannelProperties : public ValueTreeWrapper<ChannelProperties>
 {
 public:
-    ChannelProperties () noexcept : ValueTreeWrapper (ChannelTypeId) {}
+    ChannelProperties () noexcept : ValueTreeWrapper (ChannelTypeId)
+    {
+        initToDefaultIsMissing ();
+    }
+
     ChannelProperties (juce::ValueTree vt, WrapperType wrapperType, EnableCallbacks shouldEnableCallbacks) noexcept
-        : ValueTreeWrapper (ChannelTypeId, vt, wrapperType, shouldEnableCallbacks) {}
+        : ValueTreeWrapper (ChannelTypeId, vt, wrapperType, shouldEnableCallbacks)
+    {
+        initToDefaultIsMissing ();
+    }
 
     void setIndex (int index, bool includeSelfCallback);
     void setAliasing (int aliasing, bool includeSelfCallback);
@@ -229,11 +236,16 @@ public:
     static inline const juce::Identifier ZonesCVPropertyId           { "zonesCV" };
     static inline const juce::Identifier ZonesRTPropertyId           { "zonesRT" };
 
-    void initValueTree ();
+    void initValueTree () {}
     void processValueTree () {}
+
+    void initToDefaults ();
+    void initToDefaultIsMissing ();
 
 private:
     ParameterDataListProperties parameterDataListProperties;
+
+    void clear (bool onlyClearIfPropertyMissing);
 
     void valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property) override;
 };
