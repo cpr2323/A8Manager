@@ -28,7 +28,7 @@ const auto toolWindowHeight { 30 };
 
 MainComponent::MainComponent (juce::ValueTree rootPropertiesVT)
 {
-    setSize (1000, 600);
+    setSize (1134, 600);
 
     addAndMakeVisible (currentFolder);
 
@@ -40,11 +40,11 @@ MainComponent::MainComponent (juce::ValueTree rootPropertiesVT)
 
     presetListEditorSplitter.setComponents (&presetListComponent, &assimil8orEditorComponent);
     presetListEditorSplitter.setHorizontalSplit (false);
-    presetListEditorSplitter.setLayout (0, -0.10);
+    presetListEditorSplitter.setLayout (0, -0.06);
 
     folderBrowserEditorSplitter.setComponents (&fileViewComponent, &presetListEditorSplitter);
     folderBrowserEditorSplitter.setHorizontalSplit (false);
-    folderBrowserEditorSplitter.setLayout (0, -0.13);
+    folderBrowserEditorSplitter.setLayout (0, -0.10);
 
     topAndBottomSplitter.setComponents (&folderBrowserEditorSplitter, &assimil8orValidatorComponent);
     topAndBottomSplitter.setHorizontalSplit (true);

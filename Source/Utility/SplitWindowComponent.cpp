@@ -93,7 +93,7 @@ void SplitWindowComponent::setLayout (int componentIndex, double size)
     if (componentIndex > 2)
         return;
 
-    stretchableManager.setItemLayout (componentIndex, -0.1, -0.9, size);
+    stretchableManager.setItemLayout (componentIndex, -0.01, -0.9, size);
     resized ();
 }
 
