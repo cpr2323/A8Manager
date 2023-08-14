@@ -1,65 +1,21 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "CvInputComboBox.h"
 #include "../../../AppProperties.h"
 #include "../../../Assimil8or/Preset/PresetProperties.h"
 
-class CvInputComboBox : public juce::Component
+class WindowDecorator : public juce::Component
 {
 public:
-    CvInputComboBox ()
-    {
-        addAndMakeVisible (cvInputComboBox);
-        {
-            auto menuId { 1 };
-            cvInputComboBox.addItem ("Off", menuId);
-            ++menuId;
-            for (auto channelIndex { 0 }; channelIndex < 8; ++channelIndex)
-                for (auto columnIndex { 0 }; columnIndex < 3; ++columnIndex)
-                {
-                    cvInputComboBox.addItem (juce::String::charToString ('1' + channelIndex) + juce::String::charToString ('A' + columnIndex), menuId);
-                    ++menuId;
-                }
-        }
-        cvInputComboBox.onChange = [this] ()
-        {
-            if (onChange != nullptr)
-                onChange ();
-        };
-    }
-
-    void setSelectedItemText (juce::String cvInputString)
-    {
-        auto itemId { 1 };
-        if (cvInputString.isEmpty ())
-        {
-            cvInputComboBox.setText ("", juce::NotificationType::sendNotification);
-            return;
-        }
-        if (cvInputString.toLowerCase () != "off")
-        {
-            jassert (juce::String ("12345678").containsChar (cvInputString [0]) && juce::String ("ABC").containsChar (cvInputString [1]));
-            itemId = 2 + ((cvInputString [0] - '1') * 3) + cvInputString [1] - 'A';
-            jassert (itemId > 1 && itemId < 26);
-        }
-        cvInputComboBox.setSelectedId (itemId, juce::NotificationType::dontSendNotification);
-    }
-
-    juce::String getSelectedItemText ()
-    {
-        return cvInputComboBox.getItemText (cvInputComboBox.getSelectedItemIndex ());
-    }
-
-    std::function<void ()> onChange;
 private:
-    juce::ComboBox cvInputComboBox;
-
-    void resized () override
+    void paint (juce::Graphics& g) override
     {
-        cvInputComboBox.setBounds (getLocalBounds ());
+        g.fillAll (juce::Colours::white.withAlpha (0.2f));
+        g.setColour (juce::Colours::white);
+        g.drawLine ({ getLocalBounds ().getTopLeft ().toFloat (),getLocalBounds ().getTopRight ().toFloat () });
     }
 };
-
 class Assimil8orEditorComponent : public juce::Component
 {
 public:
@@ -72,10 +28,12 @@ private:
     AppProperties appProperties;
     PresetProperties presetProperties;
 
+    juce::Label titleLabel;
     juce::TextButton saveButton;
     juce::TextButton importButton;
     juce::TextButton exportButton;
-
+    juce::TabbedComponent channelTabs { juce::TabbedButtonBar::Orientation::TabsAtTop };
+    WindowDecorator windowDecorator;
     // preset fields
     // Data2asCV
     // Name
@@ -89,12 +47,13 @@ private:
     // XfadeDWidth
     juce::TextEditor nameEditor;
     juce::Label data2AsCvLabel;
-    CvInputComboBox data2AsCvComboBox;
+    CvInputGlobalComboBox data2AsCvComboBox;
+    juce::Label xfadeGroupsLabel;
     struct XfadeGroupControls
     {
         juce::Label xfadeGroupLabel;
         juce::Label xfadeCvLabel;
-        CvInputComboBox xfadeCvComboBox;
+        CvInputGlobalComboBox xfadeCvComboBox;
         juce::Label xfadeWidthLabel;
         juce::TextEditor xfadeWidthEditor;
     };

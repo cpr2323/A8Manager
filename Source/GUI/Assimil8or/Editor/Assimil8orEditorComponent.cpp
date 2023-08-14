@@ -3,17 +3,23 @@
 #include "../../../Utility/RuntimeRootProperties.h"
 #include "../../../Utility/PersistentRootProperties.h"
 
+#define FLOATING_BOTTOM_CONTROLS 1
+
 // TODO - short list
 //  Add editor fields
 //  Visual Edited indicator
 //  Query for save if switching from edited Preset
 //  Only enable Save button if preset was edited
 //  Update Preset List (switch from dim to highlighted) when new preset created
+//  Implement input validation, characters, min/max, etc
+//  Implement proper formatting (decimal places, sign character, etc)
+//  Implement tool tips for each parameter
 
 Assimil8orEditorComponent::Assimil8orEditorComponent ()
 {
     setOpaque (true);
 
+    addAndMakeVisible (titleLabel);
     auto setupButton = [this] (juce::TextButton& button, juce::String text, std::function<void ()> buttonFunction)
     {
         button.setButtonText (text);
@@ -26,19 +32,33 @@ Assimil8orEditorComponent::Assimil8orEditorComponent ()
     importButton.setEnabled (false);
     exportButton.setEnabled (false);
 
-    setupPresetControls ();
-    setupChannelControls ();
-    setupZoneControls ();
+    channelTabs.addTab ("1", juce::Colours::darkgrey, new Component, true);
+    channelTabs.addTab ("2", juce::Colours::darkgrey, new Component, true);
+    channelTabs.addTab ("3", juce::Colours::darkgrey, new Component, true);
+    channelTabs.addTab ("4", juce::Colours::darkgrey, new Component, true);
+    channelTabs.addTab ("5", juce::Colours::darkgrey, new Component, true);
+    channelTabs.addTab ("6", juce::Colours::darkgrey, new Component, true);
+    channelTabs.addTab ("7", juce::Colours::darkgrey, new Component, true);
+    channelTabs.addTab ("8", juce::Colours::darkgrey, new Component, true);
+    addAndMakeVisible (channelTabs);
+
+     setupPresetControls ();
+//     setupChannelControls ();
+//     setupZoneControls ();
 }
 
 void Assimil8orEditorComponent::setupPresetControls ()
 {
+    // TODO - replace underscore with actual preset number
+    titleLabel.setText ("Preset _ :", juce::NotificationType::dontSendNotification);
+
     nameEditor.setColour (juce::TextEditor::ColourIds::backgroundColourId, juce::Colours::navajowhite);
     nameEditor.setColour (juce::TextEditor::ColourIds::textColourId, juce::Colours::black);
     nameEditor.onFocusLost = [this] () { nameUiChanged (nameEditor.getText ()); };
     nameEditor.onReturnKey = [this] () { nameUiChanged (nameEditor.getText ()); };
     addAndMakeVisible (nameEditor);
 
+    addAndMakeVisible (windowDecorator);
     data2AsCvLabel.setBorderSize ({ 1, 0, 1, 0 });
     data2AsCvLabel.setText ("Data2 As CV", juce::NotificationType::dontSendNotification);
     addAndMakeVisible (data2AsCvLabel);
@@ -47,17 +67,20 @@ void Assimil8orEditorComponent::setupPresetControls ()
         data2AsCvUiChanged (data2AsCvComboBox.getSelectedItemText ());
     };
     addAndMakeVisible (data2AsCvComboBox);
+
+    xfadeGroupsLabel.setText ("XFade:", juce::NotificationType::dontSendNotification);
+    addAndMakeVisible (xfadeGroupsLabel);
+
     for (auto xfadeGroupIndex { 0 }; xfadeGroupIndex < XfadeGroupIndex::numberOfGroups; ++xfadeGroupIndex)
     {
         auto& xfadeGroup { xfadeGroups [xfadeGroupIndex] };
 
         xfadeGroup.xfadeGroupLabel.setBorderSize ({ 0, 0, 0, 0 });
-        xfadeGroup.xfadeGroupLabel.setJustificationType (juce::Justification::centredTop);
-        xfadeGroup.xfadeGroupLabel.setText ("Crossfade\rGroup " + juce::String::charToString('A' + xfadeGroupIndex), juce::NotificationType::dontSendNotification);
+        xfadeGroup.xfadeGroupLabel.setText (juce::String::charToString('A' + xfadeGroupIndex) + ":", juce::NotificationType::dontSendNotification);
         addAndMakeVisible (xfadeGroup.xfadeGroupLabel);
 
         xfadeGroup.xfadeCvLabel.setBorderSize ({ 0, 0, 0, 0 });
-        xfadeGroup.xfadeCvLabel.setText ("CV:", juce::NotificationType::dontSendNotification);
+        xfadeGroup.xfadeCvLabel.setText ("C", juce::NotificationType::dontSendNotification);
         addAndMakeVisible (xfadeGroup.xfadeCvLabel);
         xfadeGroup.xfadeCvComboBox.onChange = [this, xfadeGroupIndex] ()
         {
@@ -66,7 +89,7 @@ void Assimil8orEditorComponent::setupPresetControls ()
         addAndMakeVisible (xfadeGroup.xfadeCvComboBox);
 
         xfadeGroup.xfadeWidthLabel.setBorderSize ({ 0, 0, 0, 0 });
-        xfadeGroup.xfadeWidthLabel.setText ("Width:", juce::NotificationType::dontSendNotification);
+        xfadeGroup.xfadeWidthLabel.setText ("W", juce::NotificationType::dontSendNotification);
         addAndMakeVisible (xfadeGroup.xfadeWidthLabel);
         xfadeGroup.xfadeWidthEditor.setIndents (2, 2);
         xfadeGroup.xfadeWidthEditor.setInputRestrictions (0, ".0123456789");
@@ -154,32 +177,47 @@ void Assimil8orEditorComponent::resized ()
     const auto yOffsetBetweenControls { 3 };
     auto localBounds { getLocalBounds () };
 
-    auto buttonRow { localBounds.removeFromBottom (28).withTrimmedLeft (3).withTrimmedBottom (3)};
-    saveButton.setBounds (buttonRow.removeFromLeft (100));
-    buttonRow.removeFromLeft (3);
-    importButton.setBounds (buttonRow.removeFromLeft (100));
-    buttonRow.removeFromLeft (3);
-    exportButton.setBounds (buttonRow.removeFromLeft (100));
-
+    auto topRow { localBounds.removeFromTop (25) };
+    topRow.removeFromTop (3);
+    topRow.removeFromLeft (5);
+    titleLabel.setBounds (topRow.removeFromLeft (75));
+    topRow.removeFromLeft (3);
     // Name
-    nameEditor.setBounds ({ 10, 10, 150, 25 });
+    nameEditor.setBounds (topRow.removeFromLeft(150));
+
+    topRow.removeFromRight (3);
+    exportButton.setBounds (topRow.removeFromRight (75));
+    topRow.removeFromRight (3);
+    importButton.setBounds (topRow.removeFromRight (75));
+    topRow.removeFromRight (3);
+    saveButton.setBounds (topRow.removeFromRight (75));
+    const auto tabHeight (600);
+    const auto topRowY { titleLabel.getBottom () + 3 };
+    channelTabs.setBounds (3, topRowY, 800, tabHeight);
+#if FLOATING_BOTTOM_CONTROLS
+    const auto bottomRowY (getLocalBounds().getBottom() - 26);
+    windowDecorator.setBounds (getLocalBounds ().removeFromBottom(26));
+#else
+    const auto bottomRowY (channelTabs.getBottom ());
+#endif
 
     // Data2 as CV
-    data2AsCvLabel.setBounds (10, nameEditor.getBottom () + yOffsetBetweenControls, 80, 25);
-    data2AsCvComboBox.setBounds (data2AsCvLabel.getRight () + 3, data2AsCvLabel.getY () + 3, 67, 20);
+    data2AsCvLabel.setBounds (6, bottomRowY + 3, 80, 20);
+    data2AsCvComboBox.setBounds (data2AsCvLabel.getRight () + 1, bottomRowY + 3, 55, 20);
 
     // Cross fade groups
-    auto startX { nameEditor.getRight () };
+    xfadeGroupsLabel.setBounds (data2AsCvComboBox.getRight () + 3, bottomRowY + 3, 50, 20);
+    auto startX { xfadeGroupsLabel.getRight () + 2 };
     for (auto xfadeGroupIndex { 0 }; xfadeGroupIndex < XfadeGroupIndex::numberOfGroups; ++xfadeGroupIndex)
     {
         auto& xfadeGroup { xfadeGroups [xfadeGroupIndex] };
-        xfadeGroup.xfadeGroupLabel.setBounds (startX + 18 + (xfadeGroupIndex * 100), nameEditor.getY (), 100, 35);
+        xfadeGroup.xfadeGroupLabel.setBounds (startX + (xfadeGroupIndex * 155), bottomRowY + 3, 17, 20);
 
-        xfadeGroup.xfadeCvLabel.setBounds (startX + 20 + (xfadeGroupIndex * 100), xfadeGroup.xfadeGroupLabel.getBottom () + 3, 20, 20);
-        xfadeGroup.xfadeCvComboBox.setBounds (xfadeGroup.xfadeCvLabel.getRight () + 3, xfadeGroup.xfadeCvLabel.getY (), 60, 20);
+        xfadeGroup.xfadeCvLabel.setBounds (xfadeGroup.xfadeGroupLabel.getRight (), bottomRowY + 3, 13, 20);
+        xfadeGroup.xfadeCvComboBox.setBounds (xfadeGroup.xfadeCvLabel.getRight () - 2, bottomRowY + 3, 55, 20);
 
-        xfadeGroup.xfadeWidthLabel.setBounds (startX + 20 + (xfadeGroupIndex * 100), xfadeGroup.xfadeCvLabel.getBottom () + 3, 40, 20);
-        xfadeGroup.xfadeWidthEditor.setBounds (xfadeGroup.xfadeWidthLabel.getRight () + 3, xfadeGroup.xfadeWidthLabel.getY (), 40, 20);
+        xfadeGroup.xfadeWidthLabel.setBounds (xfadeGroup.xfadeCvComboBox.getRight () + 2, bottomRowY + 3, 13, 20);
+        xfadeGroup.xfadeWidthEditor.setBounds (xfadeGroup.xfadeWidthLabel.getRight (), bottomRowY + 3, 40, 20);
     }
 }
 

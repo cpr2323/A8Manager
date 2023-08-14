@@ -68,6 +68,16 @@
       </GROUP>
       <GROUP id="{CF0C93A7-2DC9-863C-8999-5F753D262369}" name="GUI">
         <GROUP id="{E38BD768-EC43-B8F0-AB46-78F18BDF75B0}" name="Assimil8or">
+          <GROUP id="{E38A382D-990E-A82D-2924-1AE3B97D907B}" name="Editor">
+            <FILE id="liNFVw" name="Assimil8orEditorComponent.cpp" compile="1"
+                  resource="0" file="Source/GUI/Assimil8or/Editor/Assimil8orEditorComponent.cpp"/>
+            <FILE id="HH5ILq" name="Assimil8orEditorComponent.h" compile="0" resource="0"
+                  file="Source/GUI/Assimil8or/Editor/Assimil8orEditorComponent.h"/>
+            <FILE id="XJF1Zr" name="CvInputComboBox.cpp" compile="1" resource="0"
+                  file="Source/GUI/Assimil8or/Editor/CvInputComboBox.cpp"/>
+            <FILE id="aw6Hz2" name="CvInputComboBox.h" compile="0" resource="0"
+                  file="Source/GUI/Assimil8or/Editor/CvInputComboBox.h"/>
+          </GROUP>
           <GROUP id="{91280F2E-C070-E7FC-F150-447ABE395FFD}" name="FileView">
             <FILE id="ftRIc7" name="FileViewComponent.cpp" compile="1" resource="0"
                   file="Source/GUI/Assimil8or/FileView/FileViewComponent.cpp"/>
@@ -79,12 +89,6 @@
                   file="Source/GUI/Assimil8or/PresetList/PresetListComponent.cpp"/>
             <FILE id="L0qrUm" name="PresetListComponent.h" compile="0" resource="0"
                   file="Source/GUI/Assimil8or/PresetList/PresetListComponent.h"/>
-          </GROUP>
-          <GROUP id="{E38A382D-990E-A82D-2924-1AE3B97D907B}" name="Editor">
-            <FILE id="liNFVw" name="Assimil8orEditorComponent.cpp" compile="1"
-                  resource="0" file="Source/GUI/Assimil8or/Editor/Assimil8orEditorComponent.cpp"/>
-            <FILE id="HH5ILq" name="Assimil8orEditorComponent.h" compile="0" resource="0"
-                  file="Source/GUI/Assimil8or/Editor/Assimil8orEditorComponent.h"/>
           </GROUP>
           <GROUP id="{4795A860-BF58-C090-2CA5-50CBED6DB470}" name="Validator">
             <FILE id="WyOqUC" name="Assimil8orValidatorComponent.cpp" compile="1"
