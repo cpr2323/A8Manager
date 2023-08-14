@@ -55,7 +55,6 @@ void Assimil8orPreset::write (juce::File presetFile, juce::ValueTree presetPrope
     addLine (true, Section::PresetId + " " + juce::String (presetPropertiesToWrite.getIndex ()) + " :");
     ++indentAmount;
     addLine (true, Parameter::Preset::NameId + " : " + presetPropertiesToWrite.getName ());
-
     addLine (presetPropertiesToWrite.getData2AsCV () != presetPropertiesToWrite.getData2AsCVDefault(), Parameter::Preset::Data2asCVId+ " : " + presetPropertiesToWrite.getData2AsCV ());
     addLine (presetPropertiesToWrite.getXfadeACV () != presetPropertiesToWrite.getXfadeACVDefault (), Parameter::Preset::XfadeACVId + " : " + presetPropertiesToWrite.getXfadeACV ());
     addLine (presetPropertiesToWrite.getXfadeAWidth () != presetPropertiesToWrite.getXfadeAWidthDefault (), Parameter::Preset::XfadeAWidthId + " : " + juce::String (presetPropertiesToWrite.getXfadeAWidth (), 2));
