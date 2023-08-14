@@ -49,7 +49,7 @@ public:
     void setPhaseCV (juce::String cvInput, double phaseCV, bool includeSelfCallback);
     void setPitch (double pitch, bool includeSelfCallback);
     void setPitchCV (juce::String cvInput, double pitchCV, bool includeSelfCallback);
-    void setPlayMode (int PlayMode, bool includeSelfCallback);
+    void setPlayMode (int playMode, bool includeSelfCallback);
     void setPMIndex (double pMIndex, bool includeSelfCallback);
     void setPMIndexMod (juce::String cvInput, double pMIndexMod, bool includeSelfCallback);
     void setPMSource (int pMSource, bool includeSelfCallback);

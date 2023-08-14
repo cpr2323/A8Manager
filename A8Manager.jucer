@@ -73,10 +73,15 @@
                   resource="0" file="Source/GUI/Assimil8or/Editor/Assimil8orEditorComponent.cpp"/>
             <FILE id="HH5ILq" name="Assimil8orEditorComponent.h" compile="0" resource="0"
                   file="Source/GUI/Assimil8or/Editor/Assimil8orEditorComponent.h"/>
+            <FILE id="WA4kSn" name="ChannelEditor.cpp" compile="1" resource="0"
+                  file="Source/GUI/Assimil8or/Editor/ChannelEditor.cpp"/>
+            <FILE id="z5GOWF" name="ChannelEditor.h" compile="0" resource="0" file="Source/GUI/Assimil8or/Editor/ChannelEditor.h"/>
             <FILE id="XJF1Zr" name="CvInputComboBox.cpp" compile="1" resource="0"
                   file="Source/GUI/Assimil8or/Editor/CvInputComboBox.cpp"/>
             <FILE id="aw6Hz2" name="CvInputComboBox.h" compile="0" resource="0"
                   file="Source/GUI/Assimil8or/Editor/CvInputComboBox.h"/>
+            <FILE id="mgSEy9" name="ZoneEditor.cpp" compile="1" resource="0" file="Source/GUI/Assimil8or/Editor/ZoneEditor.cpp"/>
+            <FILE id="EqszGy" name="ZoneEditor.h" compile="0" resource="0" file="Source/GUI/Assimil8or/Editor/ZoneEditor.h"/>
           </GROUP>
           <GROUP id="{91280F2E-C070-E7FC-F150-447ABE395FFD}" name="FileView">
             <FILE id="ftRIc7" name="FileViewComponent.cpp" compile="1" resource="0"

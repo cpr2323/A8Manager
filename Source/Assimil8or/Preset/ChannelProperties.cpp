@@ -322,9 +322,9 @@ void ChannelProperties::setPitchCV (juce::String cvInput, double pitchCV, bool i
     setValue (getCvInputAndValueString (cvInput, pitchCV, 4), PitchCVPropertyId, includeSelfCallback);
 }
 
-void ChannelProperties::setPlayMode (int PlayMode, bool includeSelfCallback)
+void ChannelProperties::setPlayMode (int playMode, bool includeSelfCallback)
 {
-    setValue (PlayMode, PlayModePropertyId, includeSelfCallback);
+    setValue (playMode, PlayModePropertyId, includeSelfCallback);
 }
 
 void ChannelProperties::setPMIndex (double pMIndex, bool includeSelfCallback)

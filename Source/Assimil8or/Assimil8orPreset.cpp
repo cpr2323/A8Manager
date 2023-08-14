@@ -17,8 +17,7 @@ void Assimil8orPreset::write (juce::File presetFile, juce::ValueTree presetPrope
     PresetProperties presetPropertiesToWrite (presetPropertiesVT, PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
     if (FileTypeHelpers::isPresetFile (presetFile))
     {
-        const auto presetNumber { FileTypeHelpers::getPresetNumberFromName (presetFile) };
-        if (presetNumber != FileTypeHelpers::kBadPresetNumber)
+        if (const auto presetNumber { FileTypeHelpers::getPresetNumberFromName (presetFile) }; presetNumber != FileTypeHelpers::kBadPresetNumber)
             presetPropertiesToWrite.setIndex (presetNumber, false);
     }
 

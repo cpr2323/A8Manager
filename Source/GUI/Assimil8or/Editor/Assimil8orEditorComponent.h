@@ -1,6 +1,7 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "ChannelEditor.h"
 #include "CvInputComboBox.h"
 #include "../../../AppProperties.h"
 #include "../../../Assimil8or/Preset/PresetProperties.h"
@@ -16,6 +17,7 @@ private:
         g.drawLine ({ getLocalBounds ().getTopLeft ().toFloat (),getLocalBounds ().getTopRight ().toFloat () });
     }
 };
+
 class Assimil8orEditorComponent : public juce::Component
 {
 public:
@@ -34,17 +36,8 @@ private:
     juce::TextButton exportButton;
     juce::TabbedComponent channelTabs { juce::TabbedButtonBar::Orientation::TabsAtTop };
     WindowDecorator windowDecorator;
-    // preset fields
-    // Data2asCV
-    // Name
-    // XfadeACV
-    // XfadeAWidth
-    // XfadeBCV
-    // XfadeBWidth
-    // XfadeCCV
-    // XfadeCWidth
-    // XfadeDCV
-    // XfadeDWidth
+
+    // Preset Parameters
     juce::TextEditor nameEditor;
     juce::Label data2AsCvLabel;
     CvInputGlobalComboBox data2AsCvComboBox;
@@ -55,7 +48,7 @@ private:
         juce::Label xfadeCvLabel;
         CvInputGlobalComboBox xfadeCvComboBox;
         juce::Label xfadeWidthLabel;
-        juce::TextEditor xfadeWidthEditor;
+        juce::TextEditor xfadeWidthEditor;  // double
     };
     enum XfadeGroupIndex
     {
@@ -66,9 +59,9 @@ private:
         numberOfGroups
     };
     std::array<XfadeGroupControls, 4> xfadeGroups;
+    std::array<ChannelEditor, 8> channelEditors;
 
     void exportPreset ();
-    juce::String getPresetFileName (int presetIndex);
     void importPreset ();
     void savePreset ();
     void setupChannelControls ();
@@ -76,15 +69,13 @@ private:
     void setupPresetPropertiesCallbacks ();
     void setupZoneControls ();
 
+    // Preset callbacks 
     void nameDataChanged (juce::String name);
     void nameUiChanged (juce::String name);
-
     void data2AsCvDataChanged (juce::String data2AsCvString);
     void data2AsCvUiChanged (juce::String data2AsCvString);
-
     void xfadeCvDataChanged (int group, juce::String data2AsCvString);
     void xfadeCvUiChanged (int group, juce::String data2AsCvString);
-
     void xfadeWidthDataChanged (int group, juce::String width);
     void xfadeWidthUiChanged (int group, juce::String width);
 

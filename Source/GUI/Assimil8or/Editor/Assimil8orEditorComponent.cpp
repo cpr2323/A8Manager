@@ -50,6 +50,7 @@ Assimil8orEditorComponent::Assimil8orEditorComponent ()
 void Assimil8orEditorComponent::setupPresetControls ()
 {
     // TODO - replace underscore with actual preset number
+
     titleLabel.setText ("Preset _ :", juce::NotificationType::dontSendNotification);
 
     nameEditor.setColour (juce::TextEditor::ColourIds::backgroundColourId, juce::Colours::navajowhite);
@@ -111,7 +112,7 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
 {
     PersistentRootProperties persistentRootProperties (rootPropertiesVT, PersistentRootProperties::WrapperType::client, PersistentRootProperties::EnableCallbacks::no);
     RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
-    appProperties.wrap (persistentRootProperties.getValueTree (), AppProperties::WrapperType::client, AppProperties::EnableCallbacks::yes);
+    appProperties.wrap (persistentRootProperties.getValueTree (), AppProperties::WrapperType::client, AppProperties::EnableCallbacks::no);
     presetProperties.wrap (runtimeRootProperties.getValueTree (), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::yes);
     setupPresetPropertiesCallbacks ();
 
@@ -153,13 +154,6 @@ void Assimil8orEditorComponent::exportPreset ()
     jassertfalse;
 }
 
-juce::String Assimil8orEditorComponent::getPresetFileName (int presetIndex)
-{
-    const auto rawPresetIndexString { juce::String (presetIndex) };
-    const auto presetIndexString { juce::String ("000").substring (0, 3 - rawPresetIndexString.length ()) + rawPresetIndexString };
-    return "prst" + presetIndexString;
-}
-
 void Assimil8orEditorComponent::savePreset ()
 {
     auto presetFile { juce::File (appProperties.getMRUList () [0]) };
@@ -174,7 +168,6 @@ void Assimil8orEditorComponent::paint ([[maybe_unused]] juce::Graphics& g)
 
 void Assimil8orEditorComponent::resized ()
 {
-    const auto yOffsetBetweenControls { 3 };
     auto localBounds { getLocalBounds () };
 
     auto topRow { localBounds.removeFromTop (25) };
