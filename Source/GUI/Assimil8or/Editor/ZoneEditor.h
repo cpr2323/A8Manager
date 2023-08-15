@@ -24,7 +24,7 @@ private:
     juce::Label pitchOffsetLabel;
     juce::TextEditor pitchOffsetTextEditor; // double
     juce::Label sampleStartNameLabel;
-    juce::TextEditor sampleFileNameTextEditor; // filename
+    juce::TextEditor sampleTextEditor; // filename
     juce::Label sampleStartLabel;
     juce::TextEditor sampleStartTextEditor; // int
     juce::Label sampleEndLabel;
@@ -44,8 +44,8 @@ private:
     void minVoltageUiChanged (double minVoltage);
     void pitchOffsetDataChanged (double pitchOffset);
     void pitchOffsetUiChanged (double pitchOffset);
-    void sampleFileNameDataChanged (juce::String sampleFileName);
-    void sampleFileNameUiChanged (juce::String sampleFileName);
+    void sampleDataChanged (juce::String sample);
+    void sampleUiChanged (juce::String sample);
     void sampleStartDataChanged (int sampleStart);
     void sampleStartUiChanged (int sampleStart);
     void sampleEndDataChanged (int sampleEnd);
