@@ -9,36 +9,17 @@ juce::ValueTree ZoneProperties::create (int index)
     return zoneProperties.getValueTree ();
 }
 
-void ZoneProperties::initToDefaults ()
+void ZoneProperties::clear ()
 {
-    clear (false); // clear everything
-}
-
-void ZoneProperties::initToDefaultIsMissing ()
-{
-    clear (true); // only init the missing things
-}
-
-void ZoneProperties::clear (bool onlyClearIfPropertyMissing)
-{
-    if (! onlyClearIfPropertyMissing || ! data.hasProperty (LevelOffsetPropertyId))
-        setLevelOffset (getLevelOffsetDefault (), false);
-    if (! onlyClearIfPropertyMissing || ! data.hasProperty (LoopLengthPropertyId))
-        setLoopLength (getLoopLengthDefault (), false);
-    if (! onlyClearIfPropertyMissing || ! data.hasProperty (LoopStartPropertyId))
-        setLoopStart (getLoopStartDefault (), false);
-    if (! onlyClearIfPropertyMissing || ! data.hasProperty (MinVoltagePropertyId))
-        setMinVoltage (getMinVoltageDefault (), false);
-    if (! onlyClearIfPropertyMissing || ! data.hasProperty (PitchOffsetPropertyId))
-        setPitchOffset (getPitchOffsetDefault (), false);
-    if (! onlyClearIfPropertyMissing || ! data.hasProperty (SamplePropertyId))
-        setSample (getSampleDefault (), false);
-    if (! onlyClearIfPropertyMissing || ! data.hasProperty (SampleStartPropertyId))
-        setSampleStart (getSampleStartDefault (), false);
-    if (! onlyClearIfPropertyMissing || ! data.hasProperty (SampleEndPropertyId))
-        setSampleEnd (getSampleEndDefault (), false);
-    if (! onlyClearIfPropertyMissing || ! data.hasProperty (SidePropertyId))
-        setSide (getSideDefault (), false);
+    setLevelOffset (getLevelOffsetDefault (), false);
+    setLoopLength (getLoopLengthDefault (), false);
+    setLoopStart (getLoopStartDefault (), false);
+    setMinVoltage (getMinVoltageDefault (), false);
+    setPitchOffset (getPitchOffsetDefault (), false);
+    setSample (getSampleDefault (), false);
+    setSampleStart (getSampleStartDefault (), false);
+    setSampleEnd (getSampleEndDefault (), false);
+    setSide (getSideDefault (), false);
 }
 
 ////////////////////////////////////////////////////////////////////

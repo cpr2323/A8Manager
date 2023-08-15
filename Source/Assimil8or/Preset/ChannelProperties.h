@@ -13,13 +13,12 @@ class ChannelProperties : public ValueTreeWrapper<ChannelProperties>
 public:
     ChannelProperties () noexcept : ValueTreeWrapper (ChannelTypeId)
     {
-        initToDefaultIsMissing ();
+        clear ();
     }
 
     ChannelProperties (juce::ValueTree vt, WrapperType wrapperType, EnableCallbacks shouldEnableCallbacks) noexcept
         : ValueTreeWrapper (ChannelTypeId, vt, wrapperType, shouldEnableCallbacks)
     {
-        initToDefaultIsMissing ();
     }
 
     void setIndex (int index, bool includeSelfCallback);
@@ -237,15 +236,12 @@ public:
 
     void initValueTree ();
     void processValueTree () {}
-
-    void initToDefaults ();
-    void initToDefaultIsMissing ();
+    void clear ();
 
 private:
     ParameterDataListProperties parameterDataListProperties;
 
     juce::ValueTree addZone (int index);
-    void clear (bool onlyClearIfPropertyMissing);
     int getNumZones ();
 
     void valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property) override;

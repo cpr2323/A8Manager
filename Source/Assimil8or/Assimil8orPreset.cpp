@@ -150,7 +150,7 @@ void Assimil8orPreset::write (juce::File presetFile)
 void Assimil8orPreset::parse (juce::StringArray presetLines)
 {
     jassert (presetProperties.isValid ());
-    presetProperties.initToDefaults ();
+    presetProperties.clear ();
     parseErrorList.removeAllChildren (nullptr);
     parseErrorList.removeAllProperties (nullptr);
 

@@ -9,12 +9,11 @@ class ZoneProperties : public ValueTreeWrapper<ZoneProperties>
 public:
     ZoneProperties () noexcept : ValueTreeWrapper<ZoneProperties> (ZoneTypeId)
     {
-        initToDefaultIsMissing ();
+        clear ();
     }
     ZoneProperties (juce::ValueTree vt, WrapperType wrapperType, EnableCallbacks shouldEnableCallbacks) noexcept
         : ValueTreeWrapper<ZoneProperties> (ZoneTypeId, vt, wrapperType, shouldEnableCallbacks)
     {
-        initToDefaultIsMissing ();
     }
 
     void setIndex (int index, bool includeSelfCallback);
@@ -77,13 +76,11 @@ public:
     void initValueTree () {}
     void processValueTree () {}
 
-    void initToDefaults ();
-    void initToDefaultIsMissing ();
+    void clear ();
 
 private:
     ParameterDataListProperties parameterDataListProperties;
 
-    void clear (bool onlyClearIfPropertyMissing);
 
     void valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property) override;
 };

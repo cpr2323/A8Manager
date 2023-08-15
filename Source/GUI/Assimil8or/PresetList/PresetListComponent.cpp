@@ -124,7 +124,7 @@ void PresetListComponent::loadFirstPreset ()
 
 void PresetListComponent::loadDefault (int row)
 {
-    presetProperties.initToDefaults ();
+    presetProperties.clear ();
     auto presetFile { juce::File (appProperties.getMostRecentFolder ()).getChildFile (getPresetName (row)).withFileExtension (".yml") };
     presetProperties.setIndex (FileTypeHelpers::getPresetNumberFromName (presetFile), false);
 }
@@ -145,7 +145,7 @@ void PresetListComponent::loadPreset (juce::File presetFile)
     Assimil8orPreset assimil8orPreset;
     assimil8orPreset.parse (fileContents);
 
-    presetProperties.initToDefaults ();
+    presetProperties.clear ();
     presetProperties.getValueTree ().copyPropertiesAndChildrenFrom (assimil8orPreset.getPresetVT (), nullptr);
 }
 

@@ -10,12 +10,11 @@ class PresetProperties : public ValueTreeWrapper<PresetProperties>
 public:
     PresetProperties () noexcept : parameterDataListProperties (ParameterDataListProperties()), ValueTreeWrapper<PresetProperties> (PresetTypeId)
     {
-        initToDefaultIsMissing ();
+        clear ();
     }
     PresetProperties (juce::ValueTree vt, WrapperType wrapperType, EnableCallbacks shouldEnableCallbacks) noexcept
         : parameterDataListProperties (ParameterDataListProperties ()), ValueTreeWrapper<PresetProperties> (PresetTypeId, vt, wrapperType, shouldEnableCallbacks)
     {
-        initToDefaultIsMissing ();
     }
 
     void setIndex (int index, bool includeSelfCallback);
@@ -84,14 +83,12 @@ public:
     void initValueTree ();
     void processValueTree () {}
 
-    void initToDefaults ();
-    void initToDefaultIsMissing ();
+    void clear ();
 
 private:
     ParameterDataListProperties parameterDataListProperties;
 
     juce::ValueTree addChannel (int index);
-    void clear (bool onlyClearIfPropertyMissing);
     int getNumChannels ();
 
     void valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property) override;

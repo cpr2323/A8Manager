@@ -17,49 +17,27 @@ int PresetProperties::getNumChannels ()
     return numChannels;
 }
 
-void PresetProperties::initToDefaults ()
-{
-    clear (false); // clear everything
-}
-
-void PresetProperties::initToDefaultIsMissing ()
-{
-    clear (true); // only init the missing things
-}
-
-void PresetProperties::clear (bool onlyClearIfPropertyMissing)
+void PresetProperties::clear ()
 {
     const auto kDefaultPresetName { "New" };
     setIndex (1, false);
     setName (kDefaultPresetName, false);
 
-    if (! onlyClearIfPropertyMissing || ! data.hasProperty (Data2asCVPropertyId))
-        setData2AsCV (getData2AsCVDefault (), false);
+    setData2AsCV (getData2AsCVDefault (), false);
     //setName (juce::String name, false); this is currently set in the clear function
-    if (! onlyClearIfPropertyMissing || ! data.hasProperty (XfadeACVPropertyId))
-        setXfadeACV (getXfadeACVDefault (), false);
-    if (! onlyClearIfPropertyMissing || ! data.hasProperty (XfadeAWidthPropertyId))
-        setXfadeAWidth (getXfadeAWidthDefault (), false);
-    if (! onlyClearIfPropertyMissing || ! data.hasProperty (XfadeBCVPropertyId))
-        setXfadeBCV (getXfadeBCVDefault (), false);
-    if (! onlyClearIfPropertyMissing || ! data.hasProperty (XfadeBWidthPropertyId))
-        setXfadeBWidth (getXfadeBWidthDefault (), false);
-    if (! onlyClearIfPropertyMissing || ! data.hasProperty (XfadeCCVPropertyId))
-        setXfadeCCV (getXfadeCCVDefault (), false);
-    if (! onlyClearIfPropertyMissing || ! data.hasProperty (XfadeCWidthPropertyId))
-        setXfadeCWidth (getXfadeCWidthDefault (), false);
-    if (! onlyClearIfPropertyMissing || ! data.hasProperty (XfadeDCVPropertyId))
-        setXfadeDCV (getXfadeDCVDefault (), false);
-    if (! onlyClearIfPropertyMissing || ! data.hasProperty (XfadeDWidthPropertyId))
-        setXfadeDWidth (getXfadeDWidthDefault (), false);
+    setXfadeACV (getXfadeACVDefault (), false);
+    setXfadeAWidth (getXfadeAWidthDefault (), false);
+    setXfadeBCV (getXfadeBCVDefault (), false);
+    setXfadeBWidth (getXfadeBWidthDefault (), false);
+    setXfadeCCV (getXfadeCCVDefault (), false);
+    setXfadeCWidth (getXfadeCWidthDefault (), false);
+    setXfadeDCV (getXfadeDCVDefault (), false);
+    setXfadeDWidth (getXfadeDWidthDefault (), false);
 
-    forEachChannel ([this, onlyClearIfPropertyMissing] (juce::ValueTree channelPropertiesVT)
+    forEachChannel ([this] (juce::ValueTree channelPropertiesVT)
     {
         ChannelProperties channelProperties (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
-        if (onlyClearIfPropertyMissing)
-            channelProperties.initToDefaultIsMissing ();
-        else
-            channelProperties.initToDefaults ();
+        channelProperties.clear ();
         return true;
     });
 }
