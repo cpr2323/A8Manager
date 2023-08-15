@@ -74,7 +74,7 @@ public:
     static inline const juce::Identifier SampleEndPropertyId   { "sampleEnd" };
     static inline const juce::Identifier SidePropertyId        { "side" };
 
-    void initValueTree () {};
+    void initValueTree () {}
     void processValueTree () {}
 
     void initToDefaults ();

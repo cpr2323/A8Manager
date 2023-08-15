@@ -257,7 +257,7 @@ Assimil8orPreset::Assimil8orPreset ()
     // Preset Actions
     presetActions.insert ({
         {Section::ChannelId, [this, getParameterIndex, undoAction, setActions] () {
-            jassert (getParameterIndex () < 9);
+            jassert (getParameterIndex () > 0 && getParameterIndex () < 9);
             curChannelSection = presetProperties.getChannelVT (getParameterIndex () - 1);
             channelProperties.wrap (curChannelSection, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
             setActions (&channelActions, [this, undoAction]{
@@ -299,8 +299,8 @@ Assimil8orPreset::Assimil8orPreset ()
     // Channel Actions
     channelActions.insert ({
         {Section::ZoneId, [this, getParameterIndex, undoAction, setActions] () {
-            // TODO - do we need to check for malformed data, ie more than 8 zones
-            curZoneSection = channelProperties.addZone (getParameterIndex ());
+            jassert (getParameterIndex () > 0 && getParameterIndex () < 9);
+            curZoneSection = channelProperties.getZoneVT (getParameterIndex () - 1);
             zoneProperties.wrap (curZoneSection, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
             setActions (&zoneActions, [this, undoAction]{
                 undoAction (&channelActions, curZoneSection);

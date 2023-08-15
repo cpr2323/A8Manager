@@ -185,9 +185,8 @@ public:
     std::function<void (juce::String zonesCV)> onZonesCVChange;
     std::function<void (int zonesRT)> onZonesRTChange;
 
-    juce::ValueTree addZone (int index);
     void forEachZone (std::function<bool (juce::ValueTree zoneVT)> zoneVTCallback);
-    int getNumZones ();
+    juce::ValueTree getZoneVT (int zoneIndex);
 
     static juce::ValueTree create (int index);
     static juce::String getCvInputAndValueString (juce::String cvInput, double value, int decimalPlaces);
@@ -236,7 +235,7 @@ public:
     static inline const juce::Identifier ZonesCVPropertyId           { "zonesCV" };
     static inline const juce::Identifier ZonesRTPropertyId           { "zonesRT" };
 
-    void initValueTree () {}
+    void initValueTree ();
     void processValueTree () {}
 
     void initToDefaults ();
@@ -245,7 +244,9 @@ public:
 private:
     ParameterDataListProperties parameterDataListProperties;
 
+    juce::ValueTree addZone (int index);
     void clear (bool onlyClearIfPropertyMissing);
+    int getNumZones ();
 
     void valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property) override;
 };

@@ -4,6 +4,19 @@
 
 const auto kMaxZones { 8 };
 
+void ChannelProperties::initValueTree ()
+{
+    for (auto zoneIndex { 0 }; zoneIndex < kMaxZones; ++zoneIndex)
+        addZone (zoneIndex);
+}
+
+int ChannelProperties::getNumZones ()
+{
+    auto numZones { 0 };
+    forEachZone ([&numZones] (juce::ValueTree) { ++numZones; return true; });
+    return numZones;
+}
+
 juce::ValueTree ChannelProperties::create (int index)
 {
     ChannelProperties channelProperties;
@@ -28,11 +41,23 @@ void ChannelProperties::forEachZone (std::function<bool (juce::ValueTree zoneVT)
     });
 }
 
-int ChannelProperties::getNumZones ()
+juce::ValueTree ChannelProperties::getZoneVT (int zoneIndex)
 {
-    auto numZones { 0 };
-    forEachZone ([&numZones] (juce::ValueTree) { ++numZones; return true; });
-    return numZones;
+    jassert (zoneIndex < getNumZones ());
+    juce::ValueTree requestedChannelVT;
+    auto curZoneIndex { 0 };
+    forEachZone ([this, &requestedChannelVT, &curZoneIndex, zoneIndex] (juce::ValueTree channelVT)
+        {
+            if (curZoneIndex == zoneIndex)
+            {
+                requestedChannelVT = channelVT;
+                return false;
+            }
+            ++curZoneIndex;
+            return true;
+        });
+    jassert (requestedChannelVT.isValid ());
+    return requestedChannelVT;
 }
 
 juce::String ChannelProperties::getCvInputAndValueString (juce::String cvInput, double value, int decimalPlaces)
@@ -52,6 +77,7 @@ CvInputAndAmount ChannelProperties::getCvInputAndValueFromString (juce::String c
     jassert (delimiterLocation != 0);
     return { cvInputAndValueString.substring (0, delimiterLocation), cvInputAndValueString.substring (delimiterLocation + 1).getFloatValue () };
 }
+
 
 void ChannelProperties::initToDefaults ()
 {
@@ -182,6 +208,16 @@ void ChannelProperties::clear (bool onlyClearIfPropertyMissing)
         setZonesCV (getZonesCVDefault (), false);
     if (! onlyClearIfPropertyMissing || ! data.hasProperty (ZonesRTPropertyId))
         setZonesRT (getZonesRTDefault (), false);
+
+    forEachZone ([this, onlyClearIfPropertyMissing] (juce::ValueTree zonePropertiesVT)
+    {
+        ZoneProperties zoneProperties (zonePropertiesVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
+        if (onlyClearIfPropertyMissing)
+            zoneProperties.initToDefaultIsMissing ();
+        else
+            zoneProperties.initToDefaults ();
+        return true;
+    });
 }
 
 ////////////////////////////////////////////////////////////////////
