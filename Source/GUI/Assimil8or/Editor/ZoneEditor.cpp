@@ -22,6 +22,20 @@ ZoneEditor::ZoneEditor ()
 //     juce::ToggleButton sideCheckBox; // ?
 }
 
+void ZoneEditor::init (juce::ValueTree zonePropertiesVT)
+{
+    zoneProperties.wrap (zonePropertiesVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::yes);
+    setupZonePropertiesCallbacks ();
+
+    loopLengthDataChanged (zoneProperties.getLevelOffset ());
+}
+
+void ZoneEditor::setupZonePropertiesCallbacks ()
+{
+    zoneProperties.onIndexChange = [this] ([[maybe_unused]] int index) { jassertfalse; /* I don't think this should change while we are editing */};
+    zoneProperties.onLevelOffsetChange = [this] (double levelOffset) { levelOffsetDataChanged (levelOffset);  };
+}
+
 void ZoneEditor::paint (juce::Graphics& g)
 {
     g.setColour (juce::Colours::magenta);

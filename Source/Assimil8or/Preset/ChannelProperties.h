@@ -6,7 +6,7 @@
 #include "ZoneProperties.h"
 #include "../../Utility/ValueTreeWrapper.h"
 
-using AmountAndCvInput = std::tuple<juce::String, double>;
+using CvInputAndAmount = std::tuple<juce::String, double>;
 
 class ChannelProperties : public ValueTreeWrapper<ChannelProperties>
 {
@@ -65,13 +65,13 @@ public:
 
     int getIndex ();
     int getAliasing ();
-    AmountAndCvInput getAliasingMod ();
+    CvInputAndAmount getAliasingMod ();
     double getAttack ();
     bool getAttackFromCurrent ();
-    AmountAndCvInput getAttackMod ();
+    CvInputAndAmount getAttackMod ();
     bool getAutoTrigger ();
     double getBits ();
-    AmountAndCvInput getBitsMod ();
+    CvInputAndAmount getBitsMod ();
     int getChannelMode ();
     double getExpAM ();
     double getExpFM ();
@@ -79,39 +79,39 @@ public:
     double getLinAM ();
     bool getLinAMisExtEnv ();
     double getLinFM ();
-    AmountAndCvInput getLoopLengthMod ();
+    CvInputAndAmount getLoopLengthMod ();
     int getLoopMode ();
-    AmountAndCvInput getLoopStartMod ();
+    CvInputAndAmount getLoopStartMod ();
     double getMixLevel ();
-    AmountAndCvInput getMixMod ();
+    CvInputAndAmount getMixMod ();
     bool getMixModIsFader ();
     double getPan ();
-    AmountAndCvInput getPanMod ();
-    AmountAndCvInput getPhaseCV ();
+    CvInputAndAmount getPanMod ();
+    CvInputAndAmount getPhaseCV ();
     double getPitch ();
-    AmountAndCvInput getPitchCV ();
+    CvInputAndAmount getPitchCV ();
     int getPlayMode ();
     double getPMIndex ();
-    AmountAndCvInput getPMIndexMod ();
+    CvInputAndAmount getPMIndexMod ();
     int getPMSource ();
     double getRelease ();
-    AmountAndCvInput getReleaseMod ();
+    CvInputAndAmount getReleaseMod ();
     bool getReverse ();
-    AmountAndCvInput getSampleStartMod ();
-    AmountAndCvInput getSampleEndMod ();
+    CvInputAndAmount getSampleStartMod ();
+    CvInputAndAmount getSampleEndMod ();
     bool getSpliceSmoothing ();
     juce::String getXfadeGroup ();
     juce::String getZonesCV ();
     int getZonesRT ();
 
     int getAliasingDefault ();
-    AmountAndCvInput getAliasingModDefault ();
+    CvInputAndAmount getAliasingModDefault ();
     double getAttackDefault ();
     bool getAttackFromCurrentDefault ();
-    AmountAndCvInput getAttackModDefault ();
+    CvInputAndAmount getAttackModDefault ();
     bool getAutoTriggerDefault ();
     double getBitsDefault ();
-    AmountAndCvInput getBitsModDefault ();
+    CvInputAndAmount getBitsModDefault ();
     int getChannelModeDefault ();
     double getExpAMDefault ();
     double getExpFMDefault ();
@@ -119,26 +119,26 @@ public:
     double getLinAMDefault ();
     bool getLinAMisExtEnvDefault ();
     double getLinFMDefault ();
-    AmountAndCvInput getLoopLengthModDefault ();
+    CvInputAndAmount getLoopLengthModDefault ();
     int getLoopModeDefault ();
-    AmountAndCvInput getLoopStartModDefault ();
+    CvInputAndAmount getLoopStartModDefault ();
     double getMixLevelDefault ();
-    AmountAndCvInput getMixModDefault ();
+    CvInputAndAmount getMixModDefault ();
     bool getMixModIsFaderDefault ();
     double getPanDefault ();
-    AmountAndCvInput getPanModDefault ();
-    AmountAndCvInput getPhaseCVDefault ();
+    CvInputAndAmount getPanModDefault ();
+    CvInputAndAmount getPhaseCVDefault ();
     double getPitchDefault ();
-    AmountAndCvInput getPitchCVDefault ();
+    CvInputAndAmount getPitchCVDefault ();
     int getPlayModeDefault ();
     double getPMIndexDefault ();
-    AmountAndCvInput getPMIndexModDefault ();
+    CvInputAndAmount getPMIndexModDefault ();
     int getPMSourceDefault ();
     double getReleaseDefault ();
-    AmountAndCvInput getReleaseModDefault ();
+    CvInputAndAmount getReleaseModDefault ();
     bool getReverseDefault ();
-    AmountAndCvInput getSampleStartModDefault ();
-    AmountAndCvInput getSampleEndModDefault ();
+    CvInputAndAmount getSampleStartModDefault ();
+    CvInputAndAmount getSampleEndModDefault ();
     bool getSpliceSmoothingDefault ();
     juce::String getXfadeGroupDefault ();
     juce::String getZonesCVDefault ();
@@ -146,13 +146,13 @@ public:
 
     std::function<void (int index)> onIndexChange;
     std::function<void (int aliasing)> onAliasingChange;
-    std::function<void (AmountAndCvInput amountAndCvInput)> onAliasingModChange;
+    std::function<void (CvInputAndAmount amountAndCvInput)> onAliasingModChange;
     std::function<void (double attack)> onAttackChange;
     std::function<void (bool attackFromCurrent)> onAttackFromCurrentChange;
-    std::function<void (AmountAndCvInput amountAndCvInput)> onAttackModChange;
+    std::function<void (CvInputAndAmount amountAndCvInput)> onAttackModChange;
     std::function<void (bool autoTrigger)> onAutoTriggerChange;
     std::function<void (double bits)> onBitsChange;
-    std::function<void (AmountAndCvInput amountAndCvInput)> onBitsModChange;
+    std::function<void (CvInputAndAmount amountAndCvInput)> onBitsModChange;
     std::function<void (int channelMode)> onChannelModeChange;
     std::function<void (double expAM)> onExpAMChange;
     std::function<void (double expFM)> onExpFMChange;
@@ -160,26 +160,26 @@ public:
     std::function<void (double linAM)> onLinAMChange;
     std::function<void (bool linAMisExtEnv)> onLinAMisExtEnvChange;
     std::function<void (double linFM)> onLinFMChange;
-    std::function<void (AmountAndCvInput amountAndCvInput)> onLoopLengthModChange;
+    std::function<void (CvInputAndAmount amountAndCvInput)> onLoopLengthModChange;
     std::function<void (int loopMode)> onLoopModeChange;
-    std::function<void (AmountAndCvInput amountAndCvInput)> onLoopStartModChange;
+    std::function<void (CvInputAndAmount amountAndCvInput)> onLoopStartModChange;
     std::function<void (double mixLevel)> onMixLevelChange;
-    std::function<void (AmountAndCvInput amountAndCvInput)> onMixModChange;
+    std::function<void (CvInputAndAmount amountAndCvInput)> onMixModChange;
     std::function<void (bool mixModIsFader)> onMixModIsFaderChange;
     std::function<void (double pan)> onPanChange;
-    std::function<void (AmountAndCvInput amountAndCvInput)> onPanModChange;
-    std::function<void (AmountAndCvInput amountAndCvInput)> onPhaseCVChange;
+    std::function<void (CvInputAndAmount amountAndCvInput)> onPanModChange;
+    std::function<void (CvInputAndAmount amountAndCvInput)> onPhaseCVChange;
     std::function<void (double pitch)> onPitchChange;
-    std::function<void (AmountAndCvInput amountAndCvInput)> onPitchCVChange;
+    std::function<void (CvInputAndAmount amountAndCvInput)> onPitchCVChange;
     std::function<void (int PlayMode)> onPlayModeChange;
     std::function<void (double pMIndex)> onPMIndexChange;
-    std::function<void (AmountAndCvInput amountAndCvInput)> onPMIndexModChange;
+    std::function<void (CvInputAndAmount amountAndCvInput)> onPMIndexModChange;
     std::function<void (int pMSource)> onPMSourceChange;
     std::function<void (double release)> onReleaseChange;
-    std::function<void (AmountAndCvInput amountAndCvInput)> onReleaseModChange;
+    std::function<void (CvInputAndAmount amountAndCvInput)> onReleaseModChange;
     std::function<void (bool reverse)> onReverseChange;
-    std::function<void (AmountAndCvInput amountAndCvInput)> onSampleStartModChange;
-    std::function<void (AmountAndCvInput amountAndCvInput)> onSampleEndModChange;
+    std::function<void (CvInputAndAmount amountAndCvInput)> onSampleStartModChange;
+    std::function<void (CvInputAndAmount amountAndCvInput)> onSampleEndModChange;
     std::function<void (bool spliceSmoothing)> onSpliceSmoothingChange;
     std::function<void (juce::String cvInput)> onXfadeGroupChange;
     std::function<void (juce::String zonesCV)> onZonesCVChange;
@@ -191,8 +191,8 @@ public:
 
     static juce::ValueTree create (int index);
     static juce::String getCvInputAndValueString (juce::String cvInput, double value, int decimalPlaces);
-    static juce::String getCvInputAndValueString (AmountAndCvInput cvInputAndValue, int decimalPlaces);
-    static AmountAndCvInput getCvInputAndValueFromString (juce::String cvInputAndValueString);
+    static juce::String getCvInputAndValueString (CvInputAndAmount cvInputAndValue, int decimalPlaces);
+    static CvInputAndAmount getCvInputAndValueFromString (juce::String cvInputAndValueString);
 
     static inline const juce::Identifier ChannelTypeId { "Channel" };
     static inline const juce::Identifier IndexPropertyId             { "_index" };

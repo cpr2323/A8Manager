@@ -8,6 +8,8 @@ class ZoneEditor : public juce::Component
 public:
     ZoneEditor ();
 
+    void init (juce::ValueTree zonePropertiesVT);
+
 private:
     ZoneProperties zoneProperties;
 
@@ -29,6 +31,8 @@ private:
     juce::TextEditor sampleEndTextEditor; // int
     juce::Label sideLabel;
     juce::ToggleButton sideCheckBox; // ?
+
+    void setupZonePropertiesCallbacks ();
 
     void levelOffsetDataChanged (double levelOffset);
     void levelOffsetUiChanged (double levelOffset);

@@ -91,6 +91,28 @@ ChannelEditor::ChannelEditor ()
 //     juce::ComboBox zoneRTComboBox; // 0 = Gate Rise, 1 = Continuous, 2 = Advance, 3 = Random
 }
 
+void ChannelEditor::init (juce::ValueTree channelPropertiesVT)
+{
+    channelProperties.wrap (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::yes);
+    setupChannelPropertiesCallbacks ();
+
+    auto splitAndPassAsParams = [] (CvInputAndAmount amountAndCvInput, std::function<void(juce::String,double)> setter)
+    {
+        jassert (setter != nullptr);
+        const auto& [cvInput, value] { amountAndCvInput };
+        setter (cvInput, value);
+    };
+    aliasingDataChanged (channelProperties.getAliasing ());
+    splitAndPassAsParams (channelProperties.getAliasingMod (), [this] (juce::String cvInput, double value) { aliasingModDataChanged (cvInput, value); });
+}
+
+void ChannelEditor::setupChannelPropertiesCallbacks ()
+{
+    channelProperties.onIndexChange = [this] ([[maybe_unused]] int index) { jassertfalse; /* I don't think this should change while we are editing */};
+    channelProperties.onAliasingChange = [this] (int aliasing) { aliasingDataChanged (aliasing);  };
+    channelProperties.onAliasingModChange = [this] (CvInputAndAmount amountAndCvInput) { const auto& [cvInput, value] { amountAndCvInput }; aliasingModDataChanged (cvInput, value); };
+}
+
 void ChannelEditor::paint (juce::Graphics& g)
 {
     g.setColour (juce::Colours::teal);

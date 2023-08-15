@@ -10,6 +10,8 @@ class ChannelEditor : public juce::Component
 public:
     ChannelEditor ();
 
+    void init (juce::ValueTree channelPropertiesVT);
+
 private:
     ChannelProperties channelProperties;
 
@@ -106,6 +108,8 @@ private:
     juce::ComboBox zoneRTComboBox; // 0 = Gate Rise, 1 = Continuous, 2 = Advance, 3 = Random
 
     std::array<ZoneEditor, 8> zoneEditors;
+
+    void setupChannelPropertiesCallbacks ();
 
     void aliasingDataChanged (int aliasing);
     void aliasingUiChanged (int aliasing);
