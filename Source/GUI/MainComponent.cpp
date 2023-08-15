@@ -48,7 +48,7 @@ MainComponent::MainComponent (juce::ValueTree rootPropertiesVT)
 
     topAndBottomSplitter.setComponents (&folderBrowserEditorSplitter, &assimil8orValidatorComponent);
     topAndBottomSplitter.setHorizontalSplit (true);
-    topAndBottomSplitter.setLayout (2, -0.22);
+    topAndBottomSplitter.setLayout (2, -0.032);
 
     addAndMakeVisible (topAndBottomSplitter);
     addAndMakeVisible (toolWindow);

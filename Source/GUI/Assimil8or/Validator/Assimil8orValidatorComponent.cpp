@@ -150,7 +150,7 @@ void Assimil8orValidatorComponent::resized ()
 {
     auto localBounds { getLocalBounds () };
     validationResultsListBox.setBounds (localBounds);
-    auto filterButtonBounds { getLocalBounds ().removeFromBottom (45).withTrimmedBottom (15).withTrimmedRight (15) };
+    auto filterButtonBounds { getLocalBounds ().removeFromBottom (28).withTrimmedBottom (3).withTrimmedRight (3) };
     errorFilterButton.setBounds (filterButtonBounds.removeFromRight (filterButtonBounds.getHeight ()));
     filterButtonBounds.removeFromRight (5);
     warningFilterButton.setBounds (filterButtonBounds.removeFromRight (filterButtonBounds.getHeight ()));

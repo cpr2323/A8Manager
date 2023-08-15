@@ -64,10 +64,8 @@ private:
     void exportPreset ();
     void importPreset ();
     void savePreset ();
-    void setupChannelControls ();
     void setupPresetControls ();
     void setupPresetPropertiesCallbacks ();
-    void setupZoneControls ();
 
     // Preset callbacks 
     void indexDataChanged (int index); // tracks when a new preset has been loaded

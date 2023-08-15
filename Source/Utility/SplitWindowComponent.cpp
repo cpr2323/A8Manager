@@ -75,16 +75,16 @@ void SplitWindowComponent::setHorizontalSplit (bool theHorizontalSplit)
     addAndMakeVisible (resizerBar.get ());
     addAndMakeVisible (secondComponent);
 
-    stretchableManager.setItemLayout (0,          // for the source image
-                                       -0.01, -0.9,  // must be between 10% and 90% of the available space
-                                       -0.5);       // and its preferred size is 50% of the total available space
+    stretchableManager.setItemLayout (0,
+                                       -0.001, -0.99,
+                                       -0.5);
 
     stretchableManager.setItemLayout (1,          // for the resize bar
                                        kSplitBorderWidth, kSplitBorderWidth, kSplitBorderWidth);   // hard limit to 'kSplitBorderWidth' pixels
 
-    stretchableManager.setItemLayout (2,          // for the mandala image
-                                       -0.01, -0.9, // size must be between 10% and 90% of the available space
-                                       -0.5);      // and its preferred size is 50% of the total available space
+    stretchableManager.setItemLayout (2,
+                                       -0.001, -0.99,
+                                       -0.5);
     resized ();
 }
 
@@ -93,7 +93,7 @@ void SplitWindowComponent::setLayout (int componentIndex, double size)
     if (componentIndex > 2)
         return;
 
-    stretchableManager.setItemLayout (componentIndex, -0.01, -0.9, size);
+    stretchableManager.setItemLayout (componentIndex, -0.001, -0.99, size);
     resized ();
 }
 

@@ -94,14 +94,6 @@ void Assimil8orEditorComponent::setupPresetControls ()
     }
 }
 
-void Assimil8orEditorComponent::setupChannelControls ()
-{
-}
-
-void Assimil8orEditorComponent::setupZoneControls ()
-{
-}
-
 void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
 {
     PersistentRootProperties persistentRootProperties (rootPropertiesVT, PersistentRootProperties::WrapperType::client, PersistentRootProperties::EnableCallbacks::no);
