@@ -184,7 +184,9 @@ void PresetListComponent::listBoxItemClicked (int row, [[maybe_unused]] const ju
 {
     auto presetFile { juce::File (appProperties.getMostRecentFolder ()).getChildFile (getPresetName (row)).withFileExtension (".yml") };
     if (presetExists [row])
+    {
         loadPreset (presetFile);
+    }
     else
     {
         presetProperties.initToDefaults ();
