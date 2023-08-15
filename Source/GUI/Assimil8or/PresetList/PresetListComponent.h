@@ -27,6 +27,7 @@ private:
     void checkForPresets ();
     void forEachPresetFile (std::function<bool (juce::File presetFile, int index)> presetFileCallback);
     juce::String getPresetName (int presetIndex);
+    void loadDefault (int row);
     void loadFirstPreset ();
     void loadPreset (juce::File presetFile);
     bool shouldCancelOperation ();

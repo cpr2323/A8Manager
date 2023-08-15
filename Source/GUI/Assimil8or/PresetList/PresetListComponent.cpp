@@ -118,8 +118,15 @@ void PresetListComponent::loadFirstPreset ()
     {
         presetListBox.selectRow (0, false, true);
         presetListBox.scrollToEnsureRowIsOnscreen (0);
-        presetProperties.initToDefaults ();
+        loadDefault (0);
     }
+}
+
+void PresetListComponent::loadDefault (int row)
+{
+    presetProperties.initToDefaults ();
+    auto presetFile { juce::File (appProperties.getMostRecentFolder ()).getChildFile (getPresetName (row)).withFileExtension (".yml") };
+    presetProperties.setIndex (FileTypeHelpers::getPresetNumberFromName (presetFile), false);
 }
 
 juce::String PresetListComponent::getPresetName (int presetIndex)
@@ -184,13 +191,8 @@ void PresetListComponent::listBoxItemClicked (int row, [[maybe_unused]] const ju
 {
     auto presetFile { juce::File (appProperties.getMostRecentFolder ()).getChildFile (getPresetName (row)).withFileExtension (".yml") };
     if (presetExists [row])
-    {
         loadPreset (presetFile);
-    }
     else
-    {
-        presetProperties.initToDefaults ();
-        presetProperties.setIndex (FileTypeHelpers::getPresetNumberFromName (presetFile), false);
-    }
+        loadDefault (row);
     appProperties.addRecentlyUsedFile (presetFile.getFullPathName ());
 }

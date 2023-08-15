@@ -4,12 +4,18 @@
 
 const auto kMaxChannels { 8 };
 
-int PresetProperties::getNumChannels ()
+void PresetProperties::initValueTree ()
 {
-    auto numChannels { 0 };
-    forEachChannel ([&numChannels] (juce::ValueTree) { ++numChannels; return true; });
-    return numChannels;
+    for (auto channelIndex { 0 }; channelIndex < kMaxChannels; ++channelIndex)
+        addChannel (channelIndex);
 }
+
+// int PresetProperties::getNumChannels ()
+// {
+//     auto numChannels { 0 };
+//     forEachChannel ([&numChannels] (juce::ValueTree) { ++numChannels; return true; });
+//     return numChannels;
+// }
 
 void PresetProperties::initToDefaults ()
 {
@@ -50,7 +56,6 @@ void PresetProperties::clear (bool onlyClearIfPropertyMissing)
 
 juce::ValueTree PresetProperties::addChannel (int index)
 {
-    jassert (getNumChannels () < kMaxChannels);
     auto channelProperties { ChannelProperties::create (index) };
     data.addChild (channelProperties, -1, nullptr);
     return channelProperties;

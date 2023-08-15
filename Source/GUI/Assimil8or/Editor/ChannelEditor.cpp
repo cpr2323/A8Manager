@@ -104,6 +104,43 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT)
     };
     aliasingDataChanged (channelProperties.getAliasing ());
     splitAndPassAsParams (channelProperties.getAliasingMod (), [this] (juce::String cvInput, double value) { aliasingModDataChanged (cvInput, value); });
+//     attackDataChanged ();
+//     attackFromCurrentDataChanged ();
+//     attackModDataChanged ();
+//     autoTriggerDataChanged ();
+//     bitsDataChanged ();
+//     bitsModDataChanged ();
+//     channelModeDataChanged ();
+//     expAMDataChanged ();
+//     expFMDataChanged ();
+//     levelDataChanged ();
+//     linAMDataChanged ();
+//     linAMisExtEnvDataChanged ();
+//     linFMDataChanged ();
+//     loopLengthModDataChanged ();
+//     loopModeDataChanged ();
+//     loopStartModDataChanged ();
+//     mixLevelDataChanged ();
+//     mixModDataChanged ();
+//     mixModIsFaderDataChanged ();
+//     panDataChanged ();
+//     panModDataChanged ();
+//     phaseCVDataChanged ();
+//     pitchDataChanged ();
+//     pitchCVDataChanged ();
+//     playModeDataChanged ();
+//     pMIndexDataChanged ();
+//     pMIndexModDataChanged ();
+//     pMSourceDataChanged ();
+//     releaseDataChanged ();
+//     releaseModDataChanged ();
+//     reverseDataChanged ();
+//     sampleStartModDataChanged ();
+//     sampleEndModDataChanged ();
+//     spliceSmoothingDataChanged ();
+//     xfadeGroupDataChanged ();
+//     zonesCVDataChanged ();
+//     zonesRTDataChanged ();
 }
 
 void ChannelEditor::setupChannelPropertiesCallbacks ()
@@ -111,6 +148,43 @@ void ChannelEditor::setupChannelPropertiesCallbacks ()
     channelProperties.onIndexChange = [this] ([[maybe_unused]] int index) { jassertfalse; /* I don't think this should change while we are editing */};
     channelProperties.onAliasingChange = [this] (int aliasing) { aliasingDataChanged (aliasing);  };
     channelProperties.onAliasingModChange = [this] (CvInputAndAmount amountAndCvInput) { const auto& [cvInput, value] { amountAndCvInput }; aliasingModDataChanged (cvInput, value); };
+//     onAttackChange = [this] () {};
+//     onAttackFromCurrentChange = [this] () {};
+//     onAttackModChange = [this] () {};
+//     onAutoTriggerChange = [this] () {};
+//     onBitsChange = [this] () {};
+//     onBitsModChange = [this] () {};
+//     onChannelModeChange = [this] () {};
+//     onExpAMChange = [this] () {};
+//     onExpFMChange = [this] () {};
+//     onLevelChange = [this] () {};
+//     onLinAMChange = [this] () {};
+//     onLinAMisExtEnvChange = [this] () {};
+//     onLinFMChange = [this] () {};
+//     onLoopLengthModChange = [this] () {};
+//     onLoopModeChange = [this] () {};
+//     onLoopStartModChange = [this] () {};
+//     onMixLevelChange = [this] () {};
+//     onMixModChange = [this] () {};
+//     onMixModIsFaderChange = [this] () {};
+//     onPanChange = [this] () {};
+//     onPanModChange = [this] () {};
+//     onPhaseCVChange = [this] () {};
+//     onPitchChange = [this] () {};
+//     onPitchCVChange = [this] () {};
+//     onPlayModeChange = [this] () {};
+//     onPMIndexChange = [this] () {};
+//     onPMIndexModChange = [this] () {};
+//     onPMSourceChange = [this] () {};
+//     onReleaseChange = [this] () {};
+//     onReleaseModChange = [this] () {};
+//     onReverseChange = [this] () {};
+//     onSampleStartModChange = [this] () {};
+//     onSampleEndModChange = [this] () {};
+//     onSpliceSmoothingChange = [this] () {};
+//     onXfadeGroupChange = [this] () {};
+//     onZonesCVChange = [this] () {};
+//     onZonesRTChange = [this] () {};
 }
 
 void ChannelEditor::paint (juce::Graphics& g)

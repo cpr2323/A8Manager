@@ -65,9 +65,8 @@ public:
     std::function<void (juce::String cvInput)> onXfadeDCVChange;
     std::function<void (double width)> onXfadeDWidthChange;
 
-    juce::ValueTree addChannel (int index);
     void forEachChannel (std::function<bool (juce::ValueTree channelVT)> channelVTCallback);
-    int getNumChannels ();
+//    int getNumChannels ();
 
     static inline const juce::Identifier PresetTypeId { "Preset" };
     static inline const juce::Identifier IndexPropertyId       { "_index" };
@@ -82,7 +81,7 @@ public:
     static inline const juce::Identifier XfadeDCVPropertyId    { "xfadeDCV" };
     static inline const juce::Identifier XfadeDWidthPropertyId { "xfadeDWidth" };
 
-    void initValueTree () {}
+    void initValueTree ();
     void processValueTree () {}
 
     void initToDefaults ();
@@ -91,6 +90,7 @@ public:
 private:
     ParameterDataListProperties parameterDataListProperties;
 
+    juce::ValueTree addChannel (int index);
     void clear (bool onlyClearIfPropertyMissing);
 
     void valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property) override;

@@ -27,13 +27,29 @@ void ZoneEditor::init (juce::ValueTree zonePropertiesVT)
     zoneProperties.wrap (zonePropertiesVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::yes);
     setupZonePropertiesCallbacks ();
 
-    loopLengthDataChanged (zoneProperties.getLevelOffset ());
+    levelOffsetDataChanged (zoneProperties.getLevelOffset ());
+//     loopLengthDataChanged ();
+//     loopStartDataChanged ();
+//     minVoltageDataChanged ();
+//     pitchOffsetDataChanged ();
+//     sampleFileNameDataChanged ();
+//     sampleStartDataChanged ();
+//     sampleEndDataChanged ();
+//     sideDataChanged ();
 }
 
 void ZoneEditor::setupZonePropertiesCallbacks ()
 {
     zoneProperties.onIndexChange = [this] ([[maybe_unused]] int index) { jassertfalse; /* I don't think this should change while we are editing */};
     zoneProperties.onLevelOffsetChange = [this] (double levelOffset) { levelOffsetDataChanged (levelOffset);  };
+//     zoneProperties.onLoopLengthChange = [this] () {};
+//     zoneProperties.onLoopStartChange = [this] () {};
+//     zoneProperties.onMinVoltageChange = [this] () {};
+//     zoneProperties.onPitchOffsetChange = [this] () {};
+//     zoneProperties.onSampleChange = [this] () {};
+//     zoneProperties.onSampleStartChange = [this] () {};
+//     zoneProperties.onSampleEndChange = [this] () {};
+//     zoneProperties.onSideChange = [this] () {};
 }
 
 void ZoneEditor::paint (juce::Graphics& g)
