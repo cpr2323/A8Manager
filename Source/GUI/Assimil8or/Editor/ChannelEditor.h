@@ -14,87 +14,94 @@ private:
     ChannelProperties channelProperties;
 
     juce::Label aliasingLabel;
-    juce::TextEditor aliasingTextEdit; // integer
+    juce::TextEditor aliasingTextEditor; // integer
     juce::Label aliasingModLabel;
-    CvInputChannelComboBox aliasingModComboBox;
-    juce::TextEditor aliasingModTextEditor; 
+    CvInputChannelComboBox aliasingModComboBox; // 0A - 8C
+    juce::TextEditor aliasingModTextEditor; // double
     juce::Label attackLabel;
     juce::TextEditor attackTextEditor; // double
     juce::Label attackFromCurrentLabel;
     juce::ToggleButton attackFromCurrentCheckBox; // false = start from zero, true = start from last value
     juce::Label attackModLabel;
-    CvInputChannelComboBox attackModComboBox;
-    juce::TextEditor attackModTextEditor;
+    CvInputChannelComboBox attackModComboBox; // 0A - 8C
+    juce::TextEditor attackModTextEditor; // double
     juce::Label autoTriggerLabel;
     juce::ToggleButton autoTriggerCheckBox; //
     juce::Label bitsLabel;
     juce::TextEditor bitsTextEditor; // double
     juce::Label bitsModLabel;
-    CvInputChannelComboBox bitsModComboBox;
-    juce::TextEditor bitsModTextEditor;
+    CvInputChannelComboBox bitsModComboBox; // 0A - 8C
+    juce::TextEditor bitsModTextEditor; // double
     juce::Label channelModeLabel;
     juce::ComboBox channelModeComboBox; // 4 Channel Modes: 0 = Master, 1 = Link, 2 = Stereo/Right, 3 = Cycle
     juce::Label expAMLabel;
-    juce::TextEditor expAMTextEditor;
+    juce::TextEditor expAMTextEditor; // double
     juce::Label expFMLabel;
-    juce::TextEditor expFMTextEditor;
+    juce::TextEditor expFMTextEditor; // double
     juce::Label levelLabel;
-    juce::TextEditor LevelTextEditor;
+    juce::TextEditor levelTextEditor; // double
     juce::Label linAMLabel;
-    juce::TextEditor linAMTextEditor;
+    juce::TextEditor linAMTextEditor; // double
     juce::Label linAMisExtEnvLabel;
     juce::ToggleButton linAMisExtEnvCheckBox; // 
     juce::Label linFMLabel;
-    juce::TextEditor linFMTextEditor;
+    juce::TextEditor linFMTextEditor; // double
     juce::Label loopLengthModLabel;
-    CvInputChannelComboBox loopLengthModComboBox;
-    juce::TextEditor loopLengthModTextEditor;
+    CvInputChannelComboBox loopLengthModComboBox; // 0A - 8C
+    juce::TextEditor loopLengthModTextEditor; // double
     juce::Label loopModeLabel;
     juce::ComboBox loopModeComboBox; // 0 = No Loop, 1 = Loop, 2 = Loop and Release
     juce::Label loopStartModLabel;
-    CvInputChannelComboBox loopStartModComboBox;
-    juce::TextEditor loopStartModTextEditor;
+    CvInputChannelComboBox loopStartModComboBox; // 0A - 8C
+    juce::TextEditor loopStartModTextEditor; // double
     juce::Label mixLevelLabel;
-    juce::TextEditor mixLevelTextEditor;
+    juce::TextEditor mixLevelTextEditor; // double
     juce::Label mixModLabel;
-    CvInputChannelComboBox mixModComboBox;
-    juce::TextEditor mixModTextEditor;
+    CvInputChannelComboBox mixModComboBox; // 0A - 8C
+    juce::TextEditor mixModTextEditor; // double
     juce::Label mixModIsFaderLabel;
     juce::ToggleButton mixModIsFaderCheckBox; // 
     juce::Label panLabel;
-    juce::TextEditor panTextEditor;
+    juce::TextEditor panTextEditor; // double
     juce::Label panModLabel;
-    CvInputChannelComboBox panModComboBox;
-    juce::TextEditor panModTextEditor;
+    CvInputChannelComboBox panModComboBox; // 0A - 8C
+    juce::TextEditor panModTextEditor; // double
     juce::Label phaseCVLabel;
-    CvInputChannelComboBox phaseCVComboBox;
-    juce::TextEditor phaseCVTextEditor;
+    CvInputChannelComboBox phaseCVComboBox; // 0A - 8C
+    juce::TextEditor phaseCVTextEditor; // double
     juce::Label pitchLabel;
-    juce::TextEditor pitchTextEditor;
+    juce::TextEditor pitchTextEditor; // double
     juce::Label pitchCVLabel;
-    CvInputChannelComboBox pitchCVComboBox;
-    juce::TextEditor pitchCVTextEditor;
+    CvInputChannelComboBox pitchCVComboBox; // 0A - 8C
+    juce::TextEditor pitchCVTextEditor; // double
     juce::Label playModeLabel;
     juce::ComboBox playModeComboBox; // 2 Play Modes: 0 = Gated, 1 = One Shot, Latch / Latch may not be a saved preset option.
     juce::Label pMIndexLabel;
-    juce::TextEditor pMIndexTextEditor;
+    juce::TextEditor pMIndexTextEditor; // double
     juce::Label pMIndexModLabel;
-    CvInputChannelComboBox pMIndexModComboBox;
-    juce::TextEditor pMIndexModTextEditor;
+    CvInputChannelComboBox pMIndexModComboBox; // 0A - 8C
+    juce::TextEditor pMIndexModTextEditor; // double
     juce::Label pMSourceLabel;
     juce::ComboBox pMSourceComboBox; // Channel 1 is 0, 2 is 1, etc. Left Input is 8, Right Input is 9, and PhaseCV is 10
     juce::Label releaseLabel;
-    juce::TextEditor releaseTextEditor;
+    juce::TextEditor releaseTextEditor; // double
     juce::Label releaseModLabel;
-    CvInputChannelComboBox releaseModComboBox;
-    juce::TextEditor releaseModTextEditor;
+    CvInputChannelComboBox releaseModComboBox; // 0A - 8C
+    juce::TextEditor releaseModTextEditor; // double
     juce::Label reverseLabel;
     juce::ToggleButton reverseCheckBox; // 
     juce::Label sampleEndModLabel;
-    CvInputChannelComboBox sampleEndModComboBox;
-    juce::TextEditor sampleEndModTextEditor;
+    CvInputChannelComboBox sampleEndModComboBox; // 0A - 8C
+    juce::TextEditor sampleEndModTextEditor; // double
+    juce::Label sampleStartModLabel;
+    CvInputChannelComboBox sampleStartModComboBox; // 0A - 8C
+    juce::TextEditor sampleStartModTextEditor; // double
+    juce::Label spliceSmoothingLabel;
+    juce::ToggleButton spliceSmoothingCheckBox; //
     juce::Label xfadeGroupLabel;
     juce::ComboBox xfadeGroupComboBox; // Off, A, B, C, D
+    juce::Label zonesCVLabel;
+    CvInputChannelComboBox zonesCVComboBox; // 0A - 8C
     juce::Label zoneRTLabel;
     juce::ComboBox zoneRTComboBox; // 0 = Gate Rise, 1 = Continuous, 2 = Advance, 3 = Random
 
