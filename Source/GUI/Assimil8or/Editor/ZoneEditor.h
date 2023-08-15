@@ -6,25 +6,27 @@
 class ZoneEditor : public juce::Component
 {
 public:
+    ZoneEditor ();
+
 private:
     ZoneProperties zoneProperties;
 
     juce::Label levelOffsetLabel;
-    juce::TextEditor levelOffsetTextEdit; // double
+    juce::TextEditor levelOffsetTextEditor; // double
     juce::Label loopLengthLabel;
-    juce::TextEditor loopLengthTextEdit; // double
+    juce::TextEditor loopLengthTextEditor; // double
     juce::Label loopStartLabel;
-    juce::TextEditor loopStartTextEdit; // int
+    juce::TextEditor loopStartTextEditor; // int
     juce::Label minVoltageLabel;
-    juce::TextEditor minVoltageTextEdit; // double
+    juce::TextEditor minVoltageTextEditor; // double
     juce::Label pitchOffsetLabel;
-    juce::TextEditor pitchOffsetTextEdit; // double
+    juce::TextEditor pitchOffsetTextEditor; // double
     juce::Label sampleStartNameLabel;
-    juce::TextEditor sampleFileNameTextEdit; // filename
+    juce::TextEditor sampleFileNameTextEditor; // filename
     juce::Label sampleStartLabel;
-    juce::TextEditor sampleStartTextEdit; // int
+    juce::TextEditor sampleStartTextEditor; // int
     juce::Label sampleEndLabel;
-    juce::TextEditor sampleEndTextEdit; // int
+    juce::TextEditor sampleEndTextEditor; // int
     juce::Label sideLabel;
     juce::ToggleButton sideCheckBox; // ?
 
@@ -46,4 +48,6 @@ private:
     void sampleEndUiChanged (int sampleEnd);
     void sideDataChanged (int side);
     void sideUiChanged (int side);
+
+    void paint (juce::Graphics& g) override;
 };
