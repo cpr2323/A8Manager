@@ -257,7 +257,8 @@ Assimil8orPreset::Assimil8orPreset ()
     // Preset Actions
     presetActions.insert ({
         {Section::ChannelId, [this, getParameterIndex, undoAction, setActions] () {
-            curChannelSection = presetProperties.addChannel (getParameterIndex ());
+            jassert (getParameterIndex () < 9);
+            curChannelSection = presetProperties.getChannelVT (getParameterIndex () - 1);
             channelProperties.wrap (curChannelSection, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
             setActions (&channelActions, [this, undoAction]{
                 undoAction (&presetActions, curChannelSection);

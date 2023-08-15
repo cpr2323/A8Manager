@@ -66,7 +66,7 @@ public:
     std::function<void (double width)> onXfadeDWidthChange;
 
     void forEachChannel (std::function<bool (juce::ValueTree channelVT)> channelVTCallback);
-//    int getNumChannels ();
+    juce::ValueTree getChannelVT (int channelIndex);
 
     static inline const juce::Identifier PresetTypeId { "Preset" };
     static inline const juce::Identifier IndexPropertyId       { "_index" };
@@ -92,6 +92,7 @@ private:
 
     juce::ValueTree addChannel (int index);
     void clear (bool onlyClearIfPropertyMissing);
+    int getNumChannels ();
 
     void valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property) override;
 };

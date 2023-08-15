@@ -10,12 +10,12 @@ void PresetProperties::initValueTree ()
         addChannel (channelIndex);
 }
 
-// int PresetProperties::getNumChannels ()
-// {
-//     auto numChannels { 0 };
-//     forEachChannel ([&numChannels] (juce::ValueTree) { ++numChannels; return true; });
-//     return numChannels;
-// }
+int PresetProperties::getNumChannels ()
+{
+    auto numChannels { 0 };
+    forEachChannel ([&numChannels] (juce::ValueTree) { ++numChannels; return true; });
+    return numChannels;
+}
 
 void PresetProperties::initToDefaults ()
 {
@@ -52,10 +52,21 @@ void PresetProperties::clear (bool onlyClearIfPropertyMissing)
         setXfadeDCV (getXfadeDCVDefault (), false);
     if (! onlyClearIfPropertyMissing || ! data.hasProperty (XfadeDWidthPropertyId))
         setXfadeDWidth (getXfadeDWidthDefault (), false);
+
+    forEachChannel ([this, onlyClearIfPropertyMissing] (juce::ValueTree channelPropertiesVT)
+    {
+        ChannelProperties channelProperties (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
+        if (onlyClearIfPropertyMissing)
+            channelProperties.initToDefaultIsMissing ();
+        else
+            channelProperties.initToDefaults ();
+        return true;
+    });
 }
 
 juce::ValueTree PresetProperties::addChannel (int index)
 {
+    //jassert (index < getNumChannels ()); // this breaks when running from the ctor
     auto channelProperties { ChannelProperties::create (index) };
     data.addChild (channelProperties, -1, nullptr);
     return channelProperties;
@@ -68,6 +79,25 @@ void PresetProperties::forEachChannel (std::function<bool (juce::ValueTree chann
     {
         return channelVTCallback (channelVT);
     });
+}
+
+juce::ValueTree PresetProperties::getChannelVT (int channelIndex)
+{
+    jassert (channelIndex < getNumChannels ());
+    juce::ValueTree requestedChannelVT;
+    auto curChannelIndex { 0 };
+    forEachChannel ([this, &requestedChannelVT, &curChannelIndex, channelIndex] (juce::ValueTree channelVT)
+    {
+        if (curChannelIndex == channelIndex)
+        {
+            requestedChannelVT = channelVT;
+            return false;
+        }
+        ++curChannelIndex;
+        return true;
+    });
+    jassert (requestedChannelVT.isValid ());
+    return requestedChannelVT;
 }
 
 ////////////////////////////////////////////////////////////////////
