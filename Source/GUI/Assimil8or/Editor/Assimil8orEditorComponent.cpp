@@ -32,14 +32,8 @@ Assimil8orEditorComponent::Assimil8orEditorComponent ()
     importButton.setEnabled (false);
     exportButton.setEnabled (false);
 
-    channelTabs.addTab ("1", juce::Colours::darkgrey, new Component, true);
-    channelTabs.addTab ("2", juce::Colours::darkgrey, new Component, true);
-    channelTabs.addTab ("3", juce::Colours::darkgrey, new Component, true);
-    channelTabs.addTab ("4", juce::Colours::darkgrey, new Component, true);
-    channelTabs.addTab ("5", juce::Colours::darkgrey, new Component, true);
-    channelTabs.addTab ("6", juce::Colours::darkgrey, new Component, true);
-    channelTabs.addTab ("7", juce::Colours::darkgrey, new Component, true);
-    channelTabs.addTab ("8", juce::Colours::darkgrey, new Component, true);
+    for (auto curChannelIndex { 0 }; curChannelIndex < 8; ++curChannelIndex)
+        channelTabs.addTab (juce::String::charToString('1' + curChannelIndex), juce::Colours::darkgrey, &channelEditors [curChannelIndex], false);
     addAndMakeVisible (channelTabs);
 
      setupPresetControls ();
@@ -116,6 +110,7 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
     presetProperties.wrap (runtimeRootProperties.getValueTree (), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::yes);
     setupPresetPropertiesCallbacks ();
 
+    indexDataChanged (presetProperties.getIndex ());
     nameDataChanged (presetProperties.getName ());
     data2AsCvDataChanged (presetProperties.getData2AsCV ());
     xfadeCvDataChanged (0, presetProperties.getXfadeACV());
@@ -130,6 +125,7 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
 
 void Assimil8orEditorComponent::setupPresetPropertiesCallbacks ()
 {
+    presetProperties.onIndexChange = [this] (int index) { indexDataChanged (index); };
     presetProperties.onNameChange = [this] (juce::String name) { nameDataChanged (name); };
     presetProperties.onData2AsCVChange = [this] (juce::String cvInput) { data2AsCvDataChanged (cvInput); };
     // Xfade_CV
@@ -212,6 +208,11 @@ void Assimil8orEditorComponent::resized ()
         xfadeGroup.xfadeWidthLabel.setBounds (xfadeGroup.xfadeCvComboBox.getRight () + 2, bottomRowY + 3, 13, 20);
         xfadeGroup.xfadeWidthEditor.setBounds (xfadeGroup.xfadeWidthLabel.getRight (), bottomRowY + 3, 40, 20);
     }
+}
+
+void Assimil8orEditorComponent::indexDataChanged (int index)
+{
+    titleLabel.setText ("Preset " + juce::String(index) + " :", juce::NotificationType::dontSendNotification);
 }
 
 void Assimil8orEditorComponent::nameDataChanged (juce::String name)

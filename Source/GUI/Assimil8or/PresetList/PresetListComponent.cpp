@@ -2,6 +2,7 @@
 #include "../../../Utility/PersistentRootProperties.h"
 #include "../../../Utility/RuntimeRootProperties.h"
 #include "../../../Assimil8or/Assimil8orPreset.h"
+#include "../../../Assimil8or/FileTypeHelpers.h"
 
 #define LOG_PRESET_LIST 0
 #if LOG_PRESET_LIST
@@ -185,6 +186,9 @@ void PresetListComponent::listBoxItemClicked (int row, [[maybe_unused]] const ju
     if (presetExists [row])
         loadPreset (presetFile);
     else
+    {
         presetProperties.initToDefaults ();
+        presetProperties.setIndex (FileTypeHelpers::getPresetNumberFromName (presetFile), false);
+    }
     appProperties.addRecentlyUsedFile (presetFile.getFullPathName ());
 }

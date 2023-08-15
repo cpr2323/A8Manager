@@ -245,8 +245,9 @@ Assimil8orPreset::Assimil8orPreset ()
     
     // Global Action
     globalActions.insert ({
-        {Section::PresetId, [this, undoAction, setActions] () {
+        {Section::PresetId, [this, getParameterIndex, undoAction, setActions] () {
             curPresetSection = presetProperties.getValueTree ();
+            presetProperties.setIndex (getParameterIndex (), false);
             setActions (&presetActions, [this, undoAction]{
                 undoAction (&globalActions, curPresetSection);
             });

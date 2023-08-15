@@ -8,6 +8,8 @@
 class ChannelEditor : public juce::Component
 {
 public:
+    ChannelEditor ();
+
 private:
     ChannelProperties channelProperties;
 
@@ -176,4 +178,6 @@ private:
     void zonesCVUiChanged (juce::String zonesCV);
     void zonesRTDataChanged (int zonesRT);
     void zonesRTUiChanged (int zonesRT);
+
+    void paint (juce::Graphics& g);
 };

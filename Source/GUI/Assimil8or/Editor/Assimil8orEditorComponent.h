@@ -70,6 +70,7 @@ private:
     void setupZoneControls ();
 
     // Preset callbacks 
+    void indexDataChanged (int index); // tracks when a new preset has been loaded
     void nameDataChanged (juce::String name);
     void nameUiChanged (juce::String name);
     void data2AsCvDataChanged (juce::String data2AsCvString);
