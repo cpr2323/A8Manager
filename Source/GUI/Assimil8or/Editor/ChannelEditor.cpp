@@ -12,20 +12,27 @@ ChannelEditor::ChannelEditor ()
         label.setText (text, juce::NotificationType::dontSendNotification);
         addAndMakeVisible (label);
     };
-    auto setupTextEditor= [this, textColor] (juce::TextEditor& textEditor, juce::Justification justification)
+    auto setupTextEditor= [this, textColor] (juce::TextEditor& textEditor, juce::Justification justification, std::function<void(juce::String)> textEditedCallback)
     {
+        jassert (textEditedCallback != nullptr);
         textEditor.setJustification (justification);
         textEditor.setIndents (0, 0);
+        textEditor.onFocusLost = [this, &textEditor, textEditedCallback] () { textEditedCallback (textEditor.getText ()); };
+        textEditor.onReturnKey = [this, &textEditor, textEditedCallback] () { textEditedCallback (textEditor.getText ()); };
         addAndMakeVisible (textEditor);
     };
 
     setupLabel (pitchLabel, "PITCH", 25.0f, juce::Justification::centredTop);
-    setupTextEditor (pitchTextEditor, juce::Justification::centred);
+    setupTextEditor (pitchTextEditor, juce::Justification::centred, [this] (juce::String text) { pitchUiChanged (text.getDoubleValue ()); });
     setupLabel (pitchSemiLabel, "SEMI", 15.0f, juce::Justification::centredLeft);
+    pitchCVComboBox.onChange = [this] () { pitchCVUiChanged (pitchCVComboBox.getSelectedItemText (), pitchCVTextEditor.getText ().getDoubleValue ()); };
+
     addAndMakeVisible (pitchCVComboBox);
-    setupTextEditor (pitchCVTextEditor, juce::Justification::centred);
+    // juce::String cvInput, double pitchCV
+    setupTextEditor (pitchCVTextEditor, juce::Justification::centred, [this] (juce::String text) { pitchCVUiChanged (pitchCVComboBox.getSelectedItemText (), text.getDoubleValue ()); });
 
 //     juce::Label aliasingLabel;
+//     juce::Label aliasingLabel
 //     juce::TextEditor aliasingTextEdit; // integer
 //     juce::Label aliasingModLabel;
 //     CvInputChannelComboBox aliasingModComboBox;
