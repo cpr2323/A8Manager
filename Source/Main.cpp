@@ -227,6 +227,7 @@ public:
         auto file { juce::File (appDirectory).getChildFile ("default_preset.xml") };
         auto xml = presetProperties.getValueTree ().createXml ();
         xml->writeTo (file, {});
+
 #endif
     }
 

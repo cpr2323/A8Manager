@@ -234,7 +234,7 @@ public:
     static inline const juce::Identifier ZonesCVPropertyId           { "zonesCV" };
     static inline const juce::Identifier ZonesRTPropertyId           { "zonesRT" };
 
-    void initValueTree ();
+    void initValueTree () {}
     void processValueTree () {}
     void clear ();
 

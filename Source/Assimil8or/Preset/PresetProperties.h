@@ -80,7 +80,7 @@ public:
     static inline const juce::Identifier XfadeDCVPropertyId    { "xfadeDCV" };
     static inline const juce::Identifier XfadeDWidthPropertyId { "xfadeDWidth" };
 
-    void initValueTree ();
+    void initValueTree () {}
     void processValueTree () {}
 
     void clear ();

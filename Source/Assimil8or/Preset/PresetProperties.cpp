@@ -4,12 +4,6 @@
 
 const auto kMaxChannels { 8 };
 
-void PresetProperties::initValueTree ()
-{
-    for (auto channelIndex { 0 }; channelIndex < kMaxChannels; ++channelIndex)
-        addChannel (channelIndex);
-}
-
 int PresetProperties::getNumChannels ()
 {
     auto numChannels { 0 };
@@ -19,27 +13,18 @@ int PresetProperties::getNumChannels ()
 
 void PresetProperties::clear ()
 {
-    const auto kDefaultPresetName { "New" };
-    setIndex (1, false);
-    setName (kDefaultPresetName, false);
-
-    setData2AsCV (getData2AsCVDefault (), false);
-    //setName (juce::String name, false); this is currently set in the clear function
-    setXfadeACV (getXfadeACVDefault (), false);
-    setXfadeAWidth (getXfadeAWidthDefault (), false);
-    setXfadeBCV (getXfadeBCVDefault (), false);
-    setXfadeBWidth (getXfadeBWidthDefault (), false);
-    setXfadeCCV (getXfadeCCVDefault (), false);
-    setXfadeCWidth (getXfadeCWidthDefault (), false);
-    setXfadeDCV (getXfadeDCVDefault (), false);
-    setXfadeDWidth (getXfadeDWidthDefault (), false);
-
-    forEachChannel ([this] (juce::ValueTree channelPropertiesVT)
+    // TODO - add option to either clear just our properties, or the channels too
+    // TODO - cache this default valuetree instead of parsing it each time
+    juce::XmlDocument xmlDoc { BinaryData::DefaultPreset_xml };
+    auto xmlElement { xmlDoc.getDocumentElement (false) };
+    if (auto parseError { xmlDoc.getLastParseError () }; parseError != "")
+        juce::Logger::outputDebugString ("XML Parsing Error: " + parseError);
+    // NOTE: this is a hard failure, which indicates there is a problem in the file Assimil8orParameterData.xml
+    jassert (xmlDoc.getLastParseError () == "");
+    if (xmlElement != nullptr)
     {
-        ChannelProperties channelProperties (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
-        channelProperties.clear ();
-        return true;
-    });
+        data.copyPropertiesAndChildrenFrom (juce::ValueTree::fromXml (*xmlElement), nullptr);
+    }
 }
 
 juce::ValueTree PresetProperties::addChannel (int index)

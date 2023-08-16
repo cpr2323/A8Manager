@@ -11,6 +11,7 @@ juce::ValueTree ZoneProperties::create (int index)
 
 void ZoneProperties::clear ()
 {
+    // replace with code that copies data from BinaryData::DefaultPreset_xml
     setLevelOffset (getLevelOffsetDefault (), false);
     setLoopLength (getLoopLengthDefault (), false);
     setLoopStart (getLoopStartDefault (), false);

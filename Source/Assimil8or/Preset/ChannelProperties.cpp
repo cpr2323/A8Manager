@@ -4,12 +4,6 @@
 
 const auto kMaxZones { 8 };
 
-void ChannelProperties::initValueTree ()
-{
-    for (auto zoneIndex { 0 }; zoneIndex < kMaxZones; ++zoneIndex)
-        addZone (zoneIndex);
-}
-
 int ChannelProperties::getNumZones ()
 {
     auto numZones { 0 };
@@ -81,6 +75,8 @@ CvInputAndAmount ChannelProperties::getCvInputAndValueFromString (juce::String c
 
 void ChannelProperties::clear ()
 {
+    // TODO - add option to either clear just our properties, or the zones too
+    // replace with code that copies data from BinaryData::DefaultPreset_xml
     auto splitAndPassAsParams = [] (CvInputAndAmount amountAndCvInput, std::function<void (juce::String, double)> setter)
     {
         jassert (setter != nullptr);
@@ -127,13 +123,6 @@ void ChannelProperties::clear ()
     setXfadeGroup (getXfadeGroupDefault (), false);
     setZonesCV (getZonesCVDefault (), false);
     setZonesRT (getZonesRTDefault (), false);
-
-    forEachZone ([this] (juce::ValueTree zonePropertiesVT)
-    {
-        ZoneProperties zoneProperties (zonePropertiesVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
-        zoneProperties.clear ();
-        return true;
-    });
 }
 
 ////////////////////////////////////////////////////////////////////
