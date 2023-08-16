@@ -3,7 +3,7 @@
 ChannelEditor::ChannelEditor ()
 {
     const auto textColor { juce::Colours::black };
-    auto setupLabel = [this, textColor] (juce::Label& label, juce::String text, double fontSize, juce::Justification justification)
+    auto setupLabel = [this, textColor] (juce::Label& label, juce::String text, float fontSize, juce::Justification justification)
     {
         label.setBorderSize ({ 0, 0, 0, 0 });
         label.setJustificationType (justification);
@@ -15,14 +15,13 @@ ChannelEditor::ChannelEditor ()
     auto setupTextEditor= [this, textColor] (juce::TextEditor& textEditor, juce::Justification justification)
     {
         textEditor.setJustification (justification);
-        textEditor.setIndents (2, 0);
+        textEditor.setIndents (0, 0);
         addAndMakeVisible (textEditor);
-        };
+    };
 
-    setupLabel (pitchLabel, "PITCH", 25.0, juce::Justification::centredTop);
+    setupLabel (pitchLabel, "PITCH", 25.0f, juce::Justification::centredTop);
     setupTextEditor (pitchTextEditor, juce::Justification::centred);
-    setupLabel (pitchSemiLabel, "SEMI", 15.0, juce::Justification::centredLeft);
-    addAndMakeVisible (pitchSemiLabel);
+    setupLabel (pitchSemiLabel, "SEMI", 15.0f, juce::Justification::centredLeft);
     addAndMakeVisible (pitchCVComboBox);
     setupTextEditor (pitchCVTextEditor, juce::Justification::centred);
 

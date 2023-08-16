@@ -69,7 +69,7 @@ void Assimil8orEditorComponent::setupPresetControls ()
         addAndMakeVisible (xfadeGroup.xfadeGroupLabel);
 
         xfadeGroup.xfadeCvLabel.setBorderSize ({ 0, 0, 0, 0 });
-        xfadeGroup.xfadeCvLabel.setText ("C", juce::NotificationType::dontSendNotification);
+        xfadeGroup.xfadeCvLabel.setText ("CV", juce::NotificationType::dontSendNotification);
         addAndMakeVisible (xfadeGroup.xfadeCvLabel);
         xfadeGroup.xfadeCvComboBox.onChange = [this, xfadeGroupIndex] ()
         {
@@ -77,10 +77,12 @@ void Assimil8orEditorComponent::setupPresetControls ()
         };
         addAndMakeVisible (xfadeGroup.xfadeCvComboBox);
 
+
         xfadeGroup.xfadeWidthLabel.setBorderSize ({ 0, 0, 0, 0 });
-        xfadeGroup.xfadeWidthLabel.setText ("W", juce::NotificationType::dontSendNotification);
+        xfadeGroup.xfadeWidthLabel.setText ("Width", juce::NotificationType::dontSendNotification);
         addAndMakeVisible (xfadeGroup.xfadeWidthLabel);
-        xfadeGroup.xfadeWidthEditor.setIndents (2, 2);
+        xfadeGroup.xfadeWidthEditor.setJustification (juce::Justification::centred);
+        xfadeGroup.xfadeWidthEditor.setIndents (0, 0);
         xfadeGroup.xfadeWidthEditor.setInputRestrictions (0, ".0123456789");
         xfadeGroup.xfadeWidthEditor.onFocusLost = [this, xfadeGroupIndex] () { xfadeWidthUiChanged (xfadeGroupIndex, xfadeGroups [xfadeGroupIndex].xfadeWidthEditor.getText ()); };
         xfadeGroup.xfadeWidthEditor.onReturnKey = [this, xfadeGroupIndex] () { xfadeWidthUiChanged (xfadeGroupIndex, xfadeGroups [xfadeGroupIndex].xfadeWidthEditor.getText ()); };
@@ -180,21 +182,21 @@ void Assimil8orEditorComponent::resized ()
 
     // Data2 as CV
     data2AsCvLabel.setBounds (6, bottomRowY + 3, 80, 20);
-    data2AsCvComboBox.setBounds (data2AsCvLabel.getRight () + 1, bottomRowY + 3, 55, 20);
+    data2AsCvComboBox.setBounds (data2AsCvLabel.getRight () + 1, bottomRowY + 3, 28, 20);
 
     // Cross fade groups
-    xfadeGroupsLabel.setBounds (data2AsCvComboBox.getRight () + 3, bottomRowY + 3, 50, 20);
+    xfadeGroupsLabel.setBounds (data2AsCvComboBox.getRight () + 5, bottomRowY + 3, 50, 20);
     auto startX { xfadeGroupsLabel.getRight () + 2 };
     for (auto xfadeGroupIndex { 0 }; xfadeGroupIndex < XfadeGroupIndex::numberOfGroups; ++xfadeGroupIndex)
     {
         auto& xfadeGroup { xfadeGroups [xfadeGroupIndex] };
         xfadeGroup.xfadeGroupLabel.setBounds (startX + (xfadeGroupIndex * 155), bottomRowY + 3, 17, 20);
 
-        xfadeGroup.xfadeCvLabel.setBounds (xfadeGroup.xfadeGroupLabel.getRight (), bottomRowY + 3, 13, 20);
-        xfadeGroup.xfadeCvComboBox.setBounds (xfadeGroup.xfadeCvLabel.getRight () - 2, bottomRowY + 3, 55, 20);
+        xfadeGroup.xfadeCvLabel.setBounds (xfadeGroup.xfadeGroupLabel.getRight (), bottomRowY + 3, 20, 20);
+        xfadeGroup.xfadeCvComboBox.setBounds (xfadeGroup.xfadeCvLabel.getRight () + 1, bottomRowY + 3, 28, 20);
 
-        xfadeGroup.xfadeWidthLabel.setBounds (xfadeGroup.xfadeCvComboBox.getRight () + 2, bottomRowY + 3, 13, 20);
-        xfadeGroup.xfadeWidthEditor.setBounds (xfadeGroup.xfadeWidthLabel.getRight (), bottomRowY + 3, 40, 20);
+        xfadeGroup.xfadeWidthLabel.setBounds (xfadeGroup.xfadeCvComboBox.getRight () + 3, bottomRowY + 3, 35, 20);
+        xfadeGroup.xfadeWidthEditor.setBounds (xfadeGroup.xfadeWidthLabel.getRight () + 1, bottomRowY + 3, 40, 20);
     }
 }
 
