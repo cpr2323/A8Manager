@@ -2,6 +2,20 @@
 
 ChannelEditor::ChannelEditor ()
 {
+    const auto textColor { juce::Colours::black };
+    auto setupLabel = [textColor] (juce::Label& label, juce::String text)
+    {
+        label.setColour (juce::Label::ColourIds::textColourId, textColor);
+        label.setText (text, juce::NotificationType::dontSendNotification);
+    };
+    setupLabel (pitchLabel, "PITCH");
+    addAndMakeVisible (pitchLabel);
+    addAndMakeVisible (pitchTextEditor);
+    setupLabel (pitchSemiLabel, "SEMI");
+    addAndMakeVisible (pitchSemiLabel);
+    addAndMakeVisible (pitchCVComboBox);
+    addAndMakeVisible (pitchCVTextEditor);
+
 //     juce::Label aliasingLabel;
 //     juce::TextEditor aliasingTextEdit; // integer
 //     juce::Label aliasingModLabel;
@@ -58,11 +72,6 @@ ChannelEditor::ChannelEditor ()
 //     juce::Label phaseCVLabel;
 //     CvInputChannelComboBox phaseCVComboBox;
 //     juce::TextEditor phaseCVTextEditor;
-//     juce::Label pitchLabel;
-//     juce::TextEditor pitchTextEditor;
-//     juce::Label pitchCVLabel;
-//     CvInputChannelComboBox pitchCVComboBox;
-//     juce::TextEditor pitchCVTextEditor;
 //     juce::Label playModeLabel;
 //     juce::ComboBox playModeComboBox; // 2 Play Modes: 0 = Gated, 1 = One Shot, Latch / Latch may not be a saved preset option.
 //     juce::Label pMIndexLabel;
@@ -191,6 +200,15 @@ void ChannelEditor::paint (juce::Graphics& g)
 {
     g.setColour (juce::Colours::teal);
     g.drawRect (getLocalBounds ());
+}
+
+void ChannelEditor::resized ()
+{
+    pitchLabel.setBounds (3, 5, 50, 20);
+    pitchTextEditor.setBounds (pitchLabel.getX () + 3, pitchLabel.getBottom () + 3, pitchLabel.getWidth () - 6, 20);
+    pitchSemiLabel.setBounds (pitchTextEditor.getRight () + 3, pitchTextEditor.getY (), 40, 20);
+//     pitchCVComboBox.setBounds ();
+//     pitchCVTextEditor.setBounds ();
 }
 
 void ChannelEditor::aliasingDataChanged (int aliasing)

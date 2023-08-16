@@ -72,8 +72,9 @@ private:
     CvInputChannelComboBox phaseCVComboBox; // 0A - 8C
     juce::TextEditor phaseCVTextEditor; // double
     juce::Label pitchLabel;
+    juce::Label pitchSemiLabel;
     juce::TextEditor pitchTextEditor; // double
-    juce::Label pitchCVLabel;
+    // juce::Label pitchCVLabel; // not needed in the current layout
     CvInputChannelComboBox pitchCVComboBox; // 0A - 8C
     juce::TextEditor pitchCVTextEditor; // double
     juce::Label playModeLabel;
@@ -190,5 +191,6 @@ private:
     void zonesRTDataChanged (int zonesRT);
     void zonesRTUiChanged (int zonesRT);
 
-    void paint (juce::Graphics& g);
+    void paint (juce::Graphics& g) override;
+    void resized () override;
 };

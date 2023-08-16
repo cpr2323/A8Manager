@@ -6,8 +6,13 @@
 #include "Utility/RootProperties.h"
 #include "Utility/RuntimeRootProperties.h"
 #include "Utility/ValueTreeFile.h"
+#include "Utility/ValueTreeMonitor.h"
 #include "Assimil8or/Assimil8orValidator.h"
 #include "Assimil8or/Preset/PresetProperties.h"
+
+// this requires the third party Melatonin Inspector be installed and added to the project
+// https://github.com/sudara/melatonin_inspector
+#define ENABLE_MELATONIN_INSPECTOR 0
 
 const juce::String PropertiesFileExtension { ".properties" };
 
@@ -27,103 +32,6 @@ public:
     const juce::String getApplicationVersion () override { return ProjectInfo::versionString; }
     bool moreThanOneInstanceAllowed () override { return true; }
 
-    class ListenerLogger : public juce::ValueTree::Listener
-    {
-    public:
-        void assign (juce::ValueTree& vtToListenTo)
-        {
-            vtBeingListened = vtToListenTo;
-        }
-    private:
-        juce::ValueTree vtBeingListened;
-
-        void valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property) override
-        {
-            juce::Logger::outputDebugString ("valueTreePropertyChanged(" + vtBeingListened.getType ().toString () + ")");
-            if (vt == vtBeingListened)
-            {
-                if (vt.hasProperty (property))
-                {
-                    // change in value
-                    juce::Logger::outputDebugString ("  (property value changed) - property: " +
-                                                     property.toString () + ", value: " + vt.getProperty (property).toString ());
-                }
-                else
-                {
-                    // property removed
-                    juce::Logger::outputDebugString ("  (property removed) - property: " + property.toString ());
-                }
-            }
-            else
-            {
-                if (vt.hasProperty (property))
-                {
-                    // change in value
-                    juce::Logger::outputDebugString ("  (value changed) - vt: " + vt.getType ().toString () +
-                                                     ", property: " + property.toString () + ", value: " + vt.getProperty (property).toString ());
-                }
-                else
-                {
-                    // property removed
-                    juce::Logger::outputDebugString ("  (property removed) - vt: " + vt.getType ().toString () + ", property: " + property.toString ());
-                }
-            }
-        };
-        void valueTreeChildAdded (juce::ValueTree& vt, juce::ValueTree& child) override
-        {
-            juce::Logger::outputDebugString ("valueTreeChildAdded(" + vtBeingListened.getType ().toString () + ")");
-
-            if (vt == vtBeingListened)
-                juce::Logger::outputDebugString ("  child: " + child.getType ().toString ());
-            else
-                juce::Logger::outputDebugString ("  vt: " + vt.getType ().toString () + ", child: " + child.getType ().toString ());
-
-        }
-        void valueTreeChildRemoved (juce::ValueTree& vt, juce::ValueTree& child , int index) override
-        {
-            juce::Logger::outputDebugString ("valueTreeChildRemoved(" + vtBeingListened.getType ().toString () + ")");
-            if (vt == vtBeingListened)
-                juce::Logger::outputDebugString ("  child: " + child.getType ().toString () + ", index: " + juce::String (index));
-            else
-                juce::Logger::outputDebugString ("  vt: " + vt.getType ().toString () +
-                                                 ", child: " + child.getType ().toString () + ", index: " + juce::String (index));
-        }
-        void valueTreeChildOrderChanged (juce::ValueTree& vt, int oldIndex, int newIndex) override
-        {
-            juce::Logger::outputDebugString ("valueTreeChildOrderChanged(" + vtBeingListened.getType ().toString () + ")");
-            if (vt == vtBeingListened)
-                juce::Logger::outputDebugString ("  old index: " + juce::String (oldIndex) + ", new index: " + juce::String (newIndex));
-            else
-                juce::Logger::outputDebugString ("  vt: " + vt.getType ().toString () +
-                                                 ", old index: " + juce::String (oldIndex) + ", new index: " + juce::String (newIndex));
-        }
-        void valueTreeParentChanged (juce::ValueTree& vt) override
-        {
-            juce::Logger::outputDebugString ("valueTreeParentChanged(" + vtBeingListened.getType ().toString () + ")");
-            if (vt == vtBeingListened)
-            {
-                if (vt.getParent ().isValid ())
-                    juce::Logger::outputDebugString ("  new parent: " + vt.getParent ().getType ().toString ());
-                else
-                    juce::Logger::outputDebugString ("  (removed)");
-            }
-            else
-            {
-                if (vt.getParent ().isValid ())
-                    juce::Logger::outputDebugString ("  vt: " + vt.getType ().toString () +
-                                                     ", new parent: " + vt.getParent ().getType ().toString ());
-                else
-                    juce::Logger::outputDebugString ("  (removed) vt: " + vt.getType ().toString ());
-            }
-        }
-        void valueTreeRedirected (juce::ValueTree& vt) override
-        {
-            juce::Logger::outputDebugString ("valueTreeRedirected(" + vtBeingListened.getType ().toString () + "): " + vt.getType ().toString ());
-            vtBeingListened = vt;
-            //if (vt == vtBeingListened)
-        }
-    };
-
     void valueTreeTest ()
     {
         juce::ValueTree root { "Root" };
@@ -131,13 +39,13 @@ public:
         juce::ValueTree child2 { "RootChild2" };
         juce::ValueTree child3 { "RootChild3" };
         juce::ValueTree child4 { "RootChild4" };
-        ListenerLogger rootListenerLogger;
+        ValueTreeMonitor rootListenerLogger;
         rootListenerLogger.assign (root);
-        ListenerLogger child1ListenerLogger;
+        ValueTreeMonitor child1ListenerLogger;
         child1ListenerLogger.assign (child1);
-        ListenerLogger child2ListenerLogger;
+        ValueTreeMonitor child2ListenerLogger;
         child2ListenerLogger.assign (child2);
-        ListenerLogger child3ListenerLogger;
+        ValueTreeMonitor child3ListenerLogger;
         child3ListenerLogger.assign (child3);
         root.addListener (&rootListenerLogger);
         child1.addListener (&child1ListenerLogger);
@@ -234,6 +142,7 @@ public:
     void initUi ()
     {
         mainWindow.reset (new MainWindow (getApplicationName () + " - v" + getApplicationVersion (), rootProperties.getValueTree ()));
+
     }
 
     void initPropertyRoots ()
@@ -330,6 +239,10 @@ public:
            #endif
 
             setVisible (true);
+
+#if ENABLE_MELATONIN_INSPECTOR
+            inspector.setVisible (true);
+#endif
         }
 
         void closeButtonPressed () override
@@ -348,6 +261,9 @@ public:
         */
 
     private:
+#if ENABLE_MELATONIN_INSPECTOR
+        melatonin::Inspector inspector { *this, false };
+#endif
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainWindow)
     };
 

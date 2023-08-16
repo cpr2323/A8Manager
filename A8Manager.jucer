@@ -150,6 +150,10 @@
               file="Source/Utility/ValueTreeHelpers.cpp"/>
         <FILE id="rXge4w" name="ValueTreeHelpers.h" compile="0" resource="0"
               file="Source/Utility/ValueTreeHelpers.h"/>
+        <FILE id="tmER0a" name="ValueTreeMonitor.cpp" compile="1" resource="0"
+              file="Source/Utility/ValueTreeMonitor.cpp"/>
+        <FILE id="eTXzQA" name="ValueTreeMonitor.h" compile="0" resource="0"
+              file="Source/Utility/ValueTreeMonitor.h"/>
         <FILE id="et2qGG" name="ValueTreeWrapper.cpp" compile="1" resource="0"
               file="Source/Utility/ValueTreeWrapper.cpp"/>
         <FILE id="gBHKT7" name="ValueTreeWrapper.h" compile="0" resource="0"
