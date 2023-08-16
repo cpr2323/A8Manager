@@ -3,8 +3,6 @@
 #include "../../../Utility/RuntimeRootProperties.h"
 #include "../../../Utility/PersistentRootProperties.h"
 
-#define FLOATING_BOTTOM_CONTROLS 1
-
 // TODO - short list
 //  Add editor fields
 //  Visual Edited indicator
@@ -37,14 +35,10 @@ Assimil8orEditorComponent::Assimil8orEditorComponent ()
     addAndMakeVisible (channelTabs);
 
      setupPresetControls ();
-//     setupChannelControls ();
-//     setupZoneControls ();
 }
 
 void Assimil8orEditorComponent::setupPresetControls ()
 {
-    // TODO - replace underscore with actual preset number
-
     titleLabel.setText ("Preset _ :", juce::NotificationType::dontSendNotification);
 
     nameEditor.setColour (juce::TextEditor::ColourIds::backgroundColourId, juce::Colours::navajowhite);
@@ -181,12 +175,8 @@ void Assimil8orEditorComponent::resized ()
     const auto tabHeight (600);
     const auto topRowY { titleLabel.getBottom () + 3 };
     channelTabs.setBounds (3, topRowY, 800, tabHeight);
-#if FLOATING_BOTTOM_CONTROLS
     const auto bottomRowY (getLocalBounds ().getBottom () - 26);
     windowDecorator.setBounds (getLocalBounds ().removeFromBottom (26));
-#else
-    const auto bottomRowY (channelTabs.getBottom ());
-#endif
 
     // Data2 as CV
     data2AsCvLabel.setBounds (6, bottomRowY + 3, 80, 20);

@@ -2,6 +2,8 @@
 
 CvInputComboBox::CvInputComboBox (ListType listType)
 {
+    cvInputComboBox.setLookAndFeel (&noArrowComboBoxLnF);
+    cvInputComboBox.setJustificationType (juce::Justification::centred);
     jassert (listType == ListType::includeZero || listType == ListType::dontIncludeZero);
     if (listType == ListType::includeZero)
         startingIndex = 0;
@@ -23,6 +25,11 @@ CvInputComboBox::CvInputComboBox (ListType listType)
         if (onChange != nullptr)
             onChange ();
     };
+}
+
+CvInputComboBox::~CvInputComboBox ()
+{
+    cvInputComboBox.setLookAndFeel (nullptr);
 }
 
 void CvInputComboBox::setSelectedItemText (juce::String cvInputString)

@@ -3,18 +3,28 @@
 ChannelEditor::ChannelEditor ()
 {
     const auto textColor { juce::Colours::black };
-    auto setupLabel = [textColor] (juce::Label& label, juce::String text)
+    auto setupLabel = [this, textColor] (juce::Label& label, juce::String text, double fontSize, juce::Justification justification)
     {
+        label.setBorderSize ({ 0, 0, 0, 0 });
+        label.setJustificationType (justification);
         label.setColour (juce::Label::ColourIds::textColourId, textColor);
+        label.setFont (label.getFont ().withHeight (fontSize));
         label.setText (text, juce::NotificationType::dontSendNotification);
+        addAndMakeVisible (label);
     };
-    setupLabel (pitchLabel, "PITCH");
-    addAndMakeVisible (pitchLabel);
-    addAndMakeVisible (pitchTextEditor);
-    setupLabel (pitchSemiLabel, "SEMI");
+    auto setupTextEditor= [this, textColor] (juce::TextEditor& textEditor, juce::Justification justification)
+    {
+        textEditor.setJustification (justification);
+        textEditor.setIndents (2, 0);
+        addAndMakeVisible (textEditor);
+        };
+
+    setupLabel (pitchLabel, "PITCH", 25.0, juce::Justification::centredTop);
+    setupTextEditor (pitchTextEditor, juce::Justification::centredLeft);
+    setupLabel (pitchSemiLabel, "SEMI", 15.0, juce::Justification::centredLeft);
     addAndMakeVisible (pitchSemiLabel);
     addAndMakeVisible (pitchCVComboBox);
-    addAndMakeVisible (pitchCVTextEditor);
+    setupTextEditor (pitchCVTextEditor, juce::Justification::centred);
 
 //     juce::Label aliasingLabel;
 //     juce::TextEditor aliasingTextEdit; // integer
@@ -204,11 +214,11 @@ void ChannelEditor::paint (juce::Graphics& g)
 
 void ChannelEditor::resized ()
 {
-    pitchLabel.setBounds (3, 5, 50, 20);
+    pitchLabel.setBounds (5, 5, 60, 25);
     pitchTextEditor.setBounds (pitchLabel.getX () + 3, pitchLabel.getBottom () + 3, pitchLabel.getWidth () - 6, 20);
     pitchSemiLabel.setBounds (pitchTextEditor.getRight () + 3, pitchTextEditor.getY (), 40, 20);
-//     pitchCVComboBox.setBounds ();
-//     pitchCVTextEditor.setBounds ();
+    pitchCVComboBox.setBounds (pitchLabel.getX (), pitchTextEditor.getBottom () + 3, (pitchLabel.getWidth () / 2) - 2, 20);
+    pitchCVTextEditor.setBounds (pitchCVComboBox.getRight () + 3, pitchCVComboBox.getY (), pitchLabel.getWidth () - (pitchLabel.getWidth () / 2) - 1, 20);
 }
 
 void ChannelEditor::aliasingDataChanged (int aliasing)
