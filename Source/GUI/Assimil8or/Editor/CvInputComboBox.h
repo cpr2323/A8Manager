@@ -38,7 +38,7 @@ private:
         }
         void positionComboBoxText (juce::ComboBox& box, juce::Label& label)
         {
-            label.setBounds (1, 1, box.getWidth (), box.getHeight () - 2);
+            label.setBounds (0, 0, box.getWidth (), box.getHeight ());
             label.setFont (getComboBoxFont (box));
         }
 

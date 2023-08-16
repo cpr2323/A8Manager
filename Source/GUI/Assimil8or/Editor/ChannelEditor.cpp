@@ -20,7 +20,7 @@ ChannelEditor::ChannelEditor ()
         };
 
     setupLabel (pitchLabel, "PITCH", 25.0, juce::Justification::centredTop);
-    setupTextEditor (pitchTextEditor, juce::Justification::centredLeft);
+    setupTextEditor (pitchTextEditor, juce::Justification::centred);
     setupLabel (pitchSemiLabel, "SEMI", 15.0, juce::Justification::centredLeft);
     addAndMakeVisible (pitchSemiLabel);
     addAndMakeVisible (pitchCVComboBox);
