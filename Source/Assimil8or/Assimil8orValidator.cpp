@@ -26,13 +26,13 @@ juce::String getMemorySizeString (uint64_t memoryUsage)
         return (usage == 0 ? "0" : juce::String (usage, 2).trimCharactersAtEnd ("0.")) + postFix;
     };
     if (memoryUsage >= oneGB)
-        return formatString (static_cast<float>(memoryUsage) / oneGB, "GB");
+        return formatString (static_cast<float> (memoryUsage) / oneGB, "GB");
     else if (memoryUsage >= oneMB)
-        return formatString (static_cast<float>(memoryUsage) / oneMB, "MB");
+        return formatString (static_cast<float> (memoryUsage) / oneMB, "MB");
     else if (memoryUsage >= oneK)
-        return formatString (static_cast<float>(memoryUsage) / oneK, "k");
+        return formatString (static_cast<float> (memoryUsage) / oneK, "k");
     else
-        return formatString (static_cast<float>(memoryUsage), " bytes");
+        return formatString (static_cast<float> (memoryUsage), " bytes");
 };
 
 Assimil8orValidator::Assimil8orValidator () : Thread ("Assimil8orValidator")
@@ -157,7 +157,7 @@ void Assimil8orValidator::run ()
 {
     while (wait (-1) && ! threadShouldExit ())
     {
-        LogValidation ("Assimil8orValidator::run: state " + juce::String(static_cast<int>(valdatationState)));
+        LogValidation ("Assimil8orValidator::run: state " + juce::String (static_cast<int>(valdatationState)));
         switch (valdatationState)
         {
             case Assimil8orValidator::ValdatationState::idle:

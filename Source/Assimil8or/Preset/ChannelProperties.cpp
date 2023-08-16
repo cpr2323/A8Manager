@@ -27,7 +27,7 @@ juce::ValueTree ChannelProperties::create (int index)
 juce::ValueTree ChannelProperties::addZone (int index)
 {
     jassert (getNumZones () < kMaxZones);
-    auto zoneProperties { ZoneProperties::create (index) };
+    auto zoneProperties { ZoneProperties::create (index + 1) };
     data.addChild (zoneProperties, -1, nullptr);
     return zoneProperties;
 }

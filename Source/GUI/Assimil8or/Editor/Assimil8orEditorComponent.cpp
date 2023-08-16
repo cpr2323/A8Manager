@@ -33,7 +33,7 @@ Assimil8orEditorComponent::Assimil8orEditorComponent ()
     exportButton.setEnabled (false);
 
     for (auto curChannelIndex { 0 }; curChannelIndex < 8; ++curChannelIndex)
-        channelTabs.addTab (juce::String::charToString('1' + curChannelIndex), juce::Colours::darkgrey, &channelEditors [curChannelIndex], false);
+        channelTabs.addTab (juce::String::charToString ('1' + curChannelIndex), juce::Colours::darkgrey, &channelEditors [curChannelIndex], false);
     addAndMakeVisible (channelTabs);
 
      setupPresetControls ();
@@ -71,7 +71,7 @@ void Assimil8orEditorComponent::setupPresetControls ()
         auto& xfadeGroup { xfadeGroups [xfadeGroupIndex] };
 
         xfadeGroup.xfadeGroupLabel.setBorderSize ({ 0, 0, 0, 0 });
-        xfadeGroup.xfadeGroupLabel.setText (juce::String::charToString('A' + xfadeGroupIndex) + ":", juce::NotificationType::dontSendNotification);
+        xfadeGroup.xfadeGroupLabel.setText (juce::String::charToString ('A' + xfadeGroupIndex) + ":", juce::NotificationType::dontSendNotification);
         addAndMakeVisible (xfadeGroup.xfadeGroupLabel);
 
         xfadeGroup.xfadeCvLabel.setBorderSize ({ 0, 0, 0, 0 });
@@ -111,7 +111,7 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
     indexDataChanged (presetProperties.getIndex ());
     nameDataChanged (presetProperties.getName ());
     data2AsCvDataChanged (presetProperties.getData2AsCV ());
-    xfadeCvDataChanged (0, presetProperties.getXfadeACV());
+    xfadeCvDataChanged (0, presetProperties.getXfadeACV ());
     xfadeCvDataChanged (1, presetProperties.getXfadeBCV ());
     xfadeCvDataChanged (2, presetProperties.getXfadeCCV ());
     xfadeCvDataChanged (3, presetProperties.getXfadeDCV ());
@@ -170,7 +170,7 @@ void Assimil8orEditorComponent::resized ()
     titleLabel.setBounds (topRow.removeFromLeft (75));
     topRow.removeFromLeft (3);
     // Name
-    nameEditor.setBounds (topRow.removeFromLeft(150));
+    nameEditor.setBounds (topRow.removeFromLeft (150));
 
     topRow.removeFromRight (3);
     exportButton.setBounds (topRow.removeFromRight (75));
@@ -182,8 +182,8 @@ void Assimil8orEditorComponent::resized ()
     const auto topRowY { titleLabel.getBottom () + 3 };
     channelTabs.setBounds (3, topRowY, 800, tabHeight);
 #if FLOATING_BOTTOM_CONTROLS
-    const auto bottomRowY (getLocalBounds().getBottom() - 26);
-    windowDecorator.setBounds (getLocalBounds ().removeFromBottom(26));
+    const auto bottomRowY (getLocalBounds ().getBottom () - 26);
+    windowDecorator.setBounds (getLocalBounds ().removeFromBottom (26));
 #else
     const auto bottomRowY (channelTabs.getBottom ());
 #endif
@@ -210,7 +210,7 @@ void Assimil8orEditorComponent::resized ()
 
 void Assimil8orEditorComponent::indexDataChanged (int index)
 {
-    titleLabel.setText ("Preset " + juce::String(index) + " :", juce::NotificationType::dontSendNotification);
+    titleLabel.setText ("Preset " + juce::String (index) + " :", juce::NotificationType::dontSendNotification);
 }
 
 void Assimil8orEditorComponent::nameDataChanged (juce::String name)

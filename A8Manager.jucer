@@ -14,8 +14,12 @@
                 file="Source/Assimil8or/Fixer/FixerEntryProperties.h"/>
         </GROUP>
         <GROUP id="{F93A3946-B57B-8541-1536-2BE5E57D6EED}" name="Preset">
-          <FILE id="x7ZrYp" name="Assimil8orParameterData.xml" compile="0" resource="1"
-                file="Source/Assimil8or/Preset/Assimil8orParameterData.xml"/>
+          <GROUP id="{0055013E-0772-F469-C083-194778EF0E95}" name="Data">
+            <FILE id="hfK7Yu" name="Assimil8orParameterData.xml" compile="0" resource="1"
+                  file="Source/Assimil8or/Preset/Data/Assimil8orParameterData.xml"/>
+            <FILE id="krTGci" name="DefaultPreset.xml" compile="0" resource="1"
+                  file="Source/Assimil8or/Preset/Data/DefaultPreset.xml"/>
+          </GROUP>
           <FILE id="SOUChx" name="ChannelProperties.cpp" compile="1" resource="0"
                 file="Source/Assimil8or/Preset/ChannelProperties.cpp"/>
           <FILE id="VYXv3k" name="ChannelProperties.h" compile="0" resource="0"

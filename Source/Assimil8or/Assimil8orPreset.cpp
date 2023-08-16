@@ -54,7 +54,7 @@ void Assimil8orPreset::write (juce::File presetFile, juce::ValueTree presetPrope
     addLine (true, Section::PresetId + " " + juce::String (presetPropertiesToWrite.getIndex ()) + " :");
     ++indentAmount;
     addLine (true, Parameter::Preset::NameId + " : " + presetPropertiesToWrite.getName ());
-    addLine (presetPropertiesToWrite.getData2AsCV () != presetPropertiesToWrite.getData2AsCVDefault(), Parameter::Preset::Data2asCVId+ " : " + presetPropertiesToWrite.getData2AsCV ());
+    addLine (presetPropertiesToWrite.getData2AsCV () != presetPropertiesToWrite.getData2AsCVDefault (), Parameter::Preset::Data2asCVId+ " : " + presetPropertiesToWrite.getData2AsCV ());
     addLine (presetPropertiesToWrite.getXfadeACV () != presetPropertiesToWrite.getXfadeACVDefault (), Parameter::Preset::XfadeACVId + " : " + presetPropertiesToWrite.getXfadeACV ());
     addLine (presetPropertiesToWrite.getXfadeAWidth () != presetPropertiesToWrite.getXfadeAWidthDefault (), Parameter::Preset::XfadeAWidthId + " : " + juce::String (presetPropertiesToWrite.getXfadeAWidth (), 2));
     addLine (presetPropertiesToWrite.getXfadeBCV () != presetPropertiesToWrite.getXfadeBCVDefault (), Parameter::Preset::XfadeBCVId + " : " + presetPropertiesToWrite.getXfadeBCV ());
@@ -176,7 +176,7 @@ void Assimil8orPreset::parse (juce::StringArray presetLines)
             for (auto remainingScopes { scopeDifference * -1 }; remainingScopes > 0; --remainingScopes)
             {
                 // undoActionsStack should have items to reset
-                jassert(! undoActionsStack.empty ());
+                jassert (! undoActionsStack.empty ());
                 auto undoAction = undoActionsStack.top ();
                 undoActionsStack.pop ();
                 undoAction ();

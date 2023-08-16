@@ -14,8 +14,8 @@ public:
     juce::String getType () { return data.getProperty ("type"); }
 
     juce::String getDefaultString () { return data.getProperty ("default"); }
-    int getDefaultInt () { return static_cast<int>(data.getProperty ("default")); }
-    double getDefaultDouble () { return static_cast<double>(data.getProperty ("default")); }
+    int getDefaultInt () { return static_cast<int> (data.getProperty ("default")); }
+    double getDefaultDouble () { return static_cast<double> (data.getProperty ("default")); }
 
     juce::StringPairArray getOptionalProperties ()
     {
@@ -30,8 +30,8 @@ public:
     }
 
     static juce::String getDefaultString (juce::ValueTree vt) { return vt.getProperty ("default"); }
-    static int getDefaultInt (juce::ValueTree vt) { return static_cast<int>(vt.getProperty ("default")); }
-    static double getDefaultDouble (juce::ValueTree vt) { return static_cast<double>(vt.getProperty ("default")); }
+    static int getDefaultInt (juce::ValueTree vt) { return static_cast<int> (vt.getProperty ("default")); }
+    static double getDefaultDouble (juce::ValueTree vt) { return static_cast<double> (vt.getProperty ("default")); }
 
     static inline const juce::Identifier ParameterTypeId { "Parameter" };
 

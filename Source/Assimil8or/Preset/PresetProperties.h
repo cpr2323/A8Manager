@@ -8,7 +8,7 @@
 class PresetProperties : public ValueTreeWrapper<PresetProperties>
 {
 public:
-    PresetProperties () noexcept : parameterDataListProperties (ParameterDataListProperties()), ValueTreeWrapper<PresetProperties> (PresetTypeId)
+    PresetProperties () noexcept : parameterDataListProperties (ParameterDataListProperties ()), ValueTreeWrapper<PresetProperties> (PresetTypeId)
     {
         clear ();
     }

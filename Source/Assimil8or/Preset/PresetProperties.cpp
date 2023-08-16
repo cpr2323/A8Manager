@@ -45,7 +45,7 @@ void PresetProperties::clear ()
 juce::ValueTree PresetProperties::addChannel (int index)
 {
     //jassert (index < getNumChannels ()); // this breaks when running from the ctor
-    auto channelProperties { ChannelProperties::create (index) };
+    auto channelProperties { ChannelProperties::create (index + 1) };
     data.addChild (channelProperties, -1, nullptr);
     return channelProperties;
 }
@@ -202,47 +202,47 @@ juce::String PresetProperties::getData2AsCVDefault ()
     return ParameterDataProperties::getDefaultString (parameterDataListProperties.getParameter (Section::PresetId, Parameter::Preset::Data2asCVId));
 }
 
-juce::String PresetProperties::getNameDefault()
+juce::String PresetProperties::getNameDefault ()
 {
     return ParameterDataProperties::getDefaultString (parameterDataListProperties.getParameter (Section::PresetId, Parameter::Preset::NameId));
 }
 
-juce::String PresetProperties::getXfadeACVDefault()
+juce::String PresetProperties::getXfadeACVDefault ()
 {
     return ParameterDataProperties::getDefaultString (parameterDataListProperties.getParameter (Section::PresetId, Parameter::Preset::XfadeACVId));
 }
 
-double PresetProperties::getXfadeAWidthDefault()
+double PresetProperties::getXfadeAWidthDefault ()
 {
     return ParameterDataProperties::getDefaultDouble (parameterDataListProperties.getParameter (Section::PresetId, Parameter::Preset::XfadeAWidthId));
 }
 
-juce::String PresetProperties::getXfadeBCVDefault()
+juce::String PresetProperties::getXfadeBCVDefault ()
 {
     return ParameterDataProperties::getDefaultString (parameterDataListProperties.getParameter (Section::PresetId, Parameter::Preset::XfadeBCVId));
 }
 
-double PresetProperties::getXfadeBWidthDefault()
+double PresetProperties::getXfadeBWidthDefault ()
 {
     return ParameterDataProperties::getDefaultDouble (parameterDataListProperties.getParameter (Section::PresetId, Parameter::Preset::XfadeBWidthId));
 }
 
-juce::String PresetProperties::getXfadeCCVDefault()
+juce::String PresetProperties::getXfadeCCVDefault ()
 {
     return ParameterDataProperties::getDefaultString (parameterDataListProperties.getParameter (Section::PresetId, Parameter::Preset::XfadeCCVId));
 }
 
-double PresetProperties::getXfadeCWidthDefault()
+double PresetProperties::getXfadeCWidthDefault ()
 {
     return ParameterDataProperties::getDefaultDouble (parameterDataListProperties.getParameter (Section::PresetId, Parameter::Preset::XfadeCWidthId));
 }
 
-juce::String PresetProperties::getXfadeDCVDefault()
+juce::String PresetProperties::getXfadeDCVDefault ()
 {
     return ParameterDataProperties::getDefaultString (parameterDataListProperties.getParameter (Section::PresetId, Parameter::Preset::XfadeDCVId));
 }
 
-double PresetProperties::getXfadeDWidthDefault()
+double PresetProperties::getXfadeDWidthDefault ()
 {
     return ParameterDataProperties::getDefaultDouble (parameterDataListProperties.getParameter (Section::PresetId, Parameter::Preset::XfadeDWidthId));
 }

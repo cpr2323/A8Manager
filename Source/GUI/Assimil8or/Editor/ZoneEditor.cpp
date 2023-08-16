@@ -27,29 +27,29 @@ void ZoneEditor::init (juce::ValueTree zonePropertiesVT)
     zoneProperties.wrap (zonePropertiesVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::yes);
     setupZonePropertiesCallbacks ();
 
-    levelOffsetDataChanged(zoneProperties.getLevelOffset());
-    loopLengthDataChanged(zoneProperties.getLoopLength());
-    loopStartDataChanged(zoneProperties.getLoopStart());
-    minVoltageDataChanged(zoneProperties.getMinVoltage());
-    pitchOffsetDataChanged(zoneProperties.getPitchOffset());
-    sampleDataChanged(zoneProperties.getSample());
-    sampleStartDataChanged(zoneProperties.getSampleStart());
-    sampleEndDataChanged(zoneProperties.getSampleEnd());
-    sideDataChanged(zoneProperties.getSide());
+    levelOffsetDataChanged (zoneProperties.getLevelOffset ());
+    loopLengthDataChanged (zoneProperties.getLoopLength ());
+    loopStartDataChanged (zoneProperties.getLoopStart ());
+    minVoltageDataChanged (zoneProperties.getMinVoltage ());
+    pitchOffsetDataChanged (zoneProperties.getPitchOffset ());
+    sampleDataChanged (zoneProperties.getSample ());
+    sampleStartDataChanged (zoneProperties.getSampleStart ());
+    sampleEndDataChanged (zoneProperties.getSampleEnd ());
+    sideDataChanged (zoneProperties.getSide ());
 }
 
 void ZoneEditor::setupZonePropertiesCallbacks ()
 {
     zoneProperties.onIndexChange = [this] ([[maybe_unused]] int index) { jassertfalse; /* I don't think this should change while we are editing */};
-    zoneProperties.onLevelOffsetChange = [this](double levelOffset) { levelOffsetDataChanged(levelOffset);  };
-    zoneProperties.onLoopLengthChange = [this](double loopLength) { loopLengthDataChanged(loopLength);  };
-    zoneProperties.onLoopStartChange = [this](int loopStart) { loopStartDataChanged(loopStart);  };
-    zoneProperties.onMinVoltageChange = [this](double minVoltage) { minVoltageDataChanged(minVoltage);  };
-    zoneProperties.onPitchOffsetChange = [this](double pitchOffset) { pitchOffsetDataChanged(pitchOffset);  };
-    zoneProperties.onSampleChange = [this](juce::String sample) { sampleDataChanged(sample);  };
-    zoneProperties.onSampleStartChange = [this](int sampleStart) { sampleStartDataChanged(sampleStart);  };
-    zoneProperties.onSampleEndChange = [this](int sampleEnd) { sampleEndDataChanged(sampleEnd);  };
-    zoneProperties.onSideChange = [this](int side) { sideDataChanged(side);  };
+    zoneProperties.onLevelOffsetChange = [this] (double levelOffset) { levelOffsetDataChanged (levelOffset);  };
+    zoneProperties.onLoopLengthChange = [this] (double loopLength) { loopLengthDataChanged (loopLength);  };
+    zoneProperties.onLoopStartChange = [this] (int loopStart) { loopStartDataChanged (loopStart);  };
+    zoneProperties.onMinVoltageChange = [this] (double minVoltage) { minVoltageDataChanged (minVoltage);  };
+    zoneProperties.onPitchOffsetChange = [this] (double pitchOffset) { pitchOffsetDataChanged (pitchOffset);  };
+    zoneProperties.onSampleChange = [this] (juce::String sample) { sampleDataChanged (sample);  };
+    zoneProperties.onSampleStartChange = [this] (int sampleStart) { sampleStartDataChanged (sampleStart);  };
+    zoneProperties.onSampleEndChange = [this] (int sampleEnd) { sampleEndDataChanged (sampleEnd);  };
+    zoneProperties.onSideChange = [this] (int side) { sideDataChanged (side);  };
 }
 
 void ZoneEditor::paint (juce::Graphics& g)

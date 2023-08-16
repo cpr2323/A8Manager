@@ -222,6 +222,12 @@ public:
         // hack the preset data on to the runtime root until we get a proper valuetreewrapper for the preset
         runtimeRootProperties.getValueTree ().addChild (presetProperties.getValueTree (), -1, nullptr);
         assimil8orValidator.init (rootProperties.getValueTree ());
+#if 0
+        // this code writes out an xml copy of the default preset createed by the PresetProperties object
+        auto file { juce::File (appDirectory).getChildFile ("default_preset.xml") };
+        auto xml = presetProperties.getValueTree ().createXml ();
+        xml->writeTo (file, {});
+#endif
     }
 
     void initUi ()
