@@ -12,7 +12,7 @@
 
 // this requires the third party Melatonin Inspector be installed and added to the project
 // https://github.com/sudara/melatonin_inspector
-#define ENABLE_MELATONIN_INSPECTOR 1
+#define ENABLE_MELATONIN_INSPECTOR 0
 
 const juce::String PropertiesFileExtension { ".properties" };
 
