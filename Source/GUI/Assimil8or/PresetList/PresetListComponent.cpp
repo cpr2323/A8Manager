@@ -146,7 +146,7 @@ void PresetListComponent::loadPreset (juce::File presetFile)
     assimil8orPreset.parse (fileContents);
 
     presetProperties.clear ();
-    presetProperties.getValueTree ().copyPropertiesAndChildrenFrom (assimil8orPreset.getPresetVT (), nullptr);
+    PresetProperties::copyTreeProperties (assimil8orPreset.getPresetVT (), presetProperties.getValueTree ());
 }
 
 void PresetListComponent::resized ()

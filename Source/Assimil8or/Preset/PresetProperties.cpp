@@ -21,9 +21,44 @@ void PresetProperties::clear ()
         juce::Logger::outputDebugString ("XML Parsing Error: " + parseError);
     // NOTE: this is a hard failure, which indicates there is a problem in the file Assimil8orParameterData.xml
     jassert (xmlDoc.getLastParseError () == "");
+    // this should do first time initialization on 'data', with subseuent calls skipping this
+    if (data.getNumChildren () != kMaxChannels)
+    {
+        for (auto channelIndex { 0 }; channelIndex < kMaxChannels; ++channelIndex)
+        {
+            juce::ValueTree channel (ChannelProperties::ChannelTypeId);
+            channel.setProperty (ChannelProperties::IndexPropertyId, channelIndex + 1, nullptr);
+            data.addChild (channel, -1, nullptr);
+            for (auto zoneIndex { 0 }; zoneIndex < kMaxChannels; ++zoneIndex)
+            {
+                juce::ValueTree zone (ZoneProperties::ZoneTypeId);
+                zone.setProperty (ZoneProperties::IndexPropertyId, zoneIndex + 1, nullptr);
+                channel .addChild (zone, -1, nullptr);
+            }
+        }
+    }
     if (xmlElement != nullptr)
     {
-        data.copyPropertiesAndChildrenFrom (juce::ValueTree::fromXml (*xmlElement), nullptr);
+        auto defaultPresetVT { juce::ValueTree::fromXml (*xmlElement) };
+        copyTreeProperties (defaultPresetVT, data);
+    }
+}
+
+void PresetProperties::copyTreeProperties (juce::ValueTree sourcePresetPropertiesVT, juce::ValueTree destinationPresetPropertiesVT)
+{
+    destinationPresetPropertiesVT.copyPropertiesFrom (sourcePresetPropertiesVT, nullptr);
+    for (auto channelIndex { 0 }; channelIndex < sourcePresetPropertiesVT.getNumChildren (); ++channelIndex)
+    {
+        auto channelSource { sourcePresetPropertiesVT.getChild (channelIndex) };
+        auto channelDestination { destinationPresetPropertiesVT.getChild (channelIndex) };
+        channelDestination.copyPropertiesFrom (channelSource, nullptr);
+
+        for (auto zoneIndex { 0 }; zoneIndex < channelSource.getNumChildren (); ++zoneIndex)
+        {
+            auto zoneSource { channelSource.getChild (zoneIndex) };
+            auto zoneDestination { channelDestination.getChild (zoneIndex) };
+            zoneDestination.copyPropertiesFrom (zoneSource, nullptr);
+        }
     }
 }
 

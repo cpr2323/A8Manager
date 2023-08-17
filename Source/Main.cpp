@@ -128,6 +128,7 @@ public:
     void initAssimil8or ()
     {
         // hack the preset data on to the runtime root until we get a proper valuetreewrapper for the preset
+        presetPropertiesMonitor.assign (presetProperties.getValueTreeRef ());
         runtimeRootProperties.getValueTree ().addChild (presetProperties.getValueTree (), -1, nullptr);
         assimil8orValidator.init (rootProperties.getValueTree ());
 #if 0
@@ -279,6 +280,8 @@ private:
     std::unique_ptr<juce::FileLogger> fileLogger;
     std::atomic<RuntimeRootProperties::QuitState> localQuitState { RuntimeRootProperties::QuitState::idle };
     std::unique_ptr<MainWindow> mainWindow;
+
+    ValueTreeMonitor presetPropertiesMonitor;
 };
 
 // This macro generates the main () routine that launches the app.

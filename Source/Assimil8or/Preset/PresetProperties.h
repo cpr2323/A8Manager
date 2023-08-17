@@ -84,6 +84,7 @@ public:
     void processValueTree () {}
 
     void clear ();
+    static void copyTreeProperties (juce::ValueTree source, juce::ValueTree destination);
 
 private:
     ParameterDataListProperties parameterDataListProperties;

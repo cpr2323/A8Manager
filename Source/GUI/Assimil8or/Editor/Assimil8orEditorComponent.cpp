@@ -101,6 +101,7 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
     presetProperties.forEachChannel ([this, &channelEditorIndex] (juce::ValueTree channelPropertiesVT)
     {
         channelEditors [channelEditorIndex].init (channelPropertiesVT);
+        ++channelEditorIndex;
         return true;
     });
 

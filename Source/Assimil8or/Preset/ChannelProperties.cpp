@@ -41,15 +41,15 @@ juce::ValueTree ChannelProperties::getZoneVT (int zoneIndex)
     juce::ValueTree requestedChannelVT;
     auto curZoneIndex { 0 };
     forEachZone ([this, &requestedChannelVT, &curZoneIndex, zoneIndex] (juce::ValueTree channelVT)
+    {
+        if (curZoneIndex == zoneIndex)
         {
-            if (curZoneIndex == zoneIndex)
-            {
-                requestedChannelVT = channelVT;
-                return false;
-            }
-            ++curZoneIndex;
-            return true;
-        });
+            requestedChannelVT = channelVT;
+            return false;
+        }
+        ++curZoneIndex;
+        return true;
+    });
     jassert (requestedChannelVT.isValid ());
     return requestedChannelVT;
 }
@@ -71,7 +71,6 @@ CvInputAndAmount ChannelProperties::getCvInputAndValueFromString (juce::String c
     jassert (delimiterLocation != 0);
     return { cvInputAndValueString.substring (0, delimiterLocation), cvInputAndValueString.substring (delimiterLocation + 1).getFloatValue () };
 }
-
 
 void ChannelProperties::clear ()
 {

@@ -120,6 +120,13 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT)
 {
     channelProperties.wrap (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::yes);
     setupChannelPropertiesCallbacks ();
+    auto zoneEditorIndex { 0 };
+    channelProperties.forEachZone([this, &zoneEditorIndex] (juce::ValueTree zonePropertiesVT)
+    {
+        zoneEditors [zoneEditorIndex].init (zonePropertiesVT);
+        ++zoneEditorIndex;
+        return true;
+    });
 
     auto splitAndPassAsParams = [] (CvInputAndAmount amountAndCvInput, std::function<void (juce::String,double)> setter)
     {

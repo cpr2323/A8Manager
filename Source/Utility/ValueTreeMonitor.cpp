@@ -3,6 +3,7 @@
 void ValueTreeMonitor::assign (juce::ValueTree& vtToListenTo)
 {
     vtBeingListened = vtToListenTo;
+    vtBeingListened.addListener (this);
 }
 
 void ValueTreeMonitor::valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property)
