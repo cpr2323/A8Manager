@@ -21,7 +21,7 @@ void PresetProperties::clear ()
         juce::Logger::outputDebugString ("XML Parsing Error: " + parseError);
     // NOTE: this is a hard failure, which indicates there is a problem in the file Assimil8orParameterData.xml
     jassert (xmlDoc.getLastParseError () == "");
-    // this should do first time initialization on 'data', with subseuent calls skipping this
+    // this should do first time initialization on 'data', with subsequent calls skipping this
     if (data.getNumChildren () != kMaxChannels)
     {
         for (auto channelIndex { 0 }; channelIndex < kMaxChannels; ++channelIndex)

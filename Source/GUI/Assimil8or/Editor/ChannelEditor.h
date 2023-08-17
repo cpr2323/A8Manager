@@ -14,6 +14,8 @@ public:
 
 private:
     ChannelProperties channelProperties;
+    juce::Label zonesLabel;
+    juce::TabbedComponent zoneTabs { juce::TabbedButtonBar::Orientation::TabsAtLeft };
 
     juce::Label aliasingLabel;
     juce::TextEditor aliasingTextEditor; // integer
@@ -110,6 +112,7 @@ private:
 
     std::array<ZoneEditor, 8> zoneEditors;
 
+    void setupChannelControls ();
     void setupChannelPropertiesCallbacks ();
 
     void aliasingDataChanged (int aliasing);
