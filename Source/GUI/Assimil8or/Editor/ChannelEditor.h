@@ -45,12 +45,12 @@ private:
     CvInputChannelComboBox expFMComboBox; // 0A - 8C
     juce::TextEditor expFMTextEditor; // double
     juce::Label levelLabel;
+    juce::Label levelDbLabel;
     juce::TextEditor levelTextEditor; // double
     juce::Label linAMLabel;
     CvInputChannelComboBox linAMComboBox; // 0A - 8C
     juce::TextEditor linAMTextEditor; // double
-    juce::Label linAMisExtEnvLabel;
-    juce::ToggleButton linAMisExtEnvCheckBox; // 
+    juce::TextButton linAMisExtEnvButton; // 
     juce::Label linFMLabel;
     CvInputChannelComboBox linFMComboBox; // 0A - 8C
     juce::TextEditor linFMTextEditor; // double
@@ -80,7 +80,6 @@ private:
     juce::Label pitchLabel;
     juce::Label pitchSemiLabel;
     juce::TextEditor pitchTextEditor; // double
-    // juce::Label pitchCVLabel; // not needed in the current layout
     CvInputChannelComboBox pitchCVComboBox; // 0A - 8C
     juce::TextEditor pitchCVTextEditor; // double
     juce::Label playModeLabel;

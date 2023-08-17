@@ -51,16 +51,23 @@ void ChannelEditor::setupChannelControls ()
     addAndMakeVisible (expFMComboBox);
     setupTextEditor (expFMTextEditor, juce::Justification::centred, [this] (juce::String text) { expFMUiChanged (expFMComboBox.getSelectedItemText (), text.getDoubleValue ()); });
 
-    // juce::Label levelLabel;
-    // juce::TextEditor LevelTextEditor;
-    // juce::Label expAMLabel;
-    // CvInputChannelComboBox expAMComboBox; // 0A - 8C
-    // juce::TextEditor expAMTextEditor;
-    // juce::Label linAMLabel;
-    // CvInputChannelComboBox linAMComboBox; // 0A - 8C
-    // juce::TextEditor linAMTextEditor;
-    // juce::Label linAMisExtEnvLabel;
-    // juce::ToggleButton linAMisExtEnvCheckBox; // 
+    setupLabel (levelLabel, "LEVEL", 25.0f, juce::Justification::centredTop);
+    setupTextEditor (levelTextEditor, juce::Justification::centred, [this] (juce::String text) { levelUiChanged (text.getDoubleValue ()); });
+    setupLabel (levelDbLabel, "dB", 15.0f, juce::Justification::centredTop);
+
+    setupLabel (linAMLabel, "LINAM", 25.0f, juce::Justification::centredTop);
+    linAMComboBox.onChange = [this] () { linAMUiChanged (linAMComboBox.getSelectedItemText (), linAMTextEditor.getText ().getDoubleValue ()); };
+    addAndMakeVisible (linAMComboBox);
+    setupTextEditor (linAMTextEditor, juce::Justification::centred, [this] (juce::String text) { linAMUiChanged (linAMComboBox.getSelectedItemText (), text.getDoubleValue ()); });
+    linAMisExtEnvButton.setButtonText("EXT");
+    linAMisExtEnvButton.setClickingTogglesState (true);
+    linAMisExtEnvButton.onClick = [this] () { linAMisExtEnvUiChanged (linAMisExtEnvButton.getToggleState ()); };
+    addAndMakeVisible (linAMisExtEnvButton);
+
+    setupLabel (expAMLabel, "EXPAM", 25.0f, juce::Justification::centredTop);
+    expAMComboBox.onChange = [this] () { expAMUiChanged (expAMComboBox.getSelectedItemText (), expAMTextEditor.getText ().getDoubleValue ()); };
+    addAndMakeVisible (expAMComboBox);
+    setupTextEditor (expAMTextEditor, juce::Justification::centred, [this] (juce::String text) { expAMUiChanged (expAMComboBox.getSelectedItemText (), text.getDoubleValue ()); });
 
     // juce::Label phaseCVLabel;
     // CvInputChannelComboBox phaseCVComboBox;
@@ -273,9 +280,22 @@ void ChannelEditor::resized ()
     linFMComboBox.setBounds (linFMLabel.getX (), linFMLabel.getBottom () + 3, (linFMLabel.getWidth () / 2) - 2, 20);
     linFMTextEditor.setBounds (linFMComboBox.getRight () + 3, linFMComboBox.getY (), linFMLabel.getWidth () - (linFMLabel.getWidth () / 2) - 1, 20);
 
-    expFMLabel.setBounds (startXOffset, linFMTextEditor.getBottom () + 5, 60, 25);
+    expFMLabel.setBounds (startXOffset, linFMComboBox.getBottom () + 5, 60, 25);
     expFMComboBox.setBounds (expFMLabel.getX (), expFMLabel.getBottom () + 3, (expFMLabel.getWidth () / 2) - 2, 20);
     expFMTextEditor.setBounds (expFMComboBox.getRight () + 3, expFMComboBox.getY (), expFMLabel.getWidth () - (expFMLabel.getWidth () / 2) - 1, 20);
+
+    levelLabel.setBounds (startXOffset, expFMComboBox.getBottom () + 5, 60, 25);
+    levelTextEditor.setBounds (levelLabel.getX () + 3, levelLabel.getBottom () + 3, levelLabel.getWidth () - 6, 20);
+    levelDbLabel.setBounds (levelTextEditor.getRight () + 3, levelTextEditor.getY (), 40, 20);
+
+    linAMLabel.setBounds (startXOffset, levelTextEditor.getBottom () + 5, 60, 25);
+    linAMComboBox.setBounds (linAMLabel.getX (), linAMLabel.getBottom () + 3, (linAMLabel.getWidth () / 2) - 2, 20);
+    linAMTextEditor.setBounds (linAMComboBox.getRight () + 3, linAMComboBox.getY (), linAMLabel.getWidth () - (linAMLabel.getWidth () / 2) - 1, 20);
+    linAMisExtEnvButton.setBounds (linAMTextEditor.getRight () + 3, linAMTextEditor.getY (), 30, 20);
+
+    expAMLabel.setBounds (startXOffset, linAMComboBox.getBottom () + 5, 60, 25);
+    expAMComboBox.setBounds (expAMLabel.getX (), expAMLabel.getBottom () + 3, (expAMLabel.getWidth () / 2) - 2, 20);
+    expAMTextEditor.setBounds (expAMComboBox.getRight () + 3, expAMComboBox.getY (), expAMLabel.getWidth () - (expAMLabel.getWidth () / 2) - 1, 20);
 }
 
 void ChannelEditor::aliasingDataChanged (int aliasing)
@@ -416,7 +436,7 @@ void ChannelEditor::linAMUiChanged (juce::String cvInput, double linAM)
 
 void ChannelEditor::linAMisExtEnvDataChanged (bool linAMisExtEnv)
 {
-    linAMisExtEnvCheckBox.setToggleState (linAMisExtEnv, juce::NotificationType::dontSendNotification);
+    linAMisExtEnvButton.setToggleState (linAMisExtEnv, juce::NotificationType::dontSendNotification);
 }
 
 void ChannelEditor::linAMisExtEnvUiChanged (bool linAMisExtEnv)
