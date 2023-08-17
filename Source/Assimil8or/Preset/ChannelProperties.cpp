@@ -68,7 +68,7 @@ juce::String ChannelProperties::getCvInputAndValueString (CvInputAndAmount cvInp
 CvInputAndAmount ChannelProperties::getCvInputAndValueFromString (juce::String cvInputAndValueString)
 {
     const auto delimiterLocation { cvInputAndValueString.indexOfChar (0, ' ') };
-    jassert (delimiterLocation != 0);
+    //jassert (delimiterLocation != 0);
     return { cvInputAndValueString.substring (0, delimiterLocation), cvInputAndValueString.substring (delimiterLocation + 1).getFloatValue () };
 }
 
@@ -382,7 +382,13 @@ int ChannelProperties::getChannelMode ()
 
 CvInputAndAmount ChannelProperties::getExpAM ()
 {
-    return getCvInputAndValueFromString (getValue<juce::String> (ExpAMPropertyId));
+    const auto value { getValue<juce::String> (ExpAMPropertyId) };
+    const auto delimiterLocation { value.indexOfChar (0, ' ') };
+    if (delimiterLocation == 0)
+    {
+    }
+
+    return getCvInputAndValueFromString (value);
 }
 
 CvInputAndAmount ChannelProperties::getExpFM ()

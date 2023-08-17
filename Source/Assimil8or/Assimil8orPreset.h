@@ -56,4 +56,6 @@ private:
     
     juce::String key;
     juce::String value;
+
+    void checkCvInputAndAmountFormat (juce::String theKey, juce::String theValue);
 };

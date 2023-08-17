@@ -222,6 +222,21 @@ juce::String Assimil8orPreset::getSectionName ()
         return "";
 }
 
+void Assimil8orPreset::checkCvInputAndAmountFormat (juce::String theKey, juce::String theValue)
+{
+    const auto delimiterLocation { theValue.indexOfChar (0, ' ') };
+    if (delimiterLocation == 0)
+    {
+        const auto parameterFormatError { juce::String ("value '") + theValue + "' for parameter '" + theKey + "' - incorrect format" };
+        LogParsing (unknownParameterError);
+        juce::ValueTree newParseError ("ParseError");
+        newParseError.setProperty ("type", "ParameterFormatError", nullptr);
+        newParseError.setProperty ("description", parameterFormatError, nullptr);
+        parseErrorList.addChild (newParseError, -1, nullptr);
+        jassertfalse;
+    }
+};
+
 Assimil8orPreset::Assimil8orPreset ()
 {
     auto getParameterIndex = [this] ()
@@ -313,6 +328,7 @@ Assimil8orPreset::Assimil8orPreset ()
             channelProperties.setAttackFromCurrent (value.getIntValue () == 1, false);
         }},
         {Parameter::Channel::AttackModId, [this] () {
+            checkCvInputAndAmountFormat (key, value);
             const auto [cvInput, attackModAmount] { ChannelProperties::getCvInputAndValueFromString (value) };
             channelProperties.setAttackMod (cvInput, attackModAmount, false);
         }},
@@ -320,6 +336,7 @@ Assimil8orPreset::Assimil8orPreset ()
             channelProperties.setAliasing (value.getIntValue (), false);
         }},
         {Parameter::Channel::AliasingModId, [this] () {
+            checkCvInputAndAmountFormat (key, value);
             const auto [cvInput, aliasingModAmount] { ChannelProperties::getCvInputAndValueFromString (value) };
             channelProperties.setAliasingMod (cvInput, aliasingModAmount, false);
         }},
@@ -330,6 +347,7 @@ Assimil8orPreset::Assimil8orPreset ()
             channelProperties.setBits (value.getDoubleValue (), false);
         }},
         {Parameter::Channel::BitsModId, [this] () {
+            checkCvInputAndAmountFormat (key, value);
             const auto [cvInput, bitsModAmount] { ChannelProperties::getCvInputAndValueFromString (value) };
             channelProperties.setBitsMod (cvInput, bitsModAmount, false);
         }},
@@ -337,10 +355,12 @@ Assimil8orPreset::Assimil8orPreset ()
             channelProperties.setChannelMode (value.getIntValue (), false);
         }},
         {Parameter::Channel::ExpAMId, [this] () {
+            checkCvInputAndAmountFormat (key, value);
             const auto [cvInput, expAMAmount] { ChannelProperties::getCvInputAndValueFromString (value) };
             channelProperties.setExpAM (cvInput, expAMAmount, false);
         }},
         {Parameter::Channel::ExpFMId, [this] () {
+            checkCvInputAndAmountFormat (key, value);
             const auto [cvInput, expFMAmount] { ChannelProperties::getCvInputAndValueFromString (value) };
             channelProperties.setExpFM (cvInput, expFMAmount, false);
         }},
@@ -348,6 +368,7 @@ Assimil8orPreset::Assimil8orPreset ()
             channelProperties.setLevel (value.getDoubleValue (), false);
         }},
         {Parameter::Channel::LinAMId, [this] () {
+            checkCvInputAndAmountFormat (key, value);
             const auto [cvInput, linAMAmount] { ChannelProperties::getCvInputAndValueFromString (value) };
             channelProperties.setLinAM (cvInput, linAMAmount, false);
         }},
@@ -355,10 +376,12 @@ Assimil8orPreset::Assimil8orPreset ()
             channelProperties.setLinAMisExtEnv (value.getIntValue () == 1, false);
         }},
         {Parameter::Channel::LinFMId, [this] () {
+            checkCvInputAndAmountFormat (key, value);
             const auto [cvInput, linFMAmount] { ChannelProperties::getCvInputAndValueFromString (value) };
             channelProperties.setLinFM (cvInput, linFMAmount, false);
         }},
         {Parameter::Channel::LoopLengthModId, [this] () {
+            checkCvInputAndAmountFormat (key, value);
             const auto [cvInput, loopLengthModAmount] { ChannelProperties::getCvInputAndValueFromString (value) };
             channelProperties.setLoopLengthMod (cvInput, loopLengthModAmount, false);
         }},
@@ -366,6 +389,7 @@ Assimil8orPreset::Assimil8orPreset ()
             channelProperties.setLoopMode (value.getIntValue (), false);
         }},
         {Parameter::Channel::LoopStartModId, [this] () {
+            checkCvInputAndAmountFormat (key, value);
             const auto [cvInput, loopStartModAmount] { ChannelProperties::getCvInputAndValueFromString (value) };
             channelProperties.setLoopStartMod (cvInput, loopStartModAmount, false);
         }},
@@ -373,6 +397,7 @@ Assimil8orPreset::Assimil8orPreset ()
             channelProperties.setMixLevel (value.getDoubleValue (), false);
         }},
         {Parameter::Channel::MixModId, [this] () {
+            checkCvInputAndAmountFormat (key, value);
             const auto [cvInput, mixModAmount] { ChannelProperties::getCvInputAndValueFromString (value) };
             channelProperties.setMixMod (cvInput, mixModAmount, false);
         }},
@@ -383,10 +408,12 @@ Assimil8orPreset::Assimil8orPreset ()
             channelProperties.setPan (value.getDoubleValue (), false);
         }},
         {Parameter::Channel::PanModId, [this] () {
+            checkCvInputAndAmountFormat (key, value);
             const auto [cvInput, panModAmount] { ChannelProperties::getCvInputAndValueFromString (value) };
             channelProperties.setPanMod (cvInput, panModAmount, false);
         }},
         {Parameter::Channel::PhaseCVId, [this] () {
+            checkCvInputAndAmountFormat (key, value);
             const auto [cvInput, phaseCvAmount] { ChannelProperties::getCvInputAndValueFromString (value) };
             channelProperties.setPhaseCV (cvInput, phaseCvAmount, false);
         }},
@@ -394,6 +421,7 @@ Assimil8orPreset::Assimil8orPreset ()
             channelProperties.setPitch (value.getDoubleValue (), false);
         }},
         {Parameter::Channel::PitchCVId, [this] () {
+            checkCvInputAndAmountFormat (key, value);
             const auto [cvInput, pitchCvAmount] { ChannelProperties::getCvInputAndValueFromString (value) };
             channelProperties.setPitchCV (cvInput, pitchCvAmount, false);
         }},
@@ -404,6 +432,7 @@ Assimil8orPreset::Assimil8orPreset ()
             channelProperties.setPMIndex (value.getDoubleValue (), false);
         }},
         {Parameter::Channel::PMIndexModId, [this] () {
+            checkCvInputAndAmountFormat (key, value);
             const auto [cvInput, pMIndexModAmount] { ChannelProperties::getCvInputAndValueFromString (value) };
             channelProperties.setPMIndexMod (cvInput, pMIndexModAmount, false);
         }},
@@ -414,6 +443,7 @@ Assimil8orPreset::Assimil8orPreset ()
             channelProperties.setRelease (value.getDoubleValue (), false);
         }},
         { Parameter::Channel::ReleaseModId, [this] () {
+            checkCvInputAndAmountFormat (key, value);
             const auto [cvInput, releaseModAmount] { ChannelProperties::getCvInputAndValueFromString (value) };
             channelProperties.setReleaseMod (cvInput, releaseModAmount, false);
         }},
@@ -421,10 +451,12 @@ Assimil8orPreset::Assimil8orPreset ()
             channelProperties.setReverse (value.getIntValue () == 1, false);
         }},
         {Parameter::Channel::SampleEndModId, [this] () {
+            checkCvInputAndAmountFormat (key, value);
             const auto [cvInput, sampleEndModAmount] { ChannelProperties::getCvInputAndValueFromString (value) };
             channelProperties.setSampleEndMod (cvInput, sampleEndModAmount, false);
         }},
         { Parameter::Channel::SampleStartModId, [this] () {
+            checkCvInputAndAmountFormat (key, value);
             const auto [cvInput, sampleStartModAmount] { ChannelProperties::getCvInputAndValueFromString (value) };
             channelProperties.setSampleStartMod (cvInput, sampleStartModAmount, false);
         }},
