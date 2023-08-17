@@ -38,6 +38,17 @@ public:
     int getSampleEnd ();
     int getSide ();
 
+    bool isDefault ();
+    bool isLevelOffsetDefault ();
+    bool isLoopLengthDefault ();
+    bool isLoopStartDefault ();
+    bool isMinVoltageDefault ();
+    bool isPitchOffsetDefault ();
+    bool isSampleDefault ();
+    bool isSampleStartDefault ();
+    bool isSampleEndDefault ();
+    bool isSideDefault ();
+
     double getLevelOffsetDefault ();
     double getLoopLengthDefault ();
     int getLoopStartDefault ();

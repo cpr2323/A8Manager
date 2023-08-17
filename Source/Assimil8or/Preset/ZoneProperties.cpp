@@ -23,6 +23,64 @@ void ZoneProperties::clear ()
     setSide (getSideDefault (), false);
 }
 
+bool ZoneProperties::isDefault ()
+{
+    return isLevelOffsetDefault () &&
+           isLoopLengthDefault () &&
+           isLoopStartDefault () &&
+           isMinVoltageDefault () &&
+           isPitchOffsetDefault () &&
+           isSampleDefault () &&
+           isSampleStartDefault () &&
+           isSampleEndDefault () &&
+           isSideDefault ();
+}
+
+bool ZoneProperties::isLevelOffsetDefault ()
+{
+    return getLevelOffset () == getLevelOffsetDefault ();
+}
+
+bool ZoneProperties::isLoopLengthDefault ()
+{
+    return getLoopLength () == getLoopLengthDefault ();
+}
+
+bool ZoneProperties::isLoopStartDefault ()
+{
+    return getLoopStart () == getLoopStartDefault ();
+}
+
+bool ZoneProperties::isMinVoltageDefault ()
+{
+    return getMinVoltage () == getMinVoltageDefault ();
+}
+
+bool ZoneProperties::isPitchOffsetDefault ()
+{
+    return getPitchOffset () == getPitchOffsetDefault ();
+}
+
+bool ZoneProperties::isSampleDefault ()
+{
+    return getSample () == getSampleDefault ();
+}
+
+bool ZoneProperties::isSampleStartDefault ()
+{
+    return getSampleStart () == getSampleStartDefault ();
+}
+
+bool ZoneProperties::isSampleEndDefault ()
+{
+    return getSampleEnd () == getSampleEndDefault ();
+}
+
+bool ZoneProperties::isSideDefault ()
+{
+    return getSide () == getSideDefault ();
+}
+
 ////////////////////////////////////////////////////////////////////
 // set___
 ////////////////////////////////////////////////////////////////////

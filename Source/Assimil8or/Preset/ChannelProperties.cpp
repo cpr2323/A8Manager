@@ -734,6 +734,255 @@ int ChannelProperties::getZonesRTDefault ()
     return ParameterDataProperties::getDefaultInt (parameterDataListProperties.getParameter (Section::ChannelId, Parameter::Channel::ZonesRTId));
 }
 
+bool ChannelProperties::isDefault (bool includeZones)
+{
+    bool zonesAreDefault { true };
+    if (includeZones)
+    {
+        forEachZone ([this, &zonesAreDefault] (juce::ValueTree zonePropertiesVT)
+        {
+            ZoneProperties zoneProperties (zonePropertiesVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
+            zonesAreDefault = zonesAreDefault && zoneProperties.isDefault ();
+            return zonesAreDefault; // as long the zones are still all default, keep processing the zones
+        });
+    }
+    return zonesAreDefault &&
+           isAliasingDefault () &&
+           isAliasingModDefault () &&
+           isAttackDefault () &&
+           isAttackFromCurrentDefault () &&
+           isAttackModDefault () &&
+           isAutoTriggerDefault () &&
+           isBitsDefault () &&
+           isBitsModDefault () &&
+           isChannelModeDefault () &&
+           isExpAMDefault () &&
+           isExpFMDefault () &&
+           isLevelDefault () &&
+           isLinAMDefault () &&
+           isLinAMisExtEnvDefault () &&
+           isLinFMDefault () &&
+           isLoopLengthModDefault () &&
+           isLoopModeDefault () &&
+           isLoopStartModDefault () &&
+           isMixLevelDefault () &&
+           isMixModDefault () &&
+           isMixModIsFaderDefault () &&
+           isPanDefault () &&
+           isPanModDefault () &&
+           isPhaseCVDefault () &&
+           isPitchDefault () &&
+           isPitchCVDefault () &&
+           isPlayModeDefault () &&
+           isPMIndexDefault () &&
+           isPMIndexModDefault () &&
+           isPMSourceDefault () &&
+           isReleaseDefault () &&
+           isReleaseModDefault () &&
+           isReverseDefault () &&
+           isSampleStartModDefault () &&
+           isSampleEndModDefault () &&
+           isSpliceSmoothingDefault () &&
+           isXfadeGroupDefault () &&
+           isZonesCVDefault () &&
+           isZonesRTDefault ();
+}
+
+bool ChannelProperties::isAliasingDefault ()
+{
+    return getAliasing () == getAliasingDefault ();
+}
+
+bool ChannelProperties::isAliasingModDefault ()
+{
+    return getAliasingMod () == getAliasingModDefault ();
+}
+
+bool ChannelProperties::isAttackDefault ()
+{
+    return getAttack () == getAttackDefault ();
+}
+
+bool ChannelProperties::isAttackFromCurrentDefault ()
+{
+    return getAttackFromCurrent () == getAttackFromCurrentDefault ();
+}
+
+bool ChannelProperties::isAttackModDefault ()
+{
+    return getAttackMod () == getAttackModDefault ();
+}
+
+bool ChannelProperties::isAutoTriggerDefault ()
+{
+    return getAutoTrigger () == getAutoTriggerDefault ();
+}
+
+bool ChannelProperties::isBitsDefault ()
+{
+    return getBits () == getBitsDefault ();
+}
+
+bool ChannelProperties::isBitsModDefault ()
+{
+    return getBitsMod () == getBitsModDefault ();
+}
+
+bool ChannelProperties::isChannelModeDefault ()
+{
+    return getChannelMode () == getChannelModeDefault ();
+}
+
+bool ChannelProperties::isExpAMDefault ()
+{
+    return getExpAM () == getExpAMDefault ();
+}
+
+bool ChannelProperties::isExpFMDefault ()
+{
+    return getExpFM () == getExpFMDefault ();
+}
+
+bool ChannelProperties::isLevelDefault ()
+{
+    return getLevel () == getLevelDefault ();
+}
+
+bool ChannelProperties::isLinAMDefault ()
+{
+    return getLinAM () == getLinAMDefault ();
+}
+
+bool ChannelProperties::isLinAMisExtEnvDefault ()
+{
+    return getLinAMisExtEnv () == getLinAMisExtEnvDefault ();
+}
+
+bool ChannelProperties::isLinFMDefault ()
+{
+    return getLinFM () == getLinFMDefault ();
+}
+
+bool ChannelProperties::isLoopLengthModDefault ()
+{
+    return getLoopLengthMod () == getLoopLengthModDefault ();
+}
+
+bool ChannelProperties::isLoopModeDefault ()
+{
+    return getLoopMode () == getLoopModeDefault ();
+}
+
+bool ChannelProperties::isLoopStartModDefault ()
+{
+    return getLoopStartMod () == getLoopStartModDefault ();
+}
+
+bool ChannelProperties::isMixLevelDefault ()
+{
+    return getMixLevel () == getMixLevelDefault ();
+}
+
+bool ChannelProperties::isMixModDefault ()
+{
+    return getMixMod () == getMixModDefault ();
+}
+
+bool ChannelProperties::isMixModIsFaderDefault ()
+{
+    return getMixModIsFader () == getMixModIsFaderDefault ();
+}
+
+bool ChannelProperties::isPanDefault ()
+{
+    return getPan () == getPanDefault ();
+}
+
+bool ChannelProperties::isPanModDefault ()
+{
+    return getPanMod () == getPanModDefault ();
+}
+
+bool ChannelProperties::isPhaseCVDefault ()
+{
+    return getPhaseCV () == getPhaseCVDefault ();
+}
+
+bool ChannelProperties::isPitchDefault ()
+{
+    return getPitch () == getPitchDefault ();
+}
+
+bool ChannelProperties::isPitchCVDefault ()
+{
+    return getPitchCV () == getPitchCVDefault ();
+}
+
+bool ChannelProperties::isPlayModeDefault ()
+{
+    return getPlayMode () == getPlayModeDefault ();
+}
+
+bool ChannelProperties::isPMIndexDefault ()
+{
+    return getPMIndex () == getPMIndexDefault ();
+}
+
+bool ChannelProperties::isPMIndexModDefault ()
+{
+    return getPMIndexMod () == getPMIndexModDefault ();
+}
+
+bool ChannelProperties::isPMSourceDefault ()
+{
+    return getPMSource () == getPMSourceDefault ();
+}
+
+bool ChannelProperties::isReleaseDefault ()
+{
+    return getRelease () == getReleaseDefault ();
+}
+
+bool ChannelProperties::isReleaseModDefault ()
+{
+    return getReleaseMod () == getReleaseModDefault ();
+}
+
+bool ChannelProperties::isReverseDefault ()
+{
+    return getReverse () == getReverseDefault ();
+}
+
+bool ChannelProperties::isSampleStartModDefault ()
+{
+    return getSampleStartMod () == getSampleStartModDefault ();
+}
+
+bool ChannelProperties::isSampleEndModDefault ()
+{
+    return getSampleEndMod () == getSampleEndModDefault ();
+}
+
+bool ChannelProperties::isSpliceSmoothingDefault ()
+{
+    return getSpliceSmoothing () == getSpliceSmoothingDefault ();
+}
+
+bool ChannelProperties::isXfadeGroupDefault ()
+{
+    return getXfadeGroup () == getXfadeGroupDefault ();
+}
+
+bool ChannelProperties::isZonesCVDefault ()
+{
+    return getZonesCV () == getZonesCVDefault ();
+}
+
+bool ChannelProperties::isZonesRTDefault ()
+{
+    return getZonesRT () == getZonesRTDefault ();
+}
+
 void ChannelProperties::valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property)
 {
     if (vt != data)

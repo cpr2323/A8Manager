@@ -267,6 +267,56 @@ double PresetProperties::getXfadeDWidthDefault ()
     return ParameterDataProperties::getDefaultDouble (parameterDataListProperties.getParameter (Section::PresetId, Parameter::Preset::XfadeDWidthId));
 }
 
+bool PresetProperties::isData2AsCVDefault ()
+{
+    return getData2AsCV () == getData2AsCVDefault ();
+}
+
+bool PresetProperties::isNameDefault ()
+{
+    return getName () == getNameDefault ();
+}
+
+bool PresetProperties::isXfadeACVDefault ()
+{
+    return getXfadeACV () == getXfadeACVDefault ();
+}
+
+bool PresetProperties::isXfadeAWidthDefault ()
+{
+    return getXfadeAWidth () == getXfadeAWidthDefault ();
+}
+
+bool PresetProperties::isXfadeBCVDefault ()
+{
+    return getXfadeBCV () == getXfadeBCVDefault ();
+}
+
+bool PresetProperties::isXfadeBWidthDefault ()
+{
+    return getXfadeBWidth () == getXfadeBWidthDefault ();
+}
+
+bool PresetProperties::isXfadeCCVDefault ()
+{
+    return getXfadeCCV () == getXfadeCCVDefault ();
+}
+
+bool PresetProperties::isXfadeCWidthDefault ()
+{
+    return getXfadeCWidth () == getXfadeCWidthDefault ();
+}
+
+bool PresetProperties::isXfadeDCVDefault ()
+{
+    return getXfadeDCV () == getXfadeDCVDefault ();
+}
+
+bool PresetProperties::isXfadeDWidthDefault ()
+{
+    return getXfadeDWidth () == getXfadeDWidthDefault ();
+}
+
 void PresetProperties::valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property)
 {
     if (vt == data)

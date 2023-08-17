@@ -52,6 +52,17 @@ public:
     juce::String getXfadeDCVDefault ();
     double getXfadeDWidthDefault ();
 
+    bool isData2AsCVDefault ();
+    bool isNameDefault ();
+    bool isXfadeACVDefault ();
+    bool isXfadeAWidthDefault ();
+    bool isXfadeBCVDefault ();
+    bool isXfadeBWidthDefault ();
+    bool isXfadeCCVDefault ();
+    bool isXfadeCWidthDefault ();
+    bool isXfadeDCVDefault ();
+    bool isXfadeDWidthDefault ();
+
     std::function<void (int index)> onIndexChange;
     std::function<void (juce::String data2AsCv)> onData2AsCVChange;
     std::function<void (juce::String name)> onNameChange;
