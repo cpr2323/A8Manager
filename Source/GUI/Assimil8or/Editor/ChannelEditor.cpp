@@ -34,6 +34,7 @@ void ChannelEditor::setupChannelControls ()
         addAndMakeVisible (textEditor);
     };
 
+    // column one
     setupLabel (pitchLabel, "PITCH", 25.0f, juce::Justification::centredTop);
     setupTextEditor (pitchTextEditor, juce::Justification::centred, [this] (juce::String text) { pitchUiChanged (text.getDoubleValue ()); });
     setupLabel (pitchSemiLabel, "SEMI", 15.0f, juce::Justification::centredLeft);
@@ -70,6 +71,7 @@ void ChannelEditor::setupChannelControls ()
     addAndMakeVisible (expAMComboBox);
     setupTextEditor (expAMTextEditor, juce::Justification::centred, [this] (juce::String text) { expAMUiChanged (expAMComboBox.getSelectedItemText (), text.getDoubleValue ()); });
 
+    // column two
     setupLabel (phaseCVLabel, "PHASE MOD", 25.0f, juce::Justification::centredTop);
     // PM Source Index - Channel 1 is 0, 2 is 1, etc. Left Input is 8, Right Input is 9, and PhaseCV is 10
     for (auto pmSourceIndex { 0 }; pmSourceIndex < 8; ++pmSourceIndex)
@@ -92,19 +94,24 @@ void ChannelEditor::setupChannelControls ()
     addAndMakeVisible (pMIndexModComboBox);
     setupTextEditor (pMIndexModTextEditor, juce::Justification::centred, [this] (juce::String text) { pMIndexModUiChanged (pMIndexModComboBox.getSelectedItemText (), text.getDoubleValue ()); });
 
-    // juce::Label panLabel;
-    // juce::TextEditor panTextEditor;
-    // juce::Label panModLabel;
-    // CvInputChannelComboBox panModComboBox;
-    // juce::TextEditor panModTextEditor;
-    // juce::Label mixLevelLabel;
-    // juce::TextEditor mixLevelTextEditor;
-    // juce::Label mixModLabel;
-    // CvInputChannelComboBox mixModComboBox;
-    // juce::TextEditor mixModTextEditor;
-    // juce::Label mixModIsFaderLabel;
-    // juce::ToggleButton mixModIsFaderCheckBox; // 
+    setupLabel (panMixLabel, "PAN/MIX", 25.0f, juce::Justification::centredTop);
+    setupTextEditor (panTextEditor, juce::Justification::centred, [this] (juce::String text) { panUiChanged (text.getDoubleValue ()); });
+    setupLabel (panLabel, "PAN", 15.0f, juce::Justification::centredLeft);
+    panModComboBox.onChange = [this] () { panModUiChanged (panModComboBox.getSelectedItemText (), panModTextEditor.getText ().getDoubleValue ()); };
+    addAndMakeVisible (panModComboBox);
+    setupTextEditor (panModTextEditor, juce::Justification::centred, [this] (juce::String text) { panModUiChanged (panModComboBox.getSelectedItemText (), text.getDoubleValue ()); });
+    setupTextEditor (mixLevelTextEditor, juce::Justification::centred, [this] (juce::String text) { mixLevelUiChanged (text.getDoubleValue ()); });
+    setupLabel (mixLevelLabel, "MIX", 15.0f, juce::Justification::centredLeft);
+    mixModComboBox.onChange = [this] () { mixModUiChanged (mixModComboBox.getSelectedItemText (), mixModTextEditor.getText ().getDoubleValue ()); };
+    addAndMakeVisible (mixModComboBox);
+    setupTextEditor (mixModTextEditor, juce::Justification::centred, [this] (juce::String text) { mixModUiChanged (panModComboBox.getSelectedItemText (), text.getDoubleValue ()); });
+    mixModIsFaderButton.setButtonText ("FADER");
+    mixModIsFaderButton.setClickingTogglesState (true);
+    mixModIsFaderButton.setColour (juce::TextButton::ColourIds::buttonOnColourId, mixModIsFaderButton.findColour (juce::TextButton::ColourIds::buttonOnColourId).brighter (0.5));
+    mixModIsFaderButton.onClick = [this] () { mixModIsFaderUiChanged (mixModIsFaderButton.getToggleState ()); };
+    addAndMakeVisible (mixModIsFaderButton);
 
+    // column three
     // juce::Label bitsLabel;
     // juce::TextEditor bitsTextEditor; // double
     // juce::Label bitsModLabel;
@@ -142,6 +149,7 @@ void ChannelEditor::setupChannelControls ()
     // juce::Label autoTriggerLabel;
     // juce::ToggleButton autoTriggerCheckBox; //
 
+    // column four
     // juce::Label channelModeLabel;
     // juce::ComboBox channelModeComboBox; // 4 Channel Modes: 0 = Master, 1 = Link, 2 = Stereo/Right, 3 = Cycle
     // juce::Label loopLengthModLabel;
@@ -323,6 +331,18 @@ void ChannelEditor::resized ()
     pMIndexModLabel.setBounds (pMIndexTextEditor.getRight () + 3, pMIndexTextEditor.getY (), 40, 20);
     pMIndexModComboBox.setBounds (pMIndexLabel.getX (), pMIndexTextEditor.getBottom () + 3, (pMIndexLabel.getWidth () / 2) - 2, 20);
     pMIndexModTextEditor.setBounds (pMIndexModComboBox.getRight () + 3, pMIndexModComboBox.getY (), pMIndexLabel.getWidth () - (pMIndexLabel.getWidth () / 2) - 1, 20);
+
+    panMixLabel.setBounds (columnTwoXOffset, pMIndexModTextEditor.getBottom () + 5, 100, 25);
+    panTextEditor.setBounds (panMixLabel.getX () + 3, panMixLabel.getBottom () + 3, panMixLabel.getWidth () - 6, 20);
+    panLabel.setBounds (panTextEditor.getRight () + 3, panTextEditor.getY (), 40, 20);
+    panModComboBox.setBounds (panMixLabel.getX (), panTextEditor.getBottom () + 3, (panMixLabel.getWidth () / 2) - 2, 20);
+    panModTextEditor.setBounds (panModComboBox.getRight () + 3, panModComboBox.getY (), panMixLabel.getWidth () - (panMixLabel.getWidth () / 2) - 1, 20);
+
+    mixLevelTextEditor.setBounds (panMixLabel.getX () + 3, panModComboBox.getBottom () + 3, panMixLabel.getWidth () - 6, 20);
+    mixLevelLabel.setBounds (mixLevelTextEditor.getRight () + 3, mixLevelTextEditor.getY (), 40, 20);
+    mixModComboBox.setBounds (panMixLabel.getX (), mixLevelTextEditor.getBottom () + 3, (panMixLabel.getWidth () / 2) - 2, 20);
+    mixModTextEditor.setBounds (mixModComboBox.getRight () + 3, mixModComboBox.getY (), panMixLabel.getWidth () - (panMixLabel.getWidth () / 2) - 1, 20);
+    mixModIsFaderButton.setBounds (mixModTextEditor.getRight () + 3, mixModTextEditor.getY (), 40, 20);
 }
 
 void ChannelEditor::aliasingDataChanged (int aliasing)
@@ -537,7 +557,7 @@ void ChannelEditor::mixModUiChanged (juce::String cvInput, double mixMod)
 
 void ChannelEditor::mixModIsFaderDataChanged (bool mixModIsFader)
 {
-    mixModIsFaderCheckBox.setToggleState (mixModIsFader, juce::NotificationType::dontSendNotification);
+    mixModIsFaderButton.setToggleState (mixModIsFader, juce::NotificationType::dontSendNotification);
 }
 
 void ChannelEditor::mixModIsFaderUiChanged (bool mixModIsFader)

@@ -65,14 +65,12 @@ private:
     juce::TextEditor loopStartModTextEditor; // double
     juce::Label mixLevelLabel;
     juce::TextEditor mixLevelTextEditor; // double
-    juce::Label mixModLabel;
     CvInputChannelComboBox mixModComboBox; // 0A - 8C
     juce::TextEditor mixModTextEditor; // double
-    juce::Label mixModIsFaderLabel;
-    juce::ToggleButton mixModIsFaderCheckBox; // 
-    juce::Label panLabel;
+    juce::TextButton mixModIsFaderButton; // 
+    juce::Label panMixLabel;
     juce::TextEditor panTextEditor; // double
-    juce::Label panModLabel;
+    juce::Label panLabel;
     CvInputChannelComboBox panModComboBox; // 0A - 8C
     juce::TextEditor panModTextEditor; // double
     juce::Label phaseCVLabel;
