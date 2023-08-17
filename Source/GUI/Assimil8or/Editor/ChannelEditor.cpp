@@ -53,7 +53,7 @@ void ChannelEditor::setupChannelControls ()
 
     setupLabel (levelLabel, "LEVEL", 25.0f, juce::Justification::centredTop);
     setupTextEditor (levelTextEditor, juce::Justification::centred, [this] (juce::String text) { levelUiChanged (text.getDoubleValue ()); });
-    setupLabel (levelDbLabel, "dB", 15.0f, juce::Justification::centredTop);
+    setupLabel (levelDbLabel, "dB", 15.0f, juce::Justification::centredLeft);
 
     setupLabel (linAMLabel, "LINAM", 25.0f, juce::Justification::centredTop);
     linAMComboBox.onChange = [this] () { linAMUiChanged (linAMComboBox.getSelectedItemText (), linAMTextEditor.getText ().getDoubleValue ()); };
