@@ -54,8 +54,8 @@ void ZoneEditor::setupZonePropertiesCallbacks ()
 
 void ZoneEditor::paint (juce::Graphics& g)
 {
-    g.setColour (juce::Colours::magenta);
-    g.drawRect (getLocalBounds ());
+//     g.setColour (juce::Colours::magenta);
+//     g.drawRect (getLocalBounds ());
 }
 
 void ZoneEditor::levelOffsetDataChanged (double levelOffset)

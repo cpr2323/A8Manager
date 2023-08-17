@@ -232,8 +232,8 @@ void ChannelEditor::setupChannelPropertiesCallbacks ()
 
 void ChannelEditor::paint (juce::Graphics& g)
 {
-    g.setColour (juce::Colours::teal);
-    g.drawRect (getLocalBounds ());
+//     g.setColour (juce::Colours::teal);
+//     g.drawRect (getLocalBounds ());
 }
 
 void ChannelEditor::resized ()
