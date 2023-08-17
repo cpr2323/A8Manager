@@ -31,7 +31,7 @@ Assimil8orEditorComponent::Assimil8orEditorComponent ()
     exportButton.setEnabled (false);
 
     for (auto curChannelIndex { 0 }; curChannelIndex < 8; ++curChannelIndex)
-        channelTabs.addTab (juce::String::charToString ('1' + curChannelIndex), juce::Colours::darkgrey, &channelEditors [curChannelIndex], false);
+        channelTabs.addTab ("CH " + juce::String::charToString ('1' + curChannelIndex), juce::Colours::darkgrey, &channelEditors [curChannelIndex], false);
     addAndMakeVisible (channelTabs);
 
      setupPresetControls ();

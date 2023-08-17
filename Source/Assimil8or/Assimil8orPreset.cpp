@@ -81,12 +81,12 @@ void Assimil8orPreset::write (juce::File presetFile, juce::ValueTree presetPrope
             addLine (channelProperties.getBits () != channelProperties.getBitsDefault (), Parameter::Channel::BitsId + " : " + juce::String (channelProperties.getBits (), 1));
             addLine (channelProperties.getBitsMod () != channelProperties.getBitsModDefault (), Parameter::Channel::BitsModId + " : " + ChannelProperties::getCvInputAndValueString (channelProperties.getBitsMod (), 4));
             addLine (channelProperties.getChannelMode () != channelProperties.getChannelModeDefault (), Parameter::Channel::ChannelModeId + " : " + juce::String (channelProperties.getChannelMode ()));
-            addLine (channelProperties.getExpAM () != channelProperties.getExpAMDefault (), Parameter::Channel::ExpAMId + " : " + juce::String (channelProperties.getExpAM ()));
-            addLine (channelProperties.getExpFM () != channelProperties.getExpFMDefault (), Parameter::Channel::ExpFMId + " : " + juce::String (channelProperties.getExpFM ()));
+            addLine (channelProperties.getExpAM () != channelProperties.getExpAMDefault (), Parameter::Channel::ExpAMId + " : " + ChannelProperties::getCvInputAndValueString (channelProperties.getExpAM (), 4));
+            addLine (channelProperties.getExpFM () != channelProperties.getExpFMDefault (), Parameter::Channel::ExpFMId + " : " + ChannelProperties::getCvInputAndValueString (channelProperties.getExpFM (), 4));
             addLine (channelProperties.getLevel () != channelProperties.getLevelDefault (), Parameter::Channel::LevelId + " : " + juce::String (channelProperties.getLevel ()));
-            addLine (channelProperties.getLinAM () != channelProperties.getLinAMDefault (), Parameter::Channel::LinAMId + " : " + juce::String (channelProperties.getLinAM ()));
+            addLine (channelProperties.getLinAM () != channelProperties.getLinAMDefault (), Parameter::Channel::LinAMId + " : " + ChannelProperties::getCvInputAndValueString (channelProperties.getLinAM (), 4));
             addLine (channelProperties.getLinAMisExtEnv () != channelProperties.getLinAMisExtEnvDefault (), Parameter::Channel::LinAMisExtEnvId + " : " + (channelProperties.getLinAMisExtEnv () ? "1" : "0"));
-            addLine (channelProperties.getLinFM () != channelProperties.getLinFMDefault (), Parameter::Channel::LinFMId + " : " + juce::String (channelProperties.getLinFM ()));
+            addLine (channelProperties.getLinFM () != channelProperties.getLinFMDefault (), Parameter::Channel::LinFMId + " : " + ChannelProperties::getCvInputAndValueString (channelProperties.getLinFM (), 4));
             addLine (channelProperties.getLoopLengthMod () != channelProperties.getLoopLengthModDefault (), Parameter::Channel::LoopLengthModId + " : " + ChannelProperties::getCvInputAndValueString (channelProperties.getLoopLengthMod (), 4));
             addLine (channelProperties.getLoopMode () != channelProperties.getLoopModeDefault (), Parameter::Channel::LoopModeId + " : " + juce::String (channelProperties.getLoopMode ()));
             addLine (channelProperties.getLoopStartMod () != channelProperties.getLoopStartModDefault (), Parameter::Channel::LoopStartModId + " : " + ChannelProperties::getCvInputAndValueString (channelProperties.getLoopStartMod (), 4));
@@ -337,22 +337,26 @@ Assimil8orPreset::Assimil8orPreset ()
             channelProperties.setChannelMode (value.getIntValue (), false);
         }},
         {Parameter::Channel::ExpAMId, [this] () {
-            channelProperties.setExpAM (value.getDoubleValue (), false);
+            const auto [cvInput, expAMAmount] { ChannelProperties::getCvInputAndValueFromString (value) };
+            channelProperties.setExpAM (cvInput, expAMAmount, false);
         }},
         {Parameter::Channel::ExpFMId, [this] () {
-            channelProperties.setExpFM (value.getDoubleValue (), false);
+            const auto [cvInput, expFMAmount] { ChannelProperties::getCvInputAndValueFromString (value) };
+            channelProperties.setExpFM (cvInput, expFMAmount, false);
         }},
         {Parameter::Channel::LevelId, [this] () {
             channelProperties.setLevel (value.getDoubleValue (), false);
         }},
         {Parameter::Channel::LinAMId, [this] () {
-            channelProperties.setLinAM (value.getDoubleValue (), false);
+            const auto [cvInput, linAMAmount] { ChannelProperties::getCvInputAndValueFromString (value) };
+            channelProperties.setLinAM (cvInput, linAMAmount, false);
         }},
         {Parameter::Channel::LinAMisExtEnvId, [this] () {
             channelProperties.setLinAMisExtEnv (value.getIntValue () == 1, false);
         }},
         {Parameter::Channel::LinFMId, [this] () {
-            channelProperties.setLinFM (value.getDoubleValue (), false);
+            const auto [cvInput, linFMAmount] { ChannelProperties::getCvInputAndValueFromString (value) };
+            channelProperties.setLinFM (cvInput, linFMAmount, false);
         }},
         {Parameter::Channel::LoopLengthModId, [this] () {
             const auto [cvInput, loopLengthModAmount] { ChannelProperties::getCvInputAndValueFromString (value) };

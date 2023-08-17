@@ -41,89 +41,108 @@ void ChannelEditor::setupChannelControls ()
     addAndMakeVisible (pitchCVComboBox);
     setupTextEditor (pitchCVTextEditor, juce::Justification::centred, [this] (juce::String text) { pitchCVUiChanged (pitchCVComboBox.getSelectedItemText (), text.getDoubleValue ()); });
 
-    //     juce::Label aliasingLabel;
-    //     juce::Label aliasingLabel
-    //     juce::TextEditor aliasingTextEdit; // integer
-    //     juce::Label aliasingModLabel;
-    //     CvInputChannelComboBox aliasingModComboBox;
-    //     juce::TextEditor aliasingModTextEditor;
-    //     juce::Label attackLabel;
-    //     juce::TextEditor attackTextEditor; // double
-    //     juce::Label attackFromCurrentLabel;
-    //     juce::ToggleButton attackFromCurrentCheckBox; // false = start from zero, true = start from last value
-    //     juce::Label attackModLabel;
-    //     CvInputChannelComboBox attackModComboBox;
-    //     juce::TextEditor attackModTextEditor;
-    //     juce::Label autoTriggerLabel;
-    //     juce::ToggleButton autoTriggerCheckBox; //
-    //     juce::Label bitsLabel;
-    //     juce::TextEditor bitsTextEditor; // double
-    //     juce::Label bitsModLabel;
-    //     CvInputChannelComboBox bitsModComboBox;
-    //     juce::TextEditor bitsModTextEditor;
-    //     juce::Label channelModeLabel;
-    //     juce::ComboBox channelModeComboBox; // 4 Channel Modes: 0 = Master, 1 = Link, 2 = Stereo/Right, 3 = Cycle
-    //     juce::Label expAMLabel;
-    //     juce::TextEditor expAMTextEditor;
-    //     juce::Label expFMLabel;
-    //     juce::TextEditor expFMTextEditor;
-    //     juce::Label levelLabel;
-    //     juce::TextEditor LevelTextEditor;
-    //     juce::Label linAMLabel;
-    //     juce::TextEditor linAMTextEditor;
-    //     juce::Label linAMisExtEnvLabel;
-    //     juce::ToggleButton linAMisExtEnvCheckBox; // 
-    //     juce::Label linFMLabel;
-    //     juce::TextEditor linFMTextEditor;
-    //     juce::Label loopLengthModLabel;
-    //     CvInputChannelComboBox loopLengthModComboBox;
-    //     juce::TextEditor loopLengthModTextEditor;
-    //     juce::Label loopModeLabel;
-    //     juce::ComboBox loopModeComboBox; // 0 = No Loop, 1 = Loop, 2 = Loop and Release
-    //     juce::Label loopStartModLabel;
-    //     CvInputChannelComboBox loopStartModComboBox;
-    //     juce::TextEditor loopStartModTextEditor;
-    //     juce::Label mixLevelLabel;
-    //     juce::TextEditor mixLevelTextEditor;
-    //     juce::Label mixModLabel;
-    //     CvInputChannelComboBox mixModComboBox;
-    //     juce::TextEditor mixModTextEditor;
-    //     juce::Label mixModIsFaderLabel;
-    //     juce::ToggleButton mixModIsFaderCheckBox; // 
-    //     juce::Label panLabel;
-    //     juce::TextEditor panTextEditor;
-    //     juce::Label panModLabel;
-    //     CvInputChannelComboBox panModComboBox;
-    //     juce::TextEditor panModTextEditor;
-    //     juce::Label phaseCVLabel;
-    //     CvInputChannelComboBox phaseCVComboBox;
-    //     juce::TextEditor phaseCVTextEditor;
-    //     juce::Label playModeLabel;
-    //     juce::ComboBox playModeComboBox; // 2 Play Modes: 0 = Gated, 1 = One Shot, Latch / Latch may not be a saved preset option.
-    //     juce::Label pMIndexLabel;
-    //     juce::TextEditor pMIndexTextEditor;
-    //     juce::Label pMIndexModLabel;
-    //     CvInputChannelComboBox pMIndexModComboBox;
-    //     juce::TextEditor pMIndexModTextEditor;
-    //     juce::Label pMSourceLabel;
-    //     juce::ComboBox pMSourceComboBox; // Channel 1 is 0, 2 is 1, etc. Left Input is 8, Right Input is 9, and PhaseCV is 10
-    //     juce::Label releaseLabel;
-    //     juce::TextEditor releaseTextEditor;
-    //     juce::Label releaseModLabel;
-    //     CvInputChannelComboBox releaseModComboBox;
-    //     juce::TextEditor releaseModTextEditor;
-    //     juce::Label reverseLabel;
-    //     juce::ToggleButton reverseCheckBox; // 
-    //     juce::Label sampleEndModLabel;
-    //     CvInputChannelComboBox sampleEndModComboBox;
-    //     juce::TextEditor sampleEndModTextEditor;
-    //     juce::Label sampleStartModLabel;
-    //     CvInputChannelComboBox sampleStartModComboBox;
-    //     juce::TextEditor sampleStartModTextEditor;
-    //     juce::Label xfadeGroupLabel;
-    //     juce::ComboBox xfadeGroupComboBox; // Off, A, B, C, D
-    //     juce::Label zoneRTLabel;
-    //     juce::ComboBox zoneRTComboBox; // 0 = Gate Rise, 1 = Continuous, 2 = Advance, 3 = Random
+    setupLabel (linFMLabel, "LINFM", 25.0f, juce::Justification::centredTop);
+    linFMComboBox.onChange = [this] () { linFMUiChanged (linFMComboBox.getSelectedItemText (), linFMTextEditor.getText ().getDoubleValue ()); };
+    addAndMakeVisible (linFMComboBox);
+    setupTextEditor (linFMTextEditor, juce::Justification::centred, [this] (juce::String text) { linFMUiChanged (linFMComboBox.getSelectedItemText (), text.getDoubleValue ()); });
+
+    setupLabel (expFMLabel, "EXPFM", 25.0f, juce::Justification::centredTop);
+    expFMComboBox.onChange = [this] () { expFMUiChanged (expFMComboBox.getSelectedItemText (), expFMTextEditor.getText ().getDoubleValue ()); };
+    addAndMakeVisible (expFMComboBox);
+    setupTextEditor (expFMTextEditor, juce::Justification::centred, [this] (juce::String text) { expFMUiChanged (expFMComboBox.getSelectedItemText (), text.getDoubleValue ()); });
+
+    // juce::Label levelLabel;
+    // juce::TextEditor LevelTextEditor;
+    // juce::Label expAMLabel;
+    // CvInputChannelComboBox expAMComboBox; // 0A - 8C
+    // juce::TextEditor expAMTextEditor;
+    // juce::Label linAMLabel;
+    // CvInputChannelComboBox linAMComboBox; // 0A - 8C
+    // juce::TextEditor linAMTextEditor;
+    // juce::Label linAMisExtEnvLabel;
+    // juce::ToggleButton linAMisExtEnvCheckBox; // 
+
+    // juce::Label phaseCVLabel;
+    // CvInputChannelComboBox phaseCVComboBox;
+    // juce::TextEditor phaseCVTextEditor;
+    // juce::Label pMSourceLabel;
+    // juce::ComboBox pMSourceComboBox; // Channel 1 is 0, 2 is 1, etc. Left Input is 8, Right Input is 9, and PhaseCV is 10
+    // juce::Label pMIndexLabel;
+    // juce::TextEditor pMIndexTextEditor;
+    // juce::Label pMIndexModLabel;
+    // CvInputChannelComboBox pMIndexModComboBox;
+    // juce::TextEditor pMIndexModTextEditor;
+
+    // juce::Label panLabel;
+    // juce::TextEditor panTextEditor;
+    // juce::Label panModLabel;
+    // CvInputChannelComboBox panModComboBox;
+    // juce::TextEditor panModTextEditor;
+    // juce::Label mixLevelLabel;
+    // juce::TextEditor mixLevelTextEditor;
+    // juce::Label mixModLabel;
+    // CvInputChannelComboBox mixModComboBox;
+    // juce::TextEditor mixModTextEditor;
+    // juce::Label mixModIsFaderLabel;
+    // juce::ToggleButton mixModIsFaderCheckBox; // 
+
+    // juce::Label bitsLabel;
+    // juce::TextEditor bitsTextEditor; // double
+    // juce::Label bitsModLabel;
+    // CvInputChannelComboBox bitsModComboBox;
+    // juce::TextEditor bitsModTextEditor;
+
+    // juce::Label aliasingLabel
+    // juce::TextEditor aliasingTextEdit; // integer
+    // juce::Label aliasingModLabel;
+    // CvInputChannelComboBox aliasingModComboBox;
+    // juce::TextEditor aliasingModTextEditor;
+
+    // juce::Label reverseLabel;
+    // juce::ToggleButton reverseCheckBox; // 
+    // juce::Label spliceSmoothingLabel;
+    // juce::ToggleButton spliceSmoothingCheckBox; //
+
+    // juce::Label attackLabel;
+    // juce::TextEditor attackTextEditor; // double
+    // juce::Label attackFromCurrentLabel;
+    // juce::ToggleButton attackFromCurrentCheckBox; // false = start from zero, true = start from last value
+    // juce::Label attackModLabel;
+    // CvInputChannelComboBox attackModComboBox;
+    // juce::TextEditor attackModTextEditor;
+    // juce::Label releaseLabel;
+    // juce::TextEditor releaseTextEditor;
+    // juce::Label releaseModLabel;
+    // CvInputChannelComboBox releaseModComboBox;
+    // juce::TextEditor releaseModTextEditor;
+
+    // juce::Label playModeLabel;
+    // juce::ComboBox playModeComboBox; // 2 Play Modes: 0 = Gated, 1 = One Shot, Latch / Latch may not be a saved preset option.
+    // juce::Label loopModeLabel;
+    // juce::ComboBox loopModeComboBox; // 0 = No Loop, 1 = Loop, 2 = Loop and Release
+    // juce::Label autoTriggerLabel;
+    // juce::ToggleButton autoTriggerCheckBox; //
+
+    // juce::Label channelModeLabel;
+    // juce::ComboBox channelModeComboBox; // 4 Channel Modes: 0 = Master, 1 = Link, 2 = Stereo/Right, 3 = Cycle
+    // juce::Label loopLengthModLabel;
+    // CvInputChannelComboBox loopLengthModComboBox;
+    // juce::TextEditor loopLengthModTextEditor;
+    // juce::Label loopStartModLabel;
+    // CvInputChannelComboBox loopStartModComboBox;
+    // juce::TextEditor loopStartModTextEditor;
+    // juce::Label sampleEndModLabel;
+    // CvInputChannelComboBox sampleEndModComboBox;
+    // juce::TextEditor sampleEndModTextEditor;
+    // juce::Label sampleStartModLabel;
+    // CvInputChannelComboBox sampleStartModComboBox;
+    // juce::TextEditor sampleStartModTextEditor;
+    // juce::Label xfadeGroupLabel;
+    // juce::ComboBox xfadeGroupComboBox; // Off, A, B, C, D
+    // juce::Label zonesCVLabel;
+    // CvInputChannelComboBox zonesCVComboBox; // 0A - 8C
+    // juce::Label zoneRTLabel;
+    // juce::ComboBox zoneRTComboBox; // 0 = Gate Rise, 1 = Continuous, 2 = Advance, 3 = Random
 }
 
 
@@ -154,12 +173,12 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT)
     bitsDataChanged (channelProperties.getBits ());
     splitAndPassAsParams (channelProperties.getBitsMod (), [this] (juce::String cvInput, double value) { bitsModDataChanged (cvInput, value); });
     channelModeDataChanged (channelProperties.getChannelMode ());
-    expAMDataChanged (channelProperties.getExpAM ());
-    expFMDataChanged (channelProperties.getExpFM ());
+    splitAndPassAsParams (channelProperties.getExpAM (), [this] (juce::String cvInput, double value) { expAMDataChanged (cvInput, value); });
+    splitAndPassAsParams (channelProperties.getExpFM (), [this] (juce::String cvInput, double value) { expFMDataChanged (cvInput, value); });
     levelDataChanged (channelProperties.getLevel ());
-    linAMDataChanged (channelProperties.getLinAM ());
+    splitAndPassAsParams (channelProperties.getLinAM (), [this] (juce::String cvInput, double value) { linAMDataChanged (cvInput, value); });
     linAMisExtEnvDataChanged (channelProperties.getLinAMisExtEnv ());
-    linFMDataChanged (channelProperties.getLinFM ());
+    splitAndPassAsParams (channelProperties.getLinFM (), [this] (juce::String cvInput, double value) { linFMDataChanged (cvInput, value); });
     splitAndPassAsParams (channelProperties.getLoopLengthMod (), [this] (juce::String cvInput, double value) { loopLengthModDataChanged (cvInput, value); });
     loopModeDataChanged (channelProperties.getLoopMode ());
     splitAndPassAsParams (channelProperties.getLoopStartMod (), [this] (juce::String cvInput, double value) { loopStartModDataChanged (cvInput, value); });
@@ -198,12 +217,12 @@ void ChannelEditor::setupChannelPropertiesCallbacks ()
     channelProperties.onBitsChange = [this] (double bits) { bitsDataChanged (bits);  };
     channelProperties.onBitsModChange = [this] (CvInputAndAmount amountAndCvInput) { const auto& [cvInput, value] { amountAndCvInput }; bitsModDataChanged (cvInput, value); };
     channelProperties.onChannelModeChange = [this] (int channelMode) { channelModeDataChanged (channelMode);  };
-    channelProperties.onExpAMChange = [this] (double expAM) { expAMDataChanged (expAM);  };
-    channelProperties.onExpFMChange = [this] (double expFM) { expFMDataChanged (expFM);  };
+    channelProperties.onExpAMChange = [this] (CvInputAndAmount amountAndCvInput) { const auto& [cvInput, value] { amountAndCvInput }; expAMDataChanged (cvInput, value); };
+    channelProperties.onExpFMChange = [this] (CvInputAndAmount amountAndCvInput) { const auto& [cvInput, value] { amountAndCvInput }; expFMDataChanged (cvInput, value); };
     channelProperties.onLevelChange = [this] (double level) { levelDataChanged (level);  };
-    channelProperties.onLinAMChange = [this] (double linAM) { linAMDataChanged (linAM);  };
+    channelProperties.onLinAMChange = [this] (CvInputAndAmount amountAndCvInput) { const auto& [cvInput, value] { amountAndCvInput }; linAMDataChanged (cvInput, value); };
     channelProperties.onLinAMisExtEnvChange = [this] (bool linAMisExtEnv) { linAMisExtEnvDataChanged (linAMisExtEnv);  };
-    channelProperties.onLinFMChange = [this] (double linFM) { linFMDataChanged (linFM);  };
+    channelProperties.onLinFMChange = [this] (CvInputAndAmount amountAndCvInput) { const auto& [cvInput, value] { amountAndCvInput }; linFMDataChanged (cvInput, value); };
     channelProperties.onLoopLengthModChange = [this] (CvInputAndAmount amountAndCvInput) { const auto& [cvInput, value] { amountAndCvInput }; loopLengthModDataChanged (cvInput, value); };
     channelProperties.onLoopModeChange = [this] (int loopMode) { loopModeDataChanged (loopMode);  };
     channelProperties.onLoopStartModChange = [this] (CvInputAndAmount amountAndCvInput) { const auto& [cvInput, value] { amountAndCvInput }; loopStartModDataChanged (cvInput, value); };
@@ -230,7 +249,7 @@ void ChannelEditor::setupChannelPropertiesCallbacks ()
     channelProperties.onZonesRTChange = [this] (int zonesRT) { loopModeDataChanged (zonesRT);  };
 }
 
-void ChannelEditor::paint (juce::Graphics& g)
+void ChannelEditor::paint ([[maybe_unused]] juce::Graphics& g)
 {
 //     g.setColour (juce::Colours::teal);
 //     g.drawRect (getLocalBounds ());
@@ -243,11 +262,20 @@ void ChannelEditor::resized ()
     zoneBounds.removeFromTop (3);
     zoneTabs.setBounds (zoneBounds);
 
-    pitchLabel.setBounds (5, 5, 60, 25);
+    const auto startXOffset { 5 };
+    pitchLabel.setBounds (startXOffset, 5, 60, 25);
     pitchTextEditor.setBounds (pitchLabel.getX () + 3, pitchLabel.getBottom () + 3, pitchLabel.getWidth () - 6, 20);
     pitchSemiLabel.setBounds (pitchTextEditor.getRight () + 3, pitchTextEditor.getY (), 40, 20);
     pitchCVComboBox.setBounds (pitchLabel.getX (), pitchTextEditor.getBottom () + 3, (pitchLabel.getWidth () / 2) - 2, 20);
     pitchCVTextEditor.setBounds (pitchCVComboBox.getRight () + 3, pitchCVComboBox.getY (), pitchLabel.getWidth () - (pitchLabel.getWidth () / 2) - 1, 20);
+
+    linFMLabel.setBounds (startXOffset, pitchCVComboBox.getBottom() + 5, 60, 25);
+    linFMComboBox.setBounds (linFMLabel.getX (), linFMLabel.getBottom () + 3, (linFMLabel.getWidth () / 2) - 2, 20);
+    linFMTextEditor.setBounds (linFMComboBox.getRight () + 3, linFMComboBox.getY (), linFMLabel.getWidth () - (linFMLabel.getWidth () / 2) - 1, 20);
+
+    expFMLabel.setBounds (startXOffset, linFMTextEditor.getBottom () + 5, 60, 25);
+    expFMComboBox.setBounds (expFMLabel.getX (), expFMLabel.getBottom () + 3, (expFMLabel.getWidth () / 2) - 2, 20);
+    expFMTextEditor.setBounds (expFMComboBox.getRight () + 3, expFMComboBox.getY (), expFMLabel.getWidth () - (expFMLabel.getWidth () / 2) - 1, 20);
 }
 
 void ChannelEditor::aliasingDataChanged (int aliasing)
@@ -343,24 +371,26 @@ void ChannelEditor::channelModeUiChanged (int channelMode)
     channelProperties.setChannelMode (channelMode, false);
 }
 
-void ChannelEditor::expAMDataChanged (double expAM)
+void ChannelEditor::expAMDataChanged (juce::String cvInput, double expAM)
 {
+    expAMComboBox.setSelectedItemText (cvInput);
     expAMTextEditor.setText (juce::String (expAM));
 }
 
-void ChannelEditor::expAMUiChanged (double expAM)
+void ChannelEditor::expAMUiChanged (juce::String cvInput, double expAM)
 {
-    channelProperties.setExpAM (expAM, false);
+    channelProperties.setExpAM (cvInput, expAM, false);
 }
 
-void ChannelEditor::expFMDataChanged (double expFM)
+void ChannelEditor::expFMDataChanged (juce::String cvInput, double expFM)
 {
+    expFMComboBox.setSelectedItemText (cvInput);
     expFMTextEditor.setText (juce::String (expFM));
 }
 
-void ChannelEditor::expFMUiChanged (double expFM)
+void ChannelEditor::expFMUiChanged (juce::String cvInput, double expFM)
 {
-    channelProperties.setExpFM (expFM, false);
+    channelProperties.setExpFM (cvInput, expFM, false);
 }
 
 void ChannelEditor::levelDataChanged (double level)
@@ -373,14 +403,15 @@ void ChannelEditor::levelUiChanged (double level)
     channelProperties.setLevel (level, false);
 }
 
-void ChannelEditor::linAMDataChanged (double linAM)
+void ChannelEditor::linAMDataChanged (juce::String cvInput, double linAM)
 {
+    linAMComboBox.setSelectedItemText (cvInput);
     linAMTextEditor.setText (juce::String (linAM));
 }
 
-void ChannelEditor::linAMUiChanged (double linAM)
+void ChannelEditor::linAMUiChanged (juce::String cvInput, double linAM)
 {
-    channelProperties.setLinAM (linAM, false);
+    channelProperties.setLinAM (cvInput, linAM, false);
 }
 
 void ChannelEditor::linAMisExtEnvDataChanged (bool linAMisExtEnv)
@@ -393,14 +424,15 @@ void ChannelEditor::linAMisExtEnvUiChanged (bool linAMisExtEnv)
     channelProperties.setLinAMisExtEnv (linAMisExtEnv, false);
 }
 
-void ChannelEditor::linFMDataChanged (double linFM)
+void ChannelEditor::linFMDataChanged (juce::String cvInput, double linFM)
 {
+    linFMComboBox.setSelectedItemText (cvInput);
     linFMTextEditor.setText (juce::String (linFM));
 }
 
-void ChannelEditor::linFMUiChanged (double linFM)
+void ChannelEditor::linFMUiChanged (juce::String cvInput, double linFM)
 {
-    channelProperties.setLinFM (linFM, false);
+    channelProperties.setLinFM (cvInput, linFM, false);
 }
 
 void ChannelEditor::loopLengthModDataChanged (juce::String cvInput, double loopLengthMod)

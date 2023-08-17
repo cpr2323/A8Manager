@@ -39,16 +39,20 @@ private:
     juce::Label channelModeLabel;
     juce::ComboBox channelModeComboBox; // 4 Channel Modes: 0 = Master, 1 = Link, 2 = Stereo/Right, 3 = Cycle
     juce::Label expAMLabel;
+    CvInputChannelComboBox expAMComboBox; // 0A - 8C
     juce::TextEditor expAMTextEditor; // double
     juce::Label expFMLabel;
+    CvInputChannelComboBox expFMComboBox; // 0A - 8C
     juce::TextEditor expFMTextEditor; // double
     juce::Label levelLabel;
     juce::TextEditor levelTextEditor; // double
     juce::Label linAMLabel;
+    CvInputChannelComboBox linAMComboBox; // 0A - 8C
     juce::TextEditor linAMTextEditor; // double
     juce::Label linAMisExtEnvLabel;
     juce::ToggleButton linAMisExtEnvCheckBox; // 
     juce::Label linFMLabel;
+    CvInputChannelComboBox linFMComboBox; // 0A - 8C
     juce::TextEditor linFMTextEditor; // double
     juce::Label loopLengthModLabel;
     CvInputChannelComboBox loopLengthModComboBox; // 0A - 8C
@@ -133,18 +137,18 @@ private:
     void bitsModUiChanged (juce::String cvInput, double bitsMod);
     void channelModeDataChanged (int channelMode);
     void channelModeUiChanged (int channelMode);
-    void expAMDataChanged (double expAM);
-    void expAMUiChanged (double expAM);
-    void expFMDataChanged (double expFM);
-    void expFMUiChanged (double expFM);
+    void expAMDataChanged (juce::String cvInput, double expAM);
+    void expAMUiChanged (juce::String cvInput, double expAM);
+    void expFMDataChanged (juce::String cvInput, double expFM);
+    void expFMUiChanged (juce::String cvInput, double expFM);
     void levelDataChanged (double level);
     void levelUiChanged (double level);
-    void linAMDataChanged (double linAM);
-    void linAMUiChanged (double linAM);
+    void linAMDataChanged (juce::String cvInput, double linAM);
+    void linAMUiChanged (juce::String cvInput, double linAM);
     void linAMisExtEnvDataChanged (bool linAMisExtEnv);
     void linAMisExtEnvUiChanged (bool linAMisExtEnv);
-    void linFMDataChanged (double linFM);
-    void linFMUiChanged (double linFM);
+    void linFMDataChanged (juce::String cvInput, double linFM);
+    void linFMUiChanged (juce::String cvInput, double linFM);
     void loopLengthModDataChanged (juce::String cvInput, double loopLengthMod);
     void loopLengthModUiChanged (juce::String cvInput, double loopLengthMod);
     void loopModeDataChanged (int loopMode);

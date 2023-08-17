@@ -52,7 +52,7 @@ void ZoneEditor::setupZonePropertiesCallbacks ()
     zoneProperties.onSideChange = [this] (int side) { sideDataChanged (side);  };
 }
 
-void ZoneEditor::paint (juce::Graphics& g)
+void ZoneEditor::paint ([[maybe_unused]] juce::Graphics& g)
 {
 //     g.setColour (juce::Colours::magenta);
 //     g.drawRect (getLocalBounds ());

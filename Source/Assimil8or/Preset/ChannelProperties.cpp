@@ -92,12 +92,12 @@ void ChannelProperties::clear ()
     setBits (getBitsDefault (), false);
     splitAndPassAsParams (getBitsModDefault (), [this] (juce::String cvInput, double value) { setBitsMod (cvInput, value, false); });
     setChannelMode (getChannelModeDefault (), false);
-    setExpAM (getExpAMDefault (), false);
-    setExpFM (getExpFMDefault (), false);
+    splitAndPassAsParams (getExpAMDefault (), [this] (juce::String cvInput, double value) { setExpAM (cvInput, value, false); });
+    splitAndPassAsParams (getExpFMDefault (), [this] (juce::String cvInput, double value) { setExpFM (cvInput, value, false); });
     setLevel (getLevelDefault (), false);
-    setLinAM (getLinAMDefault (), false);
+    splitAndPassAsParams (getLinAMDefault (), [this] (juce::String cvInput, double value) { setLinAM (cvInput, value, false); });
     setLinAMisExtEnv (getLinAMisExtEnvDefault (), false);
-    setLinFM (getLinFMDefault (), false);
+    splitAndPassAsParams (getLinFMDefault (), [this] (juce::String cvInput, double value) { setLinFM (cvInput, value, false); });
     splitAndPassAsParams (getLoopLengthModDefault (), [this] (juce::String cvInput, double value) { setLoopLengthMod (cvInput, value, false); });
     setLoopMode (getLoopModeDefault (), false);
     splitAndPassAsParams (getLoopStartModDefault (), [this] (juce::String cvInput, double value) { setLoopStartMod (cvInput, value, false); });
@@ -177,14 +177,14 @@ void ChannelProperties::setChannelMode (int channelMode, bool includeSelfCallbac
     setValue (channelMode, ChannelModePropertyId, includeSelfCallback);
 }
 
-void ChannelProperties::setExpAM (double expAM, bool includeSelfCallback)
+void ChannelProperties::setExpAM (juce::String cvInput, double expAM, bool includeSelfCallback)
 {
-    setValue (expAM, ExpAMPropertyId, includeSelfCallback);
+    setValue (getCvInputAndValueString (cvInput, expAM, 4), ExpAMPropertyId, includeSelfCallback);
 }
 
-void ChannelProperties::setExpFM (double expFM, bool includeSelfCallback)
+void ChannelProperties::setExpFM (juce::String cvInput, double expFM, bool includeSelfCallback)
 {
-    setValue (expFM, ExpFMPropertyId, includeSelfCallback);
+    setValue (getCvInputAndValueString (cvInput, expFM, 4), ExpFMPropertyId, includeSelfCallback);
 }
 
 void ChannelProperties::setLevel (double level, bool includeSelfCallback)
@@ -192,9 +192,9 @@ void ChannelProperties::setLevel (double level, bool includeSelfCallback)
     setValue (level, LevelPropertyId, includeSelfCallback);
 }
 
-void ChannelProperties::setLinAM (double linAM, bool includeSelfCallback)
+void ChannelProperties::setLinAM (juce::String cvInput, double linAM, bool includeSelfCallback)
 {
-    setValue (linAM, LinAMPropertyId, includeSelfCallback);
+    setValue (getCvInputAndValueString (cvInput, linAM, 4), LinAMPropertyId, includeSelfCallback);
 }
 
 void ChannelProperties::setLinAMisExtEnv (bool linAMisExtEnv, bool includeSelfCallback)
@@ -202,9 +202,9 @@ void ChannelProperties::setLinAMisExtEnv (bool linAMisExtEnv, bool includeSelfCa
     setValue (linAMisExtEnv, LinAMisExtEnvPropertyId, includeSelfCallback);
 }
 
-void ChannelProperties::setLinFM (double linFM, bool includeSelfCallback)
+void ChannelProperties::setLinFM (juce::String cvInput, double linFM, bool includeSelfCallback)
 {
-    setValue (linFM, LinFMPropertyId, includeSelfCallback);
+    setValue (getCvInputAndValueString (cvInput, linFM, 4), LinFMPropertyId, includeSelfCallback);
 }
 
 void ChannelProperties::setLoopLengthMod (juce::String cvInput, double loopLengthMod, bool includeSelfCallback)
@@ -380,14 +380,14 @@ int ChannelProperties::getChannelMode ()
     return getValue<int> (ChannelModePropertyId);
 }
 
-double ChannelProperties::getExpAM ()
+CvInputAndAmount ChannelProperties::getExpAM ()
 {
-    return getValue<double> (ExpAMPropertyId);
+    return getCvInputAndValueFromString (getValue<juce::String> (ExpAMPropertyId));
 }
 
-double ChannelProperties::getExpFM ()
+CvInputAndAmount ChannelProperties::getExpFM ()
 {
-    return getValue<double> (ExpFMPropertyId);
+    return getCvInputAndValueFromString (getValue<juce::String> (ExpFMPropertyId));
 }
 
 double ChannelProperties::getLevel ()
@@ -395,9 +395,9 @@ double ChannelProperties::getLevel ()
     return getValue<double> (LevelPropertyId);
 }
 
-double ChannelProperties::getLinAM ()
+CvInputAndAmount ChannelProperties::getLinAM ()
 {
-    return getValue<double> (LinAMPropertyId);
+    return getCvInputAndValueFromString (getValue<juce::String> (LinAMPropertyId));
 }
 
 bool ChannelProperties::getLinAMisExtEnv ()
@@ -405,9 +405,9 @@ bool ChannelProperties::getLinAMisExtEnv ()
     return getValue<bool> (LinAMisExtEnvPropertyId);
 }
 
-double ChannelProperties::getLinFM ()
+CvInputAndAmount ChannelProperties::getLinFM ()
 {
-    return getValue<double> (LinFMPropertyId);
+    return getCvInputAndValueFromString (getValue<juce::String> (LinFMPropertyId));
 }
 
 CvInputAndAmount ChannelProperties::getLoopLengthMod ()
@@ -578,14 +578,14 @@ int ChannelProperties::getChannelModeDefault ()
     return ParameterDataProperties::getDefaultInt (parameterDataListProperties.getParameter (Section::ChannelId, Parameter::Channel::ChannelModeId));
 }
 
-double ChannelProperties::getExpAMDefault ()
+CvInputAndAmount ChannelProperties::getExpAMDefault ()
 {
-    return ParameterDataProperties::getDefaultDouble (parameterDataListProperties.getParameter (Section::ChannelId, Parameter::Channel::ExpAMId));
+    return getCvInputAndValueFromString (ParameterDataProperties::getDefaultString (parameterDataListProperties.getParameter (Section::ChannelId, Parameter::Channel::ExpAMId)));
 }
 
-double ChannelProperties::getExpFMDefault ()
+CvInputAndAmount ChannelProperties::getExpFMDefault ()
 {
-    return ParameterDataProperties::getDefaultDouble (parameterDataListProperties.getParameter (Section::ChannelId, Parameter::Channel::ExpFMId));
+    return getCvInputAndValueFromString (ParameterDataProperties::getDefaultString (parameterDataListProperties.getParameter (Section::ChannelId, Parameter::Channel::ExpFMId)));
 }
 
 double ChannelProperties::getLevelDefault ()
@@ -593,9 +593,9 @@ double ChannelProperties::getLevelDefault ()
     return ParameterDataProperties::getDefaultDouble (parameterDataListProperties.getParameter (Section::ChannelId, Parameter::Channel::LevelId));
 }
 
-double ChannelProperties::getLinAMDefault ()
+CvInputAndAmount ChannelProperties::getLinAMDefault ()
 {
-    return ParameterDataProperties::getDefaultDouble (parameterDataListProperties.getParameter (Section::ChannelId, Parameter::Channel::LinAMId));
+    return getCvInputAndValueFromString (ParameterDataProperties::getDefaultString (parameterDataListProperties.getParameter (Section::ChannelId, Parameter::Channel::LinAMId)));
 }
 
 bool ChannelProperties::getLinAMisExtEnvDefault ()
@@ -603,9 +603,9 @@ bool ChannelProperties::getLinAMisExtEnvDefault ()
     return ParameterDataProperties::getDefaultInt (parameterDataListProperties.getParameter (Section::ChannelId, Parameter::Channel::LinAMisExtEnvId)) != 0;
 }
 
-double ChannelProperties::getLinFMDefault ()
+CvInputAndAmount ChannelProperties::getLinFMDefault ()
 {
-    return ParameterDataProperties::getDefaultDouble (parameterDataListProperties.getParameter (Section::ChannelId, Parameter::Channel::LinFMId));
+    return getCvInputAndValueFromString (ParameterDataProperties::getDefaultString (parameterDataListProperties.getParameter (Section::ChannelId, Parameter::Channel::LinFMId)));
 }
 
 CvInputAndAmount ChannelProperties::getLoopLengthModDefault ()
