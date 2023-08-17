@@ -61,6 +61,7 @@ void ChannelEditor::setupChannelControls ()
     setupTextEditor (linAMTextEditor, juce::Justification::centred, [this] (juce::String text) { linAMUiChanged (linAMComboBox.getSelectedItemText (), text.getDoubleValue ()); });
     linAMisExtEnvButton.setButtonText("EXT");
     linAMisExtEnvButton.setClickingTogglesState (true);
+    linAMisExtEnvButton.setColour (juce::TextButton::ColourIds::buttonOnColourId, linAMisExtEnvButton.findColour (juce::TextButton::ColourIds::buttonOnColourId).brighter (0.5));
     linAMisExtEnvButton.onClick = [this] () { linAMisExtEnvUiChanged (linAMisExtEnvButton.getToggleState ()); };
     addAndMakeVisible (linAMisExtEnvButton);
 
