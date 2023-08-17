@@ -59,7 +59,7 @@ void ChannelEditor::setupChannelControls ()
     linAMComboBox.onChange = [this] () { linAMUiChanged (linAMComboBox.getSelectedItemText (), linAMTextEditor.getText ().getDoubleValue ()); };
     addAndMakeVisible (linAMComboBox);
     setupTextEditor (linAMTextEditor, juce::Justification::centred, [this] (juce::String text) { linAMUiChanged (linAMComboBox.getSelectedItemText (), text.getDoubleValue ()); });
-    linAMisExtEnvButton.setButtonText("EXT");
+    linAMisExtEnvButton.setButtonText ("EXT");
     linAMisExtEnvButton.setClickingTogglesState (true);
     linAMisExtEnvButton.setColour (juce::TextButton::ColourIds::buttonOnColourId, linAMisExtEnvButton.findColour (juce::TextButton::ColourIds::buttonOnColourId).brighter (0.5));
     linAMisExtEnvButton.onClick = [this] () { linAMisExtEnvUiChanged (linAMisExtEnvButton.getToggleState ()); };
@@ -70,16 +70,27 @@ void ChannelEditor::setupChannelControls ()
     addAndMakeVisible (expAMComboBox);
     setupTextEditor (expAMTextEditor, juce::Justification::centred, [this] (juce::String text) { expAMUiChanged (expAMComboBox.getSelectedItemText (), text.getDoubleValue ()); });
 
-    // juce::Label phaseCVLabel;
-    // CvInputChannelComboBox phaseCVComboBox;
-    // juce::TextEditor phaseCVTextEditor;
-    // juce::Label pMSourceLabel;
-    // juce::ComboBox pMSourceComboBox; // Channel 1 is 0, 2 is 1, etc. Left Input is 8, Right Input is 9, and PhaseCV is 10
-    // juce::Label pMIndexLabel;
-    // juce::TextEditor pMIndexTextEditor;
-    // juce::Label pMIndexModLabel;
-    // CvInputChannelComboBox pMIndexModComboBox;
-    // juce::TextEditor pMIndexModTextEditor;
+    setupLabel (phaseCVLabel, "PHASE MOD", 25.0f, juce::Justification::centredTop);
+    // PM Source Index - Channel 1 is 0, 2 is 1, etc. Left Input is 8, Right Input is 9, and PhaseCV is 10
+    for (auto pmSourceIndex { 0 }; pmSourceIndex < 8; ++pmSourceIndex)
+    {
+        pMSourceComboBox.addItem ("Channel " + juce::String::charToString ('1' + pmSourceIndex), pmSourceIndex + 1);
+    }
+    pMSourceComboBox.addItem ("Right Input", 9);
+    pMSourceComboBox.addItem ("Left Input", 10);
+    pMSourceComboBox.addItem ("Phase CV", 11);
+    pMSourceComboBox.onChange = [this] () { pMSourceUiChanged (pMSourceComboBox.getSelectedId () - 1); };
+    addAndMakeVisible (pMSourceComboBox);
+    setupLabel (pMSourceLabel, "SOURCE", 15.0f, juce::Justification::centredLeft);
+    phaseCVComboBox.onChange = [this] () { phaseCVUiChanged (phaseCVComboBox.getSelectedItemText (), phaseCVTextEditor.getText ().getDoubleValue ()); };
+    addAndMakeVisible (phaseCVComboBox);
+    setupTextEditor (phaseCVTextEditor, juce::Justification::centred, [this] (juce::String text) { phaseCVUiChanged (phaseCVComboBox.getSelectedItemText (), text.getDoubleValue ()); });
+    setupLabel (pMIndexLabel, "PHASE MOD", 25.0f, juce::Justification::centredTop);
+    setupTextEditor (pMIndexTextEditor, juce::Justification::centred, [this] (juce::String text) { pMIndexUiChanged (text.getDoubleValue ()); });
+    setupLabel (pMIndexModLabel, "INDEX", 15.0f, juce::Justification::centredLeft);
+    pMIndexModComboBox.onChange = [this] () { pMIndexModUiChanged (pMIndexModComboBox.getSelectedItemText (), pMIndexModTextEditor.getText ().getDoubleValue ()); };
+    addAndMakeVisible (pMIndexModComboBox);
+    setupTextEditor (pMIndexModTextEditor, juce::Justification::centred, [this] (juce::String text) { pMIndexModUiChanged (pMIndexModComboBox.getSelectedItemText (), text.getDoubleValue ()); });
 
     // juce::Label panLabel;
     // juce::TextEditor panTextEditor;
@@ -270,33 +281,48 @@ void ChannelEditor::resized ()
     zoneBounds.removeFromTop (3);
     zoneTabs.setBounds (zoneBounds);
 
-    const auto startXOffset { 5 };
-    pitchLabel.setBounds (startXOffset, 5, 60, 25);
+    // column one
+    const auto columnOneXOffset { 5 };
+    pitchLabel.setBounds (columnOneXOffset, 5, 60, 25);
     pitchTextEditor.setBounds (pitchLabel.getX () + 3, pitchLabel.getBottom () + 3, pitchLabel.getWidth () - 6, 20);
     pitchSemiLabel.setBounds (pitchTextEditor.getRight () + 3, pitchTextEditor.getY (), 40, 20);
     pitchCVComboBox.setBounds (pitchLabel.getX (), pitchTextEditor.getBottom () + 3, (pitchLabel.getWidth () / 2) - 2, 20);
     pitchCVTextEditor.setBounds (pitchCVComboBox.getRight () + 3, pitchCVComboBox.getY (), pitchLabel.getWidth () - (pitchLabel.getWidth () / 2) - 1, 20);
 
-    linFMLabel.setBounds (startXOffset, pitchCVComboBox.getBottom() + 5, 60, 25);
+    linFMLabel.setBounds (columnOneXOffset, pitchCVComboBox.getBottom() + 5, 60, 25);
     linFMComboBox.setBounds (linFMLabel.getX (), linFMLabel.getBottom () + 3, (linFMLabel.getWidth () / 2) - 2, 20);
     linFMTextEditor.setBounds (linFMComboBox.getRight () + 3, linFMComboBox.getY (), linFMLabel.getWidth () - (linFMLabel.getWidth () / 2) - 1, 20);
 
-    expFMLabel.setBounds (startXOffset, linFMComboBox.getBottom () + 5, 60, 25);
+    expFMLabel.setBounds (columnOneXOffset, linFMComboBox.getBottom () + 5, 60, 25);
     expFMComboBox.setBounds (expFMLabel.getX (), expFMLabel.getBottom () + 3, (expFMLabel.getWidth () / 2) - 2, 20);
     expFMTextEditor.setBounds (expFMComboBox.getRight () + 3, expFMComboBox.getY (), expFMLabel.getWidth () - (expFMLabel.getWidth () / 2) - 1, 20);
 
-    levelLabel.setBounds (startXOffset, expFMComboBox.getBottom () + 5, 60, 25);
+    levelLabel.setBounds (columnOneXOffset, expFMComboBox.getBottom () + 5, 60, 25);
     levelTextEditor.setBounds (levelLabel.getX () + 3, levelLabel.getBottom () + 3, levelLabel.getWidth () - 6, 20);
     levelDbLabel.setBounds (levelTextEditor.getRight () + 3, levelTextEditor.getY (), 40, 20);
 
-    linAMLabel.setBounds (startXOffset, levelTextEditor.getBottom () + 5, 60, 25);
+    linAMLabel.setBounds (columnOneXOffset, levelTextEditor.getBottom () + 5, 60, 25);
     linAMComboBox.setBounds (linAMLabel.getX (), linAMLabel.getBottom () + 3, (linAMLabel.getWidth () / 2) - 2, 20);
     linAMTextEditor.setBounds (linAMComboBox.getRight () + 3, linAMComboBox.getY (), linAMLabel.getWidth () - (linAMLabel.getWidth () / 2) - 1, 20);
     linAMisExtEnvButton.setBounds (linAMTextEditor.getRight () + 3, linAMTextEditor.getY (), 30, 20);
 
-    expAMLabel.setBounds (startXOffset, linAMComboBox.getBottom () + 5, 60, 25);
+    expAMLabel.setBounds (columnOneXOffset, linAMComboBox.getBottom () + 5, 60, 25);
     expAMComboBox.setBounds (expAMLabel.getX (), expAMLabel.getBottom () + 3, (expAMLabel.getWidth () / 2) - 2, 20);
     expAMTextEditor.setBounds (expAMComboBox.getRight () + 3, expAMComboBox.getY (), expAMLabel.getWidth () - (expAMLabel.getWidth () / 2) - 1, 20);
+
+    //column two
+    const auto columnTwoXOffset { columnOneXOffset + 120 };
+    phaseCVLabel.setBounds (columnTwoXOffset, 5, 100, 25);
+    pMSourceComboBox.setBounds (phaseCVLabel.getX () + 3, phaseCVLabel.getBottom () + 3, phaseCVLabel.getWidth () - 6, 20);
+    pMSourceLabel.setBounds (pMSourceComboBox.getRight () + 3, pMSourceComboBox.getY (), 40, 20);
+    phaseCVComboBox.setBounds (phaseCVLabel.getX (), pMSourceComboBox.getBottom () + 3, (phaseCVLabel.getWidth () / 2) - 2, 20);
+    phaseCVTextEditor.setBounds (phaseCVComboBox.getRight () + 3, phaseCVComboBox.getY (), phaseCVLabel.getWidth () - (phaseCVLabel.getWidth () / 2) - 1, 20);
+
+    pMIndexLabel.setBounds (columnTwoXOffset, phaseCVTextEditor.getBottom () + 5, 100, 25);
+    pMIndexTextEditor.setBounds (pMIndexLabel.getX () + 3, pMIndexLabel.getBottom () + 3, pMIndexLabel.getWidth () - 6, 20);
+    pMIndexModLabel.setBounds (pMIndexTextEditor.getRight () + 3, pMIndexTextEditor.getY (), 40, 20);
+    pMIndexModComboBox.setBounds (pMIndexLabel.getX (), pMIndexTextEditor.getBottom () + 3, (pMIndexLabel.getWidth () / 2) - 2, 20);
+    pMIndexModTextEditor.setBounds (pMIndexModComboBox.getRight () + 3, pMIndexModComboBox.getY (), pMIndexLabel.getWidth () - (pMIndexLabel.getWidth () / 2) - 1, 20);
 }
 
 void ChannelEditor::aliasingDataChanged (int aliasing)

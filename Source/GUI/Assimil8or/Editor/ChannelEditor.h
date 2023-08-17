@@ -9,6 +9,7 @@ class ChannelEditor : public juce::Component
 {
 public:
     ChannelEditor ();
+    ~ChannelEditor () = default;
 
     void init (juce::ValueTree channelPropertiesVT);
 

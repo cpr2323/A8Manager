@@ -7,6 +7,7 @@ class ZoneEditor : public juce::Component
 {
 public:
     ZoneEditor ();
+    ~ZoneEditor () = default;
 
     void init (juce::ValueTree zonePropertiesVT);
 
