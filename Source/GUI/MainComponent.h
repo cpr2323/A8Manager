@@ -14,7 +14,7 @@ class MainComponent : public juce::Component
 {
 public:
     MainComponent (juce::ValueTree rootPropertiesVT);
-    ~MainComponent () override = default;
+    ~MainComponent () = default;
 
 private:
     AppProperties appProperties;

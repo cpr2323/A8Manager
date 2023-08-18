@@ -20,25 +20,22 @@ private:
 
     juce::Label aliasingLabel;
     juce::TextEditor aliasingTextEditor; // integer
-    juce::Label aliasingModLabel;
     CvInputChannelComboBox aliasingModComboBox; // 0A - 8C
     juce::TextEditor aliasingModTextEditor; // double
     juce::Label attackLabel;
     juce::TextEditor attackTextEditor; // double
-    juce::Label attackFromCurrentLabel;
-    juce::ToggleButton attackFromCurrentCheckBox; // false = start from zero, true = start from last value
-    juce::Label attackModLabel;
+    juce::TextButton attackFromCurrentButton; // false = start from zero, true = start from last value
     CvInputChannelComboBox attackModComboBox; // 0A - 8C
     juce::TextEditor attackModTextEditor; // double
     juce::Label autoTriggerLabel;
     juce::ToggleButton autoTriggerCheckBox; //
     juce::Label bitsLabel;
     juce::TextEditor bitsTextEditor; // double
-    juce::Label bitsModLabel;
     CvInputChannelComboBox bitsModComboBox; // 0A - 8C
     juce::TextEditor bitsModTextEditor; // double
     juce::Label channelModeLabel;
     juce::ComboBox channelModeComboBox; // 4 Channel Modes: 0 = Master, 1 = Link, 2 = Stereo/Right, 3 = Cycle
+    juce::Label envelopeLabel;
     juce::Label expAMLabel;
     CvInputChannelComboBox expAMComboBox; // 0A - 8C
     juce::TextEditor expAMTextEditor; // double
@@ -68,6 +65,7 @@ private:
     CvInputChannelComboBox mixModComboBox; // 0A - 8C
     juce::TextEditor mixModTextEditor; // double
     juce::TextButton mixModIsFaderButton; // 
+    juce::Label mutateLabel;
     juce::Label panMixLabel;
     juce::TextEditor panTextEditor; // double
     juce::Label panLabel;
@@ -92,19 +90,16 @@ private:
     juce::ComboBox pMSourceComboBox; // Channel 1 is 0, 2 is 1, etc. Left Input is 8, Right Input is 9, and PhaseCV is 10
     juce::Label releaseLabel;
     juce::TextEditor releaseTextEditor; // double
-    juce::Label releaseModLabel;
     CvInputChannelComboBox releaseModComboBox; // 0A - 8C
     juce::TextEditor releaseModTextEditor; // double
-    juce::Label reverseLabel;
-    juce::ToggleButton reverseCheckBox; // 
+    juce::TextButton reverseButton; // 
     juce::Label sampleEndModLabel;
     CvInputChannelComboBox sampleEndModComboBox; // 0A - 8C
     juce::TextEditor sampleEndModTextEditor; // double
     juce::Label sampleStartModLabel;
     CvInputChannelComboBox sampleStartModComboBox; // 0A - 8C
     juce::TextEditor sampleStartModTextEditor; // double
-    juce::Label spliceSmoothingLabel;
-    juce::ToggleButton spliceSmoothingCheckBox; //
+    juce::TextButton spliceSmoothingButton; //
     juce::Label xfadeGroupLabel;
     juce::ComboBox xfadeGroupComboBox; // Off, A, B, C, D
     juce::Label zonesCVLabel;
