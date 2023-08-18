@@ -4,12 +4,13 @@
 #include "CvInputComboBox.h"
 #include "ZoneEditor.h"
 #include "../../../Assimil8or/Preset/ChannelProperties.h"
+#include "../../../Utility/NoArrowComboBoxLnF.h"
 
 class ChannelEditor : public juce::Component
 {
 public:
     ChannelEditor ();
-    ~ChannelEditor () = default;
+    ~ChannelEditor ();
 
     void init (juce::ValueTree channelPropertiesVT);
 
@@ -28,7 +29,7 @@ private:
     CvInputChannelComboBox attackModComboBox; // 0A - 8C
     juce::TextEditor attackModTextEditor; // double
     juce::Label autoTriggerLabel;
-    juce::ToggleButton autoTriggerCheckBox; //
+    juce::TextButton autoTriggerButton; //
     juce::Label bitsLabel;
     juce::TextEditor bitsTextEditor; // double
     CvInputChannelComboBox bitsModComboBox; // 0A - 8C
@@ -106,6 +107,8 @@ private:
     CvInputChannelComboBox zonesCVComboBox; // 0A - 8C
     juce::Label zoneRTLabel;
     juce::ComboBox zoneRTComboBox; // 0 = Gate Rise, 1 = Continuous, 2 = Advance, 3 = Random
+
+    NoArrowComboBoxLnF noArrowComboBoxLnF;
 
     std::array<ZoneEditor, 8> zoneEditors;
 

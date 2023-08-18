@@ -9,7 +9,24 @@ ChannelEditor::ChannelEditor ()
         zoneTabs.addTab (juce::String::charToString ('1' + curZoneIndex), juce::Colours::darkgrey, &zoneEditors [curZoneIndex], false);
     addAndMakeVisible (zoneTabs);
 
+    channelModeComboBox.setLookAndFeel (&noArrowComboBoxLnF);
+    loopModeComboBox.setLookAndFeel (&noArrowComboBoxLnF);
+    playModeComboBox.setLookAndFeel (&noArrowComboBoxLnF);
+    pMSourceComboBox.setLookAndFeel (&noArrowComboBoxLnF);
+    xfadeGroupComboBox.setLookAndFeel (&noArrowComboBoxLnF);
+    zoneRTComboBox.setLookAndFeel (&noArrowComboBoxLnF);
+
     setupChannelControls ();
+}
+
+ChannelEditor::~ChannelEditor ()
+{
+    channelModeComboBox.setLookAndFeel (nullptr);
+    loopModeComboBox.setLookAndFeel (nullptr);
+    playModeComboBox.setLookAndFeel (nullptr);
+    pMSourceComboBox.setLookAndFeel (nullptr);
+    xfadeGroupComboBox.setLookAndFeel (nullptr);
+    zoneRTComboBox.setLookAndFeel (nullptr);
 }
 
 void ChannelEditor::setupChannelControls ()
@@ -171,12 +188,26 @@ void ChannelEditor::setupChannelControls ()
     setupTextEditor (releaseModTextEditor, juce::Justification::centred, [this] (juce::String text) { releaseModUiChanged (releaseModComboBox.getSelectedItemText (), text.getDoubleValue ()); });
 
     // PLAY/LOOP/AUTO TRIGGER
-    // juce::Label playModeLabel;
-    // juce::ComboBox playModeComboBox; // 2 Play Modes: 0 = Gated, 1 = One Shot, Latch / Latch may not be a saved preset option.
-    // juce::Label loopModeLabel;
-    // juce::ComboBox loopModeComboBox; // 0 = No Loop, 1 = Loop, 2 = Loop and Release
-    // juce::Label autoTriggerLabel;
-    // juce::ToggleButton autoTriggerCheckBox; //
+    setupLabel (playModeLabel, "PLAY", 15.0f, juce::Justification::centred);
+    playModeComboBox.addItem ("Gated", 1); // 0 = Gated, 1 = One Shot, Latch / Latch may not be a saved preset option.
+    playModeComboBox.addItem ("One Shot", 2);
+    playModeComboBox.onChange = [this] () { playModeUiChanged (playModeComboBox.getSelectedId () - 1); };
+    addAndMakeVisible (playModeComboBox);
+
+    setupLabel (loopModeLabel, "LOOP", 15.0f, juce::Justification::centred);
+    loopModeComboBox.addItem ("No Loop", 1); // 0 = No Loop, 1 = Loop, 2 = Loop and Release
+    loopModeComboBox.addItem ("Loop", 2);
+    loopModeComboBox.addItem ("Loop/Release", 3);
+    loopModeComboBox.onChange = [this] () { loopModeUiChanged (loopModeComboBox.getSelectedId () - 1); };
+    addAndMakeVisible (loopModeComboBox);
+
+    setupLabel (autoTriggerLabel, "TRIGGER", 15.0f, juce::Justification::centred);
+
+    autoTriggerButton.setButtonText ("AUTO");
+    autoTriggerButton.setClickingTogglesState (true);
+    autoTriggerButton.setColour (juce::TextButton::ColourIds::buttonOnColourId, autoTriggerButton.findColour (juce::TextButton::ColourIds::buttonOnColourId).brighter (0.5));
+    autoTriggerButton.onClick = [this] () { attackFromCurrentUiChanged (autoTriggerButton.getToggleState ()); };
+    addAndMakeVisible (autoTriggerButton);
 
     // column four
     // juce::Label channelModeLabel;
@@ -393,9 +424,8 @@ void ChannelEditor::resized ()
     aliasingModTextEditor.setBounds (aliasingModComboBox.getRight () + 3, aliasingModComboBox.getY (), mutateLabel.getWidth () - (mutateLabel.getWidth () / 2) - 1, 20);
 
     // REVERSE/SMOOTH
-    const auto buttonWidth { mutateLabel.getWidth () / 2};
-    reverseButton.setBounds (mutateLabel.getX (), aliasingModTextEditor.getBottom () + 5, buttonWidth - 6, 20);
-    spliceSmoothingButton.setBounds (reverseButton.getRight () + 3, aliasingModTextEditor.getBottom () + 5, mutateLabel.getWidth () - buttonWidth + 2, 20);
+    reverseButton.setBounds (mutateLabel.getX (), aliasingModTextEditor.getBottom () + 5, mutateLabel.getWidth () / 2 - 6, 20);
+    spliceSmoothingButton.setBounds (reverseButton.getRight () + 3, aliasingModTextEditor.getBottom () + 5, mutateLabel.getWidth () - mutateLabel.getWidth () / 2 + 2, 20);
 
     envelopeLabel.setBounds (columnThreeXOffset, reverseButton.getBottom () + 5, columnThreeWidth, 25);
     // ATTACK
@@ -410,6 +440,19 @@ void ChannelEditor::resized ()
     releaseLabel.setBounds (releaseTextEditor.getRight () + 3, releaseTextEditor.getY (), 40, 20);
     releaseModComboBox.setBounds (envelopeLabel.getX (), releaseTextEditor.getBottom () + 3, (envelopeLabel.getWidth () / 2) - 2, 20);
     releaseModTextEditor.setBounds (releaseModComboBox.getRight () + 3, releaseModComboBox.getY (), envelopeLabel.getWidth () - (envelopeLabel.getWidth () / 2) - 1, 20);
+
+    // AUTO TRIGGER
+    autoTriggerLabel.setBounds (releaseModComboBox.getX (), releaseModComboBox.getBottom () + 5, (columnThreeWidth / 3) * 2, 20);
+    autoTriggerButton.setBounds (autoTriggerLabel.getRight (), autoTriggerLabel.getY () + 3, columnThreeWidth / 3, 20);
+
+    // PLAY MODE
+    playModeLabel.setBounds (autoTriggerLabel.getX (), autoTriggerLabel.getBottom () + 3, columnThreeWidth / 3, 20);
+    playModeComboBox.setBounds (playModeLabel.getRight (), playModeLabel.getY () + 3, (columnThreeWidth / 3) * 2, 20);
+
+    // LOOP MODE
+    loopModeLabel.setBounds (playModeLabel.getX (), playModeLabel.getBottom () + 3, columnThreeWidth / 3, 20);
+    loopModeComboBox.setBounds (loopModeLabel.getRight (), loopModeLabel.getY () + 3, (columnThreeWidth / 3) * 2, 20);
+
 }
 
 void ChannelEditor::aliasingDataChanged (int aliasing)
@@ -466,7 +509,7 @@ void ChannelEditor::attackModUiChanged (juce::String cvInput, double attackMod)
 
 void ChannelEditor::autoTriggerDataChanged (bool autoTrigger)
 {
-    autoTriggerCheckBox.setToggleState (autoTrigger, juce::NotificationType::dontSendNotification);
+    autoTriggerButton.setToggleState (autoTrigger, juce::NotificationType::dontSendNotification);
 }
 
 void ChannelEditor::autoTriggerUiChanged (bool autoTrigger)
