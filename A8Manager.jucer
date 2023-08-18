@@ -72,6 +72,10 @@
       </GROUP>
       <GROUP id="{CF0C93A7-2DC9-863C-8999-5F753D262369}" name="GUI">
         <GROUP id="{E38BD768-EC43-B8F0-AB46-78F18BDF75B0}" name="Assimil8or">
+          <GROUP id="{A4F77B47-09C1-3696-74AC-1CB15C7BFE75}" name="Data">
+            <FILE id="M1fY5n" name="Assimil8orToolTips.xml" compile="0" resource="1"
+                  file="Source/GUI/Assimil8or/Data/Assimil8orToolTips.xml"/>
+          </GROUP>
           <GROUP id="{E38A382D-990E-A82D-2924-1AE3B97D907B}" name="Editor">
             <FILE id="liNFVw" name="Assimil8orEditorComponent.cpp" compile="1"
                   resource="0" file="Source/GUI/Assimil8or/Editor/Assimil8orEditorComponent.cpp"/>
