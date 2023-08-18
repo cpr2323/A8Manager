@@ -14,7 +14,7 @@ ChannelEditor::ChannelEditor ()
     playModeComboBox.setLookAndFeel (&noArrowComboBoxLnF);
     pMSourceComboBox.setLookAndFeel (&noArrowComboBoxLnF);
     xfadeGroupComboBox.setLookAndFeel (&noArrowComboBoxLnF);
-    zoneRTComboBox.setLookAndFeel (&noArrowComboBoxLnF);
+    zonesRTComboBox.setLookAndFeel (&noArrowComboBoxLnF);
 
     setupChannelControls ();
 }
@@ -26,7 +26,7 @@ ChannelEditor::~ChannelEditor ()
     playModeComboBox.setLookAndFeel (nullptr);
     pMSourceComboBox.setLookAndFeel (nullptr);
     xfadeGroupComboBox.setLookAndFeel (nullptr);
-    zoneRTComboBox.setLookAndFeel (nullptr);
+    zonesRTComboBox.setLookAndFeel (nullptr);
 }
 
 void ChannelEditor::setupChannelControls ()
@@ -187,13 +187,14 @@ void ChannelEditor::setupChannelControls ()
     addAndMakeVisible (releaseModComboBox);
     setupTextEditor (releaseModTextEditor, juce::Justification::centred, [this] (juce::String text) { releaseModUiChanged (releaseModComboBox.getSelectedItemText (), text.getDoubleValue ()); });
 
-    // PLAY/LOOP/AUTO TRIGGER
+    // PLAY MODE
     setupLabel (playModeLabel, "PLAY", 15.0f, juce::Justification::centred);
-    playModeComboBox.addItem ("Gated", 1); // 0 = Gated, 1 = One Shot, Latch / Latch may not be a saved preset option.
+    playModeComboBox.addItem ("Gated", 1); // 0 = Gated, 1 = One Shot
     playModeComboBox.addItem ("One Shot", 2);
     playModeComboBox.onChange = [this] () { playModeUiChanged (playModeComboBox.getSelectedId () - 1); };
     addAndMakeVisible (playModeComboBox);
 
+    // /LOOP MODE
     setupLabel (loopModeLabel, "LOOP", 15.0f, juce::Justification::centred);
     loopModeComboBox.addItem ("No Loop", 1); // 0 = No Loop, 1 = Loop, 2 = Loop and Release
     loopModeComboBox.addItem ("Loop", 2);
@@ -201,8 +202,8 @@ void ChannelEditor::setupChannelControls ()
     loopModeComboBox.onChange = [this] () { loopModeUiChanged (loopModeComboBox.getSelectedId () - 1); };
     addAndMakeVisible (loopModeComboBox);
 
+    // /AUTO TRIGGER
     setupLabel (autoTriggerLabel, "TRIGGER", 15.0f, juce::Justification::centred);
-
     autoTriggerButton.setButtonText ("AUTO");
     autoTriggerButton.setClickingTogglesState (true);
     autoTriggerButton.setColour (juce::TextButton::ColourIds::buttonOnColourId, autoTriggerButton.findColour (juce::TextButton::ColourIds::buttonOnColourId).brighter (0.5));
@@ -210,28 +211,48 @@ void ChannelEditor::setupChannelControls ()
     addAndMakeVisible (autoTriggerButton);
 
     // column four
-    // juce::Label channelModeLabel;
-    // juce::ComboBox channelModeComboBox; // 4 Channel Modes: 0 = Master, 1 = Link, 2 = Stereo/Right, 3 = Cycle
-    // juce::Label loopLengthModLabel;
-    // CvInputChannelComboBox loopLengthModComboBox;
-    // juce::TextEditor loopLengthModTextEditor;
-    // juce::Label loopStartModLabel;
-    // CvInputChannelComboBox loopStartModComboBox;
-    // juce::TextEditor loopStartModTextEditor;
-    // juce::Label sampleEndModLabel;
-    // CvInputChannelComboBox sampleEndModComboBox;
-    // juce::TextEditor sampleEndModTextEditor;
-    // juce::Label sampleStartModLabel;
-    // CvInputChannelComboBox sampleStartModComboBox;
-    // juce::TextEditor sampleStartModTextEditor;
-    // juce::Label xfadeGroupLabel;
-    // juce::ComboBox xfadeGroupComboBox; // Off, A, B, C, D
-    // juce::Label zonesCVLabel;
-    // CvInputChannelComboBox zonesCVComboBox; // 0A - 8C
-    // juce::Label zoneRTLabel;
-    // juce::ComboBox zoneRTComboBox; // 0 = Gate Rise, 1 = Continuous, 2 = Advance, 3 = Random
+    setupLabel (channelModeLabel, "CHANNEL", 15.0f, juce::Justification::centred);
+    channelModeComboBox.addItem ("Master", 1); // 0 = Master, 1 = Link, 2 = Stereo/Right, 3 = Cycle
+    channelModeComboBox.addItem ("Link", 2);
+    channelModeComboBox.addItem ("Stereo/Right", 3);
+    channelModeComboBox.addItem ("Cycle", 4);
+    channelModeComboBox.onChange = [this] () { channelModeUiChanged (channelModeComboBox.getSelectedId () - 1); };
+    addAndMakeVisible (channelModeComboBox);
+    setupLabel (loopStartModLabel, "LOOP START", 15.0f, juce::Justification::centred);
+    loopStartModComboBox.onChange = [this] () { loopStartModUiChanged (loopStartModComboBox.getSelectedItemText (), loopStartModTextEditor.getText ().getDoubleValue ()); };
+    addAndMakeVisible (loopStartModComboBox);
+    setupTextEditor (loopStartModTextEditor, juce::Justification::centred, [this] (juce::String text) { loopStartModUiChanged (loopStartModComboBox.getSelectedItemText (), text.getDoubleValue ()); });
+    setupLabel (loopLengthModLabel, "LOOP LENGTH", 15.0f, juce::Justification::centred);
+    loopLengthModComboBox.onChange = [this] () { loopLengthModUiChanged (loopLengthModComboBox.getSelectedItemText (), loopLengthModTextEditor.getText ().getDoubleValue ()); };
+    addAndMakeVisible (loopLengthModComboBox);
+    setupTextEditor (loopLengthModTextEditor, juce::Justification::centred, [this] (juce::String text) { loopLengthModUiChanged (loopLengthModComboBox.getSelectedItemText (), text.getDoubleValue ()); });
+    setupLabel (sampleStartModLabel, "SAMPLE START", 15.0f, juce::Justification::centred);
+    sampleStartModComboBox.onChange = [this] () { sampleStartModUiChanged (sampleStartModComboBox.getSelectedItemText (), sampleStartModTextEditor.getText ().getDoubleValue ()); };
+    addAndMakeVisible (sampleStartModComboBox);
+    setupTextEditor (sampleStartModTextEditor, juce::Justification::centred, [this] (juce::String text) { sampleStartModUiChanged (sampleStartModComboBox.getSelectedItemText (), text.getDoubleValue ()); });
+    setupLabel (sampleEndModLabel, "SAMPLE END", 15.0f, juce::Justification::centred);
+    sampleEndModComboBox.onChange = [this] () { sampleEndModUiChanged (sampleEndModComboBox.getSelectedItemText (), sampleEndModTextEditor.getText ().getDoubleValue ()); };
+    addAndMakeVisible (sampleEndModComboBox);
+    setupTextEditor (sampleEndModTextEditor, juce::Justification::centred, [this] (juce::String text) { sampleEndModUiChanged (sampleEndModComboBox.getSelectedItemText (), text.getDoubleValue ()); });
+    setupLabel (xfadeGroupLabel, "CROSSFADE", 15.0f, juce::Justification::centred);
+    xfadeGroupComboBox.addItem ("None", 1); // Off, A, B, C, D
+    xfadeGroupComboBox.addItem ("A", 2);
+    xfadeGroupComboBox.addItem ("B", 3);
+    xfadeGroupComboBox.addItem ("C", 4);
+    xfadeGroupComboBox.addItem ("D", 5);
+    xfadeGroupComboBox.onChange = [this] () { xfadeGroupUiChanged (xfadeGroupComboBox.getText()); };
+    addAndMakeVisible (xfadeGroupComboBox);
+    setupLabel (zonesCVLabel, "ZONE CV", 15.0f, juce::Justification::centred);
+    zonesCVComboBox.onChange = [this] () { zonesCVUiChanged (zonesCVComboBox.getSelectedItemText ()); };
+    addAndMakeVisible (zonesCVComboBox);
+    setupLabel (zonesRTLabel, "ZONE SELECTION", 15.0f, juce::Justification::centred);
+    zonesRTComboBox.addItem ("Gate Rise", 1); // 0 = Gate Rise, 1 = Continuous, 2 = Advance, 3 = Random
+    zonesRTComboBox.addItem ("Continuous", 2);
+    zonesRTComboBox.addItem ("Advance", 3);
+    zonesRTComboBox.addItem ("Random", 4);
+    zonesRTComboBox.onChange = [this] () { zonesRTUiChanged (zonesRTComboBox.getSelectedId () - 1); };
+    addAndMakeVisible (zonesRTComboBox);
 }
-
 
 void ChannelEditor::init (juce::ValueTree channelPropertiesVT)
 {
@@ -453,6 +474,30 @@ void ChannelEditor::resized ()
     loopModeLabel.setBounds (playModeLabel.getX (), playModeLabel.getBottom () + 3, columnThreeWidth / 3, 20);
     loopModeComboBox.setBounds (loopModeLabel.getRight (), loopModeLabel.getY () + 3, (columnThreeWidth / 3) * 2, 20);
 
+    const auto columnFourXOffset { columnThreeXOffset + 160 };
+    const auto columnFourWidth { 100 };
+
+    const auto inputOffset { 5 };
+    channelModeLabel.setBounds (columnFourXOffset, 5, columnFourWidth, 20);
+    channelModeComboBox.setBounds (channelModeLabel.getX() + inputOffset, channelModeLabel.getBottom (), columnFourWidth - inputOffset, 20);
+    loopStartModLabel.setBounds (columnFourXOffset, channelModeComboBox.getBottom () + 5, columnFourWidth, 20);
+    loopStartModComboBox.setBounds (loopStartModLabel.getX () + inputOffset, loopStartModLabel.getBottom (), columnFourWidth / 3, 20);
+    loopStartModTextEditor.setBounds (loopStartModComboBox.getRight() + 3, loopStartModComboBox.getY(), (columnThreeWidth / 3) * 2, 20);
+    loopLengthModLabel.setBounds (columnFourXOffset, loopStartModComboBox.getBottom () + 5, columnFourWidth, 20);
+    loopLengthModComboBox.setBounds (loopLengthModLabel.getX () + inputOffset, loopLengthModLabel.getBottom (), columnFourWidth / 3, 20);
+    loopLengthModTextEditor.setBounds (loopLengthModComboBox.getRight () + 3, loopLengthModComboBox.getY (), (columnThreeWidth / 3) * 2, 20);
+    sampleStartModLabel.setBounds (columnFourXOffset, loopLengthModComboBox.getBottom () + 5, columnFourWidth, 20);
+    sampleStartModComboBox.setBounds (sampleStartModLabel.getX () + inputOffset, sampleStartModLabel.getBottom (), columnFourWidth / 3, 20);
+    sampleStartModTextEditor.setBounds (sampleStartModComboBox.getRight () + 3, sampleStartModComboBox.getY (), (columnThreeWidth / 3) * 2, 20);
+    sampleEndModLabel.setBounds (columnFourXOffset, sampleStartModComboBox.getBottom () + 5, columnFourWidth, 20);
+    sampleEndModComboBox.setBounds (sampleEndModLabel.getX () + inputOffset, sampleEndModLabel.getBottom (), columnFourWidth / 3, 20);
+    sampleEndModTextEditor.setBounds (sampleEndModComboBox.getRight () + 3, sampleEndModComboBox.getY (), (columnThreeWidth / 3) * 2, 20);
+    xfadeGroupLabel.setBounds (columnFourXOffset, sampleEndModComboBox.getBottom () + 5, columnFourWidth, 20);
+    xfadeGroupComboBox.setBounds (xfadeGroupLabel.getX () + inputOffset, xfadeGroupLabel.getBottom (), columnFourWidth, 20);
+    zonesCVLabel.setBounds (columnFourXOffset, xfadeGroupComboBox.getBottom () + 5, columnFourWidth, 20);
+    zonesCVComboBox.setBounds (zonesCVLabel.getX () + inputOffset, zonesCVLabel.getBottom (), columnFourWidth, 20);
+    zonesRTLabel.setBounds (columnFourXOffset, zonesCVComboBox.getBottom () + 5, columnFourWidth, 20);
+    zonesRTComboBox.setBounds (zonesRTLabel.getX () + inputOffset, zonesRTLabel.getBottom (), columnFourWidth, 20);
 }
 
 void ChannelEditor::aliasingDataChanged (int aliasing)
@@ -854,7 +899,7 @@ void ChannelEditor::zonesCVUiChanged (juce::String zonesCV)
 
 void ChannelEditor::zonesRTDataChanged (int zonesRT)
 {
-    zoneRTComboBox.setSelectedItemIndex (zonesRT, juce::NotificationType::dontSendNotification);
+    zonesRTComboBox.setSelectedItemIndex (zonesRT, juce::NotificationType::dontSendNotification);
 }
 
 void ChannelEditor::zonesRTUiChanged (int zonesRT)

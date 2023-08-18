@@ -105,8 +105,8 @@ private:
     juce::ComboBox xfadeGroupComboBox; // Off, A, B, C, D
     juce::Label zonesCVLabel;
     CvInputChannelComboBox zonesCVComboBox; // 0A - 8C
-    juce::Label zoneRTLabel;
-    juce::ComboBox zoneRTComboBox; // 0 = Gate Rise, 1 = Continuous, 2 = Advance, 3 = Random
+    juce::Label zonesRTLabel;
+    juce::ComboBox zonesRTComboBox; // 0 = Gate Rise, 1 = Continuous, 2 = Advance, 3 = Random
 
     NoArrowComboBoxLnF noArrowComboBoxLnF;
 
