@@ -1,0 +1,66 @@
+<ToolTips>
+  <Preset>
+    <Parameter name="Data2asCV" tooltip=""/>
+    <Parameter name="Name" tooltip=""/>
+	<Parameter name="XfadeACV" tooltip=""/>
+	<Parameter name="XfadeAWidth" tooltip=""/>
+	<Parameter name="XfadeBCV" tooltip=""/>
+	<Parameter name="XfadeBWidth" tooltip=""/>
+	<Parameter name="XfadeCCV" tooltip=""/>
+	<Parameter name="XfadeCWidth" tooltip=""/>
+	<Parameter name="XfadeDCV" tooltip=""/>
+	<Parameter name="XfadeDWidth" tooltip=""/>
+  </Preset>
+  <Channel>
+    <Parameter name="Aliasing" tooltip=""/>
+	<Parameter name="AliasingMod" tooltip=""/>
+	<Parameter name="Attack" tooltip=""/>
+	<Parameter name="AttackFromCurrent" tooltip=""/>
+	<Parameter name="AttackMod" tooltip=""/>
+	<Parameter name="AutoTrigger" tooltip=""/>
+	<Parameter name="Bits" tooltip=""/>
+	<Parameter name="BitsMod" tooltip=""/>
+	<Parameter name="ChannelMode" tooltip=""/>
+	<Parameter name="ExpAM" tooltip=""/>
+	<Parameter name="ExpFM" tooltip=""/>
+	<Parameter name="Level" tooltip=""/>
+	<Parameter name="LinAM" tooltip=""/>
+	<Parameter name="LinAMisExtEnv" tooltip=""/>
+	<Parameter name="LinFM" tooltip=""/>
+	<Parameter name="LoopLengthMod" tooltip=""/>
+	<Parameter name="LoopMode" tooltip=""/>
+	<Parameter name="LoopStartMod" tooltip=""/>
+	<Parameter name="MixLevel" tooltip=""/>
+	<Parameter name="MixMod" tooltip=""/>
+	<Parameter name="MixModIsFader" tooltip=""/>
+	<Parameter name="Pan" tooltip=""/>
+	<Parameter name="PanMod" tooltip=""/>
+	<Parameter name="PhaseCV" tooltip=""/>
+	<Parameter name="Pitch" tooltip=""/>
+	<Parameter name="PitchCV" tooltip=""/>
+	<Parameter name="PlayMode" tooltip=""/>
+	<Parameter name="PMIndex" tooltip=""/>
+	<Parameter name="PMIndexMod" tooltip=""/>
+	<Parameter name="PMSource" tooltip=""/>
+	<Parameter name="Release" tooltip=""/>
+	<Parameter name="ReleaseMod" tooltip=""/>
+	<Parameter name="Reverse" tooltip=""/>
+	<Parameter name="SampleStartMod" tooltip=""/>
+	<Parameter name="SampleEndMod" tooltip=""/>
+	<Parameter name="SpliceSmoothing" tooltip=""/>
+	<Parameter name="XfadeGroup" tooltip=""/>
+	<Parameter name="ZonesCV" tooltip=""/>
+	<Parameter name="ZonesRT" tooltip=""/>
+  </Channel>
+  <Zone>
+    <Parameter name="LevelOffset" tooltip=""/>
+    <Parameter name="LoopLength" tooltip=""/>
+    <Parameter name="LoopStart" tooltip=""/>
+    <Parameter name="MinVoltage" tooltip=""/>
+    <Parameter name="PitchOffset" tooltip=""/>
+    <Parameter name="Sample" tooltip=""/>
+    <Parameter name="SampleStart" tooltip=""/>
+    <Parameter name="SampleEnd" tooltip=""/>
+    <Parameter name="Side" tooltip=""/>
+  </Zone>
+</ToolTips>
