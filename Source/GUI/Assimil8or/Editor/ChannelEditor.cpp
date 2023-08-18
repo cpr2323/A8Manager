@@ -442,8 +442,8 @@ void ChannelEditor::resized ()
     releaseModTextEditor.setBounds (releaseModComboBox.getRight () + 3, releaseModComboBox.getY (), envelopeLabel.getWidth () - (envelopeLabel.getWidth () / 2) - 1, 20);
 
     // AUTO TRIGGER
-    autoTriggerLabel.setBounds (releaseModComboBox.getX (), releaseModComboBox.getBottom () + 5, (columnThreeWidth / 3) * 2, 20);
-    autoTriggerButton.setBounds (autoTriggerLabel.getRight (), autoTriggerLabel.getY () + 3, columnThreeWidth / 3, 20);
+    autoTriggerLabel.setBounds (releaseModComboBox.getX (), releaseModComboBox.getBottom () + 5, ((columnThreeWidth / 3) * 2) - 15, 20);
+    autoTriggerButton.setBounds (autoTriggerLabel.getRight () + 3, autoTriggerLabel.getY () + 3, (columnThreeWidth / 3 + 15), 20);
 
     // PLAY MODE
     playModeLabel.setBounds (autoTriggerLabel.getX (), autoTriggerLabel.getBottom () + 3, columnThreeWidth / 3, 20);
