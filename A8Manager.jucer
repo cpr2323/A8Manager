@@ -19,11 +19,15 @@
                   file="Source/Assimil8or/Preset/Data/Assimil8orParameterData.xml"/>
             <FILE id="krTGci" name="DefaultPreset.xml" compile="0" resource="1"
                   file="Source/Assimil8or/Preset/Data/DefaultPreset.xml"/>
+            <FILE id="T5wUel" name="MaxPreset.xml" compile="0" resource="1" file="Source/Assimil8or/Preset/Data/MaxPreset.xml"/>
+            <FILE id="RKoPDF" name="MinPreset.xml" compile="0" resource="1" file="Source/Assimil8or/Preset/Data/MinPreset.xml"/>
           </GROUP>
           <FILE id="SOUChx" name="ChannelProperties.cpp" compile="1" resource="0"
                 file="Source/Assimil8or/Preset/ChannelProperties.cpp"/>
           <FILE id="VYXv3k" name="ChannelProperties.h" compile="0" resource="0"
                 file="Source/Assimil8or/Preset/ChannelProperties.h"/>
+          <FILE id="GecEAb" name="Parameter.cpp" compile="1" resource="0" file="Source/Assimil8or/Preset/Parameter.cpp"/>
+          <FILE id="FSHrcA" name="Parameter.h" compile="0" resource="0" file="Source/Assimil8or/Preset/Parameter.h"/>
           <FILE id="mMvR8J" name="ParameterDataListProperties.cpp" compile="1"
                 resource="0" file="Source/Assimil8or/Preset/ParameterDataListProperties.cpp"/>
           <FILE id="AxS9kt" name="ParameterDataListProperties.h" compile="0"
@@ -32,6 +36,10 @@
                 file="Source/Assimil8or/Preset/ParameterDataProperties.cpp"/>
           <FILE id="TmPYRt" name="ParameterDataProperties.h" compile="0" resource="0"
                 file="Source/Assimil8or/Preset/ParameterDataProperties.h"/>
+          <FILE id="P7REf7" name="ParameterPresetListProperties.cpp" compile="1"
+                resource="0" file="Source/Assimil8or/Preset/ParameterPresetListProperties.cpp"/>
+          <FILE id="IL1WR7" name="ParameterPresetListProperties.h" compile="0"
+                resource="0" file="Source/Assimil8or/Preset/ParameterPresetListProperties.h"/>
           <FILE id="UST3sz" name="ParameterNames.h" compile="0" resource="0"
                 file="Source/Assimil8or/Preset/ParameterNames.h"/>
           <FILE id="UUlAdu" name="PresetProperties.cpp" compile="1" resource="0"

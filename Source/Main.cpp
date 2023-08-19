@@ -8,6 +8,7 @@
 #include "Utility/ValueTreeFile.h"
 #include "Utility/ValueTreeMonitor.h"
 #include "Assimil8or/Assimil8orValidator.h"
+#include "Assimil8or/Preset/ParameterPresetListProperties.h"
 #include "Assimil8or/Preset/PresetProperties.h"
 
 #include "Assimil8or/Preset/ParameterNames.h"
@@ -129,11 +130,13 @@ public:
 
     void initAssimil8or ()
     {
-        // hack the preset data on to the runtime root until we get a proper valuetreewrapper for the preset
         presetPropertiesMonitor.assign (presetProperties.getValueTreeRef ());
         runtimeRootProperties.getValueTree ().addChild (presetProperties.getValueTree (), -1, nullptr);
+        parameterPresetListProperties.wrap (runtimeRootProperties.getValueTree (), ParameterPresetListProperties::WrapperType::owner, ParameterPresetListProperties::EnableCallbacks::no);
         assimil8orValidator.init (rootProperties.getValueTree ());
-
+        
+#if 0
+        // this code converted the old style ParamaterDataListProperties to the new PresetProperties, and then I embedded that data
         auto createPresetPropertiersFromParameterData = [] (juce::ValueTree presetPropertiesVT, juce::Identifier ident)
         {
             auto getString = [] (juce::ValueTree vt, juce::Identifier& ident)
@@ -245,6 +248,7 @@ public:
         };
         makePresetDataFile ("preset_min.xml", "min");
         makePresetDataFile ("preset_max.xml", "max");
+#endif
     }
 
     void initUi ()
@@ -383,6 +387,7 @@ private:
     AppProperties appProperties;
     RuntimeRootProperties runtimeRootProperties;
     Assimil8orValidator assimil8orValidator;
+    ParameterPresetListProperties parameterPresetListProperties;
     PresetProperties presetProperties;
     std::unique_ptr<juce::FileLogger> fileLogger;
     std::atomic<RuntimeRootProperties::QuitState> localQuitState { RuntimeRootProperties::QuitState::idle };
