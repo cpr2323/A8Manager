@@ -8,16 +8,17 @@
 #include "Utility/ValueTreeFile.h"
 #include "Utility/ValueTreeMonitor.h"
 #include "Assimil8or/Assimil8orValidator.h"
-#include "Assimil8or/Preset/ParameterPresetListProperties.h"
 #include "Assimil8or/Preset/PresetProperties.h"
 
-#include "Assimil8or/Preset/ParameterNames.h"
+//#include "Assimil8or/Preset/ParameterNames.h"
 
 // this requires the third party Melatonin Inspector be installed and added to the project
 // https://github.com/sudara/melatonin_inspector
 #define ENABLE_MELATONIN_INSPECTOR 0
 
 const juce::String PropertiesFileExtension { ".properties" };
+
+//ParameterPresetsSingleton parameterPresetsSingleton;
 
 void crashHandler (void* /*data*/)
 {
@@ -30,7 +31,6 @@ class A8ManagerApplication : public juce::JUCEApplication, public juce::Timer
 {
 public:
     A8ManagerApplication () {}
-
     const juce::String getApplicationName () override { return ProjectInfo::projectName; }
     const juce::String getApplicationVersion () override { return ProjectInfo::versionString; }
     bool moreThanOneInstanceAllowed () override { return true; }
@@ -132,7 +132,6 @@ public:
     {
         presetPropertiesMonitor.assign (presetProperties.getValueTreeRef ());
         runtimeRootProperties.getValueTree ().addChild (presetProperties.getValueTree (), -1, nullptr);
-        parameterPresetListProperties.wrap (runtimeRootProperties.getValueTree (), ParameterPresetListProperties::WrapperType::owner, ParameterPresetListProperties::EnableCallbacks::no);
         assimil8orValidator.init (rootProperties.getValueTree ());
         
 #if 0
@@ -387,7 +386,6 @@ private:
     AppProperties appProperties;
     RuntimeRootProperties runtimeRootProperties;
     Assimil8orValidator assimil8orValidator;
-    ParameterPresetListProperties parameterPresetListProperties;
     PresetProperties presetProperties;
     std::unique_ptr<juce::FileLogger> fileLogger;
     std::atomic<RuntimeRootProperties::QuitState> localQuitState { RuntimeRootProperties::QuitState::idle };

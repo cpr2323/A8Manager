@@ -3,6 +3,7 @@
 #include <JuceHeader.h>
 #include "ChannelProperties.h"
 #include "ParameterDataListProperties.h"
+#include "ParameterPresetsSingleton.h"
 #include "../../Utility/ValueTreeWrapper.h"
 
 class PresetProperties : public ValueTreeWrapper<PresetProperties>
@@ -11,10 +12,12 @@ public:
     PresetProperties () noexcept : parameterDataListProperties (ParameterDataListProperties ()), ValueTreeWrapper<PresetProperties> (PresetTypeId)
     {
         clear ();
+        parameterPresetsSingleton = ParameterPresetsSingleton::getInstance ();
     }
     PresetProperties (juce::ValueTree vt, WrapperType wrapperType, EnableCallbacks shouldEnableCallbacks) noexcept
         : parameterDataListProperties (ParameterDataListProperties ()), ValueTreeWrapper<PresetProperties> (PresetTypeId, vt, wrapperType, shouldEnableCallbacks)
     {
+        parameterPresetsSingleton = ParameterPresetsSingleton::getInstance ();
     }
 
     void setIndex (int index, bool includeSelfCallback);
@@ -99,7 +102,7 @@ public:
 
 private:
     ParameterDataListProperties parameterDataListProperties;
-
+    ParameterPresetsSingleton* parameterPresetsSingleton { nullptr };
     juce::ValueTree addChannel (int index);
     int getNumChannels ();
 

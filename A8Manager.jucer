@@ -40,6 +40,10 @@
                 resource="0" file="Source/Assimil8or/Preset/ParameterPresetListProperties.cpp"/>
           <FILE id="IL1WR7" name="ParameterPresetListProperties.h" compile="0"
                 resource="0" file="Source/Assimil8or/Preset/ParameterPresetListProperties.h"/>
+          <FILE id="oIvRwS" name="ParameterPresetsSingleton.cpp" compile="1"
+                resource="0" file="Source/Assimil8or/Preset/ParameterPresetsSingleton.cpp"/>
+          <FILE id="T3P7iJ" name="ParameterPresetsSingleton.h" compile="0" resource="0"
+                file="Source/Assimil8or/Preset/ParameterPresetsSingleton.h"/>
           <FILE id="UST3sz" name="ParameterNames.h" compile="0" resource="0"
                 file="Source/Assimil8or/Preset/ParameterNames.h"/>
           <FILE id="UUlAdu" name="PresetProperties.cpp" compile="1" resource="0"
