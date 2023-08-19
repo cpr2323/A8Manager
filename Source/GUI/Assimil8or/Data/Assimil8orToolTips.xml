@@ -1,4 +1,4 @@
-<ToolTips>
+<ToolTips note="Description/min, max, and default values/special behavior (increment amounts, etc), list of options for option lists?">
   <Preset>
     <Parameter name="Data2asCV" tooltip=""/>
     <Parameter name="Name" tooltip=""/>

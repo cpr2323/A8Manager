@@ -388,6 +388,8 @@ std::tuple<uint64_t, std::optional<uint64_t>> Assimil8orValidator::validateFile 
                     ZoneProperties zoneProperties (zoneVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
                     // TODO - should we do doIfProgressTimeElapsed () here?
                     const auto sampleFileName { zoneProperties.getSample () };
+                    if (sampleFileName.isEmpty ())
+                        return true;
                     const auto sampleFile { file.getParentDirectory ().getChildFile (sampleFileName) };
                     if (! sampleFile.exists ())
                     {
