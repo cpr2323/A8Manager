@@ -31,28 +31,18 @@ ZoneEditor::ZoneEditor ()
     };
     setupLabel (sampleStartNameLabel, "FILE", 15.0, juce::Justification::centredLeft);
     setupTextEditor (sampleTextEditor, juce::Justification::centredLeft, [this] (juce::String text) { sampleUiChanged (text); });
-    
-    setupLabel (levelOffsetLabel, "LEVEL OFFSET", 15.0, juce::Justification::centredLeft);
-    setupTextEditor (levelOffsetTextEditor, juce::Justification::centred, [this] (juce::String text) { levelOffsetUiChanged (text.getDoubleValue ()); });
-
-    setupLabel (loopStartLabel, "LOOP START", 15.0, juce::Justification::centredLeft);
+    setupLabel (sampleBoundsLabel, "SAMPLE START/END", 15.0, juce::Justification::centredLeft);
+    setupTextEditor (sampleStartTextEditor, juce::Justification::centred, [this] (juce::String text) { sampleStartUiChanged (text.getIntValue ()); });
+    setupTextEditor (sampleEndTextEditor, juce::Justification::centred, [this] (juce::String text) { sampleEndUiChanged (text.getIntValue ()); });
+    setupLabel (loopBoundsLabel, "LOOP START/LENGTH", 15.0, juce::Justification::centredLeft);
     setupTextEditor (loopStartTextEditor, juce::Justification::centred, [this] (juce::String text) { loopStartUiChanged (text.getIntValue ()); });
-
-    setupLabel (loopLengthLabel, "LOOP LENGTH", 15.0, juce::Justification::centredLeft);
     setupTextEditor (loopLengthTextEditor, juce::Justification::centred, [this] (juce::String text) { loopLengthUiChanged (text.getDoubleValue ()); });
-
     setupLabel (minVoltageLabel, "MIN VOLTAGE", 15.0, juce::Justification::centredLeft);
     setupTextEditor (minVoltageTextEditor, juce::Justification::centred, [this] (juce::String text) { minVoltageUiChanged (text.getDoubleValue ()); });
-
+    setupLabel (levelOffsetLabel, "LEVEL OFFSET", 15.0, juce::Justification::centredLeft);
+    setupTextEditor (levelOffsetTextEditor, juce::Justification::centred, [this] (juce::String text) { levelOffsetUiChanged (text.getDoubleValue ()); });
     setupLabel (pitchOffsetLabel, "PITCH OFFSET", 15.0, juce::Justification::centredLeft);
     setupTextEditor (pitchOffsetTextEditor, juce::Justification::centred, [this] (juce::String text) { pitchOffsetUiChanged (text.getDoubleValue ()); });
-
-    setupLabel (sampleStartLabel, "SAMPLE START", 15.0, juce::Justification::centredLeft);
-    setupTextEditor (sampleStartTextEditor, juce::Justification::centred, [this] (juce::String text) { sampleStartUiChanged (text.getIntValue ()); });
-
-    setupLabel (sampleEndLabel, "SAMPLE START", 15.0, juce::Justification::centredLeft);
-    setupTextEditor (sampleEndTextEditor, juce::Justification::centred, [this] (juce::String text) { sampleEndUiChanged (text.getIntValue ()); });
-
     setupLabel (sideLabel, "SIDE", 15.0, juce::Justification::centredLeft);
     setupButton (sideButton, "x", [this] () { sideUiChanged (sideButton.getToggleState ()); });
 }
@@ -104,14 +94,12 @@ void ZoneEditor::resized ()
 
     sampleStartNameLabel.setBounds (xOffset, 5, labelWidth, 20);
     sampleTextEditor.setBounds (sampleStartNameLabel.getX () + inputXOffset, sampleStartNameLabel.getBottom () + inputYOffset, inputWidth, 20);
-    sampleStartLabel.setBounds (xOffset, sampleTextEditor.getBottom () + interParameterYOffset, labelWidth, 20);
-    sampleStartTextEditor.setBounds (sampleStartLabel.getX () + inputXOffset, sampleStartLabel.getBottom () + inputYOffset, inputWidth, 20);
-    sampleEndLabel.setBounds (xOffset, sampleStartTextEditor.getBottom () + interParameterYOffset, labelWidth, 20);
-    sampleEndTextEditor.setBounds (sampleEndLabel.getX () + inputXOffset, sampleEndLabel.getBottom () + inputYOffset, inputWidth, 20);
-    loopStartLabel.setBounds (xOffset, sampleEndTextEditor.getBottom () + interParameterYOffset, labelWidth, 20);
-    loopStartTextEditor.setBounds (loopStartLabel.getX () + inputXOffset, loopStartLabel.getBottom () + inputYOffset, inputWidth, 20);
-    loopLengthLabel.setBounds (xOffset, loopStartTextEditor.getBottom () + interParameterYOffset, labelWidth, 20);
-    loopLengthTextEditor.setBounds (loopLengthLabel.getX () + inputXOffset, loopLengthLabel.getBottom () + inputYOffset, inputWidth, 20);
+    sampleBoundsLabel.setBounds (xOffset, sampleTextEditor.getBottom () + interParameterYOffset, labelWidth, 20);
+    sampleStartTextEditor.setBounds (sampleBoundsLabel.getX () + inputXOffset, sampleBoundsLabel.getBottom () + inputYOffset, inputWidth / 2, 20);
+    sampleEndTextEditor.setBounds (sampleStartTextEditor.getRight() + 1, sampleStartTextEditor.getY (), inputWidth / 2, 20);
+    loopBoundsLabel.setBounds (xOffset, sampleEndTextEditor.getBottom () + interParameterYOffset, labelWidth, 20);
+    loopStartTextEditor.setBounds (loopBoundsLabel.getX () + inputXOffset, loopBoundsLabel.getBottom () + inputYOffset, inputWidth / 2, 20);
+    loopLengthTextEditor.setBounds (loopStartTextEditor.getRight () + 1, loopStartTextEditor.getY (), inputWidth / 2, 20);
     minVoltageLabel.setBounds (xOffset, loopLengthTextEditor.getBottom () + interParameterYOffset, labelWidth, 20);
     minVoltageTextEditor.setBounds (minVoltageLabel.getX () + inputXOffset, minVoltageLabel.getBottom () + inputYOffset, inputWidth, 20);
     levelOffsetLabel.setBounds (xOffset, minVoltageTextEditor.getBottom () + interParameterYOffset, labelWidth, 20);

@@ -16,9 +16,8 @@ private:
 
     juce::Label levelOffsetLabel;
     juce::TextEditor levelOffsetTextEditor; // double
-    juce::Label loopLengthLabel;
     juce::TextEditor loopLengthTextEditor; // double
-    juce::Label loopStartLabel;
+    juce::Label loopBoundsLabel;
     juce::TextEditor loopStartTextEditor; // int
     juce::Label minVoltageLabel;
     juce::TextEditor minVoltageTextEditor; // double
@@ -26,9 +25,8 @@ private:
     juce::TextEditor pitchOffsetTextEditor; // double
     juce::Label sampleStartNameLabel;
     juce::TextEditor sampleTextEditor; // filename
-    juce::Label sampleStartLabel;
+    juce::Label sampleBoundsLabel;
     juce::TextEditor sampleStartTextEditor; // int
-    juce::Label sampleEndLabel;
     juce::TextEditor sampleEndTextEditor; // int
     juce::Label sideLabel;
     juce::TextButton sideButton; // ?
