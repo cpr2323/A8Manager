@@ -4,14 +4,13 @@
 #include "../../../Utility/PersistentRootProperties.h"
 
 // TODO - short list
-//  Add editor fields
+//  Implement input validation, characters, min/max, etc
+//  Implement proper formatting (decimal places, sign character, etc)
+//  Implement tool tips for each parameter
 //  Visual Edited indicator
 //  Query for save if switching from edited Preset
 //  Only enable Save button if preset was edited
 //  Update Preset List (switch from dim to highlighted) when new preset created
-//  Implement input validation, characters, min/max, etc
-//  Implement proper formatting (decimal places, sign character, etc)
-//  Implement tool tips for each parameter
 
 Assimil8orEditorComponent::Assimil8orEditorComponent ()
 {

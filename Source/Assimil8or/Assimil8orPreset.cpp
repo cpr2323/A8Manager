@@ -267,7 +267,7 @@ Assimil8orPreset::Assimil8orPreset ()
                 undoAction (&globalActions, curPresetSection);
             });
         }}
-        });
+    });
 
     // Preset Actions
     presetActions.insert ({
@@ -309,7 +309,7 @@ Assimil8orPreset::Assimil8orPreset ()
         {Parameter::Preset::XfadeDWidthId, [this] () {
             presetProperties.setXfadeDWidth (value.getDoubleValue (), false);
         }}
-        });
+    });
 
     // Channel Actions
     channelActions.insert ({
@@ -472,7 +472,7 @@ Assimil8orPreset::Assimil8orPreset ()
         {Parameter::Channel::ZonesRTId, [this] () {
             channelProperties.setZonesRT (value.getIntValue (), false);
         }}
-        });
+    });
 
     // Zone Actions
     zoneActions.insert ({

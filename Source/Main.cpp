@@ -10,6 +10,8 @@
 #include "Assimil8or/Assimil8orValidator.h"
 #include "Assimil8or/Preset/PresetProperties.h"
 
+#include "Assimil8or/Preset/ParameterNames.h"
+
 // this requires the third party Melatonin Inspector be installed and added to the project
 // https://github.com/sudara/melatonin_inspector
 #define ENABLE_MELATONIN_INSPECTOR 0
@@ -131,13 +133,118 @@ public:
         presetPropertiesMonitor.assign (presetProperties.getValueTreeRef ());
         runtimeRootProperties.getValueTree ().addChild (presetProperties.getValueTree (), -1, nullptr);
         assimil8orValidator.init (rootProperties.getValueTree ());
-#if 0
-        // this code writes out an xml copy of the default preset createed by the PresetProperties object
-        auto file { juce::File (appDirectory).getChildFile ("default_preset.xml") };
-        auto xml = presetProperties.getValueTree ().createXml ();
-        xml->writeTo (file, {});
 
-#endif
+        auto createPresetPropertiersFromParameterData = [] (juce::ValueTree presetPropertiesVT, juce::Identifier ident)
+        {
+            auto getString = [] (juce::ValueTree vt, juce::Identifier& ident)
+            {
+                if (!vt.hasProperty (ident))
+                    juce::Logger::outputDebugString ("[ Parameter '" + vt.getProperty ("name").toString () + "' does not have a '" + ident.toString () + "' property] ");
+                return vt.getProperty (ident).toString ();
+            };
+            auto getInt = [] (juce::ValueTree vt, juce::Identifier& ident)
+            {
+                if (!vt.hasProperty (ident))
+                    juce::Logger::outputDebugString ("[ Parameter '" + vt.getProperty ("name").toString () + "' does not have a '" + ident.toString () + "' property] ");
+                return static_cast<int> (vt.getProperty (ident));
+            };
+            auto getDouble = [] (juce::ValueTree vt, juce::Identifier& ident)
+            { 
+                if (!vt.hasProperty (ident))
+                    juce::Logger::outputDebugString ("[ Parameter '" + vt.getProperty ("name").toString () + "' does not have a '" + ident.toString () + "' property] ");
+                return static_cast<double> (vt.getProperty (ident));
+            };
+
+            ParameterDataListProperties pdlp;
+            PresetProperties newPresetProperties (presetPropertiesVT, PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
+            newPresetProperties.setData2AsCV (getString (pdlp.getParameter (Section::PresetId, Parameter::Preset::Data2asCVId), juce::Identifier (ident)), false);
+            newPresetProperties.setXfadeACV (getString (pdlp.getParameter (Section::PresetId, Parameter::Preset::XfadeACVId), juce::Identifier (ident)), false);
+            newPresetProperties.setXfadeAWidth (getDouble (pdlp.getParameter (Section::PresetId, Parameter::Preset::XfadeAWidthId), juce::Identifier (ident)), false);
+            newPresetProperties.setXfadeBCV (getString (pdlp.getParameter (Section::PresetId, Parameter::Preset::XfadeBCVId), juce::Identifier (ident)), false);
+            newPresetProperties.setXfadeBWidth (getDouble (pdlp.getParameter (Section::PresetId, Parameter::Preset::XfadeBWidthId), juce::Identifier (ident)), false);
+            newPresetProperties.setXfadeCCV (getString (pdlp.getParameter (Section::PresetId, Parameter::Preset::XfadeCCVId), juce::Identifier (ident)), false);
+            newPresetProperties.setXfadeCWidth (getDouble (pdlp.getParameter (Section::PresetId, Parameter::Preset::XfadeCWidthId), juce::Identifier (ident)), false);
+            newPresetProperties.setXfadeDCV (getString (pdlp.getParameter (Section::PresetId, Parameter::Preset::XfadeDCVId), juce::Identifier (ident)), false);
+            newPresetProperties.setXfadeDWidth (getDouble (pdlp.getParameter (Section::PresetId, Parameter::Preset::XfadeDWidthId), juce::Identifier (ident)), false);
+            newPresetProperties.forEachChannel ([&pdlp, &ident, &getString, &getInt, &getDouble] (juce::ValueTree channelPropertiesVT)
+            {
+                auto setCvInputAndAMount = [&pdlp, &getString, &ident] (juce::String parameterId, std::function<void (juce::String, double)> setter)
+                {
+                    jassert (setter != nullptr);
+                    auto parameter { pdlp.getParameter (Section::ChannelId, parameterId) };
+                    const auto value { getString (parameter , juce::Identifier (ident)) };
+                    const auto [cvInput, amount] { ChannelProperties::getCvInputAndValueFromString (value) };
+                    setter (cvInput, amount);
+                };
+                ChannelProperties channelProperties (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
+                channelProperties.setAttack (getDouble (pdlp.getParameter (Section::ChannelId, Parameter::Channel::AttackId), juce::Identifier (ident)), false);
+                channelProperties.setAttackFromCurrent (getInt (pdlp.getParameter (Section::ChannelId, Parameter::Channel::AttackFromCurrentId), juce::Identifier (ident)) == 1, false);
+                setCvInputAndAMount (Parameter::Channel::AttackModId, [&channelProperties] (juce::String cvInput, double attackModAmount) {channelProperties.setAttackMod (cvInput, attackModAmount, false); });
+                channelProperties.setAliasing (getInt (pdlp.getParameter (Section::ChannelId, Parameter::Channel::AliasingId), juce::Identifier (ident)), false);
+                setCvInputAndAMount (Parameter::Channel::AliasingModId, [&channelProperties] (juce::String cvInput, double aliasingModAmount) {channelProperties.setAliasingMod (cvInput, aliasingModAmount, false); });
+                channelProperties.setAutoTrigger (getInt (pdlp.getParameter (Section::ChannelId, Parameter::Channel::AutoTriggerId), juce::Identifier (ident)) == 1, false);
+                channelProperties.setBits (getDouble (pdlp.getParameter (Section::ChannelId, Parameter::Channel::BitsId), juce::Identifier (ident)), false);
+                setCvInputAndAMount (Parameter::Channel::BitsModId, [&channelProperties] (juce::String cvInput, double bitsModAmount) {channelProperties.setBitsMod (cvInput, bitsModAmount, false); });
+                channelProperties.setChannelMode (getInt (pdlp.getParameter (Section::ChannelId, Parameter::Channel::ChannelModeId), juce::Identifier (ident)), false);
+                setCvInputAndAMount (Parameter::Channel::ExpAMId, [&channelProperties] (juce::String cvInput, double expAMAmount) {channelProperties.setExpAM (cvInput, expAMAmount, false); });
+                setCvInputAndAMount (Parameter::Channel::ExpFMId, [&channelProperties] (juce::String cvInput, double expFMAmount) {channelProperties.setExpFM (cvInput, expFMAmount, false); });
+                channelProperties.setLevel (getDouble (pdlp.getParameter (Section::ChannelId, Parameter::Channel::LevelId), juce::Identifier (ident)), false);
+                setCvInputAndAMount (Parameter::Channel::LinAMId, [&channelProperties] (juce::String cvInput, double linAMAmount) {channelProperties.setLinAM (cvInput, linAMAmount, false); });
+                channelProperties.setLinAMisExtEnv (getInt (pdlp.getParameter (Section::ChannelId, Parameter::Channel::LinAMisExtEnvId), juce::Identifier (ident)) == 1, false);
+                setCvInputAndAMount (Parameter::Channel::LinFMId, [&channelProperties] (juce::String cvInput, double linFMAmount) {channelProperties.setLinFM (cvInput, linFMAmount, false); });
+                setCvInputAndAMount (Parameter::Channel::LoopLengthModId, [&channelProperties] (juce::String cvInput, double loopLengthModAmount) {channelProperties.setLoopLengthMod (cvInput, loopLengthModAmount, false); });
+                channelProperties.setLoopMode (getInt (pdlp.getParameter (Section::ChannelId, Parameter::Channel::LoopModeId), juce::Identifier (ident)), false);
+                setCvInputAndAMount (Parameter::Channel::LoopStartModId, [&channelProperties] (juce::String cvInput, double loopStartModAmount) {channelProperties.setLoopStartMod (cvInput, loopStartModAmount, false); });
+                channelProperties.setMixLevel (getDouble (pdlp.getParameter (Section::ChannelId, Parameter::Channel::MixLevelId), juce::Identifier (ident)), false);
+                setCvInputAndAMount (Parameter::Channel::MixModId, [&channelProperties] (juce::String cvInput, double mixModAmount) {channelProperties.setMixMod (cvInput, mixModAmount, false); });
+                channelProperties.setMixModIsFader (getInt (pdlp.getParameter (Section::ChannelId, Parameter::Channel::MixModIsFaderId), juce::Identifier (ident)) == 1, false);
+                channelProperties.setPan (getDouble (pdlp.getParameter (Section::ChannelId, Parameter::Channel::PanId), juce::Identifier (ident)), false);
+                setCvInputAndAMount (Parameter::Channel::PanModId, [&channelProperties] (juce::String cvInput, double panModAmount) {channelProperties.setPanMod (cvInput, panModAmount, false); });
+                setCvInputAndAMount (Parameter::Channel::PhaseCVId, [&channelProperties] (juce::String cvInput, double phaseCvAmount) {channelProperties.setPhaseCV (cvInput, phaseCvAmount, false); });
+                channelProperties.setPitch (getDouble (pdlp.getParameter (Section::ChannelId, Parameter::Channel::PitchId), juce::Identifier (ident)), false);
+                setCvInputAndAMount (Parameter::Channel::PitchCVId, [&channelProperties] (juce::String cvInput, double pitchCvAmount) {channelProperties.setPitchCV (cvInput, pitchCvAmount, false); });
+                channelProperties.setPlayMode (getInt (pdlp.getParameter (Section::ChannelId, Parameter::Channel::PlayModeId), juce::Identifier (ident)), false);
+                channelProperties.setPMIndex (getDouble (pdlp.getParameter (Section::ChannelId, Parameter::Channel::PMIndexId), juce::Identifier (ident)), false);
+                setCvInputAndAMount (Parameter::Channel::PMIndexModId, [&channelProperties] (juce::String cvInput, double pMIndexModAmount) {channelProperties.setPMIndexMod (cvInput, pMIndexModAmount, false); });
+                channelProperties.setPMSource (getInt (pdlp.getParameter (Section::ChannelId, Parameter::Channel::PMSourceId), juce::Identifier (ident)), false);
+                channelProperties.setRelease (getDouble (pdlp.getParameter (Section::ChannelId, Parameter::Channel::ReleaseId), juce::Identifier (ident)), false);
+                setCvInputAndAMount (Parameter::Channel::ReleaseModId, [&channelProperties] (juce::String cvInput, double releaseModAmount) {channelProperties.setReleaseMod (cvInput, releaseModAmount, false); });
+                channelProperties.setReverse (getInt (pdlp.getParameter (Section::ChannelId, Parameter::Channel::ReverseId), juce::Identifier (ident)) == 1, false);
+                setCvInputAndAMount (Parameter::Channel::SampleEndModId, [&channelProperties] (juce::String cvInput, double sampleEndModAmount) {channelProperties.setSampleEndMod (cvInput, sampleEndModAmount, false); });
+                setCvInputAndAMount (Parameter::Channel::SampleStartModId, [&channelProperties] (juce::String cvInput, double sampleStartModAmount) {channelProperties.setSampleStartMod (cvInput, sampleStartModAmount, false); });
+                channelProperties.setSpliceSmoothing (getInt (pdlp.getParameter (Section::ChannelId, Parameter::Channel::SpliceSmoothingId), juce::Identifier (ident)) == 1, false);
+                channelProperties.setXfadeGroup (getString (pdlp.getParameter (Section::ChannelId, Parameter::Channel::XfadeGroupId), juce::Identifier (ident)), false);
+                channelProperties.setZonesCV (getString (pdlp.getParameter (Section::ChannelId, Parameter::Channel::ZonesCVId), juce::Identifier (ident)), false);
+                channelProperties.setZonesRT (getInt (pdlp.getParameter (Section::ChannelId, Parameter::Channel::ZonesRTId), juce::Identifier (ident)), false);
+
+                channelProperties.forEachZone ([&pdlp, &ident, &getString, &getInt, &getDouble] (juce::ValueTree zonePropertiesVT)
+                {
+                    ZoneProperties zoneProperties (zonePropertiesVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
+                    zoneProperties.setLevelOffset (getDouble (pdlp.getParameter (Section::ZoneId, Parameter::Zone::LevelOffsetId), juce::Identifier (ident)), false);
+                    zoneProperties.setLoopLength (getDouble (pdlp.getParameter (Section::ZoneId, Parameter::Zone::LoopLengthId), juce::Identifier (ident)), false);
+                    zoneProperties.setLoopStart (getInt (pdlp.getParameter (Section::ZoneId, Parameter::Zone::LoopStartId), juce::Identifier (ident)), false);
+                    zoneProperties.setMinVoltage (getDouble (pdlp.getParameter (Section::ZoneId, Parameter::Zone::MinVoltageId), juce::Identifier (ident)), false);
+                    zoneProperties.setPitchOffset (getDouble (pdlp.getParameter (Section::ZoneId, Parameter::Zone::PitchOffsetId), juce::Identifier (ident)), false);
+                    zoneProperties.setSample (getString (pdlp.getParameter (Section::ZoneId, Parameter::Zone::SampleId), juce::Identifier (ident)), false);
+                    zoneProperties.setSampleStart (getInt (pdlp.getParameter (Section::ZoneId, Parameter::Zone::SampleStartId), juce::Identifier (ident)), false);
+                    zoneProperties.setSampleEnd (getInt (pdlp.getParameter (Section::ZoneId, Parameter::Zone::SampleEndId), juce::Identifier (ident)), false);
+                    zoneProperties.setSide (getInt (pdlp.getParameter (Section::ZoneId, Parameter::Zone::SideId), juce::Identifier (ident)), false);
+                    return true;
+                });
+                return true;
+            });
+        };
+        auto makePresetDataFile = [this, &createPresetPropertiersFromParameterData] (juce::String filename, juce::String ident)
+        {
+            PresetProperties newPresetProperties;
+            createPresetPropertiersFromParameterData (newPresetProperties.getValueTree (), ident);
+            auto file { juce::File (appDirectory).getChildFile (filename) };
+            auto xml = newPresetProperties.getValueTree ().createXml ();
+            xml->writeTo (file, {});
+
+        };
+        makePresetDataFile ("preset_min.xml", "min");
+        makePresetDataFile ("preset_max.xml", "max");
     }
 
     void initUi ()

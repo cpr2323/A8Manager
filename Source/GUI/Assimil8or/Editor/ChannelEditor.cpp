@@ -1,5 +1,21 @@
 #include "ChannelEditor.h"
 
+// The following Parameters do not have min/max
+//    AttackFromCurrent
+//    AutoTrigger
+//    Data2asCV
+//    LinAMisExtEnv
+//    MixModIsFader
+//    Reverse
+//    Sample
+//    SpliceSmoothing
+//    XfadeACV
+//    XfadeBCV
+//    XfadeCCV
+//    XfadeDCV
+//    XfadeGroup
+//    ZonesCV
+
 ChannelEditor::ChannelEditor ()
 {
     zonesLabel.setText ("Zones", juce::NotificationType::dontSendNotification);
