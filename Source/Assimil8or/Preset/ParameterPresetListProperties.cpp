@@ -1,6 +1,7 @@
 #include "ParameterPresetListProperties.h"
 #include "PresetProperties.h"
 
+const auto TypePropertyId { "_type" };
 void ParameterPresetListProperties::forEachParameterPreset (std::function<bool (juce::ValueTree parameterVT)> parameterPresetVTCallback)
 {
     ValueTreeHelpers::forEachChildOfType (data, PresetProperties::PresetTypeId, [parameterPresetVTCallback] (juce::ValueTree parameterPresetVT)
@@ -12,7 +13,7 @@ void ParameterPresetListProperties::forEachParameterPreset (std::function<bool (
 
 juce::ValueTree ParameterPresetListProperties::getParameterPreset (juce::String parameterPresetType)
 {
-    return data.getChildWithProperty ("type", parameterPresetType);
+    return data.getChildWithProperty (TypePropertyId, parameterPresetType);
 }
 
 void ParameterPresetListProperties::initValueTree ()
@@ -33,8 +34,8 @@ void ParameterPresetListProperties::initValueTree ()
             auto parameterPreset { juce::ValueTree::fromXml (*xmlElement) };
             return parameterPreset;
         };
-        auto parameterPresetVT { getPresetPropertiesForType (DefaultParameterPresetType, BinaryData::DefaultPreset_xml) };
-        parameterPresetVT.setProperty ("type", DefaultParameterPresetType, nullptr);
+        auto parameterPresetVT { getPresetPropertiesForType (parameterPresetType, parameterPresetXml) };
+        parameterPresetVT.setProperty (TypePropertyId, parameterPresetType, nullptr);
         data.addChild (parameterPresetVT, -1, nullptr);
     };
 
