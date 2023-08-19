@@ -95,28 +95,31 @@ void ZoneEditor::paint ([[maybe_unused]] juce::Graphics& g)
 
 void ZoneEditor::resized ()
 {
-    const auto xOffset { 5 };
+    const auto xOffset { 3 };
+    const auto labelWidth { 150 };
+    const auto interParameterYOffset { 1 };
+    const auto inputXOffset { 5 };
+    const auto inputYOffset { 0 };
+    const auto inputWidth { labelWidth - 5};
 
-    sampleStartNameLabel.setBounds (xOffset, 5, 200, 20);
-#if 0
-    sampleTextEditor.setBounds ();
-    levelOffsetLabel.setBounds ();
-    levelOffsetTextEditor.setBounds ();
-    loopStartLabel.setBounds ();
-    loopStartTextEditor.setBounds ();
-    loopLengthLabel.setBounds ();
-    loopLengthTextEditor.setBounds ();
-    minVoltageLabel.setBounds ();
-    minVoltageTextEditor.setBounds ();
-    pitchOffsetLabel.setBounds ();
-    pitchOffsetTextEditor.setBounds ();
-    sampleStartLabel.setBounds ();
-    sampleStartTextEditor.setBounds ();
-    sampleEndLabel.setBounds ();
-    sampleEndTextEditor.setBounds ();
-    sideLabel.setBounds ();
-    sideButton.setBounds ();
-#endif
+    sampleStartNameLabel.setBounds (xOffset, 5, labelWidth, 20);
+    sampleTextEditor.setBounds (sampleStartNameLabel.getX () + inputXOffset, sampleStartNameLabel.getBottom () + inputYOffset, inputWidth, 20);
+    sampleStartLabel.setBounds (xOffset, sampleTextEditor.getBottom () + interParameterYOffset, labelWidth, 20);
+    sampleStartTextEditor.setBounds (sampleStartLabel.getX () + inputXOffset, sampleStartLabel.getBottom () + inputYOffset, inputWidth, 20);
+    sampleEndLabel.setBounds (xOffset, sampleStartTextEditor.getBottom () + interParameterYOffset, labelWidth, 20);
+    sampleEndTextEditor.setBounds (sampleEndLabel.getX () + inputXOffset, sampleEndLabel.getBottom () + inputYOffset, inputWidth, 20);
+    loopStartLabel.setBounds (xOffset, sampleEndTextEditor.getBottom () + interParameterYOffset, labelWidth, 20);
+    loopStartTextEditor.setBounds (loopStartLabel.getX () + inputXOffset, loopStartLabel.getBottom () + inputYOffset, inputWidth, 20);
+    loopLengthLabel.setBounds (xOffset, loopStartTextEditor.getBottom () + interParameterYOffset, labelWidth, 20);
+    loopLengthTextEditor.setBounds (loopLengthLabel.getX () + inputXOffset, loopLengthLabel.getBottom () + inputYOffset, inputWidth, 20);
+    minVoltageLabel.setBounds (xOffset, loopLengthTextEditor.getBottom () + interParameterYOffset, labelWidth, 20);
+    minVoltageTextEditor.setBounds (minVoltageLabel.getX () + inputXOffset, minVoltageLabel.getBottom () + inputYOffset, inputWidth, 20);
+    levelOffsetLabel.setBounds (xOffset, minVoltageTextEditor.getBottom () + interParameterYOffset, labelWidth, 20);
+    levelOffsetTextEditor.setBounds (levelOffsetLabel.getX () + inputXOffset, levelOffsetLabel.getBottom () + inputYOffset, inputWidth, 20);
+    pitchOffsetLabel.setBounds (xOffset, levelOffsetTextEditor.getBottom () + interParameterYOffset, labelWidth, 20);
+    pitchOffsetTextEditor.setBounds (pitchOffsetLabel.getX () + inputXOffset, pitchOffsetLabel.getBottom () + inputYOffset, inputWidth, 20);
+    sideLabel.setBounds (xOffset, pitchOffsetTextEditor.getBottom () + interParameterYOffset, labelWidth, 20);
+    sideButton.setBounds (sideLabel.getX () + 3, sideLabel.getBottom () + inputXOffset, inputWidth, 20);
 }
 
 void ZoneEditor::levelOffsetDataChanged (double levelOffset)
