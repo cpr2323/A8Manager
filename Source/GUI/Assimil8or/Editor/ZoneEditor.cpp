@@ -2,32 +2,59 @@
 
 ZoneEditor::ZoneEditor ()
 {
-//     juce::Label levelOffsetLabel;
-//     juce::TextEditor levelOffsetTextEditor; // double
+    auto setupLabel = [this] (juce::Label& label, juce::String text, float fontSize, juce::Justification justification)
+    {
+        const auto textColor { juce::Colours::black };
+        label.setBorderSize ({ 0, 0, 0, 0 });
+        label.setJustificationType (justification);
+        label.setColour (juce::Label::ColourIds::textColourId, textColor);
+        label.setFont (label.getFont ().withHeight (fontSize));
+        label.setText (text, juce::NotificationType::dontSendNotification);
+        addAndMakeVisible (label);
+    };
+    auto setupTextEditor = [this] (juce::TextEditor& textEditor, juce::Justification justification, std::function<void (juce::String)> textEditedCallback)
+    {
+        jassert (textEditedCallback != nullptr);
+        textEditor.setJustification (justification);
+        textEditor.setIndents (0, 0);
+        textEditor.onFocusLost = [this, &textEditor, textEditedCallback] () { textEditedCallback (textEditor.getText ()); };
+        textEditor.onReturnKey = [this, &textEditor, textEditedCallback] () { textEditedCallback (textEditor.getText ()); };
+        addAndMakeVisible (textEditor);
+    };
+    auto setupButton = [this] (juce::TextButton& textButton, juce::String text, std::function<void ()> onClickCallback)
+    {
+        textButton.setButtonText (text);
+        textButton.setClickingTogglesState (true);
+        textButton.setColour (juce::TextButton::ColourIds::buttonOnColourId, textButton.findColour (juce::TextButton::ColourIds::buttonOnColourId).brighter (0.5));
+        textButton.onClick = onClickCallback;
+        addAndMakeVisible (textButton);
+    };
+    setupLabel (sampleStartNameLabel, "FILE", 15.0, juce::Justification::centredLeft);
+    setupTextEditor (sampleTextEditor, juce::Justification::centredLeft, [this] (juce::String text) { sampleUiChanged (text); });
+    
+    setupLabel (levelOffsetLabel, "LEVEL OFFSET", 15.0, juce::Justification::centredLeft);
+    setupTextEditor (levelOffsetTextEditor, juce::Justification::centred, [this] (juce::String text) { levelOffsetUiChanged (text.getDoubleValue ()); });
 
-//     juce::Label loopLengthLabel;
-//     juce::TextEditor loopLengthTextEditor; // double
+    setupLabel (loopStartLabel, "LOOP START", 15.0, juce::Justification::centredLeft);
+    setupTextEditor (loopStartTextEditor, juce::Justification::centred, [this] (juce::String text) { loopStartUiChanged (text.getIntValue ()); });
 
-//     juce::Label loopStartLabel;
-//     juce::TextEditor loopStartTextEditor; // int
+    setupLabel (loopLengthLabel, "LOOP LENGTH", 15.0, juce::Justification::centredLeft);
+    setupTextEditor (loopLengthTextEditor, juce::Justification::centred, [this] (juce::String text) { loopLengthUiChanged (text.getDoubleValue ()); });
 
-//     juce::Label minVoltageLabel;
-//     juce::TextEditor minVoltageTextEditor; // double
+    setupLabel (minVoltageLabel, "MIN VOLTAGE", 15.0, juce::Justification::centredLeft);
+    setupTextEditor (minVoltageTextEditor, juce::Justification::centred, [this] (juce::String text) { minVoltageUiChanged (text.getDoubleValue ()); });
 
-//     juce::Label pitchOffsetLabel;
-//     juce::TextEditor pitchOffsetTextEditor; // double
+    setupLabel (pitchOffsetLabel, "PITCH OFFSET", 15.0, juce::Justification::centredLeft);
+    setupTextEditor (pitchOffsetTextEditor, juce::Justification::centred, [this] (juce::String text) { pitchOffsetUiChanged (text.getDoubleValue ()); });
 
-//     juce::Label sampleStartNameLabel;
-//     juce::TextEditor sampleFileNameTextEditor; // filename
+    setupLabel (sampleStartLabel, "SAMPLE START", 15.0, juce::Justification::centredLeft);
+    setupTextEditor (sampleStartTextEditor, juce::Justification::centred, [this] (juce::String text) { sampleStartUiChanged (text.getIntValue ()); });
 
-//     juce::Label sampleStartLabel;
-//     juce::TextEditor sampleStartTextEditor; // int
+    setupLabel (sampleEndLabel, "SAMPLE START", 15.0, juce::Justification::centredLeft);
+    setupTextEditor (sampleEndTextEditor, juce::Justification::centred, [this] (juce::String text) { sampleEndUiChanged (text.getIntValue ()); });
 
-//     juce::Label sampleEndLabel;
-//     juce::TextEditor sampleEndTextEditor; // int
-
-//     juce::Label sideLabel;
-//     juce::ToggleButton sideCheckBox; // ?
+    setupLabel (sideLabel, "SIDE", 15.0, juce::Justification::centredLeft);
+    setupButton (sideButton, "x", [this] () { sideUiChanged (sideButton.getToggleState ()); });
 }
 
 void ZoneEditor::init (juce::ValueTree zonePropertiesVT)
@@ -64,6 +91,32 @@ void ZoneEditor::paint ([[maybe_unused]] juce::Graphics& g)
 {
 //     g.setColour (juce::Colours::magenta);
 //     g.drawRect (getLocalBounds ());
+}
+
+void ZoneEditor::resized ()
+{
+    const auto xOffset { 5 };
+
+    sampleStartNameLabel.setBounds (xOffset, 5, 200, 20);
+#if 0
+    sampleTextEditor.setBounds ();
+    levelOffsetLabel.setBounds ();
+    levelOffsetTextEditor.setBounds ();
+    loopStartLabel.setBounds ();
+    loopStartTextEditor.setBounds ();
+    loopLengthLabel.setBounds ();
+    loopLengthTextEditor.setBounds ();
+    minVoltageLabel.setBounds ();
+    minVoltageTextEditor.setBounds ();
+    pitchOffsetLabel.setBounds ();
+    pitchOffsetTextEditor.setBounds ();
+    sampleStartLabel.setBounds ();
+    sampleStartTextEditor.setBounds ();
+    sampleEndLabel.setBounds ();
+    sampleEndTextEditor.setBounds ();
+    sideLabel.setBounds ();
+    sideButton.setBounds ();
+#endif
 }
 
 void ZoneEditor::levelOffsetDataChanged (double levelOffset)
@@ -148,7 +201,7 @@ void ZoneEditor::sampleEndUiChanged (int sampleEnd)
 
 void ZoneEditor::sideDataChanged (int side)
 {
-    sideCheckBox.setToggleState (side == 1, juce::NotificationType::dontSendNotification);
+    sideButton.setToggleState (side == 1, juce::NotificationType::dontSendNotification);
 }
 
 void ZoneEditor::sideUiChanged (int side)

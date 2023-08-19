@@ -31,7 +31,7 @@ private:
     juce::Label sampleEndLabel;
     juce::TextEditor sampleEndTextEditor; // int
     juce::Label sideLabel;
-    juce::ToggleButton sideCheckBox; // ?
+    juce::TextButton sideButton; // ?
 
     void setupZonePropertiesCallbacks ();
 
@@ -55,4 +55,5 @@ private:
     void sideUiChanged (int side);
 
     void paint (juce::Graphics& g) override;
+    void resized () override;
 };

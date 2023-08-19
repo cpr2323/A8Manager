@@ -31,9 +31,9 @@ ChannelEditor::~ChannelEditor ()
 
 void ChannelEditor::setupChannelControls ()
 {
-    const auto textColor { juce::Colours::black };
-    auto setupLabel = [this, textColor] (juce::Label& label, juce::String text, float fontSize, juce::Justification justification)
+    auto setupLabel = [this] (juce::Label& label, juce::String text, float fontSize, juce::Justification justification)
     {
+        const auto textColor { juce::Colours::black };
         label.setBorderSize ({ 0, 0, 0, 0 });
         label.setJustificationType (justification);
         label.setColour (juce::Label::ColourIds::textColourId, textColor);
@@ -41,7 +41,7 @@ void ChannelEditor::setupChannelControls ()
         label.setText (text, juce::NotificationType::dontSendNotification);
         addAndMakeVisible (label);
     };
-    auto setupTextEditor = [this, textColor] (juce::TextEditor& textEditor, juce::Justification justification, std::function<void (juce::String)> textEditedCallback)
+    auto setupTextEditor = [this] (juce::TextEditor& textEditor, juce::Justification justification, std::function<void (juce::String)> textEditedCallback)
     {
         jassert (textEditedCallback != nullptr);
         textEditor.setJustification (justification);
