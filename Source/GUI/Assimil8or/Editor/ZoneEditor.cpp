@@ -4,20 +4,28 @@ ZoneEditor::ZoneEditor ()
 {
 //     juce::Label levelOffsetLabel;
 //     juce::TextEditor levelOffsetTextEditor; // double
+
 //     juce::Label loopLengthLabel;
 //     juce::TextEditor loopLengthTextEditor; // double
+
 //     juce::Label loopStartLabel;
 //     juce::TextEditor loopStartTextEditor; // int
+
 //     juce::Label minVoltageLabel;
 //     juce::TextEditor minVoltageTextEditor; // double
+
 //     juce::Label pitchOffsetLabel;
 //     juce::TextEditor pitchOffsetTextEditor; // double
+
 //     juce::Label sampleStartNameLabel;
 //     juce::TextEditor sampleFileNameTextEditor; // filename
+
 //     juce::Label sampleStartLabel;
 //     juce::TextEditor sampleStartTextEditor; // int
+
 //     juce::Label sampleEndLabel;
 //     juce::TextEditor sampleEndTextEditor; // int
+
 //     juce::Label sideLabel;
 //     juce::ToggleButton sideCheckBox; // ?
 }
