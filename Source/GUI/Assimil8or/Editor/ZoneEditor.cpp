@@ -107,7 +107,7 @@ void ZoneEditor::resized ()
     pitchOffsetLabel.setBounds (xOffset, levelOffsetTextEditor.getBottom () + interParameterYOffset, labelWidth, 20);
     pitchOffsetTextEditor.setBounds (pitchOffsetLabel.getX () + inputXOffset, pitchOffsetLabel.getBottom () + inputYOffset, inputWidth, 20);
     sideLabel.setBounds (xOffset, pitchOffsetTextEditor.getBottom () + interParameterYOffset, labelWidth, 20);
-    sideButton.setBounds (sideLabel.getX () + 3, sideLabel.getBottom () + inputXOffset, inputWidth, 20);
+    sideButton.setBounds (sideLabel.getX () + 3, sideLabel.getBottom () + inputYOffset, inputWidth, 20);
 }
 
 void ZoneEditor::levelOffsetDataChanged (double levelOffset)
