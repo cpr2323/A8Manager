@@ -2,7 +2,6 @@
 
 #include <JuceHeader.h>
 #include <tuple>
-#include "ParameterDataListProperties.h"
 #include "ZoneProperties.h"
 #include "../../Utility/ValueTreeWrapper.h"
 
@@ -103,87 +102,6 @@ public:
     juce::String getZonesCV ();
     int getZonesRT ();
 
-    int getAliasingDefault ();
-    CvInputAndAmount getAliasingModDefault ();
-    double getAttackDefault ();
-    bool getAttackFromCurrentDefault ();
-    CvInputAndAmount getAttackModDefault ();
-    bool getAutoTriggerDefault ();
-    double getBitsDefault ();
-    CvInputAndAmount getBitsModDefault ();
-    int getChannelModeDefault ();
-    CvInputAndAmount getExpAMDefault ();
-    CvInputAndAmount getExpFMDefault ();
-    double getLevelDefault ();
-    CvInputAndAmount getLinAMDefault ();
-    bool getLinAMisExtEnvDefault ();
-    CvInputAndAmount getLinFMDefault ();
-    CvInputAndAmount getLoopLengthModDefault ();
-    int getLoopModeDefault ();
-    CvInputAndAmount getLoopStartModDefault ();
-    double getMixLevelDefault ();
-    CvInputAndAmount getMixModDefault ();
-    bool getMixModIsFaderDefault ();
-    double getPanDefault ();
-    CvInputAndAmount getPanModDefault ();
-    CvInputAndAmount getPhaseCVDefault ();
-    double getPitchDefault ();
-    CvInputAndAmount getPitchCVDefault ();
-    int getPlayModeDefault ();
-    double getPMIndexDefault ();
-    CvInputAndAmount getPMIndexModDefault ();
-    int getPMSourceDefault ();
-    double getReleaseDefault ();
-    CvInputAndAmount getReleaseModDefault ();
-    bool getReverseDefault ();
-    CvInputAndAmount getSampleStartModDefault ();
-    CvInputAndAmount getSampleEndModDefault ();
-    bool getSpliceSmoothingDefault ();
-    juce::String getXfadeGroupDefault ();
-    juce::String getZonesCVDefault ();
-    int getZonesRTDefault ();
-
-    bool isDefault (bool includeZones);
-    bool isAliasingDefault ();
-    bool isAliasingModDefault ();
-    bool isAttackDefault ();
-    bool isAttackFromCurrentDefault ();
-    bool isAttackModDefault ();
-    bool isAutoTriggerDefault ();
-    bool isBitsDefault ();
-    bool isBitsModDefault ();
-    bool isChannelModeDefault ();
-    bool isExpAMDefault ();
-    bool isExpFMDefault ();
-    bool isLevelDefault ();
-    bool isLinAMDefault ();
-    bool isLinAMisExtEnvDefault ();
-    bool isLinFMDefault ();
-    bool isLoopLengthModDefault ();
-    bool isLoopModeDefault ();
-    bool isLoopStartModDefault ();
-    bool isMixLevelDefault ();
-    bool isMixModDefault ();
-    bool isMixModIsFaderDefault ();
-    bool isPanDefault ();
-    bool isPanModDefault ();
-    bool isPhaseCVDefault ();
-    bool isPitchDefault ();
-    bool isPitchCVDefault ();
-    bool isPlayModeDefault ();
-    bool isPMIndexDefault ();
-    bool isPMIndexModDefault ();
-    bool isPMSourceDefault ();
-    bool isReleaseDefault ();
-    bool isReleaseModDefault ();
-    bool isReverseDefault ();
-    bool isSampleStartModDefault ();
-    bool isSampleEndModDefault ();
-    bool isSpliceSmoothingDefault ();
-    bool isXfadeGroupDefault ();
-    bool isZonesCVDefault ();
-    bool isZonesRTDefault ();
-
     std::function<void (int index)> onIndexChange;
     std::function<void (int aliasing)> onAliasingChange;
     std::function<void (CvInputAndAmount amountAndCvInput)> onAliasingModChange;
@@ -280,8 +198,6 @@ public:
     void clear ();
 
 private:
-    ParameterDataListProperties parameterDataListProperties;
-
     juce::ValueTree addZone (int index);
     int getNumZones ();
 

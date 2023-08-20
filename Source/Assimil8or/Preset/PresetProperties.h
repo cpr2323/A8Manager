@@ -2,8 +2,6 @@
 
 #include <JuceHeader.h>
 #include "ChannelProperties.h"
-#include "ParameterDataListProperties.h"
-#include "ParameterPresetsSingleton.h"
 #include "../../Utility/ValueTreeWrapper.h"
 
 class PresetProperties : public ValueTreeWrapper<PresetProperties>
@@ -12,15 +10,10 @@ public:
     PresetProperties () noexcept : ValueTreeWrapper<PresetProperties> (PresetTypeId)
     {
         clear ();
-        parameterPresetsSingleton = ParameterPresetsSingleton::getInstance ();
-        defaultPresetProperties = std::make_unique<PresetProperties> ();
-        defaultPresetProperties->wrap (parameterPresetsSingleton->getParameterPresetListProperties ().getParameterPreset (ParameterPresetListProperties::DefaultParameterPresetType),
-                                       PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
     }
     PresetProperties (juce::ValueTree vt, WrapperType wrapperType, EnableCallbacks shouldEnableCallbacks) noexcept
         : ValueTreeWrapper<PresetProperties> (PresetTypeId, vt, wrapperType, shouldEnableCallbacks)
     {
-        parameterPresetsSingleton = ParameterPresetsSingleton::getInstance ();
     }
 
     void setIndex (int index, bool includeSelfCallback);
@@ -46,28 +39,6 @@ public:
     double getXfadeCWidth ();
     juce::String getXfadeDCV ();
     double getXfadeDWidth ();
-
-    juce::String getData2AsCVDefault ();
-    juce::String getNameDefault ();
-    juce::String getXfadeACVDefault ();
-    double getXfadeAWidthDefault ();
-    juce::String getXfadeBCVDefault ();
-    double getXfadeBWidthDefault ();
-    juce::String getXfadeCCVDefault ();
-    double getXfadeCWidthDefault ();
-    juce::String getXfadeDCVDefault ();
-    double getXfadeDWidthDefault ();
-
-    bool isData2AsCVDefault ();
-    bool isNameDefault ();
-    bool isXfadeACVDefault ();
-    bool isXfadeAWidthDefault ();
-    bool isXfadeBCVDefault ();
-    bool isXfadeBWidthDefault ();
-    bool isXfadeCCVDefault ();
-    bool isXfadeCWidthDefault ();
-    bool isXfadeDCVDefault ();
-    bool isXfadeDWidthDefault ();
 
     std::function<void (int index)> onIndexChange;
     std::function<void (juce::String data2AsCv)> onData2AsCVChange;
@@ -104,9 +75,6 @@ public:
     static void copyTreeProperties (juce::ValueTree source, juce::ValueTree destination);
 
 private:
-    ParameterPresetsSingleton* parameterPresetsSingleton { nullptr };
-    std::unique_ptr<PresetProperties> defaultPresetProperties;
-
     juce::ValueTree addChannel (int index);
     int getNumChannels ();
 
