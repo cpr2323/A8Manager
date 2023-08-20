@@ -1,84 +1,10 @@
 #include "ZoneProperties.h"
-#include "ParameterDataProperties.h"
-#include "ParameterNames.h"
 
 juce::ValueTree ZoneProperties::create (int index)
 {
     ZoneProperties zoneProperties;
     zoneProperties.setIndex (index, false);
     return zoneProperties.getValueTree ();
-}
-
-void ZoneProperties::clear ()
-{
-    // replace with code that copies data from BinaryData::DefaultPreset_xml
-    setLevelOffset (getLevelOffsetDefault (), false);
-    setLoopLength (getLoopLengthDefault (), false);
-    setLoopStart (getLoopStartDefault (), false);
-    setMinVoltage (getMinVoltageDefault (), false);
-    setPitchOffset (getPitchOffsetDefault (), false);
-    setSample (getSampleDefault (), false);
-    setSampleStart (getSampleStartDefault (), false);
-    setSampleEnd (getSampleEndDefault (), false);
-    setSide (getSideDefault (), false);
-}
-
-bool ZoneProperties::isDefault ()
-{
-    return isLevelOffsetDefault () &&
-           isLoopLengthDefault () &&
-           isLoopStartDefault () &&
-           isMinVoltageDefault () &&
-           isPitchOffsetDefault () &&
-           isSampleDefault () &&
-           isSampleStartDefault () &&
-           isSampleEndDefault () &&
-           isSideDefault ();
-}
-
-bool ZoneProperties::isLevelOffsetDefault ()
-{
-    return getLevelOffset () == getLevelOffsetDefault ();
-}
-
-bool ZoneProperties::isLoopLengthDefault ()
-{
-    return getLoopLength () == getLoopLengthDefault ();
-}
-
-bool ZoneProperties::isLoopStartDefault ()
-{
-    return getLoopStart () == getLoopStartDefault ();
-}
-
-bool ZoneProperties::isMinVoltageDefault ()
-{
-    return getMinVoltage () == getMinVoltageDefault ();
-}
-
-bool ZoneProperties::isPitchOffsetDefault ()
-{
-    return getPitchOffset () == getPitchOffsetDefault ();
-}
-
-bool ZoneProperties::isSampleDefault ()
-{
-    return getSample () == getSampleDefault ();
-}
-
-bool ZoneProperties::isSampleStartDefault ()
-{
-    return getSampleStart () == getSampleStartDefault ();
-}
-
-bool ZoneProperties::isSampleEndDefault ()
-{
-    return getSampleEnd () == getSampleEndDefault ();
-}
-
-bool ZoneProperties::isSideDefault ()
-{
-    return getSide () == getSideDefault ();
 }
 
 ////////////////////////////////////////////////////////////////////
@@ -185,54 +111,6 @@ int ZoneProperties::getSampleEnd ()
 int ZoneProperties::getSide ()
 {
     return getValue<int> (SidePropertyId);
-}
-
-////////////////////////////////////////////////////////////////////
-// get___Defaults
-////////////////////////////////////////////////////////////////////
-double ZoneProperties::getLevelOffsetDefault ()
-{
-    return ParameterDataProperties::getDefaultDouble (parameterDataListProperties.getParameter (Section::ZoneId, Parameter::Zone::LevelOffsetId));
-}
-
-double ZoneProperties::getLoopLengthDefault ()
-{
-    return ParameterDataProperties::getDefaultDouble (parameterDataListProperties.getParameter (Section::ZoneId, Parameter::Zone::LoopLengthId));
-}
-
-int ZoneProperties::getLoopStartDefault ()
-{
-    return ParameterDataProperties::getDefaultInt (parameterDataListProperties.getParameter (Section::ZoneId, Parameter::Zone::LoopStartId));
-}
-
-double ZoneProperties::getMinVoltageDefault ()
-{
-    return ParameterDataProperties::getDefaultDouble (parameterDataListProperties.getParameter (Section::ZoneId, Parameter::Zone::MinVoltageId));
-}
-
-double ZoneProperties::getPitchOffsetDefault ()
-{
-    return ParameterDataProperties::getDefaultDouble (parameterDataListProperties.getParameter (Section::ZoneId, Parameter::Zone::PitchOffsetId));
-}
-
-juce::String ZoneProperties::getSampleDefault ()
-{
-    return ParameterDataProperties::getDefaultString (parameterDataListProperties.getParameter (Section::ZoneId, Parameter::Zone::SampleId));
-}
-
-int ZoneProperties::getSampleStartDefault ()
-{
-    return ParameterDataProperties::getDefaultInt (parameterDataListProperties.getParameter (Section::ZoneId, Parameter::Zone::SampleStartId));
-}
-
-int ZoneProperties::getSampleEndDefault ()
-{
-    return ParameterDataProperties::getDefaultInt (parameterDataListProperties.getParameter (Section::ZoneId, Parameter::Zone::SampleEndId));
-}
-
-int ZoneProperties::getSideDefault ()
-{
-    return ParameterDataProperties::getDefaultInt (parameterDataListProperties.getParameter (Section::ZoneId, Parameter::Zone::SideId));
 }
 
 void ZoneProperties::valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property)

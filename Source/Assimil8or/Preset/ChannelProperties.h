@@ -12,7 +12,6 @@ class ChannelProperties : public ValueTreeWrapper<ChannelProperties>
 public:
     ChannelProperties () noexcept : ValueTreeWrapper (ChannelTypeId)
     {
-        clear ();
     }
 
     ChannelProperties (juce::ValueTree vt, WrapperType wrapperType, EnableCallbacks shouldEnableCallbacks) noexcept
@@ -195,7 +194,6 @@ public:
 
     void initValueTree () {}
     void processValueTree () {}
-    void clear ();
 
 private:
     juce::ValueTree addZone (int index);

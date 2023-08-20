@@ -8,7 +8,6 @@ class ZoneProperties : public ValueTreeWrapper<ZoneProperties>
 public:
     ZoneProperties () noexcept : ValueTreeWrapper<ZoneProperties> (ZoneTypeId)
     {
-        clear ();
     }
     ZoneProperties (juce::ValueTree vt, WrapperType wrapperType, EnableCallbacks shouldEnableCallbacks) noexcept
         : ValueTreeWrapper<ZoneProperties> (ZoneTypeId, vt, wrapperType, shouldEnableCallbacks)
@@ -64,8 +63,6 @@ public:
 
     void initValueTree () {}
     void processValueTree () {}
-
-    void clear ();
 
 private:
 

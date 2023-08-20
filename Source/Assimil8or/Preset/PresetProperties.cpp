@@ -1,8 +1,18 @@
 #include "PresetProperties.h"
-#include "ParameterDataProperties.h"
-#include "ParameterNames.h"
 
-const auto kMaxChannels { 8 };
+const auto kNumChannels { 8 };
+const auto kNumZones { 8 };
+
+void PresetProperties::initValueTree ()
+{
+    for (auto channelIndex { 0 }; channelIndex < kNumChannels; ++channelIndex)
+    {
+        auto channel { ChannelProperties::create (channelIndex + 1) };
+        data.addChild (channel, -1, nullptr);
+        for (auto zoneIndex { 0 }; zoneIndex < kNumZones; ++zoneIndex)
+            channel.addChild (ZoneProperties::create (zoneIndex + 1), -1, nullptr);
+    }
+}
 
 int PresetProperties::getNumChannels ()
 {
@@ -11,38 +21,38 @@ int PresetProperties::getNumChannels ()
     return numChannels;
 }
 
-void PresetProperties::clear ()
-{
-    // TODO - add option to either clear just our properties, or the channels too
-    // TODO - cache this default valuetree instead of parsing it each time
-    juce::XmlDocument xmlDoc { BinaryData::DefaultPreset_xml };
-    auto xmlElement { xmlDoc.getDocumentElement (false) };
-    if (auto parseError { xmlDoc.getLastParseError () }; parseError != "")
-        juce::Logger::outputDebugString ("XML Parsing Error: " + parseError);
-    // NOTE: this is a hard failure, which indicates there is a problem in the file Assimil8orParameterData.xml
-    jassert (xmlDoc.getLastParseError () == "");
-    // this should do first time initialization on 'data', with subsequent calls skipping this
-    if (data.getNumChildren () != kMaxChannels)
-    {
-        for (auto channelIndex { 0 }; channelIndex < kMaxChannels; ++channelIndex)
-        {
-            juce::ValueTree channel (ChannelProperties::ChannelTypeId);
-            channel.setProperty (ChannelProperties::IndexPropertyId, channelIndex + 1, nullptr);
-            data.addChild (channel, -1, nullptr);
-            for (auto zoneIndex { 0 }; zoneIndex < kMaxChannels; ++zoneIndex)
-            {
-                juce::ValueTree zone (ZoneProperties::ZoneTypeId);
-                zone.setProperty (ZoneProperties::IndexPropertyId, zoneIndex + 1, nullptr);
-                channel .addChild (zone, -1, nullptr);
-            }
-        }
-    }
-    if (xmlElement != nullptr)
-    {
-        auto defaultPresetVT { juce::ValueTree::fromXml (*xmlElement) };
-        copyTreeProperties (defaultPresetVT, data);
-    }
-}
+// void PresetProperties::clear ()
+// {
+//     // TODO - add option to either clear just our properties, or the channels too
+//     // TODO - cache this default valuetree instead of parsing it each time
+//     juce::XmlDocument xmlDoc { BinaryData::DefaultPreset_xml };
+//     auto xmlElement { xmlDoc.getDocumentElement (false) };
+//     if (auto parseError { xmlDoc.getLastParseError () }; parseError != "")
+//         juce::Logger::outputDebugString ("XML Parsing Error: " + parseError);
+//     // NOTE: this is a hard failure, which indicates there is a problem in the file Assimil8orParameterData.xml
+//     jassert (xmlDoc.getLastParseError () == "");
+//     // this should do first time initialization on 'data', with subsequent calls skipping this
+//     if (data.getNumChildren () != kMaxChannels)
+//     {
+//         for (auto channelIndex { 0 }; channelIndex < kMaxChannels; ++channelIndex)
+//         {
+//             juce::ValueTree channel (ChannelProperties::ChannelTypeId);
+//             channel.setProperty (ChannelProperties::IndexPropertyId, channelIndex + 1, nullptr);
+//             data.addChild (channel, -1, nullptr);
+//             for (auto zoneIndex { 0 }; zoneIndex < kMaxChannels; ++zoneIndex)
+//             {
+//                 juce::ValueTree zone (ZoneProperties::ZoneTypeId);
+//                 zone.setProperty (ZoneProperties::IndexPropertyId, zoneIndex + 1, nullptr);
+//                 channel.addChild (zone, -1, nullptr);
+//             }
+//         }
+//     }
+//     if (xmlElement != nullptr)
+//     {
+//         auto defaultPresetVT { juce::ValueTree::fromXml (*xmlElement) };
+//         copyTreeProperties (defaultPresetVT, data);
+//     }
+// }
 
 void PresetProperties::copyTreeProperties (juce::ValueTree sourcePresetPropertiesVT, juce::ValueTree destinationPresetPropertiesVT)
 {
@@ -60,14 +70,6 @@ void PresetProperties::copyTreeProperties (juce::ValueTree sourcePresetPropertie
             zoneDestination.copyPropertiesFrom (zoneSource, nullptr);
         }
     }
-}
-
-juce::ValueTree PresetProperties::addChannel (int index)
-{
-    //jassert (index < getNumChannels ()); // this breaks when running from the ctor
-    auto channelProperties { ChannelProperties::create (index + 1) };
-    data.addChild (channelProperties, -1, nullptr);
-    return channelProperties;
 }
 
 void PresetProperties::forEachChannel (std::function<bool (juce::ValueTree channelVT)> channelVTCallback)

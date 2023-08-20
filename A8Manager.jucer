@@ -15,8 +15,6 @@
         </GROUP>
         <GROUP id="{F93A3946-B57B-8541-1536-2BE5E57D6EED}" name="Preset">
           <GROUP id="{0055013E-0772-F469-C083-194778EF0E95}" name="Data">
-            <FILE id="hfK7Yu" name="Assimil8orParameterData.xml" compile="0" resource="1"
-                  file="Source/Assimil8or/Preset/Data/Assimil8orParameterData.xml"/>
             <FILE id="krTGci" name="DefaultPreset.xml" compile="0" resource="1"
                   file="Source/Assimil8or/Preset/Data/DefaultPreset.xml"/>
             <FILE id="T5wUel" name="MaxPreset.xml" compile="0" resource="1" file="Source/Assimil8or/Preset/Data/MaxPreset.xml"/>
@@ -28,14 +26,6 @@
                 file="Source/Assimil8or/Preset/ChannelProperties.h"/>
           <FILE id="GecEAb" name="Parameter.cpp" compile="1" resource="0" file="Source/Assimil8or/Preset/Parameter.cpp"/>
           <FILE id="FSHrcA" name="Parameter.h" compile="0" resource="0" file="Source/Assimil8or/Preset/Parameter.h"/>
-          <FILE id="mMvR8J" name="ParameterDataListProperties.cpp" compile="1"
-                resource="0" file="Source/Assimil8or/Preset/ParameterDataListProperties.cpp"/>
-          <FILE id="AxS9kt" name="ParameterDataListProperties.h" compile="0"
-                resource="0" file="Source/Assimil8or/Preset/ParameterDataListProperties.h"/>
-          <FILE id="Mat2Lv" name="ParameterDataProperties.cpp" compile="1" resource="0"
-                file="Source/Assimil8or/Preset/ParameterDataProperties.cpp"/>
-          <FILE id="TmPYRt" name="ParameterDataProperties.h" compile="0" resource="0"
-                file="Source/Assimil8or/Preset/ParameterDataProperties.h"/>
           <FILE id="P7REf7" name="ParameterPresetListProperties.cpp" compile="1"
                 resource="0" file="Source/Assimil8or/Preset/ParameterPresetListProperties.cpp"/>
           <FILE id="IL1WR7" name="ParameterPresetListProperties.h" compile="0"

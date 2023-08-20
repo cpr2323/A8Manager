@@ -2,6 +2,7 @@
 
 #include <JuceHeader.h>
 #include "ChannelProperties.h"
+#include "ZoneProperties.h"
 #include "../../Utility/ValueTreeWrapper.h"
 
 class PresetProperties : public ValueTreeWrapper<PresetProperties>
@@ -9,7 +10,6 @@ class PresetProperties : public ValueTreeWrapper<PresetProperties>
 public:
     PresetProperties () noexcept : ValueTreeWrapper<PresetProperties> (PresetTypeId)
     {
-        clear ();
     }
     PresetProperties (juce::ValueTree vt, WrapperType wrapperType, EnableCallbacks shouldEnableCallbacks) noexcept
         : ValueTreeWrapper<PresetProperties> (PresetTypeId, vt, wrapperType, shouldEnableCallbacks)
@@ -68,14 +68,12 @@ public:
     static inline const juce::Identifier XfadeDCVPropertyId    { "xfadeDCV" };
     static inline const juce::Identifier XfadeDWidthPropertyId { "xfadeDWidth" };
 
-    void initValueTree () {}
+    void initValueTree ();
     void processValueTree () {}
 
-    void clear ();
     static void copyTreeProperties (juce::ValueTree source, juce::ValueTree destination);
 
 private:
-    juce::ValueTree addChannel (int index);
     int getNumChannels ();
 
     void valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property) override;

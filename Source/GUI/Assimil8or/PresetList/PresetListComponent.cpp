@@ -3,6 +3,7 @@
 #include "../../../Utility/RuntimeRootProperties.h"
 #include "../../../Assimil8or/Assimil8orPreset.h"
 #include "../../../Assimil8or/FileTypeHelpers.h"
+#include "../../../Assimil8or/Preset/ParameterPresetsSingleton.h"
 
 #define LOG_PRESET_LIST 0
 #if LOG_PRESET_LIST
@@ -124,7 +125,9 @@ void PresetListComponent::loadFirstPreset ()
 
 void PresetListComponent::loadDefault (int row)
 {
-    presetProperties.clear ();
+
+    PresetProperties::copyTreeProperties (ParameterPresetsSingleton::getInstance()->getParameterPresetListProperties().getParameterPreset(ParameterPresetListProperties::DefaultParameterPresetType),
+                                          presetProperties.getValueTree ());
     auto presetFile { juce::File (appProperties.getMostRecentFolder ()).getChildFile (getPresetName (row)).withFileExtension (".yml") };
     presetProperties.setIndex (FileTypeHelpers::getPresetNumberFromName (presetFile), false);
 }
@@ -145,7 +148,8 @@ void PresetListComponent::loadPreset (juce::File presetFile)
     Assimil8orPreset assimil8orPreset;
     assimil8orPreset.parse (fileContents);
 
-    presetProperties.clear ();
+    PresetProperties::copyTreeProperties (ParameterPresetsSingleton::getInstance ()->getParameterPresetListProperties ().getParameterPreset (ParameterPresetListProperties::DefaultParameterPresetType),
+                                          presetProperties.getValueTree ());
     PresetProperties::copyTreeProperties (assimil8orPreset.getPresetVT (), presetProperties.getValueTree ());
 }
 
