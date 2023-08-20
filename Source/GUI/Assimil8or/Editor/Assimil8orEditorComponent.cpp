@@ -96,26 +96,33 @@ void Assimil8orEditorComponent::setupPresetComponents ()
         xfadeGroup.xfadeWidthEditor.setJustification (juce::Justification::centred);
         xfadeGroup.xfadeWidthEditor.setIndents (0, 0);
         xfadeGroup.xfadeWidthEditor.setInputRestrictions (0, ".0123456789");
-        auto checkAndFormatWidthEditor = [this] (juce::TextEditor& widthEditor)
+        auto checkAndFormatDouble = [this] (juce::TextEditor& widthEditor, double minValue, double maxValue, int decimalPlaces, bool includeSign)
         {
-            const auto doubleValue { widthEditor.getText ().getDoubleValue () };
-            if (doubleValue < minPresetProperties.getXfadeAWidth ())
-                widthEditor.setText (juce::String (minPresetProperties.getXfadeAWidth (), 2));
-            else if (doubleValue > maxPresetProperties.getXfadeAWidth ())
-                widthEditor.setText (juce::String (maxPresetProperties.getXfadeAWidth (), 2));
-            else
-                widthEditor.setText (juce::String (doubleValue, 2), true);
+            auto doubleValue { widthEditor.getText ().getDoubleValue () };
+            if (doubleValue < minValue)
+                doubleValue = minValue;
+            else if (doubleValue > maxValue)
+                doubleValue = maxValue;
+            juce::String signString;
+            if (includeSign)
+            {
+                if (doubleValue < 0.0)
+                    signString = "-";
+                else
+                    signString = "+";
+            }
+            widthEditor.setText (signString + juce::String (doubleValue, decimalPlaces));
         };
-        xfadeGroup.xfadeWidthEditor.onFocusLost = [this, xfadeGroupIndex, checkAndFormatWidthEditor] ()
+        xfadeGroup.xfadeWidthEditor.onFocusLost = [this, xfadeGroupIndex, checkAndFormatDouble] ()
         {
             auto& widthEditor { xfadeGroups [xfadeGroupIndex].xfadeWidthEditor };
-            checkAndFormatWidthEditor (widthEditor);
+            checkAndFormatDouble (widthEditor, minPresetProperties.getXfadeAWidth (), maxPresetProperties.getXfadeAWidth (), 2, false);
             xfadeWidthUiChanged (xfadeGroupIndex, widthEditor.getText ());
         };
-        xfadeGroup.xfadeWidthEditor.onReturnKey = [this, xfadeGroupIndex, checkAndFormatWidthEditor] ()
+        xfadeGroup.xfadeWidthEditor.onReturnKey = [this, xfadeGroupIndex, checkAndFormatDouble] ()
         {
             auto& widthEditor { xfadeGroups [xfadeGroupIndex].xfadeWidthEditor };
-            checkAndFormatWidthEditor (widthEditor);
+            checkAndFormatDouble (widthEditor, minPresetProperties.getXfadeAWidth (), maxPresetProperties.getXfadeAWidth (), 2, false);
             xfadeWidthUiChanged (xfadeGroupIndex, widthEditor.getText ());
         };
         xfadeGroup.xfadeWidthEditor.onTextChange = [this, xfadeGroupIndex] ()

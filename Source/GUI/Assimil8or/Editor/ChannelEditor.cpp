@@ -101,20 +101,23 @@ void ChannelEditor::setupChannelComponents ()
     };
     // column one
     // PITCH
-    auto checkAndFormatPitchEditor = [this] (juce::TextEditor& widthEditor)
+    auto checkAndFormatDouble = [this] (juce::TextEditor& widthEditor, double minValue, double maxValue, int decimalPlaces, bool includeSign)
+    {
+        auto doubleValue { widthEditor.getText ().getDoubleValue () };
+        if (doubleValue < minValue)
+            doubleValue = minValue;
+        else if (doubleValue > maxValue)
+            doubleValue = maxValue;
+        juce::String signString;
+        if (includeSign)
         {
-            auto doubleValue { widthEditor.getText ().getDoubleValue () };
-            if (doubleValue < minChannelProperties.getPitch ())
-                doubleValue = minChannelProperties.getPitch ();
-            else if (doubleValue > maxChannelProperties.getPitch ())
-                doubleValue = maxChannelProperties.getPitch ();
-            juce::String signString;
             if (doubleValue < 0.0)
                 signString = "-";
             else
                 signString = "+";
-            pitchTextEditor.setText (signString + juce::String(doubleValue, 2));
-        };
+        }
+        widthEditor.setText (signString + juce::String (doubleValue, decimalPlaces));
+    };
 
     setupLabel (pitchLabel, "PITCH", 25.0f, juce::Justification::centredTop);
     setupTextEditor (pitchTextEditor, juce::Justification::centred, [this] (juce::String text) { pitchUiChanged (text.getDoubleValue ()); });
