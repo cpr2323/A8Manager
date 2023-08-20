@@ -7,7 +7,10 @@
 class ParameterPresetsSingleton
 {
 public:
-    ParameterPresetsSingleton () = default;
+    ParameterPresetsSingleton ()
+    {
+        parameterPresetListProperties.wrap ({}, ParameterPresetListProperties::WrapperType::owner, ParameterPresetListProperties::EnableCallbacks::no);
+    };
     ~ParameterPresetsSingleton ()
     {
         clearSingletonInstance ();
