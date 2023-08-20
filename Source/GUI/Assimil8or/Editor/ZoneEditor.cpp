@@ -16,7 +16,7 @@ ZoneEditor::ZoneEditor ()
     {
         jassert (textEditedCallback != nullptr);
         textEditor.setJustification (justification);
-        textEditor.setIndents (0, 0);
+        textEditor.setIndents (1, 0);
         textEditor.onFocusLost = [this, &textEditor, textEditedCallback] () { textEditedCallback (textEditor.getText ()); };
         textEditor.onReturnKey = [this, &textEditor, textEditedCallback] () { textEditedCallback (textEditor.getText ()); };
         addAndMakeVisible (textEditor);

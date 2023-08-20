@@ -1,5 +1,6 @@
 #include "Assimil8orEditorComponent.h"
 #include "../../../Assimil8or/Assimil8orPreset.h"
+#include "../../../Assimil8or/Preset/ParameterPresetsSingleton.h"
 #include "../../../Utility/RuntimeRootProperties.h"
 #include "../../../Utility/PersistentRootProperties.h"
 
@@ -33,6 +34,11 @@ Assimil8orEditorComponent::Assimil8orEditorComponent ()
         channelTabs.addTab ("CH " + juce::String::charToString ('1' + curChannelIndex), juce::Colours::darkgrey, &channelEditors [curChannelIndex], false);
     addAndMakeVisible (channelTabs);
 
+    minPresetProperties.wrap (ParameterPresetsSingleton::getInstance ()->getParameterPresetListProperties ().getParameterPreset (ParameterPresetListProperties::MinParameterPresetType),
+                              PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
+    maxPresetProperties.wrap (ParameterPresetsSingleton::getInstance ()->getParameterPresetListProperties ().getParameterPreset (ParameterPresetListProperties::MaxParameterPresetType),
+                              PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
+
      setupPresetComponents ();
 }
 
@@ -44,10 +50,11 @@ void Assimil8orEditorComponent::setupPresetComponents ()
     //  length
     //  valid characters
     //  names doe not have to be unique, as the preset number is unique
-    nameEditor.setColour (juce::TextEditor::ColourIds::backgroundColourId, juce::Colours::navajowhite);
-    nameEditor.setColour (juce::TextEditor::ColourIds::textColourId, juce::Colours::black);
+    nameEditor.setJustification (juce::Justification::centredLeft);
+    nameEditor.setIndents (1, 0);
     nameEditor.onFocusLost = [this] () { nameUiChanged (nameEditor.getText ()); };
     nameEditor.onReturnKey = [this] () { nameUiChanged (nameEditor.getText ()); };
+    //nameEditor.setInputRestrictions (0, ".0123456789");
     addAndMakeVisible (nameEditor);
 
     addAndMakeVisible (windowDecorator);
@@ -80,15 +87,46 @@ void Assimil8orEditorComponent::setupPresetComponents ()
         };
         addAndMakeVisible (xfadeGroup.xfadeCvComboBox);
 
-
+        // xfade group width
+        // min = 0.01
+        // max = 10
         xfadeGroup.xfadeWidthLabel.setBorderSize ({ 0, 0, 0, 0 });
         xfadeGroup.xfadeWidthLabel.setText ("Width", juce::NotificationType::dontSendNotification);
         addAndMakeVisible (xfadeGroup.xfadeWidthLabel);
         xfadeGroup.xfadeWidthEditor.setJustification (juce::Justification::centred);
         xfadeGroup.xfadeWidthEditor.setIndents (0, 0);
         xfadeGroup.xfadeWidthEditor.setInputRestrictions (0, ".0123456789");
-        xfadeGroup.xfadeWidthEditor.onFocusLost = [this, xfadeGroupIndex] () { xfadeWidthUiChanged (xfadeGroupIndex, xfadeGroups [xfadeGroupIndex].xfadeWidthEditor.getText ()); };
-        xfadeGroup.xfadeWidthEditor.onReturnKey = [this, xfadeGroupIndex] () { xfadeWidthUiChanged (xfadeGroupIndex, xfadeGroups [xfadeGroupIndex].xfadeWidthEditor.getText ()); };
+        auto checkAndFormatWidthEditor = [this] (juce::TextEditor& widthEditor)
+        {
+            const auto doubleValue { widthEditor.getText ().getDoubleValue () };
+            if (doubleValue < minPresetProperties.getXfadeAWidth ())
+                widthEditor.setText (juce::String (minPresetProperties.getXfadeAWidth (), 2));
+            else if (doubleValue > maxPresetProperties.getXfadeAWidth ())
+                widthEditor.setText (juce::String (maxPresetProperties.getXfadeAWidth (), 2));
+            else
+                widthEditor.setText (juce::String (doubleValue, 2), true);
+        };
+        xfadeGroup.xfadeWidthEditor.onFocusLost = [this, xfadeGroupIndex, checkAndFormatWidthEditor] ()
+        {
+            auto& widthEditor { xfadeGroups [xfadeGroupIndex].xfadeWidthEditor };
+            checkAndFormatWidthEditor (widthEditor);
+            xfadeWidthUiChanged (xfadeGroupIndex, widthEditor.getText ());
+        };
+        xfadeGroup.xfadeWidthEditor.onReturnKey = [this, xfadeGroupIndex, checkAndFormatWidthEditor] ()
+        {
+            auto& widthEditor { xfadeGroups [xfadeGroupIndex].xfadeWidthEditor };
+            checkAndFormatWidthEditor (widthEditor);
+            xfadeWidthUiChanged (xfadeGroupIndex, widthEditor.getText ());
+        };
+        xfadeGroup.xfadeWidthEditor.onTextChange = [this, xfadeGroupIndex] ()
+        {
+            auto& widthEditor { xfadeGroups [xfadeGroupIndex].xfadeWidthEditor };
+            const auto doubleValue { widthEditor.getText ().getDoubleValue () };
+            if (doubleValue >= minPresetProperties.getXfadeAWidth () && doubleValue <= maxPresetProperties.getXfadeAWidth ())
+                widthEditor.applyColourToAllText (juce::Colours::white, true);
+            else
+                widthEditor.applyColourToAllText (juce::Colours::red, true);
+        };
         addAndMakeVisible (xfadeGroup.xfadeWidthEditor);
     }
 }
@@ -115,10 +153,10 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
     xfadeCvDataChanged (1, presetProperties.getXfadeBCV ());
     xfadeCvDataChanged (2, presetProperties.getXfadeCCV ());
     xfadeCvDataChanged (3, presetProperties.getXfadeDCV ());
-    xfadeWidthDataChanged (0, juce::String (presetProperties.getXfadeAWidth ()));
-    xfadeWidthDataChanged (1, juce::String (presetProperties.getXfadeBWidth ()));
-    xfadeWidthDataChanged (2, juce::String (presetProperties.getXfadeCWidth ()));
-    xfadeWidthDataChanged (3, juce::String (presetProperties.getXfadeDWidth ()));
+    xfadeWidthDataChanged (0, juce::String (presetProperties.getXfadeAWidth (), 2)); // + "V");
+    xfadeWidthDataChanged (1, juce::String (presetProperties.getXfadeBWidth (), 2)); // + "V");
+    xfadeWidthDataChanged (2, juce::String (presetProperties.getXfadeCWidth (), 2)); // + "V");
+    xfadeWidthDataChanged (3, juce::String (presetProperties.getXfadeDWidth (), 2)); // + "V");
 }
 
 void Assimil8orEditorComponent::setupPresetPropertiesCallbacks ()

@@ -29,6 +29,8 @@ public:
 private:
     AppProperties appProperties;
     PresetProperties presetProperties;
+    PresetProperties minPresetProperties;
+    PresetProperties maxPresetProperties;
 
     juce::Label titleLabel;
     juce::TextButton saveButton;
