@@ -64,7 +64,7 @@ private:
     void exportPreset ();
     void importPreset ();
     void savePreset ();
-    void setupPresetControls ();
+    void setupPresetComponents ();
     void setupPresetPropertiesCallbacks ();
 
     // Preset callbacks 

@@ -33,13 +33,17 @@ Assimil8orEditorComponent::Assimil8orEditorComponent ()
         channelTabs.addTab ("CH " + juce::String::charToString ('1' + curChannelIndex), juce::Colours::darkgrey, &channelEditors [curChannelIndex], false);
     addAndMakeVisible (channelTabs);
 
-     setupPresetControls ();
+     setupPresetComponents ();
 }
 
-void Assimil8orEditorComponent::setupPresetControls ()
+void Assimil8orEditorComponent::setupPresetComponents ()
 {
     titleLabel.setText ("Preset _ :", juce::NotificationType::dontSendNotification);
 
+    // NAME EDITOR
+    //  length
+    //  valid characters
+    //  names doe not have to be unique, as the preset number is unique
     nameEditor.setColour (juce::TextEditor::ColourIds::backgroundColourId, juce::Colours::navajowhite);
     nameEditor.setColour (juce::TextEditor::ColourIds::textColourId, juce::Colours::black);
     nameEditor.onFocusLost = [this] () { nameUiChanged (nameEditor.getText ()); };

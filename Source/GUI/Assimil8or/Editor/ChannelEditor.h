@@ -112,7 +112,7 @@ private:
 
     std::array<ZoneEditor, 8> zoneEditors;
 
-    void setupChannelControls ();
+    void setupChannelComponents ();
     void setupChannelPropertiesCallbacks ();
 
     void aliasingDataChanged (int aliasing);

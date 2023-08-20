@@ -32,7 +32,7 @@ ChannelEditor::ChannelEditor ()
     xfadeGroupComboBox.setLookAndFeel (&noArrowComboBoxLnF);
     zonesRTComboBox.setLookAndFeel (&noArrowComboBoxLnF);
 
-    setupChannelControls ();
+    setupChannelComponents ();
 }
 
 ChannelEditor::~ChannelEditor ()
@@ -45,7 +45,7 @@ ChannelEditor::~ChannelEditor ()
     zonesRTComboBox.setLookAndFeel (nullptr);
 }
 
-void ChannelEditor::setupChannelControls ()
+void ChannelEditor::setupChannelComponents ()
 {
     auto setupLabel = [this] (juce::Label& label, juce::String text, float fontSize, juce::Justification justification)
     {
