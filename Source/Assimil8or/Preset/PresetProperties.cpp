@@ -219,7 +219,7 @@ double PresetProperties::getXfadeDWidth ()
 ////////////////////////////////////////////////////////////////////
 juce::String PresetProperties::getData2AsCVDefault ()
 {
-    return ParameterDataProperties::getDefaultString (parameterDataListProperties.getParameter (Section::PresetId, Parameter::Preset::Data2asCVId));
+    return defaultPresetProperties->getData2AsCV ();
 }
 
 juce::String PresetProperties::getNameDefault ()

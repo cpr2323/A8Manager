@@ -9,13 +9,16 @@
 class PresetProperties : public ValueTreeWrapper<PresetProperties>
 {
 public:
-    PresetProperties () noexcept : parameterDataListProperties (ParameterDataListProperties ()), ValueTreeWrapper<PresetProperties> (PresetTypeId)
+    PresetProperties () noexcept : ValueTreeWrapper<PresetProperties> (PresetTypeId)
     {
         clear ();
         parameterPresetsSingleton = ParameterPresetsSingleton::getInstance ();
+        defaultPresetProperties = std::make_unique<PresetProperties> ();
+        defaultPresetProperties->wrap (parameterPresetsSingleton->getParameterPresetListProperties ().getParameterPreset (ParameterPresetListProperties::DefaultParameterPresetType),
+                                       PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
     }
     PresetProperties (juce::ValueTree vt, WrapperType wrapperType, EnableCallbacks shouldEnableCallbacks) noexcept
-        : parameterDataListProperties (ParameterDataListProperties ()), ValueTreeWrapper<PresetProperties> (PresetTypeId, vt, wrapperType, shouldEnableCallbacks)
+        : ValueTreeWrapper<PresetProperties> (PresetTypeId, vt, wrapperType, shouldEnableCallbacks)
     {
         parameterPresetsSingleton = ParameterPresetsSingleton::getInstance ();
     }
@@ -101,8 +104,9 @@ public:
     static void copyTreeProperties (juce::ValueTree source, juce::ValueTree destination);
 
 private:
-    ParameterDataListProperties parameterDataListProperties;
     ParameterPresetsSingleton* parameterPresetsSingleton { nullptr };
+    std::unique_ptr<PresetProperties> defaultPresetProperties;
+
     juce::ValueTree addChannel (int index);
     int getNumChannels ();
 
