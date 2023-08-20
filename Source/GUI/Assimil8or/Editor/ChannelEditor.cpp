@@ -113,7 +113,7 @@ void ChannelEditor::setupChannelComponents ()
                 signString = "-";
             else
                 signString = "+";
-            channelProperties.setText (signString + juce::String(doubleValue, 2));
+            pitchTextEditor.setText (signString + juce::String(doubleValue, 2));
         };
 
     setupLabel (pitchLabel, "PITCH", 25.0f, juce::Justification::centredTop);
