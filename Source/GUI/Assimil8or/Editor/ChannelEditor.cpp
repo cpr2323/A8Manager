@@ -1,4 +1,6 @@
 #include "ChannelEditor.h"
+#include "../../../Assimil8or/Preset/PresetProperties.h"
+#include "../../../Assimil8or/Preset/ParameterPresetsSingleton.h"
 
 // The following Parameters do not have min/max
 //    AttackFromCurrent
@@ -31,6 +33,17 @@ ChannelEditor::ChannelEditor ()
     pMSourceComboBox.setLookAndFeel (&noArrowComboBoxLnF);
     xfadeGroupComboBox.setLookAndFeel (&noArrowComboBoxLnF);
     zonesRTComboBox.setLookAndFeel (&noArrowComboBoxLnF);
+
+    {
+        PresetProperties minPresetProperties (ParameterPresetsSingleton::getInstance ()->getParameterPresetListProperties ().getParameterPreset (ParameterPresetListProperties::MinParameterPresetType),
+                                              PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
+        minChannelProperties.wrap (minPresetProperties.getChannelVT (0), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
+    }
+    {
+        PresetProperties maxPresetProperties (ParameterPresetsSingleton::getInstance ()->getParameterPresetListProperties ().getParameterPreset (ParameterPresetListProperties::MaxParameterPresetType),
+                                              PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
+        maxChannelProperties.wrap (maxPresetProperties.getChannelVT (0), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
+    }
 
     setupChannelComponents ();
 }
@@ -88,6 +101,21 @@ void ChannelEditor::setupChannelComponents ()
     };
     // column one
     // PITCH
+    auto checkAndFormatPitchEditor = [this] (juce::TextEditor& widthEditor)
+        {
+            auto doubleValue { widthEditor.getText ().getDoubleValue () };
+            if (doubleValue < minChannelProperties.getPitch ())
+                doubleValue = minChannelProperties.getPitch ();
+            else if (doubleValue > maxChannelProperties.getPitch ())
+                doubleValue = maxChannelProperties.getPitch ();
+            juce::String signString;
+            if (doubleValue < 0.0)
+                signString = "-";
+            else
+                signString = "+";
+            channelProperties.setText (signString + juce::String(doubleValue, 2));
+        };
+
     setupLabel (pitchLabel, "PITCH", 25.0f, juce::Justification::centredTop);
     setupTextEditor (pitchTextEditor, juce::Justification::centred, [this] (juce::String text) { pitchUiChanged (text.getDoubleValue ()); });
     setupLabel (pitchSemiLabel, "SEMI", 15.0f, juce::Justification::centredLeft);
@@ -741,7 +769,13 @@ void ChannelEditor::phaseCVUiChanged (juce::String cvInput, double phaseCV)
 
 void ChannelEditor::pitchDataChanged (double pitch)
 {
-    pitchTextEditor.setText (juce::String (pitch));
+    juce::String signString;
+    if (pitch < 0.0)
+        signString = "-";
+    else
+        signString = "+";
+
+    pitchTextEditor.setText (signString + juce::String (pitch, 2));
 }
 
 void ChannelEditor::pitchUiChanged (double pitch)

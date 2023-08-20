@@ -16,6 +16,9 @@ public:
 
 private:
     ChannelProperties channelProperties;
+    ChannelProperties minChannelProperties;
+    ChannelProperties maxChannelProperties;
+
     juce::Label zonesLabel;
     juce::TabbedComponent zoneTabs { juce::TabbedButtonBar::Orientation::TabsAtLeft };
 
