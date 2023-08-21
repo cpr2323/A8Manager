@@ -89,8 +89,6 @@ void Assimil8orEditorComponent::setupPresetComponents ()
         addAndMakeVisible (xfadeGroup.xfadeCvComboBox);
 
         // xfade group width
-        // min = 0.01
-        // max = 10
         xfadeGroup.xfadeWidthLabel.setBorderSize ({ 0, 0, 0, 0 });
         xfadeGroup.xfadeWidthLabel.setText ("Width", juce::NotificationType::dontSendNotification);
         addAndMakeVisible (xfadeGroup.xfadeWidthLabel);
