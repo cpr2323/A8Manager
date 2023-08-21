@@ -103,6 +103,8 @@ void ChannelEditor::setupChannelComponents ()
         textButton.onClick = onClickCallback;
         addAndMakeVisible (textButton);
     };
+
+    /////////////////////////////////////////
     // column one
     // PITCH
     setupLabel (pitchLabel, "PITCH", 25.0f, juce::Justification::centredTop);
@@ -112,25 +114,23 @@ void ChannelEditor::setupChannelComponents ()
     },
     [this] (juce::String text)
     {
-        text = FormatHelpers::checkAndFormatDouble (text.getDoubleValue (), minChannelProperties.getPitch (), maxChannelProperties.getPitch (), 2, true);
-        pitchTextEditor.setText (text);
-        pitchUiChanged (text.getDoubleValue ());
+        const auto checkedAndFormattedText { FormatHelpers::checkAndFormatDouble (text.getDoubleValue (), minChannelProperties.getPitch (), maxChannelProperties.getPitch (), 2, true) };
+        pitchTextEditor.setText (checkedAndFormattedText);
+        pitchUiChanged (checkedAndFormattedText.getDoubleValue ());
     });
     setupLabel (pitchSemiLabel, "SEMI", 15.0f, juce::Justification::centredLeft);
     setupCvInputComboBox (pitchCVComboBox, [this] () { pitchCVUiChanged (pitchCVComboBox.getSelectedItemText (), pitchCVTextEditor.getText ().getDoubleValue ()); });
     setupTextEditor (pitchCVTextEditor, juce::Justification::centred, [this] ()
     {
-        auto [x, minCv] {minChannelProperties.getPitchCV ()};
-        auto [y, maxCv] {maxChannelProperties.getPitchCV ()};
-        FormatHelpers::setColorIfError (pitchCVTextEditor, minCv, maxCv);
+        FormatHelpers::setColorIfError (pitchCVTextEditor, FormatHelpers::getAmount (minChannelProperties.getPitchCV ()), FormatHelpers::getAmount (maxChannelProperties.getPitchCV ()));
     },
     [this] (juce::String text)
     {
-        auto [x, minCv] {minChannelProperties.getPitchCV ()};
-        auto [y, maxCv] {maxChannelProperties.getPitchCV ()};
-        text = FormatHelpers::checkAndFormatDouble (text.getDoubleValue (), minCv, maxCv, 2, true);
-        pitchCVTextEditor.setText (text);
-        pitchCVUiChanged (pitchCVComboBox.getSelectedItemText (), text.getDoubleValue ());
+        const auto checkedAndFormattedText { FormatHelpers::checkAndFormatDouble (text.getDoubleValue (),
+                                                                                  FormatHelpers::getAmount (minChannelProperties.getPitchCV ()),
+                                                                                  FormatHelpers::getAmount (maxChannelProperties.getPitchCV ()), 2, true) };
+        pitchCVTextEditor.setText (checkedAndFormattedText);
+        pitchCVUiChanged (pitchCVComboBox.getSelectedItemText (), checkedAndFormattedText.getDoubleValue ());
     });
 
     // LINFM
@@ -159,6 +159,7 @@ void ChannelEditor::setupChannelComponents ()
     setupCvInputComboBox (expAMComboBox, [this] () { expAMUiChanged (expAMComboBox.getSelectedItemText (), expAMTextEditor.getText ().getDoubleValue ()); });
     setupTextEditor (expAMTextEditor, juce::Justification::centred, [] () {}, [this] (juce::String text) { expAMUiChanged (expAMComboBox.getSelectedItemText (), text.getDoubleValue ()); });
 
+    /////////////////////////////////////////
     // column two
     // PHASE MOD SOURCE
     setupLabel (phaseCVLabel, "PHASE MOD", 25.0f, juce::Justification::centredTop);
@@ -194,6 +195,7 @@ void ChannelEditor::setupChannelComponents ()
     setupTextEditor (mixModTextEditor, juce::Justification::centred, [] () {}, [this] (juce::String text) { mixModUiChanged (panModComboBox.getSelectedItemText (), text.getDoubleValue ()); });
     setupButton (mixModIsFaderButton, "FADER", [this] () { mixModIsFaderUiChanged (mixModIsFaderButton.getToggleState ()); });
 
+    /////////////////////////////////////////
     // column three
     setupLabel (mutateLabel, "MUTATE", 25.0f, juce::Justification::centredTop);
 
@@ -244,6 +246,7 @@ void ChannelEditor::setupChannelComponents ()
     setupLabel (autoTriggerLabel, "TRIGGER", 15.0f, juce::Justification::centred);
     setupButton (autoTriggerButton, "AUTO", [this] () { attackFromCurrentUiChanged (autoTriggerButton.getToggleState ()); });
 
+    /////////////////////////////////////////
     // column four
     setupLabel (channelModeLabel, "CHANNEL", 15.0f, juce::Justification::centred);
     channelModeComboBox.addItem ("Master", 1); // 0 = Master, 1 = Link, 2 = Stereo/Right, 3 = Cycle

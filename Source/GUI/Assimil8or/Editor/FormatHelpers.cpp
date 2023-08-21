@@ -22,4 +22,16 @@ namespace FormatHelpers
         else
             textEditor.applyColourToAllText (juce::Colours::red, true);
     };
+
+    juce::String getCvInput (const CvInputAndAmount& cvInputAndAmount)
+    {
+        auto [cvInput, _] {cvInputAndAmount};
+        return cvInput;
+    }
+
+    double getAmount (const CvInputAndAmount& cvInputAndAmount)
+    {
+        auto [_, amount] {cvInputAndAmount};
+        return amount;
+}
 };
