@@ -118,6 +118,7 @@ void ChannelEditor::setupChannelComponents ()
         pitchTextEditor.setText (checkedAndFormattedText);
         pitchUiChanged (checkedAndFormattedText.getDoubleValue ());
     });
+    //
     setupLabel (pitchSemiLabel, "SEMI", 15.0f, juce::Justification::centredLeft);
     setupCvInputComboBox (pitchCVComboBox, [this] () { pitchCVUiChanged (pitchCVComboBox.getSelectedItemText (), pitchCVTextEditor.getText ().getDoubleValue ()); });
     setupTextEditor (pitchCVTextEditor, juce::Justification::centred, [this] ()
@@ -136,28 +137,83 @@ void ChannelEditor::setupChannelComponents ()
     // LINFM
     setupLabel (linFMLabel, "LINFM", 25.0f, juce::Justification::centredTop);
     setupCvInputComboBox (linFMComboBox, [this] () { linFMUiChanged (linFMComboBox.getSelectedItemText (), linFMTextEditor.getText ().getDoubleValue ()); });
-    setupTextEditor (linFMTextEditor, juce::Justification::centred, [] () {}, [this] (juce::String text) { linFMUiChanged (linFMComboBox.getSelectedItemText (), text.getDoubleValue ()); });
+    setupTextEditor (linFMTextEditor, juce::Justification::centred, [this] ()
+    {
+        FormatHelpers::setColorIfError (linFMTextEditor, FormatHelpers::getAmount (minChannelProperties.getLinFM ()), FormatHelpers::getAmount (maxChannelProperties.getLinFM ()));
+    }, 
+    [this] (juce::String text)
+    {
+        const auto checkedAndFormattedText { FormatHelpers::checkAndFormatDouble (text.getDoubleValue (),
+                                                                                  FormatHelpers::getAmount (minChannelProperties.getLinFM ()),
+                                                                                  FormatHelpers::getAmount (maxChannelProperties.getLinFM ()), 2, true) };
+        linFMTextEditor.setText (checkedAndFormattedText);
+        linFMUiChanged (linFMComboBox.getSelectedItemText (), checkedAndFormattedText.getDoubleValue ());
+    });
 
     // EXPFM
     setupLabel (expFMLabel, "EXPFM", 25.0f, juce::Justification::centredTop);
     setupCvInputComboBox (expFMComboBox, [this] () { expFMUiChanged (expFMComboBox.getSelectedItemText (), expFMTextEditor.getText ().getDoubleValue ()); });
-    setupTextEditor (expFMTextEditor, juce::Justification::centred, [] () {}, [this] (juce::String text) { expFMUiChanged (expFMComboBox.getSelectedItemText (), text.getDoubleValue ()); });
+    setupTextEditor (expFMTextEditor, juce::Justification::centred, [this] ()
+    {
+        FormatHelpers::setColorIfError (expFMTextEditor, FormatHelpers::getAmount (minChannelProperties.getExpFM ()), FormatHelpers::getAmount (maxChannelProperties.getExpFM ()));
+    },
+    [this] (juce::String text) 
+    {
+        const auto checkedAndFormattedText { FormatHelpers::checkAndFormatDouble (text.getDoubleValue (),
+                                                                                  FormatHelpers::getAmount (minChannelProperties.getExpFM ()),
+                                                                                  FormatHelpers::getAmount (maxChannelProperties.getExpFM ()), 2, true) };
+        expFMTextEditor.setText (checkedAndFormattedText);
+        expFMUiChanged (expFMComboBox.getSelectedItemText (), checkedAndFormattedText.getDoubleValue ());
+    });
 
     // LEVEL
     setupLabel (levelLabel, "LEVEL", 25.0f, juce::Justification::centredTop);
-    setupTextEditor (levelTextEditor, juce::Justification::centred, [] () {}, [this] (juce::String text) { levelUiChanged (text.getDoubleValue ()); });
+    setupTextEditor (levelTextEditor, juce::Justification::centred, [this] ()
+    {
+        FormatHelpers::setColorIfError (levelTextEditor, minChannelProperties.getLevel (), maxChannelProperties.getLevel ());
+    },
+    [this] (juce::String text)
+    {
+        const auto checkedAndFormattedText { FormatHelpers::checkAndFormatDouble (text.getDoubleValue (),
+                                                                                  minChannelProperties.getLevel (),
+                                                                                  maxChannelProperties.getLevel (), 2, true) };
+        levelTextEditor.setText (checkedAndFormattedText);
+        levelUiChanged (checkedAndFormattedText.getDoubleValue ());
+    });
     setupLabel (levelDbLabel, "dB", 15.0f, juce::Justification::centredLeft);
 
     // LINAM
     setupLabel (linAMLabel, "LINAM", 25.0f, juce::Justification::centredTop);
     setupCvInputComboBox (linAMComboBox, [this] () { linAMUiChanged (linAMComboBox.getSelectedItemText (), linAMTextEditor.getText ().getDoubleValue ()); });
-    setupTextEditor (linAMTextEditor, juce::Justification::centred, [] () {}, [this] (juce::String text) { linAMUiChanged (linAMComboBox.getSelectedItemText (), text.getDoubleValue ()); });
+    setupTextEditor (linAMTextEditor, juce::Justification::centred, [this] ()
+    {
+        FormatHelpers::setColorIfError (linAMTextEditor, FormatHelpers::getAmount (minChannelProperties.getLinAM ()), FormatHelpers::getAmount (maxChannelProperties.getLinAM ()));
+    },
+    [this] (juce::String text)
+    {
+        const auto checkedAndFormattedText { FormatHelpers::checkAndFormatDouble (text.getDoubleValue (),
+                                                                                  FormatHelpers::getAmount (minChannelProperties.getLinAM ()),
+                                                                                  FormatHelpers::getAmount (maxChannelProperties.getLinAM ()), 2, true) };
+        linAMTextEditor.setText (checkedAndFormattedText);
+        linAMUiChanged (linAMComboBox.getSelectedItemText (), checkedAndFormattedText.getDoubleValue ());
+    });
     setupButton (linAMisExtEnvButton, "EXT", [this] () { linAMisExtEnvUiChanged (linAMisExtEnvButton.getToggleState ()); });
 
     // EXPAM
     setupLabel (expAMLabel, "EXPAM", 25.0f, juce::Justification::centredTop);
     setupCvInputComboBox (expAMComboBox, [this] () { expAMUiChanged (expAMComboBox.getSelectedItemText (), expAMTextEditor.getText ().getDoubleValue ()); });
-    setupTextEditor (expAMTextEditor, juce::Justification::centred, [] () {}, [this] (juce::String text) { expAMUiChanged (expAMComboBox.getSelectedItemText (), text.getDoubleValue ()); });
+    setupTextEditor (expAMTextEditor, juce::Justification::centred, [this] ()
+    {
+            FormatHelpers::setColorIfError (expAMTextEditor, FormatHelpers::getAmount (minChannelProperties.getExpAM ()), FormatHelpers::getAmount (maxChannelProperties.getExpAM ()));
+        },
+    [this] (juce::String text)
+    {
+        const auto checkedAndFormattedText { FormatHelpers::checkAndFormatDouble (text.getDoubleValue (),
+                                                                                  FormatHelpers::getAmount (minChannelProperties.getExpAM ()),
+                                                                                  FormatHelpers::getAmount (maxChannelProperties.getExpAM ()), 2, true) };
+        expAMTextEditor.setText (checkedAndFormattedText);
+        expAMUiChanged (expAMComboBox.getSelectedItemText (), checkedAndFormattedText.getDoubleValue ());
+    });
 
     /////////////////////////////////////////
     // column two
@@ -174,25 +230,72 @@ void ChannelEditor::setupChannelComponents ()
     setupComboBox (pMSourceComboBox, [this] () { pMSourceUiChanged (pMSourceComboBox.getSelectedId () - 1); });
     setupLabel (pMSourceLabel, "SOURCE", 15.0f, juce::Justification::centredLeft);
     setupCvInputComboBox (phaseCVComboBox, [this] () { phaseCVUiChanged (phaseCVComboBox.getSelectedItemText (), phaseCVTextEditor.getText ().getDoubleValue ()); });
+    setupTextEditor (phaseCVTextEditor, juce::Justification::centred, [this] ()
+    {
+        FormatHelpers::setColorIfError (phaseCVTextEditor, FormatHelpers::getAmount (minChannelProperties.getPhaseCV ()), FormatHelpers::getAmount (maxChannelProperties.getPhaseCV ()));
+    },
+    [this] (juce::String text)
+    {
+        const auto checkedAndFormattedText { FormatHelpers::checkAndFormatDouble (text.getDoubleValue (),
+                                                                                    FormatHelpers::getAmount (minChannelProperties.getPhaseCV ()),
+                                                                                    FormatHelpers::getAmount (maxChannelProperties.getPhaseCV ()), 2, true) };
+        phaseCVTextEditor.setText (checkedAndFormattedText);
+        phaseCVUiChanged (phaseCVComboBox.getSelectedItemText (), checkedAndFormattedText.getDoubleValue ());
+    });
 
     // PHASE MOD INDEX
-    setupTextEditor (phaseCVTextEditor, juce::Justification::centred, [] () {}, [this] (juce::String text) { phaseCVUiChanged (phaseCVComboBox.getSelectedItemText (), text.getDoubleValue ()); });
     setupLabel (pMIndexLabel, "PHASE MOD", 25.0f, juce::Justification::centredTop);
-    setupTextEditor (pMIndexTextEditor, juce::Justification::centred, [] () {}, [this] (juce::String text) { pMIndexUiChanged (text.getDoubleValue ()); });
+    setupTextEditor (pMIndexTextEditor, juce::Justification::centred, [this] ()
+        {
+        },
+        [this] (juce::String text)
+        {
+            pMIndexUiChanged (text.getDoubleValue ());
+        });
     setupLabel (pMIndexModLabel, "INDEX", 15.0f, juce::Justification::centredLeft);
     setupCvInputComboBox (pMIndexModComboBox, [this] () { pMIndexModUiChanged (pMIndexModComboBox.getSelectedItemText (), pMIndexModTextEditor.getText ().getDoubleValue ()); });
-    setupTextEditor (pMIndexModTextEditor, juce::Justification::centred, [] () {}, [this] (juce::String text) { pMIndexModUiChanged (pMIndexModComboBox.getSelectedItemText (), text.getDoubleValue ()); });
+    setupTextEditor (pMIndexModTextEditor, juce::Justification::centred, [this] ()
+        {
+        },
+        [this] (juce::String text)
+        {
+            pMIndexModUiChanged (pMIndexModComboBox.getSelectedItemText (), text.getDoubleValue ());
+        });
 
    // PAN/MIX
     setupLabel (panMixLabel, "PAN/MIX", 25.0f, juce::Justification::centredTop);
-    setupTextEditor (panTextEditor, juce::Justification::centred, [] () {}, [this] (juce::String text) { panUiChanged (text.getDoubleValue ()); });
+    setupTextEditor (panTextEditor, juce::Justification::centred, [this] ()
+        {
+        },
+        [this] (juce::String text)
+        {
+            panUiChanged (text.getDoubleValue ());
+        });
     setupLabel (panLabel, "PAN", 15.0f, juce::Justification::centredLeft);
     setupCvInputComboBox (panModComboBox, [this] () { panModUiChanged (panModComboBox.getSelectedItemText (), panModTextEditor.getText ().getDoubleValue ()); });
-    setupTextEditor (panModTextEditor, juce::Justification::centred, [] () {}, [this] (juce::String text) { panModUiChanged (panModComboBox.getSelectedItemText (), text.getDoubleValue ()); });
-    setupTextEditor (mixLevelTextEditor, juce::Justification::centred, [] () {}, [this] (juce::String text) { mixLevelUiChanged (text.getDoubleValue ()); });
+    setupTextEditor (panModTextEditor, juce::Justification::centred, [this] ()
+        {
+        },
+        [this] (juce::String text)
+        {
+            panModUiChanged (panModComboBox.getSelectedItemText (), text.getDoubleValue ());
+        });
+    setupTextEditor (mixLevelTextEditor, juce::Justification::centred, [this] ()
+        {
+        },
+        [this] (juce::String text)
+        {
+            mixLevelUiChanged (text.getDoubleValue ());
+        });
     setupLabel (mixLevelLabel, "MIX", 15.0f, juce::Justification::centredLeft);
     setupCvInputComboBox (mixModComboBox, [this] () { mixModUiChanged (mixModComboBox.getSelectedItemText (), mixModTextEditor.getText ().getDoubleValue ()); });
-    setupTextEditor (mixModTextEditor, juce::Justification::centred, [] () {}, [this] (juce::String text) { mixModUiChanged (panModComboBox.getSelectedItemText (), text.getDoubleValue ()); });
+    setupTextEditor (mixModTextEditor, juce::Justification::centred, [this] ()
+        {
+        },
+        [this] (juce::String text)
+        {
+            mixModUiChanged (panModComboBox.getSelectedItemText (), text.getDoubleValue ());
+        });
     setupButton (mixModIsFaderButton, "FADER", [this] () { mixModIsFaderUiChanged (mixModIsFaderButton.getToggleState ()); });
 
     /////////////////////////////////////////
