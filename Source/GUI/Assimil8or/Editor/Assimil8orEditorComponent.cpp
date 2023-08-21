@@ -1,4 +1,5 @@
 #include "Assimil8orEditorComponent.h"
+#include "FormatHelpers.h"
 #include "../../../Assimil8or/Assimil8orPreset.h"
 #include "../../../Assimil8or/Preset/ParameterPresetsSingleton.h"
 #include "../../../Utility/RuntimeRootProperties.h"
@@ -96,43 +97,21 @@ void Assimil8orEditorComponent::setupPresetComponents ()
         xfadeGroup.xfadeWidthEditor.setJustification (juce::Justification::centred);
         xfadeGroup.xfadeWidthEditor.setIndents (0, 0);
         xfadeGroup.xfadeWidthEditor.setInputRestrictions (0, ".0123456789");
-        auto checkAndFormatDouble = [this] (juce::TextEditor& widthEditor, double minValue, double maxValue, int decimalPlaces, bool includeSign)
-        {
-            auto doubleValue { widthEditor.getText ().getDoubleValue () };
-            if (doubleValue < minValue)
-                doubleValue = minValue;
-            else if (doubleValue > maxValue)
-                doubleValue = maxValue;
-            juce::String signString;
-            if (includeSign)
-            {
-                if (doubleValue < 0.0)
-                    signString = "-";
-                else
-                    signString = "+";
-            }
-            widthEditor.setText (signString + juce::String (doubleValue, decimalPlaces));
-        };
-        xfadeGroup.xfadeWidthEditor.onFocusLost = [this, xfadeGroupIndex, checkAndFormatDouble] ()
+        xfadeGroup.xfadeWidthEditor.onFocusLost = [this, xfadeGroupIndex] ()
         {
             auto& widthEditor { xfadeGroups [xfadeGroupIndex].xfadeWidthEditor };
-            checkAndFormatDouble (widthEditor, minPresetProperties.getXfadeAWidth (), maxPresetProperties.getXfadeAWidth (), 2, false);
+            widthEditor.setText (FormatHelpers::checkAndFormatDouble (widthEditor.getText ().getDoubleValue (), minPresetProperties.getXfadeAWidth (), maxPresetProperties.getXfadeAWidth (), 2, false));
             xfadeWidthUiChanged (xfadeGroupIndex, widthEditor.getText ());
         };
-        xfadeGroup.xfadeWidthEditor.onReturnKey = [this, xfadeGroupIndex, checkAndFormatDouble] ()
+        xfadeGroup.xfadeWidthEditor.onReturnKey = [this, xfadeGroupIndex] ()
         {
             auto& widthEditor { xfadeGroups [xfadeGroupIndex].xfadeWidthEditor };
-            checkAndFormatDouble (widthEditor, minPresetProperties.getXfadeAWidth (), maxPresetProperties.getXfadeAWidth (), 2, false);
+            widthEditor.setText (FormatHelpers::checkAndFormatDouble (widthEditor.getText ().getDoubleValue (), minPresetProperties.getXfadeAWidth (), maxPresetProperties.getXfadeAWidth (), 2, false));
             xfadeWidthUiChanged (xfadeGroupIndex, widthEditor.getText ());
         };
         xfadeGroup.xfadeWidthEditor.onTextChange = [this, xfadeGroupIndex] ()
         {
-            auto& widthEditor { xfadeGroups [xfadeGroupIndex].xfadeWidthEditor };
-            const auto doubleValue { widthEditor.getText ().getDoubleValue () };
-            if (doubleValue >= minPresetProperties.getXfadeAWidth () && doubleValue <= maxPresetProperties.getXfadeAWidth ())
-                widthEditor.applyColourToAllText (juce::Colours::white, true);
-            else
-                widthEditor.applyColourToAllText (juce::Colours::red, true);
+            FormatHelpers::setColorIfError (xfadeGroups [xfadeGroupIndex].xfadeWidthEditor, minPresetProperties.getXfadeAWidth (), maxPresetProperties.getXfadeAWidth ());
         };
         addAndMakeVisible (xfadeGroup.xfadeWidthEditor);
     }

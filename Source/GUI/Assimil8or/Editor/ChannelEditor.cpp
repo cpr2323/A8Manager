@@ -1,4 +1,5 @@
 #include "ChannelEditor.h"
+#include "FormatHelpers.h"
 #include "../../../Assimil8or/Preset/PresetProperties.h"
 #include "../../../Assimil8or/Preset/ParameterPresetsSingleton.h"
 
@@ -70,13 +71,16 @@ void ChannelEditor::setupChannelComponents ()
         label.setText (text, juce::NotificationType::dontSendNotification);
         addAndMakeVisible (label);
     };
-    auto setupTextEditor = [this] (juce::TextEditor& textEditor, juce::Justification justification, std::function<void (juce::String)> textEditedCallback)
+    auto setupTextEditor = [this] (juce::TextEditor& textEditor, juce::Justification justification, std::function<void ()> validateCallback,
+                                   std::function<void (juce::String)> doneEditingCallback)
     {
-        jassert (textEditedCallback != nullptr);
+        jassert (doneEditingCallback != nullptr);
         textEditor.setJustification (justification);
         textEditor.setIndents (0, 0);
-        textEditor.onFocusLost = [this, &textEditor, textEditedCallback] () { textEditedCallback (textEditor.getText ()); };
-        textEditor.onReturnKey = [this, &textEditor, textEditedCallback] () { textEditedCallback (textEditor.getText ()); };
+        textEditor.onFocusLost = [this, &textEditor, doneEditingCallback] () { doneEditingCallback (textEditor.getText ()); };
+        textEditor.onReturnKey = [this, &textEditor, doneEditingCallback] () { doneEditingCallback (textEditor.getText ()); };
+        if (validateCallback != nullptr)
+            textEditor.onTextChange = [this, validateCallback] () { validateCallback (); };
         addAndMakeVisible (textEditor);
     };
     auto setupCvInputComboBox = [this] (CvInputComboBox& cvInputComboBox, std::function<void ()> onChangeCallback)
@@ -101,55 +105,47 @@ void ChannelEditor::setupChannelComponents ()
     };
     // column one
     // PITCH
-    auto checkAndFormatDouble = [this] (juce::TextEditor& widthEditor, double minValue, double maxValue, int decimalPlaces, bool includeSign)
-    {
-        auto doubleValue { widthEditor.getText ().getDoubleValue () };
-        if (doubleValue < minValue)
-            doubleValue = minValue;
-        else if (doubleValue > maxValue)
-            doubleValue = maxValue;
-        juce::String signString;
-        if (includeSign)
-        {
-            if (doubleValue < 0.0)
-                signString = "-";
-            else
-                signString = "+";
-        }
-        widthEditor.setText (signString + juce::String (doubleValue, decimalPlaces));
-    };
-
     setupLabel (pitchLabel, "PITCH", 25.0f, juce::Justification::centredTop);
-    setupTextEditor (pitchTextEditor, juce::Justification::centred, [this] (juce::String text) { pitchUiChanged (text.getDoubleValue ()); });
+    setupTextEditor (pitchTextEditor, juce::Justification::centred, [this] ()
+    {
+        FormatHelpers::setColorIfError (pitchTextEditor, minChannelProperties.getPitch (), maxChannelProperties.getPitch ());
+    },
+    [this] (juce::String text)
+    {
+        text = FormatHelpers::checkAndFormatDouble (text.getDoubleValue (), minChannelProperties.getPitch (), maxChannelProperties.getPitch (), 2, true);
+        pitchTextEditor.setText (text);
+        pitchUiChanged (text.getDoubleValue ());
+
+    });
     setupLabel (pitchSemiLabel, "SEMI", 15.0f, juce::Justification::centredLeft);
     setupCvInputComboBox (pitchCVComboBox, [this] () { pitchCVUiChanged (pitchCVComboBox.getSelectedItemText (), pitchCVTextEditor.getText ().getDoubleValue ()); });
-    setupTextEditor (pitchCVTextEditor, juce::Justification::centred, [this] (juce::String text) { pitchCVUiChanged (pitchCVComboBox.getSelectedItemText (), text.getDoubleValue ()); });
+    setupTextEditor (pitchCVTextEditor, juce::Justification::centred, [] () {}, [this] (juce::String text) { pitchCVUiChanged (pitchCVComboBox.getSelectedItemText (), text.getDoubleValue ()); });
 
     // LINFM
     setupLabel (linFMLabel, "LINFM", 25.0f, juce::Justification::centredTop);
     setupCvInputComboBox (linFMComboBox, [this] () { linFMUiChanged (linFMComboBox.getSelectedItemText (), linFMTextEditor.getText ().getDoubleValue ()); });
-    setupTextEditor (linFMTextEditor, juce::Justification::centred, [this] (juce::String text) { linFMUiChanged (linFMComboBox.getSelectedItemText (), text.getDoubleValue ()); });
+    setupTextEditor (linFMTextEditor, juce::Justification::centred, [] () {}, [this] (juce::String text) { linFMUiChanged (linFMComboBox.getSelectedItemText (), text.getDoubleValue ()); });
 
     // EXPFM
     setupLabel (expFMLabel, "EXPFM", 25.0f, juce::Justification::centredTop);
     setupCvInputComboBox (expFMComboBox, [this] () { expFMUiChanged (expFMComboBox.getSelectedItemText (), expFMTextEditor.getText ().getDoubleValue ()); });
-    setupTextEditor (expFMTextEditor, juce::Justification::centred, [this] (juce::String text) { expFMUiChanged (expFMComboBox.getSelectedItemText (), text.getDoubleValue ()); });
+    setupTextEditor (expFMTextEditor, juce::Justification::centred, [] () {}, [this] (juce::String text) { expFMUiChanged (expFMComboBox.getSelectedItemText (), text.getDoubleValue ()); });
 
     // LEVEL
     setupLabel (levelLabel, "LEVEL", 25.0f, juce::Justification::centredTop);
-    setupTextEditor (levelTextEditor, juce::Justification::centred, [this] (juce::String text) { levelUiChanged (text.getDoubleValue ()); });
+    setupTextEditor (levelTextEditor, juce::Justification::centred, [] () {}, [this] (juce::String text) { levelUiChanged (text.getDoubleValue ()); });
     setupLabel (levelDbLabel, "dB", 15.0f, juce::Justification::centredLeft);
 
     // LINAM
     setupLabel (linAMLabel, "LINAM", 25.0f, juce::Justification::centredTop);
     setupCvInputComboBox (linAMComboBox, [this] () { linAMUiChanged (linAMComboBox.getSelectedItemText (), linAMTextEditor.getText ().getDoubleValue ()); });
-    setupTextEditor (linAMTextEditor, juce::Justification::centred, [this] (juce::String text) { linAMUiChanged (linAMComboBox.getSelectedItemText (), text.getDoubleValue ()); });
+    setupTextEditor (linAMTextEditor, juce::Justification::centred, [] () {}, [this] (juce::String text) { linAMUiChanged (linAMComboBox.getSelectedItemText (), text.getDoubleValue ()); });
     setupButton (linAMisExtEnvButton, "EXT", [this] () { linAMisExtEnvUiChanged (linAMisExtEnvButton.getToggleState ()); });
 
     // EXPAM
     setupLabel (expAMLabel, "EXPAM", 25.0f, juce::Justification::centredTop);
     setupCvInputComboBox (expAMComboBox, [this] () { expAMUiChanged (expAMComboBox.getSelectedItemText (), expAMTextEditor.getText ().getDoubleValue ()); });
-    setupTextEditor (expAMTextEditor, juce::Justification::centred, [this] (juce::String text) { expAMUiChanged (expAMComboBox.getSelectedItemText (), text.getDoubleValue ()); });
+    setupTextEditor (expAMTextEditor, juce::Justification::centred, [] () {}, [this] (juce::String text) { expAMUiChanged (expAMComboBox.getSelectedItemText (), text.getDoubleValue ()); });
 
     // column two
     // PHASE MOD SOURCE
@@ -167,39 +163,39 @@ void ChannelEditor::setupChannelComponents ()
     setupCvInputComboBox (phaseCVComboBox, [this] () { phaseCVUiChanged (phaseCVComboBox.getSelectedItemText (), phaseCVTextEditor.getText ().getDoubleValue ()); });
 
     // PHASE MOD INDEX
-    setupTextEditor (phaseCVTextEditor, juce::Justification::centred, [this] (juce::String text) { phaseCVUiChanged (phaseCVComboBox.getSelectedItemText (), text.getDoubleValue ()); });
+    setupTextEditor (phaseCVTextEditor, juce::Justification::centred, [] () {}, [this] (juce::String text) { phaseCVUiChanged (phaseCVComboBox.getSelectedItemText (), text.getDoubleValue ()); });
     setupLabel (pMIndexLabel, "PHASE MOD", 25.0f, juce::Justification::centredTop);
-    setupTextEditor (pMIndexTextEditor, juce::Justification::centred, [this] (juce::String text) { pMIndexUiChanged (text.getDoubleValue ()); });
+    setupTextEditor (pMIndexTextEditor, juce::Justification::centred, [] () {}, [this] (juce::String text) { pMIndexUiChanged (text.getDoubleValue ()); });
     setupLabel (pMIndexModLabel, "INDEX", 15.0f, juce::Justification::centredLeft);
     setupCvInputComboBox (pMIndexModComboBox, [this] () { pMIndexModUiChanged (pMIndexModComboBox.getSelectedItemText (), pMIndexModTextEditor.getText ().getDoubleValue ()); });
-    setupTextEditor (pMIndexModTextEditor, juce::Justification::centred, [this] (juce::String text) { pMIndexModUiChanged (pMIndexModComboBox.getSelectedItemText (), text.getDoubleValue ()); });
+    setupTextEditor (pMIndexModTextEditor, juce::Justification::centred, [] () {}, [this] (juce::String text) { pMIndexModUiChanged (pMIndexModComboBox.getSelectedItemText (), text.getDoubleValue ()); });
 
    // PAN/MIX
     setupLabel (panMixLabel, "PAN/MIX", 25.0f, juce::Justification::centredTop);
-    setupTextEditor (panTextEditor, juce::Justification::centred, [this] (juce::String text) { panUiChanged (text.getDoubleValue ()); });
+    setupTextEditor (panTextEditor, juce::Justification::centred, [] () {}, [this] (juce::String text) { panUiChanged (text.getDoubleValue ()); });
     setupLabel (panLabel, "PAN", 15.0f, juce::Justification::centredLeft);
     setupCvInputComboBox (panModComboBox, [this] () { panModUiChanged (panModComboBox.getSelectedItemText (), panModTextEditor.getText ().getDoubleValue ()); });
-    setupTextEditor (panModTextEditor, juce::Justification::centred, [this] (juce::String text) { panModUiChanged (panModComboBox.getSelectedItemText (), text.getDoubleValue ()); });
-    setupTextEditor (mixLevelTextEditor, juce::Justification::centred, [this] (juce::String text) { mixLevelUiChanged (text.getDoubleValue ()); });
+    setupTextEditor (panModTextEditor, juce::Justification::centred, [] () {}, [this] (juce::String text) { panModUiChanged (panModComboBox.getSelectedItemText (), text.getDoubleValue ()); });
+    setupTextEditor (mixLevelTextEditor, juce::Justification::centred, [] () {}, [this] (juce::String text) { mixLevelUiChanged (text.getDoubleValue ()); });
     setupLabel (mixLevelLabel, "MIX", 15.0f, juce::Justification::centredLeft);
     setupCvInputComboBox (mixModComboBox, [this] () { mixModUiChanged (mixModComboBox.getSelectedItemText (), mixModTextEditor.getText ().getDoubleValue ()); });
-    setupTextEditor (mixModTextEditor, juce::Justification::centred, [this] (juce::String text) { mixModUiChanged (panModComboBox.getSelectedItemText (), text.getDoubleValue ()); });
+    setupTextEditor (mixModTextEditor, juce::Justification::centred, [] () {}, [this] (juce::String text) { mixModUiChanged (panModComboBox.getSelectedItemText (), text.getDoubleValue ()); });
     setupButton (mixModIsFaderButton, "FADER", [this] () { mixModIsFaderUiChanged (mixModIsFaderButton.getToggleState ()); });
 
     // column three
     setupLabel (mutateLabel, "MUTATE", 25.0f, juce::Justification::centredTop);
 
     // BITS
-    setupTextEditor (bitsTextEditor, juce::Justification::centred, [this] (juce::String text) { bitsUiChanged (text.getDoubleValue ()); });
+    setupTextEditor (bitsTextEditor, juce::Justification::centred, [] () {}, [this] (juce::String text) { bitsUiChanged (text.getDoubleValue ()); });
     setupLabel (bitsLabel, "BITS", 15.0f, juce::Justification::centredLeft);
     setupCvInputComboBox (bitsModComboBox, [this] () { bitsModUiChanged (bitsModComboBox.getSelectedItemText (), bitsModTextEditor.getText ().getDoubleValue ()); });
-    setupTextEditor (bitsModTextEditor, juce::Justification::centred, [this] (juce::String text) { bitsModUiChanged (bitsModComboBox.getSelectedItemText (), text.getDoubleValue ()); });
+    setupTextEditor (bitsModTextEditor, juce::Justification::centred, [] () {}, [] () {}, [this] (juce::String text) { bitsModUiChanged (bitsModComboBox.getSelectedItemText (), text.getDoubleValue ()); });
 
     // ALIASING
-    setupTextEditor (aliasingTextEditor, juce::Justification::centred, [this] (juce::String text) { aliasingUiChanged (text.getIntValue ()); });
+    setupTextEditor (aliasingTextEditor, juce::Justification::centred, [] () {}, [this] (juce::String text) { aliasingUiChanged (text.getIntValue ()); });
     setupLabel (aliasingLabel, "ALIAS", 15.0f, juce::Justification::centredLeft);
     setupCvInputComboBox (aliasingModComboBox, [this] () { aliasingModUiChanged (aliasingModComboBox.getSelectedItemText (), aliasingModTextEditor.getText ().getDoubleValue ()); });
-    setupTextEditor (aliasingModTextEditor, juce::Justification::centred, [this] (juce::String text) { aliasingModUiChanged (aliasingModComboBox.getSelectedItemText (), text.getDoubleValue ()); });
+    setupTextEditor (aliasingModTextEditor, juce::Justification::centred, [] () {}, [this] (juce::String text) { aliasingModUiChanged (aliasingModComboBox.getSelectedItemText (), text.getDoubleValue ()); });
 
     // REVERSE/SMOOTH
     setupButton (reverseButton, "REV", [this] () { reverseUiChanged (reverseButton.getToggleState ()); });
@@ -208,16 +204,16 @@ void ChannelEditor::setupChannelComponents ()
     // ENVELOPE
     setupLabel (envelopeLabel, "ENVELOPE", 25.0f, juce::Justification::centredTop);
     // ATTACK
-    setupTextEditor (attackTextEditor, juce::Justification::centred, [this] (juce::String text) { attackUiChanged (text.getDoubleValue ()); });
+    setupTextEditor (attackTextEditor, juce::Justification::centred, [] () {}, [this] (juce::String text) { attackUiChanged (text.getDoubleValue ()); });
     setupLabel (attackLabel, "ATTACK", 15.0f, juce::Justification::centredLeft);
     setupCvInputComboBox (attackModComboBox, [this] () { attackModUiChanged (attackModComboBox.getSelectedItemText (), attackModTextEditor.getText ().getDoubleValue ()); });
-    setupTextEditor (attackModTextEditor, juce::Justification::centred, [this] (juce::String text) { attackModUiChanged (attackModComboBox.getSelectedItemText (), text.getDoubleValue ()); });
+    setupTextEditor (attackModTextEditor, juce::Justification::centred, [] () {}, [this] (juce::String text) { attackModUiChanged (attackModComboBox.getSelectedItemText (), text.getDoubleValue ()); });
     setupButton (attackFromCurrentButton, "CURRENT", [this] () { attackFromCurrentUiChanged (attackFromCurrentButton.getToggleState ()); });
     // RELEASE
-    setupTextEditor (releaseTextEditor, juce::Justification::centred, [this] (juce::String text) { releaseUiChanged (text.getDoubleValue ()); });
+    setupTextEditor (releaseTextEditor, juce::Justification::centred, [] () {}, [this] (juce::String text) { releaseUiChanged (text.getDoubleValue ()); });
     setupLabel (releaseLabel, "RELEASE", 15.0f, juce::Justification::centredLeft);
     setupCvInputComboBox (releaseModComboBox, [this] () { releaseModUiChanged (releaseModComboBox.getSelectedItemText (), releaseModTextEditor.getText ().getDoubleValue ()); });
-    setupTextEditor (releaseModTextEditor, juce::Justification::centred, [this] (juce::String text) { releaseModUiChanged (releaseModComboBox.getSelectedItemText (), text.getDoubleValue ()); });
+    setupTextEditor (releaseModTextEditor, juce::Justification::centred, [] () {}, [this] (juce::String text) { releaseModUiChanged (releaseModComboBox.getSelectedItemText (), text.getDoubleValue ()); });
 
     // PLAY MODE
     setupLabel (playModeLabel, "PLAY", 15.0f, juce::Justification::centred);
@@ -245,16 +241,16 @@ void ChannelEditor::setupChannelComponents ()
     setupComboBox (channelModeComboBox, [this] () { channelModeUiChanged (channelModeComboBox.getSelectedId () - 1); });
     setupLabel (loopStartModLabel, "LOOP START", 15.0f, juce::Justification::centred);
     setupCvInputComboBox (loopStartModComboBox, [this] () { loopStartModUiChanged (loopStartModComboBox.getSelectedItemText (), loopStartModTextEditor.getText ().getDoubleValue ()); });
-    setupTextEditor (loopStartModTextEditor, juce::Justification::centred, [this] (juce::String text) { loopStartModUiChanged (loopStartModComboBox.getSelectedItemText (), text.getDoubleValue ()); });
+    setupTextEditor (loopStartModTextEditor, juce::Justification::centred, [] () {}, [this] (juce::String text) { loopStartModUiChanged (loopStartModComboBox.getSelectedItemText (), text.getDoubleValue ()); });
     setupLabel (loopLengthModLabel, "LOOP LENGTH", 15.0f, juce::Justification::centred);
     setupCvInputComboBox (loopLengthModComboBox, [this] () { loopLengthModUiChanged (loopLengthModComboBox.getSelectedItemText (), loopLengthModTextEditor.getText ().getDoubleValue ()); });
-    setupTextEditor (loopLengthModTextEditor, juce::Justification::centred, [this] (juce::String text) { loopLengthModUiChanged (loopLengthModComboBox.getSelectedItemText (), text.getDoubleValue ()); });
+    setupTextEditor (loopLengthModTextEditor, juce::Justification::centred, [] () {}, [this] (juce::String text) { loopLengthModUiChanged (loopLengthModComboBox.getSelectedItemText (), text.getDoubleValue ()); });
     setupLabel (sampleStartModLabel, "SAMPLE START", 15.0f, juce::Justification::centred);
     setupCvInputComboBox (sampleStartModComboBox, [this] () { sampleStartModUiChanged (sampleStartModComboBox.getSelectedItemText (), sampleStartModTextEditor.getText ().getDoubleValue ()); });
-    setupTextEditor (sampleStartModTextEditor, juce::Justification::centred, [this] (juce::String text) { sampleStartModUiChanged (sampleStartModComboBox.getSelectedItemText (), text.getDoubleValue ()); });
+    setupTextEditor (sampleStartModTextEditor, juce::Justification::centred, [] () {}, [this] (juce::String text) { sampleStartModUiChanged (sampleStartModComboBox.getSelectedItemText (), text.getDoubleValue ()); });
     setupLabel (sampleEndModLabel, "SAMPLE END", 15.0f, juce::Justification::centred);
     setupCvInputComboBox (sampleEndModComboBox, [this] () { sampleEndModUiChanged (sampleEndModComboBox.getSelectedItemText (), sampleEndModTextEditor.getText ().getDoubleValue ()); });
-    setupTextEditor (sampleEndModTextEditor, juce::Justification::centred, [this] (juce::String text) { sampleEndModUiChanged (sampleEndModComboBox.getSelectedItemText (), text.getDoubleValue ()); });
+    setupTextEditor (sampleEndModTextEditor, juce::Justification::centred, [] () {}, [this] (juce::String text) { sampleEndModUiChanged (sampleEndModComboBox.getSelectedItemText (), text.getDoubleValue ()); });
     setupLabel (xfadeGroupLabel, "CROSSFADE", 15.0f, juce::Justification::centred);
     xfadeGroupComboBox.addItem ("None", 1); // Off, A, B, C, D
     xfadeGroupComboBox.addItem ("A", 2);
