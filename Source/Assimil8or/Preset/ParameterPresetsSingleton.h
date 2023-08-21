@@ -4,7 +4,7 @@
 
 #include "ParameterPresetListProperties.h"
 
-class ParameterPresetsSingleton
+class ParameterPresetsSingleton : private juce::DeletedAtShutdown
 {
 public:
     ParameterPresetsSingleton ()
