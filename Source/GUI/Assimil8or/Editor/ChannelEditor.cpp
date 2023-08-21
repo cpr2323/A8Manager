@@ -115,11 +115,23 @@ void ChannelEditor::setupChannelComponents ()
         text = FormatHelpers::checkAndFormatDouble (text.getDoubleValue (), minChannelProperties.getPitch (), maxChannelProperties.getPitch (), 2, true);
         pitchTextEditor.setText (text);
         pitchUiChanged (text.getDoubleValue ());
-
     });
     setupLabel (pitchSemiLabel, "SEMI", 15.0f, juce::Justification::centredLeft);
     setupCvInputComboBox (pitchCVComboBox, [this] () { pitchCVUiChanged (pitchCVComboBox.getSelectedItemText (), pitchCVTextEditor.getText ().getDoubleValue ()); });
-    setupTextEditor (pitchCVTextEditor, juce::Justification::centred, [] () {}, [this] (juce::String text) { pitchCVUiChanged (pitchCVComboBox.getSelectedItemText (), text.getDoubleValue ()); });
+    setupTextEditor (pitchCVTextEditor, juce::Justification::centred, [this] ()
+    {
+        auto [x, minCv] {minChannelProperties.getPitchCV ()};
+        auto [y, maxCv] {maxChannelProperties.getPitchCV ()};
+        FormatHelpers::setColorIfError (pitchCVTextEditor, minCv, maxCv);
+    },
+    [this] (juce::String text)
+    {
+        auto [x, minCv] {minChannelProperties.getPitchCV ()};
+        auto [y, maxCv] {maxChannelProperties.getPitchCV ()};
+        text = FormatHelpers::checkAndFormatDouble (text.getDoubleValue (), minCv, maxCv, 2, true);
+        pitchCVTextEditor.setText (text);
+        pitchCVUiChanged (pitchCVComboBox.getSelectedItemText (), text.getDoubleValue ());
+    });
 
     // LINFM
     setupLabel (linFMLabel, "LINFM", 25.0f, juce::Justification::centredTop);
@@ -189,7 +201,7 @@ void ChannelEditor::setupChannelComponents ()
     setupTextEditor (bitsTextEditor, juce::Justification::centred, [] () {}, [this] (juce::String text) { bitsUiChanged (text.getDoubleValue ()); });
     setupLabel (bitsLabel, "BITS", 15.0f, juce::Justification::centredLeft);
     setupCvInputComboBox (bitsModComboBox, [this] () { bitsModUiChanged (bitsModComboBox.getSelectedItemText (), bitsModTextEditor.getText ().getDoubleValue ()); });
-    setupTextEditor (bitsModTextEditor, juce::Justification::centred, [] () {}, [] () {}, [this] (juce::String text) { bitsModUiChanged (bitsModComboBox.getSelectedItemText (), text.getDoubleValue ()); });
+    setupTextEditor (bitsModTextEditor, juce::Justification::centred, [] () {},  [this] (juce::String text) { bitsModUiChanged (bitsModComboBox.getSelectedItemText (), text.getDoubleValue ()); });
 
     // ALIASING
     setupTextEditor (aliasingTextEditor, juce::Justification::centred, [] () {}, [this] (juce::String text) { aliasingUiChanged (text.getIntValue ()); });
