@@ -89,23 +89,38 @@ void Assimil8orEditorComponent::setupPresetComponents ()
         addAndMakeVisible (xfadeGroup.xfadeCvComboBox);
 
         // xfade group width
+        //      1 decimal place when above 1.0, 0.1 increment
+        //      2 decimal places below 1.0, 0.01 increment
+        //      10.V
+        //      9.0V
+        //      .99V
         xfadeGroup.xfadeWidthLabel.setBorderSize ({ 0, 0, 0, 0 });
         xfadeGroup.xfadeWidthLabel.setText ("Width", juce::NotificationType::dontSendNotification);
         addAndMakeVisible (xfadeGroup.xfadeWidthLabel);
         xfadeGroup.xfadeWidthEditor.setJustification (juce::Justification::centred);
         xfadeGroup.xfadeWidthEditor.setIndents (0, 0);
         xfadeGroup.xfadeWidthEditor.setInputRestrictions (0, ".0123456789");
-        xfadeGroup.xfadeWidthEditor.onFocusLost = [this, xfadeGroupIndex] ()
+        auto xFadeGroupEditDone = [this] (int xfadeGroupIndex)
         {
             auto& widthEditor { xfadeGroups [xfadeGroupIndex].xfadeWidthEditor };
-            widthEditor.setText (FormatHelpers::checkAndFormatDouble (widthEditor.getText ().getDoubleValue (), minPresetProperties.getXfadeAWidth (), maxPresetProperties.getXfadeAWidth (), 2, false));
+            const auto value { widthEditor.getText ().getDoubleValue () };
+            const auto numDecimals { value >= 1.0 ? 1 : 2 };
+            auto newText { FormatHelpers::checkAndFormat (widthEditor.getText ().getDoubleValue (), minPresetProperties.getXfadeAWidth (), maxPresetProperties.getXfadeAWidth (), numDecimals, false) };
+            if (value == 10)
+                newText = newText.trimCharactersAtEnd ("0");
+            else if (value < 1.0)
+                newText = newText.trimCharactersAtStart ("0");
+            newText += "V";
+            widthEditor.setText (newText);
             xfadeWidthUiChanged (xfadeGroupIndex, widthEditor.getText ());
         };
-        xfadeGroup.xfadeWidthEditor.onReturnKey = [this, xfadeGroupIndex] ()
+        xfadeGroup.xfadeWidthEditor.onFocusLost = [this, xfadeGroupIndex, xFadeGroupEditDone] ()
         {
-            auto& widthEditor { xfadeGroups [xfadeGroupIndex].xfadeWidthEditor };
-            widthEditor.setText (FormatHelpers::checkAndFormatDouble (widthEditor.getText ().getDoubleValue (), minPresetProperties.getXfadeAWidth (), maxPresetProperties.getXfadeAWidth (), 2, false));
-            xfadeWidthUiChanged (xfadeGroupIndex, widthEditor.getText ());
+            xFadeGroupEditDone (xfadeGroupIndex);
+        };
+        xfadeGroup.xfadeWidthEditor.onReturnKey = [this, xfadeGroupIndex, xFadeGroupEditDone] ()
+        {
+            xFadeGroupEditDone (xfadeGroupIndex);
         };
         xfadeGroup.xfadeWidthEditor.onTextChange = [this, xfadeGroupIndex] ()
         {

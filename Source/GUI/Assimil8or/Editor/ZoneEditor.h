@@ -13,6 +13,8 @@ public:
 
 private:
     ZoneProperties zoneProperties;
+    ZoneProperties minZoneProperties;
+    ZoneProperties maxZoneProperties;
 
     juce::Label levelOffsetLabel;
     juce::TextEditor levelOffsetTextEditor; // double
@@ -31,6 +33,7 @@ private:
     juce::Label sideLabel;
     juce::TextButton sideButton; // ?
 
+    void setupChannelComponents ();
     void setupZonePropertiesCallbacks ();
 
     void levelOffsetDataChanged (double levelOffset);

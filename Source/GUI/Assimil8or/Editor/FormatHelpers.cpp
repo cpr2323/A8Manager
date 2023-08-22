@@ -2,7 +2,7 @@
 
 namespace FormatHelpers
 {
-    juce::String checkAndFormatDouble (double value, double minValue, double maxValue, int decimalPlaces, bool includeSign)
+    juce::String checkAndFormat (double value, double minValue, double maxValue, int decimalPlaces, bool includeSign)
     {
         if (value < minValue)
             value = minValue;
@@ -18,6 +18,24 @@ namespace FormatHelpers
     {
         const auto doubleValue { textEditor.getText ().getDoubleValue () };
         if (doubleValue >= minValue && doubleValue <= maxValue)
+            textEditor.applyColourToAllText (juce::Colours::white, true);
+        else
+            textEditor.applyColourToAllText (juce::Colours::red, true);
+    };
+
+    juce::String checkAndFormat (int value, int minValue, int maxValue)
+    {
+        if (value < minValue)
+            value = minValue;
+        else if (value > maxValue)
+            value = maxValue;
+        return juce::String (value);
+    };
+
+    void setColorIfError (juce::TextEditor& textEditor, int minValue, int maxValue)
+    {
+        const auto intValue { textEditor.getText ().getIntValue () };
+        if (intValue >= minValue && intValue <= maxValue)
             textEditor.applyColourToAllText (juce::Colours::white, true);
         else
             textEditor.applyColourToAllText (juce::Colours::red, true);

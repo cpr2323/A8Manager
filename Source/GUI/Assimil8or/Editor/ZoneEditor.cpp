@@ -1,6 +1,28 @@
 #include "ZoneEditor.h"
+#include "FormatHelpers.h"
+#include "../../../Assimil8or/Preset/ChannelProperties.h"
+#include "../../../Assimil8or/Preset/PresetProperties.h"
+#include "../../../Assimil8or/Preset/ParameterPresetsSingleton.h"
 
 ZoneEditor::ZoneEditor ()
+{
+    {
+        PresetProperties minPresetProperties (ParameterPresetsSingleton::getInstance ()->getParameterPresetListProperties ().getParameterPreset (ParameterPresetListProperties::MinParameterPresetType),
+                                              PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
+        ChannelProperties minChannelProperties (minPresetProperties.getChannelVT (0), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
+        minZoneProperties.wrap(minChannelProperties.getZoneVT (0), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
+    }
+    {
+        PresetProperties maxPresetProperties (ParameterPresetsSingleton::getInstance ()->getParameterPresetListProperties ().getParameterPreset (ParameterPresetListProperties::MaxParameterPresetType),
+                                              PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
+        ChannelProperties maxChannelProperties (maxPresetProperties.getChannelVT (0), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
+        maxZoneProperties.wrap (maxChannelProperties.getZoneVT (0), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
+    }
+
+    setupChannelComponents ();
+}
+
+void ZoneEditor::setupChannelComponents ()
 {
     auto setupLabel = [this] (juce::Label& label, juce::String text, float fontSize, juce::Justification justification)
     {
@@ -12,13 +34,16 @@ ZoneEditor::ZoneEditor ()
         label.setText (text, juce::NotificationType::dontSendNotification);
         addAndMakeVisible (label);
     };
-    auto setupTextEditor = [this] (juce::TextEditor& textEditor, juce::Justification justification, std::function<void (juce::String)> textEditedCallback)
+    auto setupTextEditor = [this] (juce::TextEditor& textEditor, juce::Justification justification, std::function<void ()> validateCallback,
+                                   std::function<void (juce::String)> doneEditingCallback)
     {
-        jassert (textEditedCallback != nullptr);
+        jassert (doneEditingCallback != nullptr);
         textEditor.setJustification (justification);
         textEditor.setIndents (1, 0);
-        textEditor.onFocusLost = [this, &textEditor, textEditedCallback] () { textEditedCallback (textEditor.getText ()); };
-        textEditor.onReturnKey = [this, &textEditor, textEditedCallback] () { textEditedCallback (textEditor.getText ()); };
+        textEditor.onFocusLost = [this, &textEditor, doneEditingCallback] () { doneEditingCallback (textEditor.getText ()); };
+        textEditor.onReturnKey = [this, &textEditor, doneEditingCallback] () { doneEditingCallback (textEditor.getText ()); };
+        if (validateCallback != nullptr)
+            textEditor.onTextChange = [this, validateCallback] () { validateCallback (); };
         addAndMakeVisible (textEditor);
     };
     auto setupButton = [this] (juce::TextButton& textButton, juce::String text, std::function<void ()> onClickCallback)
@@ -30,19 +55,89 @@ ZoneEditor::ZoneEditor ()
         addAndMakeVisible (textButton);
     };
     setupLabel (sampleStartNameLabel, "FILE", 15.0, juce::Justification::centredLeft);
-    setupTextEditor (sampleTextEditor, juce::Justification::centredLeft, [this] (juce::String text) { sampleUiChanged (text); });
+    setupTextEditor (sampleTextEditor, juce::Justification::centredLeft, [this] ()
+    {
+        // TODO - turn red if file does not exist
+    },
+    [this] (juce::String text)
+    {
+        sampleUiChanged (text);
+    });
     setupLabel (sampleBoundsLabel, "SAMPLE START/END", 15.0, juce::Justification::centredLeft);
-    setupTextEditor (sampleStartTextEditor, juce::Justification::centred, [this] (juce::String text) { sampleStartUiChanged (text.getIntValue ()); });
-    setupTextEditor (sampleEndTextEditor, juce::Justification::centred, [this] (juce::String text) { sampleEndUiChanged (text.getIntValue ()); });
+    setupTextEditor (sampleStartTextEditor, juce::Justification::centred, [this] ()
+    {
+        FormatHelpers::setColorIfError (sampleStartTextEditor, minZoneProperties.getSampleStart (), maxZoneProperties.getSampleStart ());
+    },
+    [this] (juce::String text)
+    {
+        const auto checkedAndFormattedText { FormatHelpers::checkAndFormat (text.getIntValue (), minZoneProperties.getSampleStart (), maxZoneProperties.getSampleStart ()) };
+        sampleStartTextEditor.setText (checkedAndFormattedText);
+        sampleStartUiChanged (checkedAndFormattedText.getIntValue ());
+    });
+    setupTextEditor (sampleEndTextEditor, juce::Justification::centred, [this] ()
+    {
+        FormatHelpers::setColorIfError (sampleEndTextEditor, minZoneProperties.getSampleEnd (), maxZoneProperties.getSampleEnd ());
+    },
+    [this] (juce::String text)
+    {
+        const auto checkedAndFormattedText { FormatHelpers::checkAndFormat (text.getIntValue (), minZoneProperties.getSampleEnd (), maxZoneProperties.getSampleEnd ()) };
+        sampleEndTextEditor.setText (checkedAndFormattedText);
+        sampleEndUiChanged (checkedAndFormattedText.getIntValue ());
+    });
     setupLabel (loopBoundsLabel, "LOOP START/LENGTH", 15.0, juce::Justification::centredLeft);
-    setupTextEditor (loopStartTextEditor, juce::Justification::centred, [this] (juce::String text) { loopStartUiChanged (text.getIntValue ()); });
-    setupTextEditor (loopLengthTextEditor, juce::Justification::centred, [this] (juce::String text) { loopLengthUiChanged (text.getDoubleValue ()); });
+    setupTextEditor (loopStartTextEditor, juce::Justification::centred, [this] ()
+    {
+        FormatHelpers::setColorIfError (loopStartTextEditor, minZoneProperties.getLoopStart (), maxZoneProperties.getLoopStart ());
+    },
+    [this] (juce::String text)
+    {
+        const auto checkedAndFormattedText { FormatHelpers::checkAndFormat (text.getIntValue (), minZoneProperties.getLoopStart (), maxZoneProperties.getLoopStart ()) };
+        loopStartTextEditor.setText (checkedAndFormattedText);
+        loopStartUiChanged (checkedAndFormattedText.getIntValue ());
+    });
+    setupTextEditor (loopLengthTextEditor, juce::Justification::centred, [this] ()
+    {
+        FormatHelpers::setColorIfError (loopLengthTextEditor, minZoneProperties.getLoopLength (), maxZoneProperties.getLoopLength ());
+    },
+    [this] (juce::String text)
+    {
+        const auto checkedAndFormattedText { FormatHelpers::checkAndFormat (text.getDoubleValue (), minZoneProperties.getLoopLength (), maxZoneProperties.getLoopLength (), 3, false) };
+        loopLengthTextEditor.setText (checkedAndFormattedText);
+        loopLengthUiChanged (checkedAndFormattedText.getDoubleValue ());
+    });
     setupLabel (minVoltageLabel, "MIN VOLTAGE", 15.0, juce::Justification::centredLeft);
-    setupTextEditor (minVoltageTextEditor, juce::Justification::centred, [this] (juce::String text) { minVoltageUiChanged (text.getDoubleValue ()); });
+    setupTextEditor (minVoltageTextEditor, juce::Justification::centred, [this] ()
+    {
+        FormatHelpers::setColorIfError (minVoltageTextEditor, minZoneProperties.getMinVoltage (), maxZoneProperties.getMinVoltage ());
+    },
+    [this] (juce::String text)
+    {
+        const auto checkedAndFormattedText { FormatHelpers::checkAndFormat (text.getDoubleValue (), minZoneProperties.getMinVoltage (), maxZoneProperties.getMinVoltage (), 2, true) };
+        minVoltageTextEditor.setText (checkedAndFormattedText);
+        minVoltageUiChanged (checkedAndFormattedText.getDoubleValue ());
+    });
     setupLabel (levelOffsetLabel, "LEVEL OFFSET", 15.0, juce::Justification::centredLeft);
-    setupTextEditor (levelOffsetTextEditor, juce::Justification::centred, [this] (juce::String text) { levelOffsetUiChanged (text.getDoubleValue ()); });
+    setupTextEditor (levelOffsetTextEditor, juce::Justification::centred, [this] ()
+    {
+        FormatHelpers::setColorIfError (levelOffsetTextEditor, minZoneProperties.getLevelOffset (), maxZoneProperties.getLevelOffset ());
+    },
+    [this] (juce::String text)
+    {
+        const auto checkedAndFormattedText { FormatHelpers::checkAndFormat (text.getDoubleValue (), minZoneProperties.getLevelOffset (), maxZoneProperties.getLevelOffset (), 1, true) };
+        levelOffsetTextEditor.setText (checkedAndFormattedText);
+        levelOffsetUiChanged (checkedAndFormattedText.getDoubleValue ());
+    });
     setupLabel (pitchOffsetLabel, "PITCH OFFSET", 15.0, juce::Justification::centredLeft);
-    setupTextEditor (pitchOffsetTextEditor, juce::Justification::centred, [this] (juce::String text) { pitchOffsetUiChanged (text.getDoubleValue ()); });
+    setupTextEditor (pitchOffsetTextEditor, juce::Justification::centred, [this] ()
+    {
+        FormatHelpers::setColorIfError (pitchOffsetTextEditor, minZoneProperties.getPitchOffset (), maxZoneProperties.getPitchOffset ());
+    },
+    [this] (juce::String text)
+    {
+        const auto checkedAndFormattedText { FormatHelpers::checkAndFormat (text.getDoubleValue (), minZoneProperties.getPitchOffset (), maxZoneProperties.getPitchOffset (), 2, true) };
+        pitchOffsetTextEditor.setText (checkedAndFormattedText);
+        pitchOffsetUiChanged (checkedAndFormattedText.getDoubleValue ());
+    });
     setupLabel (sideLabel, "SIDE", 15.0, juce::Justification::centredLeft);
     setupButton (sideButton, "x", [this] () { sideUiChanged (sideButton.getToggleState ()); });
 }
