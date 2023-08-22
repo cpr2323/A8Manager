@@ -70,7 +70,7 @@ void ZoneEditor::setupChannelComponents ()
     },
     [this] (juce::String text)
     {
-        const auto checkedAndFormattedText { FormatHelpers::checkAndFormat (text.getIntValue (), minZoneProperties.getSampleStart (), maxZoneProperties.getSampleStart ()) };
+        const auto checkedAndFormattedText { FormatHelpers::constrainAndFormat (text.getIntValue (), minZoneProperties.getSampleStart (), maxZoneProperties.getSampleStart ()) };
         sampleStartTextEditor.setText (checkedAndFormattedText);
         sampleStartUiChanged (checkedAndFormattedText.getIntValue ());
     });
@@ -80,7 +80,7 @@ void ZoneEditor::setupChannelComponents ()
     },
     [this] (juce::String text)
     {
-        const auto checkedAndFormattedText { FormatHelpers::checkAndFormat (text.getIntValue (), minZoneProperties.getSampleEnd (), maxZoneProperties.getSampleEnd ()) };
+        const auto checkedAndFormattedText { FormatHelpers::constrainAndFormat (text.getIntValue (), minZoneProperties.getSampleEnd (), maxZoneProperties.getSampleEnd ()) };
         sampleEndTextEditor.setText (checkedAndFormattedText);
         sampleEndUiChanged (checkedAndFormattedText.getIntValue ());
     });
@@ -91,7 +91,7 @@ void ZoneEditor::setupChannelComponents ()
     },
     [this] (juce::String text)
     {
-        const auto checkedAndFormattedText { FormatHelpers::checkAndFormat (text.getIntValue (), minZoneProperties.getLoopStart (), maxZoneProperties.getLoopStart ()) };
+        const auto checkedAndFormattedText { FormatHelpers::constrainAndFormat (text.getIntValue (), minZoneProperties.getLoopStart (), maxZoneProperties.getLoopStart ()) };
         loopStartTextEditor.setText (checkedAndFormattedText);
         loopStartUiChanged (checkedAndFormattedText.getIntValue ());
     });
@@ -101,7 +101,7 @@ void ZoneEditor::setupChannelComponents ()
     },
     [this] (juce::String text)
     {
-        const auto checkedAndFormattedText { FormatHelpers::checkAndFormat (text.getDoubleValue (), minZoneProperties.getLoopLength (), maxZoneProperties.getLoopLength (), 3, false) };
+        const auto checkedAndFormattedText { FormatHelpers::constrainAndFormat (text.getDoubleValue (), minZoneProperties.getLoopLength (), maxZoneProperties.getLoopLength (), 3, false) };
         loopLengthTextEditor.setText (checkedAndFormattedText);
         loopLengthUiChanged (checkedAndFormattedText.getDoubleValue ());
     });
@@ -112,7 +112,7 @@ void ZoneEditor::setupChannelComponents ()
     },
     [this] (juce::String text)
     {
-        const auto checkedAndFormattedText { FormatHelpers::checkAndFormat (text.getDoubleValue (), minZoneProperties.getMinVoltage (), maxZoneProperties.getMinVoltage (), 2, true) };
+        const auto checkedAndFormattedText { FormatHelpers::constrainAndFormat (text.getDoubleValue (), minZoneProperties.getMinVoltage (), maxZoneProperties.getMinVoltage (), 2, true) };
         minVoltageTextEditor.setText (checkedAndFormattedText);
         minVoltageUiChanged (checkedAndFormattedText.getDoubleValue ());
     });
@@ -123,7 +123,7 @@ void ZoneEditor::setupChannelComponents ()
     },
     [this] (juce::String text)
     {
-        const auto checkedAndFormattedText { FormatHelpers::checkAndFormat (text.getDoubleValue (), minZoneProperties.getLevelOffset (), maxZoneProperties.getLevelOffset (), 1, true) };
+        const auto checkedAndFormattedText { FormatHelpers::constrainAndFormat (text.getDoubleValue (), minZoneProperties.getLevelOffset (), maxZoneProperties.getLevelOffset (), 1, true) };
         levelOffsetTextEditor.setText (checkedAndFormattedText);
         levelOffsetUiChanged (checkedAndFormattedText.getDoubleValue ());
     });
@@ -134,7 +134,7 @@ void ZoneEditor::setupChannelComponents ()
     },
     [this] (juce::String text)
     {
-        const auto checkedAndFormattedText { FormatHelpers::checkAndFormat (text.getDoubleValue (), minZoneProperties.getPitchOffset (), maxZoneProperties.getPitchOffset (), 2, true) };
+        const auto checkedAndFormattedText { FormatHelpers::constrainAndFormat (text.getDoubleValue (), minZoneProperties.getPitchOffset (), maxZoneProperties.getPitchOffset (), 2, true) };
         pitchOffsetTextEditor.setText (checkedAndFormattedText);
         pitchOffsetUiChanged (checkedAndFormattedText.getDoubleValue ());
     });

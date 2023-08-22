@@ -1,6 +1,7 @@
 #include "Assimil8orEditorComponent.h"
 #include "FormatHelpers.h"
 #include "../../../Assimil8or/Assimil8orPreset.h"
+#include "../../../Assimil8or/Preset/ParameterHelpers.h"
 #include "../../../Assimil8or/Preset/ParameterPresetsSingleton.h"
 #include "../../../Utility/RuntimeRootProperties.h"
 #include "../../../Utility/PersistentRootProperties.h"
@@ -55,7 +56,7 @@ void Assimil8orEditorComponent::setupPresetComponents ()
     nameEditor.setIndents (1, 0);
     nameEditor.onFocusLost = [this] () { nameUiChanged (nameEditor.getText ()); };
     nameEditor.onReturnKey = [this] () { nameUiChanged (nameEditor.getText ()); };
-    //nameEditor.setInputRestrictions (0, ".0123456789");
+    nameEditor.setInputRestrictions (12, ParameterHelpers::Preset::getNameInputChars());
     addAndMakeVisible (nameEditor);
 
     addAndMakeVisible (windowDecorator);
@@ -99,13 +100,13 @@ void Assimil8orEditorComponent::setupPresetComponents ()
         addAndMakeVisible (xfadeGroup.xfadeWidthLabel);
         xfadeGroup.xfadeWidthEditor.setJustification (juce::Justification::centred);
         xfadeGroup.xfadeWidthEditor.setIndents (0, 0);
-        xfadeGroup.xfadeWidthEditor.setInputRestrictions (0, ".0123456789");
+        xfadeGroup.xfadeWidthEditor.setInputRestrictions (0, ParameterHelpers::Preset::getXfadeWidthInputChars ());
         auto xFadeGroupEditDone = [this] (int xfadeGroupIndex)
         {
             auto& widthEditor { xfadeGroups [xfadeGroupIndex].xfadeWidthEditor };
             const auto value { widthEditor.getText ().getDoubleValue () };
             const auto numDecimals { value >= 1.0 ? 1 : 2 };
-            auto newText { FormatHelpers::checkAndFormat (widthEditor.getText ().getDoubleValue (), minPresetProperties.getXfadeAWidth (), maxPresetProperties.getXfadeAWidth (), numDecimals, false) };
+            auto newText { FormatHelpers::constrainAndFormat (value, minPresetProperties.getXfadeAWidth (), maxPresetProperties.getXfadeAWidth (), numDecimals, false) };
             if (value == 10)
                 newText = newText.trimCharactersAtEnd ("0");
             else if (value < 1.0)

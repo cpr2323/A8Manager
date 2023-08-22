@@ -114,7 +114,7 @@ void ChannelEditor::setupChannelComponents ()
     },
     [this] (juce::String text)
     {
-        const auto checkedAndFormattedText { FormatHelpers::checkAndFormat (text.getDoubleValue (), minChannelProperties.getPitch (), maxChannelProperties.getPitch (), 2, true) };
+        const auto checkedAndFormattedText { FormatHelpers::constrainAndFormat (text.getDoubleValue (), minChannelProperties.getPitch (), maxChannelProperties.getPitch (), 2, true) };
         pitchTextEditor.setText (checkedAndFormattedText);
         pitchUiChanged (checkedAndFormattedText.getDoubleValue ());
     });
@@ -127,7 +127,7 @@ void ChannelEditor::setupChannelComponents ()
     },
     [this] (juce::String text)
     {
-        const auto checkedAndFormattedText { FormatHelpers::checkAndFormat (text.getDoubleValue (),
+        const auto checkedAndFormattedText { FormatHelpers::constrainAndFormat (text.getDoubleValue (),
                                                                                   FormatHelpers::getAmount (minChannelProperties.getPitchCV ()),
                                                                                   FormatHelpers::getAmount (maxChannelProperties.getPitchCV ()), 2, true) };
         pitchCVTextEditor.setText (checkedAndFormattedText);
@@ -143,7 +143,7 @@ void ChannelEditor::setupChannelComponents ()
     }, 
     [this] (juce::String text)
     {
-        const auto checkedAndFormattedText { FormatHelpers::checkAndFormat (text.getDoubleValue (),
+        const auto checkedAndFormattedText { FormatHelpers::constrainAndFormat (text.getDoubleValue (),
                                                                                   FormatHelpers::getAmount (minChannelProperties.getLinFM ()),
                                                                                   FormatHelpers::getAmount (maxChannelProperties.getLinFM ()), 2, true) };
         linFMTextEditor.setText (checkedAndFormattedText);
@@ -159,7 +159,7 @@ void ChannelEditor::setupChannelComponents ()
     },
     [this] (juce::String text) 
     {
-        const auto checkedAndFormattedText { FormatHelpers::checkAndFormat (text.getDoubleValue (),
+        const auto checkedAndFormattedText { FormatHelpers::constrainAndFormat (text.getDoubleValue (),
                                                                                   FormatHelpers::getAmount (minChannelProperties.getExpFM ()),
                                                                                   FormatHelpers::getAmount (maxChannelProperties.getExpFM ()), 2, true) };
         expFMTextEditor.setText (checkedAndFormattedText);
@@ -174,7 +174,7 @@ void ChannelEditor::setupChannelComponents ()
     },
     [this] (juce::String text)
     {
-        const auto checkedAndFormattedText { FormatHelpers::checkAndFormat (text.getDoubleValue (),
+        const auto checkedAndFormattedText { FormatHelpers::constrainAndFormat (text.getDoubleValue (),
                                                                                   minChannelProperties.getLevel (),
                                                                                   maxChannelProperties.getLevel (), 1, false) };
         levelTextEditor.setText (checkedAndFormattedText);
@@ -191,7 +191,7 @@ void ChannelEditor::setupChannelComponents ()
     },
     [this] (juce::String text)
     {
-        const auto checkedAndFormattedText { FormatHelpers::checkAndFormat (text.getDoubleValue (),
+        const auto checkedAndFormattedText { FormatHelpers::constrainAndFormat (text.getDoubleValue (),
                                                                                   FormatHelpers::getAmount (minChannelProperties.getLinAM ()),
                                                                                   FormatHelpers::getAmount (maxChannelProperties.getLinAM ()), 2, true) };
         linAMTextEditor.setText (checkedAndFormattedText);
@@ -208,7 +208,7 @@ void ChannelEditor::setupChannelComponents ()
         },
     [this] (juce::String text)
     {
-        const auto checkedAndFormattedText { FormatHelpers::checkAndFormat (text.getDoubleValue (),
+        const auto checkedAndFormattedText { FormatHelpers::constrainAndFormat (text.getDoubleValue (),
                                                                                   FormatHelpers::getAmount (minChannelProperties.getExpAM ()),
                                                                                   FormatHelpers::getAmount (maxChannelProperties.getExpAM ()), 2, true) };
         expAMTextEditor.setText (checkedAndFormattedText);
@@ -236,7 +236,7 @@ void ChannelEditor::setupChannelComponents ()
     },
     [this] (juce::String text)
     {
-        const auto checkedAndFormattedText { FormatHelpers::checkAndFormat (text.getDoubleValue (),
+        const auto checkedAndFormattedText { FormatHelpers::constrainAndFormat (text.getDoubleValue (),
                                                                                     FormatHelpers::getAmount (minChannelProperties.getPhaseCV ()),
                                                                                     FormatHelpers::getAmount (maxChannelProperties.getPhaseCV ()), 2, false) };
         phaseCVTextEditor.setText (checkedAndFormattedText);
@@ -251,7 +251,7 @@ void ChannelEditor::setupChannelComponents ()
     },
     [this] (juce::String text)
     {
-        const auto checkedAndFormattedText { FormatHelpers::checkAndFormat (text.getDoubleValue (), minChannelProperties.getPMIndex (), maxChannelProperties.getPMIndex (), 2, true) };
+        const auto checkedAndFormattedText { FormatHelpers::constrainAndFormat (text.getDoubleValue (), minChannelProperties.getPMIndex (), maxChannelProperties.getPMIndex (), 2, true) };
         pMIndexTextEditor.setText (checkedAndFormattedText);
         pMIndexUiChanged (checkedAndFormattedText.getDoubleValue ());
     });
@@ -263,7 +263,7 @@ void ChannelEditor::setupChannelComponents ()
     },
     [this] (juce::String text)
     {
-        const auto checkedAndFormattedText { FormatHelpers::checkAndFormat (text.getDoubleValue (),
+        const auto checkedAndFormattedText { FormatHelpers::constrainAndFormat (text.getDoubleValue (),
                                                                                   FormatHelpers::getAmount (minChannelProperties.getPMIndexMod ()),
                                                                                   FormatHelpers::getAmount (maxChannelProperties.getPMIndexMod ()), 2, true) };
         pMIndexModTextEditor.setText (checkedAndFormattedText);
@@ -278,7 +278,7 @@ void ChannelEditor::setupChannelComponents ()
     },
     [this] (juce::String text)
     {
-        const auto checkedAndFormattedText { FormatHelpers::checkAndFormat (text.getDoubleValue (), minChannelProperties.getPan (), maxChannelProperties.getPan (), 2, true) };
+        const auto checkedAndFormattedText { FormatHelpers::constrainAndFormat (text.getDoubleValue (), minChannelProperties.getPan (), maxChannelProperties.getPan (), 2, true) };
         panTextEditor.setText (checkedAndFormattedText);
         panUiChanged (checkedAndFormattedText.getDoubleValue ());
     });
@@ -290,7 +290,7 @@ void ChannelEditor::setupChannelComponents ()
     },
     [this] (juce::String text)
     {
-        const auto checkedAndFormattedText { FormatHelpers::checkAndFormat (text.getDoubleValue (),
+        const auto checkedAndFormattedText { FormatHelpers::constrainAndFormat (text.getDoubleValue (),
                                                                                   FormatHelpers::getAmount (minChannelProperties.getPanMod ()),
                                                                                   FormatHelpers::getAmount (maxChannelProperties.getPanMod ()), 2, true) };
         panModTextEditor.setText (checkedAndFormattedText);
@@ -302,7 +302,7 @@ void ChannelEditor::setupChannelComponents ()
     },
     [this] (juce::String text)
     {
-        const auto checkedAndFormattedText { FormatHelpers::checkAndFormat (text.getDoubleValue (), minChannelProperties.getMixLevel (), maxChannelProperties.getMixLevel (), 1, false) };
+        const auto checkedAndFormattedText { FormatHelpers::constrainAndFormat (text.getDoubleValue (), minChannelProperties.getMixLevel (), maxChannelProperties.getMixLevel (), 1, false) };
         mixLevelTextEditor.setText (checkedAndFormattedText);
         mixLevelUiChanged (checkedAndFormattedText.getDoubleValue ());
     });
@@ -314,7 +314,7 @@ void ChannelEditor::setupChannelComponents ()
     },
     [this] (juce::String text)
     {
-        const auto checkedAndFormattedText { FormatHelpers::checkAndFormat (text.getDoubleValue (),
+        const auto checkedAndFormattedText { FormatHelpers::constrainAndFormat (text.getDoubleValue (),
                                                                                   FormatHelpers::getAmount (minChannelProperties.getMixMod ()),
                                                                                   FormatHelpers::getAmount (maxChannelProperties.getMixMod ()), 2, true) };
         mixModTextEditor.setText (checkedAndFormattedText);
@@ -333,7 +333,7 @@ void ChannelEditor::setupChannelComponents ()
     },
     [this] (juce::String text)
     {
-        const auto checkedAndFormattedText { FormatHelpers::checkAndFormat (text.getDoubleValue (), minChannelProperties.getBits (), maxChannelProperties.getBits (), 1, false) };
+        const auto checkedAndFormattedText { FormatHelpers::constrainAndFormat (text.getDoubleValue (), minChannelProperties.getBits (), maxChannelProperties.getBits (), 1, false) };
         bitsTextEditor.setText (checkedAndFormattedText);
         bitsUiChanged (checkedAndFormattedText.getDoubleValue ());
     });
@@ -345,7 +345,7 @@ void ChannelEditor::setupChannelComponents ()
     },
     [this] (juce::String text)
     {
-        const auto checkedAndFormattedText { FormatHelpers::checkAndFormat (text.getDoubleValue (),
+        const auto checkedAndFormattedText { FormatHelpers::constrainAndFormat (text.getDoubleValue (),
                                                                                   FormatHelpers::getAmount (minChannelProperties.getBitsMod ()),
                                                                                   FormatHelpers::getAmount (maxChannelProperties.getBitsMod ()), 2, true) };
         bitsModTextEditor.setText (checkedAndFormattedText);
@@ -359,7 +359,7 @@ void ChannelEditor::setupChannelComponents ()
     },
     [this] (juce::String text)
     {
-        const auto checkedAndFormattedText { FormatHelpers::checkAndFormat (text.getDoubleValue (), minChannelProperties.getAliasing (), maxChannelProperties.getAliasing (), 2, true) };
+        const auto checkedAndFormattedText { FormatHelpers::constrainAndFormat (text.getDoubleValue (), minChannelProperties.getAliasing (), maxChannelProperties.getAliasing (), 2, true) };
         aliasingTextEditor.setText (checkedAndFormattedText);
         aliasingUiChanged (checkedAndFormattedText.getIntValue ());
     });
@@ -371,7 +371,7 @@ void ChannelEditor::setupChannelComponents ()
     },
     [this] (juce::String text)
     {
-        const auto checkedAndFormattedText { FormatHelpers::checkAndFormat (text.getDoubleValue (),
+        const auto checkedAndFormattedText { FormatHelpers::constrainAndFormat (text.getDoubleValue (),
                                                                                     FormatHelpers::getAmount (minChannelProperties.getAliasingMod ()),
                                                                                     FormatHelpers::getAmount (maxChannelProperties.getAliasingMod ()), 2, true) };
         aliasingModTextEditor.setText (checkedAndFormattedText);
@@ -391,7 +391,7 @@ void ChannelEditor::setupChannelComponents ()
     },
     [this] (juce::String text)
     {
-        const auto checkedAndFormattedText { FormatHelpers::checkAndFormat (text.getDoubleValue (), minChannelProperties.getAttack (), maxChannelProperties.getAttack (), 4, false) };
+        const auto checkedAndFormattedText { FormatHelpers::constrainAndFormat (text.getDoubleValue (), minChannelProperties.getAttack (), maxChannelProperties.getAttack (), 4, false) };
         attackTextEditor.setText (checkedAndFormattedText);
         attackUiChanged (checkedAndFormattedText.getDoubleValue ());
     });
@@ -403,7 +403,7 @@ void ChannelEditor::setupChannelComponents ()
     },
     [this] (juce::String text)
     {
-        const auto checkedAndFormattedText { FormatHelpers::checkAndFormat (text.getDoubleValue (),
+        const auto checkedAndFormattedText { FormatHelpers::constrainAndFormat (text.getDoubleValue (),
                                                                                   FormatHelpers::getAmount (minChannelProperties.getAttackMod ()),
                                                                                   FormatHelpers::getAmount (maxChannelProperties.getAttackMod ()), 2, true) };
         attackModTextEditor.setText (checkedAndFormattedText);
@@ -417,7 +417,7 @@ void ChannelEditor::setupChannelComponents ()
     },
     [this] (juce::String text)
     { 
-        const auto checkedAndFormattedText { FormatHelpers::checkAndFormat (text.getDoubleValue (), minChannelProperties.getRelease (), maxChannelProperties.getRelease (), 4, false) };
+        const auto checkedAndFormattedText { FormatHelpers::constrainAndFormat (text.getDoubleValue (), minChannelProperties.getRelease (), maxChannelProperties.getRelease (), 4, false) };
         releaseTextEditor.setText (checkedAndFormattedText);
         releaseUiChanged (checkedAndFormattedText.getDoubleValue ());
     });
@@ -429,7 +429,7 @@ void ChannelEditor::setupChannelComponents ()
     },
     [this] (juce::String text)
     {
-        const auto checkedAndFormattedText { FormatHelpers::checkAndFormat (text.getDoubleValue (),
+        const auto checkedAndFormattedText { FormatHelpers::constrainAndFormat (text.getDoubleValue (),
                                                                                     FormatHelpers::getAmount (minChannelProperties.getReleaseMod ()),
                                                                                     FormatHelpers::getAmount (maxChannelProperties.getReleaseMod ()), 2, true) };
         releaseModTextEditor.setText (checkedAndFormattedText);
@@ -469,7 +469,7 @@ void ChannelEditor::setupChannelComponents ()
     },
     [this] (juce::String text)
     {
-        const auto checkedAndFormattedText { FormatHelpers::checkAndFormat (text.getDoubleValue (),
+        const auto checkedAndFormattedText { FormatHelpers::constrainAndFormat (text.getDoubleValue (),
                                                                                     FormatHelpers::getAmount (minChannelProperties.getLoopStartMod ()),
                                                                                     FormatHelpers::getAmount (maxChannelProperties.getLoopStartMod ()), 2, true) };
         loopStartModTextEditor.setText (checkedAndFormattedText);
@@ -483,7 +483,7 @@ void ChannelEditor::setupChannelComponents ()
     },
     [this] (juce::String text)
     {
-        const auto checkedAndFormattedText { FormatHelpers::checkAndFormat (text.getDoubleValue (),
+        const auto checkedAndFormattedText { FormatHelpers::constrainAndFormat (text.getDoubleValue (),
                                                                                   FormatHelpers::getAmount (minChannelProperties.getLoopLengthMod ()),
                                                                                   FormatHelpers::getAmount (maxChannelProperties.getLoopLengthMod ()), 2, true) };
         loopLengthModTextEditor.setText (checkedAndFormattedText);
@@ -497,7 +497,7 @@ void ChannelEditor::setupChannelComponents ()
     },
     [this] (juce::String text)
     {
-        const auto checkedAndFormattedText { FormatHelpers::checkAndFormat (text.getDoubleValue (),
+        const auto checkedAndFormattedText { FormatHelpers::constrainAndFormat (text.getDoubleValue (),
                                                                                     FormatHelpers::getAmount (minChannelProperties.getSampleStartMod ()),
                                                                                     FormatHelpers::getAmount (maxChannelProperties.getSampleStartMod ()), 2, true) };
         sampleStartModTextEditor.setText (checkedAndFormattedText);
@@ -511,7 +511,7 @@ void ChannelEditor::setupChannelComponents ()
     },
     [this] (juce::String text) 
     {
-        const auto checkedAndFormattedText { FormatHelpers::checkAndFormat (text.getDoubleValue (),
+        const auto checkedAndFormattedText { FormatHelpers::constrainAndFormat (text.getDoubleValue (),
                                                                                 FormatHelpers::getAmount (minChannelProperties.getSampleEndMod ()),
                                                                                 FormatHelpers::getAmount (maxChannelProperties.getSampleEndMod ()), 2, true) };
         sampleEndModTextEditor.setText (checkedAndFormattedText);

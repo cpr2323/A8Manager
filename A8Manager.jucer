@@ -24,6 +24,10 @@
                 file="Source/Assimil8or/Preset/ChannelProperties.cpp"/>
           <FILE id="VYXv3k" name="ChannelProperties.h" compile="0" resource="0"
                 file="Source/Assimil8or/Preset/ChannelProperties.h"/>
+          <FILE id="W3AtE0" name="ParameterHelpers.cpp" compile="1" resource="0"
+                file="Source/Assimil8or/Preset/ParameterHelpers.cpp"/>
+          <FILE id="bcy3lw" name="ParameterHelpers.h" compile="0" resource="0"
+                file="Source/Assimil8or/Preset/ParameterHelpers.h"/>
           <FILE id="GecEAb" name="Parameter.cpp" compile="1" resource="0" file="Source/Assimil8or/Preset/Parameter.cpp"/>
           <FILE id="FSHrcA" name="Parameter.h" compile="0" resource="0" file="Source/Assimil8or/Preset/Parameter.h"/>
           <FILE id="P7REf7" name="ParameterPresetListProperties.cpp" compile="1"
