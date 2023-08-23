@@ -2,6 +2,7 @@
 
 #include <JuceHeader.h>
 #include "../../../Assimil8or/Preset/ZoneProperties.h"
+#include "../../../AppProperties.h"
 
 class ZoneEditor : public juce::Component
 {
@@ -9,9 +10,10 @@ public:
     ZoneEditor ();
     ~ZoneEditor () = default;
 
-    void init (juce::ValueTree zonePropertiesVT);
+    void init (juce::ValueTree zonePropertiesVT, juce::ValueTree rootPropertiesVT);
 
 private:
+    AppProperties appProperties;
     ZoneProperties zoneProperties;
     ZoneProperties minZoneProperties;
     ZoneProperties maxZoneProperties;

@@ -145,9 +145,9 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
     presetProperties.wrap (runtimeRootProperties.getValueTree (), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::yes);
     setupPresetPropertiesCallbacks ();
     auto channelEditorIndex { 0 };
-    presetProperties.forEachChannel ([this, &channelEditorIndex] (juce::ValueTree channelPropertiesVT)
+    presetProperties.forEachChannel ([this, &channelEditorIndex, rootPropertiesVT] (juce::ValueTree channelPropertiesVT)
     {
-        channelEditors [channelEditorIndex].init (channelPropertiesVT);
+        channelEditors [channelEditorIndex].init (channelPropertiesVT, rootPropertiesVT);
         ++channelEditorIndex;
         return true;
     });

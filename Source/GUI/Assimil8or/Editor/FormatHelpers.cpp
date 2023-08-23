@@ -10,30 +10,29 @@ namespace FormatHelpers
         return signString + juce::String (value, decimalPlaces);
     };
 
-    void setColorIfError (juce::TextEditor& textEditor, juce::File sample)
+    void setColorIfError (juce::TextEditor& textEditor, bool success)
     {
-        if (sample.exists ())
+        if (success)
             textEditor.applyColourToAllText (juce::Colours::white, true);
         else
             textEditor.applyColourToAllText (juce::Colours::red, true);
+    };
+
+    void setColorIfError (juce::TextEditor& textEditor, juce::File sample)
+    {
+        setColorIfError (textEditor, sample.exists ());
     };
 
     void setColorIfError (juce::TextEditor& textEditor, double minValue, double maxValue)
     {
         const auto doubleValue { textEditor.getText ().getDoubleValue () };
-        if (doubleValue >= minValue && doubleValue <= maxValue)
-            textEditor.applyColourToAllText (juce::Colours::white, true);
-        else
-            textEditor.applyColourToAllText (juce::Colours::red, true);
+        setColorIfError (textEditor, doubleValue >= minValue && doubleValue <= maxValue);
     };
 
     void setColorIfError (juce::TextEditor& textEditor, int minValue, int maxValue)
     {
         const auto intValue { textEditor.getText ().getIntValue () };
-        if (intValue >= minValue && intValue <= maxValue)
-            textEditor.applyColourToAllText (juce::Colours::white, true);
-        else
-            textEditor.applyColourToAllText (juce::Colours::red, true);
+        setColorIfError (textEditor, intValue >= minValue && intValue <= maxValue);
     };
 
     juce::String getCvInput (const CvInputAndAmount& cvInputAndAmount)

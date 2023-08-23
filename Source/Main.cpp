@@ -17,8 +17,6 @@
 
 const juce::String PropertiesFileExtension { ".properties" };
 
-//ParameterPresetsSingleton parameterPresetsSingleton;
-
 void crashHandler (void* /*data*/)
 {
     FlushDebugLog ();

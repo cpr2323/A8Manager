@@ -517,14 +517,14 @@ void ChannelEditor::setupChannelComponents ()
     setupComboBox (zonesRTComboBox, [this] () { zonesRTUiChanged (zonesRTComboBox.getSelectedId () - 1); });
 }
 
-void ChannelEditor::init (juce::ValueTree channelPropertiesVT)
+void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree rootPropertiesVT)
 {
     channelProperties.wrap (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::yes);
     setupChannelPropertiesCallbacks ();
     auto zoneEditorIndex { 0 };
-    channelProperties.forEachZone([this, &zoneEditorIndex] (juce::ValueTree zonePropertiesVT)
+    channelProperties.forEachZone([this, &zoneEditorIndex, rootPropertiesVT] (juce::ValueTree zonePropertiesVT)
     {
-        zoneEditors [zoneEditorIndex].init (zonePropertiesVT);
+        zoneEditors [zoneEditorIndex].init (zonePropertiesVT, rootPropertiesVT);
         ++zoneEditorIndex;
         return true;
     });

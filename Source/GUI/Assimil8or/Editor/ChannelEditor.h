@@ -12,7 +12,7 @@ public:
     ChannelEditor ();
     ~ChannelEditor ();
 
-    void init (juce::ValueTree channelPropertiesVT);
+    void init (juce::ValueTree channelPropertiesVT, juce::ValueTree rootPropertiesVT);
 
 private:
     ChannelProperties channelProperties;

@@ -3,6 +3,7 @@
 #include "../../../Assimil8or/Preset/ChannelProperties.h"
 #include "../../../Assimil8or/Preset/PresetProperties.h"
 #include "../../../Assimil8or/Preset/ParameterPresetsSingleton.h"
+#include "../../../Utility/PersistentRootProperties.h"
 #include <algorithm>
 
 ZoneEditor::ZoneEditor ()
@@ -40,7 +41,7 @@ void ZoneEditor::setupChannelComponents ()
     {
         jassert (doneEditingCallback != nullptr);
         textEditor.setJustification (justification);
-        textEditor.setIndents (1, 0);
+        textEditor.setIndents (2, 0);
         textEditor.setInputRestrictions (maxLen, validInputCharacters);
         textEditor.onFocusLost = [this, &textEditor, doneEditingCallback] () { doneEditingCallback (textEditor.getText ()); };
         textEditor.onReturnKey = [this, &textEditor, doneEditingCallback] () { doneEditingCallback (textEditor.getText ()); };
@@ -60,12 +61,27 @@ void ZoneEditor::setupChannelComponents ()
     const auto kMaxFileNameLength { 47 };
     setupTextEditor (sampleTextEditor, juce::Justification::centredLeft, kMaxFileNameLength, " !\"#$%^&'()#+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~", [this] ()
     {
-        // TODO - turn red if file does not exist
-        //FormatHelpers::setColorIfError(sampleTextEditor, presetFolder.getChildFile (sampleTextEditor.getText ()));
+        auto presetFile { juce::File (appProperties.getMostRecentFolder ()).getChildFile (sampleTextEditor.getText ()) };
+        if (! presetFile.isDirectory ())
+        {
+            if (presetFile.getFileExtension () != "")
+                FormatHelpers::setColorIfError (sampleTextEditor, presetFile);
+            else
+                FormatHelpers::setColorIfError (sampleTextEditor, presetFile.withFileExtension(".wav"));
+        }
+        else
+        {
+            FormatHelpers::setColorIfError (sampleTextEditor, false);
+        }
+
     },
     [this] (juce::String text)
     {
+        auto presetFile { juce::File (appProperties.getMostRecentFolder ()).getChildFile (sampleTextEditor.getText ()) };
+        if (sampleTextEditor.getText ().isNotEmpty() && presetFile.getFileExtension () == "")
+            text = presetFile.withFileExtension (".wav").getFileName ();
         sampleUiChanged (text);
+        sampleTextEditor.setText (text);
     });
     setupLabel (sampleBoundsLabel, "SAMPLE START/END", 15.0, juce::Justification::centredLeft);
     setupTextEditor (sampleStartTextEditor, juce::Justification::centred, 0, "0123456789", [this] ()
@@ -151,8 +167,11 @@ void ZoneEditor::setupChannelComponents ()
     setupButton (sideButton, "x", [this] () { sideUiChanged (sideButton.getToggleState ()); });
 }
 
-void ZoneEditor::init (juce::ValueTree zonePropertiesVT)
+void ZoneEditor::init (juce::ValueTree zonePropertiesVT, juce::ValueTree rootPropertiesVT)
 {
+    PersistentRootProperties persistentRootProperties (rootPropertiesVT, PersistentRootProperties::WrapperType::client, PersistentRootProperties::EnableCallbacks::no);
+    appProperties.wrap (persistentRootProperties.getValueTree (), AppProperties::WrapperType::client, AppProperties::EnableCallbacks::no);
+
     zoneProperties.wrap (zonePropertiesVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::yes);
     setupZonePropertiesCallbacks ();
 
@@ -266,7 +285,6 @@ void ZoneEditor::pitchOffsetUiChanged (double pitchOffset)
 
 void ZoneEditor::sampleDataChanged (juce::String sample)
 {
-    // TODO - validate file exists, turn red if not
     sampleTextEditor.setText (sample);
 }
 
