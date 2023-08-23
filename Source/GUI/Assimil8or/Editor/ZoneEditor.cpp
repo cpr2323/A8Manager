@@ -35,12 +35,13 @@ void ZoneEditor::setupChannelComponents ()
         label.setText (text, juce::NotificationType::dontSendNotification);
         addAndMakeVisible (label);
     };
-    auto setupTextEditor = [this] (juce::TextEditor& textEditor, juce::Justification justification, std::function<void ()> validateCallback,
-                                   std::function<void (juce::String)> doneEditingCallback)
+    auto setupTextEditor = [this] (juce::TextEditor& textEditor, juce::Justification justification, int maxLen, juce::String validInputCharacters,
+                                   std::function<void ()> validateCallback, std::function<void (juce::String)> doneEditingCallback)
     {
         jassert (doneEditingCallback != nullptr);
         textEditor.setJustification (justification);
         textEditor.setIndents (1, 0);
+        textEditor.setInputRestrictions (maxLen, validInputCharacters);
         textEditor.onFocusLost = [this, &textEditor, doneEditingCallback] () { doneEditingCallback (textEditor.getText ()); };
         textEditor.onReturnKey = [this, &textEditor, doneEditingCallback] () { doneEditingCallback (textEditor.getText ()); };
         if (validateCallback != nullptr)
@@ -56,16 +57,18 @@ void ZoneEditor::setupChannelComponents ()
         addAndMakeVisible (textButton);
     };
     setupLabel (sampleStartNameLabel, "FILE", 15.0, juce::Justification::centredLeft);
-    setupTextEditor (sampleTextEditor, juce::Justification::centredLeft, [this] ()
+    const auto kMaxFileNameLength { 47 };
+    setupTextEditor (sampleTextEditor, juce::Justification::centredLeft, kMaxFileNameLength, " !\"#$%^&'()#+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~", [this] ()
     {
         // TODO - turn red if file does not exist
+        //FormatHelpers::setColorIfError(sampleTextEditor, presetFolder.getChildFile (sampleTextEditor.getText ()));
     },
     [this] (juce::String text)
     {
         sampleUiChanged (text);
     });
     setupLabel (sampleBoundsLabel, "SAMPLE START/END", 15.0, juce::Justification::centredLeft);
-    setupTextEditor (sampleStartTextEditor, juce::Justification::centred, [this] ()
+    setupTextEditor (sampleStartTextEditor, juce::Justification::centred, 0, "0123456789", [this] ()
     {
         FormatHelpers::setColorIfError (sampleStartTextEditor, minZoneProperties.getSampleStart (), maxZoneProperties.getSampleStart ());
     },
@@ -75,7 +78,7 @@ void ZoneEditor::setupChannelComponents ()
         sampleStartUiChanged (sampleStart);
         sampleStartTextEditor.setText (juce::String (sampleStart));
     });
-    setupTextEditor (sampleEndTextEditor, juce::Justification::centred, [this] ()
+    setupTextEditor (sampleEndTextEditor, juce::Justification::centred, 0, "0123456789", [this] ()
     {
         FormatHelpers::setColorIfError (sampleEndTextEditor, minZoneProperties.getSampleEnd (), maxZoneProperties.getSampleEnd ());
     },
@@ -86,7 +89,7 @@ void ZoneEditor::setupChannelComponents ()
         sampleEndTextEditor.setText (juce::String (sampleEnd));
     });
     setupLabel (loopBoundsLabel, "LOOP START/LENGTH", 15.0, juce::Justification::centredLeft);
-    setupTextEditor (loopStartTextEditor, juce::Justification::centred, [this] ()
+    setupTextEditor (loopStartTextEditor, juce::Justification::centred, 0, "0123456789", [this] ()
     {
         FormatHelpers::setColorIfError (loopStartTextEditor, minZoneProperties.getLoopStart (), maxZoneProperties.getLoopStart ());
     },
@@ -96,7 +99,7 @@ void ZoneEditor::setupChannelComponents ()
         loopStartUiChanged (loopStart);
         loopStartTextEditor.setText (juce::String (loopStart));
     });
-    setupTextEditor (loopLengthTextEditor, juce::Justification::centred, [this] ()
+    setupTextEditor (loopLengthTextEditor, juce::Justification::centred, 0, ".0123456789", [this] ()
     {
         FormatHelpers::setColorIfError (loopLengthTextEditor, minZoneProperties.getLoopLength (), maxZoneProperties.getLoopLength ());
     },
@@ -111,7 +114,7 @@ void ZoneEditor::setupChannelComponents ()
         loopLengthTextEditor.setText (FormatHelpers::formatDouble (loopLength, 3, false));
     });
     setupLabel (minVoltageLabel, "MIN VOLTAGE", 15.0, juce::Justification::centredLeft);
-    setupTextEditor (minVoltageTextEditor, juce::Justification::centred, [this] ()
+    setupTextEditor (minVoltageTextEditor, juce::Justification::centred, 0, "+-.0123456789", [this] ()
     {
         FormatHelpers::setColorIfError (minVoltageTextEditor, minZoneProperties.getMinVoltage (), maxZoneProperties.getMinVoltage ());
     },
@@ -122,7 +125,7 @@ void ZoneEditor::setupChannelComponents ()
         minVoltageTextEditor.setText (FormatHelpers::formatDouble (minVoltage, 2, true));
     });
     setupLabel (levelOffsetLabel, "LEVEL OFFSET", 15.0, juce::Justification::centredLeft);
-    setupTextEditor (levelOffsetTextEditor, juce::Justification::centred, [this] ()
+    setupTextEditor (levelOffsetTextEditor, juce::Justification::centred, 0, "+-.0123456789", [this] ()
     {
         FormatHelpers::setColorIfError (levelOffsetTextEditor, minZoneProperties.getLevelOffset (), maxZoneProperties.getLevelOffset ());
     },
@@ -133,7 +136,7 @@ void ZoneEditor::setupChannelComponents ()
         levelOffsetTextEditor.setText (FormatHelpers::formatDouble (levelOffset, 1, true));
     });
     setupLabel (pitchOffsetLabel, "PITCH OFFSET", 15.0, juce::Justification::centredLeft);
-    setupTextEditor (pitchOffsetTextEditor, juce::Justification::centred, [this] ()
+    setupTextEditor (pitchOffsetTextEditor, juce::Justification::centred, 0, "+-.0123456789", [this] ()
     {
         FormatHelpers::setColorIfError (pitchOffsetTextEditor, minZoneProperties.getPitchOffset (), maxZoneProperties.getPitchOffset ());
     },
@@ -143,6 +146,7 @@ void ZoneEditor::setupChannelComponents ()
         pitchOffsetUiChanged (pitchOffset);
         pitchOffsetTextEditor.setText (FormatHelpers::formatDouble (pitchOffset, 2, true));
     });
+    // TODO - this parameter should not be exposed. it is set based on Channel Mode setting 0=left, 1=right
     setupLabel (sideLabel, "SIDE", 15.0, juce::Justification::centredLeft);
     setupButton (sideButton, "x", [this] () { sideUiChanged (sideButton.getToggleState ()); });
 }

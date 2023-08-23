@@ -10,6 +10,14 @@ namespace FormatHelpers
         return signString + juce::String (value, decimalPlaces);
     };
 
+    void setColorIfError (juce::TextEditor& textEditor, juce::File sample)
+    {
+        if (sample.exists ())
+            textEditor.applyColourToAllText (juce::Colours::white, true);
+        else
+            textEditor.applyColourToAllText (juce::Colours::red, true);
+    };
+
     void setColorIfError (juce::TextEditor& textEditor, double minValue, double maxValue)
     {
         const auto doubleValue { textEditor.getText ().getDoubleValue () };
