@@ -9,7 +9,7 @@ Preset 1 :
   XfadeDCV : 5A
   XfadeDWidth : 4.00
   Channel 1 :
-    ExpAM : 1
+    ExpAM : 1A 1
     LoopMode : 1
     Zone 1 :
       Sample : 14156-7833-19970.wav
@@ -19,7 +19,7 @@ Preset 1 :
       Sample : 14156-7833-19970.wav
       Side : 1
   Channel 3 :
-    ExpAM : 1
+    ExpAM : 1A 1
     LoopMode : 1
     Zone 1 :
       Sample : 17039-29767-2660.wav
@@ -29,9 +29,9 @@ Preset 1 :
       Sample : 17039-29767-2660.wav
       Side : 1
   Channel 5 :
-    ExpAM : 2
+    ExpAM : 1A 1
     Level : -0.1
-    LinAM : 2
+    LinAM : 1A 1
     Pitch : 1.79
     PitchCV : 0A 0.5000
     Zone 1 :

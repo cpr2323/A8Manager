@@ -1,7 +1,6 @@
 #include "Assimil8orEditorComponent.h"
 #include "FormatHelpers.h"
 #include "../../../Assimil8or/Assimil8orPreset.h"
-#include "../../../Assimil8or/Preset/ParameterHelpers.h"
 #include "../../../Assimil8or/Preset/ParameterPresetsSingleton.h"
 #include "../../../Utility/RuntimeRootProperties.h"
 #include "../../../Utility/PersistentRootProperties.h"
@@ -57,7 +56,7 @@ void Assimil8orEditorComponent::setupPresetComponents ()
     nameEditor.setIndents (1, 0);
     nameEditor.onFocusLost = [this] () { nameUiChanged (nameEditor.getText ()); };
     nameEditor.onReturnKey = [this] () { nameUiChanged (nameEditor.getText ()); };
-    nameEditor.setInputRestrictions (12, ParameterHelpers::Preset::getNameInputChars());
+    nameEditor.setInputRestrictions (12, " !\"#$%^&'()#+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~");
     addAndMakeVisible (nameEditor);
 
     addAndMakeVisible (windowDecorator);
@@ -101,7 +100,7 @@ void Assimil8orEditorComponent::setupPresetComponents ()
         addAndMakeVisible (xfadeGroup.xfadeWidthLabel);
         xfadeGroup.xfadeWidthEditor.setJustification (juce::Justification::centred);
         xfadeGroup.xfadeWidthEditor.setIndents (0, 0);
-        xfadeGroup.xfadeWidthEditor.setInputRestrictions (0, ParameterHelpers::Preset::getXfadeWidthInputChars ());
+        xfadeGroup.xfadeWidthEditor.setInputRestrictions (0, "+-.0123456789");
         auto xFadeGroupEditDone = [this] (int xfadeGroupIndex)
         {
             auto& widthEditor { xfadeGroups [xfadeGroupIndex].xfadeWidthEditor };
