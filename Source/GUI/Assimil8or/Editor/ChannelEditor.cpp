@@ -114,9 +114,9 @@ void ChannelEditor::setupChannelComponents ()
     },
     [this] (juce::String text)
     {
-        const auto checkedAndFormattedText { FormatHelpers::constrainAndFormat (text.getDoubleValue (), minChannelProperties.getPitch (), maxChannelProperties.getPitch (), 2, true) };
-        pitchTextEditor.setText (checkedAndFormattedText);
-        pitchUiChanged (checkedAndFormattedText.getDoubleValue ());
+        const auto pitch { std::clamp (text.getDoubleValue (), minChannelProperties.getPitch (), maxChannelProperties.getPitch ()) };
+        pitchUiChanged (pitch);
+        pitchTextEditor.setText (FormatHelpers::formatDouble (pitch, 2, true));
     });
     //
     setupLabel (pitchSemiLabel, "SEMI", 15.0f, juce::Justification::centredLeft);
@@ -127,11 +127,10 @@ void ChannelEditor::setupChannelComponents ()
     },
     [this] (juce::String text)
     {
-        const auto checkedAndFormattedText { FormatHelpers::constrainAndFormat (text.getDoubleValue (),
-                                                                                  FormatHelpers::getAmount (minChannelProperties.getPitchCV ()),
-                                                                                  FormatHelpers::getAmount (maxChannelProperties.getPitchCV ()), 2, true) };
-        pitchCVTextEditor.setText (checkedAndFormattedText);
-        pitchCVUiChanged (pitchCVComboBox.getSelectedItemText (), checkedAndFormattedText.getDoubleValue ());
+        const auto pitchCV { std::clamp (text.getDoubleValue (), FormatHelpers::getAmount (minChannelProperties.getPitchCV ()),
+                                                                    FormatHelpers::getAmount (maxChannelProperties.getPitchCV ())) };
+        pitchCVUiChanged (pitchCVComboBox.getSelectedItemText (), pitchCV);
+        pitchCVTextEditor.setText (FormatHelpers::formatDouble (pitchCV, 2, true));
     });
 
     // LINFM
@@ -143,11 +142,10 @@ void ChannelEditor::setupChannelComponents ()
     }, 
     [this] (juce::String text)
     {
-        const auto checkedAndFormattedText { FormatHelpers::constrainAndFormat (text.getDoubleValue (),
-                                                                                  FormatHelpers::getAmount (minChannelProperties.getLinFM ()),
-                                                                                  FormatHelpers::getAmount (maxChannelProperties.getLinFM ()), 2, true) };
-        linFMTextEditor.setText (checkedAndFormattedText);
-        linFMUiChanged (linFMComboBox.getSelectedItemText (), checkedAndFormattedText.getDoubleValue ());
+        const auto linFM { std::clamp (text.getDoubleValue (), FormatHelpers::getAmount (minChannelProperties.getLinFM ()),
+                                                               FormatHelpers::getAmount (maxChannelProperties.getLinFM ())) };
+        linFMUiChanged (linFMComboBox.getSelectedItemText (), linFM);
+        linFMTextEditor.setText (FormatHelpers::formatDouble (linFM, 2, true));
     });
 
     // EXPFM
@@ -159,11 +157,10 @@ void ChannelEditor::setupChannelComponents ()
     },
     [this] (juce::String text) 
     {
-        const auto checkedAndFormattedText { FormatHelpers::constrainAndFormat (text.getDoubleValue (),
-                                                                                  FormatHelpers::getAmount (minChannelProperties.getExpFM ()),
-                                                                                  FormatHelpers::getAmount (maxChannelProperties.getExpFM ()), 2, true) };
-        expFMTextEditor.setText (checkedAndFormattedText);
-        expFMUiChanged (expFMComboBox.getSelectedItemText (), checkedAndFormattedText.getDoubleValue ());
+        const auto expFM { std::clamp (text.getDoubleValue (), FormatHelpers::getAmount (minChannelProperties.getExpFM ()),
+                                                               FormatHelpers::getAmount (maxChannelProperties.getExpFM ())) };
+        expFMUiChanged (expFMComboBox.getSelectedItemText (), expFM);
+        expFMTextEditor.setText (FormatHelpers::formatDouble (expFM, 2, true));
     });
 
     // LEVEL
@@ -174,11 +171,9 @@ void ChannelEditor::setupChannelComponents ()
     },
     [this] (juce::String text)
     {
-        const auto checkedAndFormattedText { FormatHelpers::constrainAndFormat (text.getDoubleValue (),
-                                                                                  minChannelProperties.getLevel (),
-                                                                                  maxChannelProperties.getLevel (), 1, false) };
-        levelTextEditor.setText (checkedAndFormattedText);
-        levelUiChanged (checkedAndFormattedText.getDoubleValue ());
+        const auto level { std::clamp (text.getDoubleValue (), minChannelProperties.getLevel (), maxChannelProperties.getLevel ()) };
+        levelUiChanged (level);
+        levelTextEditor.setText (FormatHelpers::formatDouble (level, 1, false));
     });
     setupLabel (levelDbLabel, "dB", 15.0f, juce::Justification::centredLeft);
 
@@ -191,11 +186,10 @@ void ChannelEditor::setupChannelComponents ()
     },
     [this] (juce::String text)
     {
-        const auto checkedAndFormattedText { FormatHelpers::constrainAndFormat (text.getDoubleValue (),
-                                                                                  FormatHelpers::getAmount (minChannelProperties.getLinAM ()),
-                                                                                  FormatHelpers::getAmount (maxChannelProperties.getLinAM ()), 2, true) };
-        linAMTextEditor.setText (checkedAndFormattedText);
-        linAMUiChanged (linAMComboBox.getSelectedItemText (), checkedAndFormattedText.getDoubleValue ());
+        const auto linAM { std::clamp (text.getDoubleValue (), FormatHelpers::getAmount (minChannelProperties.getLinAM ()),
+                                                               FormatHelpers::getAmount (maxChannelProperties.getLinAM ())) };
+        linAMUiChanged (linAMComboBox.getSelectedItemText (), linAM);
+        linAMTextEditor.setText (FormatHelpers::formatDouble (linAM, 2, true));
     });
     setupButton (linAMisExtEnvButton, "EXT", [this] () { linAMisExtEnvUiChanged (linAMisExtEnvButton.getToggleState ()); });
 
@@ -208,11 +202,10 @@ void ChannelEditor::setupChannelComponents ()
         },
     [this] (juce::String text)
     {
-        const auto checkedAndFormattedText { FormatHelpers::constrainAndFormat (text.getDoubleValue (),
-                                                                                  FormatHelpers::getAmount (minChannelProperties.getExpAM ()),
-                                                                                  FormatHelpers::getAmount (maxChannelProperties.getExpAM ()), 2, true) };
-        expAMTextEditor.setText (checkedAndFormattedText);
-        expAMUiChanged (expAMComboBox.getSelectedItemText (), checkedAndFormattedText.getDoubleValue ());
+        const auto expAM { std::clamp (text.getDoubleValue (), FormatHelpers::getAmount (minChannelProperties.getExpAM ()),
+                                                               FormatHelpers::getAmount (maxChannelProperties.getExpAM ())) };
+        expAMUiChanged (expAMComboBox.getSelectedItemText (), expAM);
+        expAMTextEditor.setText (FormatHelpers::formatDouble (expAM, 2, true));
     });
 
     /////////////////////////////////////////
@@ -236,11 +229,10 @@ void ChannelEditor::setupChannelComponents ()
     },
     [this] (juce::String text)
     {
-        const auto checkedAndFormattedText { FormatHelpers::constrainAndFormat (text.getDoubleValue (),
-                                                                                    FormatHelpers::getAmount (minChannelProperties.getPhaseCV ()),
-                                                                                    FormatHelpers::getAmount (maxChannelProperties.getPhaseCV ()), 2, false) };
-        phaseCVTextEditor.setText (checkedAndFormattedText);
-        phaseCVUiChanged (phaseCVComboBox.getSelectedItemText (), checkedAndFormattedText.getDoubleValue ());
+        const auto phaseCV { std::clamp (text.getDoubleValue (), FormatHelpers::getAmount (minChannelProperties.getPhaseCV ()),
+                                                                 FormatHelpers::getAmount (maxChannelProperties.getPhaseCV ())) };
+        phaseCVUiChanged (phaseCVComboBox.getSelectedItemText (), phaseCV);
+        phaseCVTextEditor.setText (FormatHelpers::formatDouble (phaseCV, 2, true));
     });
 
     // PHASE MOD INDEX
@@ -251,9 +243,9 @@ void ChannelEditor::setupChannelComponents ()
     },
     [this] (juce::String text)
     {
-        const auto checkedAndFormattedText { FormatHelpers::constrainAndFormat (text.getDoubleValue (), minChannelProperties.getPMIndex (), maxChannelProperties.getPMIndex (), 2, true) };
-        pMIndexTextEditor.setText (checkedAndFormattedText);
-        pMIndexUiChanged (checkedAndFormattedText.getDoubleValue ());
+        const auto pmIndex { std::clamp (text.getDoubleValue (), minChannelProperties.getPMIndex (), maxChannelProperties.getPMIndex ()) };
+        pMIndexUiChanged (pmIndex);
+        pMIndexTextEditor.setText (FormatHelpers::formatDouble (pmIndex, 2, true));
     });
     setupLabel (pMIndexModLabel, "INDEX", 15.0f, juce::Justification::centredLeft);
     setupCvInputComboBox (pMIndexModComboBox, [this] () { pMIndexModUiChanged (pMIndexModComboBox.getSelectedItemText (), pMIndexModTextEditor.getText ().getDoubleValue ()); });
@@ -263,11 +255,10 @@ void ChannelEditor::setupChannelComponents ()
     },
     [this] (juce::String text)
     {
-        const auto checkedAndFormattedText { FormatHelpers::constrainAndFormat (text.getDoubleValue (),
-                                                                                  FormatHelpers::getAmount (minChannelProperties.getPMIndexMod ()),
-                                                                                  FormatHelpers::getAmount (maxChannelProperties.getPMIndexMod ()), 2, true) };
-        pMIndexModTextEditor.setText (checkedAndFormattedText);
-        pMIndexModUiChanged (pMIndexModComboBox.getSelectedItemText (), checkedAndFormattedText.getDoubleValue ());
+        const auto pmIndexMod { std::clamp (text.getDoubleValue (), FormatHelpers::getAmount (minChannelProperties.getPMIndexMod ()),
+                                                                    FormatHelpers::getAmount (maxChannelProperties.getPMIndexMod ())) };
+        pMIndexModUiChanged (pMIndexModComboBox.getSelectedItemText (), pmIndexMod);
+        pMIndexModTextEditor.setText (FormatHelpers::formatDouble (pmIndexMod, 2, true));
     });
 
    // PAN/MIX
@@ -278,9 +269,9 @@ void ChannelEditor::setupChannelComponents ()
     },
     [this] (juce::String text)
     {
-        const auto checkedAndFormattedText { FormatHelpers::constrainAndFormat (text.getDoubleValue (), minChannelProperties.getPan (), maxChannelProperties.getPan (), 2, true) };
-        panTextEditor.setText (checkedAndFormattedText);
-        panUiChanged (checkedAndFormattedText.getDoubleValue ());
+        const auto pan { std::clamp (text.getDoubleValue (), minChannelProperties.getPan (), maxChannelProperties.getPan ()) };
+        panUiChanged (pan);
+        panTextEditor.setText (FormatHelpers::formatDouble (pan, 2, true));
     });
     setupLabel (panLabel, "PAN", 15.0f, juce::Justification::centredLeft);
     setupCvInputComboBox (panModComboBox, [this] () { panModUiChanged (panModComboBox.getSelectedItemText (), panModTextEditor.getText ().getDoubleValue ()); });
@@ -290,11 +281,10 @@ void ChannelEditor::setupChannelComponents ()
     },
     [this] (juce::String text)
     {
-        const auto checkedAndFormattedText { FormatHelpers::constrainAndFormat (text.getDoubleValue (),
-                                                                                  FormatHelpers::getAmount (minChannelProperties.getPanMod ()),
-                                                                                  FormatHelpers::getAmount (maxChannelProperties.getPanMod ()), 2, true) };
-        panModTextEditor.setText (checkedAndFormattedText);
-        panModUiChanged (panModComboBox.getSelectedItemText (), checkedAndFormattedText.getDoubleValue ());
+        const auto panMod { std::clamp (text.getDoubleValue (), FormatHelpers::getAmount (minChannelProperties.getPanMod ()),
+                                                                FormatHelpers::getAmount (maxChannelProperties.getPanMod ())) };
+        panModUiChanged (panModComboBox.getSelectedItemText (), panMod);
+        panModTextEditor.setText (FormatHelpers::formatDouble (panMod, 2, true));
     });
     setupTextEditor (mixLevelTextEditor, juce::Justification::centred, [this] ()
     {
@@ -302,9 +292,9 @@ void ChannelEditor::setupChannelComponents ()
     },
     [this] (juce::String text)
     {
-        const auto checkedAndFormattedText { FormatHelpers::constrainAndFormat (text.getDoubleValue (), minChannelProperties.getMixLevel (), maxChannelProperties.getMixLevel (), 1, false) };
-        mixLevelTextEditor.setText (checkedAndFormattedText);
-        mixLevelUiChanged (checkedAndFormattedText.getDoubleValue ());
+        const auto mixLevel { std::clamp (text.getDoubleValue (), minChannelProperties.getMixLevel (), maxChannelProperties.getMixLevel ()) };
+        mixLevelUiChanged (mixLevel);
+        mixLevelTextEditor.setText (FormatHelpers::formatDouble (mixLevel, 1, false));
     });
     setupLabel (mixLevelLabel, "MIX", 15.0f, juce::Justification::centredLeft);
     setupCvInputComboBox (mixModComboBox, [this] () { mixModUiChanged (mixModComboBox.getSelectedItemText (), mixModTextEditor.getText ().getDoubleValue ()); });
@@ -314,11 +304,10 @@ void ChannelEditor::setupChannelComponents ()
     },
     [this] (juce::String text)
     {
-        const auto checkedAndFormattedText { FormatHelpers::constrainAndFormat (text.getDoubleValue (),
-                                                                                  FormatHelpers::getAmount (minChannelProperties.getMixMod ()),
-                                                                                  FormatHelpers::getAmount (maxChannelProperties.getMixMod ()), 2, true) };
-        mixModTextEditor.setText (checkedAndFormattedText);
-        mixModUiChanged (mixModComboBox.getSelectedItemText (), checkedAndFormattedText.getDoubleValue ());
+        const auto mixMod { std::clamp (text.getDoubleValue (), FormatHelpers::getAmount (minChannelProperties.getMixMod ()),
+                                                                FormatHelpers::getAmount (maxChannelProperties.getMixMod ())) };
+        mixModUiChanged (mixModComboBox.getSelectedItemText (), mixMod);
+        mixModTextEditor.setText (FormatHelpers::formatDouble (mixMod, 2, true));
     });
     setupButton (mixModIsFaderButton, "FADER", [this] () { mixModIsFaderUiChanged (mixModIsFaderButton.getToggleState ()); });
 
@@ -333,9 +322,9 @@ void ChannelEditor::setupChannelComponents ()
     },
     [this] (juce::String text)
     {
-        const auto checkedAndFormattedText { FormatHelpers::constrainAndFormat (text.getDoubleValue (), minChannelProperties.getBits (), maxChannelProperties.getBits (), 1, false) };
-        bitsTextEditor.setText (checkedAndFormattedText);
-        bitsUiChanged (checkedAndFormattedText.getDoubleValue ());
+        const auto bits { std::clamp (text.getDoubleValue (), minChannelProperties.getBits (), maxChannelProperties.getBits ()) };
+        bitsUiChanged (bits);
+        bitsTextEditor.setText (FormatHelpers::formatDouble (bits, 1, false));
     });
     setupLabel (bitsLabel, "BITS", 15.0f, juce::Justification::centredLeft);
     setupCvInputComboBox (bitsModComboBox, [this] () { bitsModUiChanged (bitsModComboBox.getSelectedItemText (), bitsModTextEditor.getText ().getDoubleValue ()); });
@@ -345,11 +334,10 @@ void ChannelEditor::setupChannelComponents ()
     },
     [this] (juce::String text)
     {
-        const auto checkedAndFormattedText { FormatHelpers::constrainAndFormat (text.getDoubleValue (),
-                                                                                  FormatHelpers::getAmount (minChannelProperties.getBitsMod ()),
-                                                                                  FormatHelpers::getAmount (maxChannelProperties.getBitsMod ()), 2, true) };
-        bitsModTextEditor.setText (checkedAndFormattedText);
-        bitsModUiChanged (bitsModComboBox.getSelectedItemText (), checkedAndFormattedText.getDoubleValue ());
+        const auto bitsMod { std::clamp (text.getDoubleValue (), FormatHelpers::getAmount (minChannelProperties.getBitsMod ()),
+                                                                 FormatHelpers::getAmount (maxChannelProperties.getBitsMod ())) };
+        bitsModUiChanged (bitsModComboBox.getSelectedItemText (), bitsMod);
+        bitsModTextEditor.setText (FormatHelpers::formatDouble (bitsMod, 2, true));
     });
 
     // ALIASING
@@ -359,9 +347,9 @@ void ChannelEditor::setupChannelComponents ()
     },
     [this] (juce::String text)
     {
-        const auto checkedAndFormattedText { FormatHelpers::constrainAndFormat (text.getDoubleValue (), minChannelProperties.getAliasing (), maxChannelProperties.getAliasing (), 2, true) };
-        aliasingTextEditor.setText (checkedAndFormattedText);
-        aliasingUiChanged (checkedAndFormattedText.getIntValue ());
+        const auto aliasing { std::clamp (text.getIntValue (), minChannelProperties.getAliasing (), maxChannelProperties.getAliasing ()) };
+        aliasingUiChanged (aliasing);
+        aliasingTextEditor.setText (juce::String(aliasing));
     });
     setupLabel (aliasingLabel, "ALIAS", 15.0f, juce::Justification::centredLeft);
     setupCvInputComboBox (aliasingModComboBox, [this] () { aliasingModUiChanged (aliasingModComboBox.getSelectedItemText (), aliasingModTextEditor.getText ().getDoubleValue ()); });
@@ -371,11 +359,10 @@ void ChannelEditor::setupChannelComponents ()
     },
     [this] (juce::String text)
     {
-        const auto checkedAndFormattedText { FormatHelpers::constrainAndFormat (text.getDoubleValue (),
-                                                                                    FormatHelpers::getAmount (minChannelProperties.getAliasingMod ()),
-                                                                                    FormatHelpers::getAmount (maxChannelProperties.getAliasingMod ()), 2, true) };
-        aliasingModTextEditor.setText (checkedAndFormattedText);
-        aliasingModUiChanged (aliasingModComboBox.getSelectedItemText (), checkedAndFormattedText.getDoubleValue ());
+        const auto aliasingMod { std::clamp (text.getDoubleValue (), FormatHelpers::getAmount (minChannelProperties.getAliasingMod ()),
+                                                                        FormatHelpers::getAmount (maxChannelProperties.getAliasingMod ())) };
+        aliasingModUiChanged (aliasingModComboBox.getSelectedItemText (), aliasingMod);
+        aliasingModTextEditor.setText (FormatHelpers::formatDouble (aliasingMod, 2, true));
     });
 
     // REVERSE/SMOOTH
@@ -391,9 +378,9 @@ void ChannelEditor::setupChannelComponents ()
     },
     [this] (juce::String text)
     {
-        const auto checkedAndFormattedText { FormatHelpers::constrainAndFormat (text.getDoubleValue (), minChannelProperties.getAttack (), maxChannelProperties.getAttack (), 4, false) };
-        attackTextEditor.setText (checkedAndFormattedText);
-        attackUiChanged (checkedAndFormattedText.getDoubleValue ());
+        const auto attack { std::clamp (text.getDoubleValue (), minChannelProperties.getAttack (), maxChannelProperties.getAttack ()) };
+        attackUiChanged (attack );
+        attackTextEditor.setText (FormatHelpers::formatDouble (attack, 4, false));
     });
     setupLabel (attackLabel, "ATTACK", 15.0f, juce::Justification::centredLeft);
     setupCvInputComboBox (attackModComboBox, [this] () { attackModUiChanged (attackModComboBox.getSelectedItemText (), attackModTextEditor.getText ().getDoubleValue ()); });
@@ -403,11 +390,10 @@ void ChannelEditor::setupChannelComponents ()
     },
     [this] (juce::String text)
     {
-        const auto checkedAndFormattedText { FormatHelpers::constrainAndFormat (text.getDoubleValue (),
-                                                                                  FormatHelpers::getAmount (minChannelProperties.getAttackMod ()),
-                                                                                  FormatHelpers::getAmount (maxChannelProperties.getAttackMod ()), 2, true) };
-        attackModTextEditor.setText (checkedAndFormattedText);
-        attackModUiChanged (attackModComboBox.getSelectedItemText (), checkedAndFormattedText.getDoubleValue ());
+        const auto attackMod { std::clamp (text.getDoubleValue (), FormatHelpers::getAmount (minChannelProperties.getAttackMod ()),
+                                                                FormatHelpers::getAmount (maxChannelProperties.getAttackMod ())) };
+        attackModUiChanged (attackModComboBox.getSelectedItemText (), attackMod);
+        attackModTextEditor.setText (FormatHelpers::formatDouble (attackMod, 2, true));
     });
     setupButton (attackFromCurrentButton, "CURRENT", [this] () { attackFromCurrentUiChanged (attackFromCurrentButton.getToggleState ()); });
     // RELEASE
@@ -417,9 +403,9 @@ void ChannelEditor::setupChannelComponents ()
     },
     [this] (juce::String text)
     { 
-        const auto checkedAndFormattedText { FormatHelpers::constrainAndFormat (text.getDoubleValue (), minChannelProperties.getRelease (), maxChannelProperties.getRelease (), 4, false) };
-        releaseTextEditor.setText (checkedAndFormattedText);
-        releaseUiChanged (checkedAndFormattedText.getDoubleValue ());
+        const auto release { std::clamp (text.getDoubleValue (), minChannelProperties.getRelease (), maxChannelProperties.getRelease()) };
+        releaseUiChanged (release);
+        releaseTextEditor.setText (FormatHelpers::formatDouble (release, 4, false));
     });
     setupLabel (releaseLabel, "RELEASE", 15.0f, juce::Justification::centredLeft);
     setupCvInputComboBox (releaseModComboBox, [this] () { releaseModUiChanged (releaseModComboBox.getSelectedItemText (), releaseModTextEditor.getText ().getDoubleValue ()); });
@@ -429,11 +415,10 @@ void ChannelEditor::setupChannelComponents ()
     },
     [this] (juce::String text)
     {
-        const auto checkedAndFormattedText { FormatHelpers::constrainAndFormat (text.getDoubleValue (),
-                                                                                    FormatHelpers::getAmount (minChannelProperties.getReleaseMod ()),
-                                                                                    FormatHelpers::getAmount (maxChannelProperties.getReleaseMod ()), 2, true) };
-        releaseModTextEditor.setText (checkedAndFormattedText);
-        releaseModUiChanged (releaseModComboBox.getSelectedItemText (), checkedAndFormattedText.getDoubleValue ());
+        const auto releaseMod { std::clamp (text.getDoubleValue (), FormatHelpers::getAmount (minChannelProperties.getReleaseMod ()),
+                                                                    FormatHelpers::getAmount (maxChannelProperties.getReleaseMod ())) };
+        releaseModUiChanged (releaseModComboBox.getSelectedItemText (), releaseMod);
+        releaseModTextEditor.setText (FormatHelpers::formatDouble (releaseMod, 2, true));
     });
 
     // PLAY MODE
@@ -461,6 +446,32 @@ void ChannelEditor::setupChannelComponents ()
     channelModeComboBox.addItem ("Stereo/Right", 3);
     channelModeComboBox.addItem ("Cycle", 4);
     setupComboBox (channelModeComboBox, [this] () { channelModeUiChanged (channelModeComboBox.getSelectedId () - 1); });
+    setupLabel (sampleStartModLabel, "SAMPLE START", 15.0f, juce::Justification::centred);
+    setupCvInputComboBox (sampleStartModComboBox, [this] () { sampleStartModUiChanged (sampleStartModComboBox.getSelectedItemText (), sampleStartModTextEditor.getText ().getDoubleValue ()); });
+    setupTextEditor (sampleStartModTextEditor, juce::Justification::centred, [this] ()
+    {
+        FormatHelpers::setColorIfError (sampleStartModTextEditor, FormatHelpers::getAmount (minChannelProperties.getSampleStartMod ()), FormatHelpers::getAmount (maxChannelProperties.getSampleStartMod ()));
+    },
+    [this] (juce::String text)
+    {
+        const auto sampleStartMod { std::clamp (text.getDoubleValue (), FormatHelpers::getAmount (minChannelProperties.getSampleStartMod ()),
+                                                                        FormatHelpers::getAmount (maxChannelProperties.getSampleStartMod ())) };
+        sampleStartModUiChanged (sampleStartModComboBox.getSelectedItemText (), sampleStartMod);
+        sampleStartModTextEditor.setText (FormatHelpers::formatDouble (sampleStartMod, 2, true));
+    });
+    setupLabel (sampleEndModLabel, "SAMPLE END", 15.0f, juce::Justification::centred);
+    setupCvInputComboBox (sampleEndModComboBox, [this] () { sampleEndModUiChanged (sampleEndModComboBox.getSelectedItemText (), sampleEndModTextEditor.getText ().getDoubleValue ()); });
+    setupTextEditor (sampleEndModTextEditor, juce::Justification::centred, [this] ()
+    {
+        FormatHelpers::setColorIfError (sampleEndModTextEditor, FormatHelpers::getAmount (minChannelProperties.getSampleEndMod ()), FormatHelpers::getAmount (maxChannelProperties.getSampleEndMod ()));
+    },
+    [this] (juce::String text)
+    {
+        const auto sampleEndMod { std::clamp (text.getDoubleValue (), FormatHelpers::getAmount (minChannelProperties.getSampleEndMod ()),
+                                                                      FormatHelpers::getAmount (maxChannelProperties.getSampleEndMod ())) };
+        sampleEndModUiChanged (sampleEndModComboBox.getSelectedItemText (), sampleEndMod);
+        sampleEndModTextEditor.setText (FormatHelpers::formatDouble (sampleEndMod, 2, true));
+    });
     setupLabel (loopStartModLabel, "LOOP START", 15.0f, juce::Justification::centred);
     setupCvInputComboBox (loopStartModComboBox, [this] () { loopStartModUiChanged (loopStartModComboBox.getSelectedItemText (), loopStartModTextEditor.getText ().getDoubleValue ()); });
     setupTextEditor (loopStartModTextEditor, juce::Justification::centred, [this] ()
@@ -469,11 +480,10 @@ void ChannelEditor::setupChannelComponents ()
     },
     [this] (juce::String text)
     {
-        const auto checkedAndFormattedText { FormatHelpers::constrainAndFormat (text.getDoubleValue (),
-                                                                                    FormatHelpers::getAmount (minChannelProperties.getLoopStartMod ()),
-                                                                                    FormatHelpers::getAmount (maxChannelProperties.getLoopStartMod ()), 2, true) };
-        loopStartModTextEditor.setText (checkedAndFormattedText);
-        loopStartModUiChanged (loopStartModComboBox.getSelectedItemText (), checkedAndFormattedText.getDoubleValue ());
+        const auto loopStartMod { std::clamp (text.getDoubleValue (), FormatHelpers::getAmount (minChannelProperties.getLoopStartMod ()),
+                                                                      FormatHelpers::getAmount (maxChannelProperties.getLoopStartMod ())) };
+        loopStartModUiChanged (loopStartModComboBox.getSelectedItemText (), loopStartMod);
+        loopStartModTextEditor.setText (FormatHelpers::formatDouble (loopStartMod, 2, true));
     });
     setupLabel (loopLengthModLabel, "LOOP LENGTH", 15.0f, juce::Justification::centred);
     setupCvInputComboBox (loopLengthModComboBox, [this] () { loopLengthModUiChanged (loopLengthModComboBox.getSelectedItemText (), loopLengthModTextEditor.getText ().getDoubleValue ()); });
@@ -483,39 +493,11 @@ void ChannelEditor::setupChannelComponents ()
     },
     [this] (juce::String text)
     {
-        const auto checkedAndFormattedText { FormatHelpers::constrainAndFormat (text.getDoubleValue (),
-                                                                                  FormatHelpers::getAmount (minChannelProperties.getLoopLengthMod ()),
-                                                                                  FormatHelpers::getAmount (maxChannelProperties.getLoopLengthMod ()), 2, true) };
-        loopLengthModTextEditor.setText (checkedAndFormattedText);
-        loopLengthModUiChanged (loopLengthModComboBox.getSelectedItemText (), checkedAndFormattedText.getDoubleValue ());
-    });
-    setupLabel (sampleStartModLabel, "SAMPLE START", 15.0f, juce::Justification::centred);
-    setupCvInputComboBox (sampleStartModComboBox, [this] () { sampleStartModUiChanged (sampleStartModComboBox.getSelectedItemText (), sampleStartModTextEditor.getText ().getDoubleValue ()); });
-    setupTextEditor (sampleStartModTextEditor, juce::Justification::centred, [this] ()
-    {
-        FormatHelpers::setColorIfError (sampleStartModTextEditor, FormatHelpers::getAmount (minChannelProperties.getSampleStartMod ()), FormatHelpers::getAmount (maxChannelProperties.getSampleStartMod ()));
-    },
-    [this] (juce::String text)
-    {
-        const auto checkedAndFormattedText { FormatHelpers::constrainAndFormat (text.getDoubleValue (),
-                                                                                    FormatHelpers::getAmount (minChannelProperties.getSampleStartMod ()),
-                                                                                    FormatHelpers::getAmount (maxChannelProperties.getSampleStartMod ()), 2, true) };
-        sampleStartModTextEditor.setText (checkedAndFormattedText);
-        sampleStartModUiChanged (sampleStartModComboBox.getSelectedItemText (), checkedAndFormattedText.getDoubleValue ());
-    });
-    setupLabel (sampleEndModLabel, "SAMPLE END", 15.0f, juce::Justification::centred);
-    setupCvInputComboBox (sampleEndModComboBox, [this] () { sampleEndModUiChanged (sampleEndModComboBox.getSelectedItemText (), sampleEndModTextEditor.getText ().getDoubleValue ()); });
-    setupTextEditor (sampleEndModTextEditor, juce::Justification::centred, [this] ()
-    {
-        FormatHelpers::setColorIfError (sampleEndModTextEditor, FormatHelpers::getAmount (minChannelProperties.getSampleEndMod ()), FormatHelpers::getAmount (maxChannelProperties.getSampleEndMod ()));
-    },
-    [this] (juce::String text) 
-    {
-        const auto checkedAndFormattedText { FormatHelpers::constrainAndFormat (text.getDoubleValue (),
-                                                                                FormatHelpers::getAmount (minChannelProperties.getSampleEndMod ()),
-                                                                                FormatHelpers::getAmount (maxChannelProperties.getSampleEndMod ()), 2, true) };
-        sampleEndModTextEditor.setText (checkedAndFormattedText);
-        sampleEndModUiChanged (sampleEndModComboBox.getSelectedItemText (), checkedAndFormattedText.getDoubleValue ());
+        // TODO - after implementing LoopLength/LoopEnd switch, update code here to use it
+        const auto loopLengthMod { std::clamp (text.getDoubleValue (), FormatHelpers::getAmount (minChannelProperties.getLoopLengthMod ()),
+                                                                       FormatHelpers::getAmount (maxChannelProperties.getLoopLengthMod ())) };
+        loopLengthModUiChanged (loopLengthModComboBox.getSelectedItemText (), loopLengthMod);
+        loopLengthModTextEditor.setText (FormatHelpers::formatDouble (loopLengthMod, 2, true));
     });
     setupLabel (xfadeGroupLabel, "CROSSFADE", 15.0f, juce::Justification::centred);
     xfadeGroupComboBox.addItem ("None", 1); // Off, A, B, C, D
@@ -652,7 +634,7 @@ void ChannelEditor::resized ()
 
     // column one
     const auto columnOneXOffset { 5 };
-    const auto columnOneWidth { 80 };
+    const auto columnOneWidth { 100};
     pitchLabel.setBounds (columnOneXOffset, 5, columnOneWidth, 25);
     pitchTextEditor.setBounds (pitchLabel.getX () + 3, pitchLabel.getBottom () + 3, pitchLabel.getWidth () - 6, 20);
     pitchSemiLabel.setBounds (pitchTextEditor.getRight () + 3, pitchTextEditor.getY (), 40, 20);
@@ -681,7 +663,7 @@ void ChannelEditor::resized ()
     expAMTextEditor.setBounds (expAMComboBox.getRight () + 3, expAMComboBox.getY (), expAMLabel.getWidth () - (expAMLabel.getWidth () / 2) - 1, 20);
 
     //column two
-    const auto columnTwoXOffset { columnOneXOffset + 130 };
+    const auto columnTwoXOffset { columnOneXOffset + 145 };
     const auto columnTwoWidth { 100 };
     phaseCVLabel.setBounds (columnTwoXOffset, 5, columnTwoWidth, 25);
     pMSourceComboBox.setBounds (phaseCVLabel.getX () + 3, phaseCVLabel.getBottom () + 3, phaseCVLabel.getWidth () - 6, 20);
@@ -708,7 +690,7 @@ void ChannelEditor::resized ()
     mixModIsFaderButton.setBounds (mixModTextEditor.getRight () + 3, mixModTextEditor.getY (), 40, 20);
 
     // column three
-    const auto columnThreeXOffset { columnTwoXOffset + 160 };
+    const auto columnThreeXOffset { columnTwoXOffset + 165 };
     const auto columnThreeWidth { 100 };
 
     // MUTATE
@@ -793,7 +775,7 @@ void ChannelEditor::aliasingUiChanged (int aliasing)
 void ChannelEditor::aliasingModDataChanged (juce::String cvInput, double aliasingMod)
 {
     aliasingModComboBox.setSelectedItemText (cvInput);
-    aliasingModTextEditor.setText (juce::String (aliasingMod), juce::NotificationType::dontSendNotification);
+    aliasingModTextEditor.setText (FormatHelpers::formatDouble (aliasingMod, 2, true), juce::NotificationType::dontSendNotification);
 }
 
 void ChannelEditor::aliasingModUiChanged (juce::String cvInput, double aliasingMod)
@@ -803,7 +785,7 @@ void ChannelEditor::aliasingModUiChanged (juce::String cvInput, double aliasingM
 
 void ChannelEditor::attackDataChanged (double attack)
 {
-    attackTextEditor.setText (juce::String (attack));
+    attackTextEditor.setText (FormatHelpers::formatDouble (attack, 4, false));
 }
 
 void ChannelEditor::attackUiChanged (double attack)
@@ -824,7 +806,7 @@ void ChannelEditor::attackFromCurrentUiChanged (bool attackFromCurrent)
 void ChannelEditor::attackModDataChanged (juce::String cvInput, double attackMod)
 {
     attackModComboBox.setSelectedItemText (cvInput);
-    attackModTextEditor.setText (juce::String (attackMod), juce::NotificationType::dontSendNotification);
+    attackModTextEditor.setText (FormatHelpers::formatDouble (attackMod, 2, true), juce::NotificationType::dontSendNotification);
 }
 
 void ChannelEditor::attackModUiChanged (juce::String cvInput, double attackMod)
@@ -844,7 +826,7 @@ void ChannelEditor::autoTriggerUiChanged (bool autoTrigger)
 
 void ChannelEditor::bitsDataChanged (double bits)
 {
-    bitsTextEditor.setText (juce::String (bits));
+    bitsTextEditor.setText (FormatHelpers::formatDouble (bits, 1, false));
 }
 
 void ChannelEditor::bitsUiChanged (double bits)
@@ -855,7 +837,7 @@ void ChannelEditor::bitsUiChanged (double bits)
 void ChannelEditor::bitsModDataChanged (juce::String cvInput, double bitsMod)
 {
     bitsModComboBox.setSelectedItemText (cvInput);
-    bitsModTextEditor.setText (juce::String (bitsMod), juce::NotificationType::dontSendNotification);
+    bitsModTextEditor.setText (FormatHelpers::formatDouble (bitsMod, 2, true), juce::NotificationType::dontSendNotification);
 }
 
 void ChannelEditor::bitsModUiChanged (juce::String cvInput, double bitsMod)
@@ -876,7 +858,7 @@ void ChannelEditor::channelModeUiChanged (int channelMode)
 void ChannelEditor::expAMDataChanged (juce::String cvInput, double expAM)
 {
     expAMComboBox.setSelectedItemText (cvInput);
-    expAMTextEditor.setText (juce::String (expAM));
+    expAMTextEditor.setText (FormatHelpers::formatDouble (expAM, 2, true));
 }
 
 void ChannelEditor::expAMUiChanged (juce::String cvInput, double expAM)
@@ -887,7 +869,7 @@ void ChannelEditor::expAMUiChanged (juce::String cvInput, double expAM)
 void ChannelEditor::expFMDataChanged (juce::String cvInput, double expFM)
 {
     expFMComboBox.setSelectedItemText (cvInput);
-    expFMTextEditor.setText (juce::String (expFM));
+    expFMTextEditor.setText (FormatHelpers::formatDouble (expFM, 2, true));
 }
 
 void ChannelEditor::expFMUiChanged (juce::String cvInput, double expFM)
@@ -897,7 +879,7 @@ void ChannelEditor::expFMUiChanged (juce::String cvInput, double expFM)
 
 void ChannelEditor::levelDataChanged (double level)
 {
-    levelTextEditor.setText (juce::String (level));
+    levelTextEditor.setText (FormatHelpers::formatDouble (level, 1, false));
 }
 
 void ChannelEditor::levelUiChanged (double level)
@@ -908,7 +890,7 @@ void ChannelEditor::levelUiChanged (double level)
 void ChannelEditor::linAMDataChanged (juce::String cvInput, double linAM)
 {
     linAMComboBox.setSelectedItemText (cvInput);
-    linAMTextEditor.setText (juce::String (linAM));
+    linAMTextEditor.setText (FormatHelpers::formatDouble (linAM, 2, true));
 }
 
 void ChannelEditor::linAMUiChanged (juce::String cvInput, double linAM)
@@ -929,7 +911,7 @@ void ChannelEditor::linAMisExtEnvUiChanged (bool linAMisExtEnv)
 void ChannelEditor::linFMDataChanged (juce::String cvInput, double linFM)
 {
     linFMComboBox.setSelectedItemText (cvInput);
-    linFMTextEditor.setText (juce::String (linFM));
+    linFMTextEditor.setText (FormatHelpers::formatDouble (linFM, 2, true));
 }
 
 void ChannelEditor::linFMUiChanged (juce::String cvInput, double linFM)
@@ -940,7 +922,7 @@ void ChannelEditor::linFMUiChanged (juce::String cvInput, double linFM)
 void ChannelEditor::loopLengthModDataChanged (juce::String cvInput, double loopLengthMod)
 {
     loopLengthModComboBox.setSelectedItemText (cvInput);
-    loopLengthModTextEditor.setText (juce::String (loopLengthMod), juce::NotificationType::dontSendNotification);
+    loopLengthModTextEditor.setText (FormatHelpers::formatDouble (loopLengthMod, 2, true), juce::NotificationType::dontSendNotification);
 }
 
 void ChannelEditor::loopLengthModUiChanged (juce::String cvInput, double loopLengthMod)
@@ -961,7 +943,7 @@ void ChannelEditor::loopModeUiChanged (int loopMode)
 void ChannelEditor::loopStartModDataChanged (juce::String cvInput, double loopStartMod)
 {
     loopStartModComboBox.setSelectedItemText (cvInput);
-    loopStartModTextEditor.setText (juce::String (loopStartMod), juce::NotificationType::dontSendNotification);
+    loopStartModTextEditor.setText (FormatHelpers::formatDouble (loopStartMod, 2, true), juce::NotificationType::dontSendNotification);
 }
 
 void ChannelEditor::loopStartModUiChanged (juce::String cvInput, double loopStartMod)
@@ -971,7 +953,7 @@ void ChannelEditor::loopStartModUiChanged (juce::String cvInput, double loopStar
 
 void ChannelEditor::mixLevelDataChanged (double mixLevel)
 {
-    mixLevelTextEditor.setText (juce::String (mixLevel));
+    mixLevelTextEditor.setText (FormatHelpers::formatDouble (mixLevel, 1, false));
 }
 
 void ChannelEditor::mixLevelUiChanged (double mixLevel)
@@ -982,7 +964,7 @@ void ChannelEditor::mixLevelUiChanged (double mixLevel)
 void ChannelEditor::mixModDataChanged (juce::String cvInput, double mixMod)
 {
     mixModComboBox.setSelectedItemText (cvInput);
-    mixModTextEditor.setText (juce::String (mixMod), juce::NotificationType::dontSendNotification);
+    mixModTextEditor.setText (FormatHelpers::formatDouble (mixMod, 2, true), juce::NotificationType::dontSendNotification);
 }
 
 void ChannelEditor::mixModUiChanged (juce::String cvInput, double mixMod)
@@ -1002,7 +984,7 @@ void ChannelEditor::mixModIsFaderUiChanged (bool mixModIsFader)
 
 void ChannelEditor::panDataChanged (double pan)
 {
-    panTextEditor.setText (juce::String (pan));
+    panTextEditor.setText (FormatHelpers::formatDouble (pan, 2, true));
 }
 
 void ChannelEditor::panUiChanged (double pan)
@@ -1013,7 +995,7 @@ void ChannelEditor::panUiChanged (double pan)
 void ChannelEditor::panModDataChanged (juce::String cvInput, double panMod)
 {
     panModComboBox.setSelectedItemText (cvInput);
-    panModTextEditor.setText (juce::String (panMod), juce::NotificationType::dontSendNotification);
+    panModTextEditor.setText (FormatHelpers::formatDouble (panMod, 2, true), juce::NotificationType::dontSendNotification);
 }
 
 void ChannelEditor::panModUiChanged (juce::String cvInput, double panMod)
@@ -1024,7 +1006,7 @@ void ChannelEditor::panModUiChanged (juce::String cvInput, double panMod)
 void ChannelEditor::phaseCVDataChanged (juce::String cvInput, double phaseCV)
 {
     phaseCVComboBox.setSelectedItemText (cvInput);
-    phaseCVTextEditor.setText (juce::String (phaseCV), juce::NotificationType::dontSendNotification);
+    phaseCVTextEditor.setText (FormatHelpers::formatDouble (phaseCV, 2, true), juce::NotificationType::dontSendNotification);
 }
 
 void ChannelEditor::phaseCVUiChanged (juce::String cvInput, double phaseCV)
@@ -1034,8 +1016,7 @@ void ChannelEditor::phaseCVUiChanged (juce::String cvInput, double phaseCV)
 
 void ChannelEditor::pitchDataChanged (double pitch)
 {
-    // TODO - 
-    pitchTextEditor.setText (juce::String (pitch, 2));
+    pitchTextEditor.setText (FormatHelpers::formatDouble (pitch, 2, true));
 }
 
 void ChannelEditor::pitchUiChanged (double pitch)
@@ -1046,7 +1027,7 @@ void ChannelEditor::pitchUiChanged (double pitch)
 void ChannelEditor::pitchCVDataChanged (juce::String cvInput, double pitchCV)
 {
     pitchCVComboBox.setSelectedItemText (cvInput);
-    pitchCVTextEditor.setText (juce::String (pitchCV), juce::NotificationType::dontSendNotification);
+    pitchCVTextEditor.setText (FormatHelpers::formatDouble (pitchCV, 2, true), juce::NotificationType::dontSendNotification);
 }
 
 void ChannelEditor::pitchCVUiChanged (juce::String cvInput, double pitchCV)
@@ -1066,7 +1047,7 @@ void ChannelEditor::playModeUiChanged (int playMode)
 
 void ChannelEditor::pMIndexDataChanged (double pMIndex)
 {
-    pMIndexTextEditor.setText (juce::String (pMIndex));
+    pMIndexTextEditor.setText (FormatHelpers::formatDouble (pMIndex, 2, true));
 }
 
 void ChannelEditor::pMIndexUiChanged (double pMIndex)
@@ -1077,7 +1058,7 @@ void ChannelEditor::pMIndexUiChanged (double pMIndex)
 void ChannelEditor::pMIndexModDataChanged (juce::String cvInput, double pMIndexMod)
 {
     pMIndexModComboBox.setSelectedItemText (cvInput);
-    pMIndexModTextEditor.setText (juce::String (pMIndexMod), juce::NotificationType::dontSendNotification);
+    pMIndexModTextEditor.setText (FormatHelpers::formatDouble (pMIndexMod, 2, true), juce::NotificationType::dontSendNotification);
 }
 
 void ChannelEditor::pMIndexModUiChanged (juce::String cvInput, double pMIndexMod)
@@ -1097,7 +1078,7 @@ void ChannelEditor::pMSourceUiChanged (int pMSource)
 
 void ChannelEditor::releaseDataChanged (double release)
 {
-    releaseTextEditor.setText (juce::String (release));
+    releaseTextEditor.setText (FormatHelpers::formatDouble (release, 4, false));
 }
 
 void ChannelEditor::releaseUiChanged (double release)
@@ -1108,7 +1089,7 @@ void ChannelEditor::releaseUiChanged (double release)
 void ChannelEditor::releaseModDataChanged (juce::String cvInput, double releaseMod)
 {
     releaseModComboBox.setSelectedItemText (cvInput);
-    releaseModTextEditor.setText (juce::String (releaseMod), juce::NotificationType::dontSendNotification);
+    releaseModTextEditor.setText (FormatHelpers::formatDouble (releaseMod, 2, true), juce::NotificationType::dontSendNotification);
 }
 
 void ChannelEditor::releaseModUiChanged (juce::String cvInput, double releaseMod)
@@ -1129,7 +1110,7 @@ void ChannelEditor::reverseUiChanged (bool reverse)
 void ChannelEditor::sampleEndModDataChanged (juce::String cvInput, double sampleEndMod)
 {
     sampleEndModComboBox.setSelectedItemText (cvInput);
-    sampleEndModTextEditor.setText (juce::String (sampleEndMod), juce::NotificationType::dontSendNotification);
+    sampleEndModTextEditor.setText (FormatHelpers::formatDouble (sampleEndMod, 2, true), juce::NotificationType::dontSendNotification);
 }
 
 void ChannelEditor::sampleEndModUiChanged (juce::String cvInput, double sampleEndMod)
@@ -1140,7 +1121,7 @@ void ChannelEditor::sampleEndModUiChanged (juce::String cvInput, double sampleEn
 void ChannelEditor::sampleStartModDataChanged (juce::String cvInput, double sampleStartMod)
 {
     sampleStartModComboBox.setSelectedItemText (cvInput);
-    sampleStartModTextEditor.setText (juce::String (sampleStartMod), juce::NotificationType::dontSendNotification);
+    sampleStartModTextEditor.setText (FormatHelpers::formatDouble (sampleStartMod, 2, true), juce::NotificationType::dontSendNotification);
 }
 
 void ChannelEditor::sampleStartModUiChanged (juce::String cvInput, double sampleStartMod)

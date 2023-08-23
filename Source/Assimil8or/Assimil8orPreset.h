@@ -30,32 +30,29 @@ public:
     void parse (juce::StringArray presetLines);
 
     juce::ValueTree getPresetVT () { return presetProperties.getValueTree (); }
-
     juce::ValueTree getParseErrorsVT () { return parseErrorList; }
 
 private:
-    
-    juce::String getSectionName ();
-    
-    std::stack<Action> undoActionsStack;
-    
     PresetProperties presetProperties;
-    juce::ValueTree parseErrorList { "ParseErrorList" };
+    PresetProperties minPresetProperties;
+    PresetProperties maxPresetProperties;
 
+    juce::ValueTree parseErrorList { "ParseErrorList" };
+    std::stack<Action> undoActionsStack;
     ActionMap globalActions;
     ActionMap presetActions;
     ActionMap channelActions;
     ActionMap zoneActions;
-    ActionMap * curActions {nullptr};
-
+    ActionMap * curActions { nullptr };
     juce::ValueTree curPresetSection;
     ChannelProperties channelProperties;
     juce::ValueTree curChannelSection;
     ZoneProperties zoneProperties;
     juce::ValueTree curZoneSection;
-    
     juce::String key;
     juce::String value;
 
     void checkCvInputAndAmountFormat (juce::String theKey, juce::String theValue);
+    juce::String getSectionName ();
+    void initParser ();
 };

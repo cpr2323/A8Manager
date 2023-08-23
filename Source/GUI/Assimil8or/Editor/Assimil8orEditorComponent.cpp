@@ -5,6 +5,7 @@
 #include "../../../Assimil8or/Preset/ParameterPresetsSingleton.h"
 #include "../../../Utility/RuntimeRootProperties.h"
 #include "../../../Utility/PersistentRootProperties.h"
+#include <algorithm>
 
 // TODO - short list
 //  Implement input validation, characters, min/max, etc
@@ -104,16 +105,11 @@ void Assimil8orEditorComponent::setupPresetComponents ()
         auto xFadeGroupEditDone = [this] (int xfadeGroupIndex)
         {
             auto& widthEditor { xfadeGroups [xfadeGroupIndex].xfadeWidthEditor };
-            const auto value { widthEditor.getText ().getDoubleValue () };
-            const auto numDecimals { value >= 1.0 ? 1 : 2 };
-            auto newText { FormatHelpers::constrainAndFormat (value, minPresetProperties.getXfadeAWidth (), maxPresetProperties.getXfadeAWidth (), numDecimals, false) };
-            if (value == 10)
-                newText = newText.trimCharactersAtEnd ("0");
-            else if (value < 1.0)
-                newText = newText.trimCharactersAtStart ("0");
-            newText += "V";
-            widthEditor.setText (newText);
-            xfadeWidthUiChanged (xfadeGroupIndex, widthEditor.getText ());
+            auto width { std::clamp (widthEditor.getText ().getDoubleValue (), minPresetProperties.getXfadeAWidth (), maxPresetProperties.getXfadeAWidth ()) };
+            xfadeWidthUiChanged (xfadeGroupIndex, width);
+
+            auto text { formatXfadeWidthString (width) };
+            widthEditor.setText (text);
         };
         xfadeGroup.xfadeWidthEditor.onFocusLost = [this, xfadeGroupIndex, xFadeGroupEditDone] ()
         {
@@ -130,6 +126,17 @@ void Assimil8orEditorComponent::setupPresetComponents ()
         addAndMakeVisible (xfadeGroup.xfadeWidthEditor);
     }
 }
+
+juce::String Assimil8orEditorComponent::formatXfadeWidthString (double width)
+    {
+        const auto numDecimals { width >= 1.0 ? 1 : 2 };
+        auto newText { FormatHelpers::formatDouble (width, numDecimals, false) };
+        if (width == 10)
+            newText = newText.trimCharactersAtEnd ("0");
+        else if (width < 1.0)
+            newText = newText.trimCharactersAtStart ("0");
+        return newText += "V";
+    };
 
 void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
 {
@@ -153,10 +160,10 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
     xfadeCvDataChanged (1, presetProperties.getXfadeBCV ());
     xfadeCvDataChanged (2, presetProperties.getXfadeCCV ());
     xfadeCvDataChanged (3, presetProperties.getXfadeDCV ());
-    xfadeWidthDataChanged (0, juce::String (presetProperties.getXfadeAWidth (), 2)); // + "V");
-    xfadeWidthDataChanged (1, juce::String (presetProperties.getXfadeBWidth (), 2)); // + "V");
-    xfadeWidthDataChanged (2, juce::String (presetProperties.getXfadeCWidth (), 2)); // + "V");
-    xfadeWidthDataChanged (3, juce::String (presetProperties.getXfadeDWidth (), 2)); // + "V");
+    xfadeWidthDataChanged (0, presetProperties.getXfadeAWidth ());
+    xfadeWidthDataChanged (1, presetProperties.getXfadeBWidth ());
+    xfadeWidthDataChanged (2, presetProperties.getXfadeCWidth ());
+    xfadeWidthDataChanged (3, presetProperties.getXfadeDWidth ());
 }
 
 void Assimil8orEditorComponent::setupPresetPropertiesCallbacks ()
@@ -170,10 +177,10 @@ void Assimil8orEditorComponent::setupPresetPropertiesCallbacks ()
     presetProperties.onXfadeCCVChange = [this] (juce::String dataAndCv) { xfadeCvDataChanged (2, dataAndCv); };
     presetProperties.onXfadeDCVChange = [this] (juce::String dataAndCv) { xfadeCvDataChanged (3, dataAndCv); };
     // Xfade_Width
-    presetProperties.onXfadeAWidthChange = [this] (double width) { xfadeWidthDataChanged (0, juce::String (width)); };
-    presetProperties.onXfadeBWidthChange = [this] (double width) { xfadeWidthDataChanged (1, juce::String (width)); };
-    presetProperties.onXfadeCWidthChange = [this] (double width) { xfadeWidthDataChanged (2, juce::String (width)); };
-    presetProperties.onXfadeDWidthChange = [this] (double width) { xfadeWidthDataChanged (3, juce::String (width)); };
+    presetProperties.onXfadeAWidthChange = [this] (double width) { xfadeWidthDataChanged (0, width); };
+    presetProperties.onXfadeBWidthChange = [this] (double width) { xfadeWidthDataChanged (1, width); };
+    presetProperties.onXfadeCWidthChange = [this] (double width) { xfadeWidthDataChanged (2, width); };
+    presetProperties.onXfadeDWidthChange = [this] (double width) { xfadeWidthDataChanged (3, width); };
 }
 
 void Assimil8orEditorComponent::importPreset ()
@@ -285,20 +292,20 @@ void Assimil8orEditorComponent::xfadeCvUiChanged (int group, juce::String data2A
     }
 }
 
-void Assimil8orEditorComponent::xfadeWidthDataChanged (int group, juce::String widthString)
+void Assimil8orEditorComponent::xfadeWidthDataChanged (int group, double width)
 {
     jassert (group >= 0 && group < 4);
-    xfadeGroups [group].xfadeWidthEditor.setText (widthString);
+    xfadeGroups [group].xfadeWidthEditor.setText (formatXfadeWidthString(width));
 }
 
-void Assimil8orEditorComponent::xfadeWidthUiChanged (int group, juce::String widthString)
+void Assimil8orEditorComponent::xfadeWidthUiChanged (int group, double width)
 {
     switch (group)
     {
-        case XfadeGroupIndex::groupA: presetProperties.setXfadeAWidth (widthString.getDoubleValue (), false); break;
-        case XfadeGroupIndex::groupB: presetProperties.setXfadeBWidth (widthString.getDoubleValue (), false); break;
-        case XfadeGroupIndex::groupC: presetProperties.setXfadeCWidth (widthString.getDoubleValue (), false); break;
-        case XfadeGroupIndex::groupD: presetProperties.setXfadeDWidth (widthString.getDoubleValue (), false); break;
+        case XfadeGroupIndex::groupA: presetProperties.setXfadeAWidth (width, false); break;
+        case XfadeGroupIndex::groupB: presetProperties.setXfadeBWidth (width, false); break;
+        case XfadeGroupIndex::groupC: presetProperties.setXfadeCWidth (width, false); break;
+        case XfadeGroupIndex::groupD: presetProperties.setXfadeDWidth (width, false); break;
         default: jassertfalse; break;
     }
 }

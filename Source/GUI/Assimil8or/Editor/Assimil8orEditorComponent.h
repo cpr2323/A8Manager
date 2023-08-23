@@ -64,6 +64,7 @@ private:
     std::array<ChannelEditor, 8> channelEditors;
 
     void exportPreset ();
+    juce::String formatXfadeWidthString (double width);
     void importPreset ();
     void savePreset ();
     void setupPresetComponents ();
@@ -77,8 +78,8 @@ private:
     void data2AsCvUiChanged (juce::String data2AsCvString);
     void xfadeCvDataChanged (int group, juce::String data2AsCvString);
     void xfadeCvUiChanged (int group, juce::String data2AsCvString);
-    void xfadeWidthDataChanged (int group, juce::String width);
-    void xfadeWidthUiChanged (int group, juce::String width);
+    void xfadeWidthDataChanged (int group, double);
+    void xfadeWidthUiChanged (int group, double);
 
     void resized () override;
     void paint (juce::Graphics& g) override;

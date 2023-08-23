@@ -2,12 +2,8 @@
 
 namespace FormatHelpers
 {
-    juce::String constrainAndFormat (double value, double minValue, double maxValue, int decimalPlaces, bool includeSign)
+    juce::String formatDouble (double value, int decimalPlaces, bool includeSign)
     {
-        if (value < minValue)
-            value = minValue;
-        else if (value > maxValue)
-            value = maxValue;
         juce::String signString;
         if (includeSign && value >= 0.0)
             signString = "+";
@@ -21,15 +17,6 @@ namespace FormatHelpers
             textEditor.applyColourToAllText (juce::Colours::white, true);
         else
             textEditor.applyColourToAllText (juce::Colours::red, true);
-    };
-
-    juce::String constrainAndFormat (int value, int minValue, int maxValue)
-    {
-        if (value < minValue)
-            value = minValue;
-        else if (value > maxValue)
-            value = maxValue;
-        return juce::String (value);
     };
 
     void setColorIfError (juce::TextEditor& textEditor, int minValue, int maxValue)

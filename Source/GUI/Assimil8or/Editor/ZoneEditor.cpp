@@ -3,6 +3,7 @@
 #include "../../../Assimil8or/Preset/ChannelProperties.h"
 #include "../../../Assimil8or/Preset/PresetProperties.h"
 #include "../../../Assimil8or/Preset/ParameterPresetsSingleton.h"
+#include <algorithm>
 
 ZoneEditor::ZoneEditor ()
 {
@@ -70,9 +71,9 @@ void ZoneEditor::setupChannelComponents ()
     },
     [this] (juce::String text)
     {
-        const auto checkedAndFormattedText { FormatHelpers::constrainAndFormat (text.getIntValue (), minZoneProperties.getSampleStart (), maxZoneProperties.getSampleStart ()) };
-        sampleStartTextEditor.setText (checkedAndFormattedText);
-        sampleStartUiChanged (checkedAndFormattedText.getIntValue ());
+        const auto sampleStart { std::clamp (text.getIntValue (), minZoneProperties.getSampleStart (), maxZoneProperties.getSampleStart ()) };
+        sampleStartUiChanged (sampleStart);
+        sampleStartTextEditor.setText (juce::String (sampleStart));
     });
     setupTextEditor (sampleEndTextEditor, juce::Justification::centred, [this] ()
     {
@@ -80,9 +81,9 @@ void ZoneEditor::setupChannelComponents ()
     },
     [this] (juce::String text)
     {
-        const auto checkedAndFormattedText { FormatHelpers::constrainAndFormat (text.getIntValue (), minZoneProperties.getSampleEnd (), maxZoneProperties.getSampleEnd ()) };
-        sampleEndTextEditor.setText (checkedAndFormattedText);
-        sampleEndUiChanged (checkedAndFormattedText.getIntValue ());
+        const auto sampleEnd { std::clamp (text.getIntValue (), minZoneProperties.getSampleEnd (), maxZoneProperties.getSampleEnd ()) };
+        sampleEndUiChanged (sampleEnd);
+        sampleEndTextEditor.setText (juce::String (sampleEnd));
     });
     setupLabel (loopBoundsLabel, "LOOP START/LENGTH", 15.0, juce::Justification::centredLeft);
     setupTextEditor (loopStartTextEditor, juce::Justification::centred, [this] ()
@@ -91,9 +92,9 @@ void ZoneEditor::setupChannelComponents ()
     },
     [this] (juce::String text)
     {
-        const auto checkedAndFormattedText { FormatHelpers::constrainAndFormat (text.getIntValue (), minZoneProperties.getLoopStart (), maxZoneProperties.getLoopStart ()) };
-        loopStartTextEditor.setText (checkedAndFormattedText);
-        loopStartUiChanged (checkedAndFormattedText.getIntValue ());
+        const auto loopStart { std::clamp (text.getIntValue (), minZoneProperties.getLoopStart (), maxZoneProperties.getLoopStart ()) };
+        loopStartUiChanged (loopStart);
+        loopStartTextEditor.setText (juce::String (loopStart));
     });
     setupTextEditor (loopLengthTextEditor, juce::Justification::centred, [this] ()
     {
@@ -101,9 +102,13 @@ void ZoneEditor::setupChannelComponents ()
     },
     [this] (juce::String text)
     {
-        const auto checkedAndFormattedText { FormatHelpers::constrainAndFormat (text.getDoubleValue (), minZoneProperties.getLoopLength (), maxZoneProperties.getLoopLength (), 3, false) };
-        loopLengthTextEditor.setText (checkedAndFormattedText);
-        loopLengthUiChanged (checkedAndFormattedText.getDoubleValue ());
+        // TODO - after implementing LoopLength/LoopEnd switch, update code here to use it
+        auto loopLength { std::clamp (text.getDoubleValue (), minZoneProperties.getLoopLength (), maxZoneProperties.getLoopLength ()) };
+        // TODO - do additional clamping due on the different number of decimal places/increments based on the current value
+        //   loopLength > 2048 | 0 decimal places
+        //
+        loopLengthUiChanged (loopLength);
+        loopLengthTextEditor.setText (FormatHelpers::formatDouble (loopLength, 3, false));
     });
     setupLabel (minVoltageLabel, "MIN VOLTAGE", 15.0, juce::Justification::centredLeft);
     setupTextEditor (minVoltageTextEditor, juce::Justification::centred, [this] ()
@@ -112,9 +117,9 @@ void ZoneEditor::setupChannelComponents ()
     },
     [this] (juce::String text)
     {
-        const auto checkedAndFormattedText { FormatHelpers::constrainAndFormat (text.getDoubleValue (), minZoneProperties.getMinVoltage (), maxZoneProperties.getMinVoltage (), 2, true) };
-        minVoltageTextEditor.setText (checkedAndFormattedText);
-        minVoltageUiChanged (checkedAndFormattedText.getDoubleValue ());
+        const auto minVoltage { std::clamp (text.getDoubleValue (), minZoneProperties.getMinVoltage (), maxZoneProperties.getMinVoltage ()) };
+        minVoltageUiChanged (minVoltage);
+        minVoltageTextEditor.setText (FormatHelpers::formatDouble (minVoltage, 2, true));
     });
     setupLabel (levelOffsetLabel, "LEVEL OFFSET", 15.0, juce::Justification::centredLeft);
     setupTextEditor (levelOffsetTextEditor, juce::Justification::centred, [this] ()
@@ -123,9 +128,9 @@ void ZoneEditor::setupChannelComponents ()
     },
     [this] (juce::String text)
     {
-        const auto checkedAndFormattedText { FormatHelpers::constrainAndFormat (text.getDoubleValue (), minZoneProperties.getLevelOffset (), maxZoneProperties.getLevelOffset (), 1, true) };
-        levelOffsetTextEditor.setText (checkedAndFormattedText);
-        levelOffsetUiChanged (checkedAndFormattedText.getDoubleValue ());
+        const auto levelOffset { std::clamp (text.getDoubleValue (), minZoneProperties.getLevelOffset (), maxZoneProperties.getLevelOffset ()) };
+        levelOffsetUiChanged (levelOffset);
+        levelOffsetTextEditor.setText (FormatHelpers::formatDouble (levelOffset, 1, true));
     });
     setupLabel (pitchOffsetLabel, "PITCH OFFSET", 15.0, juce::Justification::centredLeft);
     setupTextEditor (pitchOffsetTextEditor, juce::Justification::centred, [this] ()
@@ -134,9 +139,9 @@ void ZoneEditor::setupChannelComponents ()
     },
     [this] (juce::String text)
     {
-        const auto checkedAndFormattedText { FormatHelpers::constrainAndFormat (text.getDoubleValue (), minZoneProperties.getPitchOffset (), maxZoneProperties.getPitchOffset (), 2, true) };
-        pitchOffsetTextEditor.setText (checkedAndFormattedText);
-        pitchOffsetUiChanged (checkedAndFormattedText.getDoubleValue ());
+        const auto pitchOffset { std::clamp (text.getDoubleValue (), minZoneProperties.getPitchOffset (), maxZoneProperties.getPitchOffset ()) };
+        pitchOffsetUiChanged (pitchOffset);
+        pitchOffsetTextEditor.setText (FormatHelpers::formatDouble (pitchOffset, 2, true));
     });
     setupLabel (sideLabel, "SIDE", 15.0, juce::Justification::centredLeft);
     setupButton (sideButton, "x", [this] () { sideUiChanged (sideButton.getToggleState ()); });
@@ -207,7 +212,7 @@ void ZoneEditor::resized ()
 
 void ZoneEditor::levelOffsetDataChanged (double levelOffset)
 {
-    levelOffsetTextEditor.setText (juce::String (levelOffset));
+    levelOffsetTextEditor.setText (FormatHelpers::formatDouble (levelOffset, 1, true));
 }
 
 void ZoneEditor::levelOffsetUiChanged (double levelOffset)
@@ -217,7 +222,7 @@ void ZoneEditor::levelOffsetUiChanged (double levelOffset)
 
 void ZoneEditor::loopLengthDataChanged (double loopLength)
 {
-    loopLengthTextEditor.setText (juce::String (loopLength));
+    loopLengthTextEditor.setText (FormatHelpers::formatDouble (loopLength, 3, false));
 }
 
 void ZoneEditor::loopLengthUiChanged (double loopLength)
@@ -237,7 +242,7 @@ void ZoneEditor::loopStartUiChanged (int loopStart)
 
 void ZoneEditor::minVoltageDataChanged (double minVoltage)
 {
-    minVoltageTextEditor.setText (juce::String (minVoltage));
+    minVoltageTextEditor.setText (FormatHelpers::formatDouble (minVoltage, 2, true));
 }
 
 void ZoneEditor::minVoltageUiChanged (double minVoltage)
@@ -247,7 +252,7 @@ void ZoneEditor::minVoltageUiChanged (double minVoltage)
 
 void ZoneEditor::pitchOffsetDataChanged (double pitchOffset)
 {
-    pitchOffsetTextEditor.setText (juce::String (pitchOffset));
+    pitchOffsetTextEditor.setText (FormatHelpers::formatDouble (pitchOffset, 2, true));
 }
 
 void ZoneEditor::pitchOffsetUiChanged (double pitchOffset)
@@ -257,6 +262,7 @@ void ZoneEditor::pitchOffsetUiChanged (double pitchOffset)
 
 void ZoneEditor::sampleDataChanged (juce::String sample)
 {
+    // TODO - validate file exists, turn red if not
     sampleTextEditor.setText (sample);
 }
 

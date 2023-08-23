@@ -3,6 +3,8 @@
 #include "FileTypeHelpers.h"
 #include "Preset/ParameterNames.h"
 #include "Preset/ParameterPresetsSingleton.h"
+// TODO - we should not include something from the UI here, so let's move the FormatHelpers elsewhere
+#include "../GUI/Assimil8or/Editor/FormatHelpers.h"
 
 #define LOG_PARSING 0
 #if LOG_PARSING
@@ -10,6 +12,16 @@
 #else
 #define LogParsing(text) ;
 #endif
+
+Assimil8orPreset::Assimil8orPreset ()
+{
+    initParser ();
+
+    minPresetProperties.wrap (ParameterPresetsSingleton::getInstance ()->getParameterPresetListProperties ().getParameterPreset (ParameterPresetListProperties::MinParameterPresetType),
+                              PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
+    maxPresetProperties.wrap (ParameterPresetsSingleton::getInstance ()->getParameterPresetListProperties ().getParameterPreset (ParameterPresetListProperties::MaxParameterPresetType),
+                              PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
+}
 
 void Assimil8orPreset::write (juce::File presetFile, juce::ValueTree presetPropertiesVT)
 {
@@ -93,7 +105,6 @@ void Assimil8orPreset::write (juce::File presetFile, juce::ValueTree presetPrope
     addLine (true, Section::PresetId + " " + juce::String (presetPropertiesToWrite.getIndex ()) + " :");
     ++indentAmount;
     addLine (true, Parameter::Preset::NameId + " : " + presetPropertiesToWrite.getName ());
-
     addLine (presetPropertiesToWrite.getData2AsCV () != defaultPresetProperties.getData2AsCV (), Parameter::Preset::Data2asCVId + " : " + presetPropertiesToWrite.getData2AsCV ());
     addLine (presetPropertiesToWrite.getXfadeACV () != defaultPresetProperties.getXfadeACV (), Parameter::Preset::XfadeACVId + " : " + presetPropertiesToWrite.getXfadeACV ());
     addLine (presetPropertiesToWrite.getXfadeAWidth () != defaultPresetProperties.getXfadeAWidth (), Parameter::Preset::XfadeAWidthId + " : " + juce::String (presetPropertiesToWrite.getXfadeAWidth (), 2));
@@ -109,7 +120,6 @@ void Assimil8orPreset::write (juce::File presetFile, juce::ValueTree presetPrope
         ChannelProperties channelProperties (channelVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
         if (! isChannelAllDefaults (channelProperties))
         {
-            const auto channelPropertiesVT { channelProperties.getValueTree () };
             addLine (true, Section::ChannelId + " " + juce::String (channelProperties.getIndex ()) + " :");
             ++indentAmount;
             addLine (channelProperties.getAliasing () != defaultChannelProperties.getAliasing (), Parameter::Channel::AliasingId + " : " + juce::String (channelProperties.getAliasing ()));
@@ -157,7 +167,6 @@ void Assimil8orPreset::write (juce::File presetFile, juce::ValueTree presetPrope
                 ZoneProperties zoneProperties (zoneVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
                 if (! isZoneAllDefaults (zoneProperties))
                 {
-                    const auto zonePropertiesVT { zoneProperties.getValueTree () };
                     addLine (true, Section::ZoneId + " " + juce::String (zoneProperties.getIndex ()) + " :");
                     ++indentAmount;
                     addLine (zoneProperties.getLevelOffset () != defaultZoneProperties.getLevelOffset (), Parameter::Zone::LevelOffsetId + " : " + juce::String (zoneProperties.getLevelOffset ()));
@@ -279,7 +288,7 @@ void Assimil8orPreset::checkCvInputAndAmountFormat (juce::String theKey, juce::S
     }
 };
 
-Assimil8orPreset::Assimil8orPreset ()
+void Assimil8orPreset::initParser ()
 {
     auto getParameterIndex = [this] ()
     {
@@ -322,30 +331,38 @@ Assimil8orPreset::Assimil8orPreset ()
             });
         }},
         {Parameter::Preset::NameId, [this] () {
+            // validate max length
+            // validate characters
             presetProperties.setName (value, false);
         }},
         {Parameter::Preset::Data2asCVId, [this] () {
+            // validate 0/1
             presetProperties.setData2AsCV (value, false);
         }},
         {Parameter::Preset::XfadeACVId, [this] () {
+            // validate global cv input
             presetProperties.setXfadeACV (value, false);
         }},
         {Parameter::Preset::XfadeAWidthId, [this] () {
+            // validate -1 to +1
             presetProperties.setXfadeAWidth (value.getDoubleValue (), false);
         }},
         {Parameter::Preset::XfadeBCVId, [this] () {
+            // validate global cv input
             presetProperties.setXfadeBCV (value, false);
         }},
         {Parameter::Preset::XfadeBWidthId, [this] () {
             presetProperties.setXfadeBWidth (value.getDoubleValue (), false);
         }},
         {Parameter::Preset::XfadeCCVId, [this] () {
+            // validate global cv input
             presetProperties.setXfadeCCV (value, false);
         }},
         {Parameter::Preset::XfadeCWidthId, [this] () {
             presetProperties.setXfadeCWidth (value.getDoubleValue (), false);
         }},
         {Parameter::Preset::XfadeDCVId, [this] () {
+            // validate global cv input
             presetProperties.setXfadeDCV (value, false);
         }},
         {Parameter::Preset::XfadeDWidthId, [this] () {
