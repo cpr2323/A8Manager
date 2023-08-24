@@ -18,6 +18,14 @@ public:
     {
     }
 
+    enum ChannelMode
+    {
+        master,
+        link,
+        stereoRight,
+        cycle
+    };
+
     void setIndex (int index, bool includeSelfCallback);
     void setAliasing (int aliasing, bool includeSelfCallback);
     void setAliasingMod (juce::String cvInput, double aliasingMod, bool includeSelfCallback);

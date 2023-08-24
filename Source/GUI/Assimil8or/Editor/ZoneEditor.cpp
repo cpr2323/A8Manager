@@ -79,33 +79,40 @@ void ZoneEditor::setupZoneComponents ()
     [this] (juce::String text)
     {
         auto sampleFile { juce::File (appProperties.getMostRecentFolder ()).getChildFile (sampleTextEditor.getText ()) };
-        if (sampleTextEditor.getText ().isNotEmpty () && sampleFile.getFileExtension () == "")
-            text = sampleFile.withFileExtension (".wav").getFileName ();
-        sampleUiChanged (text);
-        sampleTextEditor.setText (text);
-
-        if (std::unique_ptr<juce::AudioFormatReader> reader (audioFormatManager.createReaderFor (sampleFile)); reader != nullptr)
+        if (text.isNotEmpty ())
         {
-            // if Zone1, and stereo file
-            if (zoneProperties.getIndex () == 1 && reader->numChannels == 2)
+            if (sampleFile.getFileExtension () == "")
+                sampleFile = sampleFile.withFileExtension (".wav");
+            text = sampleFile.getFileName ();
+
+            if (std::unique_ptr<juce::AudioFormatReader> reader (audioFormatManager.createReaderFor (sampleFile)); reader != nullptr)
             {
-                ChannelProperties parentChannelProperties (zoneProperties.getValueTree ().getParent (), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
-                // if this zone is on the last channel
-                if (auto parentChannelIndex { parentChannelProperties.getIndex () }; parentChannelIndex != 8)
+                // if Zone1, and stereo file
+                if (zoneProperties.getIndex () == 1 && reader->numChannels == 2)
                 {
-                    PresetProperties presetProperties (parentChannelProperties.getValueTree ().getParent (), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
-                    ChannelProperties nextChannelProperties (presetProperties.getChannelVT (parentChannelIndex), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
-                    ZoneProperties nextChannelZone1Properties (nextChannelProperties.getZoneVT (0), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
-                    // if next Channel does not have a sample
-                    if (nextChannelZone1Properties.getSample().isEmpty())
+                    ChannelProperties parentChannelProperties (zoneProperties.getValueTree ().getParent (), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
+                    // if this zone is on the last channel
+                    if (auto parentChannelIndex { parentChannelProperties.getIndex () }; parentChannelIndex != 8 && parentChannelProperties.getChannelMode() != ChannelProperties::ChannelMode::stereoRight)
                     {
-                        //   set this file as the sample for next Channel
-                        //   set that Channel Mode to Stereo/Right for next Channel
-                        //   set Zone Side to 1 for Zone in next Channel
+                        PresetProperties presetProperties (parentChannelProperties.getValueTree ().getParent (), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
+                        ChannelProperties nextChannelProperties (presetProperties.getChannelVT (parentChannelIndex), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
+                        ZoneProperties nextChannelZone1Properties (nextChannelProperties.getZoneVT (0), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
+                        // if next Channel does not have a sample
+                        if (nextChannelZone1Properties.getSample ().isEmpty ())
+                        {
+                            //   set that Channel Mode to Stereo/Right for next Channel
+                            nextChannelProperties.setChannelMode (ChannelProperties::ChannelMode::stereoRight, false);
+                            //   set this file as the sample for next Channel
+                            nextChannelZone1Properties.setSample (text, false);
+                            //   set Zone Side to 1 for Zone in next Channel
+                            nextChannelZone1Properties.setSide (1, false);
+                        }
                     }
                 }
             }
         }
+        sampleUiChanged (text);
+        sampleTextEditor.setText (text);
     });
     setupLabel (sampleBoundsLabel, "SAMPLE START/END", 15.0, juce::Justification::centredLeft);
     setupTextEditor (sampleStartTextEditor, juce::Justification::centred, 0, "0123456789", [this] ()

@@ -442,10 +442,10 @@ void ChannelEditor::setupChannelComponents ()
     /////////////////////////////////////////
     // column four
     setupLabel (channelModeLabel, "CHANNEL", 15.0f, juce::Justification::centred);
-    channelModeComboBox.addItem ("Master", 1); // 0 = Master, 1 = Link, 2 = Stereo/Right, 3 = Cycle
-    channelModeComboBox.addItem ("Link", 2);
-    channelModeComboBox.addItem ("Stereo/Right", 3);
-    channelModeComboBox.addItem ("Cycle", 4);
+    channelModeComboBox.addItem ("Master", ChannelProperties::ChannelMode::master + 1); // 0 = Master, 1 = Link, 2 = Stereo/Right, 3 = Cycle
+    channelModeComboBox.addItem ("Link", ChannelProperties::ChannelMode::link + 1);
+    channelModeComboBox.addItem ("Stereo/Right", ChannelProperties::ChannelMode::stereoRight + 1);
+    channelModeComboBox.addItem ("Cycle", ChannelProperties::ChannelMode::cycle + 1);
     setupComboBox (channelModeComboBox, [this] () { channelModeUiChanged (channelModeComboBox.getSelectedId () - 1); });
     setupLabel (sampleStartModLabel, "SAMPLE START", 15.0f, juce::Justification::centred);
     setupCvInputComboBox (sampleStartModComboBox, [this] () { sampleStartModUiChanged (sampleStartModComboBox.getSelectedItemText (), sampleStartModTextEditor.getText ().getDoubleValue ()); });
