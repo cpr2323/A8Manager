@@ -91,7 +91,7 @@ void ZoneEditor::setupZoneComponents ()
                 if (zoneProperties.getIndex () == 1 && reader->numChannels == 2)
                 {
                     ChannelProperties parentChannelProperties (zoneProperties.getValueTree ().getParent (), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
-                    // if this zone is on the last channel
+                    // if this zone not the last channel && the parent channel isn't set to Stereo/Right
                     if (auto parentChannelIndex { parentChannelProperties.getIndex () }; parentChannelIndex != 8 && parentChannelProperties.getChannelMode() != ChannelProperties::ChannelMode::stereoRight)
                     {
                         PresetProperties presetProperties (parentChannelProperties.getValueTree ().getParent (), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
@@ -100,12 +100,10 @@ void ZoneEditor::setupZoneComponents ()
                         // if next Channel does not have a sample
                         if (nextChannelZone1Properties.getSample ().isEmpty ())
                         {
-                            //   set that Channel Mode to Stereo/Right for next Channel
                             nextChannelProperties.setChannelMode (ChannelProperties::ChannelMode::stereoRight, false);
-                            //   set this file as the sample for next Channel
                             nextChannelZone1Properties.setSample (text, false);
-                            //   set Zone Side to 1 for Zone in next Channel
                             nextChannelZone1Properties.setSide (1, false);
+                            // TODO - do we copy all the parameters from the Left channel to the Right?
                         }
                     }
                 }
