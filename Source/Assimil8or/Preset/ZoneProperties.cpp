@@ -25,7 +25,7 @@ void ZoneProperties::setLoopLength (double loopLength, bool includeSelfCallback)
     setValue (loopLength, LoopLengthPropertyId, includeSelfCallback);
 }
 
-void ZoneProperties::setLoopStart (int loopStart, bool includeSelfCallback)
+void ZoneProperties::setLoopStart (int64_t loopStart, bool includeSelfCallback)
 {
     setValue (loopStart, LoopStartPropertyId, includeSelfCallback);
 }
@@ -45,12 +45,12 @@ void ZoneProperties::setSample (juce::String sampleFileName, bool includeSelfCal
     setValue (sampleFileName, SamplePropertyId, includeSelfCallback);
 }
 
-void ZoneProperties::setSampleStart (int sampleStart, bool includeSelfCallback)
+void ZoneProperties::setSampleStart (int64_t sampleStart, bool includeSelfCallback)
 {
     setValue (sampleStart, SampleStartPropertyId, includeSelfCallback);
 }
 
-void ZoneProperties::setSampleEnd (int sampleEnd, bool includeSelfCallback)
+void ZoneProperties::setSampleEnd (int64_t sampleEnd, bool includeSelfCallback)
 {
     setValue (sampleEnd, SampleEndPropertyId, includeSelfCallback);
 }
@@ -78,9 +78,9 @@ double ZoneProperties::getLoopLength ()
     return getValue<double> (LoopLengthPropertyId);
 }
 
-int ZoneProperties::getLoopStart ()
+int64_t ZoneProperties::getLoopStart ()
 {
-    return getValue<int> (LoopStartPropertyId);
+    return getValue<int64_t> (LoopStartPropertyId);
 }
 
 double ZoneProperties::getMinVoltage ()
@@ -98,14 +98,14 @@ juce::String ZoneProperties::getSample ()
     return getValue<juce::String> (SamplePropertyId);
 }
 
-int ZoneProperties::getSampleStart ()
+int64_t ZoneProperties::getSampleStart ()
 {
-    return getValue<int> (SampleStartPropertyId);
+    return getValue<int64_t> (SampleStartPropertyId);
 }
 
-int ZoneProperties::getSampleEnd ()
+int64_t ZoneProperties::getSampleEnd ()
 {
-    return getValue<int> (SampleEndPropertyId);
+    return getValue<int64_t> (SampleEndPropertyId);
 }
 
 int ZoneProperties::getSide ()

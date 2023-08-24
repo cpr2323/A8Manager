@@ -129,7 +129,7 @@ public:
     {
         PresetProperties::copyTreeProperties (ParameterPresetsSingleton::getInstance ()->getParameterPresetListProperties ().getParameterPreset (ParameterPresetListProperties::DefaultParameterPresetType),
                                               presetProperties.getValueTree ());
-        presetPropertiesMonitor.assign (presetProperties.getValueTreeRef ());
+        //presetPropertiesMonitor.assign (presetProperties.getValueTreeRef ());
         runtimeRootProperties.getValueTree ().addChild (presetProperties.getValueTree (), -1, nullptr);
         assimil8orValidator.init (rootProperties.getValueTree ());
     }

@@ -36,25 +36,28 @@ private:
     juce::Label sideLabel;
     juce::TextButton sideButton; // ?
 
+    int64_t sampleLength { 0 };
     void setupZoneComponents ();
     void setupZonePropertiesCallbacks ();
+    void updateSampleFileInfo (juce::String sample);
+    juce::String formatLoopLength (double loopLength);
 
     void levelOffsetDataChanged (double levelOffset);
     void levelOffsetUiChanged (double levelOffset);
     void loopLengthDataChanged (double loopLength);
     void loopLengthUiChanged (double loopLength);
-    void loopStartDataChanged (int loopStart);
-    void loopStartUiChanged (int loopStart);
+    void loopStartDataChanged (int64_t loopStart);
+    void loopStartUiChanged (int64_t loopStart);
     void minVoltageDataChanged (double minVoltage);
     void minVoltageUiChanged (double minVoltage);
     void pitchOffsetDataChanged (double pitchOffset);
     void pitchOffsetUiChanged (double pitchOffset);
     void sampleDataChanged (juce::String sample);
     void sampleUiChanged (juce::String sample);
-    void sampleStartDataChanged (int sampleStart);
-    void sampleStartUiChanged (int sampleStart);
-    void sampleEndDataChanged (int sampleEnd);
-    void sampleEndUiChanged (int sampleEnd);
+    void sampleStartDataChanged (int64_t sampleStart);
+    void sampleStartUiChanged (int64_t sampleStart);
+    void sampleEndDataChanged (int64_t sampleEnd);
+    void sampleEndUiChanged (int64_t sampleEnd);
     void sideDataChanged (int side);
     void sideUiChanged (int side);
 

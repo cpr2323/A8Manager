@@ -35,6 +35,12 @@ namespace FormatHelpers
         setColorIfError (textEditor, intValue >= minValue && intValue <= maxValue);
     };
 
+    void setColorIfError (juce::TextEditor& textEditor, int64_t minValue, int64_t maxValue)
+    {
+        const auto int64Value { textEditor.getText ().getLargeIntValue () };
+        setColorIfError (textEditor, int64Value >= minValue && int64Value <= maxValue);
+    }
+
     juce::String getCvInput (const CvInputAndAmount& cvInputAndAmount)
     {
         auto [cvInput, _] {cvInputAndAmount};

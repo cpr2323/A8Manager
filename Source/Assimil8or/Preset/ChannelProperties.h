@@ -204,7 +204,6 @@ public:
     void processValueTree () {}
 
 private:
-    juce::ValueTree addZone (int index);
     int getNumZones ();
 
     void valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property) override;

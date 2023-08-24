@@ -16,14 +16,6 @@ juce::ValueTree ChannelProperties::create (int index)
     return channelProperties.getValueTree ();
 }
 
-juce::ValueTree ChannelProperties::addZone (int index)
-{
-    jassert (getNumZones () < kMaxZones);
-    auto zoneProperties { ZoneProperties::create (index + 1) };
-    data.addChild (zoneProperties, -1, nullptr);
-    return zoneProperties;
-}
-
 void ChannelProperties::forEachZone (std::function<bool (juce::ValueTree zoneVT)> zoneVTCallback)
 {
     jassert (zoneVTCallback != nullptr);
