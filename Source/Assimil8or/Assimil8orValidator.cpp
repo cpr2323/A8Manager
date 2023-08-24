@@ -400,8 +400,7 @@ std::tuple<uint64_t, std::optional<uint64_t>> Assimil8orValidator::validateFile 
                     else
                     {
                         // open as audio file, calculate memory requirements
-                        std::unique_ptr<juce::AudioFormatReader> reader (audioFormatManager.createReaderFor (sampleFile));
-                        if (reader != nullptr)
+                        if (std::unique_ptr<juce::AudioFormatReader> reader (audioFormatManager.createReaderFor (sampleFile)); reader != nullptr)
                         {
                             sizeRequiredForSamples += reader->numChannels * reader->lengthInSamples * bytesPerSampleInAssimMemory;
                         }
@@ -438,9 +437,8 @@ std::tuple<uint64_t, std::optional<uint64_t>> Assimil8orValidator::validateFile 
             validatorResultProperties.addFixerEntry (FixerEntryProperties::FixerTypeRenameFile, file.getFullPathName ());
         }
 
-        std::unique_ptr<juce::AudioFormatReader> reader (audioFormatManager.createReaderFor (file));
         uint64_t sizeRequiredForSamples { 0 };
-        if (reader != nullptr)
+        if (std::unique_ptr<juce::AudioFormatReader> reader (audioFormatManager.createReaderFor (file)); reader != nullptr)
         {
 //             LogValidation ("    Format: " + reader->getFormatName ());
 //             LogValidation ("    Sample data: " + juce::String (reader->usesFloatingPointData == true ? "floating point" : "integer"));

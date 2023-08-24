@@ -8,6 +8,7 @@
 
 ZoneEditor::ZoneEditor ()
 {
+    audioFormatManager.registerBasicFormats ();
     {
         PresetProperties minPresetProperties (ParameterPresetsSingleton::getInstance ()->getParameterPresetListProperties ().getParameterPreset (ParameterPresetListProperties::MinParameterPresetType),
                                               PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
@@ -21,10 +22,10 @@ ZoneEditor::ZoneEditor ()
         maxZoneProperties.wrap (maxChannelProperties.getZoneVT (0), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
     }
 
-    setupChannelComponents ();
+    setupZoneComponents ();
 }
 
-void ZoneEditor::setupChannelComponents ()
+void ZoneEditor::setupZoneComponents ()
 {
     auto setupLabel = [this] (juce::Label& label, juce::String text, float fontSize, juce::Justification justification)
     {
@@ -61,13 +62,13 @@ void ZoneEditor::setupChannelComponents ()
     const auto kMaxFileNameLength { 47 };
     setupTextEditor (sampleTextEditor, juce::Justification::centredLeft, kMaxFileNameLength, " !\"#$%^&'()#+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~", [this] ()
     {
-        auto presetFile { juce::File (appProperties.getMostRecentFolder ()).getChildFile (sampleTextEditor.getText ()) };
-        if (! presetFile.isDirectory ())
+        auto sampleFile { juce::File (appProperties.getMostRecentFolder ()).getChildFile (sampleTextEditor.getText ()) };
+        if (! sampleFile.isDirectory ())
         {
-            if (presetFile.getFileExtension () != "")
-                FormatHelpers::setColorIfError (sampleTextEditor, presetFile);
+            if (sampleFile.getFileExtension () != "")
+                FormatHelpers::setColorIfError (sampleTextEditor, sampleFile);
             else
-                FormatHelpers::setColorIfError (sampleTextEditor, presetFile.withFileExtension(".wav"));
+                FormatHelpers::setColorIfError (sampleTextEditor, sampleFile.withFileExtension(".wav"));
         }
         else
         {
@@ -77,16 +78,42 @@ void ZoneEditor::setupChannelComponents ()
     },
     [this] (juce::String text)
     {
-        auto presetFile { juce::File (appProperties.getMostRecentFolder ()).getChildFile (sampleTextEditor.getText ()) };
-        if (sampleTextEditor.getText ().isNotEmpty() && presetFile.getFileExtension () == "")
-            text = presetFile.withFileExtension (".wav").getFileName ();
+        auto sampleFile { juce::File (appProperties.getMostRecentFolder ()).getChildFile (sampleTextEditor.getText ()) };
+        if (sampleTextEditor.getText ().isNotEmpty () && sampleFile.getFileExtension () == "")
+            text = sampleFile.withFileExtension (".wav").getFileName ();
         sampleUiChanged (text);
         sampleTextEditor.setText (text);
+
+        if (std::unique_ptr<juce::AudioFormatReader> reader (audioFormatManager.createReaderFor (sampleFile)); reader != nullptr)
+        {
+            // if Zone1, and stereo file
+            if (zoneProperties.getIndex () == 1 && reader->numChannels == 2)
+            {
+                ChannelProperties parentChannelProperties (zoneProperties.getValueTree ().getParent (), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
+                // if this zone is on the last channel
+                if (auto parentChannelIndex { parentChannelProperties.getIndex () }; parentChannelIndex != 8)
+                {
+                    PresetProperties presetProperties (parentChannelProperties.getValueTree ().getParent (), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
+                    ChannelProperties nextChannelProperties (presetProperties.getChannelVT (parentChannelIndex), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
+                    ZoneProperties nextChannelZone1Properties (nextChannelProperties.getZoneVT (0), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
+                    // if next Channel does not have a sample
+                    if (nextChannelZone1Properties.getSample().isEmpty())
+                    {
+                        //   set this file as the sample for next Channel
+                        //   set that Channel Mode to Stereo/Right for next Channel
+                        //   set Zone Side to 1 for Zone in next Channel
+                    }
+                }
+            }
+        }
     });
     setupLabel (sampleBoundsLabel, "SAMPLE START/END", 15.0, juce::Justification::centredLeft);
     setupTextEditor (sampleStartTextEditor, juce::Justification::centred, 0, "0123456789", [this] ()
     {
-        FormatHelpers::setColorIfError (sampleStartTextEditor, minZoneProperties.getSampleStart (), maxZoneProperties.getSampleStart ());
+        if (minZoneProperties.getSampleStart () <= maxZoneProperties.getSampleStart ())
+            FormatHelpers::setColorIfError (sampleStartTextEditor, minZoneProperties.getSampleStart (), maxZoneProperties.getSampleStart ());
+        else
+            FormatHelpers::setColorIfError (sampleStartTextEditor, false);
     },
     [this] (juce::String text)
     {
@@ -96,7 +123,10 @@ void ZoneEditor::setupChannelComponents ()
     });
     setupTextEditor (sampleEndTextEditor, juce::Justification::centred, 0, "0123456789", [this] ()
     {
-        FormatHelpers::setColorIfError (sampleEndTextEditor, minZoneProperties.getSampleEnd (), maxZoneProperties.getSampleEnd ());
+        if (minZoneProperties.getSampleEnd () <= maxZoneProperties.getSampleEnd ())
+            FormatHelpers::setColorIfError (sampleEndTextEditor, minZoneProperties.getSampleEnd (), maxZoneProperties.getSampleEnd ());
+        else
+            FormatHelpers::setColorIfError (sampleEndTextEditor, false);
     },
     [this] (juce::String text)
     {
@@ -107,7 +137,10 @@ void ZoneEditor::setupChannelComponents ()
     setupLabel (loopBoundsLabel, "LOOP START/LENGTH", 15.0, juce::Justification::centredLeft);
     setupTextEditor (loopStartTextEditor, juce::Justification::centred, 0, "0123456789", [this] ()
     {
-        FormatHelpers::setColorIfError (loopStartTextEditor, minZoneProperties.getLoopStart (), maxZoneProperties.getLoopStart ());
+        if (minZoneProperties.getLoopStart () <= maxZoneProperties.getLoopStart ())
+            FormatHelpers::setColorIfError (loopStartTextEditor, minZoneProperties.getLoopStart (), maxZoneProperties.getLoopStart ());
+        else
+            FormatHelpers::setColorIfError (loopStartTextEditor, false);
     },
     [this] (juce::String text)
     {
@@ -117,7 +150,10 @@ void ZoneEditor::setupChannelComponents ()
     });
     setupTextEditor (loopLengthTextEditor, juce::Justification::centred, 0, ".0123456789", [this] ()
     {
-        FormatHelpers::setColorIfError (loopLengthTextEditor, minZoneProperties.getLoopLength (), maxZoneProperties.getLoopLength ());
+        if (minZoneProperties.getLoopLength () <= maxZoneProperties.getLoopLength ())
+            FormatHelpers::setColorIfError (loopLengthTextEditor, minZoneProperties.getLoopLength (), maxZoneProperties.getLoopLength ());
+        else
+            FormatHelpers::setColorIfError (loopLengthTextEditor, false);
     },
     [this] (juce::String text)
     {

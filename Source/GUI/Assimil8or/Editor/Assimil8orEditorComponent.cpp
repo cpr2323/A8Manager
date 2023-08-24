@@ -7,8 +7,6 @@
 #include <algorithm>
 
 // TODO - short list
-//  Implement input validation, characters, min/max, etc
-//  Implement proper formatting (decimal places, sign character, etc)
 //  Implement tool tips for each parameter
 //  Visual Edited indicator
 //  Query for save if switching from edited Preset
