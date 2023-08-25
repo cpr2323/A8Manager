@@ -23,6 +23,11 @@ namespace FormatHelpers
         setColorIfError (textEditor, sample.exists ());
     };
 
+    void setColorIfError (juce::TextEditor& textEditor, double doubleValue, double minValue, double maxValue)
+    {
+        setColorIfError (textEditor, doubleValue >= minValue && doubleValue <= maxValue);
+    };
+
     void setColorIfError (juce::TextEditor& textEditor, double minValue, double maxValue)
     {
         const auto doubleValue { textEditor.getText ().getDoubleValue () };

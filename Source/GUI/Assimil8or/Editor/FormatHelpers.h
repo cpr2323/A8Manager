@@ -8,6 +8,7 @@ namespace FormatHelpers
     juce::String formatDouble (double value, int decimalPlaces, bool includeSign);
     void setColorIfError (juce::TextEditor& textEditor, bool success);
     void setColorIfError (juce::TextEditor& textEditor, double minValue, double maxValue);
+    void setColorIfError (juce::TextEditor& textEditor, double doubleValue, double minValue, double maxValue);
     void setColorIfError (juce::TextEditor& textEditor, int minValue, int maxValue);
     void setColorIfError (juce::TextEditor& textEditor, int64_t minValue, int64_t maxValue);
     void setColorIfError (juce::TextEditor& textEditor, juce::File sample);
