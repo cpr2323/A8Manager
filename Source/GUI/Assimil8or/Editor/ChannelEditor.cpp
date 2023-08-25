@@ -3,26 +3,39 @@
 #include "../../../Assimil8or/Preset/PresetProperties.h"
 #include "../../../Assimil8or/Preset/ParameterPresetsSingleton.h"
 
-// The following Parameters do not have min/max
-//    AttackFromCurrent
-//    AutoTrigger
-//    Data2asCV
-//    LinAMisExtEnv
-//    MixModIsFader
-//    Reverse
-//    Sample
-//    SpliceSmoothing
-//    XfadeACV
-//    XfadeBCV
-//    XfadeCCV
-//    XfadeDCV
-//    XfadeGroup
-//    ZonesCV
-
 ChannelEditor::ChannelEditor ()
 {
     zonesLabel.setText ("Zones", juce::NotificationType::dontSendNotification);
     addAndMakeVisible (zonesLabel);
+
+    // TODO - these are copies of what is in ChannelEditor::setupChannelComponents, need to DRY
+    auto setupLabel = [this] (juce::Label& label, juce::String text, float fontSize, juce::Justification justification)
+        {
+            const auto textColor { juce::Colours::black };
+            label.setBorderSize ({ 0, 0, 0, 0 });
+            label.setJustificationType (justification);
+            label.setColour (juce::Label::ColourIds::textColourId, textColor);
+            label.setFont (label.getFont ().withHeight (fontSize));
+            label.setText (text, juce::NotificationType::dontSendNotification);
+            addAndMakeVisible (label);
+        };
+    auto setupButton = [this] (juce::TextButton& textButton, juce::String text, std::function<void ()> onClickCallback)
+    {
+        textButton.setButtonText (text);
+        textButton.setClickingTogglesState (true);
+        textButton.setColour (juce::TextButton::ColourIds::buttonOnColourId, textButton.findColour (juce::TextButton::ColourIds::buttonOnColourId).brighter (0.5));
+        textButton.onClick = onClickCallback;
+        addAndMakeVisible (textButton);
+    };
+    setupLabel (loopLengthIsEndLabel, "Loop Length:", 15.0f, juce::Justification::centredLeft);
+    setupButton (loopLengthIsEndButton, "End", [this] ()
+    {
+        const auto newLoopLengthIsEnd { loopLengthIsEndButton.getToggleState () };
+        loopLengthIsEndUiChanged (newLoopLengthIsEnd);
+        // inform all the zones of the change
+        for (auto& zoneEditor : zoneEditors)
+            zoneEditor.setLoopLengthIsEnd (newLoopLengthIsEnd);
+    });
 
     for (auto curZoneIndex { 0 }; curZoneIndex < 8; ++curZoneIndex)
         zoneTabs.addTab (juce::String::charToString ('1' + curZoneIndex), juce::Colours::darkgrey, &zoneEditors [curZoneIndex], false);
@@ -629,8 +642,11 @@ void ChannelEditor::paint ([[maybe_unused]] juce::Graphics& g)
 void ChannelEditor::resized ()
 {
     auto zoneBounds {getLocalBounds ().removeFromRight(getWidth () / 4)};
-    zonesLabel.setBounds (zoneBounds.removeFromTop (20));
     zoneBounds.removeFromTop (3);
+    auto zoneTopRow { zoneBounds.removeFromTop (25).withTrimmedBottom (5).withTrimmedRight (3)};
+    zonesLabel.setBounds (zoneTopRow.removeFromLeft(40));
+    loopLengthIsEndButton.setBounds (zoneTopRow.removeFromRight (30));
+    loopLengthIsEndLabel.setBounds (zoneTopRow.removeFromRight (70));
     zoneTabs.setBounds (zoneBounds);
 
     // column one
@@ -918,6 +934,16 @@ void ChannelEditor::linFMDataChanged (juce::String cvInput, double linFM)
 void ChannelEditor::linFMUiChanged (juce::String cvInput, double linFM)
 {
     channelProperties.setLinFM (cvInput, linFM, false);
+}
+
+void ChannelEditor::loopLengthIsEndDataChanged (bool loopLengthIsEnd)
+{
+    loopLengthIsEndButton.setToggleState (loopLengthIsEnd, juce::NotificationType::dontSendNotification);
+}
+
+void ChannelEditor::loopLengthIsEndUiChanged (bool loopLengthIsEnd)
+{
+    channelProperties.setLoopLengthIsEnd (loopLengthIsEnd, false);
 }
 
 void ChannelEditor::loopLengthModDataChanged (juce::String cvInput, double loopLengthMod)

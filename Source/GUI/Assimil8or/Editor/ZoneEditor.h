@@ -11,6 +11,7 @@ public:
     ~ZoneEditor () = default;
 
     void init (juce::ValueTree zonePropertiesVT, juce::ValueTree rootPropertiesVT);
+    void setLoopLengthIsEnd (bool loopLengthIsEnd);
 
 private:
     AppProperties appProperties;
@@ -18,6 +19,7 @@ private:
     ZoneProperties minZoneProperties;
     ZoneProperties maxZoneProperties;
     juce::AudioFormatManager audioFormatManager;
+    bool loopLengthIsEnd { false };
 
     juce::Label levelOffsetLabel;
     juce::TextEditor levelOffsetTextEditor; // double

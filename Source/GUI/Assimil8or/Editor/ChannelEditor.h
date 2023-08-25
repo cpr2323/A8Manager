@@ -56,6 +56,8 @@ private:
     juce::Label linFMLabel;
     CvInputChannelComboBox linFMComboBox; // 0A - 8C
     juce::TextEditor linFMTextEditor; // double
+    juce::Label loopLengthIsEndLabel;
+    juce::TextButton loopLengthIsEndButton;
     juce::Label loopLengthModLabel;
     CvInputChannelComboBox loopLengthModComboBox; // 0A - 8C
     juce::TextEditor loopLengthModTextEditor; // double
@@ -148,6 +150,8 @@ private:
     void linAMisExtEnvUiChanged (bool linAMisExtEnv);
     void linFMDataChanged (juce::String cvInput, double linFM);
     void linFMUiChanged (juce::String cvInput, double linFM);
+    void loopLengthIsEndDataChanged (bool loopLengthIsEnd);
+    void loopLengthIsEndUiChanged (bool loopLengthIsEnd);
     void loopLengthModDataChanged (juce::String cvInput, double loopLengthMod);
     void loopLengthModUiChanged (juce::String cvInput, double loopLengthMod);
     void loopModeDataChanged (int loopMode);
