@@ -1,52 +1,52 @@
 <ToolTips note="Description/min, max, and default values/special behavior (increment amounts, etc), list of options for option lists?">
   <Preset>
-    <Parameter name="Data2asCV" tooltip=""/>
-    <Parameter name="Name" tooltip=""/>
-	<Parameter name="XfadeACV" tooltip=""/>
-	<Parameter name="XfadeAWidth" tooltip=""/>
-	<Parameter name="XfadeBCV" tooltip=""/>
-	<Parameter name="XfadeBWidth" tooltip=""/>
-	<Parameter name="XfadeCCV" tooltip=""/>
-	<Parameter name="XfadeCWidth" tooltip=""/>
-	<Parameter name="XfadeDCV" tooltip=""/>
-	<Parameter name="XfadeDWidth" tooltip=""/>
+    <Parameter name="Data2asCV" tooltip="Data 2 Knob CV Assignment, 1A - 8C, Default Off, No Relative Assignments (0A, 0B, OC)"/>
+    <Parameter name="Name" tooltip="Name, Max Length is 12"/>
+	<Parameter name="XfadeACV" tooltip="Crossfade A CV Assignment, 1A - 8C, Default Off, No Relative Assignments (0A, 0B, OC)"/>
+	<Parameter name="XfadeAWidth" tooltip="Crossfade A Width, Sets How Quickly the Fade Happens, 0.01 - 10.00, Default 1.0"/>
+	<Parameter name="XfadeBCV" tooltip="Crossfade B CV Assignment, 1A - 8C, Default Off, No Relative Assignments (0A, 0B, OC)"/>
+	<Parameter name="XfadeBWidth" tooltip="Crossfade B Width, Sets How Quickly the Fade Happens, 0.01 - 10.00, Default 1.0"/>
+	<Parameter name="XfadeCCV" tooltip="Crossfade C CV Assignment, 1A - 8C, Default Off, No Relative Assignments (0A, 0B, OC)"/>
+	<Parameter name="XfadeCWidth" tooltip="Crossfade C Width, Sets How Quickly the Fade Happens, 0.01 - 10.00, Default 1.0"/>
+	<Parameter name="XfadeDCV" tooltip="Crossfade D CV Assignment, 1A - 8C, Default Off, No Relative Assignments (0A, 0B, OC)"/>
+	<Parameter name="XfadeDWidth" tooltip="Crossfade D Width, Sets How Quickly the Fade Happens, 0.01 - 10.00, Default 1.0"/>
   </Preset>
   <Channel>
-    <Parameter name="Aliasing" tooltip=""/>
-	<Parameter name="AliasingMod" tooltip=""/>
-	<Parameter name="Attack" tooltip=""/>
-	<Parameter name="AttackFromCurrent" tooltip=""/>
-	<Parameter name="AttackMod" tooltip=""/>
-	<Parameter name="AutoTrigger" tooltip=""/>
-	<Parameter name="Bits" tooltip=""/>
-	<Parameter name="BitsMod" tooltip=""/>
-	<Parameter name="ChannelMode" tooltip=""/>
-	<Parameter name="ExpAM" tooltip=""/>
-	<Parameter name="ExpFM" tooltip=""/>
-	<Parameter name="Level" tooltip=""/>
-	<Parameter name="LinAM" tooltip=""/>
+    <Parameter name="Aliasing" tooltip="Aliasing Amount, 0% - 100%"/>
+	<Parameter name="AliasingMod" tooltip="CV Assignment, 0A - 8C / -1.00 to 1.00, Default Off"/>
+	<Parameter name="Attack" tooltip="Attack Value in Seconds, 0 - 99, Default 0"/>
+	<Parameter name="AttackFromCurrent" tooltip="Start Attack from Zero or from Current Value, May Eliminate Clicks"/>
+	<Parameter name="AttackMod" tooltip="CV Assignment, 0A - 8C / -1.00 to 1.00, Default Off"/>
+	<Parameter name="AutoTrigger" tooltip="When Selecting New Preset - Wait for Trigger to Play or Start Playing Immediately"/>
+	<Parameter name="Bits" tooltip="Bit Depth Value, 0.00 - 32, Default 32"/>
+	<Parameter name="BitsMod" tooltip="CV Assignment, 0A - 8C / -1.00 to 1.00, Default Off"/>
+	<Parameter name="ChannelMode" tooltip="Channel Mode, Master - Used to Indicate a Normal Mono or Left Stereo Channel, Link - Will Play When Master Layer Above is Triggered, Stereo/Right - Companion Channel to Stereo Master, Cycle - Samples Play Sequentially on Each Trigger"/>
+	<Parameter name="ExpAM" tooltip="CV Assignment, 0A - 8C / -1.00 to 1.00, Default Off"/>
+	<Parameter name="ExpFM" tooltip="CV Assignment, 0A - 8C / -1.00 to 1.00, Default Off"/>
+	<Parameter name="Level" tooltip="Level Value, -90 to 6, Default 0"/>
+	<Parameter name="LinAM" tooltip="CV Assignment, 0A - 8C / -1.00 to 1.00, Default Off"/>
 	<Parameter name="LinAMisExtEnv" tooltip=""/>
-	<Parameter name="LinFM" tooltip=""/>
-	<Parameter name="LoopLengthMod" tooltip=""/>
-	<Parameter name="LoopMode" tooltip=""/>
-	<Parameter name="LoopStartMod" tooltip=""/>
-	<Parameter name="MixLevel" tooltip=""/>
-	<Parameter name="MixMod" tooltip=""/>
-	<Parameter name="MixModIsFader" tooltip=""/>
+	<Parameter name="LinFM" tooltip="CV Assignment, 0A - 8C / -1.00 to 1.00, Default Off"/>
+	<Parameter name="LoopLengthMod" tooltip="CV Assignment, 0A - 8C / -1.00 to 1.00, Default Off"/>
+	<Parameter name="LoopMode" tooltip="Loop Mode, No Loop, Loop, Loop and Release"/>
+	<Parameter name="LoopStartMod" tooltip="CV Assignment, 0A - 8C / -1.00 to 1.00, Default Off"/>
+	<Parameter name="MixLevel" tooltip="Mix Level, -90 to 6, Default 0"/>
+	<Parameter name="MixMod" tooltip="CV Assignment, 0A - 8C / -1.00 to 1.00, Default Off"/>
+	<Parameter name="MixModIsFader" tooltip="Mix Mod is Fader"/>
 	<Parameter name="Pan" tooltip=""/>
-	<Parameter name="PanMod" tooltip=""/>
+	<Parameter name="PanMod" tooltip="CV Assignment, 0A - 8C / -1.00 to 1.00, Default Off"/>
 	<Parameter name="PhaseCV" tooltip=""/>
 	<Parameter name="Pitch" tooltip=""/>
-	<Parameter name="PitchCV" tooltip=""/>
+	<Parameter name="PitchCV" tooltip="CV Assignment, 0A - 8C / -1.00 to 1.00, Default Off"/>
 	<Parameter name="PlayMode" tooltip=""/>
 	<Parameter name="PMIndex" tooltip=""/>
-	<Parameter name="PMIndexMod" tooltip=""/>
+	<Parameter name="PMIndexMod" tooltip="CV Assignment, 0A - 8C / -1.00 to 1.00, Default Off"/>
 	<Parameter name="PMSource" tooltip=""/>
 	<Parameter name="Release" tooltip=""/>
-	<Parameter name="ReleaseMod" tooltip=""/>
+	<Parameter name="ReleaseMod" tooltip="CV Assignment, 0A - 8C / -1.00 to 1.00, Default Off"/>
 	<Parameter name="Reverse" tooltip=""/>
-	<Parameter name="SampleStartMod" tooltip=""/>
-	<Parameter name="SampleEndMod" tooltip=""/>
+	<Parameter name="SampleStartMod" tooltip="CV Assignment, 0A - 8C / -1.00 to 1.00, Default Off"/>
+	<Parameter name="SampleEndMod" tooltip="CV Assignment, 0A - 8C / -1.00 to 1.00, Default Off"/>
 	<Parameter name="SpliceSmoothing" tooltip=""/>
 	<Parameter name="XfadeGroup" tooltip=""/>
 	<Parameter name="ZonesCV" tooltip=""/>
