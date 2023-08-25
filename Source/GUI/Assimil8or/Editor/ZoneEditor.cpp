@@ -142,7 +142,7 @@ void ZoneEditor::setupZoneComponents ()
         if (! loopLengthIsEnd)
             FormatHelpers::setColorIfError (loopStartTextEditor, minZoneProperties.getLoopStart (), sampleLength - static_cast<int64_t>(zoneProperties.getLoopLength ()));
         else
-            FormatHelpers::setColorIfError (loopStartTextEditor, minZoneProperties.getLoopStart (), static_cast<int64_t>(zoneProperties.getLoopLength ()));
+            FormatHelpers::setColorIfError (loopStartTextEditor, minZoneProperties.getLoopStart (), zoneProperties.getLoopStart () + static_cast<int64_t>(zoneProperties.getLoopLength ()));
     },
     [this] (juce::String text)
     {
@@ -151,13 +151,13 @@ void ZoneEditor::setupZoneComponents ()
             if (!loopLengthIsEnd)
                 return std::clamp (text.getLargeIntValue (), minZoneProperties.getLoopStart (), sampleLength - static_cast<int64_t>(zoneProperties.getLoopLength ()));
             else
-                return std::clamp (text.getLargeIntValue (), minZoneProperties.getLoopStart (), static_cast<int64_t>(zoneProperties.getLoopLength ()));
+                return std::clamp (text.getLargeIntValue (), minZoneProperties.getLoopStart (), zoneProperties.getLoopStart () + static_cast<int64_t>(zoneProperties.getLoopLength ()));
         }();
         loopStartUiChanged (loopStart);
         loopStartTextEditor.setText (juce::String (loopStart));
         if (loopLengthIsEnd)
         {
-            const auto loopLength = static_cast<int64_t>(loopLengthTextEditor.getText().getDoubleValue () - zoneProperties.getLoopStart ());
+            const auto loopLength = loopLengthTextEditor.getText().getDoubleValue () - static_cast<double>(zoneProperties.getLoopStart ());
             loopLengthUiChanged (loopLength);
         }
     });
@@ -304,7 +304,8 @@ void ZoneEditor::resized ()
 juce::String ZoneEditor::formatLoopLength (double loopLength)
 {
     if (loopLengthIsEnd)
-        loopLength = static_cast<int>(loopLength);
+        loopLength = static_cast<int>(static_cast<double>(zoneProperties.getLoopStart()) + loopLength);
+
     if (loopLength < 2048.0)
         return FormatHelpers::formatDouble (loopLength, 3, false);
     else
