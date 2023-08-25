@@ -41,6 +41,7 @@ namespace Parameter
         static juce::String LinAMId             { "LinAM" };
         static juce::String LinAMisExtEnvId     { "LinAMisExtEnv" };
         static juce::String LinFMId             { "LinFM" };
+        static juce::String LoopLengthIsEndId   { "LoopLengthIsEnd" };
         static juce::String LoopLengthModId     { "LoopLengthMod" };
         static juce::String LoopModeId          { "LoopMode" };
         static juce::String LoopStartModId      { "LoopStartMod" };

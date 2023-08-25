@@ -145,6 +145,11 @@ void ChannelProperties::setLinFM (juce::String cvInput, double linFM, bool inclu
     setValue (getCvInputAndValueString (cvInput, linFM, 4), LinFMPropertyId, includeSelfCallback);
 }
 
+void ChannelProperties::setLoopLengthIsEnd (bool isEnd, bool includeSelfcallback)
+{
+    setValue (isEnd, LoopLengthIsEndPropertyId, includeSelfcallback);
+}
+
 void ChannelProperties::setLoopLengthMod (juce::String cvInput, double loopLengthMod, bool includeSelfCallback)
 {
     setValue (getCvInputAndValueString (cvInput, loopLengthMod, 4), LoopLengthModPropertyId, includeSelfCallback);
@@ -354,6 +359,11 @@ CvInputAndAmount ChannelProperties::getLinFM ()
     return getCvInputAndValueFromString (getValue<juce::String> (LinFMPropertyId));
 }
 
+bool ChannelProperties::getLoopLengthIsEnd ()
+{
+    return getValue<bool> (LoopLengthIsEndPropertyId);
+}
+
 CvInputAndAmount ChannelProperties::getLoopLengthMod ()
 {
     return getCvInputAndValueFromString (getValue<juce::String> (LoopLengthModPropertyId));
@@ -558,6 +568,11 @@ void ChannelProperties::valueTreePropertyChanged (juce::ValueTree& vt, const juc
     {
         if (onLinFMChange != nullptr)
             onLinFMChange (getLinFM ());
+    }
+    else if (property == LoopLengthIsEndPropertyId)
+    {
+        if (onLoopLengthIsEndChange != nullptr)
+            onLoopLengthIsEndChange (getLoopLengthIsEnd ());
     }
     else if (property == LoopLengthModPropertyId)
     {

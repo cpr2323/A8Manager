@@ -33,8 +33,6 @@ private:
     juce::Label sampleBoundsLabel;
     juce::TextEditor sampleStartTextEditor; // int
     juce::TextEditor sampleEndTextEditor; // int
-    juce::Label sideLabel;
-    juce::TextButton sideButton; // ?
 
     int64_t sampleLength { 0 };
     void setupZoneComponents ();
@@ -58,8 +56,6 @@ private:
     void sampleStartUiChanged (int64_t sampleStart);
     void sampleEndDataChanged (int64_t sampleEnd);
     void sampleEndUiChanged (int64_t sampleEnd);
-    void sideDataChanged (int side);
-    void sideUiChanged (int side);
 
     void paint (juce::Graphics& g) override;
     void resized () override;

@@ -196,9 +196,6 @@ void ZoneEditor::setupZoneComponents ()
         pitchOffsetUiChanged (pitchOffset);
         pitchOffsetTextEditor.setText (FormatHelpers::formatDouble (pitchOffset, 2, true));
     });
-    // TODO - this parameter should not be exposed. it is set based on Channel Mode setting 0=left, 1=right
-    setupLabel (sideLabel, "SIDE", 15.0, juce::Justification::centredLeft);
-    setupButton (sideButton, "x", [this] () { sideUiChanged (sideButton.getToggleState ()); });
 }
 
 void ZoneEditor::init (juce::ValueTree zonePropertiesVT, juce::ValueTree rootPropertiesVT)
@@ -217,7 +214,6 @@ void ZoneEditor::init (juce::ValueTree zonePropertiesVT, juce::ValueTree rootPro
     sampleDataChanged (zoneProperties.getSample ());
     sampleStartDataChanged (zoneProperties.getSampleStart ());
     sampleEndDataChanged (zoneProperties.getSampleEnd ());
-    sideDataChanged (zoneProperties.getSide ());
 }
 
 void ZoneEditor::setupZonePropertiesCallbacks ()
@@ -231,7 +227,6 @@ void ZoneEditor::setupZonePropertiesCallbacks ()
     zoneProperties.onSampleChange = [this] (juce::String sample) { sampleDataChanged (sample);  };
     zoneProperties.onSampleStartChange = [this] (int64_t  sampleStart) { sampleStartDataChanged (sampleStart);  };
     zoneProperties.onSampleEndChange = [this] (int64_t  sampleEnd) { sampleEndDataChanged (sampleEnd);  };
-    zoneProperties.onSideChange = [this] (int side) { sideDataChanged (side);  };
 }
 
 void ZoneEditor::paint ([[maybe_unused]] juce::Graphics& g)
@@ -263,8 +258,6 @@ void ZoneEditor::resized ()
     levelOffsetTextEditor.setBounds (levelOffsetLabel.getX () + inputXOffset, levelOffsetLabel.getBottom () + inputYOffset, inputWidth, 20);
     pitchOffsetLabel.setBounds (xOffset, levelOffsetTextEditor.getBottom () + interParameterYOffset, labelWidth, 20);
     pitchOffsetTextEditor.setBounds (pitchOffsetLabel.getX () + inputXOffset, pitchOffsetLabel.getBottom () + inputYOffset, inputWidth, 20);
-    sideLabel.setBounds (xOffset, pitchOffsetTextEditor.getBottom () + interParameterYOffset, labelWidth, 20);
-    sideButton.setBounds (sideLabel.getX () + 3, sideLabel.getBottom () + inputYOffset, inputWidth, 20);
 }
 
 juce::String ZoneEditor::formatLoopLength (double loopLength)
@@ -370,14 +363,4 @@ void ZoneEditor::sampleEndDataChanged (int64_t  sampleEnd)
 void ZoneEditor::sampleEndUiChanged (int64_t  sampleEnd)
 {
     zoneProperties.setSampleEnd (sampleEnd, false);
-}
-
-void ZoneEditor::sideDataChanged (int side)
-{
-    sideButton.setToggleState (side == 1, juce::NotificationType::dontSendNotification);
-}
-
-void ZoneEditor::sideUiChanged (int side)
-{
-    zoneProperties.setSide (side, false);
 }

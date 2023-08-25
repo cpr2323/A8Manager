@@ -56,6 +56,7 @@ void Assimil8orPreset::write (juce::File presetFile, juce::ValueTree presetPrope
                channelProperties.getLinAM () == defaultChannelProperties.getLinAM () &&
                channelProperties.getLinAMisExtEnv () == defaultChannelProperties.getLinAMisExtEnv () &&
                channelProperties.getLinFM () == defaultChannelProperties.getLinFM () &&
+               channelProperties.getLoopLengthIsEnd () == defaultChannelProperties.getLoopLengthIsEnd () &&
                channelProperties.getLoopLengthMod () == defaultChannelProperties.getLoopLengthMod () &&
                channelProperties.getLoopMode () == defaultChannelProperties.getLoopMode () &&
                channelProperties.getLoopStartMod () == defaultChannelProperties.getLoopStartMod () &&
@@ -137,6 +138,7 @@ void Assimil8orPreset::write (juce::File presetFile, juce::ValueTree presetPrope
             addLine (channelProperties.getLinAM () != defaultChannelProperties.getLinAM (), Parameter::Channel::LinAMId + " : " + ChannelProperties::getCvInputAndValueString (channelProperties.getLinAM (), 4));
             addLine (channelProperties.getLinAMisExtEnv () != defaultChannelProperties.getLinAMisExtEnv (), Parameter::Channel::LinAMisExtEnvId + " : " + (channelProperties.getLinAMisExtEnv () ? "1" : "0"));
             addLine (channelProperties.getLinFM () != defaultChannelProperties.getLinFM (), Parameter::Channel::LinFMId + " : " + ChannelProperties::getCvInputAndValueString (channelProperties.getLinFM (), 4));
+            addLine (channelProperties.getLoopLengthIsEnd () != defaultChannelProperties.getLoopLengthIsEnd (), Parameter::Channel::LoopLengthIsEndId + " : " + (channelProperties.getLoopLengthIsEnd () ? "1" : "0"));
             addLine (channelProperties.getLoopLengthMod () != defaultChannelProperties.getLoopLengthMod (), Parameter::Channel::LoopLengthModId + " : " + ChannelProperties::getCvInputAndValueString (channelProperties.getLoopLengthMod (), 4));
             addLine (channelProperties.getLoopMode () != defaultChannelProperties.getLoopMode (), Parameter::Channel::LoopModeId + " : " + juce::String (channelProperties.getLoopMode ()));
             addLine (channelProperties.getLoopStartMod () != defaultChannelProperties.getLoopStartMod (), Parameter::Channel::LoopStartModId + " : " + ChannelProperties::getCvInputAndValueString (channelProperties.getLoopStartMod (), 4));
@@ -438,6 +440,9 @@ void Assimil8orPreset::initParser ()
             checkCvInputAndAmountFormat (key, value);
             const auto [cvInput, linFMAmount] { ChannelProperties::getCvInputAndValueFromString (value) };
             channelProperties.setLinFM (cvInput, linFMAmount, false);
+        }},
+        {Parameter::Channel::LoopLengthIsEndId, [this] () {
+            channelProperties.setLoopLengthIsEnd (value.getIntValue () == 1, false);
         }},
         {Parameter::Channel::LoopLengthModId, [this] () {
             checkCvInputAndAmountFormat (key, value);

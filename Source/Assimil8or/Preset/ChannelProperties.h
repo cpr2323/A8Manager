@@ -42,6 +42,7 @@ public:
     void setLinAM (juce::String cvInput, double linAM, bool includeSelfCallback);
     void setLinAMisExtEnv (bool linAMisExtEnv, bool includeSelfCallback);
     void setLinFM (juce::String cvInput, double linFM, bool includeSelfCallback);
+    void setLoopLengthIsEnd (bool isEnd, bool includeSelfcallback);
     void setLoopLengthMod (juce::String cvInput, double loopLengthMod, bool includeSelfCallback);
     void setLoopMode (int loopMode, bool includeSelfCallback);
     void setLoopStartMod (juce::String cvInput, double loopStartMod, bool includeSelfCallback);
@@ -83,6 +84,7 @@ public:
     CvInputAndAmount getLinAM ();
     bool getLinAMisExtEnv ();
     CvInputAndAmount getLinFM ();
+    bool getLoopLengthIsEnd ();
     CvInputAndAmount getLoopLengthMod ();
     int getLoopMode ();
     CvInputAndAmount getLoopStartMod ();
@@ -124,6 +126,7 @@ public:
     std::function<void (CvInputAndAmount  linAM)> onLinAMChange;
     std::function<void (bool linAMisExtEnv)> onLinAMisExtEnvChange;
     std::function<void (CvInputAndAmount  linFM)> onLinFMChange;
+    std::function<void (bool isEnd)> onLoopLengthIsEndChange;
     std::function<void (CvInputAndAmount amountAndCvInput)> onLoopLengthModChange;
     std::function<void (int loopMode)> onLoopModeChange;
     std::function<void (CvInputAndAmount amountAndCvInput)> onLoopStartModChange;
@@ -157,7 +160,6 @@ public:
     static juce::String getCvInputAndValueString (CvInputAndAmount cvInputAndValue, int decimalPlaces);
     static CvInputAndAmount getCvInputAndValueFromString (juce::String cvInputAndValueString);
 
-
     static inline const juce::Identifier ChannelTypeId { "Channel" };
     static inline const juce::Identifier IndexPropertyId             { "_index" };
     static inline const juce::Identifier AliasingPropertyId          { "aliasing" };
@@ -175,6 +177,7 @@ public:
     static inline const juce::Identifier LinAMPropertyId             { "linAM" };
     static inline const juce::Identifier LinAMisExtEnvPropertyId     { "linAMisExtEnv" };
     static inline const juce::Identifier LinFMPropertyId             { "linFM" };
+    static inline const juce::Identifier LoopLengthIsEndPropertyId   { "loopLengthIsEnd" };
     static inline const juce::Identifier LoopLengthModPropertyId     { "loopLengthMod" };
     static inline const juce::Identifier LoopModePropertyId          { "loopMode" };
     static inline const juce::Identifier LoopStartModPropertyId      { "loopStartMod" };
