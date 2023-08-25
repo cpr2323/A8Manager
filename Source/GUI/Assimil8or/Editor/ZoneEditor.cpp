@@ -78,14 +78,22 @@ void ZoneEditor::setupZoneComponents ()
     },
     [this] (juce::String text)
     {
+        if (text == zoneProperties.getSample ())
+            return;
+        sampleLength = 0;
+        zoneProperties.setSampleStart (0, true);
+        zoneProperties.setLoopStart (0, true);
         auto sampleFile { juce::File (appProperties.getMostRecentFolder ()).getChildFile (sampleTextEditor.getText ()) };
         if (text.isNotEmpty ())
         {
             if (sampleFile.getFileExtension () == "")
                 sampleFile = sampleFile.withFileExtension (".wav");
+            if (sampleFile.getFileName () == zoneProperties.getSample ())
+                return;
 
             if (std::unique_ptr<juce::AudioFormatReader> reader (audioFormatManager.createReaderFor (sampleFile)); reader != nullptr)
             {
+                sampleLength = reader->lengthInSamples;
                 text = sampleFile.getFileName ();
                 // if Zone1, and stereo file
                 if (zoneProperties.getIndex () == 1 && reader->numChannels == 2)
@@ -109,6 +117,9 @@ void ZoneEditor::setupZoneComponents ()
                 }
             }
         }
+        zoneProperties.setSampleEnd (sampleLength, true);
+        zoneProperties.setLoopLength (static_cast<double>(sampleLength), true);
+
         sampleUiChanged (text);
         sampleTextEditor.setText (text);
     });
@@ -185,7 +196,8 @@ void ZoneEditor::setupZoneComponents ()
         // TODO - do additional clamping due on the different number of decimal places/increments based on the current value
         //   loopLength > 2048 | 0 decimal places
         //
-        const auto loopLength = std::clamp (loopLengthInput, minZoneProperties.getLoopLength (), static_cast<double>(sampleLength - zoneProperties.getLoopStart ()));
+        const auto loopLength = std::clamp (loopLengthInput, minZoneProperties.getLoopLength (),
+                                            (sampleLength == 0 ? minZoneProperties.getLoopLength () : static_cast<double>(sampleLength - zoneProperties.getLoopStart ())));
         loopLengthUiChanged (loopLength);
         loopLengthTextEditor.setText (formatLoopLength (loopLength));
     });
@@ -248,11 +260,18 @@ void ZoneEditor::init (juce::ValueTree zonePropertiesVT, juce::ValueTree rootPro
 
 void ZoneEditor::setLoopLengthIsEnd (bool newLoopLengthIsEnd)
 {
+    //loopBoundsLabel
     loopLengthIsEnd = newLoopLengthIsEnd;
     if (! loopLengthIsEnd)
+    {
+        loopBoundsLabel.setText ("LOOP START/LENGTH", juce::NotificationType::dontSendNotification);
         loopLengthTextEditor.setInputRestrictions (0, ".0123456789");
+    }
     else
+    {
+        loopBoundsLabel.setText ("LOOP START/END", juce::NotificationType::dontSendNotification);
         loopLengthTextEditor.setInputRestrictions (0, "0123456789");
+    }
     // reformat the UI string
     loopLengthDataChanged (zoneProperties.getLoopLength ());
 }
@@ -335,6 +354,7 @@ void ZoneEditor::loopLengthUiChanged (double loopLength)
 void ZoneEditor::loopStartDataChanged (int64_t  loopStart)
 {
     loopStartTextEditor.setText (juce::String (loopStart));
+    loopLengthDataChanged (zoneProperties.getLoopLength ());
 }
 
 void ZoneEditor::loopStartUiChanged (int64_t  loopStart)
@@ -369,10 +389,6 @@ void ZoneEditor::updateSampleFileInfo (juce::String sample)
         sampleLength = reader->lengthInSamples;
     else
         sampleLength = 0;
-    zoneProperties.setSampleStart (0, true);
-    zoneProperties.setSampleEnd (sampleLength, true);
-    zoneProperties.setLoopStart (0, true);
-    zoneProperties.setLoopLength (static_cast<double>(sampleLength), true);
 }
 
 void ZoneEditor::sampleDataChanged (juce::String sample)
@@ -384,8 +400,6 @@ void ZoneEditor::sampleDataChanged (juce::String sample)
 
 void ZoneEditor::sampleUiChanged (juce::String sample)
 {
-    if (sample != zoneProperties.getSample ())
-        updateSampleFileInfo (sample);
     zoneProperties.setSample (sample, false);
 }
 

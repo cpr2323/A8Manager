@@ -563,6 +563,7 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
     splitAndPassAsParams (channelProperties.getLinAM (), [this] (juce::String cvInput, double value) { linAMDataChanged (cvInput, value); });
     linAMisExtEnvDataChanged (channelProperties.getLinAMisExtEnv ());
     splitAndPassAsParams (channelProperties.getLinFM (), [this] (juce::String cvInput, double value) { linFMDataChanged (cvInput, value); });
+    loopLengthIsEndDataChanged (channelProperties.getLoopLengthIsEnd ());
     splitAndPassAsParams (channelProperties.getLoopLengthMod (), [this] (juce::String cvInput, double value) { loopLengthModDataChanged (cvInput, value); });
     loopModeDataChanged (channelProperties.getLoopMode ());
     splitAndPassAsParams (channelProperties.getLoopStartMod (), [this] (juce::String cvInput, double value) { loopStartModDataChanged (cvInput, value); });
@@ -607,6 +608,7 @@ void ChannelEditor::setupChannelPropertiesCallbacks ()
     channelProperties.onLinAMChange = [this] (CvInputAndAmount amountAndCvInput) { const auto& [cvInput, value] { amountAndCvInput }; linAMDataChanged (cvInput, value); };
     channelProperties.onLinAMisExtEnvChange = [this] (bool linAMisExtEnv) { linAMisExtEnvDataChanged (linAMisExtEnv);  };
     channelProperties.onLinFMChange = [this] (CvInputAndAmount amountAndCvInput) { const auto& [cvInput, value] { amountAndCvInput }; linFMDataChanged (cvInput, value); };
+    channelProperties.onLoopLengthIsEndChange = [this] (bool loopLengthIsEnd) { loopLengthIsEndDataChanged (loopLengthIsEnd); };
     channelProperties.onLoopLengthModChange = [this] (CvInputAndAmount amountAndCvInput) { const auto& [cvInput, value] { amountAndCvInput }; loopLengthModDataChanged (cvInput, value); };
     channelProperties.onLoopModeChange = [this] (int loopMode) { loopModeDataChanged (loopMode);  };
     channelProperties.onLoopStartModChange = [this] (CvInputAndAmount amountAndCvInput) { const auto& [cvInput, value] { amountAndCvInput }; loopStartModDataChanged (cvInput, value); };
@@ -938,6 +940,10 @@ void ChannelEditor::linFMUiChanged (juce::String cvInput, double linFM)
 
 void ChannelEditor::loopLengthIsEndDataChanged (bool loopLengthIsEnd)
 {
+    // inform all the zones of the change
+    for (auto& zoneEditor : zoneEditors)
+        zoneEditor.setLoopLengthIsEnd (loopLengthIsEnd);
+
     loopLengthIsEndButton.setToggleState (loopLengthIsEnd, juce::NotificationType::dontSendNotification);
 }
 
