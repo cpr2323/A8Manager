@@ -113,57 +113,49 @@ void ZoneEditor::setupZoneComponents ()
         sampleTextEditor.setText (text);
     });
     setupLabel (sampleBoundsLabel, "SAMPLE START/END", 15.0, juce::Justification::centredLeft);
+    // SAMPLE START
     setupTextEditor (sampleStartTextEditor, juce::Justification::centred, 0, "0123456789", [this] ()
     {
-        if (minZoneProperties.getSampleStart () <= sampleLength)
-            FormatHelpers::setColorIfError (sampleStartTextEditor, minZoneProperties.getSampleStart (), sampleLength);
-        else
-            FormatHelpers::setColorIfError (sampleStartTextEditor, false);
+        FormatHelpers::setColorIfError (sampleStartTextEditor, minZoneProperties.getSampleStart (), zoneProperties.getSampleEnd ());
     },
     [this] (juce::String text)
     {
-        const auto sampleStart { std::clamp (text.getLargeIntValue(), minZoneProperties.getSampleStart (), sampleLength) };
+        const auto sampleStart { std::clamp (text.getLargeIntValue(), minZoneProperties.getSampleStart (), zoneProperties.getSampleEnd ()) };
         sampleStartUiChanged (sampleStart);
         sampleStartTextEditor.setText (juce::String (sampleStart));
     });
+    // SAMPLE END
     setupTextEditor (sampleEndTextEditor, juce::Justification::centred, 0, "0123456789", [this] ()
     {
-        if (minZoneProperties.getSampleEnd () <= sampleLength)
-            FormatHelpers::setColorIfError (sampleEndTextEditor, minZoneProperties.getSampleEnd (), sampleLength);
-        else
-            FormatHelpers::setColorIfError (sampleEndTextEditor, false);
+        FormatHelpers::setColorIfError (sampleEndTextEditor, zoneProperties.getSampleStart (), sampleLength);
     },
     [this] (juce::String text)
     {
-        const auto sampleEnd { std::clamp (text.getLargeIntValue (), minZoneProperties.getSampleEnd (), sampleLength) };
+        const auto sampleEnd { std::clamp (text.getLargeIntValue (), zoneProperties.getSampleStart (), sampleLength) };
         sampleEndUiChanged (sampleEnd);
         sampleEndTextEditor.setText (juce::String (sampleEnd));
     });
     setupLabel (loopBoundsLabel, "LOOP START/LENGTH", 15.0, juce::Justification::centredLeft);
+    // LOOP START
     setupTextEditor (loopStartTextEditor, juce::Justification::centred, 0, "0123456789", [this] ()
     {
-        if (minZoneProperties.getLoopStart () <= sampleLength)
-            FormatHelpers::setColorIfError (loopStartTextEditor, minZoneProperties.getLoopStart (), sampleLength);
-        else
-            FormatHelpers::setColorIfError (loopStartTextEditor, false);
+        FormatHelpers::setColorIfError (loopStartTextEditor, minZoneProperties.getLoopStart (), sampleLength - static_cast<int64_t>(zoneProperties.getLoopLength ()));
     },
     [this] (juce::String text)
     {
-        const auto loopStart { std::clamp (text.getLargeIntValue (), minZoneProperties.getLoopStart (), sampleLength) };
+        const auto loopStart { std::clamp (text.getLargeIntValue (), minZoneProperties.getLoopStart (), sampleLength - static_cast<int64_t>(zoneProperties.getLoopLength ())) };
         loopStartUiChanged (loopStart);
         loopStartTextEditor.setText (juce::String (loopStart));
     });
+    // LOOP LENGTH
     setupTextEditor (loopLengthTextEditor, juce::Justification::centred, 0, ".0123456789", [this] ()
     {
-        if (minZoneProperties.getLoopLength () <= sampleLength)
-            FormatHelpers::setColorIfError (loopLengthTextEditor, minZoneProperties.getLoopLength (), static_cast<double>(sampleLength));
-        else
-            FormatHelpers::setColorIfError (loopLengthTextEditor, false);
+        FormatHelpers::setColorIfError (loopLengthTextEditor, minZoneProperties.getLoopLength (), static_cast<double>(sampleLength - zoneProperties.getLoopStart ()));
     },
     [this] (juce::String text)
     {
         // TODO - after implementing LoopLength/LoopEnd switch, update code here to use it
-        auto loopLength { std::clamp (text.getDoubleValue (), minZoneProperties.getLoopLength (), static_cast<double>(sampleLength)) };
+        auto loopLength { std::clamp (text.getDoubleValue (), minZoneProperties.getLoopLength (), static_cast<double>(sampleLength - zoneProperties.getLoopStart ())) };
         // TODO - do additional clamping due on the different number of decimal places/increments based on the current value
         //   loopLength > 2048 | 0 decimal places
         //
@@ -171,6 +163,7 @@ void ZoneEditor::setupZoneComponents ()
         loopLengthTextEditor.setText (formatLoopLength (loopLength));
     });
     setupLabel (minVoltageLabel, "MIN VOLTAGE", 15.0, juce::Justification::centredLeft);
+    // MIN VOLTAGE
     setupTextEditor (minVoltageTextEditor, juce::Justification::centred, 0, "+-.0123456789", [this] ()
     {
         FormatHelpers::setColorIfError (minVoltageTextEditor, minZoneProperties.getMinVoltage (), maxZoneProperties.getMinVoltage ());
