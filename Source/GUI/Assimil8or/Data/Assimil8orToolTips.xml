@@ -25,42 +25,42 @@
 	<Parameter name="ExpFM" tooltip="CV Assignment, 0A - 8C / -1.00 to 1.00, Default Off"/>
 	<Parameter name="Level" tooltip="Level Value, -90 to 6, Default 0"/>
 	<Parameter name="LinAM" tooltip="CV Assignment, 0A - 8C / -1.00 to 1.00, Default Off"/>
-	<Parameter name="LinAMisExtEnv" tooltip=""/>
+	<Parameter name="LinAMisExtEnv" tooltip="Linear AM is External Envelope, Off / On"/>
 	<Parameter name="LinFM" tooltip="CV Assignment, 0A - 8C / -1.00 to 1.00, Default Off"/>
 	<Parameter name="LoopLengthMod" tooltip="CV Assignment, 0A - 8C / -1.00 to 1.00, Default Off"/>
 	<Parameter name="LoopMode" tooltip="Loop Mode, No Loop, Loop, Loop and Release"/>
 	<Parameter name="LoopStartMod" tooltip="CV Assignment, 0A - 8C / -1.00 to 1.00, Default Off"/>
 	<Parameter name="MixLevel" tooltip="Mix Level, -90 to 6, Default 0"/>
 	<Parameter name="MixMod" tooltip="CV Assignment, 0A - 8C / -1.00 to 1.00, Default Off"/>
-	<Parameter name="MixModIsFader" tooltip="Mix Mod is Fader"/>
-	<Parameter name="Pan" tooltip=""/>
+	<Parameter name="MixModIsFader" tooltip="Mix Mod is Fader, Normal - CV Can Increase or Decrease Volume, Is Fader - 0V is Zero Volume and 5V is +6 dB"/>
+	<Parameter name="Pan" tooltip="Pan Postition Value, -1.00 to 1.00 (Left to Right), Default 0"/>
 	<Parameter name="PanMod" tooltip="CV Assignment, 0A - 8C / -1.00 to 1.00, Default Off"/>
-	<Parameter name="PhaseCV" tooltip=""/>
-	<Parameter name="Pitch" tooltip=""/>
+	<Parameter name="PhaseCV" tooltip="CV Assignment, 0A - 8C / -1.00 to 1.00, Default Off"/>
+	<Parameter name="Pitch" tooltip="Pitch Value in Semitones, -96 to 60, Default 0"/>
 	<Parameter name="PitchCV" tooltip="CV Assignment, 0A - 8C / -1.00 to 1.00, Default Off"/>
-	<Parameter name="PlayMode" tooltip=""/>
-	<Parameter name="PMIndex" tooltip=""/>
+	<Parameter name="PlayMode" tooltip="Play Mode, Gated or One Shot"/>
+	<Parameter name="PMIndex" tooltip="Phase Modulation Index, 0.00 - 1.00, Default 0"/>
 	<Parameter name="PMIndexMod" tooltip="CV Assignment, 0A - 8C / -1.00 to 1.00, Default Off"/>
-	<Parameter name="PMSource" tooltip=""/>
-	<Parameter name="Release" tooltip=""/>
+	<Parameter name="PMSource" tooltip="Phase Modulation Source, Channel 1 to Channel 8, Left, Right, or Select CV, Default Channel 1"/>
+	<Parameter name="Release" tooltip="Release Value in Seconds, 0 - 99, Default 0.1"/>
 	<Parameter name="ReleaseMod" tooltip="CV Assignment, 0A - 8C / -1.00 to 1.00, Default Off"/>
-	<Parameter name="Reverse" tooltip=""/>
+	<Parameter name="Reverse" tooltip="Reverse, Off / On"/>
 	<Parameter name="SampleStartMod" tooltip="CV Assignment, 0A - 8C / -1.00 to 1.00, Default Off"/>
 	<Parameter name="SampleEndMod" tooltip="CV Assignment, 0A - 8C / -1.00 to 1.00, Default Off"/>
-	<Parameter name="SpliceSmoothing" tooltip=""/>
-	<Parameter name="XfadeGroup" tooltip=""/>
-	<Parameter name="ZonesCV" tooltip=""/>
-	<Parameter name="ZonesRT" tooltip=""/>
+	<Parameter name="SpliceSmoothing" tooltip="Splice Smoothing, Off / On, May Help With Clicks"/>
+	<Parameter name="XfadeGroup" tooltip="Crossfade Group, A B C or D, Default None"/>
+	<Parameter name="ZonesCV" tooltip="Zones CV, Assigns CV for Selection of Zone, 0A - 8C, Default Off"/>
+	<Parameter name="ZonesRT" tooltip="Zones Retrigger, Determines When the Zone Change Occurs, Gate Rise, Continuous, Advance, Random"/>
   </Channel>
   <Zone>
-    <Parameter name="LevelOffset" tooltip=""/>
-    <Parameter name="LoopLength" tooltip=""/>
-    <Parameter name="LoopStart" tooltip=""/>
-    <Parameter name="MinVoltage" tooltip=""/>
-    <Parameter name="PitchOffset" tooltip=""/>
-    <Parameter name="Sample" tooltip=""/>
-    <Parameter name="SampleStart" tooltip=""/>
-    <Parameter name="SampleEnd" tooltip=""/>
-    <Parameter name="Side" tooltip=""/>
+    <Parameter name="LevelOffset" tooltip="Zone Level Offset, -90 to 6, Default 0"/>
+    <Parameter name="LoopLength" tooltip="Loop Length, Minimum 4"/>
+    <Parameter name="LoopStart" tooltip="Loop Start"/>
+    <Parameter name="MinVoltage" tooltip="Minimum Voltage to Switch Zones, -5.00 to 4.99"/>
+    <Parameter name="PitchOffset" tooltip="Zone Pitch Offset, -90 to 60, Default 0"/>
+    <Parameter name="Sample" tooltip="Sample Name"/>
+    <Parameter name="SampleStart" tooltip="Sample Start"/>
+    <Parameter name="SampleEnd" tooltip="Sample End"/>
+    <Parameter name="Side" tooltip="Hidden Parameter"/>
   </Zone>
 </ToolTips>
