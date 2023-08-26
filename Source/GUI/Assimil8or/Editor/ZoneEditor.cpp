@@ -50,14 +50,6 @@ void ZoneEditor::setupZoneComponents ()
             textEditor.onTextChange = [this, validateCallback] () { validateCallback (); };
         addAndMakeVisible (textEditor);
     };
-    auto setupButton = [this] (juce::TextButton& textButton, juce::String text, std::function<void ()> onClickCallback)
-    {
-        textButton.setButtonText (text);
-        textButton.setClickingTogglesState (true);
-        textButton.setColour (juce::TextButton::ColourIds::buttonOnColourId, textButton.findColour (juce::TextButton::ColourIds::buttonOnColourId).brighter (0.5));
-        textButton.onClick = onClickCallback;
-        addAndMakeVisible (textButton);
-    };
     setupLabel (sampleStartNameLabel, "FILE", 15.0, juce::Justification::centredLeft);
     const auto kMaxFileNameLength { 47 };
     setupTextEditor (sampleTextEditor, juce::Justification::centredLeft, kMaxFileNameLength, " !\"#$%^&'()#+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~", [this] ()
