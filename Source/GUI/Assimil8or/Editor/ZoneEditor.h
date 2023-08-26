@@ -4,6 +4,58 @@
 #include "../../../Assimil8or/Preset/ZoneProperties.h"
 #include "../../../AppProperties.h"
 
+class FileDropTargetTextEditor : public juce::TextEditor,
+                                 public juce::FileDragAndDropTarget
+{
+public:
+    std::function<bool (const juce::StringArray& files)> onCheckInterest;
+    std::function<void (const juce::StringArray& files)> onFilesDropped;
+    std::function<void (const juce::StringArray& files)> onDragEnter;
+    std::function<void (const juce::StringArray& files)> onDragMove;
+    std::function<void (const juce::StringArray& files)> onDragExit;
+
+    bool isInterestedInFileDrag (const juce::StringArray& files) override
+    {
+        if (onCheckInterest != nullptr)
+            return onCheckInterest (files);
+        return false;
+    }
+    void filesDropped (const juce::StringArray& files, int, int) override
+    {
+        if (onFilesDropped!= nullptr)
+            return onFilesDropped (files);
+    }
+    void fileDragEnter (const juce::StringArray& files, int, int) override
+    {
+        if (onDragEnter!= nullptr)
+            return onDragEnter (files);
+
+    }
+    void fileDragMove (const juce::StringArray& files, int, int) override
+    {
+        if (onDragMove!= nullptr)
+            return onDragMove (files);
+
+    }
+    void fileDragExit (const juce::StringArray& files) override
+    {
+        if (onDragExit!= nullptr)
+            return onDragExit (files);
+    }
+    void setHoverOutline (juce::Colour colour)
+    {
+        outlineColor= colour;
+    }
+private:
+    juce::Colour outlineColor { juce::Colours::transparentWhite };
+    void paintOverChildren (juce::Graphics& g)
+    {
+        TextEditor::paintOverChildren (g);
+        g.setColour (outlineColor);
+        g.drawRect (getLocalBounds ());
+    }
+};
+
 class ZoneEditor : public juce::Component
 {
 public:
@@ -31,7 +83,7 @@ private:
     juce::Label pitchOffsetLabel;
     juce::TextEditor pitchOffsetTextEditor; // double
     juce::Label sampleStartNameLabel;
-    juce::TextEditor sampleTextEditor; // filename
+    FileDropTargetTextEditor sampleTextEditor; // filename
     juce::Label sampleBoundsLabel;
     juce::TextEditor sampleStartTextEditor; // int
     juce::TextEditor sampleEndTextEditor; // int
@@ -41,6 +93,8 @@ private:
     void setupZonePropertiesCallbacks ();
     void updateSampleFileInfo (juce::String sample);
     juce::String formatLoopLength (double loopLength);
+    bool isSupportedAudioFile (juce::File file);
+    void loadSample (juce::String sampleFileName);
 
     void levelOffsetDataChanged (double levelOffset);
     void levelOffsetUiChanged (double levelOffset);

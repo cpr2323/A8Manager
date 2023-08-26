@@ -22,7 +22,106 @@ ZoneEditor::ZoneEditor ()
         maxZoneProperties.wrap (maxChannelProperties.getZoneVT (0), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
     }
 
+    sampleTextEditor.onCheckInterest = [this] (const juce::StringArray& files)
+    {
+        if (files.size () != 1)
+            return false;
+        const auto draggedFile { juce::File (files [0]) };
+        return isSupportedAudioFile (draggedFile);
+    };
+    sampleTextEditor.onFilesDropped = [this] (const juce::StringArray& files)
+    {
+        sampleTextEditor.setHoverOutline (juce::Colours::transparentWhite);
+        sampleTextEditor.repaint ();
+
+        if (files.size () != 1)
+            return;
+        const auto droppedFile { juce::File (files [0]) };
+        if (! isSupportedAudioFile (droppedFile))
+            return;
+        // if file not in preset folder, then copy
+        if (appProperties.getMostRecentFolder () != droppedFile.getParentDirectory ().getFullPathName ())
+        {
+            // TODO handle case where file of same name already exists
+
+            // copy file
+            droppedFile.copyFileTo (juce::File(appProperties.getMostRecentFolder ()).getChildFile (droppedFile.getFileName ()));
+        }
+        // assign file to zone
+        loadSample (droppedFile.getFileName ());
+    };
+    sampleTextEditor.onDragEnter = [this] (const juce::StringArray& files)
+    {
+        if (files.size () != 1)
+            sampleTextEditor.setHoverOutline(juce::Colours::red);
+        else
+        {
+            const auto draggedFile { juce::File (files [0]) };
+            if (isSupportedAudioFile (draggedFile))
+                sampleTextEditor.setHoverOutline (juce::Colours::white);
+            else
+                sampleTextEditor.setHoverOutline (juce::Colours::red);
+        }
+        sampleTextEditor.repaint ();
+    };
+    sampleTextEditor.onDragExit = [this] (const juce::StringArray& files)
+    {
+        sampleTextEditor.setHoverOutline (juce::Colours::transparentWhite);
+        sampleTextEditor.repaint ();
+    };
+
     setupZoneComponents ();
+}
+
+void ZoneEditor::loadSample (juce::String sampleFileName)
+{
+    if (sampleFileName  == zoneProperties.getSample ())
+        return;
+    sampleLength = 0;
+    if (sampleFileName.isNotEmpty ())
+    {
+        auto sampleFile { juce::File (appProperties.getMostRecentFolder ()).getChildFile (sampleFileName) };
+        if (sampleFile.getFileExtension () == "")
+            sampleFile = sampleFile.withFileExtension (".wav");
+        if (sampleFile.getFileName () == zoneProperties.getSample ())
+            return;
+
+        if (std::unique_ptr<juce::AudioFormatReader> reader (audioFormatManager.createReaderFor (sampleFile)); reader != nullptr)
+        {
+            sampleLength = reader->lengthInSamples;
+            //sampleFileName = sampleFile.getFileName ();
+            // if Zone1, and stereo file
+            if (zoneProperties.getIndex () == 1 && reader->numChannels == 2)
+            {
+                ChannelProperties parentChannelProperties (zoneProperties.getValueTree ().getParent (), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
+                // if this zone not the last channel && the parent channel isn't set to Stereo/Right
+                if (auto parentChannelIndex { parentChannelProperties.getIndex () }; parentChannelIndex != 8 && parentChannelProperties.getChannelMode () != ChannelProperties::ChannelMode::stereoRight)
+                {
+                    PresetProperties presetProperties (parentChannelProperties.getValueTree ().getParent (), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
+                    ChannelProperties nextChannelProperties (presetProperties.getChannelVT (parentChannelIndex), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
+                    ZoneProperties nextChannelZone1Properties (nextChannelProperties.getZoneVT (0), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
+                    // if next Channel does not have a sample
+                    if (nextChannelZone1Properties.getSample ().isEmpty ())
+                    {
+                        nextChannelProperties.setChannelMode (ChannelProperties::ChannelMode::stereoRight, false);
+                        nextChannelZone1Properties.setSample (sampleFileName, false);
+                        nextChannelZone1Properties.setSide (1, false);
+                        nextChannelZone1Properties.setSampleStart (-1, true);
+                        nextChannelZone1Properties.setSampleEnd (-1, true);
+                        nextChannelZone1Properties.setLoopStart (-1, true);
+                        nextChannelZone1Properties.setLoopLength (-1, true);
+                    }
+                }
+            }
+        }
+    }
+    zoneProperties.setSampleStart (-1, true);
+    zoneProperties.setSampleEnd (-1, true);
+    zoneProperties.setLoopStart (-1, true);
+    zoneProperties.setLoopLength (-1, true);
+
+    sampleUiChanged (sampleFileName);
+    sampleTextEditor.setText (sampleFileName);
 }
 
 void ZoneEditor::setupZoneComponents ()
@@ -66,57 +165,10 @@ void ZoneEditor::setupZoneComponents ()
         {
             FormatHelpers::setColorIfError (sampleTextEditor, false);
         }
-
     },
     [this] (juce::String text)
     {
-        if (text == zoneProperties.getSample ())
-            return;
-        sampleLength = 0;
-        auto sampleFile { juce::File (appProperties.getMostRecentFolder ()).getChildFile (sampleTextEditor.getText ()) };
-        if (text.isNotEmpty ())
-        {
-            if (sampleFile.getFileExtension () == "")
-                sampleFile = sampleFile.withFileExtension (".wav");
-            if (sampleFile.getFileName () == zoneProperties.getSample ())
-                return;
-
-            if (std::unique_ptr<juce::AudioFormatReader> reader (audioFormatManager.createReaderFor (sampleFile)); reader != nullptr)
-            {
-                sampleLength = reader->lengthInSamples;
-                text = sampleFile.getFileName ();
-                // if Zone1, and stereo file
-                if (zoneProperties.getIndex () == 1 && reader->numChannels == 2)
-                {
-                    ChannelProperties parentChannelProperties (zoneProperties.getValueTree ().getParent (), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
-                    // if this zone not the last channel && the parent channel isn't set to Stereo/Right
-                    if (auto parentChannelIndex { parentChannelProperties.getIndex () }; parentChannelIndex != 8 && parentChannelProperties.getChannelMode() != ChannelProperties::ChannelMode::stereoRight)
-                    {
-                        PresetProperties presetProperties (parentChannelProperties.getValueTree ().getParent (), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
-                        ChannelProperties nextChannelProperties (presetProperties.getChannelVT (parentChannelIndex), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
-                        ZoneProperties nextChannelZone1Properties (nextChannelProperties.getZoneVT (0), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
-                        // if next Channel does not have a sample
-                        if (nextChannelZone1Properties.getSample ().isEmpty ())
-                        {
-                            nextChannelProperties.setChannelMode (ChannelProperties::ChannelMode::stereoRight, false);
-                            nextChannelZone1Properties.setSample (text, false);
-                            nextChannelZone1Properties.setSide (1, false);
-                            nextChannelZone1Properties.setSampleStart (-1, true);
-                            nextChannelZone1Properties.setSampleEnd (-1, true);
-                            nextChannelZone1Properties.setLoopStart (-1, true);
-                            nextChannelZone1Properties.setLoopLength (-1, true);
-                        }
-                    }
-                }
-            }
-        }
-        zoneProperties.setSampleStart (-1, true);
-        zoneProperties.setSampleEnd (-1, true);
-        zoneProperties.setLoopStart (-1, true);
-        zoneProperties.setLoopLength (-1, true);
-
-        sampleUiChanged (text);
-        sampleTextEditor.setText (text);
+        loadSample (text);
     });
     setupLabel (sampleBoundsLabel, "SAMPLE START/END", 15.0, juce::Justification::centredLeft);
     // SAMPLE START
@@ -332,6 +384,20 @@ juce::String ZoneEditor::formatLoopLength (double loopLength)
         return juce::String (static_cast<int>(loopLength));
 }
 
+bool ZoneEditor::isSupportedAudioFile (juce::File file)
+{
+    if (file.isDirectory () || file.getFileExtension () != ".wav")
+        return false;
+    std::unique_ptr<juce::AudioFormatReader> reader (audioFormatManager.createReaderFor (file));
+    if (reader == nullptr)
+        return false;
+    // check for any format settings that are unsupported
+    if ((reader->usesFloatingPointData == true) || (reader->bitsPerSample < 8 || reader->bitsPerSample > 32) || (reader->numChannels == 0 || reader->numChannels > 2) || (reader->sampleRate > 192000))
+        return false;
+
+    return true;
+}
+
 void ZoneEditor::levelOffsetDataChanged (double levelOffset)
 {
     levelOffsetTextEditor.setText (FormatHelpers::formatDouble (levelOffset, 1, true));
@@ -393,7 +459,7 @@ void ZoneEditor::updateSampleFileInfo (juce::String sample)
     if (! zoneProperties.getSampleEnd().has_value() )
         sampleEndTextEditor.setText (juce::String (sampleLength));
     if (! zoneProperties.getLoopLength ().has_value ())
-        loopLengthTextEditor.setText (formatLoopLength (sampleLength));
+        loopLengthTextEditor.setText (formatLoopLength (static_cast<double>(sampleLength)));
 }
 
 void ZoneEditor::sampleDataChanged (juce::String sample)
