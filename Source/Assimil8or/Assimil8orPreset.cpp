@@ -172,13 +172,17 @@ void Assimil8orPreset::write (juce::File presetFile, juce::ValueTree presetPrope
                     addLine (true, Section::ZoneId + " " + juce::String (zoneProperties.getIndex ()) + " :");
                     ++indentAmount;
                     addLine (zoneProperties.getLevelOffset () != defaultZoneProperties.getLevelOffset (), Parameter::Zone::LevelOffsetId + " : " + juce::String (zoneProperties.getLevelOffset ()));
-                    addLine (zoneProperties.getLoopLength () != defaultZoneProperties.getLoopLength (), Parameter::Zone::LoopLengthId + " : " + juce::String (zoneProperties.getLoopLength ()));
-                    addLine (zoneProperties.getLoopStart () != defaultZoneProperties.getLoopStart (), Parameter::Zone::LoopStartId + " : " + juce::String (zoneProperties.getLoopStart ()));
+                    addLine (zoneProperties.getLoopLength ().has_value () && zoneProperties.getLoopLength () != defaultZoneProperties.getLoopLength (),
+                             Parameter::Zone::LoopLengthId + " : " + juce::String (zoneProperties.getLoopLength ().value_or (0)));
+                    addLine (zoneProperties.getLoopStart ().has_value () && zoneProperties.getLoopStart () != defaultZoneProperties.getLoopStart (),
+                             Parameter::Zone::LoopStartId + " : " + juce::String (zoneProperties.getLoopStart ().value_or (0)));
                     addLine (zoneProperties.getMinVoltage () != defaultZoneProperties.getMinVoltage (), Parameter::Zone::MinVoltageId + " : " + juce::String (zoneProperties.getMinVoltage ()));
                     addLine (zoneProperties.getPitchOffset () != defaultZoneProperties.getPitchOffset (), Parameter::Zone::PitchOffsetId + " : " + juce::String (zoneProperties.getPitchOffset ()));
                     addLine (zoneProperties.getSample () != defaultZoneProperties.getSample (), Parameter::Zone::SampleId + " : " + zoneProperties.getSample ());
-                    addLine (zoneProperties.getSampleStart () != defaultZoneProperties.getSampleStart (), Parameter::Zone::SampleStartId + " : " + juce::String (zoneProperties.getSampleStart ()));
-                    addLine (zoneProperties.getSampleEnd () != defaultZoneProperties.getSampleEnd (), Parameter::Zone::SampleEndId + " : " + juce::String (zoneProperties.getSampleEnd ()));
+                    addLine (zoneProperties.getSampleStart ().has_value () && zoneProperties.getSampleStart () != defaultZoneProperties.getSampleStart (),
+                             Parameter::Zone::SampleStartId + " : " + juce::String (zoneProperties.getSampleStart ().value_or (0)));
+                    addLine (zoneProperties.getSampleEnd ().has_value () && zoneProperties.getSampleEnd () != defaultZoneProperties.getSampleEnd (),
+                             Parameter::Zone::SampleEndId + " : " + juce::String (zoneProperties.getSampleEnd ().value_or (0)));
                     addLine (zoneProperties.getSide () != defaultZoneProperties.getSide (), Parameter::Zone::SideId + " : " + juce::String (zoneProperties.getSide ()));
                     --indentAmount;
                 }

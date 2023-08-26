@@ -73,14 +73,20 @@ double ZoneProperties::getLevelOffset ()
     return getValue<double> (LevelOffsetPropertyId);
 }
 
-double ZoneProperties::getLoopLength ()
+std::optional<double> ZoneProperties::getLoopLength ()
 {
-    return getValue<double> (LoopLengthPropertyId);
+    const auto loopLength { getValue<double> (LoopLengthPropertyId) };
+    if (loopLength == -1.0) // -1 indicates uninitialized
+        return {};
+    return loopLength;
 }
 
-int64_t ZoneProperties::getLoopStart ()
+std::optional <int64_t> ZoneProperties::getLoopStart ()
 {
-    return getValue<int64_t> (LoopStartPropertyId);
+    const auto loopStart { getValue<int64_t> (LoopStartPropertyId) };
+    if (loopStart == -1) // -1 indicates uninitialized
+        return {};
+    return loopStart;
 }
 
 double ZoneProperties::getMinVoltage ()
@@ -98,14 +104,20 @@ juce::String ZoneProperties::getSample ()
     return getValue<juce::String> (SamplePropertyId);
 }
 
-int64_t ZoneProperties::getSampleStart ()
+std::optional <int64_t> ZoneProperties::getSampleStart ()
 {
-    return getValue<int64_t> (SampleStartPropertyId);
+    const auto sampleStart { getValue<int64_t> (SampleStartPropertyId) };
+    if (sampleStart == -1) // -1 indicate uninitialized
+        return {};
+    return sampleStart;
 }
 
-int64_t ZoneProperties::getSampleEnd ()
+std::optional <int64_t> ZoneProperties::getSampleEnd ()
 {
-    return getValue<int64_t> (SampleEndPropertyId);
+    const auto sampleEnd{ getValue<int64_t> (SampleEndPropertyId) };
+    if (sampleEnd == -1) // -1 indicate uninitialized
+        return {};
+    return sampleEnd;
 }
 
 int ZoneProperties::getSide ()

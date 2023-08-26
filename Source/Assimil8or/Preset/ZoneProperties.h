@@ -27,24 +27,24 @@ public:
 
     int getIndex ();
     double getLevelOffset ();
-    double getLoopLength ();
-    int64_t getLoopStart ();
+    std::optional<double> getLoopLength ();
+    std::optional<int64_t> getLoopStart ();
     double getMinVoltage ();
     double getPitchOffset ();
     juce::String getSample ();
-    int64_t getSampleStart ();
-    int64_t getSampleEnd ();
+    std::optional<int64_t> getSampleStart ();
+    std::optional<int64_t> getSampleEnd ();
     int getSide ();
 
     std::function<void (int index)> onIndexChange;
     std::function<void (double levelOffset)> onLevelOffsetChange;
-    std::function<void (double loopLength)> onLoopLengthChange;
-    std::function<void (int64_t loopStart)> onLoopStartChange;
+    std::function<void (std::optional<double> loopLength)> onLoopLengthChange;
+    std::function<void (std::optional<int64_t> loopStart)> onLoopStartChange;
     std::function<void (double minVoltage)> onMinVoltageChange;
     std::function<void (double pitchOffset)> onPitchOffsetChange;
     std::function<void (juce::String sampleFileName)> onSampleChange;
-    std::function<void (int64_t sampleStart)> onSampleStartChange;
-    std::function<void (int64_t sampleEnd)> onSampleEndChange;
+    std::function<void (std::optional<int64_t> sampleStart)> onSampleStartChange;
+    std::function<void (std::optional<int64_t> sampleEnd)> onSampleEndChange;
     std::function<void (int side)> onSideChange;
 
     static juce::ValueTree create (int index);

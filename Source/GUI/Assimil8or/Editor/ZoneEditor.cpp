@@ -81,8 +81,10 @@ void ZoneEditor::setupZoneComponents ()
         if (text == zoneProperties.getSample ())
             return;
         sampleLength = 0;
-        zoneProperties.setSampleStart (0, true);
-        zoneProperties.setLoopStart (0, true);
+        zoneProperties.setSampleStart (-1, true);
+        zoneProperties.setSampleEnd (-1, true);
+        zoneProperties.setLoopStart (-1, true);
+        zoneProperties.setLoopLength (-1, true);
         auto sampleFile { juce::File (appProperties.getMostRecentFolder ()).getChildFile (sampleTextEditor.getText ()) };
         if (text.isNotEmpty ())
         {
@@ -111,14 +113,15 @@ void ZoneEditor::setupZoneComponents ()
                             nextChannelProperties.setChannelMode (ChannelProperties::ChannelMode::stereoRight, false);
                             nextChannelZone1Properties.setSample (text, false);
                             nextChannelZone1Properties.setSide (1, false);
-                            // TODO - do we copy all the parameters from the Left channel to the Right?
+                            nextChannelZone1Properties.setSampleStart (-1, true);
+                            nextChannelZone1Properties.setSampleEnd (-1, true);
+                            nextChannelZone1Properties.setLoopStart (-1, true);
+                            nextChannelZone1Properties.setLoopLength (-1, true);
                         }
                     }
                 }
             }
         }
-        zoneProperties.setSampleEnd (sampleLength, true);
-        zoneProperties.setLoopLength (static_cast<double>(sampleLength), true);
 
         sampleUiChanged (text);
         sampleTextEditor.setText (text);
@@ -127,22 +130,22 @@ void ZoneEditor::setupZoneComponents ()
     // SAMPLE START
     setupTextEditor (sampleStartTextEditor, juce::Justification::centred, 0, "0123456789", [this] ()
     {
-        FormatHelpers::setColorIfError (sampleStartTextEditor, minZoneProperties.getSampleStart (), zoneProperties.getSampleEnd ());
+        FormatHelpers::setColorIfError (sampleStartTextEditor, minZoneProperties.getSampleStart ().value_or (0), zoneProperties.getSampleEnd ().value_or (sampleLength));
     },
     [this] (juce::String text)
     {
-        const auto sampleStart { std::clamp (text.getLargeIntValue(), minZoneProperties.getSampleStart (), zoneProperties.getSampleEnd ()) };
+        const auto sampleStart { std::clamp (text.getLargeIntValue(), minZoneProperties.getSampleStart ().value_or (0), zoneProperties.getSampleEnd ().value_or (sampleLength)) };
         sampleStartUiChanged (sampleStart);
         sampleStartTextEditor.setText (juce::String (sampleStart));
     });
     // SAMPLE END
     setupTextEditor (sampleEndTextEditor, juce::Justification::centred, 0, "0123456789", [this] ()
     {
-        FormatHelpers::setColorIfError (sampleEndTextEditor, zoneProperties.getSampleStart (), sampleLength);
+        FormatHelpers::setColorIfError (sampleEndTextEditor, zoneProperties.getSampleStart ().value_or (0), sampleLength);
     },
     [this] (juce::String text)
     {
-        const auto sampleEnd { std::clamp (text.getLargeIntValue (), zoneProperties.getSampleStart (), sampleLength) };
+        const auto sampleEnd { std::clamp (text.getLargeIntValue (), zoneProperties.getSampleStart ().value_or (0), sampleLength)};
         sampleEndUiChanged (sampleEnd);
         sampleEndTextEditor.setText (juce::String (sampleEnd));
     });
@@ -151,24 +154,28 @@ void ZoneEditor::setupZoneComponents ()
     setupTextEditor (loopStartTextEditor, juce::Justification::centred, 0, "0123456789", [this] ()
     {
         if (! loopLengthIsEnd)
-            FormatHelpers::setColorIfError (loopStartTextEditor, minZoneProperties.getLoopStart (), sampleLength - static_cast<int64_t>(zoneProperties.getLoopLength ()));
+            FormatHelpers::setColorIfError (loopStartTextEditor, minZoneProperties.getLoopStart ().value_or (0),
+                                            sampleLength - static_cast<int64_t>(zoneProperties.getLoopLength ().value_or (static_cast<double>(sampleLength - zoneProperties.getLoopStart ().value_or (0)))));
         else
-            FormatHelpers::setColorIfError (loopStartTextEditor, minZoneProperties.getLoopStart (), zoneProperties.getLoopStart () + static_cast<int64_t>(zoneProperties.getLoopLength ()));
+            FormatHelpers::setColorIfError (loopStartTextEditor, minZoneProperties.getLoopStart ().value_or (0),
+                                            zoneProperties.getLoopStart ().value_or (0) + static_cast<int64_t>(zoneProperties.getLoopLength ().value_or (static_cast<double>(sampleLength - zoneProperties.getLoopStart ().value_or (0)))));
     },
     [this] (juce::String text)
     {
         const auto loopStart = [this, text] ()
         {
-            if (!loopLengthIsEnd)
-                return std::clamp (text.getLargeIntValue (), minZoneProperties.getLoopStart (), sampleLength - static_cast<int64_t>(zoneProperties.getLoopLength ()));
+            if (! loopLengthIsEnd)
+                return std::clamp (text.getLargeIntValue (), minZoneProperties.getLoopStart ().value_or (0),
+                                   sampleLength - static_cast<int64_t>(zoneProperties.getLoopLength ().value_or (static_cast<double>(sampleLength - zoneProperties.getLoopStart ().value_or (0)))));
             else
-                return std::clamp (text.getLargeIntValue (), minZoneProperties.getLoopStart (), zoneProperties.getLoopStart () + static_cast<int64_t>(zoneProperties.getLoopLength ()));
+                return std::clamp (text.getLargeIntValue (), minZoneProperties.getLoopStart ().value_or (0),
+                                   zoneProperties.getLoopStart ().value_or (0) + static_cast<int64_t>(zoneProperties.getLoopLength ().value_or (static_cast<double>(sampleLength - zoneProperties.getLoopStart ().value_or (0)))));
         }();
         loopStartUiChanged (loopStart);
         loopStartTextEditor.setText (juce::String (loopStart));
         if (loopLengthIsEnd)
         {
-            const auto loopLength = loopLengthTextEditor.getText().getDoubleValue () - static_cast<double>(zoneProperties.getLoopStart ());
+            const auto loopLength = loopLengthTextEditor.getText().getDoubleValue () - static_cast<double>(zoneProperties.getLoopStart ().value_or(0));
             loopLengthUiChanged (loopLength);
         }
     });
@@ -178,26 +185,28 @@ void ZoneEditor::setupZoneComponents ()
         auto loopLengthInput = [this, text = loopLengthTextEditor.getText()] ()
         {
             if (loopLengthIsEnd)
-                return text.getDoubleValue () - zoneProperties.getLoopStart ();
+                return text.getDoubleValue () - zoneProperties.getLoopStart ().value_or (0);
             else
                 return text.getDoubleValue ();
         }();
-        FormatHelpers::setColorIfError (loopLengthTextEditor, loopLengthInput, minZoneProperties.getLoopLength (), static_cast<double>(sampleLength - zoneProperties.getLoopStart ()));
+        FormatHelpers::setColorIfError (loopLengthTextEditor, loopLengthInput, minZoneProperties.getLoopLength ().value_or (static_cast<double>(sampleLength - zoneProperties.getLoopStart ().value_or (0))),
+                                        static_cast<double>(sampleLength - zoneProperties.getLoopStart ().value_or (0)));
     },
     [this] (juce::String text)
     {
         auto loopLengthInput = [this, text] ()
         {
             if (loopLengthIsEnd)
-                return text.getDoubleValue () - zoneProperties.getLoopStart ();
+                return text.getDoubleValue () - zoneProperties.getLoopStart ().value_or (0);
             else
                 return text.getDoubleValue ();
         }();
         // TODO - do additional clamping due on the different number of decimal places/increments based on the current value
         //   loopLength > 2048 | 0 decimal places
         //
-        const auto loopLength = std::clamp (loopLengthInput, minZoneProperties.getLoopLength (),
-                                            (sampleLength == 0 ? minZoneProperties.getLoopLength () : static_cast<double>(sampleLength - zoneProperties.getLoopStart ())));
+        const auto loopLength = std::clamp (loopLengthInput, minZoneProperties.getLoopLength ().value_or (static_cast<double>(sampleLength - zoneProperties.getLoopStart ().value_or (0))),
+                                            (sampleLength == 0 ? minZoneProperties.getLoopLength ().value_or (static_cast<double>(sampleLength - zoneProperties.getLoopStart ().value_or (0))) :
+                                                                 static_cast<double>(sampleLength - zoneProperties.getLoopStart ().value_or (0))));
         loopLengthUiChanged (loopLength);
         loopLengthTextEditor.setText (formatLoopLength (loopLength));
     });
@@ -280,13 +289,13 @@ void ZoneEditor::setupZonePropertiesCallbacks ()
 {
     zoneProperties.onIndexChange = [this] ([[maybe_unused]] int index) { jassertfalse; /* I don't think this should change while we are editing */};
     zoneProperties.onLevelOffsetChange = [this] (double levelOffset) { levelOffsetDataChanged (levelOffset);  };
-    zoneProperties.onLoopLengthChange = [this] (double loopLength) { loopLengthDataChanged (loopLength);  };
-    zoneProperties.onLoopStartChange = [this] (int64_t  loopStart) { loopStartDataChanged (loopStart);  };
+    zoneProperties.onLoopLengthChange = [this] (std::optional<double> loopLength) { loopLengthDataChanged (loopLength);  };
+    zoneProperties.onLoopStartChange = [this] (std::optional <int64_t> loopStart) { loopStartDataChanged (loopStart);  };
     zoneProperties.onMinVoltageChange = [this] (double minVoltage) { minVoltageDataChanged (minVoltage);  };
     zoneProperties.onPitchOffsetChange = [this] (double pitchOffset) { pitchOffsetDataChanged (pitchOffset);  };
     zoneProperties.onSampleChange = [this] (juce::String sample) { sampleDataChanged (sample);  };
-    zoneProperties.onSampleStartChange = [this] (int64_t  sampleStart) { sampleStartDataChanged (sampleStart);  };
-    zoneProperties.onSampleEndChange = [this] (int64_t  sampleEnd) { sampleEndDataChanged (sampleEnd);  };
+    zoneProperties.onSampleStartChange = [this] (std::optional <int64_t> sampleStart) { sampleStartDataChanged (sampleStart);  };
+    zoneProperties.onSampleEndChange = [this] (std::optional <int64_t> sampleEnd) { sampleEndDataChanged (sampleEnd);  };
 }
 
 void ZoneEditor::paint ([[maybe_unused]] juce::Graphics& g)
@@ -323,7 +332,7 @@ void ZoneEditor::resized ()
 juce::String ZoneEditor::formatLoopLength (double loopLength)
 {
     if (loopLengthIsEnd)
-        loopLength = static_cast<int>(static_cast<double>(zoneProperties.getLoopStart()) + loopLength);
+        loopLength = static_cast<int>(static_cast<double>(zoneProperties.getLoopStart().value_or (0)) + loopLength);
 
     if (loopLength < 2048.0)
         return FormatHelpers::formatDouble (loopLength, 3, false);
@@ -341,9 +350,9 @@ void ZoneEditor::levelOffsetUiChanged (double levelOffset)
     zoneProperties.setLevelOffset (levelOffset, false);
 }
 
-void ZoneEditor::loopLengthDataChanged (double loopLength)
+void ZoneEditor::loopLengthDataChanged (std::optional<double> loopLength)
 {
-    loopLengthTextEditor.setText (formatLoopLength (loopLength));
+    loopLengthTextEditor.setText (formatLoopLength (loopLength.value_or (static_cast<double>(sampleLength - zoneProperties.getLoopStart ().value_or (0)))));
 }
 
 void ZoneEditor::loopLengthUiChanged (double loopLength)
@@ -351,9 +360,9 @@ void ZoneEditor::loopLengthUiChanged (double loopLength)
     zoneProperties.setLoopLength (loopLength, false);
 }
 
-void ZoneEditor::loopStartDataChanged (int64_t  loopStart)
+void ZoneEditor::loopStartDataChanged (std::optional<int64_t> loopStart)
 {
-    loopStartTextEditor.setText (juce::String (loopStart));
+    loopStartTextEditor.setText (juce::String (loopStart.value_or (0)));
     loopLengthDataChanged (zoneProperties.getLoopLength ());
 }
 
@@ -403,9 +412,9 @@ void ZoneEditor::sampleUiChanged (juce::String sample)
     zoneProperties.setSample (sample, false);
 }
 
-void ZoneEditor::sampleStartDataChanged (int64_t sampleStart)
+void ZoneEditor::sampleStartDataChanged (std::optional<int64_t> sampleStart)
 {
-    sampleStartTextEditor.setText (juce::String (sampleStart));
+    sampleStartTextEditor.setText (juce::String (sampleStart.value_or (0)));
 }
 
 void ZoneEditor::sampleStartUiChanged (int64_t  sampleStart)
@@ -413,9 +422,9 @@ void ZoneEditor::sampleStartUiChanged (int64_t  sampleStart)
     zoneProperties.setSampleStart (sampleStart, false);
 }
 
-void ZoneEditor::sampleEndDataChanged (int64_t  sampleEnd)
+void ZoneEditor::sampleEndDataChanged (std::optional<int64_t> sampleEnd)
 {
-    sampleEndTextEditor.setText (juce::String (sampleEnd));
+    sampleEndTextEditor.setText (juce::String (sampleEnd.value_or (sampleLength)));
 }
 
 void ZoneEditor::sampleEndUiChanged (int64_t  sampleEnd)

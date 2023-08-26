@@ -44,9 +44,9 @@ private:
 
     void levelOffsetDataChanged (double levelOffset);
     void levelOffsetUiChanged (double levelOffset);
-    void loopLengthDataChanged (double loopLength);
+    void loopLengthDataChanged (std::optional<double> loopLength);
     void loopLengthUiChanged (double loopLength);
-    void loopStartDataChanged (int64_t loopStart);
+    void loopStartDataChanged (std::optional <int64_t> loopStart);
     void loopStartUiChanged (int64_t loopStart);
     void minVoltageDataChanged (double minVoltage);
     void minVoltageUiChanged (double minVoltage);
@@ -54,9 +54,9 @@ private:
     void pitchOffsetUiChanged (double pitchOffset);
     void sampleDataChanged (juce::String sample);
     void sampleUiChanged (juce::String sample);
-    void sampleStartDataChanged (int64_t sampleStart);
+    void sampleStartDataChanged (std::optional <int64_t> sampleStart);
     void sampleStartUiChanged (int64_t sampleStart);
-    void sampleEndDataChanged (int64_t sampleEnd);
+    void sampleEndDataChanged (std::optional <int64_t> sampleEnd);
     void sampleEndUiChanged (int64_t sampleEnd);
 
     void paint (juce::Graphics& g) override;
