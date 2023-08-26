@@ -81,10 +81,6 @@ void ZoneEditor::setupZoneComponents ()
         if (text == zoneProperties.getSample ())
             return;
         sampleLength = 0;
-        zoneProperties.setSampleStart (-1, true);
-        zoneProperties.setSampleEnd (-1, true);
-        zoneProperties.setLoopStart (-1, true);
-        zoneProperties.setLoopLength (-1, true);
         auto sampleFile { juce::File (appProperties.getMostRecentFolder ()).getChildFile (sampleTextEditor.getText ()) };
         if (text.isNotEmpty ())
         {
@@ -122,6 +118,10 @@ void ZoneEditor::setupZoneComponents ()
                 }
             }
         }
+        zoneProperties.setSampleStart (-1, true);
+        zoneProperties.setSampleEnd (-1, true);
+        zoneProperties.setLoopStart (-1, true);
+        zoneProperties.setLoopLength (-1, true);
 
         sampleUiChanged (text);
         sampleTextEditor.setText (text);
@@ -398,6 +398,11 @@ void ZoneEditor::updateSampleFileInfo (juce::String sample)
         sampleLength = reader->lengthInSamples;
     else
         sampleLength = 0;
+    if (! zoneProperties.getSampleEnd().has_value() )
+        sampleEndTextEditor.setText (formatLoopLength (sampleLength));
+    if (! zoneProperties.getLoopLength ().has_value ())
+        loopLengthTextEditor.setText (formatLoopLength (sampleLength));
+
 }
 
 void ZoneEditor::sampleDataChanged (juce::String sample)
