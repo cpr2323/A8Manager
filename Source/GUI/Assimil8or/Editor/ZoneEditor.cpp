@@ -1,5 +1,6 @@
 #include "ZoneEditor.h"
 #include "FormatHelpers.h"
+#include "ParameterToolTipData.h"
 #include "../../../Assimil8or/Preset/ChannelProperties.h"
 #include "../../../Assimil8or/Preset/PresetProperties.h"
 #include "../../../Assimil8or/Preset/ParameterPresetsSingleton.h"
@@ -64,7 +65,7 @@ ZoneEditor::ZoneEditor ()
         }
         sampleTextEditor.repaint ();
     };
-    sampleTextEditor.onDragExit = [this] (const juce::StringArray& files)
+    sampleTextEditor.onDragExit = [this] (const juce::StringArray&)
     {
         sampleTextEditor.setHoverOutline (juce::Colours::transparentWhite);
         sampleTextEditor.repaint ();
@@ -126,6 +127,15 @@ void ZoneEditor::loadSample (juce::String sampleFileName)
 
 void ZoneEditor::setupZoneComponents ()
 {
+    juce::XmlDocument xmlDoc { BinaryData::Assimil8orToolTips_xml };
+    auto xmlElement { xmlDoc.getDocumentElement (false) };
+    if (auto parseError { xmlDoc.getLastParseError () }; parseError != "")
+        juce::Logger::outputDebugString ("XML Parsing Error for Assimil8orToolTips_xml: " + parseError);
+    // NOTE: this is a hard failure, which indicates there is a problem in the file the parameterPresetXml passed in
+    jassert (xmlDoc.getLastParseError () == "");
+    auto toolTipsVT { juce::ValueTree::fromXml (*xmlElement) };
+    ParameterToolTipData parameterToolTipData (toolTipsVT, ParameterToolTipData::WrapperType::owner, ParameterToolTipData::EnableCallbacks::no);
+
     auto setupLabel = [this] (juce::Label& label, juce::String text, float fontSize, juce::Justification justification)
     {
         const auto textColor { juce::Colours::black };
@@ -136,8 +146,8 @@ void ZoneEditor::setupZoneComponents ()
         label.setText (text, juce::NotificationType::dontSendNotification);
         addAndMakeVisible (label);
     };
-    auto setupTextEditor = [this] (juce::TextEditor& textEditor, juce::Justification justification, int maxLen, juce::String validInputCharacters,
-                                   std::function<void ()> validateCallback, std::function<void (juce::String)> doneEditingCallback)
+    auto setupTextEditor = [this, &parameterToolTipData] (juce::TextEditor& textEditor, juce::Justification justification, int maxLen, juce::String validInputCharacters,
+                                                          juce::String parameterName, std::function<void ()> validateCallback, std::function<void (juce::String)> doneEditingCallback)
     {
         jassert (doneEditingCallback != nullptr);
         textEditor.setJustification (justification);
@@ -145,13 +155,14 @@ void ZoneEditor::setupZoneComponents ()
         textEditor.setInputRestrictions (maxLen, validInputCharacters);
         textEditor.onFocusLost = [this, &textEditor, doneEditingCallback] () { doneEditingCallback (textEditor.getText ()); };
         textEditor.onReturnKey = [this, &textEditor, doneEditingCallback] () { doneEditingCallback (textEditor.getText ()); };
+        textEditor.setTooltip (parameterToolTipData.getToolTip ("Zone", parameterName));
         if (validateCallback != nullptr)
             textEditor.onTextChange = [this, validateCallback] () { validateCallback (); };
         addAndMakeVisible (textEditor);
     };
     setupLabel (sampleStartNameLabel, "FILE", 15.0, juce::Justification::centredLeft);
     const auto kMaxFileNameLength { 47 };
-    setupTextEditor (sampleTextEditor, juce::Justification::centredLeft, kMaxFileNameLength, " !\"#$%^&'()#+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~", [this] ()
+    setupTextEditor (sampleTextEditor, juce::Justification::centredLeft, kMaxFileNameLength, " !\"#$%^&'()#+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~", "Sample", [this] ()
     {
         auto sampleFile { juce::File (appProperties.getMostRecentFolder ()).getChildFile (sampleTextEditor.getText ()) };
         if (! sampleFile.isDirectory ())
@@ -172,7 +183,7 @@ void ZoneEditor::setupZoneComponents ()
     });
     setupLabel (sampleBoundsLabel, "SAMPLE START/END", 15.0, juce::Justification::centredLeft);
     // SAMPLE START
-    setupTextEditor (sampleStartTextEditor, juce::Justification::centred, 0, "0123456789", [this] ()
+    setupTextEditor (sampleStartTextEditor, juce::Justification::centred, 0, "0123456789", "SampleStart", [this] ()
     {
         FormatHelpers::setColorIfError (sampleStartTextEditor, minZoneProperties.getSampleStart ().value_or (0), zoneProperties.getSampleEnd ().value_or (sampleLength));
     },
@@ -183,7 +194,7 @@ void ZoneEditor::setupZoneComponents ()
         sampleStartTextEditor.setText (juce::String (sampleStart));
     });
     // SAMPLE END
-    setupTextEditor (sampleEndTextEditor, juce::Justification::centred, 0, "0123456789", [this] ()
+    setupTextEditor (sampleEndTextEditor, juce::Justification::centred, 0, "0123456789", "SampleEnd", [this] ()
     {
         FormatHelpers::setColorIfError (sampleEndTextEditor, zoneProperties.getSampleStart ().value_or (0), sampleLength);
     },
@@ -195,7 +206,7 @@ void ZoneEditor::setupZoneComponents ()
     });
     setupLabel (loopBoundsLabel, "LOOP START/LENGTH", 15.0, juce::Justification::centredLeft);
     // LOOP START
-    setupTextEditor (loopStartTextEditor, juce::Justification::centred, 0, "0123456789", [this] ()
+    setupTextEditor (loopStartTextEditor, juce::Justification::centred, 0, "0123456789", "LoopStart", [this] ()
     {
         if (! loopLengthIsEnd)
             FormatHelpers::setColorIfError (loopStartTextEditor, minZoneProperties.getLoopStart ().value_or (0),
@@ -224,7 +235,7 @@ void ZoneEditor::setupZoneComponents ()
         }
     });
     // LOOP LENGTH
-    setupTextEditor (loopLengthTextEditor, juce::Justification::centred, 0, ".0123456789", [this] ()
+    setupTextEditor (loopLengthTextEditor, juce::Justification::centred, 0, ".0123456789", "LoopLength", [this] ()
     {
         auto loopLengthInput = [this, text = loopLengthTextEditor.getText()] ()
         {
@@ -256,7 +267,7 @@ void ZoneEditor::setupZoneComponents ()
     });
     setupLabel (minVoltageLabel, "MIN VOLTAGE", 15.0, juce::Justification::centredLeft);
     // MIN VOLTAGE
-    setupTextEditor (minVoltageTextEditor, juce::Justification::centred, 0, "+-.0123456789", [this] ()
+    setupTextEditor (minVoltageTextEditor, juce::Justification::centred, 0, "+-.0123456789", "MinVoltage", [this] ()
     {
         FormatHelpers::setColorIfError (minVoltageTextEditor, minZoneProperties.getMinVoltage (), maxZoneProperties.getMinVoltage ());
     },
@@ -267,7 +278,7 @@ void ZoneEditor::setupZoneComponents ()
         minVoltageTextEditor.setText (FormatHelpers::formatDouble (minVoltage, 2, true));
     });
     setupLabel (levelOffsetLabel, "LEVEL OFFSET", 15.0, juce::Justification::centredLeft);
-    setupTextEditor (levelOffsetTextEditor, juce::Justification::centred, 0, "+-.0123456789", [this] ()
+    setupTextEditor (levelOffsetTextEditor, juce::Justification::centred, 0, "+-.0123456789", "LevelOffset", [this] ()
     {
         FormatHelpers::setColorIfError (levelOffsetTextEditor, minZoneProperties.getLevelOffset (), maxZoneProperties.getLevelOffset ());
     },
@@ -278,7 +289,7 @@ void ZoneEditor::setupZoneComponents ()
         levelOffsetTextEditor.setText (FormatHelpers::formatDouble (levelOffset, 1, true));
     });
     setupLabel (pitchOffsetLabel, "PITCH OFFSET", 15.0, juce::Justification::centredLeft);
-    setupTextEditor (pitchOffsetTextEditor, juce::Justification::centred, 0, "+-.0123456789", [this] ()
+    setupTextEditor (pitchOffsetTextEditor, juce::Justification::centred, 0, "+-.0123456789", "PitchOffset", [this] ()
     {
         FormatHelpers::setColorIfError (pitchOffsetTextEditor, minZoneProperties.getPitchOffset (), maxZoneProperties.getPitchOffset ());
     },

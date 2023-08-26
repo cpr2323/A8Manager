@@ -95,6 +95,10 @@
             <FILE id="yhhzYu" name="FormatHelpers.cpp" compile="1" resource="0"
                   file="Source/GUI/Assimil8or/Editor/FormatHelpers.cpp"/>
             <FILE id="QTYi1s" name="FormatHelpers.h" compile="0" resource="0" file="Source/GUI/Assimil8or/Editor/FormatHelpers.h"/>
+            <FILE id="bzgBxN" name="ParameterToolTipData.cpp" compile="1" resource="0"
+                  file="Source/GUI/Assimil8or/Editor/ParameterToolTipData.cpp"/>
+            <FILE id="CnzHHn" name="ParameterToolTipData.h" compile="0" resource="0"
+                  file="Source/GUI/Assimil8or/Editor/ParameterToolTipData.h"/>
             <FILE id="mgSEy9" name="ZoneEditor.cpp" compile="1" resource="0" file="Source/GUI/Assimil8or/Editor/ZoneEditor.cpp"/>
             <FILE id="EqszGy" name="ZoneEditor.h" compile="0" resource="0" file="Source/GUI/Assimil8or/Editor/ZoneEditor.h"/>
           </GROUP>

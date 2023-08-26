@@ -1,5 +1,6 @@
 #include "Assimil8orEditorComponent.h"
 #include "FormatHelpers.h"
+#include "ParameterToolTipData.h"
 #include "../../../Assimil8or/Assimil8orPreset.h"
 #include "../../../Assimil8or/Preset/ParameterPresetsSingleton.h"
 #include "../../../Utility/RuntimeRootProperties.h"
@@ -44,6 +45,15 @@ Assimil8orEditorComponent::Assimil8orEditorComponent ()
 
 void Assimil8orEditorComponent::setupPresetComponents ()
 {
+    juce::XmlDocument xmlDoc { BinaryData::Assimil8orToolTips_xml };
+    auto xmlElement { xmlDoc.getDocumentElement (false) };
+    if (auto parseError { xmlDoc.getLastParseError () }; parseError != "")
+        juce::Logger::outputDebugString ("XML Parsing Error for Assimil8orToolTips_xml: " + parseError);
+    // NOTE: this is a hard failure, which indicates there is a problem in the file the parameterPresetXml passed in
+    jassert (xmlDoc.getLastParseError () == "");
+    auto toolTipsVT { juce::ValueTree::fromXml (*xmlElement) };
+    ParameterToolTipData parameterToolTipData (toolTipsVT, ParameterToolTipData::WrapperType::owner, ParameterToolTipData::EnableCallbacks::no);
+
     titleLabel.setText ("Preset _ :", juce::NotificationType::dontSendNotification);
 
     // NAME EDITOR
@@ -55,16 +65,19 @@ void Assimil8orEditorComponent::setupPresetComponents ()
     nameEditor.onFocusLost = [this] () { nameUiChanged (nameEditor.getText ()); };
     nameEditor.onReturnKey = [this] () { nameUiChanged (nameEditor.getText ()); };
     nameEditor.setInputRestrictions (12, " !\"#$%^&'()#+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~");
+    nameEditor.setTooltip (parameterToolTipData.getToolTip ("Preset", "Name"));
     addAndMakeVisible (nameEditor);
 
     addAndMakeVisible (windowDecorator);
     data2AsCvLabel.setBorderSize ({ 1, 0, 1, 0 });
     data2AsCvLabel.setText ("Data2 As CV", juce::NotificationType::dontSendNotification);
+    data2AsCvLabel.setTooltip (parameterToolTipData.getToolTip ("Preset", "Data2asCV"));
     addAndMakeVisible (data2AsCvLabel);
     data2AsCvComboBox.onChange = [this] ()
     {
         data2AsCvUiChanged (data2AsCvComboBox.getSelectedItemText ());
     };
+    data2AsCvComboBox.setTooltip (parameterToolTipData.getToolTip ("Preset", "Data2asCV"));
     addAndMakeVisible (data2AsCvComboBox);
 
     xfadeGroupsLabel.setText ("XFade:", juce::NotificationType::dontSendNotification);
@@ -85,6 +98,8 @@ void Assimil8orEditorComponent::setupPresetComponents ()
         {
             xfadeCvUiChanged (xfadeGroupIndex, xfadeGroups [xfadeGroupIndex].xfadeCvComboBox.getSelectedItemText ());
         };
+        // XfadeACV
+        xfadeGroup.xfadeCvComboBox.setTooltip (parameterToolTipData.getToolTip ("Preset", "Xfade" + juce::String::charToString('A' + xfadeGroupIndex) + "CV"));
         addAndMakeVisible (xfadeGroup.xfadeCvComboBox);
 
         // xfade group width
@@ -120,6 +135,7 @@ void Assimil8orEditorComponent::setupPresetComponents ()
         {
             FormatHelpers::setColorIfError (xfadeGroups [xfadeGroupIndex].xfadeWidthEditor, minPresetProperties.getXfadeAWidth (), maxPresetProperties.getXfadeAWidth ());
         };
+        xfadeGroup.xfadeWidthEditor.setTooltip (parameterToolTipData.getToolTip ("Preset", "Xfade" + juce::String::charToString ('A' + xfadeGroupIndex) + "Width"));
         addAndMakeVisible (xfadeGroup.xfadeWidthEditor);
     }
 }

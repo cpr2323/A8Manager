@@ -1,5 +1,6 @@
 #include "ChannelEditor.h"
 #include "FormatHelpers.h"
+#include "ParameterToolTipData.h"
 #include "../../../Assimil8or/Preset/PresetProperties.h"
 #include "../../../Assimil8or/Preset/ParameterPresetsSingleton.h"
 
@@ -74,6 +75,15 @@ ChannelEditor::~ChannelEditor ()
 
 void ChannelEditor::setupChannelComponents ()
 {
+    juce::XmlDocument xmlDoc { BinaryData::Assimil8orToolTips_xml };
+    auto xmlElement { xmlDoc.getDocumentElement (false) };
+    if (auto parseError { xmlDoc.getLastParseError () }; parseError != "")
+        juce::Logger::outputDebugString ("XML Parsing Error for Assimil8orToolTips_xml: " + parseError);
+    // NOTE: this is a hard failure, which indicates there is a problem in the file the parameterPresetXml passed in
+    jassert (xmlDoc.getLastParseError () == "");
+    auto toolTipsVT { juce::ValueTree::fromXml (*xmlElement) };
+    ParameterToolTipData parameterToolTipData (toolTipsVT, ParameterToolTipData::WrapperType::owner, ParameterToolTipData::EnableCallbacks::no);
+
     auto setupLabel = [this] (juce::Label& label, juce::String text, float fontSize, juce::Justification justification)
     {
         const auto textColor { juce::Colours::black };
@@ -84,45 +94,51 @@ void ChannelEditor::setupChannelComponents ()
         label.setText (text, juce::NotificationType::dontSendNotification);
         addAndMakeVisible (label);
     };
-    auto setupTextEditor = [this] (juce::TextEditor& textEditor, juce::Justification justification, int maxLen, juce::String validInputCharacters,
-                                   std::function<void ()> validateCallback, std::function<void (juce::String)> doneEditingCallback)
+    auto setupTextEditor = [this, &parameterToolTipData] (juce::TextEditor& textEditor, juce::Justification justification, int maxLen, juce::String validInputCharacters,
+                                                          juce::String parameterName, std::function<void ()> validateCallback, std::function<void (juce::String)> doneEditingCallback)
     {
         jassert (doneEditingCallback != nullptr);
         textEditor.setJustification (justification);
         textEditor.setIndents (1, 0);
         textEditor.setInputRestrictions (maxLen, validInputCharacters);
+        textEditor.setTooltip (parameterToolTipData.getToolTip ("Channel", parameterName));
         textEditor.onFocusLost = [this, &textEditor, doneEditingCallback] () { doneEditingCallback (textEditor.getText ()); };
         textEditor.onReturnKey = [this, &textEditor, doneEditingCallback] () { doneEditingCallback (textEditor.getText ()); };
         if (validateCallback != nullptr)
             textEditor.onTextChange = [this, validateCallback] () { validateCallback (); };
         addAndMakeVisible (textEditor);
     };
-    auto setupCvInputComboBox = [this] (CvInputComboBox& cvInputComboBox, std::function<void ()> onChangeCallback)
+    auto setupCvInputComboBox = [this, &parameterToolTipData] (CvInputComboBox& cvInputComboBox, juce::String parameterName, std::function<void ()> onChangeCallback)
     {
         jassert (onChangeCallback != nullptr);
+        cvInputComboBox.setTooltip (parameterToolTipData.getToolTip ("Channel", parameterName));
         cvInputComboBox.onChange = onChangeCallback;
         addAndMakeVisible (cvInputComboBox);
     };
-    auto setupComboBox = [this] (juce::ComboBox& comboBox, std::function<void ()> onChangeCallback)
+    auto setupComboBox = [this, &parameterToolTipData] (juce::ComboBox& comboBox, juce::String parameterName, std::function<void ()> onChangeCallback)
     {
         jassert (onChangeCallback != nullptr);
+        comboBox.setTooltip (parameterToolTipData.getToolTip ("Channel", parameterName));
         comboBox.onChange = onChangeCallback;
         addAndMakeVisible (comboBox);
     };
-    auto setupButton = [this] (juce::TextButton& textButton, juce::String text, std::function<void ()> onClickCallback)
+    auto setupButton = [this, &parameterToolTipData] (juce::TextButton& textButton, juce::String text, juce::String parameterName, std::function<void ()> onClickCallback)
     {
         textButton.setButtonText (text);
         textButton.setClickingTogglesState (true);
         textButton.setColour (juce::TextButton::ColourIds::buttonOnColourId, textButton.findColour (juce::TextButton::ColourIds::buttonOnColourId).brighter (0.5));
+        textButton.setTooltip (parameterToolTipData.getToolTip ("Channel", parameterName));
         textButton.onClick = onClickCallback;
         addAndMakeVisible (textButton);
     };
+
+    loopLengthIsEndButton.setTooltip (parameterToolTipData.getToolTip ("Channel", "LoopLengthIsEnd"));
 
     /////////////////////////////////////////
     // column one
     // PITCH
     setupLabel (pitchLabel, "PITCH", 25.0f, juce::Justification::centredTop);
-    setupTextEditor (pitchTextEditor, juce::Justification::centred, 0, "+-.0123456789", [this] ()
+    setupTextEditor (pitchTextEditor, juce::Justification::centred, 0, "+-.0123456789", "Pitch", [this] ()
     {
         FormatHelpers::setColorIfError (pitchTextEditor, minChannelProperties.getPitch (), maxChannelProperties.getPitch ());
     },
@@ -134,8 +150,8 @@ void ChannelEditor::setupChannelComponents ()
     });
     //
     setupLabel (pitchSemiLabel, "SEMI", 15.0f, juce::Justification::centredLeft);
-    setupCvInputComboBox (pitchCVComboBox, [this] () { pitchCVUiChanged (pitchCVComboBox.getSelectedItemText (), pitchCVTextEditor.getText ().getDoubleValue ()); });
-    setupTextEditor (pitchCVTextEditor, juce::Justification::centred, 0, "+-.0123456789", [this] ()
+    setupCvInputComboBox (pitchCVComboBox, "PitchCV", [this] () { pitchCVUiChanged (pitchCVComboBox.getSelectedItemText (), pitchCVTextEditor.getText ().getDoubleValue ()); });
+    setupTextEditor (pitchCVTextEditor, juce::Justification::centred, 0, "+-.0123456789", "PitchCV", [this] ()
     {
         FormatHelpers::setColorIfError (pitchCVTextEditor, FormatHelpers::getAmount (minChannelProperties.getPitchCV ()), FormatHelpers::getAmount (maxChannelProperties.getPitchCV ()));
     },
@@ -149,8 +165,8 @@ void ChannelEditor::setupChannelComponents ()
 
     // LINFM
     setupLabel (linFMLabel, "LINFM", 25.0f, juce::Justification::centredTop);
-    setupCvInputComboBox (linFMComboBox, [this] () { linFMUiChanged (linFMComboBox.getSelectedItemText (), linFMTextEditor.getText ().getDoubleValue ()); });
-    setupTextEditor (linFMTextEditor, juce::Justification::centred, 0, "+-.0123456789", [this] ()
+    setupCvInputComboBox (linFMComboBox, "LinFM", [this] () { linFMUiChanged (linFMComboBox.getSelectedItemText (), linFMTextEditor.getText ().getDoubleValue ()); });
+    setupTextEditor (linFMTextEditor, juce::Justification::centred, 0, "+-.0123456789", "LinFM", [this] ()
     {
         FormatHelpers::setColorIfError (linFMTextEditor, FormatHelpers::getAmount (minChannelProperties.getLinFM ()), FormatHelpers::getAmount (maxChannelProperties.getLinFM ()));
     }, 
@@ -164,8 +180,8 @@ void ChannelEditor::setupChannelComponents ()
 
     // EXPFM
     setupLabel (expFMLabel, "EXPFM", 25.0f, juce::Justification::centredTop);
-    setupCvInputComboBox (expFMComboBox, [this] () { expFMUiChanged (expFMComboBox.getSelectedItemText (), expFMTextEditor.getText ().getDoubleValue ()); });
-    setupTextEditor (expFMTextEditor, juce::Justification::centred, 0, "+-.0123456789", [this] ()
+    setupCvInputComboBox (expFMComboBox, "ExpFM", [this] () { expFMUiChanged (expFMComboBox.getSelectedItemText (), expFMTextEditor.getText ().getDoubleValue ()); });
+    setupTextEditor (expFMTextEditor, juce::Justification::centred, 0, "+-.0123456789", "ExpFM", [this] ()
     {
         FormatHelpers::setColorIfError (expFMTextEditor, FormatHelpers::getAmount (minChannelProperties.getExpFM ()), FormatHelpers::getAmount (maxChannelProperties.getExpFM ()));
     },
@@ -179,7 +195,7 @@ void ChannelEditor::setupChannelComponents ()
 
     // LEVEL
     setupLabel (levelLabel, "LEVEL", 25.0f, juce::Justification::centredTop);
-    setupTextEditor (levelTextEditor, juce::Justification::centred, 0, "+-.0123456789", [this] ()
+    setupTextEditor (levelTextEditor, juce::Justification::centred, 0, "+-.0123456789", "Level", [this] ()
     {
         FormatHelpers::setColorIfError (levelTextEditor, minChannelProperties.getLevel (), maxChannelProperties.getLevel ());
     },
@@ -193,8 +209,8 @@ void ChannelEditor::setupChannelComponents ()
 
     // LINAM
     setupLabel (linAMLabel, "LINAM", 25.0f, juce::Justification::centredTop);
-    setupCvInputComboBox (linAMComboBox, [this] () { linAMUiChanged (linAMComboBox.getSelectedItemText (), linAMTextEditor.getText ().getDoubleValue ()); });
-    setupTextEditor (linAMTextEditor, juce::Justification::centred, 0, "+-.0123456789", [this] ()
+    setupCvInputComboBox (linAMComboBox, "LinAM", [this] () { linAMUiChanged (linAMComboBox.getSelectedItemText (), linAMTextEditor.getText ().getDoubleValue ()); });
+    setupTextEditor (linAMTextEditor, juce::Justification::centred, 0, "+-.0123456789", "LinAM", [this] ()
     {
         FormatHelpers::setColorIfError (linAMTextEditor, FormatHelpers::getAmount (minChannelProperties.getLinAM ()), FormatHelpers::getAmount (maxChannelProperties.getLinAM ()));
     },
@@ -205,15 +221,15 @@ void ChannelEditor::setupChannelComponents ()
         linAMUiChanged (linAMComboBox.getSelectedItemText (), linAM);
         linAMTextEditor.setText (FormatHelpers::formatDouble (linAM, 2, true));
     });
-    setupButton (linAMisExtEnvButton, "EXT", [this] () { linAMisExtEnvUiChanged (linAMisExtEnvButton.getToggleState ()); });
+    setupButton (linAMisExtEnvButton, "EXT", "LinAMisExtEnv", [this] () { linAMisExtEnvUiChanged (linAMisExtEnvButton.getToggleState ()); });
 
     // EXPAM
     setupLabel (expAMLabel, "EXPAM", 25.0f, juce::Justification::centredTop);
-    setupCvInputComboBox (expAMComboBox, [this] () { expAMUiChanged (expAMComboBox.getSelectedItemText (), expAMTextEditor.getText ().getDoubleValue ()); });
-    setupTextEditor (expAMTextEditor, juce::Justification::centred, 0, "+-.0123456789", [this] ()
+    setupCvInputComboBox (expAMComboBox, "ExpAM", [this] () { expAMUiChanged (expAMComboBox.getSelectedItemText (), expAMTextEditor.getText ().getDoubleValue ()); });
+    setupTextEditor (expAMTextEditor, juce::Justification::centred, 0, "+-.0123456789", "ExpAM", [this] ()
     {
             FormatHelpers::setColorIfError (expAMTextEditor, FormatHelpers::getAmount (minChannelProperties.getExpAM ()), FormatHelpers::getAmount (maxChannelProperties.getExpAM ()));
-        },
+    },
     [this] (juce::String text)
     {
         const auto expAM { std::clamp (text.getDoubleValue (), FormatHelpers::getAmount (minChannelProperties.getExpAM ()),
@@ -234,10 +250,10 @@ void ChannelEditor::setupChannelComponents ()
     pMSourceComboBox.addItem ("Right Input", 9);
     pMSourceComboBox.addItem ("Left Input", 10);
     pMSourceComboBox.addItem ("Phase CV", 11);
-    setupComboBox (pMSourceComboBox, [this] () { pMSourceUiChanged (pMSourceComboBox.getSelectedId () - 1); });
+    setupComboBox (pMSourceComboBox, "PMSource", [this] () { pMSourceUiChanged (pMSourceComboBox.getSelectedId () - 1); });
     setupLabel (pMSourceLabel, "SOURCE", 15.0f, juce::Justification::centredLeft);
-    setupCvInputComboBox (phaseCVComboBox, [this] () { phaseCVUiChanged (phaseCVComboBox.getSelectedItemText (), phaseCVTextEditor.getText ().getDoubleValue ()); });
-    setupTextEditor (phaseCVTextEditor, juce::Justification::centred, 0, "+-.0123456789", [this] ()
+    setupCvInputComboBox (phaseCVComboBox, "PhaseCV", [this] () { phaseCVUiChanged (phaseCVComboBox.getSelectedItemText (), phaseCVTextEditor.getText ().getDoubleValue ()); });
+    setupTextEditor (phaseCVTextEditor, juce::Justification::centred, 0, "+-.0123456789", "PhaseCV", [this] ()
     {
         FormatHelpers::setColorIfError (phaseCVTextEditor, FormatHelpers::getAmount (minChannelProperties.getPhaseCV ()), FormatHelpers::getAmount (maxChannelProperties.getPhaseCV ()));
     },
@@ -251,7 +267,7 @@ void ChannelEditor::setupChannelComponents ()
 
     // PHASE MOD INDEX
     setupLabel (pMIndexLabel, "PHASE MOD", 25.0f, juce::Justification::centredTop);
-    setupTextEditor (pMIndexTextEditor, juce::Justification::centred, 0, "+-.0123456789", [this] ()
+    setupTextEditor (pMIndexTextEditor, juce::Justification::centred, 0, "+-.0123456789", "PMIndex", [this] ()
     {
         FormatHelpers::setColorIfError (pMIndexTextEditor, minChannelProperties.getPMIndex (), maxChannelProperties.getPMIndex ());
     },
@@ -262,8 +278,8 @@ void ChannelEditor::setupChannelComponents ()
         pMIndexTextEditor.setText (FormatHelpers::formatDouble (pmIndex, 2, true));
     });
     setupLabel (pMIndexModLabel, "INDEX", 15.0f, juce::Justification::centredLeft);
-    setupCvInputComboBox (pMIndexModComboBox, [this] () { pMIndexModUiChanged (pMIndexModComboBox.getSelectedItemText (), pMIndexModTextEditor.getText ().getDoubleValue ()); });
-    setupTextEditor (pMIndexModTextEditor, juce::Justification::centred, 0, "+-.0123456789", [this] ()
+    setupCvInputComboBox (pMIndexModComboBox, "PMIndexMod", [this] () { pMIndexModUiChanged (pMIndexModComboBox.getSelectedItemText (), pMIndexModTextEditor.getText ().getDoubleValue ()); });
+    setupTextEditor (pMIndexModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "PMIndexMod", [this] ()
     {
         FormatHelpers::setColorIfError (pMIndexModTextEditor, FormatHelpers::getAmount (minChannelProperties.getPMIndexMod ()), FormatHelpers::getAmount (maxChannelProperties.getPMIndexMod ()));
     },
@@ -277,7 +293,7 @@ void ChannelEditor::setupChannelComponents ()
 
     // PAN/MIX
     setupLabel (panMixLabel, "PAN/MIX", 25.0f, juce::Justification::centredTop);
-    setupTextEditor (panTextEditor, juce::Justification::centred, 0, "+-.0123456789", [this] ()
+    setupTextEditor (panTextEditor, juce::Justification::centred, 0, "+-.0123456789", "Pan", [this] ()
     {
         FormatHelpers::setColorIfError (panTextEditor, minChannelProperties.getPan (), maxChannelProperties.getPan ());
     },
@@ -288,8 +304,8 @@ void ChannelEditor::setupChannelComponents ()
         panTextEditor.setText (FormatHelpers::formatDouble (pan, 2, true));
     });
     setupLabel (panLabel, "PAN", 15.0f, juce::Justification::centredLeft);
-    setupCvInputComboBox (panModComboBox, [this] () { panModUiChanged (panModComboBox.getSelectedItemText (), panModTextEditor.getText ().getDoubleValue ()); });
-    setupTextEditor (panModTextEditor, juce::Justification::centred, 0, "+-.0123456789", [this] ()
+    setupCvInputComboBox (panModComboBox, "PanMod", [this] () { panModUiChanged (panModComboBox.getSelectedItemText (), panModTextEditor.getText ().getDoubleValue ()); });
+    setupTextEditor (panModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "PanMod", [this] ()
     {
         FormatHelpers::setColorIfError (panModTextEditor, FormatHelpers::getAmount (minChannelProperties.getPanMod ()), FormatHelpers::getAmount (maxChannelProperties.getPanMod ()));
     },
@@ -300,7 +316,7 @@ void ChannelEditor::setupChannelComponents ()
         panModUiChanged (panModComboBox.getSelectedItemText (), panMod);
         panModTextEditor.setText (FormatHelpers::formatDouble (panMod, 2, true));
     });
-    setupTextEditor (mixLevelTextEditor, juce::Justification::centred, 0, "+-.0123456789", [this] ()
+    setupTextEditor (mixLevelTextEditor, juce::Justification::centred, 0, "+-.0123456789", "MixLevel", [this] ()
     {
         FormatHelpers::setColorIfError (mixLevelTextEditor, minChannelProperties.getMixLevel (), maxChannelProperties.getMixLevel ());
     },
@@ -311,8 +327,8 @@ void ChannelEditor::setupChannelComponents ()
         mixLevelTextEditor.setText (FormatHelpers::formatDouble (mixLevel, 1, false));
     });
     setupLabel (mixLevelLabel, "MIX", 15.0f, juce::Justification::centredLeft);
-    setupCvInputComboBox (mixModComboBox, [this] () { mixModUiChanged (mixModComboBox.getSelectedItemText (), mixModTextEditor.getText ().getDoubleValue ()); });
-    setupTextEditor (mixModTextEditor, juce::Justification::centred, 0, "+-.0123456789", [this] ()
+    setupCvInputComboBox (mixModComboBox, "MixMod", [this] () { mixModUiChanged (mixModComboBox.getSelectedItemText (), mixModTextEditor.getText ().getDoubleValue ()); });
+    setupTextEditor (mixModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "MixMod", [this] ()
     {
         FormatHelpers::setColorIfError (mixModTextEditor, FormatHelpers::getAmount (minChannelProperties.getMixMod ()), FormatHelpers::getAmount (maxChannelProperties.getMixMod ()));
     },
@@ -323,14 +339,14 @@ void ChannelEditor::setupChannelComponents ()
         mixModUiChanged (mixModComboBox.getSelectedItemText (), mixMod);
         mixModTextEditor.setText (FormatHelpers::formatDouble (mixMod, 2, true));
     });
-    setupButton (mixModIsFaderButton, "FADER", [this] () { mixModIsFaderUiChanged (mixModIsFaderButton.getToggleState ()); });
+    setupButton (mixModIsFaderButton, "FADER", "MixModIsFader", [this] () { mixModIsFaderUiChanged (mixModIsFaderButton.getToggleState ()); });
 
     /////////////////////////////////////////
     // column three
     setupLabel (mutateLabel, "MUTATE", 25.0f, juce::Justification::centredTop);
 
     // BITS
-    setupTextEditor (bitsTextEditor, juce::Justification::centred, 0, "+-.0123456789", [this] ()
+    setupTextEditor (bitsTextEditor, juce::Justification::centred, 0, "+-.0123456789", "Bits", [this] ()
     {
         FormatHelpers::setColorIfError (bitsTextEditor, minChannelProperties.getBits (), maxChannelProperties.getBits ());
     },
@@ -341,8 +357,8 @@ void ChannelEditor::setupChannelComponents ()
         bitsTextEditor.setText (FormatHelpers::formatDouble (bits, 1, false));
     });
     setupLabel (bitsLabel, "BITS", 15.0f, juce::Justification::centredLeft);
-    setupCvInputComboBox (bitsModComboBox, [this] () { bitsModUiChanged (bitsModComboBox.getSelectedItemText (), bitsModTextEditor.getText ().getDoubleValue ()); });
-    setupTextEditor (bitsModTextEditor, juce::Justification::centred, 0, "+-.0123456789", [this] ()
+    setupCvInputComboBox (bitsModComboBox, "BitsMod", [this] () { bitsModUiChanged (bitsModComboBox.getSelectedItemText (), bitsModTextEditor.getText ().getDoubleValue ()); });
+    setupTextEditor (bitsModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "BitsMod", [this] ()
     {
         FormatHelpers::setColorIfError (bitsModTextEditor, FormatHelpers::getAmount (minChannelProperties.getBitsMod ()), FormatHelpers::getAmount (maxChannelProperties.getBitsMod ()));
     },
@@ -355,7 +371,7 @@ void ChannelEditor::setupChannelComponents ()
     });
 
     // ALIASING
-    setupTextEditor (aliasingTextEditor, juce::Justification::centred, 0, "0123456789", [this] ()
+    setupTextEditor (aliasingTextEditor, juce::Justification::centred, 0, "0123456789", "Aliasing", [this] ()
     {
         FormatHelpers::setColorIfError (aliasingTextEditor, minChannelProperties.getAliasing (), maxChannelProperties.getAliasing ());
     },
@@ -366,8 +382,8 @@ void ChannelEditor::setupChannelComponents ()
         aliasingTextEditor.setText (juce::String(aliasing));
     });
     setupLabel (aliasingLabel, "ALIAS", 15.0f, juce::Justification::centredLeft);
-    setupCvInputComboBox (aliasingModComboBox, [this] () { aliasingModUiChanged (aliasingModComboBox.getSelectedItemText (), aliasingModTextEditor.getText ().getDoubleValue ()); });
-    setupTextEditor (aliasingModTextEditor, juce::Justification::centred, 0, "+-.0123456789", [this] ()
+    setupCvInputComboBox (aliasingModComboBox, "AliasingMod", [this] () { aliasingModUiChanged (aliasingModComboBox.getSelectedItemText (), aliasingModTextEditor.getText ().getDoubleValue ()); });
+    setupTextEditor (aliasingModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "AliasingMod", [this] ()
     {
         FormatHelpers::setColorIfError (aliasingModTextEditor, FormatHelpers::getAmount (minChannelProperties.getAliasingMod ()), FormatHelpers::getAmount (maxChannelProperties.getAliasingMod ()));
     },
@@ -380,13 +396,13 @@ void ChannelEditor::setupChannelComponents ()
     });
 
     // REVERSE/SMOOTH
-    setupButton (reverseButton, "REV", [this] () { reverseUiChanged (reverseButton.getToggleState ()); });
-    setupButton (spliceSmoothingButton, "SMOOTH", [this] () { reverseUiChanged (spliceSmoothingButton.getToggleState ()); });
+    setupButton (reverseButton, "REV", "Reverse", [this] () { reverseUiChanged (reverseButton.getToggleState ()); });
+    setupButton (spliceSmoothingButton, "SMOOTH", "SpliceSmoothing", [this] () { reverseUiChanged (spliceSmoothingButton.getToggleState ()); });
 
     // ENVELOPE
     setupLabel (envelopeLabel, "ENVELOPE", 25.0f, juce::Justification::centredTop);
     // ATTACK
-    setupTextEditor (attackTextEditor, juce::Justification::centred, 0, ".0123456789", [this] ()
+    setupTextEditor (attackTextEditor, juce::Justification::centred, 0, ".0123456789", "Attack", [this] ()
     {
         FormatHelpers::setColorIfError (attackTextEditor, minChannelProperties.getAttack (), maxChannelProperties.getAttack ());
     },
@@ -397,8 +413,8 @@ void ChannelEditor::setupChannelComponents ()
         attackTextEditor.setText (FormatHelpers::formatDouble (attack, 4, false));
     });
     setupLabel (attackLabel, "ATTACK", 15.0f, juce::Justification::centredLeft);
-    setupCvInputComboBox (attackModComboBox, [this] () { attackModUiChanged (attackModComboBox.getSelectedItemText (), attackModTextEditor.getText ().getDoubleValue ()); });
-    setupTextEditor (attackModTextEditor, juce::Justification::centred, 0, "+-.0123456789", [this] ()
+    setupCvInputComboBox (attackModComboBox, "AttackMod", [this] () { attackModUiChanged (attackModComboBox.getSelectedItemText (), attackModTextEditor.getText ().getDoubleValue ()); });
+    setupTextEditor (attackModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "AttackMod", [this] ()
     {
         FormatHelpers::setColorIfError (attackModTextEditor, FormatHelpers::getAmount (minChannelProperties.getAttackMod ()), FormatHelpers::getAmount (maxChannelProperties.getAttackMod ()));
     },
@@ -409,9 +425,9 @@ void ChannelEditor::setupChannelComponents ()
         attackModUiChanged (attackModComboBox.getSelectedItemText (), attackMod);
         attackModTextEditor.setText (FormatHelpers::formatDouble (attackMod, 2, true));
     });
-    setupButton (attackFromCurrentButton, "CURRENT", [this] () { attackFromCurrentUiChanged (attackFromCurrentButton.getToggleState ()); });
+    setupButton (attackFromCurrentButton, "CURRENT", "AttackFromCurrent", [this] () { attackFromCurrentUiChanged (attackFromCurrentButton.getToggleState ()); });
     // RELEASE
-    setupTextEditor (releaseTextEditor, juce::Justification::centred, 0, ".0123456789", [this] ()
+    setupTextEditor (releaseTextEditor, juce::Justification::centred, 0, ".0123456789", "Release", [this] ()
     {
         FormatHelpers::setColorIfError (releaseTextEditor, minChannelProperties.getRelease (), maxChannelProperties.getRelease ());
     },
@@ -422,8 +438,8 @@ void ChannelEditor::setupChannelComponents ()
         releaseTextEditor.setText (FormatHelpers::formatDouble (release, 4, false));
     });
     setupLabel (releaseLabel, "RELEASE", 15.0f, juce::Justification::centredLeft);
-    setupCvInputComboBox (releaseModComboBox, [this] () { releaseModUiChanged (releaseModComboBox.getSelectedItemText (), releaseModTextEditor.getText ().getDoubleValue ()); });
-    setupTextEditor (releaseModTextEditor, juce::Justification::centred, 0, "+-.0123456789", [this] ()
+    setupCvInputComboBox (releaseModComboBox, "ReleaseMod", [this] () { releaseModUiChanged (releaseModComboBox.getSelectedItemText (), releaseModTextEditor.getText ().getDoubleValue ()); });
+    setupTextEditor (releaseModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "ReleaseMod", [this] ()
     {
         FormatHelpers::setColorIfError (releaseModTextEditor, FormatHelpers::getAmount (minChannelProperties.getReleaseMod ()), FormatHelpers::getAmount (maxChannelProperties.getReleaseMod ()));
     },
@@ -439,18 +455,18 @@ void ChannelEditor::setupChannelComponents ()
     setupLabel (playModeLabel, "PLAY", 15.0f, juce::Justification::centred);
     playModeComboBox.addItem ("Gated", 1); // 0 = Gated, 1 = One Shot
     playModeComboBox.addItem ("One Shot", 2);
-    setupComboBox (playModeComboBox, [this] () { playModeUiChanged (playModeComboBox.getSelectedId () - 1); });
+    setupComboBox (playModeComboBox, "PlayMode", [this] () { playModeUiChanged (playModeComboBox.getSelectedId () - 1); });
 
     // /LOOP MODE
     setupLabel (loopModeLabel, "LOOP", 15.0f, juce::Justification::centred);
     loopModeComboBox.addItem ("No Loop", 1); // 0 = No Loop, 1 = Loop, 2 = Loop and Release
     loopModeComboBox.addItem ("Loop", 2);
     loopModeComboBox.addItem ("Loop/Release", 3);
-    setupComboBox (loopModeComboBox, [this] () { loopModeUiChanged (loopModeComboBox.getSelectedId () - 1); });
+    setupComboBox (loopModeComboBox, "LoopMode", [this] () { loopModeUiChanged (loopModeComboBox.getSelectedId () - 1); });
 
     // /AUTO TRIGGER
     setupLabel (autoTriggerLabel, "TRIGGER", 15.0f, juce::Justification::centred);
-    setupButton (autoTriggerButton, "AUTO", [this] () { attackFromCurrentUiChanged (autoTriggerButton.getToggleState ()); });
+    setupButton (autoTriggerButton, "AUTO", "AutoTrigger", [this] () { attackFromCurrentUiChanged (autoTriggerButton.getToggleState ()); });
 
     /////////////////////////////////////////
     // column four
@@ -459,10 +475,10 @@ void ChannelEditor::setupChannelComponents ()
     channelModeComboBox.addItem ("Link", ChannelProperties::ChannelMode::link + 1);
     channelModeComboBox.addItem ("Stereo/Right", ChannelProperties::ChannelMode::stereoRight + 1);
     channelModeComboBox.addItem ("Cycle", ChannelProperties::ChannelMode::cycle + 1);
-    setupComboBox (channelModeComboBox, [this] () { channelModeUiChanged (channelModeComboBox.getSelectedId () - 1); });
+    setupComboBox (channelModeComboBox, "ChannelMode", [this] () { channelModeUiChanged (channelModeComboBox.getSelectedId () - 1); });
     setupLabel (sampleStartModLabel, "SAMPLE START", 15.0f, juce::Justification::centred);
-    setupCvInputComboBox (sampleStartModComboBox, [this] () { sampleStartModUiChanged (sampleStartModComboBox.getSelectedItemText (), sampleStartModTextEditor.getText ().getDoubleValue ()); });
-    setupTextEditor (sampleStartModTextEditor, juce::Justification::centred, 0, "+-.0123456789", [this] ()
+    setupCvInputComboBox (sampleStartModComboBox, "SampleStartMod", [this] () { sampleStartModUiChanged (sampleStartModComboBox.getSelectedItemText (), sampleStartModTextEditor.getText ().getDoubleValue ()); });
+    setupTextEditor (sampleStartModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "SampleStartMod", [this] ()
     {
         FormatHelpers::setColorIfError (sampleStartModTextEditor, FormatHelpers::getAmount (minChannelProperties.getSampleStartMod ()), FormatHelpers::getAmount (maxChannelProperties.getSampleStartMod ()));
     },
@@ -474,8 +490,8 @@ void ChannelEditor::setupChannelComponents ()
         sampleStartModTextEditor.setText (FormatHelpers::formatDouble (sampleStartMod, 2, true));
     });
     setupLabel (sampleEndModLabel, "SAMPLE END", 15.0f, juce::Justification::centred);
-    setupCvInputComboBox (sampleEndModComboBox, [this] () { sampleEndModUiChanged (sampleEndModComboBox.getSelectedItemText (), sampleEndModTextEditor.getText ().getDoubleValue ()); });
-    setupTextEditor (sampleEndModTextEditor, juce::Justification::centred, 0, "+-.0123456789", [this] ()
+    setupCvInputComboBox (sampleEndModComboBox, "SampleEndMod", [this] () { sampleEndModUiChanged (sampleEndModComboBox.getSelectedItemText (), sampleEndModTextEditor.getText ().getDoubleValue ()); });
+    setupTextEditor (sampleEndModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "SampleEndMod", [this] ()
     {
         FormatHelpers::setColorIfError (sampleEndModTextEditor, FormatHelpers::getAmount (minChannelProperties.getSampleEndMod ()), FormatHelpers::getAmount (maxChannelProperties.getSampleEndMod ()));
     },
@@ -487,8 +503,8 @@ void ChannelEditor::setupChannelComponents ()
         sampleEndModTextEditor.setText (FormatHelpers::formatDouble (sampleEndMod, 2, true));
     });
     setupLabel (loopStartModLabel, "LOOP START", 15.0f, juce::Justification::centred);
-    setupCvInputComboBox (loopStartModComboBox, [this] () { loopStartModUiChanged (loopStartModComboBox.getSelectedItemText (), loopStartModTextEditor.getText ().getDoubleValue ()); });
-    setupTextEditor (loopStartModTextEditor, juce::Justification::centred, 0, "+-.0123456789", [this] ()
+    setupCvInputComboBox (loopStartModComboBox, "LoopStartMod", [this] () { loopStartModUiChanged (loopStartModComboBox.getSelectedItemText (), loopStartModTextEditor.getText ().getDoubleValue ()); });
+    setupTextEditor (loopStartModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "LoopStartMod", [this] ()
     {
         FormatHelpers::setColorIfError (loopStartModTextEditor, FormatHelpers::getAmount (minChannelProperties.getLoopStartMod ()), FormatHelpers::getAmount (maxChannelProperties.getLoopStartMod ()));
     },
@@ -500,8 +516,8 @@ void ChannelEditor::setupChannelComponents ()
         loopStartModTextEditor.setText (FormatHelpers::formatDouble (loopStartMod, 2, true));
     });
     setupLabel (loopLengthModLabel, "LOOP LENGTH", 15.0f, juce::Justification::centred);
-    setupCvInputComboBox (loopLengthModComboBox, [this] () { loopLengthModUiChanged (loopLengthModComboBox.getSelectedItemText (), loopLengthModTextEditor.getText ().getDoubleValue ()); });
-    setupTextEditor (loopLengthModTextEditor, juce::Justification::centred, 0, "+-.0123456789", [this] ()
+    setupCvInputComboBox (loopLengthModComboBox, "LoopLengthMod", [this] () { loopLengthModUiChanged (loopLengthModComboBox.getSelectedItemText (), loopLengthModTextEditor.getText ().getDoubleValue ()); });
+    setupTextEditor (loopLengthModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "LoopLengthMod", [this] ()
     {
         FormatHelpers::setColorIfError (loopLengthModTextEditor, FormatHelpers::getAmount (minChannelProperties.getLoopLengthMod ()), FormatHelpers::getAmount (maxChannelProperties.getLoopLengthMod ()));
     },
@@ -519,15 +535,15 @@ void ChannelEditor::setupChannelComponents ()
     xfadeGroupComboBox.addItem ("B", 3);
     xfadeGroupComboBox.addItem ("C", 4);
     xfadeGroupComboBox.addItem ("D", 5);
-    setupComboBox (xfadeGroupComboBox, [this] () { xfadeGroupUiChanged (xfadeGroupComboBox.getText()); });
+    setupComboBox (xfadeGroupComboBox, "XfadeGroup", [this] () { xfadeGroupUiChanged (xfadeGroupComboBox.getText ()); });
     setupLabel (zonesCVLabel, "ZONE CV", 15.0f, juce::Justification::centred);
-    setupCvInputComboBox (zonesCVComboBox, [this] () { zonesCVUiChanged (zonesCVComboBox.getSelectedItemText ()); });
+    setupCvInputComboBox (zonesCVComboBox, "ZonesCV", [this] () { zonesCVUiChanged (zonesCVComboBox.getSelectedItemText ()); });
     setupLabel (zonesRTLabel, "ZONE SELECTION", 15.0f, juce::Justification::centred);
     zonesRTComboBox.addItem ("Gate Rise", 1); // 0 = Gate Rise, 1 = Continuous, 2 = Advance, 3 = Random
     zonesRTComboBox.addItem ("Continuous", 2);
     zonesRTComboBox.addItem ("Advance", 3);
     zonesRTComboBox.addItem ("Random", 4);
-    setupComboBox (zonesRTComboBox, [this] () { zonesRTUiChanged (zonesRTComboBox.getSelectedId () - 1); });
+    setupComboBox (zonesRTComboBox, "ZonesRT", [this] () { zonesRTUiChanged (zonesRTComboBox.getSelectedId () - 1); });
 }
 
 void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree rootPropertiesVT)

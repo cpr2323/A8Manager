@@ -54,6 +54,11 @@ juce::String CvInputComboBox::getSelectedItemText ()
     return cvInputComboBox.getItemText (cvInputComboBox.getSelectedItemIndex ());
 }
 
+void CvInputComboBox::setTooltip (juce::String toolTip)
+{
+    cvInputComboBox.setTooltip (toolTip);
+}
+
 void CvInputComboBox::resized ()
 {
     cvInputComboBox.setBounds (getLocalBounds ());

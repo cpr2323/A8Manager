@@ -16,6 +16,7 @@ public:
 
     void setSelectedItemText (juce::String cvInputString);
     juce::String getSelectedItemText ();
+    void setTooltip (juce::String toolTip);
     std::function<void ()> onChange;
 
 private:
