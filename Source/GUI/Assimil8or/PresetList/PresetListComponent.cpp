@@ -125,7 +125,6 @@ void PresetListComponent::loadFirstPreset ()
 
 void PresetListComponent::loadDefault (int row)
 {
-
     PresetProperties::copyTreeProperties (ParameterPresetsSingleton::getInstance()->getParameterPresetListProperties().getParameterPreset(ParameterPresetListProperties::DefaultParameterPresetType),
                                           presetProperties.getValueTree ());
     auto presetFile { juce::File (appProperties.getMostRecentFolder ()).getChildFile (getPresetName (row)).withFileExtension (".yml") };

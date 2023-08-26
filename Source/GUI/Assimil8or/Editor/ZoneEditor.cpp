@@ -399,10 +399,9 @@ void ZoneEditor::updateSampleFileInfo (juce::String sample)
     else
         sampleLength = 0;
     if (! zoneProperties.getSampleEnd().has_value() )
-        sampleEndTextEditor.setText (formatLoopLength (sampleLength));
+        sampleEndTextEditor.setText (juce::String (sampleLength));
     if (! zoneProperties.getLoopLength ().has_value ())
         loopLengthTextEditor.setText (formatLoopLength (sampleLength));
-
 }
 
 void ZoneEditor::sampleDataChanged (juce::String sample)
