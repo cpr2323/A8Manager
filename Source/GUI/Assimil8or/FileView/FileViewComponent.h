@@ -15,12 +15,12 @@ public:
 
 private:
     AppProperties appProperties;
-    juce::TextButton navigateUpButton;
     juce::TextButton openFolderButton;
     std::unique_ptr<juce::FileChooser> fileChooser;
     juce::ListBox directoryContentsListBox { {}, this };
     juce::CriticalSection queuedFolderLock;
     juce::File queuedFolderToScan;
+    int listOffset { 0 };
 
     DirectoryValueTree directoryValueTree;
     std::vector<juce::ValueTree> directoryListQuickLookupList;

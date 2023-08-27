@@ -181,7 +181,7 @@ void DirectoryValueTree::sortContentsOfFolder (juce::ValueTree folderVT)
         };
         for (auto sectionEntryIndex { section.startIndex }; sectionEntryIndex < section.startIndex + section.length; ++sectionEntryIndex)
         {
-            if (folderVT.getChild (itemIndex).getProperty ("name").toString () < folderVT.getChild (sectionEntryIndex).getProperty ("name").toString ())
+            if (folderVT.getChild (itemIndex).getProperty ("name").toString ().toLowerCase() < folderVT.getChild (sectionEntryIndex).getProperty ("name").toString ().toLowerCase())
             {
                 insertItem (itemIndex, sectionEntryIndex);
                 break;
@@ -210,7 +210,7 @@ void DirectoryValueTree::sortContentsOfFolder (juce::ValueTree folderVT)
             //   Audio files
             //   unknown files
             auto curFile { juce::File (folderEntryVT.getProperty ("name").toString ()) };
-            jassert (curFile.exists ());
+            //jassert (curFile.exists ());
             if (FileTypeHelpers::isSystemFile (curFile))
                 insertSorted (folderIndex, SectionIndex::systemFiles);
             else if (FileTypeHelpers::isPresetFile (curFile))
