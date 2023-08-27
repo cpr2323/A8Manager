@@ -11,15 +11,15 @@ ChannelEditor::ChannelEditor ()
 
     // TODO - these are copies of what is in ChannelEditor::setupChannelComponents, need to DRY
     auto setupLabel = [this] (juce::Label& label, juce::String text, float fontSize, juce::Justification justification)
-        {
-            const auto textColor { juce::Colours::black };
-            label.setBorderSize ({ 0, 0, 0, 0 });
-            label.setJustificationType (justification);
-            label.setColour (juce::Label::ColourIds::textColourId, textColor);
-            label.setFont (label.getFont ().withHeight (fontSize));
-            label.setText (text, juce::NotificationType::dontSendNotification);
-            addAndMakeVisible (label);
-        };
+    {
+        const auto textColor { juce::Colours::black };
+        label.setBorderSize ({ 0, 0, 0, 0 });
+        label.setJustificationType (justification);
+        label.setColour (juce::Label::ColourIds::textColourId, textColor);
+        label.setFont (label.getFont ().withHeight (fontSize));
+        label.setText (text, juce::NotificationType::dontSendNotification);
+        addAndMakeVisible (label);
+    };
     auto setupButton = [this] (juce::TextButton& textButton, juce::String text, std::function<void ()> onClickCallback)
     {
         textButton.setButtonText (text);
@@ -61,6 +61,7 @@ ChannelEditor::ChannelEditor ()
     }
 
     setupChannelComponents ();
+    addChildComponent (stereoRightTransparantOverly);
 }
 
 ChannelEditor::~ChannelEditor ()
@@ -291,55 +292,57 @@ void ChannelEditor::setupChannelComponents ()
         pMIndexModTextEditor.setText (FormatHelpers::formatDouble (pmIndexMod, 2, true));
     });
 
-    // PAN/MIX
-    setupLabel (panMixLabel, "PAN/MIX", 25.0f, juce::Justification::centredTop);
-    setupTextEditor (panTextEditor, juce::Justification::centred, 0, "+-.0123456789", "Pan", [this] ()
+    // ENVELOPE
+    setupLabel (envelopeLabel, "ENVELOPE", 25.0f, juce::Justification::centredTop);
+    // ATTACK
+    setupTextEditor (attackTextEditor, juce::Justification::centred, 0, ".0123456789", "Attack", [this] ()
     {
-        FormatHelpers::setColorIfError (panTextEditor, minChannelProperties.getPan (), maxChannelProperties.getPan ());
+        FormatHelpers::setColorIfError (attackTextEditor, minChannelProperties.getAttack (), maxChannelProperties.getAttack ());
     },
     [this] (juce::String text)
     {
-        const auto pan { std::clamp (text.getDoubleValue (), minChannelProperties.getPan (), maxChannelProperties.getPan ()) };
-        panUiChanged (pan);
-        panTextEditor.setText (FormatHelpers::formatDouble (pan, 2, true));
+        const auto attack { std::clamp (text.getDoubleValue (), minChannelProperties.getAttack (), maxChannelProperties.getAttack ()) };
+        attackUiChanged (attack);
+        attackTextEditor.setText (FormatHelpers::formatDouble (attack, 4, false));
     });
-    setupLabel (panLabel, "PAN", 15.0f, juce::Justification::centredLeft);
-    setupCvInputComboBox (panModComboBox, "PanMod", [this] () { panModUiChanged (panModComboBox.getSelectedItemText (), panModTextEditor.getText ().getDoubleValue ()); });
-    setupTextEditor (panModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "PanMod", [this] ()
+    setupLabel (attackLabel, "ATTACK", 15.0f, juce::Justification::centredLeft);
+    setupCvInputComboBox (attackModComboBox, "AttackMod", [this] () { attackModUiChanged (attackModComboBox.getSelectedItemText (), attackModTextEditor.getText ().getDoubleValue ()); });
+    setupTextEditor (attackModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "AttackMod", [this] ()
     {
-        FormatHelpers::setColorIfError (panModTextEditor, FormatHelpers::getAmount (minChannelProperties.getPanMod ()), FormatHelpers::getAmount (maxChannelProperties.getPanMod ()));
+        FormatHelpers::setColorIfError (attackModTextEditor, FormatHelpers::getAmount (minChannelProperties.getAttackMod ()), FormatHelpers::getAmount (maxChannelProperties.getAttackMod ()));
     },
     [this] (juce::String text)
     {
-        const auto panMod { std::clamp (text.getDoubleValue (), FormatHelpers::getAmount (minChannelProperties.getPanMod ()),
-                                                                FormatHelpers::getAmount (maxChannelProperties.getPanMod ())) };
-        panModUiChanged (panModComboBox.getSelectedItemText (), panMod);
-        panModTextEditor.setText (FormatHelpers::formatDouble (panMod, 2, true));
+        const auto attackMod { std::clamp (text.getDoubleValue (), FormatHelpers::getAmount (minChannelProperties.getAttackMod ()),
+                                                                    FormatHelpers::getAmount (maxChannelProperties.getAttackMod ())) };
+        attackModUiChanged (attackModComboBox.getSelectedItemText (), attackMod);
+        attackModTextEditor.setText (FormatHelpers::formatDouble (attackMod, 2, true));
     });
-    setupTextEditor (mixLevelTextEditor, juce::Justification::centred, 0, "+-.0123456789", "MixLevel", [this] ()
+    setupButton (attackFromCurrentButton, "CURRENT", "AttackFromCurrent", [this] () { attackFromCurrentUiChanged (attackFromCurrentButton.getToggleState ()); });
+    // RELEASE
+    setupTextEditor (releaseTextEditor, juce::Justification::centred, 0, ".0123456789", "Release", [this] ()
     {
-        FormatHelpers::setColorIfError (mixLevelTextEditor, minChannelProperties.getMixLevel (), maxChannelProperties.getMixLevel ());
+        FormatHelpers::setColorIfError (releaseTextEditor, minChannelProperties.getRelease (), maxChannelProperties.getRelease ());
     },
     [this] (juce::String text)
     {
-        const auto mixLevel { std::clamp (text.getDoubleValue (), minChannelProperties.getMixLevel (), maxChannelProperties.getMixLevel ()) };
-        mixLevelUiChanged (mixLevel);
-        mixLevelTextEditor.setText (FormatHelpers::formatDouble (mixLevel, 1, false));
+        const auto release { std::clamp (text.getDoubleValue (), minChannelProperties.getRelease (), maxChannelProperties.getRelease ()) };
+        releaseUiChanged (release);
+        releaseTextEditor.setText (FormatHelpers::formatDouble (release, 4, false));
     });
-    setupLabel (mixLevelLabel, "MIX", 15.0f, juce::Justification::centredLeft);
-    setupCvInputComboBox (mixModComboBox, "MixMod", [this] () { mixModUiChanged (mixModComboBox.getSelectedItemText (), mixModTextEditor.getText ().getDoubleValue ()); });
-    setupTextEditor (mixModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "MixMod", [this] ()
+    setupLabel (releaseLabel, "RELEASE", 15.0f, juce::Justification::centredLeft);
+    setupCvInputComboBox (releaseModComboBox, "ReleaseMod", [this] () { releaseModUiChanged (releaseModComboBox.getSelectedItemText (), releaseModTextEditor.getText ().getDoubleValue ()); });
+    setupTextEditor (releaseModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "ReleaseMod", [this] ()
     {
-        FormatHelpers::setColorIfError (mixModTextEditor, FormatHelpers::getAmount (minChannelProperties.getMixMod ()), FormatHelpers::getAmount (maxChannelProperties.getMixMod ()));
+        FormatHelpers::setColorIfError (releaseModTextEditor, FormatHelpers::getAmount (minChannelProperties.getReleaseMod ()), FormatHelpers::getAmount (maxChannelProperties.getReleaseMod ()));
     },
     [this] (juce::String text)
     {
-        const auto mixMod { std::clamp (text.getDoubleValue (), FormatHelpers::getAmount (minChannelProperties.getMixMod ()),
-                                                                FormatHelpers::getAmount (maxChannelProperties.getMixMod ())) };
-        mixModUiChanged (mixModComboBox.getSelectedItemText (), mixMod);
-        mixModTextEditor.setText (FormatHelpers::formatDouble (mixMod, 2, true));
+        const auto releaseMod { std::clamp (text.getDoubleValue (), FormatHelpers::getAmount (minChannelProperties.getReleaseMod ()),
+                                                                    FormatHelpers::getAmount (maxChannelProperties.getReleaseMod ())) };
+        releaseModUiChanged (releaseModComboBox.getSelectedItemText (), releaseMod);
+        releaseModTextEditor.setText (FormatHelpers::formatDouble (releaseMod, 2, true));
     });
-    setupButton (mixModIsFaderButton, "FADER", "MixModIsFader", [this] () { mixModIsFaderUiChanged (mixModIsFaderButton.getToggleState ()); });
 
     /////////////////////////////////////////
     // column three
@@ -399,57 +402,55 @@ void ChannelEditor::setupChannelComponents ()
     setupButton (reverseButton, "REV", "Reverse", [this] () { reverseUiChanged (reverseButton.getToggleState ()); });
     setupButton (spliceSmoothingButton, "SMOOTH", "SpliceSmoothing", [this] () { reverseUiChanged (spliceSmoothingButton.getToggleState ()); });
 
-    // ENVELOPE
-    setupLabel (envelopeLabel, "ENVELOPE", 25.0f, juce::Justification::centredTop);
-    // ATTACK
-    setupTextEditor (attackTextEditor, juce::Justification::centred, 0, ".0123456789", "Attack", [this] ()
+    // PAN/MIX
+    setupLabel (panMixLabel, "PAN/MIX", 25.0f, juce::Justification::centredTop);
+    setupTextEditor (panTextEditor, juce::Justification::centred, 0, "+-.0123456789", "Pan", [this] ()
     {
-        FormatHelpers::setColorIfError (attackTextEditor, minChannelProperties.getAttack (), maxChannelProperties.getAttack ());
+        FormatHelpers::setColorIfError (panTextEditor, minChannelProperties.getPan (), maxChannelProperties.getPan ());
     },
     [this] (juce::String text)
     {
-        const auto attack { std::clamp (text.getDoubleValue (), minChannelProperties.getAttack (), maxChannelProperties.getAttack ()) };
-        attackUiChanged (attack );
-        attackTextEditor.setText (FormatHelpers::formatDouble (attack, 4, false));
+        const auto pan { std::clamp (text.getDoubleValue (), minChannelProperties.getPan (), maxChannelProperties.getPan ()) };
+        panUiChanged (pan);
+        panTextEditor.setText (FormatHelpers::formatDouble (pan, 2, true));
     });
-    setupLabel (attackLabel, "ATTACK", 15.0f, juce::Justification::centredLeft);
-    setupCvInputComboBox (attackModComboBox, "AttackMod", [this] () { attackModUiChanged (attackModComboBox.getSelectedItemText (), attackModTextEditor.getText ().getDoubleValue ()); });
-    setupTextEditor (attackModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "AttackMod", [this] ()
+    setupLabel (panLabel, "PAN", 15.0f, juce::Justification::centredLeft);
+    setupCvInputComboBox (panModComboBox, "PanMod", [this] () { panModUiChanged (panModComboBox.getSelectedItemText (), panModTextEditor.getText ().getDoubleValue ()); });
+    setupTextEditor (panModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "PanMod", [this] ()
     {
-        FormatHelpers::setColorIfError (attackModTextEditor, FormatHelpers::getAmount (minChannelProperties.getAttackMod ()), FormatHelpers::getAmount (maxChannelProperties.getAttackMod ()));
+        FormatHelpers::setColorIfError (panModTextEditor, FormatHelpers::getAmount (minChannelProperties.getPanMod ()), FormatHelpers::getAmount (maxChannelProperties.getPanMod ()));
     },
     [this] (juce::String text)
     {
-        const auto attackMod { std::clamp (text.getDoubleValue (), FormatHelpers::getAmount (minChannelProperties.getAttackMod ()),
-                                                                   FormatHelpers::getAmount (maxChannelProperties.getAttackMod ())) };
-        attackModUiChanged (attackModComboBox.getSelectedItemText (), attackMod);
-        attackModTextEditor.setText (FormatHelpers::formatDouble (attackMod, 2, true));
+        const auto panMod { std::clamp (text.getDoubleValue (), FormatHelpers::getAmount (minChannelProperties.getPanMod ()),
+                                                                FormatHelpers::getAmount (maxChannelProperties.getPanMod ())) };
+        panModUiChanged (panModComboBox.getSelectedItemText (), panMod);
+        panModTextEditor.setText (FormatHelpers::formatDouble (panMod, 2, true));
     });
-    setupButton (attackFromCurrentButton, "CURRENT", "AttackFromCurrent", [this] () { attackFromCurrentUiChanged (attackFromCurrentButton.getToggleState ()); });
-    // RELEASE
-    setupTextEditor (releaseTextEditor, juce::Justification::centred, 0, ".0123456789", "Release", [this] ()
+    setupTextEditor (mixLevelTextEditor, juce::Justification::centred, 0, "+-.0123456789", "MixLevel", [this] ()
     {
-        FormatHelpers::setColorIfError (releaseTextEditor, minChannelProperties.getRelease (), maxChannelProperties.getRelease ());
-    },
-    [this] (juce::String text)
-    { 
-        const auto release { std::clamp (text.getDoubleValue (), minChannelProperties.getRelease (), maxChannelProperties.getRelease()) };
-        releaseUiChanged (release);
-        releaseTextEditor.setText (FormatHelpers::formatDouble (release, 4, false));
-    });
-    setupLabel (releaseLabel, "RELEASE", 15.0f, juce::Justification::centredLeft);
-    setupCvInputComboBox (releaseModComboBox, "ReleaseMod", [this] () { releaseModUiChanged (releaseModComboBox.getSelectedItemText (), releaseModTextEditor.getText ().getDoubleValue ()); });
-    setupTextEditor (releaseModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "ReleaseMod", [this] ()
-    {
-        FormatHelpers::setColorIfError (releaseModTextEditor, FormatHelpers::getAmount (minChannelProperties.getReleaseMod ()), FormatHelpers::getAmount (maxChannelProperties.getReleaseMod ()));
+        FormatHelpers::setColorIfError (mixLevelTextEditor, minChannelProperties.getMixLevel (), maxChannelProperties.getMixLevel ());
     },
     [this] (juce::String text)
     {
-        const auto releaseMod { std::clamp (text.getDoubleValue (), FormatHelpers::getAmount (minChannelProperties.getReleaseMod ()),
-                                                                    FormatHelpers::getAmount (maxChannelProperties.getReleaseMod ())) };
-        releaseModUiChanged (releaseModComboBox.getSelectedItemText (), releaseMod);
-        releaseModTextEditor.setText (FormatHelpers::formatDouble (releaseMod, 2, true));
+        const auto mixLevel { std::clamp (text.getDoubleValue (), minChannelProperties.getMixLevel (), maxChannelProperties.getMixLevel ()) };
+        mixLevelUiChanged (mixLevel);
+        mixLevelTextEditor.setText (FormatHelpers::formatDouble (mixLevel, 1, false));
     });
+    setupLabel (mixLevelLabel, "MIX", 15.0f, juce::Justification::centredLeft);
+    setupCvInputComboBox (mixModComboBox, "MixMod", [this] () { mixModUiChanged (mixModComboBox.getSelectedItemText (), mixModTextEditor.getText ().getDoubleValue ()); });
+    setupTextEditor (mixModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "MixMod", [this] ()
+    {
+        FormatHelpers::setColorIfError (mixModTextEditor, FormatHelpers::getAmount (minChannelProperties.getMixMod ()), FormatHelpers::getAmount (maxChannelProperties.getMixMod ()));
+    },
+    [this] (juce::String text)
+    {
+        const auto mixMod { std::clamp (text.getDoubleValue (), FormatHelpers::getAmount (minChannelProperties.getMixMod ()),
+                                                                FormatHelpers::getAmount (maxChannelProperties.getMixMod ())) };
+        mixModUiChanged (mixModComboBox.getSelectedItemText (), mixMod);
+        mixModTextEditor.setText (FormatHelpers::formatDouble (mixMod, 2, true));
+    });
+    setupButton (mixModIsFaderButton, "FADER", "MixModIsFader", [this] () { mixModIsFaderUiChanged (mixModIsFaderButton.getToggleState ()); });
 
     // PLAY MODE
     setupLabel (playModeLabel, "PLAY", 15.0f, juce::Justification::centred);
@@ -475,7 +476,10 @@ void ChannelEditor::setupChannelComponents ()
     channelModeComboBox.addItem ("Link", ChannelProperties::ChannelMode::link + 1);
     channelModeComboBox.addItem ("Stereo/Right", ChannelProperties::ChannelMode::stereoRight + 1);
     channelModeComboBox.addItem ("Cycle", ChannelProperties::ChannelMode::cycle + 1);
-    setupComboBox (channelModeComboBox, "ChannelMode", [this] () { channelModeUiChanged (channelModeComboBox.getSelectedId () - 1); });
+    setupComboBox (channelModeComboBox, "ChannelMode", [this] ()
+    {
+        channelModeUiChanged (channelModeComboBox.getSelectedId () - 1);
+    });
     setupLabel (sampleStartModLabel, "SAMPLE START", 15.0f, juce::Justification::centred);
     setupCvInputComboBox (sampleStartModComboBox, "SampleStartMod", [this] () { sampleStartModUiChanged (sampleStartModComboBox.getSelectedItemText (), sampleStartModTextEditor.getText ().getDoubleValue ()); });
     setupTextEditor (sampleStartModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "SampleStartMod", [this] ()
@@ -651,14 +655,18 @@ void ChannelEditor::setupChannelPropertiesCallbacks ()
     channelProperties.onZonesRTChange = [this] (int zonesRT) { loopModeDataChanged (zonesRT);  };
 }
 
+void ChannelEditor::checkStereoRightOverlay ()
+{
+    stereoRightTransparantOverly.setVisible (channelProperties.getChannelMode () == ChannelProperties::ChannelMode::stereoRight);
+}
+
 void ChannelEditor::paint ([[maybe_unused]] juce::Graphics& g)
 {
-//     g.setColour (juce::Colours::teal);
-//     g.drawRect (getLocalBounds ());
 }
 
 void ChannelEditor::resized ()
 {
+    stereoRightTransparantOverly.setBounds (getLocalBounds ());
     auto zoneBounds {getLocalBounds ().removeFromRight(getWidth () / 4)};
     zoneBounds.removeFromTop (3);
     auto zoneTopRow { zoneBounds.removeFromTop (25).withTrimmedBottom (5).withTrimmedRight (3)};
@@ -712,17 +720,19 @@ void ChannelEditor::resized ()
     pMIndexModComboBox.setBounds (pMIndexLabel.getX (), pMIndexTextEditor.getBottom () + 3, (pMIndexLabel.getWidth () / 2) - 2, 20);
     pMIndexModTextEditor.setBounds (pMIndexModComboBox.getRight () + 3, pMIndexModComboBox.getY (), pMIndexLabel.getWidth () - (pMIndexLabel.getWidth () / 2) - 1, 20);
 
-    panMixLabel.setBounds (columnTwoXOffset, pMIndexModTextEditor.getBottom () + 5, columnTwoWidth, 25);
-    panTextEditor.setBounds (panMixLabel.getX () + 3, panMixLabel.getBottom () + 3, panMixLabel.getWidth () - 6, 20);
-    panLabel.setBounds (panTextEditor.getRight () + 3, panTextEditor.getY (), 40, 20);
-    panModComboBox.setBounds (panMixLabel.getX (), panTextEditor.getBottom () + 3, (panMixLabel.getWidth () / 2) - 2, 20);
-    panModTextEditor.setBounds (panModComboBox.getRight () + 3, panModComboBox.getY (), panMixLabel.getWidth () - (panMixLabel.getWidth () / 2) - 1, 20);
+    envelopeLabel.setBounds (columnTwoXOffset, pMIndexModComboBox.getBottom () + 5, columnTwoWidth, 25);
+    // ATTACK
+    attackTextEditor.setBounds (envelopeLabel.getX () + 3, envelopeLabel.getBottom () + 3, envelopeLabel.getWidth () - 6, 20);
+    attackLabel.setBounds (attackTextEditor.getRight () + 3, attackTextEditor.getY (), 40, 20);
+    attackModComboBox.setBounds (envelopeLabel.getX (), attackTextEditor.getBottom () + 3, (envelopeLabel.getWidth () / 2) - 2, 20);
+    attackModTextEditor.setBounds (attackModComboBox.getRight () + 3, attackModComboBox.getY (), envelopeLabel.getWidth () - (envelopeLabel.getWidth () / 2) - 1, 20);
+    attackFromCurrentButton.setBounds (attackModTextEditor.getRight () + 3, attackModTextEditor.getY (), 50, 20);
 
-    mixLevelTextEditor.setBounds (panMixLabel.getX () + 3, panModComboBox.getBottom () + 5, panMixLabel.getWidth () - 6, 20);
-    mixLevelLabel.setBounds (mixLevelTextEditor.getRight () + 3, mixLevelTextEditor.getY (), 40, 20);
-    mixModComboBox.setBounds (panMixLabel.getX (), mixLevelTextEditor.getBottom () + 3, (panMixLabel.getWidth () / 2) - 2, 20);
-    mixModTextEditor.setBounds (mixModComboBox.getRight () + 3, mixModComboBox.getY (), panMixLabel.getWidth () - (panMixLabel.getWidth () / 2) - 1, 20);
-    mixModIsFaderButton.setBounds (mixModTextEditor.getRight () + 3, mixModTextEditor.getY (), 40, 20);
+    // RELEASE
+    releaseTextEditor.setBounds (envelopeLabel.getX () + 3, attackModComboBox.getBottom () + 5, envelopeLabel.getWidth () - 6, 20);
+    releaseLabel.setBounds (releaseTextEditor.getRight () + 3, releaseTextEditor.getY (), 40, 20);
+    releaseModComboBox.setBounds (envelopeLabel.getX (), releaseTextEditor.getBottom () + 3, (envelopeLabel.getWidth () / 2) - 2, 20);
+    releaseModTextEditor.setBounds (releaseModComboBox.getRight () + 3, releaseModComboBox.getY (), envelopeLabel.getWidth () - (envelopeLabel.getWidth () / 2) - 1, 20);
 
     // column three
     const auto columnThreeXOffset { columnTwoXOffset + 165 };
@@ -745,22 +755,20 @@ void ChannelEditor::resized ()
     reverseButton.setBounds (mutateLabel.getX (), aliasingModTextEditor.getBottom () + 5, mutateLabel.getWidth () / 2 - 6, 20);
     spliceSmoothingButton.setBounds (reverseButton.getRight () + 3, aliasingModTextEditor.getBottom () + 5, mutateLabel.getWidth () - mutateLabel.getWidth () / 2 + 2, 20);
 
-    envelopeLabel.setBounds (columnThreeXOffset, reverseButton.getBottom () + 5, columnThreeWidth, 25);
-    // ATTACK
-    attackTextEditor.setBounds (envelopeLabel.getX () + 3, envelopeLabel.getBottom () + 3, envelopeLabel.getWidth () - 6, 20);
-    attackLabel.setBounds (attackTextEditor.getRight () + 3, attackTextEditor.getY (), 40, 20);
-    attackModComboBox.setBounds (envelopeLabel.getX (), attackTextEditor.getBottom () + 3, (envelopeLabel.getWidth () / 2) - 2, 20);
-    attackModTextEditor.setBounds (attackModComboBox.getRight () + 3, attackModComboBox.getY (), envelopeLabel.getWidth () - (envelopeLabel.getWidth () / 2) - 1, 20);
-    attackFromCurrentButton.setBounds (attackModTextEditor.getRight () + 3, attackModTextEditor.getY (), 50, 20);
+    panMixLabel.setBounds (columnThreeXOffset, reverseButton.getBottom () + 5, columnThreeWidth, 25);
+    panTextEditor.setBounds (panMixLabel.getX () + 3, panMixLabel.getBottom () + 3, panMixLabel.getWidth () - 6, 20);
+    panLabel.setBounds (panTextEditor.getRight () + 3, panTextEditor.getY (), 40, 20);
+    panModComboBox.setBounds (panMixLabel.getX (), panTextEditor.getBottom () + 3, (panMixLabel.getWidth () / 2) - 2, 20);
+    panModTextEditor.setBounds (panModComboBox.getRight () + 3, panModComboBox.getY (), panMixLabel.getWidth () - (panMixLabel.getWidth () / 2) - 1, 20);
 
-    // RELEASE
-    releaseTextEditor.setBounds (envelopeLabel.getX () + 3, attackModComboBox.getBottom () + 5, envelopeLabel.getWidth () - 6, 20);
-    releaseLabel.setBounds (releaseTextEditor.getRight () + 3, releaseTextEditor.getY (), 40, 20);
-    releaseModComboBox.setBounds (envelopeLabel.getX (), releaseTextEditor.getBottom () + 3, (envelopeLabel.getWidth () / 2) - 2, 20);
-    releaseModTextEditor.setBounds (releaseModComboBox.getRight () + 3, releaseModComboBox.getY (), envelopeLabel.getWidth () - (envelopeLabel.getWidth () / 2) - 1, 20);
+    mixLevelTextEditor.setBounds (panMixLabel.getX () + 3, panModComboBox.getBottom () + 5, panMixLabel.getWidth () - 6, 20);
+    mixLevelLabel.setBounds (mixLevelTextEditor.getRight () + 3, mixLevelTextEditor.getY (), 40, 20);
+    mixModComboBox.setBounds (panMixLabel.getX (), mixLevelTextEditor.getBottom () + 3, (panMixLabel.getWidth () / 2) - 2, 20);
+    mixModTextEditor.setBounds (mixModComboBox.getRight () + 3, mixModComboBox.getY (), panMixLabel.getWidth () - (panMixLabel.getWidth () / 2) - 1, 20);
+    mixModIsFaderButton.setBounds (mixModTextEditor.getRight () + 3, mixModTextEditor.getY (), 40, 20);
 
     // AUTO TRIGGER
-    autoTriggerLabel.setBounds (releaseModComboBox.getX (), releaseModComboBox.getBottom () + 5, ((columnThreeWidth / 3) * 2) - 15, 20);
+    autoTriggerLabel.setBounds (mixModComboBox.getX (), mixModComboBox.getBottom () + 5, ((columnThreeWidth / 3) * 2) - 15, 20);
     autoTriggerButton.setBounds (autoTriggerLabel.getRight () + 3, autoTriggerLabel.getY () + 3, (columnThreeWidth / 3 + 15), 20);
 
     // PLAY MODE
@@ -883,11 +891,13 @@ void ChannelEditor::bitsModUiChanged (juce::String cvInput, double bitsMod)
 void ChannelEditor::channelModeDataChanged (int channelMode)
 {
     channelModeComboBox.setSelectedItemIndex (channelMode, juce::NotificationType::dontSendNotification);
+    checkStereoRightOverlay ();
 }
 
 void ChannelEditor::channelModeUiChanged (int channelMode)
 {
     channelProperties.setChannelMode (channelMode, false);
+    checkStereoRightOverlay ();
 }
 
 void ChannelEditor::expAMDataChanged (juce::String cvInput, double expAM)

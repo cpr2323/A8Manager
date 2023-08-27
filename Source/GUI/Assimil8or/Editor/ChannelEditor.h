@@ -6,6 +6,23 @@
 #include "../../../Assimil8or/Preset/ChannelProperties.h"
 #include "../../../Utility/NoArrowComboBoxLnF.h"
 
+class TransparantOverly : public juce::Component
+{
+public:
+    TransparantOverly ()
+    {
+        setInterceptsMouseClicks (false, false);
+    }
+private:
+    juce::Colour overlayColor { juce::Colours::black };
+    float alphaAmount { 0.3f };
+    void paint (juce::Graphics& g) override
+    {
+        g.setColour (overlayColor.withAlpha (alphaAmount));
+        g.fillRect (getLocalBounds ());
+    }
+};
+
 class ChannelEditor : public juce::Component
 {
 public:
@@ -112,11 +129,13 @@ private:
     CvInputChannelComboBox zonesCVComboBox; // 0A - 8C
     juce::Label zonesRTLabel;
     juce::ComboBox zonesRTComboBox; // 0 = Gate Rise, 1 = Continuous, 2 = Advance, 3 = Random
+    TransparantOverly stereoRightTransparantOverly;
 
     NoArrowComboBoxLnF noArrowComboBoxLnF;
 
     std::array<ZoneEditor, 8> zoneEditors;
 
+    void checkStereoRightOverlay ();
     void setupChannelComponents ();
     void setupChannelPropertiesCallbacks ();
 
