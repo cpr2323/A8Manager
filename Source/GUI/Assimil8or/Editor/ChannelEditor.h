@@ -94,7 +94,7 @@ private:
     juce::Label panLabel;
     CvInputChannelComboBox panModComboBox; // 0A - 8C
     juce::TextEditor panModTextEditor; // double
-    juce::Label phaseCVLabel;
+    juce::Label phaseSourceSectionLabel;
     CvInputChannelComboBox phaseCVComboBox; // 0A - 8C
     juce::TextEditor phaseCVTextEditor; // double
     juce::Label pitchLabel;
@@ -104,9 +104,9 @@ private:
     juce::TextEditor pitchCVTextEditor; // double
     juce::Label playModeLabel;
     juce::ComboBox playModeComboBox; // 2 Play Modes: 0 = Gated, 1 = One Shot, Latch / Latch may not be a saved preset option.
-    juce::Label pMIndexLabel;
+    juce::Label phaseModIndexSectionLabel;
     juce::TextEditor pMIndexTextEditor; // double
-    juce::Label pMIndexModLabel;
+    juce::Label pMIndexLabel;
     CvInputChannelComboBox pMIndexModComboBox; // 0A - 8C
     juce::TextEditor pMIndexModTextEditor; // double
     juce::Label pMSourceLabel;

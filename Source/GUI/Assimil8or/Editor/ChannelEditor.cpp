@@ -242,7 +242,7 @@ void ChannelEditor::setupChannelComponents ()
     /////////////////////////////////////////
     // column two
     // PHASE MOD SOURCE
-    setupLabel (phaseCVLabel, "PHASE MOD", 25.0f, juce::Justification::centredTop);
+    setupLabel (phaseSourceSectionLabel, "PHASE MOD", 25.0f, juce::Justification::centredTop);
     // PM Source Index - Channel 1 is 0, 2 is 1, etc. Left Input is 8, Right Input is 9, and PhaseCV is 10
     for (auto pmSourceIndex { 0 }; pmSourceIndex < 8; ++pmSourceIndex)
     {
@@ -267,7 +267,7 @@ void ChannelEditor::setupChannelComponents ()
     });
 
     // PHASE MOD INDEX
-    setupLabel (pMIndexLabel, "PHASE MOD", 25.0f, juce::Justification::centredTop);
+    setupLabel (phaseModIndexSectionLabel, "PHASE MOD", 25.0f, juce::Justification::centredTop);
     setupTextEditor (pMIndexTextEditor, juce::Justification::centred, 0, "+-.0123456789", "PMIndex", [this] ()
     {
         FormatHelpers::setColorIfError (pMIndexTextEditor, minChannelProperties.getPMIndex (), maxChannelProperties.getPMIndex ());
@@ -278,7 +278,7 @@ void ChannelEditor::setupChannelComponents ()
         pMIndexUiChanged (pmIndex);
         pMIndexTextEditor.setText (FormatHelpers::formatDouble (pmIndex, 2, true));
     });
-    setupLabel (pMIndexModLabel, "INDEX", 15.0f, juce::Justification::centredLeft);
+    setupLabel (pMIndexLabel, "INDEX", 15.0f, juce::Justification::centredLeft);
     setupCvInputComboBox (pMIndexModComboBox, "PMIndexMod", [this] () { pMIndexModUiChanged (pMIndexModComboBox.getSelectedItemText (), pMIndexModTextEditor.getText ().getDoubleValue ()); });
     setupTextEditor (pMIndexModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "PMIndexMod", [this] ()
     {
@@ -679,8 +679,8 @@ void ChannelEditor::resized ()
     const auto columnOneXOffset { 5 };
     const auto columnOneWidth { 100};
     pitchLabel.setBounds (columnOneXOffset, 5, columnOneWidth, 25);
-    pitchTextEditor.setBounds (pitchLabel.getX () + 3, pitchLabel.getBottom () + 3, pitchLabel.getWidth () - 6, 20);
-    pitchSemiLabel.setBounds (pitchTextEditor.getRight () + 3, pitchTextEditor.getY (), 40, 20);
+    pitchTextEditor.setBounds (pitchLabel.getX () + 3, pitchLabel.getBottom () + 3, columnOneWidth / 2, 20);
+    pitchSemiLabel.setBounds (pitchTextEditor.getRight () + 3, pitchTextEditor.getY (), columnOneWidth / 2, 20);
     pitchCVComboBox.setBounds (pitchLabel.getX (), pitchTextEditor.getBottom () + 3, (pitchLabel.getWidth () / 2) - 2, 20);
     pitchCVTextEditor.setBounds (pitchCVComboBox.getRight () + 3, pitchCVComboBox.getY (), pitchLabel.getWidth () - (pitchLabel.getWidth () / 2) - 1, 20);
 
@@ -693,8 +693,8 @@ void ChannelEditor::resized ()
     expFMTextEditor.setBounds (expFMComboBox.getRight () + 3, expFMComboBox.getY (), expFMLabel.getWidth () - (expFMLabel.getWidth () / 2) - 1, 20);
 
     levelLabel.setBounds (columnOneXOffset, expFMComboBox.getBottom () + 5, columnOneWidth, 25);
-    levelTextEditor.setBounds (levelLabel.getX () + 3, levelLabel.getBottom () + 3, levelLabel.getWidth () - 6, 20);
-    levelDbLabel.setBounds (levelTextEditor.getRight () + 3, levelTextEditor.getY (), 40, 20);
+    levelTextEditor.setBounds (levelLabel.getX () + 3, levelLabel.getBottom () + 3, columnOneWidth / 2, 20);
+    levelDbLabel.setBounds (levelTextEditor.getRight () + 3, levelTextEditor.getY (), columnOneWidth / 2, 20);
 
     linAMLabel.setBounds (columnOneXOffset, levelTextEditor.getBottom () + 5, columnOneWidth, 25);
     linAMComboBox.setBounds (linAMLabel.getX (), linAMLabel.getBottom () + 3, (linAMLabel.getWidth () / 2) - 2, 20);
@@ -708,29 +708,29 @@ void ChannelEditor::resized ()
     //column two
     const auto columnTwoXOffset { columnOneXOffset + 150 };
     const auto columnTwoWidth { 100 };
-    phaseCVLabel.setBounds (columnTwoXOffset, 5, columnTwoWidth, 25);
-    pMSourceComboBox.setBounds (phaseCVLabel.getX () + 3, phaseCVLabel.getBottom () + 3, phaseCVLabel.getWidth () - 6, 20);
+    phaseSourceSectionLabel.setBounds (columnTwoXOffset, 5, columnTwoWidth, 25);
+    pMSourceComboBox.setBounds (phaseSourceSectionLabel.getX () + 3, phaseSourceSectionLabel.getBottom () + 3, phaseSourceSectionLabel.getWidth () - 6, 20);
     pMSourceLabel.setBounds (pMSourceComboBox.getRight () + 3, pMSourceComboBox.getY (), 40, 20);
-    phaseCVComboBox.setBounds (phaseCVLabel.getX (), pMSourceComboBox.getBottom () + 3, (phaseCVLabel.getWidth () / 2) - 2, 20);
-    phaseCVTextEditor.setBounds (phaseCVComboBox.getRight () + 3, phaseCVComboBox.getY (), phaseCVLabel.getWidth () - (phaseCVLabel.getWidth () / 2) - 1, 20);
+    phaseCVComboBox.setBounds (phaseSourceSectionLabel.getX (), pMSourceComboBox.getBottom () + 3, (phaseSourceSectionLabel.getWidth () / 2) - 2, 20);
+    phaseCVTextEditor.setBounds (phaseCVComboBox.getRight () + 3, phaseCVComboBox.getY (), phaseSourceSectionLabel.getWidth () - (phaseSourceSectionLabel.getWidth () / 2) - 1, 20);
 
-    pMIndexLabel.setBounds (columnTwoXOffset, phaseCVTextEditor.getBottom () + 5, columnTwoWidth, 25);
-    pMIndexTextEditor.setBounds (pMIndexLabel.getX () + 3, pMIndexLabel.getBottom () + 3, pMIndexLabel.getWidth () - 6, 20);
-    pMIndexModLabel.setBounds (pMIndexTextEditor.getRight () + 3, pMIndexTextEditor.getY (), 40, 20);
-    pMIndexModComboBox.setBounds (pMIndexLabel.getX (), pMIndexTextEditor.getBottom () + 3, (pMIndexLabel.getWidth () / 2) - 2, 20);
-    pMIndexModTextEditor.setBounds (pMIndexModComboBox.getRight () + 3, pMIndexModComboBox.getY (), pMIndexLabel.getWidth () - (pMIndexLabel.getWidth () / 2) - 1, 20);
+    phaseModIndexSectionLabel.setBounds (columnTwoXOffset, phaseCVTextEditor.getBottom () + 5, columnTwoWidth, 25);
+    pMIndexTextEditor.setBounds (phaseModIndexSectionLabel.getX () + 3, phaseModIndexSectionLabel.getBottom () + 3, columnTwoWidth / 2, 20);
+    pMIndexLabel.setBounds (pMIndexTextEditor.getRight () + 3, pMIndexTextEditor.getY (), columnTwoWidth / 2, 20);
+    pMIndexModComboBox.setBounds (phaseModIndexSectionLabel.getX (), pMIndexTextEditor.getBottom () + 3, (phaseModIndexSectionLabel.getWidth () / 2) - 2, 20);
+    pMIndexModTextEditor.setBounds (pMIndexModComboBox.getRight () + 3, pMIndexModComboBox.getY (), phaseModIndexSectionLabel.getWidth () - (phaseModIndexSectionLabel.getWidth () / 2) - 1, 20);
 
     envelopeLabel.setBounds (columnTwoXOffset, pMIndexModComboBox.getBottom () + 5, columnTwoWidth, 25);
     // ATTACK
-    attackTextEditor.setBounds (envelopeLabel.getX () + 3, envelopeLabel.getBottom () + 3, envelopeLabel.getWidth () - 6, 20);
-    attackLabel.setBounds (attackTextEditor.getRight () + 3, attackTextEditor.getY (), 40, 20);
+    attackTextEditor.setBounds (envelopeLabel.getX () + 3, envelopeLabel.getBottom () + 3, columnTwoWidth / 2, 20);
+    attackLabel.setBounds (attackTextEditor.getRight () + 3, attackTextEditor.getY (), columnTwoWidth / 2, 20);
     attackModComboBox.setBounds (envelopeLabel.getX (), attackTextEditor.getBottom () + 3, (envelopeLabel.getWidth () / 2) - 2, 20);
     attackModTextEditor.setBounds (attackModComboBox.getRight () + 3, attackModComboBox.getY (), envelopeLabel.getWidth () - (envelopeLabel.getWidth () / 2) - 1, 20);
     attackFromCurrentButton.setBounds (attackModTextEditor.getRight () + 3, attackModTextEditor.getY (), 50, 20);
 
     // RELEASE
-    releaseTextEditor.setBounds (envelopeLabel.getX () + 3, attackModComboBox.getBottom () + 5, envelopeLabel.getWidth () - 6, 20);
-    releaseLabel.setBounds (releaseTextEditor.getRight () + 3, releaseTextEditor.getY (), 40, 20);
+    releaseTextEditor.setBounds (envelopeLabel.getX () + 3, attackModComboBox.getBottom () + 5, columnTwoWidth / 2, 20);
+    releaseLabel.setBounds (releaseTextEditor.getRight () + 3, releaseTextEditor.getY (), columnTwoWidth / 2, 20);
     releaseModComboBox.setBounds (envelopeLabel.getX (), releaseTextEditor.getBottom () + 3, (envelopeLabel.getWidth () / 2) - 2, 20);
     releaseModTextEditor.setBounds (releaseModComboBox.getRight () + 3, releaseModComboBox.getY (), envelopeLabel.getWidth () - (envelopeLabel.getWidth () / 2) - 1, 20);
 
@@ -741,13 +741,13 @@ void ChannelEditor::resized ()
     // MUTATE
     mutateLabel.setBounds (columnThreeXOffset, 5, columnThreeWidth, 25);
     // BITS
-    bitsTextEditor.setBounds (mutateLabel.getX () + 3, mutateLabel.getBottom () + 3, mutateLabel.getWidth () - 6, 20);
-    bitsLabel.setBounds (bitsTextEditor.getRight () + 3, bitsTextEditor.getY (), 40, 20);
+    bitsTextEditor.setBounds (mutateLabel.getX () + 3, mutateLabel.getBottom () + 3, columnThreeWidth / 2, 20);
+    bitsLabel.setBounds (bitsTextEditor.getRight () + 3, bitsTextEditor.getY (), columnThreeWidth / 2, 20);
     bitsModComboBox.setBounds (mutateLabel.getX (), bitsTextEditor.getBottom () + 3, (mutateLabel.getWidth () / 2) - 2, 20);
     bitsModTextEditor.setBounds (bitsModComboBox.getRight () + 3, bitsModComboBox.getY (), mutateLabel.getWidth () - (mutateLabel.getWidth () / 2) - 1, 20);
     // ALIASING
-    aliasingTextEditor.setBounds (mutateLabel.getX () + 3, bitsModComboBox.getBottom () + 5, mutateLabel.getWidth () - 6, 20);
-    aliasingLabel.setBounds (aliasingTextEditor.getRight () + 3, aliasingTextEditor.getY (), 40, 20);
+    aliasingTextEditor.setBounds (mutateLabel.getX () + 3, bitsModComboBox.getBottom () + 5, columnThreeWidth / 2, 20);
+    aliasingLabel.setBounds (aliasingTextEditor.getRight () + 3, aliasingTextEditor.getY (), columnThreeWidth / 2, 20);
     aliasingModComboBox.setBounds (mutateLabel.getX (), aliasingTextEditor.getBottom () + 3, (mutateLabel.getWidth () / 2) - 2, 20);
     aliasingModTextEditor.setBounds (aliasingModComboBox.getRight () + 3, aliasingModComboBox.getY (), mutateLabel.getWidth () - (mutateLabel.getWidth () / 2) - 1, 20);
 
@@ -756,13 +756,13 @@ void ChannelEditor::resized ()
     spliceSmoothingButton.setBounds (reverseButton.getRight () + 3, aliasingModTextEditor.getBottom () + 5, mutateLabel.getWidth () - mutateLabel.getWidth () / 2 + 2, 20);
 
     panMixLabel.setBounds (columnThreeXOffset, reverseButton.getBottom () + 5, columnThreeWidth, 25);
-    panTextEditor.setBounds (panMixLabel.getX () + 3, panMixLabel.getBottom () + 3, panMixLabel.getWidth () - 6, 20);
-    panLabel.setBounds (panTextEditor.getRight () + 3, panTextEditor.getY (), 40, 20);
+    panTextEditor.setBounds (panMixLabel.getX () + 3, panMixLabel.getBottom () + 3, columnThreeWidth / 2, 20);
+    panLabel.setBounds (panTextEditor.getRight () + 3, panTextEditor.getY (), columnThreeWidth / 2, 20);
     panModComboBox.setBounds (panMixLabel.getX (), panTextEditor.getBottom () + 3, (panMixLabel.getWidth () / 2) - 2, 20);
     panModTextEditor.setBounds (panModComboBox.getRight () + 3, panModComboBox.getY (), panMixLabel.getWidth () - (panMixLabel.getWidth () / 2) - 1, 20);
 
-    mixLevelTextEditor.setBounds (panMixLabel.getX () + 3, panModComboBox.getBottom () + 5, panMixLabel.getWidth () - 6, 20);
-    mixLevelLabel.setBounds (mixLevelTextEditor.getRight () + 3, mixLevelTextEditor.getY (), 40, 20);
+    mixLevelTextEditor.setBounds (panMixLabel.getX () + 3, panModComboBox.getBottom () + 5, columnThreeWidth / 2, 20);
+    mixLevelLabel.setBounds (mixLevelTextEditor.getRight () + 3, mixLevelTextEditor.getY (), columnThreeWidth / 2, 20);
     mixModComboBox.setBounds (panMixLabel.getX (), mixLevelTextEditor.getBottom () + 3, (panMixLabel.getWidth () / 2) - 2, 20);
     mixModTextEditor.setBounds (mixModComboBox.getRight () + 3, mixModComboBox.getY (), panMixLabel.getWidth () - (panMixLabel.getWidth () / 2) - 1, 20);
     mixModIsFaderButton.setBounds (mixModTextEditor.getRight () + 3, mixModTextEditor.getY (), 40, 20);
