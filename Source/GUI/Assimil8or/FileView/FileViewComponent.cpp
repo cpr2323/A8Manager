@@ -116,13 +116,10 @@ void FileViewComponent::paintListBoxItem (int row, juce::Graphics& g, int width,
     if (row >= getNumRows ())
         return;
 
-    g.setColour (juce::Colours::darkslategrey);
-    g.fillRect (width - 1, 0, 1, height);
-
-    g.setColour (juce::Colours::whitesmoke);
+    juce::String fileListItem;
     if (listOffset == 1 && row == 0)
     {
-        g.drawText (" >  ..", juce::Rectangle<float>{ 0.0f, 0.0f, (float) width, (float) height }, juce::Justification::centredLeft, true);
+        fileListItem = " >  ..";
     }
     else
     {
@@ -134,8 +131,13 @@ void FileViewComponent::paintListBoxItem (int row, juce::Graphics& g, int width,
             else
                 return "   ";
         };
-        g.drawText (" " + filePrefix () + file.getFileName (), juce::Rectangle<float>{ 0.0f, 0.0f, (float) width, (float) height }, juce::Justification::centredLeft, true);
+        fileListItem = " " + filePrefix () + file.getFileName ();
     }
+
+    g.setColour (juce::Colours::darkslategrey);
+    g.fillRect (width - 1, 0, 1, height);
+    g.setColour (juce::Colours::whitesmoke);
+    g.drawText (fileListItem, juce::Rectangle<float>{ 0.0f, 0.0f, (float) width, (float) height }, juce::Justification::centredLeft, true);
 }
 
 juce::String FileViewComponent::getTooltipForRow (int row)
@@ -156,15 +158,13 @@ void FileViewComponent::listBoxItemClicked (int row, [[maybe_unused]] const juce
 
     if (listOffset == 1 && row == 0)
         appProperties.setMostRecentFolder (juce::File (directoryValueTree.getRootFolder ()).getParentDirectory ().getFullPathName ());
-    else
-    if (auto folder { juce::File (directoryListQuickLookupList [row - listOffset].getProperty ("name").toString ()) }; folder.isDirectory ())
+    else if (auto folder { juce::File (directoryListQuickLookupList [row - listOffset].getProperty ("name").toString ()) }; folder.isDirectory ())
         appProperties.setMostRecentFolder (folder.getFullPathName ());
 }
 
 void FileViewComponent::resized ()
 {
     auto localBounds { getLocalBounds () };
-
     localBounds.reduce (3, 3);
     auto navigationRow { localBounds.removeFromTop (25) };
     openFolderButton.setBounds (navigationRow.removeFromLeft (100));
