@@ -75,18 +75,22 @@ private:
 
     juce::Label levelOffsetLabel;
     juce::TextEditor levelOffsetTextEditor; // double
+    juce::Label loopSectionLabel;
+    juce::Label loopLengthLabel;
     juce::TextEditor loopLengthTextEditor; // double
-    juce::Label loopBoundsLabel;
+    juce::Label loopStartLabel;
     juce::TextEditor loopStartTextEditor; // int
     juce::Label minVoltageLabel;
     juce::TextEditor minVoltageTextEditor; // double
     juce::Label pitchOffsetLabel;
     juce::TextEditor pitchOffsetTextEditor; // double
-    juce::Label sampleStartNameLabel;
-    FileDropTargetTextEditor sampleTextEditor; // filename
-    juce::Label sampleBoundsLabel;
-    juce::TextEditor sampleStartTextEditor; // int
+    juce::Label sampleNameLabel;
+    FileDropTargetTextEditor sampleNameTextEditor; // filename
+    juce::Label sampleSectionLabel;
+    juce::Label sampleEndLabel;
     juce::TextEditor sampleEndTextEditor; // int
+    juce::Label sampleStartLabel;
+    juce::TextEditor sampleStartTextEditor; // int
 
     int64_t sampleLength { 0 };
     void setupZoneComponents ();

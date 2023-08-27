@@ -23,17 +23,17 @@ ZoneEditor::ZoneEditor ()
         maxZoneProperties.wrap (maxChannelProperties.getZoneVT (0), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
     }
 
-    sampleTextEditor.onCheckInterest = [this] (const juce::StringArray& files)
+    sampleNameTextEditor.onCheckInterest = [this] (const juce::StringArray& files)
     {
         if (files.size () != 1)
             return false;
         const auto draggedFile { juce::File (files [0]) };
         return isSupportedAudioFile (draggedFile);
     };
-    sampleTextEditor.onFilesDropped = [this] (const juce::StringArray& files)
+    sampleNameTextEditor.onFilesDropped = [this] (const juce::StringArray& files)
     {
-        sampleTextEditor.setHoverOutline (juce::Colours::transparentWhite);
-        sampleTextEditor.repaint ();
+        sampleNameTextEditor.setHoverOutline (juce::Colours::transparentWhite);
+        sampleNameTextEditor.repaint ();
 
         if (files.size () != 1)
             return;
@@ -51,24 +51,24 @@ ZoneEditor::ZoneEditor ()
         // assign file to zone
         loadSample (droppedFile.getFileName ());
     };
-    sampleTextEditor.onDragEnter = [this] (const juce::StringArray& files)
+    sampleNameTextEditor.onDragEnter = [this] (const juce::StringArray& files)
     {
         if (files.size () != 1)
-            sampleTextEditor.setHoverOutline(juce::Colours::red);
+            sampleNameTextEditor.setHoverOutline(juce::Colours::red);
         else
         {
             const auto draggedFile { juce::File (files [0]) };
             if (isSupportedAudioFile (draggedFile))
-                sampleTextEditor.setHoverOutline (juce::Colours::white);
+                sampleNameTextEditor.setHoverOutline (juce::Colours::white);
             else
-                sampleTextEditor.setHoverOutline (juce::Colours::red);
+                sampleNameTextEditor.setHoverOutline (juce::Colours::red);
         }
-        sampleTextEditor.repaint ();
+        sampleNameTextEditor.repaint ();
     };
-    sampleTextEditor.onDragExit = [this] (const juce::StringArray&)
+    sampleNameTextEditor.onDragExit = [this] (const juce::StringArray&)
     {
-        sampleTextEditor.setHoverOutline (juce::Colours::transparentWhite);
-        sampleTextEditor.repaint ();
+        sampleNameTextEditor.setHoverOutline (juce::Colours::transparentWhite);
+        sampleNameTextEditor.repaint ();
     };
 
     setupZoneComponents ();
@@ -90,7 +90,7 @@ void ZoneEditor::loadSample (juce::String sampleFileName)
         if (std::unique_ptr<juce::AudioFormatReader> reader (audioFormatManager.createReaderFor (sampleFile)); reader != nullptr)
         {
             sampleLength = reader->lengthInSamples;
-            //sampleFileName = sampleFile.getFileName ();
+            sampleFileName = sampleFile.getFileName (); // this copies the added .wav extension if it wasn't in the original name
             // if Zone1, and stereo file
             if (zoneProperties.getIndex () == 1 && reader->numChannels == 2)
             {
@@ -122,7 +122,7 @@ void ZoneEditor::loadSample (juce::String sampleFileName)
     zoneProperties.setLoopLength (-1, true);
 
     sampleUiChanged (sampleFileName);
-    sampleTextEditor.setText (sampleFileName);
+    sampleNameTextEditor.setText (sampleFileName);
 }
 
 void ZoneEditor::setupZoneComponents ()
@@ -160,29 +160,30 @@ void ZoneEditor::setupZoneComponents ()
             textEditor.onTextChange = [this, validateCallback] () { validateCallback (); };
         addAndMakeVisible (textEditor);
     };
-    setupLabel (sampleStartNameLabel, "FILE", 15.0, juce::Justification::centredLeft);
+    setupLabel (sampleNameLabel, "FILE", 15.0, juce::Justification::centredLeft);
     const auto kMaxFileNameLength { 47 };
-    setupTextEditor (sampleTextEditor, juce::Justification::centredLeft, kMaxFileNameLength, " !\"#$%^&'()#+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~", "Sample", [this] ()
+    setupTextEditor (sampleNameTextEditor, juce::Justification::centredLeft, kMaxFileNameLength, " !\"#$%^&'()#+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~", "Sample", [this] ()
     {
-        auto sampleFile { juce::File (appProperties.getMostRecentFolder ()).getChildFile (sampleTextEditor.getText ()) };
+        auto sampleFile { juce::File (appProperties.getMostRecentFolder ()).getChildFile (sampleNameTextEditor.getText ()) };
         if (! sampleFile.isDirectory ())
         {
             if (sampleFile.getFileExtension () != "")
-                FormatHelpers::setColorIfError (sampleTextEditor, sampleFile);
+                FormatHelpers::setColorIfError (sampleNameTextEditor, sampleFile);
             else
-                FormatHelpers::setColorIfError (sampleTextEditor, sampleFile.withFileExtension(".wav"));
+                FormatHelpers::setColorIfError (sampleNameTextEditor, sampleFile.withFileExtension(".wav"));
         }
         else
         {
-            FormatHelpers::setColorIfError (sampleTextEditor, false);
+            FormatHelpers::setColorIfError (sampleNameTextEditor, false);
         }
     },
     [this] (juce::String text)
     {
         loadSample (text);
     });
-    setupLabel (sampleBoundsLabel, "SAMPLE START/END", 15.0, juce::Justification::centredLeft);
+    setupLabel (sampleSectionLabel, "SAMPLE", 15.0, juce::Justification::centredLeft);
     // SAMPLE START
+    setupLabel (sampleStartLabel, "START", 12.0, juce::Justification::centredLeft);
     setupTextEditor (sampleStartTextEditor, juce::Justification::centred, 0, "0123456789", "SampleStart", [this] ()
     {
         FormatHelpers::setColorIfError (sampleStartTextEditor, minZoneProperties.getSampleStart ().value_or (0), zoneProperties.getSampleEnd ().value_or (sampleLength));
@@ -194,6 +195,7 @@ void ZoneEditor::setupZoneComponents ()
         sampleStartTextEditor.setText (juce::String (sampleStart));
     });
     // SAMPLE END
+    setupLabel (sampleEndLabel, "END", 12.0, juce::Justification::centredLeft);
     setupTextEditor (sampleEndTextEditor, juce::Justification::centred, 0, "0123456789", "SampleEnd", [this] ()
     {
         FormatHelpers::setColorIfError (sampleEndTextEditor, zoneProperties.getSampleStart ().value_or (0), sampleLength);
@@ -204,8 +206,9 @@ void ZoneEditor::setupZoneComponents ()
         sampleEndUiChanged (sampleEnd);
         sampleEndTextEditor.setText (juce::String (sampleEnd));
     });
-    setupLabel (loopBoundsLabel, "LOOP START/LENGTH", 15.0, juce::Justification::centredLeft);
+    setupLabel (loopSectionLabel, "LOOP", 15.0, juce::Justification::centredLeft);
     // LOOP START
+    setupLabel (loopStartLabel, "START", 12.0, juce::Justification::centredLeft);
     setupTextEditor (loopStartTextEditor, juce::Justification::centred, 0, "0123456789", "LoopStart", [this] ()
     {
         if (! loopLengthIsEnd)
@@ -235,6 +238,7 @@ void ZoneEditor::setupZoneComponents ()
         }
     });
     // LOOP LENGTH
+    setupLabel (loopLengthLabel, "LENGTH", 12.0, juce::Justification::centredLeft);
     setupTextEditor (loopLengthTextEditor, juce::Justification::centred, 0, ".0123456789", "LoopLength", [this] ()
     {
         auto loopLengthInput = [this, text = loopLengthTextEditor.getText()] ()
@@ -328,12 +332,12 @@ void ZoneEditor::setLoopLengthIsEnd (bool newLoopLengthIsEnd)
     loopLengthIsEnd = newLoopLengthIsEnd;
     if (! loopLengthIsEnd)
     {
-        loopBoundsLabel.setText ("LOOP START/LENGTH", juce::NotificationType::dontSendNotification);
+        loopLengthLabel.setText ("LENGTH", juce::NotificationType::dontSendNotification);
         loopLengthTextEditor.setInputRestrictions (0, ".0123456789");
     }
     else
     {
-        loopBoundsLabel.setText ("LOOP START/END", juce::NotificationType::dontSendNotification);
+        loopLengthLabel.setText ("END", juce::NotificationType::dontSendNotification);
         loopLengthTextEditor.setInputRestrictions (0, "0123456789");
     }
     // reformat the UI string
@@ -362,26 +366,35 @@ void ZoneEditor::paint ([[maybe_unused]] juce::Graphics& g)
 void ZoneEditor::resized ()
 {
     const auto xOffset { 3 };
-    const auto labelWidth { 150 };
+    const auto width { 150 };
     const auto interParameterYOffset { 1 };
     const auto inputXOffset { 5 };
     const auto inputYOffset { 0 };
-    const auto inputWidth { labelWidth - 5};
+    const auto sampleInputWidth { width - 5};
 
-    sampleStartNameLabel.setBounds (xOffset, 5, labelWidth, 20);
-    sampleTextEditor.setBounds (sampleStartNameLabel.getX () + inputXOffset, sampleStartNameLabel.getBottom () + inputYOffset, inputWidth, 20);
-    sampleBoundsLabel.setBounds (xOffset, sampleTextEditor.getBottom () + interParameterYOffset, labelWidth, 20);
-    sampleStartTextEditor.setBounds (sampleBoundsLabel.getX () + inputXOffset, sampleBoundsLabel.getBottom () + inputYOffset, inputWidth / 2, 20);
-    sampleEndTextEditor.setBounds (sampleStartTextEditor.getRight() + 1, sampleStartTextEditor.getY (), inputWidth / 2, 20);
-    loopBoundsLabel.setBounds (xOffset, sampleEndTextEditor.getBottom () + interParameterYOffset, labelWidth, 20);
-    loopStartTextEditor.setBounds (loopBoundsLabel.getX () + inputXOffset, loopBoundsLabel.getBottom () + inputYOffset, inputWidth / 2, 20);
-    loopLengthTextEditor.setBounds (loopStartTextEditor.getRight () + 1, loopStartTextEditor.getY (), inputWidth / 2, 20);
-    minVoltageLabel.setBounds (xOffset, loopLengthTextEditor.getBottom () + interParameterYOffset, labelWidth, 20);
-    minVoltageTextEditor.setBounds (minVoltageLabel.getX () + inputXOffset, minVoltageLabel.getBottom () + inputYOffset, inputWidth, 20);
-    levelOffsetLabel.setBounds (xOffset, minVoltageTextEditor.getBottom () + interParameterYOffset, labelWidth, 20);
-    levelOffsetTextEditor.setBounds (levelOffsetLabel.getX () + inputXOffset, levelOffsetLabel.getBottom () + inputYOffset, inputWidth, 20);
-    pitchOffsetLabel.setBounds (xOffset, levelOffsetTextEditor.getBottom () + interParameterYOffset, labelWidth, 20);
-    pitchOffsetTextEditor.setBounds (pitchOffsetLabel.getX () + inputXOffset, pitchOffsetLabel.getBottom () + inputYOffset, inputWidth, 20);
+    sampleNameLabel.setBounds (xOffset, 5, width, 20);
+    sampleNameTextEditor.setBounds (sampleNameLabel.getX () + inputXOffset, sampleNameLabel.getBottom () + inputYOffset, sampleInputWidth, 20);
+
+    sampleSectionLabel.setBounds (xOffset, sampleNameTextEditor.getBottom () + interParameterYOffset, width, 20);
+    sampleStartLabel.setBounds (xOffset + 5, sampleSectionLabel.getBottom (), (width / 3) - 5, 20);
+    sampleStartTextEditor.setBounds (sampleStartLabel.getRight (), sampleStartLabel.getY (), width - (width / 3), 20);
+    sampleEndLabel.setBounds (xOffset + 5, sampleStartLabel.getBottom () + interParameterYOffset, (width / 3) - 5, 20);
+    sampleEndTextEditor.setBounds (sampleEndLabel.getRight (), sampleEndLabel.getY (), width - (width / 3), 20);
+
+    loopSectionLabel.setBounds (xOffset, sampleEndTextEditor.getBottom () + interParameterYOffset, width, 20);
+    loopStartLabel.setBounds (xOffset + 5, loopSectionLabel.getBottom (), (width / 3) - 5, 20);
+    loopStartTextEditor.setBounds (loopStartLabel.getRight (), loopStartLabel.getY (), width - (width / 3), 20);
+    loopLengthLabel.setBounds (xOffset + 5, loopStartLabel.getBottom () + interParameterYOffset, (width / 3) - 5, 20);
+    loopLengthTextEditor.setBounds (loopLengthLabel.getRight (), loopLengthLabel.getY (), width - (width / 3), 20);
+
+    const auto inputWidth { width / 3 };
+    const auto labelWidth { width - inputWidth };
+    minVoltageLabel.setBounds (xOffset, loopLengthTextEditor.getBottom () + 5, labelWidth, 20);
+    minVoltageTextEditor.setBounds (minVoltageLabel.getRight (), minVoltageLabel.getY (), inputWidth, 20);
+    levelOffsetLabel.setBounds (xOffset, minVoltageTextEditor.getBottom () + 5, labelWidth, 20);
+    levelOffsetTextEditor.setBounds (levelOffsetLabel.getRight (), levelOffsetLabel.getY (), inputWidth, 20);
+    pitchOffsetLabel.setBounds (xOffset, levelOffsetTextEditor.getBottom () + 5, labelWidth, 20);
+    pitchOffsetTextEditor.setBounds (pitchOffsetLabel.getRight (), pitchOffsetLabel.getY (), inputWidth, 20);
 }
 
 juce::String ZoneEditor::formatLoopLength (double loopLength)
@@ -475,9 +488,9 @@ void ZoneEditor::updateSampleFileInfo (juce::String sample)
 
 void ZoneEditor::sampleDataChanged (juce::String sample)
 {
-    if (sample != sampleTextEditor.getText ())
+    if (sample != sampleNameTextEditor.getText ())
         updateSampleFileInfo (sample);
-    sampleTextEditor.setText (sample);
+    sampleNameTextEditor.setText (sample);
 }
 
 void ZoneEditor::sampleUiChanged (juce::String sample)
