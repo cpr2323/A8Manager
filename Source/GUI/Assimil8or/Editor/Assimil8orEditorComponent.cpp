@@ -8,7 +8,6 @@
 #include <algorithm>
 
 // TODO - short list
-//  Implement tool tips for each parameter
 //  Visual Edited indicator
 //  Query for save if switching from edited Preset
 //  Only enable Save button if preset was edited
@@ -238,7 +237,7 @@ void Assimil8orEditorComponent::resized ()
     saveButton.setBounds (topRow.removeFromRight (75));
     const auto tabHeight (600);
     const auto topRowY { titleLabel.getBottom () + 3 };
-    channelTabs.setBounds (3, topRowY, 800, tabHeight);
+    channelTabs.setBounds (3, topRowY, 770, tabHeight);
     const auto bottomRowY (getLocalBounds ().getBottom () - 26);
     windowDecorator.setBounds (getLocalBounds ().removeFromBottom (26));
 

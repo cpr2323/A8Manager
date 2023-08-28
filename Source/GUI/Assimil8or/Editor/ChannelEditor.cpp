@@ -15,9 +15,6 @@ const auto kParameterLineHeight { 20 };
 
 ChannelEditor::ChannelEditor ()
 {
-    zonesLabel.setText ("Zones", juce::NotificationType::dontSendNotification);
-    addAndMakeVisible (zonesLabel);
-
     // TODO - these are copies of what is in ChannelEditor::setupChannelComponents, need to DRY
     auto setupLabel = [this] (juce::Label& label, juce::String text, float fontSize, juce::Justification justification)
     {
@@ -36,7 +33,11 @@ ChannelEditor::ChannelEditor ()
         comboBox.onChange = onChangeCallback;
         addAndMakeVisible (comboBox);
     };
-    setupLabel (loopLengthIsEndLabel, "Loop Length", kSmallLabelIntSize, juce::Justification::centredLeft);
+
+    setupLabel (zonesLabel, "ZONES", kMediumLabelSize, juce::Justification::centredLeft);
+    zonesLabel.setColour (juce::Label::ColourIds::textColourId, juce::Colours::white);
+
+    setupLabel (loopLengthIsEndLabel, "LENGTH/END", kSmallLabelIntSize, juce::Justification::centredRight);
     loopLengthIsEndComboBox.addItem ("Length", 1); // 0 = Length, 1 = End
     loopLengthIsEndComboBox.addItem ("End", 2);
     setupComboBox (loopLengthIsEndComboBox, [this] ()
@@ -582,16 +583,17 @@ void ChannelEditor::setupChannelComponents ()
         loopLengthModUiChanged (loopLengthModComboBox.getSelectedItemText (), loopLengthMod);
         loopLengthModTextEditor.setText (FormatHelpers::formatDouble (loopLengthMod, 2, true));
     });
-    setupLabel (xfadeGroupLabel, "CROSSFADE", kMediumLabelSize, juce::Justification::centred);
+    setupLabel (xfadeGroupLabel, "XFADE", kSmallLabelSize, juce::Justification::centredRight);
     xfadeGroupComboBox.addItem ("None", 1); // Off, A, B, C, D
     xfadeGroupComboBox.addItem ("A", 2);
     xfadeGroupComboBox.addItem ("B", 3);
     xfadeGroupComboBox.addItem ("C", 4);
     xfadeGroupComboBox.addItem ("D", 5);
     setupComboBox (xfadeGroupComboBox, "XfadeGroup", [this] () { xfadeGroupUiChanged (xfadeGroupComboBox.getText ()); });
-    setupLabel (zonesCVLabel, "ZONE CV", kMediumLabelSize, juce::Justification::centred);
+
+    setupLabel (zonesCVLabel, "CV", kMediumLabelSize, juce::Justification::centredRight);
     setupCvInputComboBox (zonesCVComboBox, "ZonesCV", [this] () { zonesCVUiChanged (zonesCVComboBox.getSelectedItemText ()); });
-    setupLabel (zonesRTLabel, "ZONE SELECTION", kMediumLabelSize, juce::Justification::centred);
+    setupLabel (zonesRTLabel, "SELECT", kSmallLabelSize, juce::Justification::centredRight);
     zonesRTComboBox.addItem ("Gate Rise", 1); // 0 = Gate Rise, 1 = Continuous, 2 = Advance, 3 = Random
     zonesRTComboBox.addItem ("Continuous", 2);
     zonesRTComboBox.addItem ("Advance", 3);
@@ -806,18 +808,6 @@ void ChannelEditor::positionColumnThree (int xOffset, int width)
     mixModIsFaderComboBox.setBounds (mixModIsFaderLabel.getRight () + 3, mixLevelTextEditor.getBottom (), width / 2, kParameterLineHeight);
     mixModComboBox.setBounds (xOffset, mixModIsFaderComboBox.getBottom (), width / 2, kParameterLineHeight);
     mixModTextEditor.setBounds (mixModComboBox.getRight () + 3, mixModComboBox.getY (), width / 2, kParameterLineHeight);
-
-    // AUTO TRIGGER
-    autoTriggerLabel.setBounds (xOffset, mixModComboBox.getBottom () + 5 + 2, ((width / 3) * 2) - 15, kMediumLabelIntSize);
-    autoTriggerComboBox.setBounds (autoTriggerLabel.getRight () + 3, mixModComboBox.getBottom () + 5, (width / 3 + 15), kParameterLineHeight);
-
-    // PLAY MODE
-    playModeLabel.setBounds (xOffset, autoTriggerComboBox.getBottom () + 2, width / 3, kMediumLabelIntSize);
-    playModeComboBox.setBounds (playModeLabel.getRight () + 3, autoTriggerComboBox.getBottom (), (width / 3) * 2, kParameterLineHeight);
-
-    // LOOP MODE
-    loopModeLabel.setBounds (xOffset, playModeComboBox.getBottom () + 2, width / 3, kMediumLabelIntSize);
-    loopModeComboBox.setBounds (loopModeLabel.getRight () + 3, playModeComboBox.getBottom (), (width / 3) * 2, kParameterLineHeight);
 }
 void ChannelEditor::positionColumnFour (int xOffset, int width)
 {
@@ -838,28 +828,48 @@ void ChannelEditor::positionColumnFour (int xOffset, int width)
     loopLengthModComboBox.setBounds (xOffset, loopLengthModLabel.getBottom (), width / 2, kParameterLineHeight);
     loopLengthModTextEditor.setBounds (loopLengthModComboBox.getRight () + 3, loopLengthModComboBox.getY (), width / 2, kParameterLineHeight);
 
-    xfadeGroupLabel.setBounds (xOffset, loopLengthModComboBox.getBottom () + 5, width, kMediumLabelIntSize);
-    xfadeGroupComboBox.setBounds (xOffset, xfadeGroupLabel.getBottom (), width, kParameterLineHeight);
-    zonesCVLabel.setBounds (xOffset, xfadeGroupComboBox.getBottom () + 5, width, kMediumLabelIntSize);
-    zonesCVComboBox.setBounds (xOffset, zonesCVLabel.getBottom (), width, kParameterLineHeight);
-    zonesRTLabel.setBounds (xOffset, zonesCVComboBox.getBottom () + 5, width, kMediumLabelIntSize);
-    zonesRTComboBox.setBounds (xOffset, zonesRTLabel.getBottom (), width, kParameterLineHeight);
+    xfadeGroupLabel.setBounds (xOffset, loopLengthModComboBox.getBottom () + 5 + 2, width / 2, kMediumLabelIntSize);
+    xfadeGroupComboBox.setBounds (xfadeGroupLabel.getRight () + 3, loopLengthModComboBox.getBottom () + 5, width / 2, kParameterLineHeight);
+
+    // AUTO TRIGGER
+    autoTriggerLabel.setBounds (xOffset, xfadeGroupComboBox.getBottom () + 5 + 2, ((width / 3) * 2) - 15, kMediumLabelIntSize);
+    autoTriggerComboBox.setBounds (autoTriggerLabel.getRight () + 3, xfadeGroupComboBox.getBottom () + 5, (width / 3 + 15), kParameterLineHeight);
+
+    // PLAY MODE
+    playModeLabel.setBounds (xOffset, autoTriggerComboBox.getBottom () + 5 + 2, width / 3, kMediumLabelIntSize);
+    playModeComboBox.setBounds (playModeLabel.getRight () + 3, autoTriggerComboBox.getBottom () + 5, (width / 3) * 2, kParameterLineHeight);
+
+    // LOOP MODE
+    loopModeLabel.setBounds (xOffset, playModeComboBox.getBottom () + 5 + 2, width / 3, kMediumLabelIntSize);
+    loopModeComboBox.setBounds (loopModeLabel.getRight () + 3, playModeComboBox.getBottom () + 5, (width / 3) * 2, kParameterLineHeight);
 }
 
 void ChannelEditor::resized ()
 {
-    stereoRightTransparantOverly.setBounds (getLocalBounds ());
-    auto zoneBounds {getLocalBounds ().removeFromRight(getWidth () / 4)};
-    zoneBounds.removeFromTop (3);
-    auto zoneTopRow { zoneBounds.removeFromTop (25).withTrimmedBottom (5).withTrimmedRight (3)};
-    zonesLabel.setBounds (zoneTopRow.removeFromLeft(40));
-    loopLengthIsEndComboBox.setBounds (zoneTopRow.removeFromRight (45));
-    loopLengthIsEndLabel.setBounds (zoneTopRow.removeFromRight (80));
-    zoneTabs.setBounds (zoneBounds);
-
-    auto xOffSet { 5 };
     const auto columnWidth { 100 };
     const auto spaceBetweenColumns { 40 };
+
+    stereoRightTransparantOverly.setBounds (getLocalBounds ());
+
+    auto zoneColumn {getLocalBounds ().removeFromRight(getWidth () / 4)};
+    zoneColumn.removeFromTop (3);
+    auto zoneTopSection { zoneColumn.removeFromTop (75).withTrimmedBottom (5).withTrimmedRight (3)};
+    zonesLabel.setBounds (zoneTopSection.getX (), zoneTopSection.getHeight () / 2 - kMediumLabelIntSize / 2, 80, kMediumLabelIntSize);
+
+    const auto inputWidth { 65 };
+    const auto labelWidth { 85 };
+    loopLengthIsEndComboBox.setBounds (zoneTopSection.getRight () - inputWidth, zoneTopSection.getY () + 3, inputWidth, 20);
+    loopLengthIsEndLabel.setBounds (loopLengthIsEndComboBox.getX () - labelWidth - 3, loopLengthIsEndComboBox.getY (), labelWidth, 20);
+
+    zonesCVComboBox.setBounds (zoneTopSection.getRight () - inputWidth, loopLengthIsEndComboBox.getBottom () + 3, inputWidth, 20);
+    zonesCVLabel.setBounds (zonesCVComboBox.getX () - labelWidth - 3, zonesCVComboBox.getY (), labelWidth, 20);
+
+    zonesRTComboBox.setBounds (zoneTopSection.getRight () - inputWidth, zonesCVComboBox.getBottom() + 3, inputWidth, 20);
+    zonesRTLabel.setBounds (zonesRTComboBox.getX () - labelWidth - 3, zonesRTComboBox.getY (), labelWidth, 20);
+
+    zoneTabs.setBounds (zoneColumn);
+
+    auto xOffSet { 5 };
     positionColumnOne (xOffSet, columnWidth);
     xOffSet += columnWidth + spaceBetweenColumns;
     positionColumnTwo (xOffSet, columnWidth);
