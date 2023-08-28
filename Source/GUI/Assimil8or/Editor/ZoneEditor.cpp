@@ -181,9 +181,8 @@ void ZoneEditor::setupZoneComponents ()
     {
         loadSample (text);
     });
-    setupLabel (sampleSectionLabel, "SAMPLE", 15.0, juce::Justification::centredLeft);
     // SAMPLE START
-    setupLabel (sampleStartLabel, "START", 12.0, juce::Justification::centredLeft);
+    setupLabel (sampleStartLabel, "SMPL START", 12.0, juce::Justification::centredRight);
     setupTextEditor (sampleStartTextEditor, juce::Justification::centred, 0, "0123456789", "SampleStart", [this] ()
     {
         FormatHelpers::setColorIfError (sampleStartTextEditor, minZoneProperties.getSampleStart ().value_or (0), zoneProperties.getSampleEnd ().value_or (sampleLength));
@@ -195,7 +194,7 @@ void ZoneEditor::setupZoneComponents ()
         sampleStartTextEditor.setText (juce::String (sampleStart));
     });
     // SAMPLE END
-    setupLabel (sampleEndLabel, "END", 12.0, juce::Justification::centredLeft);
+    setupLabel (sampleEndLabel, "SMPL END", 12.0, juce::Justification::centredRight);
     setupTextEditor (sampleEndTextEditor, juce::Justification::centred, 0, "0123456789", "SampleEnd", [this] ()
     {
         FormatHelpers::setColorIfError (sampleEndTextEditor, zoneProperties.getSampleStart ().value_or (0), sampleLength);
@@ -206,9 +205,8 @@ void ZoneEditor::setupZoneComponents ()
         sampleEndUiChanged (sampleEnd);
         sampleEndTextEditor.setText (juce::String (sampleEnd));
     });
-    setupLabel (loopSectionLabel, "LOOP", 15.0, juce::Justification::centredLeft);
     // LOOP START
-    setupLabel (loopStartLabel, "START", 12.0, juce::Justification::centredLeft);
+    setupLabel (loopStartLabel, "LOOP START", 12.0, juce::Justification::centredRight);
     setupTextEditor (loopStartTextEditor, juce::Justification::centred, 0, "0123456789", "LoopStart", [this] ()
     {
         if (! loopLengthIsEnd)
@@ -238,7 +236,7 @@ void ZoneEditor::setupZoneComponents ()
         }
     });
     // LOOP LENGTH
-    setupLabel (loopLengthLabel, "LENGTH", 12.0, juce::Justification::centredLeft);
+    setupLabel (loopLengthLabel, "LOOP LENGTH", 12.0, juce::Justification::centredRight);
     setupTextEditor (loopLengthTextEditor, juce::Justification::centred, 0, ".0123456789", "LoopLength", [this] ()
     {
         auto loopLengthInput = [this, text = loopLengthTextEditor.getText()] ()
@@ -269,7 +267,7 @@ void ZoneEditor::setupZoneComponents ()
         loopLengthUiChanged (loopLength);
         loopLengthTextEditor.setText (formatLoopLength (loopLength));
     });
-    setupLabel (minVoltageLabel, "MIN VOLTAGE", 15.0, juce::Justification::centredLeft);
+    setupLabel (minVoltageLabel, "MIN VOLTAGE", 15.0, juce::Justification::centredRight);
     // MIN VOLTAGE
     setupTextEditor (minVoltageTextEditor, juce::Justification::centred, 0, "+-.0123456789", "MinVoltage", [this] ()
     {
@@ -281,18 +279,7 @@ void ZoneEditor::setupZoneComponents ()
         minVoltageUiChanged (minVoltage);
         minVoltageTextEditor.setText (FormatHelpers::formatDouble (minVoltage, 2, true));
     });
-    setupLabel (levelOffsetLabel, "LEVEL OFFSET", 15.0, juce::Justification::centredLeft);
-    setupTextEditor (levelOffsetTextEditor, juce::Justification::centred, 0, "+-.0123456789", "LevelOffset", [this] ()
-    {
-        FormatHelpers::setColorIfError (levelOffsetTextEditor, minZoneProperties.getLevelOffset (), maxZoneProperties.getLevelOffset ());
-    },
-    [this] (juce::String text)
-    {
-        const auto levelOffset { std::clamp (text.getDoubleValue (), minZoneProperties.getLevelOffset (), maxZoneProperties.getLevelOffset ()) };
-        levelOffsetUiChanged (levelOffset);
-        levelOffsetTextEditor.setText (FormatHelpers::formatDouble (levelOffset, 1, true));
-    });
-    setupLabel (pitchOffsetLabel, "PITCH OFFSET", 15.0, juce::Justification::centredLeft);
+    setupLabel (pitchOffsetLabel, "PITCH OFFSET", 15.0, juce::Justification::centredRight);
     setupTextEditor (pitchOffsetTextEditor, juce::Justification::centred, 0, "+-.0123456789", "PitchOffset", [this] ()
     {
         FormatHelpers::setColorIfError (pitchOffsetTextEditor, minZoneProperties.getPitchOffset (), maxZoneProperties.getPitchOffset ());
@@ -302,6 +289,17 @@ void ZoneEditor::setupZoneComponents ()
         const auto pitchOffset { std::clamp (text.getDoubleValue (), minZoneProperties.getPitchOffset (), maxZoneProperties.getPitchOffset ()) };
         pitchOffsetUiChanged (pitchOffset);
         pitchOffsetTextEditor.setText (FormatHelpers::formatDouble (pitchOffset, 2, true));
+    });
+    setupLabel (levelOffsetLabel, "LEVEL OFFSET", 15.0, juce::Justification::centredRight);
+    setupTextEditor (levelOffsetTextEditor, juce::Justification::centred, 0, "+-.0123456789", "LevelOffset", [this] ()
+    {
+        FormatHelpers::setColorIfError (levelOffsetTextEditor, minZoneProperties.getLevelOffset (), maxZoneProperties.getLevelOffset ());
+    },
+    [this] (juce::String text)
+    {
+        const auto levelOffset { std::clamp (text.getDoubleValue (), minZoneProperties.getLevelOffset (), maxZoneProperties.getLevelOffset ()) };
+        levelOffsetUiChanged (levelOffset);
+        levelOffsetTextEditor.setText (FormatHelpers::formatDouble (levelOffset, 1, true));
     });
 }
 
@@ -332,12 +330,12 @@ void ZoneEditor::setLoopLengthIsEnd (bool newLoopLengthIsEnd)
     loopLengthIsEnd = newLoopLengthIsEnd;
     if (! loopLengthIsEnd)
     {
-        loopLengthLabel.setText ("LENGTH", juce::NotificationType::dontSendNotification);
+        loopLengthLabel.setText ("LOOP LENGTH", juce::NotificationType::dontSendNotification);
         loopLengthTextEditor.setInputRestrictions (0, ".0123456789");
     }
     else
     {
-        loopLengthLabel.setText ("END", juce::NotificationType::dontSendNotification);
+        loopLengthLabel.setText ("LOOP END", juce::NotificationType::dontSendNotification);
         loopLengthTextEditor.setInputRestrictions (0, "0123456789");
     }
     // reformat the UI string
@@ -366,7 +364,7 @@ void ZoneEditor::paint ([[maybe_unused]] juce::Graphics& g)
 void ZoneEditor::resized ()
 {
     const auto xOffset { 3 };
-    const auto width { 150 };
+    const auto width { 155 };
     const auto interParameterYOffset { 1 };
     const auto inputXOffset { 5 };
     const auto inputYOffset { 0 };
@@ -375,26 +373,28 @@ void ZoneEditor::resized ()
     sampleNameLabel.setBounds (xOffset, 5, width, 20);
     sampleNameTextEditor.setBounds (sampleNameLabel.getX () + inputXOffset, sampleNameLabel.getBottom () + inputYOffset, sampleInputWidth, 20);
 
-    sampleSectionLabel.setBounds (xOffset, sampleNameTextEditor.getBottom () + interParameterYOffset, width, 20);
-    sampleStartLabel.setBounds (xOffset + 5, sampleSectionLabel.getBottom (), (width / 3) - 5, 20);
-    sampleStartTextEditor.setBounds (sampleStartLabel.getRight (), sampleStartLabel.getY (), width - (width / 3), 20);
-    sampleEndLabel.setBounds (xOffset + 5, sampleStartLabel.getBottom () + interParameterYOffset, (width / 3) - 5, 20);
-    sampleEndTextEditor.setBounds (sampleEndLabel.getRight (), sampleEndLabel.getY (), width - (width / 3), 20);
+    const auto samplePointLabelScale { 0.45f };
+    const auto samplePointInputScale { 1.f - samplePointLabelScale };
+    auto scaleWidth = [width] (float scaleAmount) { return static_cast<int>(width * scaleAmount); };
+    sampleStartLabel.setBounds (xOffset + 5, sampleNameTextEditor.getBottom () + 5, scaleWidth (samplePointLabelScale), 20);
+    sampleStartTextEditor.setBounds (sampleStartLabel.getRight (), sampleStartLabel.getY (), scaleWidth (samplePointInputScale) - 5, 20);
+    sampleEndLabel.setBounds (xOffset + 5, sampleStartLabel.getBottom () + interParameterYOffset, scaleWidth (samplePointLabelScale), 20);
+    sampleEndTextEditor.setBounds (sampleEndLabel.getRight (), sampleEndLabel.getY (), scaleWidth (samplePointInputScale) - 5, 20);
+    loopStartLabel.setBounds (xOffset + 5, sampleEndTextEditor.getBottom (), scaleWidth (samplePointLabelScale), 20);
+    loopStartTextEditor.setBounds (loopStartLabel.getRight (), loopStartLabel.getY (), scaleWidth (samplePointInputScale) - 5, 20);
+    loopLengthLabel.setBounds (xOffset + 5, loopStartLabel.getBottom () + interParameterYOffset, scaleWidth (samplePointLabelScale), 20);
+    loopLengthTextEditor.setBounds (loopLengthLabel.getRight (), loopLengthLabel.getY (), scaleWidth (samplePointInputScale) - 5, 20);
 
-    loopSectionLabel.setBounds (xOffset, sampleEndTextEditor.getBottom () + interParameterYOffset, width, 20);
-    loopStartLabel.setBounds (xOffset + 5, loopSectionLabel.getBottom (), (width / 3) - 5, 20);
-    loopStartTextEditor.setBounds (loopStartLabel.getRight (), loopStartLabel.getY (), width - (width / 3), 20);
-    loopLengthLabel.setBounds (xOffset + 5, loopStartLabel.getBottom () + interParameterYOffset, (width / 3) - 5, 20);
-    loopLengthTextEditor.setBounds (loopLengthLabel.getRight (), loopLengthLabel.getY (), width - (width / 3), 20);
+    const auto otherLabelScale { 0.66f };
+    const auto otherInputScale { 1.f - otherLabelScale };
+    minVoltageLabel.setBounds (xOffset, loopLengthTextEditor.getBottom () + 5, scaleWidth (otherLabelScale), 20);
+    minVoltageTextEditor.setBounds (minVoltageLabel.getRight (), minVoltageLabel.getY (), scaleWidth (otherInputScale), 20);
 
-    const auto inputWidth { width / 3 };
-    const auto labelWidth { width - inputWidth };
-    minVoltageLabel.setBounds (xOffset, loopLengthTextEditor.getBottom () + 5, labelWidth, 20);
-    minVoltageTextEditor.setBounds (minVoltageLabel.getRight (), minVoltageLabel.getY (), inputWidth, 20);
-    levelOffsetLabel.setBounds (xOffset, minVoltageTextEditor.getBottom () + 5, labelWidth, 20);
-    levelOffsetTextEditor.setBounds (levelOffsetLabel.getRight (), levelOffsetLabel.getY (), inputWidth, 20);
-    pitchOffsetLabel.setBounds (xOffset, levelOffsetTextEditor.getBottom () + 5, labelWidth, 20);
-    pitchOffsetTextEditor.setBounds (pitchOffsetLabel.getRight (), pitchOffsetLabel.getY (), inputWidth, 20);
+    pitchOffsetLabel.setBounds (xOffset, minVoltageTextEditor.getBottom () + 5, scaleWidth (otherLabelScale), 20);
+    pitchOffsetTextEditor.setBounds (pitchOffsetLabel.getRight (), pitchOffsetLabel.getY (), scaleWidth (otherInputScale), 20);
+
+    levelOffsetLabel.setBounds (xOffset, pitchOffsetLabel.getBottom () + 5, scaleWidth (otherLabelScale), 20);
+    levelOffsetTextEditor.setBounds (levelOffsetLabel.getRight (), levelOffsetLabel.getY (), scaleWidth (otherInputScale), 20);
 }
 
 juce::String ZoneEditor::formatLoopLength (double loopLength)

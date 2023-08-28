@@ -75,7 +75,6 @@ private:
 
     juce::Label levelOffsetLabel;
     juce::TextEditor levelOffsetTextEditor; // double
-    juce::Label loopSectionLabel;
     juce::Label loopLengthLabel;
     juce::TextEditor loopLengthTextEditor; // double
     juce::Label loopStartLabel;
@@ -86,7 +85,6 @@ private:
     juce::TextEditor pitchOffsetTextEditor; // double
     juce::Label sampleNameLabel;
     FileDropTargetTextEditor sampleNameTextEditor; // filename
-    juce::Label sampleSectionLabel;
     juce::Label sampleEndLabel;
     juce::TextEditor sampleEndTextEditor; // int
     juce::Label sampleStartLabel;

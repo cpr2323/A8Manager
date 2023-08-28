@@ -45,13 +45,11 @@ private:
     juce::TextEditor aliasingModTextEditor; // double
     juce::Label attackLabel;
     juce::TextEditor attackTextEditor; // double
-    //juce::TextButton attackFromCurrentButton; // false = start from zero, true = start from last value
     juce::Label attackFromCurrentLabel;
     juce::ComboBox attackFromCurrentComboBox; // false = start from zero, true = start from last value
     CvInputChannelComboBox attackModComboBox; // 0A - 8C
     juce::TextEditor attackModTextEditor; // double
     juce::Label autoTriggerLabel;
-    //juce::TextButton autoTriggerButton; //
     juce::ComboBox autoTriggerComboBox; //
     juce::Label bitsLabel;
     juce::TextEditor bitsTextEditor; // double
@@ -72,14 +70,12 @@ private:
     juce::Label linAMLabel;
     CvInputChannelComboBox linAMComboBox; // 0A - 8C
     juce::TextEditor linAMTextEditor; // double
-    //juce::TextButton linAMisExtEnvButton; // 
     juce::Label linAMisExtEnvLabel; // 
     juce::ComboBox linAMisExtEnvComboBox; // 
     juce::Label linFMLabel;
     CvInputChannelComboBox linFMComboBox; // 0A - 8C
     juce::TextEditor linFMTextEditor; // double
     juce::Label loopLengthIsEndLabel;
-    //juce::TextButton loopLengthIsEndButton;
     juce::ComboBox loopLengthIsEndComboBox;
     juce::Label loopLengthModLabel;
     CvInputChannelComboBox loopLengthModComboBox; // 0A - 8C
@@ -93,7 +89,6 @@ private:
     juce::TextEditor mixLevelTextEditor; // double
     CvInputChannelComboBox mixModComboBox; // 0A - 8C
     juce::TextEditor mixModTextEditor; // double
-    //juce::TextButton mixModIsFaderButton; // 
     juce::Label mixModIsFaderLabel; // 
     juce::ComboBox mixModIsFaderComboBox; // 
     juce::Label mutateLabel;
@@ -144,6 +139,10 @@ private:
     std::array<ZoneEditor, 8> zoneEditors;
 
     void checkStereoRightOverlay ();
+    void positionColumnOne (int xOffset, int width);
+    void positionColumnTwo (int xOffset, int width);
+    void positionColumnThree (int xOffset, int width);
+    void positionColumnFour (int xOffset, int width);
     void setupChannelComponents ();
     void setupChannelPropertiesCallbacks ();
 
