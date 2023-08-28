@@ -28,7 +28,7 @@ const auto toolWindowHeight { 30 };
 
 MainComponent::MainComponent (juce::ValueTree rootPropertiesVT)
 {
-    setSize (1134, 600);
+    setSize (1085, 585);
 
     addAndMakeVisible (currentFolder);
 

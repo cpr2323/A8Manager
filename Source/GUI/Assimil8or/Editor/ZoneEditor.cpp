@@ -363,15 +363,12 @@ void ZoneEditor::paint ([[maybe_unused]] juce::Graphics& g)
 
 void ZoneEditor::resized ()
 {
-    const auto xOffset { 3 };
-    const auto width { 155 };
-    const auto interParameterYOffset { 1 };
-    const auto inputXOffset { 5 };
-    const auto inputYOffset { 0 };
-    const auto sampleInputWidth { width - 5};
+     const auto xOffset { 3 };
+     const auto width { 155 };
+     const auto interParameterYOffset { 1 };
 
-    sampleNameLabel.setBounds (xOffset, 5, width, 20);
-    sampleNameTextEditor.setBounds (sampleNameLabel.getX () + inputXOffset, sampleNameLabel.getBottom () + inputYOffset, sampleInputWidth, 20);
+    sampleNameLabel.setBounds (xOffset, 5, 25, 20);
+    sampleNameTextEditor.setBounds (sampleNameLabel.getRight () + 3, 5, width - sampleNameLabel.getWidth () - 3, 20);
 
     const auto samplePointLabelScale { 0.45f };
     const auto samplePointInputScale { 1.f - samplePointLabelScale };

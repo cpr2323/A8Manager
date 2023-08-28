@@ -23,6 +23,27 @@ private:
     }
 };
 
+class ZonesTabbedLookAndFeel : public juce::LookAndFeel_V4
+{
+public:
+//     int getTabButtonSpaceAroundImage () override;
+//     int getTabButtonOverlap (int tabDepth) override;
+    int getTabButtonBestWidth (juce::TabBarButton& button, [[maybe_unused]] int tabDepth) override
+    {
+        return button.getTabbedButtonBar ().getHeight () / 8;
+    }
+//     juce::Rectangle< int > getTabButtonExtraComponentBounds (const juce::TabBarButton&, juce::Rectangle< int > &textArea, juce::Component & extraComp) override;
+//     void drawTabButton (juce::TabBarButton&, juce::Graphics&, bool isMouseOver, bool isMouseDown) override;
+//     juce::Font getTabButtonFont (juce::TabBarButton&, float height) override;
+//     void drawTabButtonText (juce::TabBarButton&, juce::Graphics&, bool isMouseOver, bool isMouseDown) override;
+//     void drawTabbedButtonBarBackground (juce::TabbedButtonBar&, juce::Graphics&) override;
+//     void drawTabAreaBehindFrontButton (juce::TabbedButtonBar&, juce::Graphics&, int w, int h) override;
+//     void createTabButtonShape (juce::TabBarButton&, juce::Path & path, bool isMouseOver, bool isMouseDown) override;
+//     void fillTabButtonShape (juce::TabBarButton&, juce::Graphics&, const juce::Path & path, bool isMouseOver, bool isMouseDown) override;
+//     juce::Button* createTabBarExtrasButton () override;
+private:
+};
+
 class ChannelEditor : public juce::Component
 {
 public:
@@ -135,6 +156,7 @@ private:
     TransparantOverly stereoRightTransparantOverly;
 
     NoArrowComboBoxLnF noArrowComboBoxLnF;
+    ZonesTabbedLookAndFeel zonesTabbedLookAndFeel;
 
     std::array<ZoneEditor, 8> zoneEditors;
 

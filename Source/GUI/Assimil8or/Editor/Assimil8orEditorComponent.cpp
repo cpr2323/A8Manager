@@ -69,7 +69,7 @@ void Assimil8orEditorComponent::setupPresetComponents ()
 
     addAndMakeVisible (windowDecorator);
     data2AsCvLabel.setBorderSize ({ 1, 0, 1, 0 });
-    data2AsCvLabel.setText ("Data2 As CV", juce::NotificationType::dontSendNotification);
+    data2AsCvLabel.setText ("Data2 As", juce::NotificationType::dontSendNotification);
     data2AsCvLabel.setTooltip (parameterToolTipData.getToolTip ("Preset", "Data2asCV"));
     addAndMakeVisible (data2AsCvLabel);
     data2AsCvComboBox.onChange = [this] ()
@@ -91,6 +91,7 @@ void Assimil8orEditorComponent::setupPresetComponents ()
         addAndMakeVisible (xfadeGroup.xfadeGroupLabel);
 
         xfadeGroup.xfadeCvLabel.setBorderSize ({ 0, 0, 0, 0 });
+        xfadeGroup.xfadeCvLabel.setColour (juce::Label::ColourIds::textColourId, juce::Colours::black);
         xfadeGroup.xfadeCvLabel.setText ("CV", juce::NotificationType::dontSendNotification);
         addAndMakeVisible (xfadeGroup.xfadeCvLabel);
         xfadeGroup.xfadeCvComboBox.onChange = [this, xfadeGroupIndex] ()
@@ -108,6 +109,7 @@ void Assimil8orEditorComponent::setupPresetComponents ()
         //      9.0V
         //      .99V
         xfadeGroup.xfadeWidthLabel.setBorderSize ({ 0, 0, 0, 0 });
+        xfadeGroup.xfadeWidthLabel.setColour (juce::Label::ColourIds::textColourId, juce::Colours::black);
         xfadeGroup.xfadeWidthLabel.setText ("Width", juce::NotificationType::dontSendNotification);
         addAndMakeVisible (xfadeGroup.xfadeWidthLabel);
         xfadeGroup.xfadeWidthEditor.setJustification (juce::Justification::centred);
@@ -235,15 +237,14 @@ void Assimil8orEditorComponent::resized ()
     importButton.setBounds (topRow.removeFromRight (75));
     topRow.removeFromRight (3);
     saveButton.setBounds (topRow.removeFromRight (75));
-    const auto tabHeight (600);
     const auto topRowY { titleLabel.getBottom () + 3 };
-    channelTabs.setBounds (3, topRowY, 770, tabHeight);
+    channelTabs.setBounds (3, topRowY, 765, 400);
     const auto bottomRowY (getLocalBounds ().getBottom () - 26);
     windowDecorator.setBounds (getLocalBounds ().removeFromBottom (26));
 
     // Data2 as CV
-    data2AsCvLabel.setBounds (6, bottomRowY + 3, 80, 20);
-    data2AsCvComboBox.setBounds (data2AsCvLabel.getRight () + 1, bottomRowY + 3, 28, 20);
+    data2AsCvLabel.setBounds (6, bottomRowY + 3, 55, 20);
+    data2AsCvComboBox.setBounds (data2AsCvLabel.getRight () + 3, bottomRowY + 3, 28, 20);
 
     // Cross fade groups
     xfadeGroupsLabel.setBounds (data2AsCvComboBox.getRight () + 5, bottomRowY + 3, 50, 20);

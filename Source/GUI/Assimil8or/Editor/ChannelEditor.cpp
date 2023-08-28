@@ -50,8 +50,13 @@ ChannelEditor::ChannelEditor ()
     });
 
     for (auto curZoneIndex { 0 }; curZoneIndex < 8; ++curZoneIndex)
+    {
         zoneTabs.addTab (juce::String::charToString ('1' + curZoneIndex), juce::Colours::darkgrey, &zoneEditors [curZoneIndex], false);
+        zoneTabs.setTabBackgroundColour (curZoneIndex, zoneTabs.getTabBackgroundColour (curZoneIndex).darker (0.2f));
+    }
+    zoneTabs.setLookAndFeel (&zonesTabbedLookAndFeel);
     addAndMakeVisible (zoneTabs);
+
 
     attackFromCurrentComboBox.setLookAndFeel (&noArrowComboBoxLnF);
     autoTriggerComboBox.setLookAndFeel (&noArrowComboBoxLnF);
@@ -82,6 +87,7 @@ ChannelEditor::ChannelEditor ()
 
 ChannelEditor::~ChannelEditor ()
 {
+    zoneTabs.setLookAndFeel (nullptr);
     attackFromCurrentComboBox.setLookAndFeel (nullptr);
     autoTriggerComboBox.setLookAndFeel (nullptr);
     channelModeComboBox.setLookAndFeel (nullptr);
@@ -186,7 +192,7 @@ void ChannelEditor::setupChannelComponents ()
     });
 
     // LINFM
-    setupLabel (linFMLabel, "LINFM", kLargeLabelSize, juce::Justification::centred);
+    setupLabel (linFMLabel, "LIN FM", kLargeLabelSize, juce::Justification::centred);
     setupCvInputComboBox (linFMComboBox, "LinFM", [this] () { linFMUiChanged (linFMComboBox.getSelectedItemText (), linFMTextEditor.getText ().getDoubleValue ()); });
     setupTextEditor (linFMTextEditor, juce::Justification::centred, 0, "+-.0123456789", "LinFM", [this] ()
     {
@@ -201,7 +207,7 @@ void ChannelEditor::setupChannelComponents ()
     });
 
     // EXPFM
-    setupLabel (expFMLabel, "EXPFM", kLargeLabelSize, juce::Justification::centred);
+    setupLabel (expFMLabel, "EXP FM", kLargeLabelSize, juce::Justification::centred);
     setupCvInputComboBox (expFMComboBox, "ExpFM", [this] () { expFMUiChanged (expFMComboBox.getSelectedItemText (), expFMTextEditor.getText ().getDoubleValue ()); });
     setupTextEditor (expFMTextEditor, juce::Justification::centred, 0, "+-.0123456789", "ExpFM", [this] ()
     {
@@ -230,7 +236,7 @@ void ChannelEditor::setupChannelComponents ()
     setupLabel (levelDbLabel, "dB", kSmallLabelSize, juce::Justification::centredLeft);
 
     // LINAM
-    setupLabel (linAMLabel, "LINAM", kLargeLabelSize, juce::Justification::centred);
+    setupLabel (linAMLabel, "LIN AM", kLargeLabelSize, juce::Justification::centred);
     setupLabel (linAMisExtEnvLabel, "BIAS", kMediumLabelSize, juce::Justification::centredRight);
     linAMisExtEnvComboBox.addItem ("Normal", 1); // 0 = Normal, 1 = External Envelope
     linAMisExtEnvComboBox.addItem ("External", 2);
@@ -254,7 +260,7 @@ void ChannelEditor::setupChannelComponents ()
     // Linear AM Bias
 
     // EXPAM
-    setupLabel (expAMLabel, "EXPAM", kLargeLabelSize, juce::Justification::centred);
+    setupLabel (expAMLabel, "EXP AM", kLargeLabelSize, juce::Justification::centred);
     setupCvInputComboBox (expAMComboBox, "ExpAM", [this] () { expAMUiChanged (expAMComboBox.getSelectedItemText (), expAMTextEditor.getText ().getDoubleValue ()); });
     setupTextEditor (expAMTextEditor, juce::Justification::centred, 0, "+-.0123456789", "ExpAM", [this] ()
     {
@@ -851,7 +857,7 @@ void ChannelEditor::resized ()
 
     stereoRightTransparantOverly.setBounds (getLocalBounds ());
 
-    auto zoneColumn {getLocalBounds ().removeFromRight(getWidth () / 4)};
+    auto zoneColumn {getLocalBounds ().removeFromRight(200)};
     zoneColumn.removeFromTop (3);
     auto zoneTopSection { zoneColumn.removeFromTop (75).withTrimmedBottom (5).withTrimmedRight (3)};
     zonesLabel.setBounds (zoneTopSection.getX (), zoneTopSection.getHeight () / 2 - kMediumLabelIntSize / 2, 80, kMediumLabelIntSize);
