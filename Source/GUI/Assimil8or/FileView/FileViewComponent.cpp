@@ -116,6 +116,7 @@ void FileViewComponent::paintListBoxItem (int row, juce::Graphics& g, int width,
     if (row >= getNumRows ())
         return;
 
+    juce::Colour textColor { juce::Colours::whitesmoke };
     juce::String fileListItem;
     if (listOffset == 1 && row == 0)
     {
@@ -124,19 +125,22 @@ void FileViewComponent::paintListBoxItem (int row, juce::Graphics& g, int width,
     else
     {
         auto file { juce::File (directoryListQuickLookupList [row - listOffset].getProperty ("name").toString ()) };
-        auto filePrefix = [&file] () -> juce::String
+        juce::String filePrefix;
+        if (file.isDirectory ())
         {
-            if (file.isDirectory ())
-                return "> ";
-            else
-                return "   ";
-        };
-        fileListItem = " " + filePrefix () + file.getFileName ();
+            filePrefix = "> ";
+        }
+        else
+        {
+            filePrefix = "   ";
+            textColor = textColor.darker (0.4f);
+        }
+        fileListItem = " " + filePrefix+ file.getFileName ();
     }
 
     g.setColour (juce::Colours::darkslategrey);
     g.fillRect (width - 1, 0, 1, height);
-    g.setColour (juce::Colours::whitesmoke);
+    g.setColour (textColor);
     g.drawText (fileListItem, juce::Rectangle<float>{ 0.0f, 0.0f, (float) width, (float) height }, juce::Justification::centredLeft, true);
 }
 
