@@ -81,7 +81,7 @@ ChannelEditor::ChannelEditor ()
 
 ChannelEditor::~ChannelEditor ()
 {
-    attackFromCurrentComboBox.setLookAndFeel (&noArrowComboBoxLnF);
+    attackFromCurrentComboBox.setLookAndFeel (nullptr);
     autoTriggerComboBox.setLookAndFeel (nullptr);
     channelModeComboBox.setLookAndFeel (nullptr);
     linAMisExtEnvComboBox.setLookAndFeel (nullptr);
