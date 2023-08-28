@@ -864,14 +864,15 @@ void ChannelEditor::resized ()
 
     const auto inputWidth { 65 };
     const auto labelWidth { 85 };
-    loopLengthIsEndComboBox.setBounds (zoneTopSection.getRight () - inputWidth, zoneTopSection.getY () + 3, inputWidth, 20);
-    loopLengthIsEndLabel.setBounds (loopLengthIsEndComboBox.getX () - labelWidth - 3, loopLengthIsEndComboBox.getY (), labelWidth, 20);
 
-    zonesCVComboBox.setBounds (zoneTopSection.getRight () - inputWidth, loopLengthIsEndComboBox.getBottom () + 3, inputWidth, 20);
+    zonesCVComboBox.setBounds (zoneTopSection.getRight () - inputWidth, zoneTopSection.getY () + 3, inputWidth, 20);
     zonesCVLabel.setBounds (zonesCVComboBox.getX () - labelWidth - 3, zonesCVComboBox.getY (), labelWidth, 20);
 
     zonesRTComboBox.setBounds (zoneTopSection.getRight () - inputWidth, zonesCVComboBox.getBottom() + 3, inputWidth, 20);
     zonesRTLabel.setBounds (zonesRTComboBox.getX () - labelWidth - 3, zonesRTComboBox.getY (), labelWidth, 20);
+
+    loopLengthIsEndComboBox.setBounds (zoneTopSection.getRight () - inputWidth, zonesRTComboBox.getBottom () + 3, inputWidth, 20);
+    loopLengthIsEndLabel.setBounds (loopLengthIsEndComboBox.getX () - labelWidth - 3, loopLengthIsEndComboBox.getY (), labelWidth, 20);
 
     zoneTabs.setBounds (zoneColumn);
 
