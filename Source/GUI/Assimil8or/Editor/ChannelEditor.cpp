@@ -820,35 +820,37 @@ void ChannelEditor::positionColumnFour (int xOffset, int width)
     channelModeLabel.setBounds (xOffset, 5, width, kMediumLabelIntSize);
     channelModeComboBox.setBounds (xOffset, channelModeLabel.getBottom (), width + 3, kParameterLineHeight);
 
-    sampleStartModLabel.setBounds (xOffset, channelModeComboBox.getBottom () + 5, width, kMediumLabelIntSize);
+    // AUTO TRIGGER
+    autoTriggerLabel.setBounds (xOffset, channelModeComboBox.getBottom () + 5 + 2, ((width / 3) * 2) - 15, kMediumLabelIntSize);
+    autoTriggerComboBox.setBounds (autoTriggerLabel.getRight () + 3, channelModeComboBox.getBottom () + 5, (width / 3 + 15), kParameterLineHeight);
+
+    // PLAY MODE
+    playModeLabel.setBounds (xOffset, autoTriggerComboBox.getBottom () + 5 + 2, width / 3, kMediumLabelIntSize);
+    playModeComboBox.setBounds (playModeLabel.getRight () + 3, autoTriggerComboBox.getBottom () + 5, (width / 3) * 2, kParameterLineHeight);
+
+    // SAMPLE START/END
+    sampleStartModLabel.setBounds (xOffset, playModeComboBox.getBottom () + 5, width, kMediumLabelIntSize);
     sampleStartModComboBox.setBounds (xOffset, sampleStartModLabel.getBottom (), width / 2, kParameterLineHeight);
     sampleStartModTextEditor.setBounds (sampleStartModComboBox.getRight () + 3, sampleStartModComboBox.getY (), width / 2, kParameterLineHeight);
     sampleEndModLabel.setBounds (xOffset, sampleStartModComboBox.getBottom () + 5, width, kMediumLabelIntSize);
     sampleEndModComboBox.setBounds (xOffset, sampleEndModLabel.getBottom (), width / 2, kParameterLineHeight);
     sampleEndModTextEditor.setBounds (sampleEndModComboBox.getRight () + 3, sampleEndModComboBox.getY (), width / 2, kParameterLineHeight);
 
-    loopStartModLabel.setBounds (xOffset, sampleEndModComboBox.getBottom () + 5, width, kMediumLabelIntSize);
+    // LOOP MODE
+    loopModeLabel.setBounds (xOffset, sampleEndModComboBox.getBottom () + 5 + 2, width / 3, kMediumLabelIntSize);
+    loopModeComboBox.setBounds (loopModeLabel.getRight () + 3, sampleEndModComboBox.getBottom () + 5, (width / 3) * 2, kParameterLineHeight);
+
+    // LOOP START/LENGTH/END
+    loopStartModLabel.setBounds (xOffset, loopModeComboBox.getBottom () + 5, width, kMediumLabelIntSize);
     loopStartModComboBox.setBounds (xOffset, loopStartModLabel.getBottom (), width / 2, kParameterLineHeight);
     loopStartModTextEditor.setBounds (loopStartModComboBox.getRight () + 3, loopStartModComboBox.getY (), width / 2, kParameterLineHeight);
     loopLengthModLabel.setBounds (xOffset, loopStartModComboBox.getBottom () + 5, width, kMediumLabelIntSize);
     loopLengthModComboBox.setBounds (xOffset, loopLengthModLabel.getBottom (), width / 2, kParameterLineHeight);
     loopLengthModTextEditor.setBounds (loopLengthModComboBox.getRight () + 3, loopLengthModComboBox.getY (), width / 2, kParameterLineHeight);
 
-    // PLAY MODE
-    playModeLabel.setBounds (xOffset, loopLengthModComboBox.getBottom () + 5 + 2, width / 3, kMediumLabelIntSize);
-    playModeComboBox.setBounds (playModeLabel.getRight () + 3, loopLengthModComboBox.getBottom () + 5, (width / 3) * 2, kParameterLineHeight);
-
-    // LOOP MODE
-    loopModeLabel.setBounds (xOffset, playModeComboBox.getBottom () + 5 + 2, width / 3, kMediumLabelIntSize);
-    loopModeComboBox.setBounds (loopModeLabel.getRight () + 3, playModeComboBox.getBottom () + 5, (width / 3) * 2, kParameterLineHeight);
-
-    // AUTO TRIGGER
-    autoTriggerLabel.setBounds (xOffset, loopModeComboBox.getBottom () + 5 + 2, ((width / 3) * 2) - 15, kMediumLabelIntSize);
-    autoTriggerComboBox.setBounds (autoTriggerLabel.getRight () + 3, loopModeComboBox.getBottom () + 5, (width / 3 + 15), kParameterLineHeight);
-
     // XFADE GRP
-    xfadeGroupLabel.setBounds (xOffset, autoTriggerComboBox.getBottom () + 5 + 2, width / 2, kMediumLabelIntSize);
-    xfadeGroupComboBox.setBounds (xfadeGroupLabel.getRight () + 3, autoTriggerComboBox.getBottom () + 5, width / 2, kParameterLineHeight);
+    xfadeGroupLabel.setBounds (xOffset, loopLengthModComboBox.getBottom () + 5 + 2, width / 2, kMediumLabelIntSize);
+    xfadeGroupComboBox.setBounds (xfadeGroupLabel.getRight () + 3, loopLengthModComboBox.getBottom () + 5, width / 2, kParameterLineHeight);
 }
 
 void ChannelEditor::resized ()
