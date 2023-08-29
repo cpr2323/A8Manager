@@ -137,6 +137,7 @@ void ZoneEditor::loadSample (juce::String sampleFileName)
     zoneProperties.setLoopStart (-1, true);
     zoneProperties.setLoopLength (-1, true);
     updateSamplePositionInfo ();
+    deleteButton.setVisible (sampleFileName.isNotEmpty ());
 
     sampleUiChanged (sampleFileName);
     sampleNameSelectLabel.setText (sampleFileName, juce::NotificationType::dontSendNotification);
