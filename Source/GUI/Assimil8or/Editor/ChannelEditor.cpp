@@ -917,56 +917,53 @@ void ChannelEditor::positionColumnFour (int xOffset, int width)
     curYOffset += kParameterLineHeight;
     curYOffset += kNewSectionOffset;
     // AUTO TRIGGER
-    autoTriggerLabel.setBounds (xOffset, curYOffset + 2, ((width / 3) * 2) - 15, kMediumLabelIntSize);
-    autoTriggerComboBox.setBounds (autoTriggerLabel.getRight () + 3, curYOffset, (width / 3 + 15), kParameterLineHeight);
+    autoTriggerLabel.setBounds (xOffset, curYOffset + 2, scaleWidth (0.55f), kMediumLabelIntSize);
+    autoTriggerComboBox.setBounds (autoTriggerLabel.getRight () + 3, curYOffset, scaleWidth (0.45f), kParameterLineHeight);
     curYOffset += kParameterLineHeight;
     curYOffset += kInterControlYOffset;
     // PLAY MODE
-    playModeLabel.setBounds (xOffset, curYOffset + 2, width / 3, kMediumLabelIntSize);
-    playModeComboBox.setBounds (playModeLabel.getRight () + 3, curYOffset, (width / 3) * 2, kParameterLineHeight);
+    playModeLabel.setBounds (xOffset, curYOffset + 2, scaleWidth (0.33f), kMediumLabelIntSize);
+    playModeComboBox.setBounds (playModeLabel.getRight () + 3, curYOffset, scaleWidth (0.66f), kParameterLineHeight);
     curYOffset += kParameterLineHeight;
     curYOffset += kInterControlYOffset;
     // SAMPLE START/END
     sampleStartModLabel.setBounds (xOffset, curYOffset, width, kMediumLabelIntSize);
     curYOffset += kMediumLabelIntSize;
     curYOffset += kFirstControlSectionYOffset;
-    sampleStartModComboBox.setBounds (xOffset, curYOffset, width / 2, kParameterLineHeight);
-    sampleStartModTextEditor.setBounds (sampleStartModComboBox.getRight () + 3, curYOffset, width / 2, kParameterLineHeight);
+    sampleStartModComboBox.setBounds (xOffset, curYOffset, scaleWidth (0.50f), kParameterLineHeight);
+    sampleStartModTextEditor.setBounds (sampleStartModComboBox.getRight () + 3, curYOffset, scaleWidth (0.50f), kParameterLineHeight);
     curYOffset += kParameterLineHeight;
     curYOffset += kInterControlYOffset;
     sampleEndModLabel.setBounds (xOffset, curYOffset, width, kMediumLabelIntSize);
     curYOffset += kMediumLabelIntSize;
     curYOffset += kFirstControlSectionYOffset;
-    sampleEndModComboBox.setBounds (xOffset, curYOffset, width / 2, kParameterLineHeight);
-    sampleEndModTextEditor.setBounds (sampleEndModComboBox.getRight () + 3, curYOffset, width / 2, kParameterLineHeight);
+    sampleEndModComboBox.setBounds (xOffset, curYOffset, scaleWidth (0.50f), kParameterLineHeight);
+    sampleEndModTextEditor.setBounds (sampleEndModComboBox.getRight () + 3, curYOffset, scaleWidth (0.50f), kParameterLineHeight);
     curYOffset += kParameterLineHeight;
     curYOffset += kNewSectionOffset;
-
     // LOOP MODE
-    loopModeLabel.setBounds (xOffset, curYOffset + 2, width / 3, kMediumLabelIntSize);
-    loopModeComboBox.setBounds (loopModeLabel.getRight () + 3, curYOffset, (width / 3) * 2, kParameterLineHeight);
+    loopModeLabel.setBounds (xOffset, curYOffset + 2, scaleWidth (0.33f), kMediumLabelIntSize);
+    loopModeComboBox.setBounds (loopModeLabel.getRight () + 3, curYOffset, scaleWidth (0.66f), kParameterLineHeight);
     curYOffset += kParameterLineHeight;
     curYOffset += kInterControlYOffset;
-
     // LOOP START/LENGTH/END
     loopStartModLabel.setBounds (xOffset, curYOffset, width, kMediumLabelIntSize);
     curYOffset += kMediumLabelIntSize;
     curYOffset += kFirstControlSectionYOffset;
-    loopStartModComboBox.setBounds (xOffset, curYOffset, width / 2, kParameterLineHeight);
-    loopStartModTextEditor.setBounds (loopStartModComboBox.getRight () + 3, curYOffset, width / 2, kParameterLineHeight);
+    loopStartModComboBox.setBounds (xOffset, curYOffset, scaleWidth (0.50f), kParameterLineHeight);
+    loopStartModTextEditor.setBounds (loopStartModComboBox.getRight () + 3, curYOffset, scaleWidth (0.50f), kParameterLineHeight);
     curYOffset += kParameterLineHeight;
     curYOffset += kInterControlYOffset;
     loopLengthModLabel.setBounds (xOffset, curYOffset, width, kMediumLabelIntSize);
     curYOffset += kMediumLabelIntSize;
     curYOffset += kFirstControlSectionYOffset;
-    loopLengthModComboBox.setBounds (xOffset, curYOffset, width / 2, kParameterLineHeight);
-    loopLengthModTextEditor.setBounds (loopLengthModComboBox.getRight () + 3, curYOffset, width / 2, kParameterLineHeight);
+    loopLengthModComboBox.setBounds (xOffset, curYOffset, scaleWidth (0.50f), kParameterLineHeight);
+    loopLengthModTextEditor.setBounds (loopLengthModComboBox.getRight () + 3, curYOffset, scaleWidth (0.50f), kParameterLineHeight);
     curYOffset += kParameterLineHeight;
     curYOffset += kNewSectionOffset;
-
     // XFADE GRP
-    xfadeGroupLabel.setBounds (xOffset, loopLengthModComboBox.getBottom () + 5 + 2, width / 2, kMediumLabelIntSize);
-    xfadeGroupComboBox.setBounds (xfadeGroupLabel.getRight () + 3, loopLengthModComboBox.getBottom () + 5, width / 2, kParameterLineHeight);
+    xfadeGroupLabel.setBounds (xOffset, curYOffset + 2, scaleWidth (0.50f), kMediumLabelIntSize);
+    xfadeGroupComboBox.setBounds (xfadeGroupLabel.getRight () + 3, curYOffset, scaleWidth (0.50f), kParameterLineHeight);
 }
 
 void ChannelEditor::resized ()

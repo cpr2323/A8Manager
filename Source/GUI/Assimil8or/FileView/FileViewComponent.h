@@ -37,6 +37,6 @@ private:
     void paintListBoxItem (int rowNumber, juce::Graphics& g, int width, int height, bool rowIsSelected) override;
     juce::String getTooltipForRow (int row) override;
     void listBoxItemClicked (int row, const juce::MouseEvent& me) override;
-    void listBoxItemDoubleClicked (int row, const juce::MouseEvent& me);
+    void listBoxItemDoubleClicked (int row, const juce::MouseEvent& me) override;
 };
     
