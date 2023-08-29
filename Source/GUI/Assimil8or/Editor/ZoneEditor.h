@@ -77,16 +77,12 @@ private:
         fileChooser.reset (new juce::FileChooser ("Please select the Assimil8or Preset file you want to load...", {}, "*.wav"));
         fileChooser->launchAsync (juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles, [this] (const juce::FileChooser& fc) mutable
         {
-            if (fc.getURLResults ().size () > 0 && fc.getURLResults () [0].isLocalFile ())
+            if (fc.getURLResults ().size () > 0 && fc.getURLResults () [0].isLocalFile () && onFilesSelected != nullptr)
             {
-                if (onFilesSelected != nullptr)
-                {
-                    juce::StringArray files;
-                    for (auto urlResult : fc.getURLResults ())
-                        files.add (urlResult.getLocalFile ().getFullPathName ());
-                    onFilesSelected (files);
-                }
-
+                juce::StringArray files;
+                for (auto urlResult : fc.getURLResults ())
+                    files.add (urlResult.getLocalFile ().getFullPathName ());
+                onFilesSelected (files);
             }
         }, nullptr);
     }
