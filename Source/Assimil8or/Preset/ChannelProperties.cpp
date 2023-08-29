@@ -1,7 +1,5 @@
 #include "ChannelProperties.h"
 
-const auto kMaxZones { 8 };
-
 int ChannelProperties::getNumZones ()
 {
     auto numZones { 0 };

@@ -62,6 +62,12 @@ ZoneEditor::ZoneEditor ()
         sampleNameSelectLabel.repaint ();
     };
 
+    deleteButton.setButtonText ("DEL");
+    deleteButton.onClick = [this] ()
+    {
+        zoneProperties.setSample ("", true);
+    };
+    addAndMakeVisible (deleteButton);
     setupZoneComponents ();
 }
 
@@ -373,6 +379,8 @@ void ZoneEditor::resized ()
     const auto spaceBetweenLabelAndInput { 3 };
     auto scaleWidth = [width] (float scaleAmount) { return static_cast<int>(width * scaleAmount); };
 
+    deleteButton.setBounds (getWidth() - 5 - 40, getHeight() - 5 - 20, 40, 20);
+
     const auto sampleNameLabelScale { 0.156f };
     const auto sampleNameInputScale { 1.f - sampleNameLabelScale };
     sampleNameLabel.setBounds (xOffset, 5, scaleWidth (sampleNameLabelScale), 20);
@@ -504,6 +512,7 @@ void ZoneEditor::sampleDataChanged (juce::String sample)
         updateSampleFileInfo (sample);
         updateSamplePositionInfo ();
     }
+    deleteButton.setVisible (sample.isNotEmpty ());
     sampleNameSelectLabel.setText (sample, juce::NotificationType::dontSendNotification);
 }
 

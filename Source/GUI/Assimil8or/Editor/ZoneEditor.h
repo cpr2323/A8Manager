@@ -130,6 +130,8 @@ private:
     juce::Label sampleStartLabel;
     juce::TextEditor sampleStartTextEditor; // int
 
+    juce::TextButton deleteButton;
+
     int64_t sampleLength { 0 };
 
     juce::String formatLoopLength (double loopLength);

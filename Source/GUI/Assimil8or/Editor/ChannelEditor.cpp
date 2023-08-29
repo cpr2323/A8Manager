@@ -61,7 +61,6 @@ ChannelEditor::ChannelEditor ()
     zoneTabs.setLookAndFeel (&zonesTabbedLookAndFeel);
     addAndMakeVisible (zoneTabs);
 
-
     attackFromCurrentComboBox.setLookAndFeel (&noArrowComboBoxLnF);
     autoTriggerComboBox.setLookAndFeel (&noArrowComboBoxLnF);
     channelModeComboBox.setLookAndFeel (&noArrowComboBoxLnF);
@@ -103,6 +102,46 @@ ChannelEditor::~ChannelEditor ()
     pMSourceComboBox.setLookAndFeel (nullptr);
     xfadeGroupComboBox.setLookAndFeel (nullptr);
     zonesRTComboBox.setLookAndFeel (nullptr);
+}
+
+void ChannelEditor::setZoneTabStates ()
+{
+    auto& tabbedButtonBar { zoneTabs.getTabbedButtonBar () };
+    auto zoneIndex { 0 };
+    auto lastEnabledZoneTab { -1 };
+    channelProperties.forEachZone ([this, &zoneIndex, &tabbedButtonBar, &lastEnabledZoneTab] (juce::ValueTree zoneVT)
+    {
+        ZoneProperties zoneProperties (zoneVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
+        if (zoneProperties.getSample ().isEmpty ())
+        {
+            tabbedButtonBar.getTabButton (zoneIndex)->setEnabled (false);
+        }
+        else
+        {
+            tabbedButtonBar.getTabButton (zoneIndex)->setEnabled (true);
+            lastEnabledZoneTab = zoneIndex;
+        }
+        ++zoneIndex;
+        return true;
+    });
+
+    auto curTabIndex { zoneTabs.getCurrentTabIndex () };
+    if (curTabIndex == -1)
+    {
+        zoneTabs.setCurrentTabIndex (0);
+    }
+    else if (lastEnabledZoneTab == - 1)
+    {
+        zoneTabs.setCurrentTabIndex (0);
+        tabbedButtonBar.getTabButton (0)->setEnabled (true);
+    }
+    else if (lastEnabledZoneTab != 7)
+    {
+        tabbedButtonBar.getTabButton (lastEnabledZoneTab + 1)->setEnabled (true);
+
+        if (! tabbedButtonBar.getTabButton (curTabIndex)->isEnabled ())
+            zoneTabs.setCurrentTabIndex (lastEnabledZoneTab);
+    }
 }
 
 void ChannelEditor::setupChannelComponents ()
@@ -619,6 +658,8 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
     channelProperties.forEachZone([this, &zoneEditorIndex, rootPropertiesVT] (juce::ValueTree zonePropertiesVT)
     {
         zoneEditors [zoneEditorIndex].init (zonePropertiesVT, rootPropertiesVT);
+        zoneProperties [zoneEditorIndex].wrap (zonePropertiesVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::yes);
+        zoneProperties [zoneEditorIndex].onSampleChange = [this] (juce::String sampleFile) { setZoneTabStates (); };
         ++zoneEditorIndex;
         return true;
     });
@@ -669,6 +710,8 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
     xfadeGroupDataChanged (channelProperties.getXfadeGroup ());
     zonesCVDataChanged (channelProperties.getZonesCV ());
     zonesRTDataChanged (channelProperties.getZonesRT ());
+
+    setZoneTabStates ();
 }
 
 void ChannelEditor::receiveSampleLoadRequest (juce::File sampleFile)
@@ -680,7 +723,7 @@ void ChannelEditor::receiveSampleLoadRequest (juce::File sampleFile)
 
 void ChannelEditor::setupChannelPropertiesCallbacks ()
 {
-    channelProperties.onIdChange = [this] ([[maybe_unused]] int index) { jassertfalse; /* I don't think this should change while we are editing */};
+    channelProperties.onIdChange = [this] ([[maybe_unused]] int id) { jassertfalse; };
     channelProperties.onAliasingChange = [this] (int aliasing) { aliasingDataChanged (aliasing);  };
     channelProperties.onAliasingModChange = [this] (CvInputAndAmount amountAndCvInput) { const auto& [cvInput, value] { amountAndCvInput }; aliasingModDataChanged (cvInput, value); };
     channelProperties.onAttackChange = [this] (double attack) { attackDataChanged (attack);  };

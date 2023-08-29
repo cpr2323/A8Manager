@@ -161,6 +161,7 @@ private:
     ZonesTabbedLookAndFeel zonesTabbedLookAndFeel;
 
     std::array<ZoneEditor, 8> zoneEditors;
+    std::array<ZoneProperties, 8> zoneProperties;
 
     void checkStereoRightOverlay ();
     void positionColumnOne (int xOffset, int width);
@@ -169,6 +170,7 @@ private:
     void positionColumnFour (int xOffset, int width);
     void setupChannelComponents ();
     void setupChannelPropertiesCallbacks ();
+    void setZoneTabStates ();
 
     void aliasingDataChanged (int aliasing);
     void aliasingUiChanged (int aliasing);
