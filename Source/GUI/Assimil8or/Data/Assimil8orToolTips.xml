@@ -20,7 +20,7 @@
 	<Parameter name="AutoTrigger" tooltip="When Selecting New Preset - Wait for Trigger to Play or Start Playing Immediately"/>
 	<Parameter name="Bits" tooltip="Bit Depth Value, 0.00 - 32, Default 32"/>
 	<Parameter name="BitsMod" tooltip="CV Assignment, 0A - 8C / -1.00 to 1.00, Default Off"/>
-	<Parameter name="ChannelMode" tooltip="Channel Mode, Master - Used to Indicate a Normal Mono or Left Stereo Channel, Link - Will Play When Master Layer Above is Triggered, Stereo/Right - Companion Channel to Stereo Master, Cycle - Samples Play Sequentially on Each Trigger"/>
+	<Parameter name="ChannelMode" tooltip="Channel Mode, Master - Used to Indicate a Normal Mono or Left Stereo Channel, Link - Will Play When Master Layer Above is Triggered, Stereo/Right - Companion Channel to Stereo Master. Inherits the trigger/gate and channel parameters (except for pan) of the Master channel above it, Cycle - Samples Play Sequentially on Each Trigger"/>
 	<Parameter name="ExpAM" tooltip="CV Assignment, 0A - 8C / -1.00 to 1.00, Default Off"/>
 	<Parameter name="ExpFM" tooltip="CV Assignment, 0A - 8C / -1.00 to 1.00, Default Off"/>
 	<Parameter name="Level" tooltip="Level Value, -90 to 6, Default 0"/>

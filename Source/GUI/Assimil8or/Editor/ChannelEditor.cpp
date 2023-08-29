@@ -12,6 +12,10 @@ const auto kMediumLabelIntSize { static_cast<int>(kMediumLabelSize) };
 const auto kSmallLabelIntSize { static_cast<int>(kSmallLabelSize) };
 
 const auto kParameterLineHeight { 20 };
+const auto kFirstControlSectionYOffset { 1 };
+const auto kInterControlYOffset { 2 };
+const auto kInitialYOffset { 5 };
+const auto kNewSectionOffset { 5 };
 
 ChannelEditor::ChannelEditor ()
 {
@@ -723,130 +727,235 @@ void ChannelEditor::paint ([[maybe_unused]] juce::Graphics& g)
 
 void ChannelEditor::positionColumnOne (int xOffset, int width)
 {
-    pitchLabel.setBounds (xOffset, 5, width, kLargeLabelIntSize);
-    pitchTextEditor.setBounds (xOffset, pitchLabel.getBottom (), width / 2, kParameterLineHeight);
-    pitchSemiLabel.setBounds (pitchTextEditor.getRight () + 3, pitchLabel.getBottom () + 4, width / 2, kSmallLabelIntSize);
-    pitchCVComboBox.setBounds (xOffset, pitchTextEditor.getBottom (), width / 2, kParameterLineHeight);
-    pitchCVTextEditor.setBounds (pitchCVComboBox.getRight () + 3, pitchCVComboBox.getY (), width / 2, kParameterLineHeight);
+    auto scaleWidth = [width] (float scaleAmount) { return static_cast<int>(width * scaleAmount); };
 
-    linFMLabel.setBounds (xOffset, pitchCVComboBox.getBottom () + 5, width, kLargeLabelIntSize);
-    linFMComboBox.setBounds (linFMLabel.getX (), linFMLabel.getBottom (), width / 2, kParameterLineHeight);
-    linFMTextEditor.setBounds (linFMComboBox.getRight () + 3, linFMComboBox.getY (), width / 2, kParameterLineHeight);
+    auto curYOffset { kInitialYOffset };
+    pitchLabel.setBounds (xOffset, curYOffset, width, kLargeLabelIntSize);
+    curYOffset += kLargeLabelIntSize;
+    curYOffset += kFirstControlSectionYOffset;
+    pitchTextEditor.setBounds (xOffset, curYOffset, scaleWidth (0.5f), kParameterLineHeight);
+    pitchSemiLabel.setBounds (pitchTextEditor.getRight () + 3, curYOffset + 4, scaleWidth (0.5f), kSmallLabelIntSize);
+    curYOffset += kParameterLineHeight;
+    curYOffset += kInterControlYOffset;
+    pitchCVComboBox.setBounds (xOffset, curYOffset, scaleWidth (0.5f), kParameterLineHeight);
+    pitchCVTextEditor.setBounds (pitchCVComboBox.getRight () + 3, curYOffset, scaleWidth (0.5f), kParameterLineHeight);
+    curYOffset += kParameterLineHeight;
 
-    expFMLabel.setBounds (xOffset, linFMComboBox.getBottom () + 5, width, kLargeLabelIntSize);
-    expFMComboBox.setBounds (expFMLabel.getX (), expFMLabel.getBottom (), width / 2, kParameterLineHeight);
-    expFMTextEditor.setBounds (expFMComboBox.getRight () + 3, expFMComboBox.getY (), width / 2, kParameterLineHeight);
+    curYOffset += kNewSectionOffset;
+    linFMLabel.setBounds (xOffset, curYOffset, width, kLargeLabelIntSize);
+    curYOffset += kLargeLabelIntSize;
+    curYOffset += kFirstControlSectionYOffset;
+    linFMComboBox.setBounds (linFMLabel.getX (), curYOffset, scaleWidth (0.5f), kParameterLineHeight);
+    linFMTextEditor.setBounds (linFMComboBox.getRight () + 3, curYOffset, scaleWidth (0.5f), kParameterLineHeight);
+    curYOffset += kParameterLineHeight;
 
-    levelLabel.setBounds (xOffset, expFMComboBox.getBottom () + 5, width, kLargeLabelIntSize);
-    levelTextEditor.setBounds (levelLabel.getX (), levelLabel.getBottom (), width / 2, kParameterLineHeight);
-    levelDbLabel.setBounds (levelTextEditor.getRight () + 3, levelLabel.getBottom () + 4, width / 2, kSmallLabelIntSize);
+    curYOffset += kNewSectionOffset;
+    expFMLabel.setBounds (xOffset, curYOffset, width, kLargeLabelIntSize);
+    curYOffset += kLargeLabelIntSize;
+    curYOffset += kFirstControlSectionYOffset;
+    expFMComboBox.setBounds (expFMLabel.getX (), curYOffset, scaleWidth (0.5f), kParameterLineHeight);
+    expFMTextEditor.setBounds (expFMComboBox.getRight () + 3, curYOffset, scaleWidth (0.5f), kParameterLineHeight);
+    curYOffset += kParameterLineHeight;
 
-    linAMLabel.setBounds (xOffset, levelTextEditor.getBottom () + 5, width, kLargeLabelIntSize);
-    linAMisExtEnvLabel.setBounds (xOffset, linAMLabel.getBottom () + 2, width / 3, kMediumLabelIntSize);
-    linAMisExtEnvComboBox.setBounds (linAMisExtEnvLabel.getRight () + 3, linAMLabel.getBottom (), width - (width / 3), kParameterLineHeight);
-    linAMComboBox.setBounds (xOffset, linAMisExtEnvComboBox.getBottom (), width / 2, kParameterLineHeight);
-    linAMTextEditor.setBounds (linAMComboBox.getRight () + 3, linAMComboBox.getY (), width / 2, kParameterLineHeight);
+    curYOffset += kNewSectionOffset;
+    levelLabel.setBounds (xOffset, curYOffset, width, kLargeLabelIntSize);
+    curYOffset += kLargeLabelIntSize;
+    curYOffset += kFirstControlSectionYOffset;
+    levelTextEditor.setBounds (levelLabel.getX (), curYOffset, scaleWidth (0.5f), kParameterLineHeight);
+    levelDbLabel.setBounds (levelTextEditor.getRight () + 3, curYOffset + 5, scaleWidth (0.5f), kSmallLabelIntSize);
+    curYOffset += kParameterLineHeight;
 
-    expAMLabel.setBounds (xOffset, linAMComboBox.getBottom () + 5, width, kLargeLabelIntSize);
-    expAMComboBox.setBounds (expAMLabel.getX (), expAMLabel.getBottom (), width / 2, kParameterLineHeight);
-    expAMTextEditor.setBounds (expAMComboBox.getRight () + 3, expAMComboBox.getY (), width / 2, kParameterLineHeight);
+    curYOffset += kNewSectionOffset;
+    linAMLabel.setBounds (xOffset, curYOffset, width, kLargeLabelIntSize);
+    curYOffset += kLargeLabelIntSize;
+    curYOffset += kFirstControlSectionYOffset;
+    linAMisExtEnvLabel.setBounds (xOffset, curYOffset + 2, scaleWidth (0.33f), kMediumLabelIntSize);
+    linAMisExtEnvComboBox.setBounds (linAMisExtEnvLabel.getRight () + 3, curYOffset, scaleWidth (0.66f), kParameterLineHeight);
+    curYOffset += kParameterLineHeight;
+    curYOffset += kInterControlYOffset;
+    linAMComboBox.setBounds (xOffset, curYOffset, scaleWidth (0.5f), kParameterLineHeight);
+    linAMTextEditor.setBounds (linAMComboBox.getRight () + 3, curYOffset, scaleWidth (0.5f), kParameterLineHeight);
+    curYOffset += kParameterLineHeight;
+
+    curYOffset += kNewSectionOffset;
+    expAMLabel.setBounds (xOffset, curYOffset, width, kLargeLabelIntSize);
+    curYOffset += kLargeLabelIntSize;
+    expAMComboBox.setBounds (expAMLabel.getX (), curYOffset, scaleWidth (0.5f), kParameterLineHeight);
+    expAMTextEditor.setBounds (expAMComboBox.getRight () + 3, curYOffset, scaleWidth (0.5f), kParameterLineHeight);
 }
 
 void ChannelEditor::positionColumnTwo (int xOffset, int width)
 {
-    phaseSourceSectionLabel.setBounds (xOffset, 5, width, kLargeLabelIntSize);
-    pMSourceLabel.setBounds (xOffset, phaseSourceSectionLabel.getBottom () + 2, static_cast<int>(width * 0.25), kMediumLabelIntSize);
-    pMSourceComboBox.setBounds (pMSourceLabel.getRight () + 3, phaseSourceSectionLabel.getBottom (), static_cast<int>(width * 0.75), kParameterLineHeight);
-    phaseCVComboBox.setBounds (xOffset, pMSourceComboBox.getBottom (), width / 2, kParameterLineHeight);
-    phaseCVTextEditor.setBounds (phaseCVComboBox.getRight () + 3, phaseCVComboBox.getY (), width / 2, kParameterLineHeight);
+    auto scaleWidth = [width] (float scaleAmount) { return static_cast<int>(width * scaleAmount); };
 
-    phaseModIndexSectionLabel.setBounds (xOffset, phaseCVTextEditor.getBottom () + 5, width, kLargeLabelIntSize);
-    pMIndexLabel.setBounds (xOffset, phaseModIndexSectionLabel.getBottom () + 2, width / 2, kMediumLabelIntSize);
-    pMIndexTextEditor.setBounds (pMIndexLabel.getRight () + 3, phaseModIndexSectionLabel.getBottom (), width / 2, kParameterLineHeight);
-    pMIndexModComboBox.setBounds (xOffset, pMIndexTextEditor.getBottom (), width / 2, kParameterLineHeight);
-    pMIndexModTextEditor.setBounds (pMIndexModComboBox.getRight () + 3, pMIndexModComboBox.getY (), width / 2, kParameterLineHeight);
+    // PHASE MOD
+    auto curYOffset { kInitialYOffset };
+    phaseSourceSectionLabel.setBounds (xOffset, curYOffset, width, kLargeLabelIntSize);
+    curYOffset += kLargeLabelIntSize;
 
-    envelopeLabel.setBounds (xOffset, pMIndexModComboBox.getBottom () + 5, width, kLargeLabelIntSize);
+    // SOURCE
+    curYOffset += kFirstControlSectionYOffset;
+    pMSourceLabel.setBounds (xOffset, curYOffset, scaleWidth (0.25f), kMediumLabelIntSize);
+    pMSourceComboBox.setBounds (pMSourceLabel.getRight () + 3, curYOffset, scaleWidth (0.75f), kParameterLineHeight);
+    curYOffset += kParameterLineHeight;
+    curYOffset += kInterControlYOffset;
+    phaseCVComboBox.setBounds (xOffset, curYOffset, scaleWidth (0.5f), kParameterLineHeight);
+    phaseCVTextEditor.setBounds (phaseCVComboBox.getRight () + 3, curYOffset, scaleWidth (0.5f), kParameterLineHeight);
+    curYOffset += kParameterLineHeight;
+
+    curYOffset += kNewSectionOffset;
+    phaseModIndexSectionLabel.setBounds (xOffset, curYOffset, width, kLargeLabelIntSize);
+    curYOffset += kLargeLabelIntSize;
+    curYOffset += kFirstControlSectionYOffset;
+    pMIndexLabel.setBounds (xOffset, curYOffset + 2, scaleWidth (0.5f), kMediumLabelIntSize);
+    pMIndexTextEditor.setBounds (pMIndexLabel.getRight () + 3, curYOffset, scaleWidth (0.5f), kParameterLineHeight);
+    curYOffset += kParameterLineHeight;
+    curYOffset += kInterControlYOffset;
+    pMIndexModComboBox.setBounds (xOffset, curYOffset, scaleWidth (0.5f), kParameterLineHeight);
+    pMIndexModTextEditor.setBounds (pMIndexModComboBox.getRight () + 3, curYOffset, scaleWidth (0.5f), kParameterLineHeight);
+    curYOffset += kParameterLineHeight;
+
+    curYOffset += kNewSectionOffset;
+    envelopeLabel.setBounds (xOffset, curYOffset, width, kLargeLabelIntSize);
+    curYOffset += kLargeLabelIntSize;
+    curYOffset += kFirstControlSectionYOffset;
     // ATTACK
-    attackLabel.setBounds (xOffset, envelopeLabel.getBottom () + 2, width / 2, kMediumLabelIntSize);
-    attackTextEditor.setBounds (attackLabel.getRight () + 3, envelopeLabel.getBottom (), width / 2, kParameterLineHeight);
-    attackFromCurrentLabel.setBounds (xOffset, attackTextEditor.getBottom () + 2, width / 2, kMediumLabelIntSize);
-    attackFromCurrentComboBox.setBounds (attackFromCurrentLabel.getRight () + 3, attackTextEditor.getBottom (), width / 2, kParameterLineHeight);
-    attackModComboBox.setBounds (xOffset, attackFromCurrentComboBox.getBottom () + 1, width / 2, kParameterLineHeight);
-    attackModTextEditor.setBounds (attackModComboBox.getRight () + 3, attackFromCurrentComboBox.getBottom (), width / 2, kParameterLineHeight);
+    attackLabel.setBounds (xOffset, curYOffset + 2, scaleWidth (0.5f), kMediumLabelIntSize);
+    attackTextEditor.setBounds (attackLabel.getRight () + 3, curYOffset, scaleWidth (0.5f), kParameterLineHeight);
+    curYOffset += kParameterLineHeight;
+    curYOffset += kInterControlYOffset;
+    attackFromCurrentLabel.setBounds (xOffset, curYOffset + 2, scaleWidth (0.5f), kMediumLabelIntSize);
+    attackFromCurrentComboBox.setBounds (attackFromCurrentLabel.getRight () + 3, curYOffset, scaleWidth (0.5f), kParameterLineHeight);
+    curYOffset += kParameterLineHeight;
+    curYOffset += kInterControlYOffset;
+    attackModComboBox.setBounds (xOffset, curYOffset, scaleWidth (0.5f), kParameterLineHeight);
+    attackModTextEditor.setBounds (attackModComboBox.getRight () + 3, curYOffset, scaleWidth (0.5f), kParameterLineHeight);
+    curYOffset += kParameterLineHeight;
 
+    curYOffset += kInterControlYOffset;
     // RELEASE
-    releaseLabel.setBounds (attackModComboBox.getX (), attackModComboBox.getBottom () + 2, width / 2, kMediumLabelIntSize);
-    releaseTextEditor.setBounds (releaseLabel.getRight () + 3, attackModComboBox.getBottom (), width / 2, kParameterLineHeight);
-    releaseModComboBox.setBounds (releaseLabel.getX (), releaseTextEditor.getBottom (), width / 2, kParameterLineHeight);
-    releaseModTextEditor.setBounds (releaseModComboBox.getRight () + 3, releaseModComboBox.getY (), width / 2, kParameterLineHeight);
+    releaseLabel.setBounds (attackModComboBox.getX (), curYOffset + 2, scaleWidth (0.5f), kMediumLabelIntSize);
+    releaseTextEditor.setBounds (releaseLabel.getRight () + 3, curYOffset, scaleWidth (0.5f), kParameterLineHeight);
+    curYOffset += kParameterLineHeight;
+    curYOffset += kInterControlYOffset;
+    releaseModComboBox.setBounds (releaseLabel.getX (), curYOffset, scaleWidth (0.5f), kParameterLineHeight);
+    releaseModTextEditor.setBounds (releaseModComboBox.getRight () + 3, curYOffset, scaleWidth (0.5f), kParameterLineHeight);
 }
 
 void ChannelEditor::positionColumnThree (int xOffset, int width)
 {
+    auto scaleWidth = [width] (float scaleAmount) { return static_cast<int>(width * scaleAmount); };
+
     // MUTATE
-    mutateLabel.setBounds (xOffset, 5, width, kLargeLabelIntSize);
+    auto curYOffset { kInitialYOffset };
+    mutateLabel.setBounds (xOffset, curYOffset, width, kLargeLabelIntSize);
+    curYOffset += kLargeLabelIntSize;
+    curYOffset += kFirstControlSectionYOffset;
     // BITS
-    bitsLabel.setBounds (xOffset, mutateLabel.getBottom () + 2, width / 2, kMediumLabelIntSize);
-    bitsTextEditor.setBounds (bitsLabel.getRight () + 3, mutateLabel.getBottom (), width / 2, kParameterLineHeight);
-    bitsModComboBox.setBounds (xOffset, bitsTextEditor.getBottom (), width / 2, kParameterLineHeight);
-    bitsModTextEditor.setBounds (bitsModComboBox.getRight () + 3, bitsModComboBox.getY (), width / 2, kParameterLineHeight);
+    bitsLabel.setBounds (xOffset, curYOffset + 2, scaleWidth (0.5f), kMediumLabelIntSize);
+    bitsTextEditor.setBounds (bitsLabel.getRight () + 3, curYOffset, scaleWidth (0.5f), kParameterLineHeight);
+    curYOffset += kParameterLineHeight;
+    curYOffset += kInterControlYOffset;
+    bitsModComboBox.setBounds (xOffset, curYOffset, scaleWidth (0.5f), kParameterLineHeight);
+    bitsModTextEditor.setBounds (bitsModComboBox.getRight () + 3, curYOffset, scaleWidth (0.5f), kParameterLineHeight);
+    curYOffset += kParameterLineHeight;
+    curYOffset += kInterControlYOffset;
     // ALIASING
-    aliasingLabel.setBounds (xOffset, bitsModComboBox.getBottom () + 2, width / 2, kMediumLabelIntSize);
-    aliasingTextEditor.setBounds (aliasingLabel.getRight () + 3, bitsModComboBox.getBottom (), width / 2, kParameterLineHeight);
-    aliasingModComboBox.setBounds (xOffset, aliasingTextEditor.getBottom (), width / 2, kParameterLineHeight);
-    aliasingModTextEditor.setBounds (aliasingModComboBox.getRight () + 3, aliasingModComboBox.getY (), width / 2, kParameterLineHeight);
-
+    aliasingLabel.setBounds (xOffset, curYOffset + 2, scaleWidth (0.5f), kMediumLabelIntSize);
+    aliasingTextEditor.setBounds (aliasingLabel.getRight () + 3, curYOffset, scaleWidth (0.5f), kParameterLineHeight);
+    curYOffset += kParameterLineHeight;
+    curYOffset += kInterControlYOffset;
+    aliasingModComboBox.setBounds (xOffset, curYOffset, scaleWidth (0.5f), kParameterLineHeight);
+    aliasingModTextEditor.setBounds (aliasingModComboBox.getRight () + 3, curYOffset, scaleWidth (0.5f), kParameterLineHeight);
+    curYOffset += kParameterLineHeight;
+    curYOffset += kInterControlYOffset;
     // REVERSE/SMOOTH
-    reverseButton.setBounds (xOffset, aliasingModTextEditor.getBottom () + 5, static_cast<int>(width * 0.40), kParameterLineHeight);
-    spliceSmoothingButton.setBounds (reverseButton.getRight () + 3, aliasingModTextEditor.getBottom () + 5, static_cast<int>(width * 0.60), kParameterLineHeight);
-
+    reverseButton.setBounds (xOffset, curYOffset, scaleWidth (0.4f), kParameterLineHeight);
+    spliceSmoothingButton.setBounds (reverseButton.getRight () + 3, curYOffset , scaleWidth (0.6f), kParameterLineHeight);
+    curYOffset += kParameterLineHeight;
     // PAN/MIX
-    panMixLabel.setBounds (xOffset, reverseButton.getBottom () + 5, width, kLargeLabelIntSize);
-    panLabel.setBounds (xOffset, panMixLabel.getBottom () + 2, width / 2, kMediumLabelIntSize);
-    panTextEditor.setBounds (panLabel.getRight () + 3, panMixLabel.getBottom (), width / 2, kParameterLineHeight);
-    panModComboBox.setBounds (xOffset, panTextEditor.getBottom (), width / 2, kParameterLineHeight);
-    panModTextEditor.setBounds (panModComboBox.getRight () + 3, panModComboBox.getY (), width / 2, kParameterLineHeight);
+    curYOffset += kNewSectionOffset;
+    panMixLabel.setBounds (xOffset, curYOffset, width, kLargeLabelIntSize);
+    curYOffset += kLargeLabelIntSize;
+    curYOffset += kFirstControlSectionYOffset;
+    panLabel.setBounds (xOffset, curYOffset + 2, scaleWidth (0.5f), kMediumLabelIntSize);
+    panTextEditor.setBounds (panLabel.getRight () + 3, curYOffset, scaleWidth (0.5f), kParameterLineHeight);
+    curYOffset += kParameterLineHeight;
+    curYOffset += kInterControlYOffset;
+    panModComboBox.setBounds (xOffset, curYOffset, scaleWidth (0.5f), kParameterLineHeight);
+    panModTextEditor.setBounds (panModComboBox.getRight () + 3, curYOffset, scaleWidth (0.5f), kParameterLineHeight);
+    curYOffset += kParameterLineHeight;
+    curYOffset += kInterControlYOffset;
     // MIX LEEL
-    mixLevelLabel.setBounds (xOffset, panModComboBox.getBottom () + 2, width / 2, kMediumLabelIntSize);
-    mixLevelTextEditor.setBounds (mixLevelLabel.getRight () + 3, panModComboBox.getBottom (), width / 2, kParameterLineHeight);
-    mixModIsFaderLabel.setBounds (xOffset, mixLevelTextEditor.getBottom () + 2, width / 2, kMediumLabelIntSize);
-    mixModIsFaderComboBox.setBounds (mixModIsFaderLabel.getRight () + 3, mixLevelTextEditor.getBottom (), width / 2, kParameterLineHeight);
-    mixModComboBox.setBounds (xOffset, mixModIsFaderComboBox.getBottom (), width / 2, kParameterLineHeight);
-    mixModTextEditor.setBounds (mixModComboBox.getRight () + 3, mixModComboBox.getY (), width / 2, kParameterLineHeight);
+    mixLevelLabel.setBounds (xOffset, curYOffset + 2, scaleWidth (0.5f), kMediumLabelIntSize);
+    mixLevelTextEditor.setBounds (mixLevelLabel.getRight () + 3, curYOffset, scaleWidth (0.5f), kParameterLineHeight);
+    curYOffset += kParameterLineHeight;
+    curYOffset += kInterControlYOffset;
+    mixModIsFaderLabel.setBounds (xOffset, curYOffset + 2, scaleWidth (0.5f), kMediumLabelIntSize);
+    mixModIsFaderComboBox.setBounds (mixModIsFaderLabel.getRight () + 3, curYOffset, scaleWidth (0.5f), kParameterLineHeight);
+    curYOffset += kParameterLineHeight;
+    curYOffset += kInterControlYOffset;
+    mixModComboBox.setBounds (xOffset, curYOffset, scaleWidth (0.5f), kParameterLineHeight);
+    mixModTextEditor.setBounds (mixModComboBox.getRight () + 3, curYOffset, scaleWidth (0.5f), kParameterLineHeight);
 }
 void ChannelEditor::positionColumnFour (int xOffset, int width)
 {
-    channelModeLabel.setBounds (xOffset, 5, width, kMediumLabelIntSize);
-    channelModeComboBox.setBounds (xOffset, channelModeLabel.getBottom (), width + 3, kParameterLineHeight);
+    auto scaleWidth = [width] (float scaleAmount) { return static_cast<int>(width * scaleAmount); };
 
+    auto curYOffset { kInitialYOffset };
+    channelModeLabel.setBounds (xOffset, curYOffset, width, kMediumLabelIntSize);
+    curYOffset += kMediumLabelIntSize;
+    curYOffset += kInterControlYOffset;
+    channelModeComboBox.setBounds (xOffset, curYOffset, width + 3, kParameterLineHeight);
+    curYOffset += kParameterLineHeight;
+    curYOffset += kNewSectionOffset;
     // AUTO TRIGGER
-    autoTriggerLabel.setBounds (xOffset, channelModeComboBox.getBottom () + 5 + 2, ((width / 3) * 2) - 15, kMediumLabelIntSize);
-    autoTriggerComboBox.setBounds (autoTriggerLabel.getRight () + 3, channelModeComboBox.getBottom () + 5, (width / 3 + 15), kParameterLineHeight);
-
+    autoTriggerLabel.setBounds (xOffset, curYOffset + 2, ((width / 3) * 2) - 15, kMediumLabelIntSize);
+    autoTriggerComboBox.setBounds (autoTriggerLabel.getRight () + 3, curYOffset, (width / 3 + 15), kParameterLineHeight);
+    curYOffset += kParameterLineHeight;
+    curYOffset += kInterControlYOffset;
     // PLAY MODE
-    playModeLabel.setBounds (xOffset, autoTriggerComboBox.getBottom () + 5 + 2, width / 3, kMediumLabelIntSize);
-    playModeComboBox.setBounds (playModeLabel.getRight () + 3, autoTriggerComboBox.getBottom () + 5, (width / 3) * 2, kParameterLineHeight);
-
+    playModeLabel.setBounds (xOffset, curYOffset + 2, width / 3, kMediumLabelIntSize);
+    playModeComboBox.setBounds (playModeLabel.getRight () + 3, curYOffset, (width / 3) * 2, kParameterLineHeight);
+    curYOffset += kParameterLineHeight;
+    curYOffset += kInterControlYOffset;
     // SAMPLE START/END
-    sampleStartModLabel.setBounds (xOffset, playModeComboBox.getBottom () + 5, width, kMediumLabelIntSize);
-    sampleStartModComboBox.setBounds (xOffset, sampleStartModLabel.getBottom (), width / 2, kParameterLineHeight);
-    sampleStartModTextEditor.setBounds (sampleStartModComboBox.getRight () + 3, sampleStartModComboBox.getY (), width / 2, kParameterLineHeight);
-    sampleEndModLabel.setBounds (xOffset, sampleStartModComboBox.getBottom () + 5, width, kMediumLabelIntSize);
-    sampleEndModComboBox.setBounds (xOffset, sampleEndModLabel.getBottom (), width / 2, kParameterLineHeight);
-    sampleEndModTextEditor.setBounds (sampleEndModComboBox.getRight () + 3, sampleEndModComboBox.getY (), width / 2, kParameterLineHeight);
+    sampleStartModLabel.setBounds (xOffset, curYOffset, width, kMediumLabelIntSize);
+    curYOffset += kMediumLabelIntSize;
+    curYOffset += kFirstControlSectionYOffset;
+    sampleStartModComboBox.setBounds (xOffset, curYOffset, width / 2, kParameterLineHeight);
+    sampleStartModTextEditor.setBounds (sampleStartModComboBox.getRight () + 3, curYOffset, width / 2, kParameterLineHeight);
+    curYOffset += kParameterLineHeight;
+    curYOffset += kInterControlYOffset;
+    sampleEndModLabel.setBounds (xOffset, curYOffset, width, kMediumLabelIntSize);
+    curYOffset += kMediumLabelIntSize;
+    curYOffset += kFirstControlSectionYOffset;
+    sampleEndModComboBox.setBounds (xOffset, curYOffset, width / 2, kParameterLineHeight);
+    sampleEndModTextEditor.setBounds (sampleEndModComboBox.getRight () + 3, curYOffset, width / 2, kParameterLineHeight);
+    curYOffset += kParameterLineHeight;
+    curYOffset += kNewSectionOffset;
 
     // LOOP MODE
-    loopModeLabel.setBounds (xOffset, sampleEndModComboBox.getBottom () + 5 + 2, width / 3, kMediumLabelIntSize);
-    loopModeComboBox.setBounds (loopModeLabel.getRight () + 3, sampleEndModComboBox.getBottom () + 5, (width / 3) * 2, kParameterLineHeight);
+    loopModeLabel.setBounds (xOffset, curYOffset + 2, width / 3, kMediumLabelIntSize);
+    loopModeComboBox.setBounds (loopModeLabel.getRight () + 3, curYOffset, (width / 3) * 2, kParameterLineHeight);
+    curYOffset += kParameterLineHeight;
+    curYOffset += kInterControlYOffset;
 
     // LOOP START/LENGTH/END
-    loopStartModLabel.setBounds (xOffset, loopModeComboBox.getBottom () + 5, width, kMediumLabelIntSize);
-    loopStartModComboBox.setBounds (xOffset, loopStartModLabel.getBottom (), width / 2, kParameterLineHeight);
-    loopStartModTextEditor.setBounds (loopStartModComboBox.getRight () + 3, loopStartModComboBox.getY (), width / 2, kParameterLineHeight);
-    loopLengthModLabel.setBounds (xOffset, loopStartModComboBox.getBottom () + 5, width, kMediumLabelIntSize);
-    loopLengthModComboBox.setBounds (xOffset, loopLengthModLabel.getBottom (), width / 2, kParameterLineHeight);
-    loopLengthModTextEditor.setBounds (loopLengthModComboBox.getRight () + 3, loopLengthModComboBox.getY (), width / 2, kParameterLineHeight);
+    loopStartModLabel.setBounds (xOffset, curYOffset, width, kMediumLabelIntSize);
+    curYOffset += kMediumLabelIntSize;
+    curYOffset += kFirstControlSectionYOffset;
+    loopStartModComboBox.setBounds (xOffset, curYOffset, width / 2, kParameterLineHeight);
+    loopStartModTextEditor.setBounds (loopStartModComboBox.getRight () + 3, curYOffset, width / 2, kParameterLineHeight);
+    curYOffset += kParameterLineHeight;
+    curYOffset += kInterControlYOffset;
+    loopLengthModLabel.setBounds (xOffset, curYOffset, width, kMediumLabelIntSize);
+    curYOffset += kMediumLabelIntSize;
+    curYOffset += kFirstControlSectionYOffset;
+    loopLengthModComboBox.setBounds (xOffset, curYOffset, width / 2, kParameterLineHeight);
+    loopLengthModTextEditor.setBounds (loopLengthModComboBox.getRight () + 3, curYOffset, width / 2, kParameterLineHeight);
+    curYOffset += kParameterLineHeight;
+    curYOffset += kNewSectionOffset;
 
     // XFADE GRP
     xfadeGroupLabel.setBounds (xOffset, loopLengthModComboBox.getBottom () + 5 + 2, width / 2, kMediumLabelIntSize);
@@ -868,14 +977,14 @@ void ChannelEditor::resized ()
     const auto inputWidth { 65 };
     const auto labelWidth { 85 };
 
-    zonesCVComboBox.setBounds (zoneTopSection.getRight () - inputWidth, zoneTopSection.getY () + 3, inputWidth, 20);
-    zonesCVLabel.setBounds (zonesCVComboBox.getX () - labelWidth - 3, zonesCVComboBox.getY (), labelWidth, 20);
+    zonesCVComboBox.setBounds (zoneTopSection.getRight () - inputWidth, zoneTopSection.getY () + 3, inputWidth, kParameterLineHeight);
+    zonesCVLabel.setBounds (zonesCVComboBox.getX () - labelWidth - 3, zonesCVComboBox.getY (), labelWidth, kParameterLineHeight);
 
-    zonesRTComboBox.setBounds (zoneTopSection.getRight () - inputWidth, zonesCVComboBox.getBottom() + 3, inputWidth, 20);
-    zonesRTLabel.setBounds (zonesRTComboBox.getX () - labelWidth - 3, zonesRTComboBox.getY (), labelWidth, 20);
+    zonesRTComboBox.setBounds (zoneTopSection.getRight () - inputWidth, zonesCVComboBox.getBottom() + 3, inputWidth, kParameterLineHeight);
+    zonesRTLabel.setBounds (zonesRTComboBox.getX () - labelWidth - 3, zonesRTComboBox.getY (), labelWidth, kParameterLineHeight);
 
-    loopLengthIsEndComboBox.setBounds (zoneTopSection.getRight () - inputWidth, zonesRTComboBox.getBottom () + 3, inputWidth, 20);
-    loopLengthIsEndLabel.setBounds (loopLengthIsEndComboBox.getX () - labelWidth - 3, loopLengthIsEndComboBox.getY (), labelWidth, 20);
+    loopLengthIsEndComboBox.setBounds (zoneTopSection.getRight () - inputWidth, zonesRTComboBox.getBottom () + 3, inputWidth, kParameterLineHeight);
+    loopLengthIsEndLabel.setBounds (loopLengthIsEndComboBox.getX () - labelWidth - 3, loopLengthIsEndComboBox.getY (), labelWidth, kParameterLineHeight);
 
     zoneTabs.setBounds (zoneColumn);
 
