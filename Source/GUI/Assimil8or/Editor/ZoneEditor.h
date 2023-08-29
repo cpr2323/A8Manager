@@ -4,12 +4,21 @@
 #include "../../../Assimil8or/Preset/ZoneProperties.h"
 #include "../../../AppProperties.h"
 
-class FileDropTargetTextEditor : public juce::TextEditor,
-                                 public juce::FileDragAndDropTarget
+class FileSelectLabel : public juce::Label,
+                        public juce::FileDragAndDropTarget
 {
 public:
+    FileSelectLabel ()
+    {
+        mouseEavesDropper.onMouseDown = [this] (const juce::MouseEvent& event) { browseForSample (); };
+        addMouseListener (&mouseEavesDropper, true);
+    }
+    ~FileSelectLabel ()
+    {
+        removeMouseListener (&mouseEavesDropper);
+    }
     std::function<bool (const juce::StringArray& files)> onCheckInterest;
-    std::function<void (const juce::StringArray& files)> onFilesDropped;
+    std::function<void (const juce::StringArray& files)> onFilesSelected;
     std::function<void (const juce::StringArray& files)> onDragEnter;
     std::function<void (const juce::StringArray& files)> onDragMove;
     std::function<void (const juce::StringArray& files)> onDragExit;
@@ -22,35 +31,69 @@ public:
     }
     void filesDropped (const juce::StringArray& files, int, int) override
     {
-        if (onFilesDropped!= nullptr)
-            return onFilesDropped (files);
+        if (onFilesSelected!= nullptr)
+            onFilesSelected (files);
     }
     void fileDragEnter (const juce::StringArray& files, int, int) override
     {
         if (onDragEnter!= nullptr)
-            return onDragEnter (files);
+            onDragEnter (files);
 
     }
     void fileDragMove (const juce::StringArray& files, int, int) override
     {
         if (onDragMove!= nullptr)
-            return onDragMove (files);
+            onDragMove (files);
 
     }
     void fileDragExit (const juce::StringArray& files) override
     {
         if (onDragExit!= nullptr)
-            return onDragExit (files);
+            onDragExit (files);
     }
-    void setHoverOutline (juce::Colour colour)
+    void setOutline (juce::Colour colour)
     {
-        outlineColor= colour;
+        outlineColor = colour;
     }
 private:
     juce::Colour outlineColor { juce::Colours::transparentWhite };
-    void paintOverChildren (juce::Graphics& g)
+    std::unique_ptr<juce::FileChooser> fileChooser;
+    
+    class MouseEavesDropper : public juce::MouseListener
     {
-        TextEditor::paintOverChildren (g);
+    public:
+        std::function<void (const juce::MouseEvent& event)> onMouseDown;
+    private:
+        void mouseDown (const juce::MouseEvent& event)
+        {
+            if (onMouseDown != nullptr)
+                onMouseDown (event);
+        }
+    };
+    MouseEavesDropper mouseEavesDropper;
+
+    void browseForSample ()
+    {
+        fileChooser.reset (new juce::FileChooser ("Please select the Assimil8or Preset file you want to load...", {}, "*.wav"));
+        fileChooser->launchAsync (juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles, [this] (const juce::FileChooser& fc) mutable
+        {
+            if (fc.getURLResults ().size () > 0 && fc.getURLResults () [0].isLocalFile ())
+            {
+                if (onFilesSelected != nullptr)
+                {
+                    juce::StringArray files;
+                    for (auto urlResult : fc.getURLResults ())
+                        files.add (urlResult.getLocalFile ().getFullPathName ());
+                    onFilesSelected (files);
+                }
+
+            }
+        }, nullptr);
+    }
+
+    void paintOverChildren (juce::Graphics& g) override
+    {
+        juce::Label::paintOverChildren (g);
         g.setColour (outlineColor);
         g.drawRect (getLocalBounds ());
     }
@@ -84,19 +127,21 @@ private:
     juce::Label pitchOffsetLabel;
     juce::TextEditor pitchOffsetTextEditor; // double
     juce::Label sampleNameLabel;
-    FileDropTargetTextEditor sampleNameTextEditor; // filename
+    FileSelectLabel sampleNameSelectLabel; // filename
     juce::Label sampleEndLabel;
     juce::TextEditor sampleEndTextEditor; // int
     juce::Label sampleStartLabel;
     juce::TextEditor sampleStartTextEditor; // int
 
     int64_t sampleLength { 0 };
+
+    juce::String formatLoopLength (double loopLength);
+    bool handleSelectedFile (juce::File fileNameAndPath);
+    bool isSupportedAudioFile (juce::File file);
+    void loadSample (juce::String sampleFileName);
     void setupZoneComponents ();
     void setupZonePropertiesCallbacks ();
     void updateSampleFileInfo (juce::String sample);
-    juce::String formatLoopLength (double loopLength);
-    bool isSupportedAudioFile (juce::File file);
-    void loadSample (juce::String sampleFileName);
 
     void levelOffsetDataChanged (double levelOffset);
     void levelOffsetUiChanged (double levelOffset);

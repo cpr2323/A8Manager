@@ -23,55 +23,65 @@ ZoneEditor::ZoneEditor ()
         maxZoneProperties.wrap (maxChannelProperties.getZoneVT (0), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
     }
 
-    sampleNameTextEditor.onCheckInterest = [this] (const juce::StringArray& files)
+    sampleNameSelectLabel.onCheckInterest = [this] (const juce::StringArray& files)
     {
         if (files.size () != 1)
             return false;
         const auto draggedFile { juce::File (files [0]) };
         return isSupportedAudioFile (draggedFile);
     };
-    sampleNameTextEditor.onFilesDropped = [this] (const juce::StringArray& files)
+    sampleNameSelectLabel.onFilesSelected = [this] (const juce::StringArray& files)
     {
-        sampleNameTextEditor.setHoverOutline (juce::Colours::transparentWhite);
-        sampleNameTextEditor.repaint ();
-
+        sampleNameSelectLabel.setOutline (levelOffsetTextEditor.findColour (juce::TextEditor::ColourIds::outlineColourId));
+        sampleNameSelectLabel.repaint ();
+        
         if (files.size () != 1)
             return;
-        const auto droppedFile { juce::File (files [0]) };
-        if (! isSupportedAudioFile (droppedFile))
-            return;
-        // if file not in preset folder, then copy
-        if (appProperties.getMostRecentFolder () != droppedFile.getParentDirectory ().getFullPathName ())
+        if (! handleSelectedFile (juce::File (files [0])))
         {
-            // TODO handle case where file of same name already exists
-
-            // copy file
-            droppedFile.copyFileTo (juce::File(appProperties.getMostRecentFolder ()).getChildFile (droppedFile.getFileName ()));
+            // TODO - indicate an error? first thought was a red outline that fades out over a couple of second
         }
-        // assign file to zone
-        loadSample (droppedFile.getFileName ());
     };
-    sampleNameTextEditor.onDragEnter = [this] (const juce::StringArray& files)
+    sampleNameSelectLabel.onDragEnter = [this] (const juce::StringArray& files)
     {
         if (files.size () != 1)
-            sampleNameTextEditor.setHoverOutline(juce::Colours::red);
+            sampleNameSelectLabel.setOutline(juce::Colours::red);
         else
         {
             const auto draggedFile { juce::File (files [0]) };
             if (isSupportedAudioFile (draggedFile))
-                sampleNameTextEditor.setHoverOutline (juce::Colours::white);
+                sampleNameSelectLabel.setOutline (juce::Colours::white);
             else
-                sampleNameTextEditor.setHoverOutline (juce::Colours::red);
+                sampleNameSelectLabel.setOutline (juce::Colours::red);
         }
-        sampleNameTextEditor.repaint ();
+        sampleNameSelectLabel.repaint ();
     };
-    sampleNameTextEditor.onDragExit = [this] (const juce::StringArray&)
+    sampleNameSelectLabel.onDragExit = [this] (const juce::StringArray&)
     {
-        sampleNameTextEditor.setHoverOutline (juce::Colours::transparentWhite);
-        sampleNameTextEditor.repaint ();
+        sampleNameSelectLabel.setOutline (levelOffsetTextEditor.findColour (juce::TextEditor::ColourIds::outlineColourId));
+        sampleNameSelectLabel.repaint ();
     };
 
     setupZoneComponents ();
+}
+
+bool ZoneEditor::handleSelectedFile (juce::File fileNameAndPath)
+{
+    if (! isSupportedAudioFile (fileNameAndPath))
+        return false;
+
+    // if file not in preset folder, then copy
+    if (appProperties.getMostRecentFolder () != fileNameAndPath.getParentDirectory ().getFullPathName ())
+    {
+        // TODO handle case where file of same name already exists
+
+        // copy file
+        fileNameAndPath.copyFileTo (juce::File (appProperties.getMostRecentFolder ()).getChildFile (fileNameAndPath.getFileName ()));
+    }
+    // assign file to zone
+    loadSample (fileNameAndPath.getFileName ());
+
+    return true;
 }
 
 void ZoneEditor::loadSample (juce::String sampleFileName)
@@ -122,7 +132,7 @@ void ZoneEditor::loadSample (juce::String sampleFileName)
     zoneProperties.setLoopLength (-1, true);
 
     sampleUiChanged (sampleFileName);
-    sampleNameTextEditor.setText (sampleFileName);
+    sampleNameSelectLabel.setText (sampleFileName, juce::NotificationType::dontSendNotification);
 }
 
 void ZoneEditor::setupZoneComponents ()
@@ -162,6 +172,12 @@ void ZoneEditor::setupZoneComponents ()
     };
     setupLabel (sampleNameLabel, "FILE", 15.0, juce::Justification::centredLeft);
     const auto kMaxFileNameLength { 47 };
+    setupLabel (sampleNameSelectLabel, "", 15.0, juce::Justification::centredLeft);
+    sampleNameSelectLabel.setColour (juce::Label::ColourIds::textColourId, levelOffsetTextEditor.findColour (juce::TextEditor::ColourIds::textColourId));
+    sampleNameSelectLabel.setColour (juce::Label::ColourIds::backgroundColourId, levelOffsetTextEditor.findColour (juce::TextEditor::ColourIds::backgroundColourId));
+    sampleNameSelectLabel.setOutline (levelOffsetTextEditor.findColour (juce::TextEditor::ColourIds::outlineColourId));
+    sampleNameSelectLabel.setBorderSize ({ 0, 2, 0, 0 });
+#if 0
     setupTextEditor (sampleNameTextEditor, juce::Justification::centredLeft, kMaxFileNameLength, " !\"#$%^&'()#+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~", "Sample", [this] ()
     {
         auto sampleFile { juce::File (appProperties.getMostRecentFolder ()).getChildFile (sampleNameTextEditor.getText ()) };
@@ -181,6 +197,7 @@ void ZoneEditor::setupZoneComponents ()
     {
         loadSample (text);
     });
+#endif
     // SAMPLE START
     setupLabel (sampleStartLabel, "SMPL START", 12.0, juce::Justification::centredRight);
     setupTextEditor (sampleStartTextEditor, juce::Justification::centred, 0, "0123456789", "SampleStart", [this] ()
@@ -372,11 +389,11 @@ void ZoneEditor::resized ()
     const auto sampleNameLabelScale { 0.156f };
     const auto sampleNameInputScale { 1.f - sampleNameLabelScale };
     sampleNameLabel.setBounds (xOffset, 5, scaleWidth (sampleNameLabelScale), 20);
-    sampleNameTextEditor.setBounds (sampleNameLabel.getRight () + spaceBetweenLabelAndInput, 5, scaleWidth (sampleNameInputScale) - spaceBetweenLabelAndInput + 1, 20);
+    sampleNameSelectLabel.setBounds (sampleNameLabel.getRight () + spaceBetweenLabelAndInput, 5, scaleWidth (sampleNameInputScale) - spaceBetweenLabelAndInput + 1, 20);
 
     const auto samplePointLabelScale { 0.45f };
     const auto samplePointInputScale { 1.f - samplePointLabelScale };
-    sampleStartLabel.setBounds (xOffset, sampleNameTextEditor.getBottom () + 5, scaleWidth (samplePointLabelScale), 20);
+    sampleStartLabel.setBounds (xOffset, sampleNameSelectLabel.getBottom () + 5, scaleWidth (samplePointLabelScale), 20);
     sampleStartTextEditor.setBounds (sampleStartLabel.getRight () + spaceBetweenLabelAndInput, sampleStartLabel.getY (), scaleWidth (samplePointInputScale) - spaceBetweenLabelAndInput, 20);
     sampleEndLabel.setBounds (xOffset, sampleStartLabel.getBottom () + interParameterYOffset, scaleWidth (samplePointLabelScale), 20);
     sampleEndTextEditor.setBounds (sampleEndLabel.getRight () + spaceBetweenLabelAndInput, sampleEndLabel.getY (), scaleWidth (samplePointInputScale) - spaceBetweenLabelAndInput, 20);
@@ -488,9 +505,9 @@ void ZoneEditor::updateSampleFileInfo (juce::String sample)
 
 void ZoneEditor::sampleDataChanged (juce::String sample)
 {
-    if (sample != sampleNameTextEditor.getText ())
+    if (sample != sampleNameSelectLabel.getText ())
         updateSampleFileInfo (sample);
-    sampleNameTextEditor.setText (sample);
+    sampleNameSelectLabel.setText (sample, juce::NotificationType::dontSendNotification);
 }
 
 void ZoneEditor::sampleUiChanged (juce::String sample)
