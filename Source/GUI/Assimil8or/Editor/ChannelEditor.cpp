@@ -104,11 +104,12 @@ ChannelEditor::~ChannelEditor ()
     zonesRTComboBox.setLookAndFeel (nullptr);
 }
 
-void ChannelEditor::setZoneTabStates ()
+void ChannelEditor::monitorSampleChanges ()
 {
     auto& tabbedButtonBar { zoneTabs.getTabbedButtonBar () };
     auto zoneIndex { 0 };
     auto lastEnabledZoneTab { -1 };
+    // set enabled state based on sample loaded or not
     channelProperties.forEachZone ([this, &zoneIndex, &tabbedButtonBar, &lastEnabledZoneTab] (juce::ValueTree zoneVT)
     {
         ZoneProperties zoneProperties (zoneVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
@@ -125,22 +126,19 @@ void ChannelEditor::setZoneTabStates ()
         return true;
     });
 
-    auto curTabIndex { zoneTabs.getCurrentTabIndex () };
-    if (curTabIndex == -1)
+    if (lastEnabledZoneTab == - 1)
     {
-        zoneTabs.setCurrentTabIndex (0);
-    }
-    else if (lastEnabledZoneTab == - 1)
-    {
+        // there are no samples loaded
         zoneTabs.setCurrentTabIndex (0);
         tabbedButtonBar.getTabButton (0)->setEnabled (true);
     }
     else if (lastEnabledZoneTab != 7)
     {
+        auto curTabIndex { zoneTabs.getCurrentTabIndex () };
+        jassert (curTabIndex != -1);
+        // there are samples loaded, and there are still empty zones
         tabbedButtonBar.getTabButton (lastEnabledZoneTab + 1)->setEnabled (true);
-
-        if (! tabbedButtonBar.getTabButton (curTabIndex)->isEnabled ())
-            zoneTabs.setCurrentTabIndex (lastEnabledZoneTab);
+        jassert (tabbedButtonBar.getTabButton (curTabIndex)->isEnabled ()); // not sure why this would happen, but I thought I would check?
     }
 }
 
@@ -659,7 +657,7 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
     {
         zoneEditors [zoneEditorIndex].init (zonePropertiesVT, rootPropertiesVT);
         zoneProperties [zoneEditorIndex].wrap (zonePropertiesVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::yes);
-        zoneProperties [zoneEditorIndex].onSampleChange = [this] (juce::String sampleFile) { setZoneTabStates (); };
+        zoneProperties [zoneEditorIndex].onSampleChange = [this] (juce::String sampleFile) { monitorSampleChanges (); };
         ++zoneEditorIndex;
         return true;
     });
@@ -711,7 +709,7 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
     zonesCVDataChanged (channelProperties.getZonesCV ());
     zonesRTDataChanged (channelProperties.getZonesRT ());
 
-    setZoneTabStates ();
+    monitorSampleChanges ();
 }
 
 void ChannelEditor::receiveSampleLoadRequest (juce::File sampleFile)

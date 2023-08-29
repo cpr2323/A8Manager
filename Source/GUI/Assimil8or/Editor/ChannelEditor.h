@@ -170,7 +170,7 @@ private:
     void positionColumnFour (int xOffset, int width);
     void setupChannelComponents ();
     void setupChannelPropertiesCallbacks ();
-    void setZoneTabStates ();
+    void monitorSampleChanges ();
 
     void aliasingDataChanged (int aliasing);
     void aliasingUiChanged (int aliasing);
