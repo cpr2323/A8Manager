@@ -13,6 +13,7 @@ public:
     ~FileViewComponent ();
     void init (juce::ValueTree rootPropertiesVT);
 
+    std::function<void (juce::File audioFile)> onAudioFileSelected;
 private:
     AppProperties appProperties;
     juce::AudioFormatManager audioFormatManager;

@@ -193,10 +193,8 @@ void FileViewComponent::listBoxItemDoubleClicked (int row, [[maybe_unused]] cons
         return;
 
     auto file { juce::File (directoryListQuickLookupList [row - listOffset].getProperty ("name").toString ()) };
-    if (! file.isDirectory () && isSupportedAudioFile (file))
-    {
-        juce::Logger::outputDebugString ("load-> " + file.getFullPathName ());
-    }
+    if (! file.isDirectory () && isSupportedAudioFile (file) && onAudioFileSelected != nullptr)
+            onAudioFileSelected (file);
 }
 
 void FileViewComponent::resized ()

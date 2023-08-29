@@ -62,6 +62,8 @@ MainComponent::MainComponent (juce::ValueTree rootPropertiesVT)
     };
 
     currentFolder.setText (appProperties.getMostRecentFolder (), juce::NotificationType::dontSendNotification);
+
+    fileViewComponent.onAudioFileSelected = [this] (juce::File audioFile) { assimil8orEditorComponent.receiveSampleLoadRequest (audioFile); };
 }
 
 void MainComponent::paint ([[maybe_unused]] juce::Graphics& g)
