@@ -167,7 +167,7 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
         return true;
     });
 
-    indexDataChanged (presetProperties.getIndex ());
+    indexDataChanged (presetProperties.getId ());
     nameDataChanged (presetProperties.getName ());
     data2AsCvDataChanged (presetProperties.getData2AsCV ());
     xfadeCvDataChanged (0, presetProperties.getXfadeACV ());
@@ -182,7 +182,7 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
 
 void Assimil8orEditorComponent::setupPresetPropertiesCallbacks ()
 {
-    presetProperties.onIndexChange = [this] (int index) { indexDataChanged (index); };
+    presetProperties.onIdChange = [this] (int index) { indexDataChanged (index); };
     presetProperties.onNameChange = [this] (juce::String name) { nameDataChanged (name); };
     presetProperties.onData2AsCVChange = [this] (juce::String cvInput) { data2AsCvDataChanged (cvInput); };
     // Xfade_CV
@@ -200,6 +200,13 @@ void Assimil8orEditorComponent::setupPresetPropertiesCallbacks ()
 void Assimil8orEditorComponent::importPreset ()
 {
     jassertfalse;
+}
+
+void Assimil8orEditorComponent::receiveSampleLoadRequest (juce::File sampleFile)
+{
+    auto channelIndex { channelTabs.getCurrentTabIndex () };
+    auto curChannelEditor { dynamic_cast<ChannelEditor*>(channelTabs.getTabContentComponent (channelIndex)) };
+    curChannelEditor->receiveSampleLoadRequest (sampleFile);
 }
 
 void Assimil8orEditorComponent::exportPreset ()

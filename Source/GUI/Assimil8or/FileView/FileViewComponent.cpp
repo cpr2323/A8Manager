@@ -10,6 +10,8 @@
 
 FileViewComponent::FileViewComponent () : Thread ("FileViewComponentThread")
 {
+    audioFormatManager.registerBasicFormats ();
+
     openFolderButton.setButtonText ("Open Folder");
     openFolderButton.onClick = [this] () { openFolder (); };
     addAndMakeVisible (openFolderButton);
@@ -97,6 +99,20 @@ void FileViewComponent::openFolder ()
     }, nullptr);
 }
 
+bool FileViewComponent::isSupportedAudioFile (juce::File file)
+{
+    if (file.isDirectory () || file.getFileExtension () != ".wav")
+        return false;
+    std::unique_ptr<juce::AudioFormatReader> reader (audioFormatManager.createReaderFor (file));
+    if (reader == nullptr)
+        return false;
+    // check for any format settings that are unsupported
+    if ((reader->usesFloatingPointData == true) || (reader->bitsPerSample < 8 || reader->bitsPerSample > 32) || (reader->numChannels == 0 || reader->numChannels > 2) || (reader->sampleRate > 192000))
+        return false;
+
+    return true;
+}
+
 void FileViewComponent::buildQuickLookupList ()
 {
     ValueTreeHelpers::forEachChild (directoryValueTree.getDirectoryVT (), [this] (juce::ValueTree child)
@@ -129,6 +145,11 @@ void FileViewComponent::paintListBoxItem (int row, juce::Graphics& g, int width,
         if (file.isDirectory ())
         {
             filePrefix = "> ";
+        }
+        else if (isSupportedAudioFile (file))
+        {
+            filePrefix = "-  ";
+            textColor = juce::Colours::forestgreen;
         }
         else
         {
@@ -164,6 +185,18 @@ void FileViewComponent::listBoxItemClicked (int row, [[maybe_unused]] const juce
         appProperties.setMostRecentFolder (juce::File (directoryValueTree.getRootFolder ()).getParentDirectory ().getFullPathName ());
     else if (auto folder { juce::File (directoryListQuickLookupList [row - listOffset].getProperty ("name").toString ()) }; folder.isDirectory ())
         appProperties.setMostRecentFolder (folder.getFullPathName ());
+}
+
+void FileViewComponent::listBoxItemDoubleClicked (int row, [[maybe_unused]] const juce::MouseEvent& me)
+{
+    if (row >= getNumRows () || (listOffset == 1 && row == 0))
+        return;
+
+    auto file { juce::File (directoryListQuickLookupList [row - listOffset].getProperty ("name").toString ()) };
+    if (! file.isDirectory () && isSupportedAudioFile (file))
+    {
+        juce::Logger::outputDebugString ("load-> " + file.getFullPathName ());
+    }
 }
 
 void FileViewComponent::resized ()

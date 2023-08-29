@@ -671,9 +671,16 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
     zonesRTDataChanged (channelProperties.getZonesRT ());
 }
 
+void ChannelEditor::receiveSampleLoadRequest (juce::File sampleFile)
+{
+    auto zoneIndex { zoneTabs.getCurrentTabIndex () };
+    auto curZoneEditor { dynamic_cast<ZoneEditor*>(zoneTabs.getTabContentComponent (zoneIndex)) };
+    curZoneEditor->receiveSampleLoadRequest (sampleFile);
+}
+
 void ChannelEditor::setupChannelPropertiesCallbacks ()
 {
-    channelProperties.onIndexChange = [this] ([[maybe_unused]] int index) { jassertfalse; /* I don't think this should change while we are editing */};
+    channelProperties.onIdChange = [this] ([[maybe_unused]] int index) { jassertfalse; /* I don't think this should change while we are editing */};
     channelProperties.onAliasingChange = [this] (int aliasing) { aliasingDataChanged (aliasing);  };
     channelProperties.onAliasingModChange = [this] (CvInputAndAmount amountAndCvInput) { const auto& [cvInput, value] { amountAndCvInput }; aliasingModDataChanged (cvInput, value); };
     channelProperties.onAttackChange = [this] (double attack) { attackDataChanged (attack);  };

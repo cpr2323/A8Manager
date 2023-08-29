@@ -1,18 +1,18 @@
 #include "ZoneProperties.h"
 
-juce::ValueTree ZoneProperties::create (int index)
+juce::ValueTree ZoneProperties::create (int id)
 {
     ZoneProperties zoneProperties;
-    zoneProperties.setIndex (index, false);
+    zoneProperties.setId (id, false);
     return zoneProperties.getValueTree ();
 }
 
 ////////////////////////////////////////////////////////////////////
 // set___
 ////////////////////////////////////////////////////////////////////
-void ZoneProperties::setIndex (int index, bool includeSelfCallback)
+void ZoneProperties::setId (int id, bool includeSelfCallback)
 {
-    setValue (index, IndexPropertyId, includeSelfCallback);
+    setValue (id, IdPropertyId, includeSelfCallback);
 }
 
 void ZoneProperties::setLevelOffset (double levelOffset, bool includeSelfCallback)
@@ -63,9 +63,9 @@ void ZoneProperties::setSide (int side, bool includeSelfCallback)
 ////////////////////////////////////////////////////////////////////
 // get___
 ////////////////////////////////////////////////////////////////////
-int ZoneProperties::getIndex ()
+int ZoneProperties::getId ()
 {
-    return getValue<int> (IndexPropertyId);
+    return getValue<int> (IdPropertyId);
 }
 
 double ZoneProperties::getLevelOffset ()
@@ -129,10 +129,10 @@ void ZoneProperties::valueTreePropertyChanged (juce::ValueTree& vt, const juce::
 {
     if (data == vt)
     {
-        if (property == IndexPropertyId)
+        if (property == IdPropertyId)
         {
-            if (onIndexChange!= nullptr)
-                onIndexChange (getIndex ());
+            if (onIdChange!= nullptr)
+                onIdChange (getId ());
         }
         else if (property == LevelOffsetPropertyId)
         {

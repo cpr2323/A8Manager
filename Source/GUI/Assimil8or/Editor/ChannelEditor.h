@@ -52,6 +52,7 @@ public:
     ~ChannelEditor ();
 
     void init (juce::ValueTree channelPropertiesVT, juce::ValueTree rootPropertiesVT);
+    void receiveSampleLoadRequest (juce::File sampleFile);
 
 private:
     ChannelProperties channelProperties;

@@ -10,7 +10,7 @@ class FileSelectLabel : public juce::Label,
 public:
     FileSelectLabel ()
     {
-        mouseEavesDropper.onMouseDown = [this] (const juce::MouseEvent& event) { browseForSample (); };
+        mouseEavesDropper.onMouseDown = [this] (const juce::MouseEvent&) { browseForSample (); };
         addMouseListener (&mouseEavesDropper, true);
     }
     ~FileSelectLabel ()
@@ -107,6 +107,7 @@ public:
 
     void init (juce::ValueTree zonePropertiesVT, juce::ValueTree rootPropertiesVT);
     void setLoopLengthIsEnd (bool loopLengthIsEnd);
+    void receiveSampleLoadRequest (juce::File sampleFile);
 
 private:
     AppProperties appProperties;

@@ -70,9 +70,9 @@ juce::ValueTree PresetProperties::getChannelVT (int channelIndex)
 ////////////////////////////////////////////////////////////////////
 // set___
 ////////////////////////////////////////////////////////////////////
-void PresetProperties::setIndex (int index, bool includeSelfCallback)
+void PresetProperties::setId (int id, bool includeSelfCallback)
 {
-    setValue (index, IndexPropertyId, includeSelfCallback);
+    setValue (id, IdPropertyId, includeSelfCallback);
 }
 
 void PresetProperties::setData2AsCV (juce::String data2AsCv, bool includeSelfCallback)
@@ -128,9 +128,9 @@ void PresetProperties::setXfadeDWidth (double width, bool includeSelfCallback)
 ////////////////////////////////////////////////////////////////////
 // get___
 ////////////////////////////////////////////////////////////////////
-int PresetProperties::getIndex ()
+int PresetProperties::getId ()
 {
-    return getValue<int> (IndexPropertyId);
+    return getValue<int> (IdPropertyId);
 }
 
 juce::String PresetProperties::getData2AsCV ()
@@ -187,10 +187,10 @@ void PresetProperties::valueTreePropertyChanged (juce::ValueTree& vt, const juce
 {
     if (vt == data)
     {
-        if (property == IndexPropertyId)
+        if (property == IdPropertyId)
         {
-            if (onIndexChange != nullptr)
-                onIndexChange (getIndex ());
+            if (onIdChange != nullptr)
+                onIdChange (getId ());
         }
         else if (property == Data2asCVPropertyId)
         {

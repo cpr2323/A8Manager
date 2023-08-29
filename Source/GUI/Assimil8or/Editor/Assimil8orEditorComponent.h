@@ -66,6 +66,7 @@ private:
     void exportPreset ();
     juce::String formatXfadeWidthString (double width);
     void importPreset ();
+    void receiveSampleLoadRequest (juce::File sampleFile);
     void savePreset ();
     void setupPresetComponents ();
     void setupPresetPropertiesCallbacks ();

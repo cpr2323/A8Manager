@@ -102,11 +102,11 @@ void ZoneEditor::loadSample (juce::String sampleFileName)
             sampleLength = reader->lengthInSamples;
             sampleFileName = sampleFile.getFileName (); // this copies the added .wav extension if it wasn't in the original name
             // if Zone1, and stereo file
-            if (zoneProperties.getIndex () == 1 && reader->numChannels == 2)
+            if (zoneProperties.getId () == 1 && reader->numChannels == 2)
             {
                 ChannelProperties parentChannelProperties (zoneProperties.getValueTree ().getParent (), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
                 // if this zone not the last channel && the parent channel isn't set to Stereo/Right
-                if (auto parentChannelIndex { parentChannelProperties.getIndex () }; parentChannelIndex != 8 && parentChannelProperties.getChannelMode () != ChannelProperties::ChannelMode::stereoRight)
+                if (auto parentChannelIndex { parentChannelProperties.getId () }; parentChannelIndex != 8 && parentChannelProperties.getChannelMode () != ChannelProperties::ChannelMode::stereoRight)
                 {
                     PresetProperties presetProperties (parentChannelProperties.getValueTree ().getParent (), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
                     ChannelProperties nextChannelProperties (presetProperties.getChannelVT (parentChannelIndex), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
@@ -173,33 +173,11 @@ void ZoneEditor::setupZoneComponents ()
         addAndMakeVisible (textEditor);
     };
     setupLabel (sampleNameLabel, "FILE", 15.0, juce::Justification::centredLeft);
-    const auto kMaxFileNameLength { 47 };
     setupLabel (sampleNameSelectLabel, "", 15.0, juce::Justification::centredLeft);
     sampleNameSelectLabel.setColour (juce::Label::ColourIds::textColourId, levelOffsetTextEditor.findColour (juce::TextEditor::ColourIds::textColourId));
     sampleNameSelectLabel.setColour (juce::Label::ColourIds::backgroundColourId, levelOffsetTextEditor.findColour (juce::TextEditor::ColourIds::backgroundColourId));
     sampleNameSelectLabel.setOutline (levelOffsetTextEditor.findColour (juce::TextEditor::ColourIds::outlineColourId));
     sampleNameSelectLabel.setBorderSize ({ 0, 2, 0, 0 });
-#if 0
-    setupTextEditor (sampleNameTextEditor, juce::Justification::centredLeft, kMaxFileNameLength, " !\"#$%^&'()#+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~", "Sample", [this] ()
-    {
-        auto sampleFile { juce::File (appProperties.getMostRecentFolder ()).getChildFile (sampleNameTextEditor.getText ()) };
-        if (! sampleFile.isDirectory ())
-        {
-            if (sampleFile.getFileExtension () != "")
-                FormatHelpers::setColorIfError (sampleNameTextEditor, sampleFile);
-            else
-                FormatHelpers::setColorIfError (sampleNameTextEditor, sampleFile.withFileExtension(".wav"));
-        }
-        else
-        {
-            FormatHelpers::setColorIfError (sampleNameTextEditor, false);
-        }
-    },
-    [this] (juce::String text)
-    {
-        loadSample (text);
-    });
-#endif
     // SAMPLE START
     setupLabel (sampleStartLabel, "SMPL START", 12.0, juce::Justification::centredRight);
     setupTextEditor (sampleStartTextEditor, juce::Justification::centred, 0, "0123456789", "SampleStart", [this] ()
@@ -361,9 +339,17 @@ void ZoneEditor::setLoopLengthIsEnd (bool newLoopLengthIsEnd)
     loopLengthDataChanged (zoneProperties.getLoopLength ());
 }
 
+void ZoneEditor::receiveSampleLoadRequest (juce::File sampleFile)
+{
+    if (! handleSelectedFile (sampleFile))
+    {
+        // TODO - indicate an error? first thought was a red outline that fades out over a couple of second
+    }
+}
+
 void ZoneEditor::setupZonePropertiesCallbacks ()
 {
-    zoneProperties.onIndexChange = [this] ([[maybe_unused]] int index) { jassertfalse; /* I don't think this should change while we are editing */};
+    zoneProperties.onIdChange = [this] ([[maybe_unused]] int index) { jassertfalse; /* I don't think this should change while we are editing */};
     zoneProperties.onLevelOffsetChange = [this] (double levelOffset) { levelOffsetDataChanged (levelOffset);  };
     zoneProperties.onLoopLengthChange = [this] (std::optional<double> loopLength) { loopLengthDataChanged (loopLength);  };
     zoneProperties.onLoopStartChange = [this] (std::optional <int64_t> loopStart) { loopStartDataChanged (loopStart);  };

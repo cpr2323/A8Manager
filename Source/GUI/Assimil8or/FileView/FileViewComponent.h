@@ -15,6 +15,7 @@ public:
 
 private:
     AppProperties appProperties;
+    juce::AudioFormatManager audioFormatManager;
     juce::TextButton openFolderButton;
     std::unique_ptr<juce::FileChooser> fileChooser;
     juce::ListBox directoryContentsListBox { {}, this };
@@ -27,6 +28,7 @@ private:
 
     void buildQuickLookupList ();
     void openFolder ();
+    bool isSupportedAudioFile (juce::File file);
     void startScan (juce::File folderToScan);
 
     void resized () override;
@@ -35,5 +37,6 @@ private:
     void paintListBoxItem (int rowNumber, juce::Graphics& g, int width, int height, bool rowIsSelected) override;
     juce::String getTooltipForRow (int row) override;
     void listBoxItemClicked (int row, const juce::MouseEvent& me) override;
+    void listBoxItemDoubleClicked (int row, const juce::MouseEvent& me);
 };
     

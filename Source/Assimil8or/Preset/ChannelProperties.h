@@ -26,7 +26,7 @@ public:
         cycle
     };
 
-    void setIndex (int index, bool includeSelfCallback);
+    void setId (int id, bool includeSelfCallback);
     void setAliasing (int aliasing, bool includeSelfCallback);
     void setAliasingMod (juce::String cvInput, double aliasingMod, bool includeSelfCallback);
     void setAttack (double attack, bool includeSelfCallback);
@@ -68,7 +68,7 @@ public:
     void setZonesCV (juce::String zonesCV, bool includeSelfCallback);
     void setZonesRT (int zonesRT, bool includeSelfCallback);
 
-    int getIndex ();
+    int getId ();
     int getAliasing ();
     CvInputAndAmount getAliasingMod ();
     double getAttack ();
@@ -110,7 +110,7 @@ public:
     juce::String getZonesCV ();
     int getZonesRT ();
 
-    std::function<void (int index)> onIndexChange;
+    std::function<void (int id)> onIdChange;
     std::function<void (int aliasing)> onAliasingChange;
     std::function<void (CvInputAndAmount amountAndCvInput)> onAliasingModChange;
     std::function<void (double attack)> onAttackChange;
@@ -155,13 +155,13 @@ public:
     void forEachZone (std::function<bool (juce::ValueTree zoneVT)> zoneVTCallback);
     juce::ValueTree getZoneVT (int zoneIndex);
 
-    static juce::ValueTree create (int index);
+    static juce::ValueTree create (int id);
     static juce::String getCvInputAndValueString (juce::String cvInput, double value, int decimalPlaces);
     static juce::String getCvInputAndValueString (CvInputAndAmount cvInputAndValue, int decimalPlaces);
     static CvInputAndAmount getCvInputAndValueFromString (juce::String cvInputAndValueString);
 
     static inline const juce::Identifier ChannelTypeId { "Channel" };
-    static inline const juce::Identifier IndexPropertyId             { "_index" };
+    static inline const juce::Identifier IdPropertyId                { "_id" };
     static inline const juce::Identifier AliasingPropertyId          { "aliasing" };
     static inline const juce::Identifier AliasingModPropertyId       { "aliasingMod" };
     static inline const juce::Identifier AttackPropertyId            { "attack" };

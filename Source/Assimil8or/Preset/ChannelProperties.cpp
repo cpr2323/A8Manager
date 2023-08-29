@@ -9,10 +9,10 @@ int ChannelProperties::getNumZones ()
     return numZones;
 }
 
-juce::ValueTree ChannelProperties::create (int index)
+juce::ValueTree ChannelProperties::create (int id)
 {
     ChannelProperties channelProperties;
-    channelProperties.setIndex (index, false);
+    channelProperties.setId (id, false);
     return channelProperties.getValueTree ();
 }
 
@@ -65,9 +65,9 @@ CvInputAndAmount ChannelProperties::getCvInputAndValueFromString (juce::String c
 ////////////////////////////////////////////////////////////////////
 // set___
 ////////////////////////////////////////////////////////////////////
-void ChannelProperties::setIndex (int index, bool includeSelfCallback)
+void ChannelProperties::setId (int id, bool includeSelfCallback)
 {
-    setValue (index, IndexPropertyId, includeSelfCallback);
+    setValue (id, IdPropertyId, includeSelfCallback);
 }
 
 void ChannelProperties::setAliasing (int aliasing, bool includeSelfCallback)
@@ -273,9 +273,9 @@ void ChannelProperties::setZonesRT (int zonesRT, bool includeSelfCallback)
 ////////////////////////////////////////////////////////////////////
 // get___
 ////////////////////////////////////////////////////////////////////
-int ChannelProperties::getIndex ()
+int ChannelProperties::getId ()
 {
-    return getValue<int> (IndexPropertyId);
+    return getValue<int> (IdPropertyId);
 }
 
 int ChannelProperties::getAliasing ()
@@ -489,10 +489,10 @@ void ChannelProperties::valueTreePropertyChanged (juce::ValueTree& vt, const juc
     if (vt != data)
         return;
 
-    if (property == IndexPropertyId)
+    if (property == IdPropertyId)
     {
-        if (onIndexChange != nullptr)
-            onIndexChange (getIndex ());
+        if (onIdChange != nullptr)
+            onIdChange (getId ());
     }
     else if (property == AliasingPropertyId)
     {

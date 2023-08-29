@@ -31,7 +31,7 @@ void Assimil8orPreset::write (juce::File presetFile, juce::ValueTree presetPrope
     if (FileTypeHelpers::isPresetFile (presetFile))
     {
         if (const auto presetNumber { FileTypeHelpers::getPresetNumberFromName (presetFile) }; presetNumber != FileTypeHelpers::kBadPresetNumber)
-            presetPropertiesToWrite.setIndex (presetNumber, false);
+            presetPropertiesToWrite.setId (presetNumber, false);
     }
 
     PresetProperties defaultPresetProperties (ParameterPresetsSingleton::getInstance ()->getParameterPresetListProperties ().getParameterPreset (ParameterPresetListProperties::DefaultParameterPresetType),
@@ -103,7 +103,7 @@ void Assimil8orPreset::write (juce::File presetFile, juce::ValueTree presetPrope
             lines.add (juce::String (lineToAdd).paddedLeft (' ', lineToAdd.length () + indentAmount * 2));
     };
 
-    addLine (true, Section::PresetId + " " + juce::String (presetPropertiesToWrite.getIndex ()) + " :");
+    addLine (true, Section::PresetId + " " + juce::String (presetPropertiesToWrite.getId ()) + " :");
     ++indentAmount;
     addLine (true, Parameter::Preset::NameId + " : " + presetPropertiesToWrite.getName ());
     addLine (presetPropertiesToWrite.getData2AsCV () != defaultPresetProperties.getData2AsCV (), Parameter::Preset::Data2asCVId + " : " + presetPropertiesToWrite.getData2AsCV ());
@@ -121,7 +121,7 @@ void Assimil8orPreset::write (juce::File presetFile, juce::ValueTree presetPrope
         ChannelProperties channelProperties (channelVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
         if (! isChannelAllDefaults (channelProperties))
         {
-            addLine (true, Section::ChannelId + " " + juce::String (channelProperties.getIndex ()) + " :");
+            addLine (true, Section::ChannelId + " " + juce::String (channelProperties.getId ()) + " :");
             ++indentAmount;
             addLine (channelProperties.getAliasing () != defaultChannelProperties.getAliasing (), Parameter::Channel::AliasingId + " : " + juce::String (channelProperties.getAliasing ()));
             addLine (channelProperties.getAliasingMod () != defaultChannelProperties.getAliasingMod (), Parameter::Channel::AliasingModId + " : " + ChannelProperties::getCvInputAndValueString (channelProperties.getAliasingMod (), 4));
@@ -169,7 +169,7 @@ void Assimil8orPreset::write (juce::File presetFile, juce::ValueTree presetPrope
                 ZoneProperties zoneProperties (zoneVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
                 if (! isZoneAllDefaults (zoneProperties))
                 {
-                    addLine (true, Section::ZoneId + " " + juce::String (zoneProperties.getIndex ()) + " :");
+                    addLine (true, Section::ZoneId + " " + juce::String (zoneProperties.getId ()) + " :");
                     ++indentAmount;
                     addLine (zoneProperties.getLevelOffset () != defaultZoneProperties.getLevelOffset (), Parameter::Zone::LevelOffsetId + " : " + juce::String (zoneProperties.getLevelOffset ()));
                     addLine (zoneProperties.getLoopLength ().has_value () && zoneProperties.getLoopLength () != defaultZoneProperties.getLoopLength (),
@@ -296,11 +296,11 @@ void Assimil8orPreset::checkCvInputAndAmountFormat (juce::String theKey, juce::S
 
 void Assimil8orPreset::initParser ()
 {
-    auto getParameterIndex = [this] ()
+    auto getParameterId = [this] ()
     {
-        const auto index { key.fromFirstOccurrenceOf (" ", false, false).getIntValue () };
-        jassert (index > 0);
-        return index;
+        const auto id { key.fromFirstOccurrenceOf (" ", false, false).getIntValue () };
+        jassert (id > 0);
+        return id;
     };
     
     auto setActions = [this] (ActionMap* newActions, Action undoAction)
@@ -317,9 +317,9 @@ void Assimil8orPreset::initParser ()
     
     // Global Action
     globalActions.insert ({
-        {Section::PresetId, [this, getParameterIndex, undoAction, setActions] () {
+        {Section::PresetId, [this, getParameterId, undoAction, setActions] () {
             curPresetSection = presetProperties.getValueTree ();
-            presetProperties.setIndex (getParameterIndex (), false);
+            presetProperties.setId (getParameterId (), false);
             setActions (&presetActions, [this, undoAction]{
                 undoAction (&globalActions, curPresetSection);
             });
@@ -328,9 +328,9 @@ void Assimil8orPreset::initParser ()
 
     // Preset Actions
     presetActions.insert ({
-        {Section::ChannelId, [this, getParameterIndex, undoAction, setActions] () {
-            jassert (getParameterIndex () > 0 && getParameterIndex () < 9);
-            curChannelSection = presetProperties.getChannelVT (getParameterIndex () - 1);
+        {Section::ChannelId, [this, getParameterId, undoAction, setActions] () {
+            jassert (getParameterId () > 0 && getParameterId () < 9);
+            curChannelSection = presetProperties.getChannelVT (getParameterId () - 1);
             channelProperties.wrap (curChannelSection, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
             setActions (&channelActions, [this, undoAction]{
                 undoAction (&presetActions, curChannelSection);
@@ -378,9 +378,9 @@ void Assimil8orPreset::initParser ()
 
     // Channel Actions
     channelActions.insert ({
-        {Section::ZoneId, [this, getParameterIndex, undoAction, setActions] () {
-            jassert (getParameterIndex () > 0 && getParameterIndex () < 9);
-            curZoneSection = channelProperties.getZoneVT (getParameterIndex () - 1);
+        {Section::ZoneId, [this, getParameterId, undoAction, setActions] () {
+            jassert (getParameterId () > 0 && getParameterId () < 9);
+            curZoneSection = channelProperties.getZoneVT (getParameterId () - 1);
             zoneProperties.wrap (curZoneSection, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
             setActions (&zoneActions, [this, undoAction]{
                 undoAction (&channelActions, curZoneSection);
