@@ -143,6 +143,7 @@ private:
     void setupZoneComponents ();
     void setupZonePropertiesCallbacks ();
     void updateSampleFileInfo (juce::String sample);
+    void updateSamplePositionInfo ();
 
     void levelOffsetDataChanged (double levelOffset);
     void levelOffsetUiChanged (double levelOffset);

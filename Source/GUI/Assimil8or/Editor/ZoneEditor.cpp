@@ -132,6 +132,7 @@ void ZoneEditor::loadSample (juce::String sampleFileName)
     zoneProperties.setSampleEnd (-1, true);
     zoneProperties.setLoopStart (-1, true);
     zoneProperties.setLoopLength (-1, true);
+    updateSamplePositionInfo ();
 
     sampleUiChanged (sampleFileName);
     sampleNameSelectLabel.setText (sampleFileName, juce::NotificationType::dontSendNotification);
@@ -490,11 +491,21 @@ void ZoneEditor::updateSampleFileInfo (juce::String sample)
     if (! zoneProperties.getLoopLength ().has_value ())
         loopLengthTextEditor.setText (formatLoopLength (static_cast<double>(sampleLength)));
 }
+void ZoneEditor::updateSamplePositionInfo ()
+{
+    loopLengthDataChanged (zoneProperties.getLoopLength ());
+    loopStartDataChanged (zoneProperties.getLoopStart ());
+    sampleStartDataChanged (zoneProperties.getSampleStart ());
+    sampleEndDataChanged (zoneProperties.getSampleEnd ());
+}
 
 void ZoneEditor::sampleDataChanged (juce::String sample)
 {
     if (sample != sampleNameSelectLabel.getText ())
+    {
         updateSampleFileInfo (sample);
+        updateSamplePositionInfo ();
+    }
     sampleNameSelectLabel.setText (sample, juce::NotificationType::dontSendNotification);
 }
 
