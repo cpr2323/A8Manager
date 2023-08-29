@@ -589,7 +589,7 @@ void ChannelEditor::setupChannelComponents ()
         loopLengthModUiChanged (loopLengthModComboBox.getSelectedItemText (), loopLengthMod);
         loopLengthModTextEditor.setText (FormatHelpers::formatDouble (loopLengthMod, 2, true));
     });
-    setupLabel (xfadeGroupLabel, "XFADE", kSmallLabelSize, juce::Justification::centredRight);
+    setupLabel (xfadeGroupLabel, "XFADE GRP", kSmallLabelSize, juce::Justification::centredRight);
     xfadeGroupComboBox.addItem ("None", 1); // Off, A, B, C, D
     xfadeGroupComboBox.addItem ("A", 2);
     xfadeGroupComboBox.addItem ("B", 3);
@@ -834,20 +834,21 @@ void ChannelEditor::positionColumnFour (int xOffset, int width)
     loopLengthModComboBox.setBounds (xOffset, loopLengthModLabel.getBottom (), width / 2, kParameterLineHeight);
     loopLengthModTextEditor.setBounds (loopLengthModComboBox.getRight () + 3, loopLengthModComboBox.getY (), width / 2, kParameterLineHeight);
 
-    xfadeGroupLabel.setBounds (xOffset, loopLengthModComboBox.getBottom () + 5 + 2, width / 2, kMediumLabelIntSize);
-    xfadeGroupComboBox.setBounds (xfadeGroupLabel.getRight () + 3, loopLengthModComboBox.getBottom () + 5, width / 2, kParameterLineHeight);
-
-    // AUTO TRIGGER
-    autoTriggerLabel.setBounds (xOffset, xfadeGroupComboBox.getBottom () + 5 + 2, ((width / 3) * 2) - 15, kMediumLabelIntSize);
-    autoTriggerComboBox.setBounds (autoTriggerLabel.getRight () + 3, xfadeGroupComboBox.getBottom () + 5, (width / 3 + 15), kParameterLineHeight);
-
     // PLAY MODE
-    playModeLabel.setBounds (xOffset, autoTriggerComboBox.getBottom () + 5 + 2, width / 3, kMediumLabelIntSize);
-    playModeComboBox.setBounds (playModeLabel.getRight () + 3, autoTriggerComboBox.getBottom () + 5, (width / 3) * 2, kParameterLineHeight);
+    playModeLabel.setBounds (xOffset, loopLengthModComboBox.getBottom () + 5 + 2, width / 3, kMediumLabelIntSize);
+    playModeComboBox.setBounds (playModeLabel.getRight () + 3, loopLengthModComboBox.getBottom () + 5, (width / 3) * 2, kParameterLineHeight);
 
     // LOOP MODE
     loopModeLabel.setBounds (xOffset, playModeComboBox.getBottom () + 5 + 2, width / 3, kMediumLabelIntSize);
     loopModeComboBox.setBounds (loopModeLabel.getRight () + 3, playModeComboBox.getBottom () + 5, (width / 3) * 2, kParameterLineHeight);
+
+    // AUTO TRIGGER
+    autoTriggerLabel.setBounds (xOffset, loopModeComboBox.getBottom () + 5 + 2, ((width / 3) * 2) - 15, kMediumLabelIntSize);
+    autoTriggerComboBox.setBounds (autoTriggerLabel.getRight () + 3, loopModeComboBox.getBottom () + 5, (width / 3 + 15), kParameterLineHeight);
+
+    // XFADE GRP
+    xfadeGroupLabel.setBounds (xOffset, autoTriggerComboBox.getBottom () + 5 + 2, width / 2, kMediumLabelIntSize);
+    xfadeGroupComboBox.setBounds (xfadeGroupLabel.getRight () + 3, autoTriggerComboBox.getBottom () + 5, width / 2, kParameterLineHeight);
 }
 
 void ChannelEditor::resized ()
@@ -876,7 +877,7 @@ void ChannelEditor::resized ()
 
     zoneTabs.setBounds (zoneColumn);
 
-    auto xOffSet { 5 };
+    auto xOffSet { 15 };
     positionColumnOne (xOffSet, columnWidth);
     xOffSet += columnWidth + spaceBetweenColumns;
     positionColumnTwo (xOffSet, columnWidth);

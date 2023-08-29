@@ -363,35 +363,38 @@ void ZoneEditor::paint ([[maybe_unused]] juce::Graphics& g)
 
 void ZoneEditor::resized ()
 {
-     const auto xOffset { 3 };
-     const auto width { 155 };
-     const auto interParameterYOffset { 1 };
+    const auto xOffset { 3 };
+    const auto width { 160 };
+    const auto interParameterYOffset { 1 };
+    const auto spaceBetweenLabelAndInput { 3 };
+    auto scaleWidth = [width] (float scaleAmount) { return static_cast<int>(width * scaleAmount); };
 
-    sampleNameLabel.setBounds (xOffset, 5, 25, 20);
-    sampleNameTextEditor.setBounds (sampleNameLabel.getRight () + 3, 5, width - sampleNameLabel.getWidth () - 3, 20);
+    const auto sampleNameLabelScale { 0.156f };
+    const auto sampleNameInputScale { 1.f - sampleNameLabelScale };
+    sampleNameLabel.setBounds (xOffset, 5, scaleWidth (sampleNameLabelScale), 20);
+    sampleNameTextEditor.setBounds (sampleNameLabel.getRight () + spaceBetweenLabelAndInput, 5, scaleWidth (sampleNameInputScale) - spaceBetweenLabelAndInput + 1, 20);
 
     const auto samplePointLabelScale { 0.45f };
     const auto samplePointInputScale { 1.f - samplePointLabelScale };
-    auto scaleWidth = [width] (float scaleAmount) { return static_cast<int>(width * scaleAmount); };
-    sampleStartLabel.setBounds (xOffset + 5, sampleNameTextEditor.getBottom () + 5, scaleWidth (samplePointLabelScale), 20);
-    sampleStartTextEditor.setBounds (sampleStartLabel.getRight (), sampleStartLabel.getY (), scaleWidth (samplePointInputScale) - 5, 20);
-    sampleEndLabel.setBounds (xOffset + 5, sampleStartLabel.getBottom () + interParameterYOffset, scaleWidth (samplePointLabelScale), 20);
-    sampleEndTextEditor.setBounds (sampleEndLabel.getRight (), sampleEndLabel.getY (), scaleWidth (samplePointInputScale) - 5, 20);
-    loopStartLabel.setBounds (xOffset + 5, sampleEndTextEditor.getBottom (), scaleWidth (samplePointLabelScale), 20);
-    loopStartTextEditor.setBounds (loopStartLabel.getRight (), loopStartLabel.getY (), scaleWidth (samplePointInputScale) - 5, 20);
-    loopLengthLabel.setBounds (xOffset + 5, loopStartLabel.getBottom () + interParameterYOffset, scaleWidth (samplePointLabelScale), 20);
-    loopLengthTextEditor.setBounds (loopLengthLabel.getRight (), loopLengthLabel.getY (), scaleWidth (samplePointInputScale) - 5, 20);
+    sampleStartLabel.setBounds (xOffset, sampleNameTextEditor.getBottom () + 5, scaleWidth (samplePointLabelScale), 20);
+    sampleStartTextEditor.setBounds (sampleStartLabel.getRight () + spaceBetweenLabelAndInput, sampleStartLabel.getY (), scaleWidth (samplePointInputScale) - spaceBetweenLabelAndInput, 20);
+    sampleEndLabel.setBounds (xOffset, sampleStartLabel.getBottom () + interParameterYOffset, scaleWidth (samplePointLabelScale), 20);
+    sampleEndTextEditor.setBounds (sampleEndLabel.getRight () + spaceBetweenLabelAndInput, sampleEndLabel.getY (), scaleWidth (samplePointInputScale) - spaceBetweenLabelAndInput, 20);
+    loopStartLabel.setBounds (xOffset, sampleEndTextEditor.getBottom (), scaleWidth (samplePointLabelScale), 20);
+    loopStartTextEditor.setBounds (loopStartLabel.getRight () + spaceBetweenLabelAndInput, loopStartLabel.getY (), scaleWidth (samplePointInputScale) - spaceBetweenLabelAndInput, 20);
+    loopLengthLabel.setBounds (xOffset, loopStartLabel.getBottom () + interParameterYOffset, scaleWidth (samplePointLabelScale), 20);
+    loopLengthTextEditor.setBounds (loopLengthLabel.getRight ()+ spaceBetweenLabelAndInput, loopLengthLabel.getY (), scaleWidth (samplePointInputScale) - spaceBetweenLabelAndInput, 20);
 
     const auto otherLabelScale { 0.66f };
     const auto otherInputScale { 1.f - otherLabelScale };
     minVoltageLabel.setBounds (xOffset, loopLengthTextEditor.getBottom () + 5, scaleWidth (otherLabelScale), 20);
-    minVoltageTextEditor.setBounds (minVoltageLabel.getRight (), minVoltageLabel.getY (), scaleWidth (otherInputScale), 20);
+    minVoltageTextEditor.setBounds (minVoltageLabel.getRight () + spaceBetweenLabelAndInput, minVoltageLabel.getY (), scaleWidth (otherInputScale) - spaceBetweenLabelAndInput, 20);
 
     pitchOffsetLabel.setBounds (xOffset, minVoltageTextEditor.getBottom () + 5, scaleWidth (otherLabelScale), 20);
-    pitchOffsetTextEditor.setBounds (pitchOffsetLabel.getRight (), pitchOffsetLabel.getY (), scaleWidth (otherInputScale), 20);
+    pitchOffsetTextEditor.setBounds (pitchOffsetLabel.getRight () + spaceBetweenLabelAndInput, pitchOffsetLabel.getY (), scaleWidth (otherInputScale) - spaceBetweenLabelAndInput, 20);
 
     levelOffsetLabel.setBounds (xOffset, pitchOffsetLabel.getBottom () + 5, scaleWidth (otherLabelScale), 20);
-    levelOffsetTextEditor.setBounds (levelOffsetLabel.getRight (), levelOffsetLabel.getY (), scaleWidth (otherInputScale), 20);
+    levelOffsetTextEditor.setBounds (levelOffsetLabel.getRight () + spaceBetweenLabelAndInput, levelOffsetLabel.getY (), scaleWidth (otherInputScale) - spaceBetweenLabelAndInput, 20);
 }
 
 juce::String ZoneEditor::formatLoopLength (double loopLength)

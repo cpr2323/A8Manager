@@ -30,7 +30,8 @@ public:
 //     int getTabButtonOverlap (int tabDepth) override;
     int getTabButtonBestWidth (juce::TabBarButton& button, [[maybe_unused]] int tabDepth) override
     {
-        return button.getTabbedButtonBar ().getHeight () / 8;
+        auto& bar { button.getTabbedButtonBar () };
+        return button.getTabbedButtonBar ().getHeight () / bar.getNumTabs ();
     }
 //     juce::Rectangle< int > getTabButtonExtraComponentBounds (const juce::TabBarButton&, juce::Rectangle< int > &textArea, juce::Component & extraComp) override;
 //     void drawTabButton (juce::TabBarButton&, juce::Graphics&, bool isMouseOver, bool isMouseDown) override;
