@@ -126,6 +126,8 @@ void ZoneEditor::loadSample (juce::String sampleFileName)
             }
         }
     }
+    // TODO - BUG - setting this to one causes the display to use the length of the sample to determine the value, but, if you load a second sample
+    //              which also has those as -1, then the display value does not update
     zoneProperties.setSampleStart (-1, true);
     zoneProperties.setSampleEnd (-1, true);
     zoneProperties.setLoopStart (-1, true);
