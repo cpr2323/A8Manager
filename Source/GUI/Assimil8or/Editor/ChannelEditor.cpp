@@ -112,6 +112,10 @@ ChannelEditor::~ChannelEditor ()
 
 void ChannelEditor::monitorSampleChanges ()
 {
+    if (inMonitorSampleChanges)
+        return;
+    inMonitorSampleChanges = true;
+
     auto& tabbedButtonBar { zoneTabs.getTabbedButtonBar () };
     
     auto lastEnabledZoneTab { -1 };
@@ -134,10 +138,12 @@ void ChannelEditor::monitorSampleChanges ()
                     moveHappened = true;
                 }
             }
+            // there were none others to move
             if (! moveHappened)
                 break;
         }
     }
+    inMonitorSampleChanges = false;
     // set enabled state based on sample loaded or not
     for (auto zoneIndex { 0 }; zoneIndex < zoneTabs.getNumTabs(); ++zoneIndex)
     {
@@ -159,13 +165,31 @@ void ChannelEditor::monitorSampleChanges ()
         zoneTabs.setCurrentTabIndex (0);
         tabbedButtonBar.getTabButton (0)->setEnabled (true);
     }
-    else if (lastEnabledZoneTab != 7)
+    else if (lastEnabledZoneTab < 7)
     {
         auto curTabIndex { zoneTabs.getCurrentTabIndex () };
         jassert (curTabIndex != -1);
         // there are samples loaded, and there are still empty zones
         tabbedButtonBar.getTabButton (lastEnabledZoneTab + 1)->setEnabled (true);
-        jassert (tabbedButtonBar.getTabButton (curTabIndex)->isEnabled ()); // not sure why this would happen, but I thought I would check?
+        if (!tabbedButtonBar.getTabButton (curTabIndex)->isEnabled ())
+        {
+            jassertfalse; // I've seen this happen, but I don't know the cause yet. leaving this here to help catch it
+            if (curTabIndex > 0)
+            {
+                for (auto zoneIndexToCheck { curTabIndex - 1 }; zoneIndexToCheck > 0; --zoneIndexToCheck)
+                {
+                    if (tabbedButtonBar.getTabButton (zoneIndexToCheck)->isEnabled ())
+                    {
+                        zoneTabs.setCurrentTabIndex (zoneIndexToCheck);
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                zoneTabs.setCurrentTabIndex (0);
+            }
+        }
     }
 }
 

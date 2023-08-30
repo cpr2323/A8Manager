@@ -172,6 +172,7 @@ private:
     void positionColumnFour (int xOffset, int width);
     void setupChannelComponents ();
     void setupChannelPropertiesCallbacks ();
+    bool inMonitorSampleChanges { false };
     void monitorSampleChanges ();
 
     void aliasingDataChanged (int aliasing);
