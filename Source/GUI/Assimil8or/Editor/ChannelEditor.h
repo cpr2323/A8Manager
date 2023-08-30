@@ -56,6 +56,8 @@ public:
 
 private:
     ChannelProperties channelProperties;
+    ChannelProperties defaultChannelProperties;
+    ZoneProperties defaultZoneProperties;
     ChannelProperties minChannelProperties;
     ChannelProperties maxChannelProperties;
 

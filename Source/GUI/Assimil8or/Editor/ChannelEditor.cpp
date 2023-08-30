@@ -83,6 +83,12 @@ ChannelEditor::ChannelEditor ()
                                               PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
         maxChannelProperties.wrap (maxPresetProperties.getChannelVT (0), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
     }
+    {
+        PresetProperties defaultPresetProperties (ParameterPresetsSingleton::getInstance ()->getParameterPresetListProperties ().getParameterPreset (ParameterPresetListProperties::DefaultParameterPresetType),
+                                                  PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
+        defaultChannelProperties.wrap (defaultPresetProperties.getChannelVT (0), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
+        defaultZoneProperties.wrap (defaultChannelProperties.getZoneVT (0), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
+    }
 
     setupChannelComponents ();
     addChildComponent (stereoRightTransparantOverly);
@@ -107,13 +113,36 @@ ChannelEditor::~ChannelEditor ()
 void ChannelEditor::monitorSampleChanges ()
 {
     auto& tabbedButtonBar { zoneTabs.getTabbedButtonBar () };
-    auto zoneIndex { 0 };
+    
     auto lastEnabledZoneTab { -1 };
-    // set enabled state based on sample loaded or not
-    channelProperties.forEachZone ([this, &zoneIndex, &tabbedButtonBar, &lastEnabledZoneTab] (juce::ValueTree zoneVT)
+    ZoneProperties curZoneProperties;
+    for (auto zoneIndex { 0 }; zoneIndex < zoneTabs.getNumTabs () - 1; ++zoneIndex)
     {
-        ZoneProperties zoneProperties (zoneVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
-        if (zoneProperties.getSample ().isEmpty ())
+        curZoneProperties.wrap (channelProperties.getZoneVT (zoneIndex), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
+        if (curZoneProperties.getSample ().isEmpty ())
+        {
+            bool moveHappened { false };
+            for (auto nextZoneIndex { zoneIndex + 1 }; nextZoneIndex < zoneTabs.getNumTabs (); ++nextZoneIndex)
+            {
+                ZoneProperties nextZoneProperties (channelProperties.getZoneVT (nextZoneIndex), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
+                if (nextZoneProperties.getSample ().isNotEmpty ())
+                {
+                    curZoneProperties.copyFrom (nextZoneProperties.getValueTree ());
+                    nextZoneProperties.copyFrom (defaultZoneProperties.getValueTree ());
+                    curZoneProperties.wrap (channelProperties.getZoneVT (zoneIndex + (nextZoneIndex - zoneIndex)), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
+
+                    moveHappened = true;
+                }
+            }
+            if (! moveHappened)
+                break;
+        }
+    }
+    // set enabled state based on sample loaded or not
+    for (auto zoneIndex { 0 }; zoneIndex < zoneTabs.getNumTabs(); ++zoneIndex)
+    {
+        curZoneProperties.wrap (channelProperties.getZoneVT (zoneIndex), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
+        if (curZoneProperties.getSample ().isEmpty ())
         {
             tabbedButtonBar.getTabButton (zoneIndex)->setEnabled (false);
         }
@@ -122,9 +151,7 @@ void ChannelEditor::monitorSampleChanges ()
             tabbedButtonBar.getTabButton (zoneIndex)->setEnabled (true);
             lastEnabledZoneTab = zoneIndex;
         }
-        ++zoneIndex;
-        return true;
-    });
+    }
 
     if (lastEnabledZoneTab == - 1)
     {

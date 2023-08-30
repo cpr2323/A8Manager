@@ -7,6 +7,20 @@ juce::ValueTree ZoneProperties::create (int id)
     return zoneProperties.getValueTree ();
 }
 
+void ZoneProperties::copyFrom (juce::ValueTree sourceVT)
+{
+    ZoneProperties sourceZoneProperties (sourceVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
+    setSample (sourceZoneProperties.getSample (), false);
+    setLevelOffset (sourceZoneProperties.getLevelOffset (), false);
+    setLoopLength (sourceZoneProperties.getLoopLength ().value_or (-1.0), false);
+    setLoopStart (sourceZoneProperties.getLoopStart ().value_or (-1), false);
+    setMinVoltage (sourceZoneProperties.getMinVoltage (), false);
+    setPitchOffset (sourceZoneProperties.getPitchOffset (), false);
+    setSampleEnd (sourceZoneProperties.getSampleEnd ().value_or (-1), false);
+    setSampleStart (sourceZoneProperties.getSampleStart ().value_or (-1), false);
+    setSide (sourceZoneProperties.getSide (), false);
+}
+
 ////////////////////////////////////////////////////////////////////
 // set___
 ////////////////////////////////////////////////////////////////////

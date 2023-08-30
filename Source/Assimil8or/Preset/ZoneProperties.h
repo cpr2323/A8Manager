@@ -47,6 +47,7 @@ public:
     std::function<void (std::optional<int64_t> sampleEnd)> onSampleEndChange;
     std::function<void (int side)> onSideChange;
 
+    void copyFrom (juce::ValueTree sourceVT);
     static juce::ValueTree create (int id);
 
     static inline const juce::Identifier ZoneTypeId { "Zone" };
