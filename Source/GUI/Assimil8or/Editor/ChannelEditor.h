@@ -166,14 +166,15 @@ private:
     std::array<ZoneProperties, 8> zoneProperties;
 
     void checkStereoRightOverlay ();
+    void ensureProperZoneIsSelected ();
     void positionColumnOne (int xOffset, int width);
     void positionColumnTwo (int xOffset, int width);
     void positionColumnThree (int xOffset, int width);
     void positionColumnFour (int xOffset, int width);
+    void removeEmptyZones ();
     void setupChannelComponents ();
     void setupChannelPropertiesCallbacks ();
-    bool inMonitorSampleChanges { false };
-    void monitorSampleChanges ();
+    bool removingEmptyZones { false };
 
     void aliasingDataChanged (int aliasing);
     void aliasingUiChanged (int aliasing);

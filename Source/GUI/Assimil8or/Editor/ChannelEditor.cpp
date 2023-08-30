@@ -110,15 +110,12 @@ ChannelEditor::~ChannelEditor ()
     zonesRTComboBox.setLookAndFeel (nullptr);
 }
 
-void ChannelEditor::monitorSampleChanges ()
+void ChannelEditor::removeEmptyZones ()
 {
-    if (inMonitorSampleChanges)
+    if (removingEmptyZones)
         return;
-    inMonitorSampleChanges = true;
 
-    auto& tabbedButtonBar { zoneTabs.getTabbedButtonBar () };
-    
-    auto lastEnabledZoneTab { -1 };
+    removingEmptyZones = true;
     ZoneProperties curZoneProperties;
     for (auto zoneIndex { 0 }; zoneIndex < zoneTabs.getNumTabs () - 1; ++zoneIndex)
     {
@@ -139,15 +136,21 @@ void ChannelEditor::monitorSampleChanges ()
                 }
             }
             // there were none others to move
-            if (! moveHappened)
+            if (!moveHappened)
                 break;
         }
     }
-    inMonitorSampleChanges = false;
+    removingEmptyZones = false;
+}
+
+void ChannelEditor::ensureProperZoneIsSelected ()
+{
+    auto& tabbedButtonBar { zoneTabs.getTabbedButtonBar () };
+    auto lastEnabledZoneTab { -1 };
     // set enabled state based on sample loaded or not
     for (auto zoneIndex { 0 }; zoneIndex < zoneTabs.getNumTabs(); ++zoneIndex)
     {
-        curZoneProperties.wrap (channelProperties.getZoneVT (zoneIndex), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
+        ZoneProperties curZoneProperties (channelProperties.getZoneVT (zoneIndex), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
         if (curZoneProperties.getSample ().isEmpty ())
         {
             tabbedButtonBar.getTabButton (zoneIndex)->setEnabled (false);
@@ -171,9 +174,8 @@ void ChannelEditor::monitorSampleChanges ()
         jassert (curTabIndex != -1);
         // there are samples loaded, and there are still empty zones
         tabbedButtonBar.getTabButton (lastEnabledZoneTab + 1)->setEnabled (true);
-        if (!tabbedButtonBar.getTabButton (curTabIndex)->isEnabled ())
+        if (! tabbedButtonBar.getTabButton (curTabIndex)->isEnabled ())
         {
-            jassertfalse; // I've seen this happen, but I don't know the cause yet. leaving this here to help catch it
             if (curTabIndex > 0)
             {
                 for (auto zoneIndexToCheck { curTabIndex - 1 }; zoneIndexToCheck > 0; --zoneIndexToCheck)
@@ -422,6 +424,15 @@ void ChannelEditor::setupChannelComponents ()
     // ENVELOPE
     setupLabel (envelopeLabel, "ENVELOPE", kLargeLabelSize, juce::Justification::centred);
     // ATTACK
+    setupLabel (attackFromCurrentLabel, "FROM", kMediumLabelSize, juce::Justification::centredRight);
+    attackFromCurrentComboBox.addItem ("Zero", 1);
+    attackFromCurrentComboBox.addItem ("Current", 2);
+    setupComboBox (attackFromCurrentComboBox, "AttackFromCurrent", [this] ()
+    {
+        const auto attackFromCurrent { attackFromCurrentComboBox.getSelectedId () == 2 };
+        attackFromCurrentUiChanged (attackFromCurrent);
+    });
+    setupLabel (attackLabel, "ATTACK", kMediumLabelSize, juce::Justification::centredRight);
     setupTextEditor (attackTextEditor, juce::Justification::centred, 0, ".0123456789", "Attack", [this] ()
     {
         FormatHelpers::setColorIfError (attackTextEditor, minChannelProperties.getAttack (), maxChannelProperties.getAttack ());
@@ -431,15 +442,6 @@ void ChannelEditor::setupChannelComponents ()
         const auto attack { std::clamp (text.getDoubleValue (), minChannelProperties.getAttack (), maxChannelProperties.getAttack ()) };
         attackUiChanged (attack);
         attackTextEditor.setText (FormatHelpers::formatDouble (attack, 4, false));
-    });
-    setupLabel (attackLabel, "ATTACK", kMediumLabelSize, juce::Justification::centredRight);
-    setupLabel (attackFromCurrentLabel, "FROM", kMediumLabelSize, juce::Justification::centredRight);
-    attackFromCurrentComboBox.addItem ("Zero", 1);
-    attackFromCurrentComboBox.addItem ("Current", 2);
-    setupComboBox (attackFromCurrentComboBox, "AttackFromCurrent", [this] ()
-    {
-        const auto attackFromCurrent { attackFromCurrentComboBox.getSelectedId () == 2 };
-        attackFromCurrentUiChanged (attackFromCurrent);
     });
     setupCvInputComboBox (attackModComboBox, "AttackMod", [this] () { attackModUiChanged (attackModComboBox.getSelectedItemText (), attackModTextEditor.getText ().getDoubleValue ()); });
     setupTextEditor (attackModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "AttackMod", [this] ()
@@ -708,7 +710,11 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
     {
         zoneEditors [zoneEditorIndex].init (zonePropertiesVT, rootPropertiesVT);
         zoneProperties [zoneEditorIndex].wrap (zonePropertiesVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::yes);
-        zoneProperties [zoneEditorIndex].onSampleChange = [this] (juce::String sampleFile) { monitorSampleChanges (); };
+        zoneProperties [zoneEditorIndex].onSampleChange = [this] (juce::String sampleFile)
+        {
+            removeEmptyZones ();
+            ensureProperZoneIsSelected ();
+        };
         ++zoneEditorIndex;
         return true;
     });
@@ -760,7 +766,7 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
     zonesCVDataChanged (channelProperties.getZonesCV ());
     zonesRTDataChanged (channelProperties.getZonesRT ());
 
-    monitorSampleChanges ();
+    ensureProperZoneIsSelected ();
 }
 
 void ChannelEditor::receiveSampleLoadRequest (juce::File sampleFile)
@@ -919,12 +925,12 @@ void ChannelEditor::positionColumnTwo (int xOffset, int width)
     curYOffset += kLargeLabelIntSize;
     curYOffset += kFirstControlSectionYOffset;
     // ATTACK
-    attackLabel.setBounds (xOffset, curYOffset + 2, scaleWidth (0.5f), kMediumLabelIntSize);
-    attackTextEditor.setBounds (attackLabel.getRight () + 3, curYOffset, scaleWidth (0.5f), kParameterLineHeight);
-    curYOffset += kParameterLineHeight;
-    curYOffset += kInterControlYOffset;
     attackFromCurrentLabel.setBounds (xOffset, curYOffset + 2, scaleWidth (0.5f), kMediumLabelIntSize);
     attackFromCurrentComboBox.setBounds (attackFromCurrentLabel.getRight () + 3, curYOffset, scaleWidth (0.5f), kParameterLineHeight);
+    curYOffset += kParameterLineHeight;
+    curYOffset += kInterControlYOffset;
+    attackLabel.setBounds (xOffset, curYOffset + 2, scaleWidth (0.5f), kMediumLabelIntSize);
+    attackTextEditor.setBounds (attackLabel.getRight () + 3, curYOffset, scaleWidth (0.5f), kParameterLineHeight);
     curYOffset += kParameterLineHeight;
     curYOffset += kInterControlYOffset;
     attackModComboBox.setBounds (xOffset, curYOffset, scaleWidth (0.5f), kParameterLineHeight);
