@@ -91,6 +91,7 @@ ChannelEditor::ChannelEditor ()
     }
 
     setupChannelComponents ();
+    updateAllZoneTabNames ();
     addChildComponent (stereoRightTransparantOverly);
 }
 
@@ -710,10 +711,15 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
     {
         zoneEditors [zoneEditorIndex].init (zonePropertiesVT, rootPropertiesVT);
         zoneProperties [zoneEditorIndex].wrap (zonePropertiesVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::yes);
-        zoneProperties [zoneEditorIndex].onSampleChange = [this] (juce::String sampleFile)
+        zoneProperties [zoneEditorIndex].onSampleChange = [this, zoneEditorIndex] (juce::String sampleFile)
         {
             removeEmptyZones ();
             ensureProperZoneIsSelected ();
+            updateZoneTabName (zoneEditorIndex);
+        };
+        zoneProperties [zoneEditorIndex].onMinVoltageChange = [this, zoneEditorIndex] ([[maybe_unused]] double minVoltage)
+        {
+            updateZoneTabName (zoneEditorIndex);
         };
         ++zoneEditorIndex;
         return true;
@@ -767,6 +773,7 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
     zonesRTDataChanged (channelProperties.getZonesRT ());
 
     ensureProperZoneIsSelected ();
+    updateAllZoneTabNames ();
 }
 
 void ChannelEditor::receiveSampleLoadRequest (juce::File sampleFile)
@@ -1069,27 +1076,25 @@ void ChannelEditor::resized ()
     const auto columnWidth { 100 };
     const auto spaceBetweenColumns { 40 };
 
+    // this is the overlay that is used to indicate a channel is in Stereo/Right mode
     stereoRightTransparantOverly.setBounds (getLocalBounds ());
 
+    // layout the Zones section. ie. the tabs and the channel level controls
     auto zoneColumn {getLocalBounds ().removeFromRight(200)};
     zoneColumn.removeFromTop (3);
     auto zoneTopSection { zoneColumn.removeFromTop (75).withTrimmedBottom (5).withTrimmedRight (3)};
     zonesLabel.setBounds (zoneTopSection.getX (), zoneTopSection.getHeight () / 2 - kMediumLabelIntSize / 2, 80, kMediumLabelIntSize);
-
-    const auto inputWidth { 65 };
-    const auto labelWidth { 85 };
-
-    zonesCVComboBox.setBounds (zoneTopSection.getRight () - inputWidth, zoneTopSection.getY () + 3, inputWidth, kParameterLineHeight);
-    zonesCVLabel.setBounds (zonesCVComboBox.getX () - labelWidth - 3, zonesCVComboBox.getY (), labelWidth, kParameterLineHeight);
-
-    zonesRTComboBox.setBounds (zoneTopSection.getRight () - inputWidth, zonesCVComboBox.getBottom() + 3, inputWidth, kParameterLineHeight);
-    zonesRTLabel.setBounds (zonesRTComboBox.getX () - labelWidth - 3, zonesRTComboBox.getY (), labelWidth, kParameterLineHeight);
-
-    loopLengthIsEndComboBox.setBounds (zoneTopSection.getRight () - inputWidth, zonesRTComboBox.getBottom () + 3, inputWidth, kParameterLineHeight);
-    loopLengthIsEndLabel.setBounds (loopLengthIsEndComboBox.getX () - labelWidth - 3, loopLengthIsEndComboBox.getY (), labelWidth, kParameterLineHeight);
-
+        const auto zoneSectionInputWidth { 65 };
+    const auto zoneSectionLabelWidth { 85 };
+    zonesCVComboBox.setBounds (zoneTopSection.getRight () - zoneSectionInputWidth, zoneTopSection.getY () + 3, zoneSectionInputWidth, kParameterLineHeight);
+    zonesCVLabel.setBounds (zonesCVComboBox.getX () - zoneSectionLabelWidth - 3, zonesCVComboBox.getY (), zoneSectionLabelWidth, kParameterLineHeight);
+    zonesRTComboBox.setBounds (zoneTopSection.getRight () - zoneSectionInputWidth, zonesCVComboBox.getBottom() + 3, zoneSectionInputWidth, kParameterLineHeight);
+    zonesRTLabel.setBounds (zonesRTComboBox.getX () - zoneSectionLabelWidth - 3, zonesRTComboBox.getY (), zoneSectionLabelWidth, kParameterLineHeight);
+    loopLengthIsEndComboBox.setBounds (zoneTopSection.getRight () - zoneSectionInputWidth, zonesRTComboBox.getBottom () + 3, zoneSectionInputWidth, kParameterLineHeight);
+    loopLengthIsEndLabel.setBounds (loopLengthIsEndComboBox.getX () - zoneSectionLabelWidth - 3, loopLengthIsEndComboBox.getY (), zoneSectionLabelWidth, kParameterLineHeight);
     zoneTabs.setBounds (zoneColumn);
 
+    // layout the four columns of controls
     auto xOffSet { 15 };
     positionColumnOne (xOffSet, columnWidth);
     xOffSet += columnWidth + spaceBetweenColumns;
@@ -1098,6 +1103,30 @@ void ChannelEditor::resized ()
     positionColumnThree (xOffSet, columnWidth);
     xOffSet += columnWidth + spaceBetweenColumns;
     positionColumnFour (xOffSet, columnWidth);
+}
+
+void ChannelEditor::updateAllZoneTabNames ()
+{
+    for (auto zoneIndex { 0 }; zoneIndex < zoneTabs.getNumTabs (); ++zoneIndex)
+        updateZoneTabName (zoneIndex);
+}
+
+void ChannelEditor::updateZoneTabName (int zoneIndex)
+{
+    auto zoneTabName { juce::String (zoneIndex + 1) };
+    if (zoneProperties [zoneIndex].getSample ().isNotEmpty ())
+    {
+        // TODO - can we cache this
+        auto lastUsedZone { 0 };
+        for (auto curZoneIndex { 0 }; curZoneIndex < zoneProperties.size (); ++curZoneIndex)
+            lastUsedZone += zoneProperties [curZoneIndex].getSample ().isNotEmpty () ? 1 : 0;
+
+        if (zoneIndex == lastUsedZone - 1)
+            zoneTabName += "\r-5.00";
+        else
+            zoneTabName += "\r" + juce::String(zoneProperties [zoneIndex].getMinVoltage (), 2);
+    }
+    zoneTabs.setTabName (zoneIndex, zoneTabName);
 }
 
 void ChannelEditor::aliasingDataChanged (int aliasing)

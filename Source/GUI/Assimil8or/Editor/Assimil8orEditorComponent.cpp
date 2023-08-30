@@ -167,7 +167,7 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
         return true;
     });
 
-    indexDataChanged (presetProperties.getId ());
+    idDataChanged (presetProperties.getId ());
     nameDataChanged (presetProperties.getName ());
     data2AsCvDataChanged (presetProperties.getData2AsCV ());
     xfadeCvDataChanged (0, presetProperties.getXfadeACV ());
@@ -182,7 +182,7 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
 
 void Assimil8orEditorComponent::setupPresetPropertiesCallbacks ()
 {
-    presetProperties.onIdChange = [this] (int index) { indexDataChanged (index); };
+    presetProperties.onIdChange = [this] (int id) { idDataChanged (id); };
     presetProperties.onNameChange = [this] (juce::String name) { nameDataChanged (name); };
     presetProperties.onData2AsCVChange = [this] (juce::String cvInput) { data2AsCvDataChanged (cvInput); };
     // Xfade_CV
@@ -269,9 +269,9 @@ void Assimil8orEditorComponent::resized ()
     }
 }
 
-void Assimil8orEditorComponent::indexDataChanged (int index)
+void Assimil8orEditorComponent::idDataChanged (int id)
 {
-    titleLabel.setText ("Preset " + juce::String (index) + " :", juce::NotificationType::dontSendNotification);
+    titleLabel.setText ("Preset " + juce::String (id) + " :", juce::NotificationType::dontSendNotification);
 }
 
 void Assimil8orEditorComponent::nameDataChanged (juce::String name)

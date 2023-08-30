@@ -165,6 +165,8 @@ private:
     std::array<ZoneEditor, 8> zoneEditors;
     std::array<ZoneProperties, 8> zoneProperties;
 
+    bool removingEmptyZones { false };
+
     void checkStereoRightOverlay ();
     void ensureProperZoneIsSelected ();
     void positionColumnOne (int xOffset, int width);
@@ -174,7 +176,8 @@ private:
     void removeEmptyZones ();
     void setupChannelComponents ();
     void setupChannelPropertiesCallbacks ();
-    bool removingEmptyZones { false };
+    void updateAllZoneTabNames ();
+    void updateZoneTabName (int zoneIndex);
 
     void aliasingDataChanged (int aliasing);
     void aliasingUiChanged (int aliasing);
