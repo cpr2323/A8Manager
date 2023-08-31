@@ -1,5 +1,6 @@
 #include <JuceHeader.h>
 #include "AppProperties.h"
+#include "AppActionProperties.h"
 #include "GUI/MainComponent.h"
 #include "Utility/DebugLog.h"
 #include "Utility/PersistentRootProperties.h"
@@ -127,17 +128,21 @@ public:
 
     void initAssimil8or ()
     {
+        // initialize the Preset with defaults
         PresetProperties::copyTreeProperties (ParameterPresetsSingleton::getInstance ()->getParameterPresetListProperties ().getParameterPreset (ParameterPresetListProperties::DefaultParameterPresetType),
                                               presetProperties.getValueTree ());
-        //presetPropertiesMonitor.assign (presetProperties.getValueTreeRef ());
+        // debug tool for watching changes on the Preset Value Tree
+        presetPropertiesMonitor.assign (presetProperties.getValueTreeRef ());
+        // add the Preset to the Runtime Root
         runtimeRootProperties.getValueTree ().addChild (presetProperties.getValueTree (), -1, nullptr);
+        // assigned Preset Value Tree to the Validator
         assimil8orValidator.init (rootProperties.getValueTree ());
+        appActionProperties.wrap (runtimeRootProperties.getValueTree (), AppActionProperties::WrapperType::owner, AppActionProperties::EnableCallbacks::no);
     }
 
     void initUi ()
     {
         mainWindow.reset (new MainWindow (getApplicationName () + " - v" + getApplicationVersion (), rootProperties.getValueTree ()));
-
     }
 
     void initPropertyRoots ()
@@ -268,6 +273,7 @@ private:
     ValueTreeFile persitentPropertiesFile;
     PersistentRootProperties persistentRootProperties;
     AppProperties appProperties;
+    AppActionProperties appActionProperties;
     RuntimeRootProperties runtimeRootProperties;
     Assimil8orValidator assimil8orValidator;
     PresetProperties presetProperties;

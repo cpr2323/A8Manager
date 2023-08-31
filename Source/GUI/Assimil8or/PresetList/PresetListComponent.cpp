@@ -29,6 +29,7 @@ void PresetListComponent::init (juce::ValueTree rootPropertiesVT)
     PersistentRootProperties persistentRootProperties (rootPropertiesVT, PersistentRootProperties::WrapperType::client, PersistentRootProperties::EnableCallbacks::no);
     RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
     presetProperties.wrap (runtimeRootProperties.getValueTree (), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
+    appActionProperties.wrap (runtimeRootProperties.getValueTree (), AppActionProperties::WrapperType::client, AppActionProperties::EnableCallbacks::no);
     appProperties.wrap (persistentRootProperties.getValueTree (), AppProperties::WrapperType::client, AppProperties::EnableCallbacks::yes);
     appProperties.onMostRecentFolderChange = [this] (juce::String folderName)
     {
@@ -125,10 +126,12 @@ void PresetListComponent::loadFirstPreset ()
 
 void PresetListComponent::loadDefault (int row)
 {
+    appActionProperties.setPresetLoadState (true);
     PresetProperties::copyTreeProperties (ParameterPresetsSingleton::getInstance()->getParameterPresetListProperties().getParameterPreset(ParameterPresetListProperties::DefaultParameterPresetType),
                                           presetProperties.getValueTree ());
-    auto presetFile { juce::File (appProperties.getMostRecentFolder ()).getChildFile (getPresetName (row)).withFileExtension (".yml") };
-    presetProperties.setId (FileTypeHelpers::getPresetNumberFromName (presetFile), false);
+    // set the ID, since the default that was just loaded always has Id 1
+    presetProperties.setId (row + 1, false);
+    appActionProperties.setPresetLoadState (false);
 }
 
 juce::String PresetListComponent::getPresetName (int presetIndex)
@@ -147,9 +150,11 @@ void PresetListComponent::loadPreset (juce::File presetFile)
     Assimil8orPreset assimil8orPreset;
     assimil8orPreset.parse (fileContents);
 
+    appActionProperties.setPresetLoadState (true);
     PresetProperties::copyTreeProperties (ParameterPresetsSingleton::getInstance ()->getParameterPresetListProperties ().getParameterPreset (ParameterPresetListProperties::DefaultParameterPresetType),
                                           presetProperties.getValueTree ());
     PresetProperties::copyTreeProperties (assimil8orPreset.getPresetVT (), presetProperties.getValueTree ());
+    appActionProperties.setPresetLoadState (false);
 }
 
 void PresetListComponent::resized ()

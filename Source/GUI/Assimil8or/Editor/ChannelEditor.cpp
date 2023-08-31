@@ -3,6 +3,7 @@
 #include "ParameterToolTipData.h"
 #include "../../../Assimil8or/Preset/PresetProperties.h"
 #include "../../../Assimil8or/Preset/ParameterPresetsSingleton.h"
+#include "../../../Utility/RuntimeRootProperties.h"
 
 const auto kLargeLabelSize { 20.0f };
 const auto kMediumLabelSize { 14.0f };
@@ -718,6 +719,9 @@ void ChannelEditor::setupChannelComponents ()
 
 void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree rootPropertiesVT)
 {
+    RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
+    appActionProperties.wrap (runtimeRootProperties.getValueTree (), AppActionProperties::WrapperType::client, AppActionProperties::EnableCallbacks::no);
+
     channelProperties.wrap (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::yes);
     setupChannelPropertiesCallbacks ();
     auto zoneEditorIndex { 0 };
@@ -727,15 +731,14 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
         zoneProperties [zoneEditorIndex].wrap (zonePropertiesVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::yes);
         zoneProperties [zoneEditorIndex].onSampleChange = [this, zoneEditorIndex] (juce::String sampleFile)
         {
-            removeEmptyZones ();
+            if (! appActionProperties.getPresetLoadState())
+                removeEmptyZones ();
             ensureProperZoneIsSelected ();
             updateAllZoneTabNames ();
-            //updateZoneTabName (zoneEditorIndex);
         };
         zoneProperties [zoneEditorIndex].onMinVoltageChange = [this, zoneEditorIndex] ([[maybe_unused]] double minVoltage)
         {
             updateAllZoneTabNames ();
-            //updateZoneTabName (zoneEditorIndex);
         };
         ++zoneEditorIndex;
         return true;

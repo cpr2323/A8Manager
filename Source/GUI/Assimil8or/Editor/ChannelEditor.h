@@ -3,6 +3,7 @@
 #include <JuceHeader.h>
 #include "CvInputComboBox.h"
 #include "ZoneEditor.h"
+#include "../../../AppActionProperties.h"
 #include "../../../Assimil8or/Preset/ChannelProperties.h"
 #include "../../../Utility/NoArrowComboBoxLnF.h"
 
@@ -147,6 +148,7 @@ public:
     void receiveSampleLoadRequest (juce::File sampleFile);
 
 private:
+    AppActionProperties appActionProperties;
     ChannelProperties channelProperties;
     ChannelProperties defaultChannelProperties;
     ZoneProperties defaultZoneProperties;

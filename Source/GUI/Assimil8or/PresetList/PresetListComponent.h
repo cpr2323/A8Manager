@@ -2,6 +2,7 @@
 
 #include <JuceHeader.h>
 #include "../../../AppProperties.h"
+#include "../../../AppActionProperties.h"
 #include "../../../Assimil8or/Preset/PresetProperties.h"
 
 const auto kMaxPresets { 199 };
@@ -16,7 +17,10 @@ public:
 
 private:
     AppProperties appProperties;
+    AppActionProperties appActionProperties;
     PresetProperties presetProperties;
+    juce::ValueTree appActionsVT;
+
     juce::ListBox presetListBox { {}, this };
     juce::File rootFolder;
     std::array<bool, kMaxPresets> presetExists {false};
