@@ -92,8 +92,12 @@ bool ZoneEditor::handleSelectedFile (juce::File fileNameAndPath)
 
 void ZoneEditor::loadSample (juce::String sampleFileName)
 {
-    if (sampleFileName  == zoneProperties.getSample ())
+    if (sampleFileName == zoneProperties.getSample ())
         return;
+
+    if (onSampleChange != nullptr)
+        onSampleChange (sampleFileName);
+
     sampleLength = 0;
     if (sampleFileName.isNotEmpty ())
     {

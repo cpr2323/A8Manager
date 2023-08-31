@@ -104,6 +104,8 @@ public:
     void init (juce::ValueTree zonePropertiesVT, juce::ValueTree rootPropertiesVT);
     void setLoopLengthIsEnd (bool loopLengthIsEnd);
     void receiveSampleLoadRequest (juce::File sampleFile);
+    
+    std::function<void(juce::String)> onSampleChange;
 
 private:
     AppProperties appProperties;

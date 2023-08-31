@@ -728,6 +728,30 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
     channelProperties.forEachZone([this, &zoneEditorIndex, rootPropertiesVT] (juce::ValueTree zonePropertiesVT)
     {
         zoneEditors [zoneEditorIndex].init (zonePropertiesVT, rootPropertiesVT);
+        zoneEditors [zoneEditorIndex].onSampleChange = [this, zoneEditorIndex] (juce::String sampleFileName)
+        {
+            if (sampleFileName.isEmpty ())
+            {
+                zoneProperties [zoneEditorIndex].copyFrom (defaultZoneProperties.getValueTree ());
+            }
+            else if (zoneProperties [zoneEditorIndex].getSample ().isEmpty ())
+            {
+                auto topRange { 5.0 };
+                auto bottomRange { -5.0 };
+                auto numUsedZones { 0 };
+                for (auto curZoneIndex { 0 }; curZoneIndex < zoneProperties.size (); ++curZoneIndex)
+                    numUsedZones += zoneProperties [curZoneIndex].getSample ().isNotEmpty () ? 1 : 0;
+
+                if (zoneEditorIndex > 0)
+                    topRange = zoneProperties [zoneEditorIndex - 1].getMinVoltage ();
+                if (numUsedZones > 0)
+                {
+                    if (zoneEditorIndex < numUsedZones)
+                        bottomRange = zoneProperties [zoneEditorIndex + 1].getMinVoltage ();
+                    zoneProperties [zoneEditorIndex].setMinVoltage (bottomRange + ((topRange - bottomRange) / 2), false);
+                }
+            }
+        };
         zoneProperties [zoneEditorIndex].wrap (zonePropertiesVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::yes);
         zoneProperties [zoneEditorIndex].onSampleChange = [this, zoneEditorIndex] (juce::String sampleFile)
         {
