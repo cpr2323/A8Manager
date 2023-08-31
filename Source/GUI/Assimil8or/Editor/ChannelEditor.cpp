@@ -40,6 +40,8 @@ ChannelEditor::ChannelEditor ()
 
     setupLabel (zonesLabel, "ZONES", kMediumLabelSize, juce::Justification::centredLeft);
     zonesLabel.setColour (juce::Label::ColourIds::textColourId, juce::Colours::white);
+    setupLabel (zoneMaxVoltage, "+5.00", 10.0, juce::Justification::centredLeft);
+    zoneMaxVoltage.setColour (juce::Label::ColourIds::textColourId, juce::Colours::lightgrey.darker(0.2f));
 
     setupLabel (loopLengthIsEndLabel, "LENGTH/END", kSmallLabelIntSize, juce::Justification::centredRight);
     loopLengthIsEndComboBox.addItem ("Length", 1); // 0 = Length, 1 = End
@@ -58,6 +60,7 @@ ChannelEditor::ChannelEditor ()
         zoneTabs.addTab (juce::String::charToString ('1' + curZoneIndex), juce::Colours::darkgrey, &zoneEditors [curZoneIndex], false);
         zoneTabs.setTabBackgroundColour (curZoneIndex, zoneTabs.getTabBackgroundColour (curZoneIndex).darker (0.2f));
     }
+    zoneTabs.setTabBarDepth (zoneTabs.getTabBarDepth () + 5);
     zoneTabs.setLookAndFeel (&zonesTabbedLookAndFeel);
     addAndMakeVisible (zoneTabs);
 
@@ -113,10 +116,15 @@ ChannelEditor::~ChannelEditor ()
 
 void ChannelEditor::removeEmptyZones ()
 {
-    if (removingEmptyZones)
+    juce::Logger::outputDebugString ("ChannelEditor::removeEmptyZones - entering");
+    if (removingEmptyZones != 0)
+    {
+        juce::Logger::outputDebugString ("ChannelEditor::removeEmptyZones - early exit = " + juce::String(removingEmptyZones));
+        ++removingEmptyZones;
         return;
+    }
 
-    removingEmptyZones = true;
+    removingEmptyZones = 1;
     ZoneProperties curZoneProperties;
     for (auto zoneIndex { 0 }; zoneIndex < zoneTabs.getNumTabs () - 1; ++zoneIndex)
     {
@@ -141,7 +149,14 @@ void ChannelEditor::removeEmptyZones ()
                 break;
         }
     }
-    removingEmptyZones = false;
+//     --removingEmptyZones;
+//     if (removingEmptyZones != 0)
+//     {
+//         removeEmptyZones ();
+//         juce::Logger::outputDebugString ("ChannelEditor::removeEmptyZones - rerunning");
+//     }
+    juce::Logger::outputDebugString ("ChannelEditor::removeEmptyZones - exit = " + juce::String (removingEmptyZones));
+    removingEmptyZones = 0;
 }
 
 void ChannelEditor::ensureProperZoneIsSelected ()
@@ -678,7 +693,6 @@ void ChannelEditor::setupChannelComponents ()
     },
     [this] (juce::String text)
     {
-        // TODO - after implementing LoopLength/LoopEnd switch, update code here to use it
         const auto loopLengthMod { std::clamp (text.getDoubleValue (), FormatHelpers::getAmount (minChannelProperties.getLoopLengthMod ()),
                                                                        FormatHelpers::getAmount (maxChannelProperties.getLoopLengthMod ())) };
         loopLengthModUiChanged (loopLengthModComboBox.getSelectedItemText (), loopLengthMod);
@@ -715,11 +729,13 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
         {
             removeEmptyZones ();
             ensureProperZoneIsSelected ();
-            updateZoneTabName (zoneEditorIndex);
+            updateAllZoneTabNames ();
+            //updateZoneTabName (zoneEditorIndex);
         };
         zoneProperties [zoneEditorIndex].onMinVoltageChange = [this, zoneEditorIndex] ([[maybe_unused]] double minVoltage)
         {
-            updateZoneTabName (zoneEditorIndex);
+            updateAllZoneTabNames ();
+            //updateZoneTabName (zoneEditorIndex);
         };
         ++zoneEditorIndex;
         return true;
@@ -1092,6 +1108,7 @@ void ChannelEditor::resized ()
     zonesRTLabel.setBounds (zonesRTComboBox.getX () - zoneSectionLabelWidth - 3, zonesRTComboBox.getY (), zoneSectionLabelWidth, kParameterLineHeight);
     loopLengthIsEndComboBox.setBounds (zoneTopSection.getRight () - zoneSectionInputWidth, zonesRTComboBox.getBottom () + 3, zoneSectionInputWidth, kParameterLineHeight);
     loopLengthIsEndLabel.setBounds (loopLengthIsEndComboBox.getX () - zoneSectionLabelWidth - 3, loopLengthIsEndComboBox.getY (), zoneSectionLabelWidth, kParameterLineHeight);
+    zoneMaxVoltage.setBounds (zoneColumn.getX (), zoneColumn.getY () - 12, 40, 11);
     zoneTabs.setBounds (zoneColumn);
 
     // layout the four columns of controls
@@ -1121,10 +1138,11 @@ void ChannelEditor::updateZoneTabName (int zoneIndex)
         for (auto curZoneIndex { 0 }; curZoneIndex < zoneProperties.size (); ++curZoneIndex)
             lastUsedZone += zoneProperties [curZoneIndex].getSample ().isNotEmpty () ? 1 : 0;
 
-        if (zoneIndex == lastUsedZone - 1)
-            zoneTabName += "\r-5.00";
-        else
-            zoneTabName += "\r" + juce::String(zoneProperties [zoneIndex].getMinVoltage (), 2);
+        auto minVoltage { zoneProperties [zoneIndex].getMinVoltage () };
+       if (zoneIndex == lastUsedZone - 1)
+           minVoltage = -5.00;
+
+        zoneTabName += "\r" + juce::String (minVoltage >= 0.0 ? "+" : "") + juce::String (minVoltage, 2);
     }
     zoneTabs.setTabName (zoneIndex, zoneTabName);
 }

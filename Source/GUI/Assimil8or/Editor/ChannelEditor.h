@@ -34,9 +34,98 @@ public:
         return button.getTabbedButtonBar ().getHeight () / bar.getNumTabs ();
     }
 //     juce::Rectangle< int > getTabButtonExtraComponentBounds (const juce::TabBarButton&, juce::Rectangle< int > &textArea, juce::Component & extraComp) override;
-//     void drawTabButton (juce::TabBarButton&, juce::Graphics&, bool isMouseOver, bool isMouseDown) override;
+        void drawTabButton (juce::TabBarButton & button, juce::Graphics & g, bool isMouseOver, bool isMouseDown) override
+        {
+            const juce::Rectangle<int> activeArea (button.getActiveArea ());
+
+            const juce::TabbedButtonBar::Orientation o = button.getTabbedButtonBar ().getOrientation ();
+
+            const juce::Colour bkg (button.getTabBackgroundColour ());
+
+            if (button.getToggleState ())
+            {
+                g.setColour (bkg);
+            }
+            else
+            {
+                juce::Point<int> p1, p2;
+
+                switch (o)
+                {
+                    case juce::TabbedButtonBar::TabsAtBottom:   p1 = activeArea.getBottomLeft (); p2 = activeArea.getTopLeft ();    break;
+                    case juce::TabbedButtonBar::TabsAtTop:      p1 = activeArea.getTopLeft ();    p2 = activeArea.getBottomLeft (); break;
+                    case juce::TabbedButtonBar::TabsAtRight:    p1 = activeArea.getTopRight ();   p2 = activeArea.getTopLeft ();    break;
+                    case juce::TabbedButtonBar::TabsAtLeft:     p1 = activeArea.getTopLeft ();    p2 = activeArea.getTopRight ();   break;
+                    default:                              jassertfalse; break;
+                }
+
+                g.setGradientFill (juce::ColourGradient (bkg.brighter (0.2f), p1.toFloat (), bkg.darker (0.1f), p2.toFloat (), false));
+            }
+
+            g.fillRect (activeArea);
+
+            g.setColour (button.findColour (juce::TabbedButtonBar::tabOutlineColourId));
+
+//            juce::Rectangle<int> r (activeArea);
+
+//             if (o != juce::TabbedButtonBar::TabsAtBottom)   g.fillRect (r.removeFromTop (1));
+//             if (o != juce::TabbedButtonBar::TabsAtTop)      g.fillRect (r.removeFromBottom (1));
+//             if (o != juce::TabbedButtonBar::TabsAtRight)    g.fillRect (r.removeFromLeft (1));
+//             if (o != juce::TabbedButtonBar::TabsAtLeft)     g.fillRect (r.removeFromRight (1));
+
+            const float alpha = button.isEnabled () ? ((isMouseOver || isMouseDown) ? 1.0f : 0.8f) : 0.3f;
+
+            juce::Colour col (bkg.contrasting ().withMultipliedAlpha (alpha));
+
+            if (juce::TabbedButtonBar* bar = button.findParentComponentOfClass<juce::TabbedButtonBar> ())
+            {
+                juce::TabbedButtonBar::ColourIds colID = button.isFrontTab () ? juce::TabbedButtonBar::frontTextColourId :
+                                                                                juce::TabbedButtonBar::tabTextColourId;
+
+                if (bar->isColourSpecified (colID))
+                    col = bar->findColour (colID);
+                else if (isColourSpecified (colID))
+                    col = findColour (colID);
+            }
+
+            const juce::Rectangle<float> area (button.getTextArea ().toFloat ());
+
+            float length = area.getWidth ();
+            float depth = area.getHeight ();
+
+            if (button.getTabbedButtonBar ().isVertical ())
+                std::swap (length, depth);
+
+            juce::TextLayout textLayout;
+            juce::Font indexFont (depth * 0.4f);
+            juce::Font voltageFont (depth * 0.35f);
+            juce::AttributedString s;
+            auto textToDraw { button.getButtonText ().trim () };
+            auto zoneIndexString { textToDraw.upToFirstOccurrenceOf ("\r" , false, true) };
+            auto minVoltageString { textToDraw.fromFirstOccurrenceOf ("\r", true, true)};
+            s.setJustification (juce::Justification::centred);
+            s.append ("   " + zoneIndexString, indexFont, col);
+            if (minVoltageString.isNotEmpty ())
+            {
+                auto minVoltage { minVoltageString.getDoubleValue () };
+                col = juce::Colours::lightgrey.darker (0.2f);
+//                 if (minVoltage > 0.01)
+//                     col = juce::Colours::green;
+//                 else if (minVoltage <= 0.01 && minVoltage >= -0.01)
+//                     col = juce::Colours::lightgrey.darker(0.01f);
+//                 else
+//                     col = juce::Colours::red;
+            }
+            s.setJustification (juce::Justification::centredLeft);
+            s.append (minVoltageString, voltageFont, col);
+            textLayout.createLayout (s, length);
+            g.setOrigin (1, 2);
+            textLayout.draw (g, juce::Rectangle<float> (length, depth));
+            g.setOrigin (0, 0);
+        }
+
 //     juce::Font getTabButtonFont (juce::TabBarButton&, float height) override;
-//     void drawTabButtonText (juce::TabBarButton&, juce::Graphics&, bool isMouseOver, bool isMouseDown) override;
+//     void drawTabButtonText (juce::TabBarButton& button, juce::Graphics& g, bool isMouseOver, bool isMouseDown) override
 //     void drawTabbedButtonBarBackground (juce::TabbedButtonBar&, juce::Graphics&) override;
 //     void drawTabAreaBehindFrontButton (juce::TabbedButtonBar&, juce::Graphics&, int w, int h) override;
 //     void createTabButtonShape (juce::TabBarButton&, juce::Path & path, bool isMouseOver, bool isMouseDown) override;
@@ -62,6 +151,7 @@ private:
     ChannelProperties maxChannelProperties;
 
     juce::Label zonesLabel;
+    juce::Label zoneMaxVoltage;
     juce::TabbedComponent zoneTabs { juce::TabbedButtonBar::Orientation::TabsAtLeft };
 
     juce::Label aliasingLabel;
@@ -165,7 +255,7 @@ private:
     std::array<ZoneEditor, 8> zoneEditors;
     std::array<ZoneProperties, 8> zoneProperties;
 
-    bool removingEmptyZones { false };
+    int removingEmptyZones { 0 };
 
     void checkStereoRightOverlay ();
     void ensureProperZoneIsSelected ();
