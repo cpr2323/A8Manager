@@ -66,12 +66,12 @@ public:
 
             g.setColour (button.findColour (juce::TabbedButtonBar::tabOutlineColourId));
 
-//            juce::Rectangle<int> r (activeArea);
+           juce::Rectangle<int> r (activeArea);
 
-//             if (o != juce::TabbedButtonBar::TabsAtBottom)   g.fillRect (r.removeFromTop (1));
-//             if (o != juce::TabbedButtonBar::TabsAtTop)      g.fillRect (r.removeFromBottom (1));
-//             if (o != juce::TabbedButtonBar::TabsAtRight)    g.fillRect (r.removeFromLeft (1));
-//             if (o != juce::TabbedButtonBar::TabsAtLeft)     g.fillRect (r.removeFromRight (1));
+            if (o != juce::TabbedButtonBar::TabsAtBottom)   g.fillRect (r.removeFromTop (1));
+            if (o != juce::TabbedButtonBar::TabsAtTop)      g.fillRect (r.removeFromBottom (1));
+            if (o != juce::TabbedButtonBar::TabsAtRight)    g.fillRect (r.removeFromLeft (1));
+            if (o != juce::TabbedButtonBar::TabsAtLeft)     g.fillRect (r.removeFromRight (1));
 
             const float alpha = button.isEnabled () ? ((isMouseOver || isMouseDown) ? 1.0f : 0.8f) : 0.3f;
 
@@ -107,17 +107,20 @@ public:
             s.append ("   " + zoneIndexString, indexFont, col);
             if (minVoltageString.isNotEmpty ())
             {
-                auto minVoltage { minVoltageString.getDoubleValue () };
+#define COLORIZE_VOLTAGE_VALUES 0
+#if COLORIZE_VOLTAGE_VALUES
+                if (auto minVoltage { minVoltageString.getDoubleValue () }; minVoltage > 0.01)
+                    col = juce::Colours::green;
+                else if (minVoltage <= 0.01 && minVoltage >= -0.01)
+                    col = juce::Colours::lightgrey.darker (0.2f);
+                else
+                    col = juce::Colours::red;
+#else
                 col = juce::Colours::lightgrey.darker (0.2f);
-//                 if (minVoltage > 0.01)
-//                     col = juce::Colours::green;
-//                 else if (minVoltage <= 0.01 && minVoltage >= -0.01)
-//                     col = juce::Colours::lightgrey.darker(0.01f);
-//                 else
-//                     col = juce::Colours::red;
+#endif
+                s.setJustification (juce::Justification::centredLeft);
+                s.append (minVoltageString, voltageFont, col);
             }
-            s.setJustification (juce::Justification::centredLeft);
-            s.append (minVoltageString, voltageFont, col);
             textLayout.createLayout (s, length);
             g.setOrigin (1, 2);
             textLayout.draw (g, juce::Rectangle<float> (length, depth));

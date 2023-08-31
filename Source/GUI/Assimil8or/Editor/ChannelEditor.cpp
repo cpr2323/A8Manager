@@ -1133,7 +1133,7 @@ void ChannelEditor::updateZoneTabName (int zoneIndex)
     auto zoneTabName { juce::String (zoneIndex + 1) };
     if (zoneProperties [zoneIndex].getSample ().isNotEmpty ())
     {
-        // TODO - can we cache this
+        // TODO - can/should we cache this
         auto lastUsedZone { 0 };
         for (auto curZoneIndex { 0 }; curZoneIndex < zoneProperties.size (); ++curZoneIndex)
             lastUsedZone += zoneProperties [curZoneIndex].getSample ().isNotEmpty () ? 1 : 0;
