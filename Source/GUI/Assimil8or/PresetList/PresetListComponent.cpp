@@ -231,5 +231,4 @@ void PresetListComponent::listBoxItemClicked (int row, [[maybe_unused]] const ju
     {
         completeSelection ();
     }
-    int x = 0;
 }
