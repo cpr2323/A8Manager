@@ -146,16 +146,10 @@ void ChannelEditor::removeEmptyZones ()
                 }
             }
             // there were none others to move
-            if (!moveHappened)
+            if (! moveHappened)
                 break;
         }
     }
-//     --removingEmptyZones;
-//     if (removingEmptyZones != 0)
-//     {
-//         removeEmptyZones ();
-//         juce::Logger::outputDebugString ("ChannelEditor::removeEmptyZones - rerunning");
-//     }
     juce::Logger::outputDebugString ("ChannelEditor::removeEmptyZones - exit = " + juce::String (removingEmptyZones));
     removingEmptyZones = 0;
 }
@@ -744,14 +738,13 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
                 for (auto curZoneIndex { 0 }; curZoneIndex < zoneProperties.size (); ++curZoneIndex)
                     numUsedZones += zoneProperties [curZoneIndex].getSample ().isNotEmpty () ? 1 : 0;
 
+                if (zoneEditorIndex > 1)
+                    topRange = zoneProperties [zoneEditorIndex - 2].getMinVoltage ();
+                if (zoneEditorIndex < numUsedZones)
+                    bottomRange = zoneProperties [zoneEditorIndex + 1].getMinVoltage ();
                 if (zoneEditorIndex > 0)
-                    topRange = zoneProperties [zoneEditorIndex - 1].getMinVoltage ();
-                if (numUsedZones > 0)
-                {
-                    if (zoneEditorIndex < numUsedZones)
-                        bottomRange = zoneProperties [zoneEditorIndex + 1].getMinVoltage ();
-                    zoneProperties [zoneEditorIndex].setMinVoltage (bottomRange + ((topRange - bottomRange) / 2), false);
-                }
+                    zoneProperties [zoneEditorIndex - 1].setMinVoltage (bottomRange + ((topRange - bottomRange) / 2), false);
+                zoneProperties [zoneEditorIndex].setMinVoltage (-5.0, false);
             }
             // TODO - check if I can move this here from (zoneProperties [zoneEditorIndex].onSampleChange), removing the reentrant issues
             //ensureProperZoneIsSelected ();
