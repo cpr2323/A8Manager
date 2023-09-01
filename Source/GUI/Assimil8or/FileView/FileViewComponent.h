@@ -14,7 +14,7 @@ public:
     void init (juce::ValueTree rootPropertiesVT);
 
     std::function<void (juce::File audioFile)> onAudioFileSelected;
-    std::function<bool ()> okToOverwritePreset;
+    std::function<void (std::function<void ()>, std::function<void ()>)> overwritePresetOrCancel;
 
 private:
     AppProperties appProperties;

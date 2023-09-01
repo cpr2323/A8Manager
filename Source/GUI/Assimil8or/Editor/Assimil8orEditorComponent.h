@@ -26,7 +26,7 @@ public:
 
     void init (juce::ValueTree rootPropertiesVT);
     void receiveSampleLoadRequest (juce::File sampleFile);
-    bool overwriteCheck ();
+    void overwritePresetOrCancel (std::function<void ()> overwriteFunction, std::function<void ()> cancelFunction);
 
 private:
     AppProperties appProperties;

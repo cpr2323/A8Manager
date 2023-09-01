@@ -184,16 +184,27 @@ void FileViewComponent::listBoxItemClicked (int row, [[maybe_unused]] const juce
     if (row >= getNumRows ())
         return;
 
-    if (okToOverwritePreset != nullptr && okToOverwritePreset () == false)
+    auto completeSelection = [this, row] ()
     {
-        directoryContentsListBox.selectRow (lastSelectedRow, false, true);
-        return;
-    }
+        if (listOffset == 1 && row == 0)
+            appProperties.setMostRecentFolder (juce::File (directoryValueTree.getRootFolder ()).getParentDirectory ().getFullPathName ());
+        else if (auto folder { juce::File (directoryListQuickLookupList [row - listOffset].getProperty ("name").toString ()) }; folder.isDirectory ())
+            appProperties.setMostRecentFolder (folder.getFullPathName ());
+    };
 
-    if (listOffset == 1 && row == 0)
-        appProperties.setMostRecentFolder (juce::File (directoryValueTree.getRootFolder ()).getParentDirectory ().getFullPathName ());
-    else if (auto folder { juce::File (directoryListQuickLookupList [row - listOffset].getProperty ("name").toString ()) }; folder.isDirectory ())
-        appProperties.setMostRecentFolder (folder.getFullPathName ());
+    if (overwritePresetOrCancel != nullptr)
+    {
+        auto cancelSelection = [this] ()
+        {
+            directoryContentsListBox.selectRow (lastSelectedRow, false, true);
+        };
+
+        overwritePresetOrCancel (completeSelection, cancelSelection);
+    }
+    else
+    {
+        completeSelection ();
+    }
 }
 
 void FileViewComponent::listBoxItemDoubleClicked (int row, [[maybe_unused]] const juce::MouseEvent& me)

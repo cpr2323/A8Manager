@@ -32,13 +32,14 @@ MainComponent::MainComponent (juce::ValueTree rootPropertiesVT)
 
     addAndMakeVisible (currentFolder);
 
-    // fileViewComponent;
-    // presetListComponent;
-    // assimil8orEditorComponent;
-    // assimil8orValidatorComponent;
-
-    fileViewComponent.okToOverwritePreset = [this] () { return assimil8orEditorComponent.overwriteCheck (); };
-    presetListComponent.okToOverwritePreset = [this] () { return assimil8orEditorComponent.overwriteCheck (); };
+    fileViewComponent.overwritePresetOrCancel = [this] (std::function<void ()> overwriteFunction, std::function<void ()> cancelFunction)
+    {
+        assimil8orEditorComponent.overwritePresetOrCancel (overwriteFunction, cancelFunction);
+    };
+    presetListComponent.overwritePresetOrCancel = [this] (std::function<void ()> overwriteFunction, std::function<void ()> cancelFunction)
+    {
+        assimil8orEditorComponent.overwritePresetOrCancel (overwriteFunction, cancelFunction);
+    };
 
     assimil8orEditorComponent.init (rootPropertiesVT);
     assimil8orValidatorComponent.init (rootPropertiesVT);

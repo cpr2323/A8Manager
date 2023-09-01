@@ -208,16 +208,27 @@ juce::String PresetListComponent::getTooltipForRow (int row)
 
 void PresetListComponent::listBoxItemClicked (int row, [[maybe_unused]] const juce::MouseEvent& me)
 {
-    if (okToOverwritePreset != nullptr && okToOverwritePreset () == false)
+    auto completeSelection = [this, row] ()
     {
-        presetListBox.selectRow (lastSelectedRow, false, true);
-        return;
-    }
+        auto presetFile { juce::File (appProperties.getMostRecentFolder ()).getChildFile (getPresetName (row)).withFileExtension (".yml") };
+        if (presetExists [row])
+            loadPreset (presetFile);
+        else
+            loadDefault (row);
+        appProperties.addRecentlyUsedFile (presetFile.getFullPathName ());
+    };
 
-    auto presetFile { juce::File (appProperties.getMostRecentFolder ()).getChildFile (getPresetName (row)).withFileExtension (".yml") };
-    if (presetExists [row])
-        loadPreset (presetFile);
+    if (overwritePresetOrCancel != nullptr)
+    {
+        auto cancelSelection = [this] ()
+        {
+            presetListBox.selectRow (lastSelectedRow, false, true);
+        };
+
+        overwritePresetOrCancel (completeSelection, cancelSelection);
+    }
     else
-        loadDefault (row);
-    appProperties.addRecentlyUsedFile (presetFile.getFullPathName ());
+    {
+        completeSelection ();
+    }
 }

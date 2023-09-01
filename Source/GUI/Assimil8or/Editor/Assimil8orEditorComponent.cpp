@@ -213,8 +213,11 @@ void Assimil8orEditorComponent::receiveSampleLoadRequest (juce::File sampleFile)
     curChannelEditor->receiveSampleLoadRequest (sampleFile);
 }
 
-bool Assimil8orEditorComponent::overwriteCheck ()
+void Assimil8orEditorComponent::overwritePresetOrCancel (std::function<void ()> overwriteFunction, std::function<void ()> cancelFunction)
 {
+    jassert (overwriteFunction != nullptr);
+    jassert (cancelFunction != nullptr);
+
     auto arePresetsEqual = [this] (PresetProperties& presetPropertiesOne, PresetProperties& presetPropertiesTwo)
     {
         return  presetPropertiesOne.getData2AsCV () == presetPropertiesTwo.getData2AsCV () &&
@@ -304,12 +307,16 @@ bool Assimil8orEditorComponent::overwriteCheck ()
     }
 
     if (presetsAreEqual)
-        return true;
-
-    // display dialog: save, cancel, ok?
-    // if save or ok, then return true
-    // if cancel, return false
-    return false;
+    {
+        overwriteFunction ();
+    }
+    else
+    {
+        // display dialog: cancel, ok?
+        // if ok, then call overwriteFucntion
+        // if cancel, then call cancelFucntion
+        cancelFunction ();
+    }
 }
 
 void Assimil8orEditorComponent::exportPreset ()
