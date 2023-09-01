@@ -10,7 +10,6 @@
 
 // TODO - short list
 //  Visual Edited indicator
-//  Query for save if switching from edited Preset
 //  Only enable Save button if preset was edited
 //  Update Preset List (switch from dim to highlighted) when new preset created
 
@@ -26,6 +25,7 @@ Assimil8orEditorComponent::Assimil8orEditorComponent ()
         addAndMakeVisible (button);
     };
     setupButton (saveButton, "Save", [this] () { savePreset ();  });
+    saveButton.setEnabled (false);
     setupButton (importButton, "Import", [this] () { importPreset ();  });
     setupButton (exportButton, "Export", [this] () { exportPreset (); });
     importButton.setEnabled (false);
@@ -41,6 +41,8 @@ Assimil8orEditorComponent::Assimil8orEditorComponent ()
                               PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
 
      setupPresetComponents ();
+
+     startTimer (250);
 }
 
 void Assimil8orEditorComponent::setupPresetComponents ()
@@ -206,6 +208,11 @@ void Assimil8orEditorComponent::importPreset ()
     jassertfalse;
 }
 
+void Assimil8orEditorComponent::exportPreset ()
+{
+    jassertfalse;
+}
+
 void Assimil8orEditorComponent::receiveSampleLoadRequest (juce::File sampleFile)
 {
     auto channelIndex { channelTabs.getCurrentTabIndex () };
@@ -213,11 +220,9 @@ void Assimil8orEditorComponent::receiveSampleLoadRequest (juce::File sampleFile)
     curChannelEditor->receiveSampleLoadRequest (sampleFile);
 }
 
-void Assimil8orEditorComponent::overwritePresetOrCancel (std::function<void ()> overwriteFunction, std::function<void ()> cancelFunction)
+// TODO - add options to check Preset Id as well
+bool Assimil8orEditorComponent::arePresetsEqual (juce::ValueTree presetOneVT, juce::ValueTree presetTwoVT)
 {
-    jassert (overwriteFunction != nullptr);
-    jassert (cancelFunction != nullptr);
-
     auto arePresetsEqual = [this] (PresetProperties& presetPropertiesOne, PresetProperties& presetPropertiesTwo)
     {
         return  presetPropertiesOne.getData2AsCV () == presetPropertiesTwo.getData2AsCV () &&
@@ -277,36 +282,46 @@ void Assimil8orEditorComponent::overwritePresetOrCancel (std::function<void ()> 
     auto areZonesEqual = [this] (ZoneProperties& zonePropertiesOne, ZoneProperties& zonePropertiesTwo)
     {
         return zonePropertiesOne.getLevelOffset () == zonePropertiesTwo.getLevelOffset () &&
-                zonePropertiesOne.getLoopLength ()  == zonePropertiesTwo.getLoopLength () &&
-                zonePropertiesOne.getLoopStart ()   == zonePropertiesTwo.getLoopStart () &&
-                zonePropertiesOne.getMinVoltage ()  == zonePropertiesTwo.getMinVoltage () &&
+                zonePropertiesOne.getLoopLength () == zonePropertiesTwo.getLoopLength () &&
+                zonePropertiesOne.getLoopStart () == zonePropertiesTwo.getLoopStart () &&
+                zonePropertiesOne.getMinVoltage () == zonePropertiesTwo.getMinVoltage () &&
                 zonePropertiesOne.getPitchOffset () == zonePropertiesTwo.getPitchOffset () &&
-                zonePropertiesOne.getSample ()      == zonePropertiesTwo.getSample () &&
+                zonePropertiesOne.getSample () == zonePropertiesTwo.getSample () &&
                 zonePropertiesOne.getSampleStart () == zonePropertiesTwo.getSampleStart () &&
-                zonePropertiesOne.getSampleEnd ()   == zonePropertiesTwo.getSampleEnd () &&
-                zonePropertiesOne.getSide ()        == zonePropertiesTwo.getSide ();
+                zonePropertiesOne.getSampleEnd () == zonePropertiesTwo.getSampleEnd () &&
+                zonePropertiesOne.getSide () == zonePropertiesTwo.getSide ();
     };
 
     auto presetsAreEqual { true };
-    if (arePresetsEqual (unEditedPresetProperties, presetProperties))
+    PresetProperties presetOne (presetOneVT, PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
+    PresetProperties presetTwo (presetTwoVT, PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
+    if (arePresetsEqual (presetOne, presetTwo))
     {
         for (auto channelIndex { 0 }; channelIndex < 8 && presetsAreEqual; ++channelIndex)
         {
-            ChannelProperties unEditedChannelProperties (unEditedPresetProperties.getChannelVT (channelIndex), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
-            ChannelProperties editedChannelProperties (presetProperties.getChannelVT (channelIndex), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
-            if (! areChannelsEqual (unEditedChannelProperties, editedChannelProperties))
+            ChannelProperties presetOneChannelProperties (presetOne.getChannelVT (channelIndex), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
+            ChannelProperties presetTwoChannelProperties (presetTwo.getChannelVT (channelIndex), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
+            if (!areChannelsEqual (presetOneChannelProperties, presetTwoChannelProperties))
                 presetsAreEqual = false;
             for (auto zoneIndex { 0 }; zoneIndex < 8 && presetsAreEqual; ++zoneIndex)
             {
-                ZoneProperties unEditedZoneProperties (unEditedChannelProperties.getZoneVT (zoneIndex), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
-                ZoneProperties editedZoneProperties (editedChannelProperties.getZoneVT (zoneIndex), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
-                if (!areZonesEqual (unEditedZoneProperties, editedZoneProperties))
+                ZoneProperties presetOneZoneProperties (presetOneChannelProperties.getZoneVT (zoneIndex), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
+                ZoneProperties presetTwoZoneProperties (presetTwoChannelProperties.getZoneVT (zoneIndex), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
+                if (!areZonesEqual (presetOneZoneProperties, presetTwoZoneProperties))
                     presetsAreEqual = false;
             }
         }
     }
 
-    if (presetsAreEqual)
+    return presetsAreEqual;
+}
+
+void Assimil8orEditorComponent::overwritePresetOrCancel (std::function<void ()> overwriteFunction, std::function<void ()> cancelFunction)
+{
+    jassert (overwriteFunction != nullptr);
+    jassert (cancelFunction != nullptr);
+
+    if (arePresetsEqual (unEditedPresetProperties.getValueTree(), presetProperties.getValueTree()))
     {
         overwriteFunction ();
     }
@@ -321,14 +336,7 @@ void Assimil8orEditorComponent::overwritePresetOrCancel (std::function<void ()> 
                 else
                     cancelFunction ();
             }));
-
-        //cancelFunction ();
     }
-}
-
-void Assimil8orEditorComponent::exportPreset ()
-{
-    jassertfalse;
 }
 
 void Assimil8orEditorComponent::savePreset ()
@@ -445,4 +453,9 @@ void Assimil8orEditorComponent::xfadeWidthUiChanged (int group, double width)
         case XfadeGroupIndex::groupD: presetProperties.setXfadeDWidth (width, false); break;
         default: jassertfalse; break;
     }
+}
+
+void Assimil8orEditorComponent::timerCallback ()
+{
+    saveButton.setEnabled (! arePresetsEqual (unEditedPresetProperties.getValueTree (), presetProperties.getValueTree ()));
 }

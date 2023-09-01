@@ -18,7 +18,8 @@ private:
     }
 };
 
-class Assimil8orEditorComponent : public juce::Component
+class Assimil8orEditorComponent : public juce::Component,
+                                  public juce::Timer
 {
 public:
     Assimil8orEditorComponent ();
@@ -66,6 +67,7 @@ private:
     std::array<XfadeGroupControls, 4> xfadeGroups;
     std::array<ChannelEditor, 8> channelEditors;
 
+    bool arePresetsEqual (juce::ValueTree presetOne, juce::ValueTree presetTwo);
     void exportPreset ();
     juce::String formatXfadeWidthString (double width);
     void importPreset ();
@@ -84,6 +86,7 @@ private:
     void xfadeWidthDataChanged (int group, double);
     void xfadeWidthUiChanged (int group, double);
 
+    void timerCallback () override;
     void resized () override;
     void paint (juce::Graphics& g) override;
 };
