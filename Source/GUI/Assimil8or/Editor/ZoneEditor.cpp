@@ -493,15 +493,23 @@ void ZoneEditor::pitchOffsetUiChanged (double pitchOffset)
 
 void ZoneEditor::updateSampleFileInfo (juce::String sample)
 {
+    sampleLength = 0;
+    auto textColor {juce::Colours::white};
     auto sampleFile { juce::File (appProperties.getMostRecentFolder ()).getChildFile (sample) };
-    if (std::unique_ptr<juce::AudioFormatReader> reader (audioFormatManager.createReaderFor (sampleFile)); reader != nullptr)
-        sampleLength = reader->lengthInSamples;
+    if (sampleFile.exists ())
+    {
+        if (std::unique_ptr<juce::AudioFormatReader> reader (audioFormatManager.createReaderFor (sampleFile)); reader != nullptr)
+            sampleLength = reader->lengthInSamples;
+        if (! zoneProperties.getSampleEnd ().has_value ())
+            sampleEndTextEditor.setText (juce::String (sampleLength));
+        if (! zoneProperties.getLoopLength ().has_value ())
+            loopLengthTextEditor.setText (formatLoopLength (static_cast<double>(sampleLength)));
+    }
     else
-        sampleLength = 0;
-    if (! zoneProperties.getSampleEnd().has_value() )
-        sampleEndTextEditor.setText (juce::String (sampleLength));
-    if (! zoneProperties.getLoopLength ().has_value ())
-        loopLengthTextEditor.setText (formatLoopLength (static_cast<double>(sampleLength)));
+    {
+        textColor = juce::Colours::red;
+    }
+    sampleNameSelectLabel.setColour (juce::Label::ColourIds::textColourId, textColor);
 }
 void ZoneEditor::updateSamplePositionInfo ()
 {
