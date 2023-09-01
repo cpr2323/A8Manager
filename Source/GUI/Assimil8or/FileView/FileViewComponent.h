@@ -14,6 +14,8 @@ public:
     void init (juce::ValueTree rootPropertiesVT);
 
     std::function<void (juce::File audioFile)> onAudioFileSelected;
+    std::function<bool ()> okToOverwritePreset;
+
 private:
     AppProperties appProperties;
     juce::AudioFormatManager audioFormatManager;
@@ -23,6 +25,7 @@ private:
     juce::CriticalSection queuedFolderLock;
     juce::File queuedFolderToScan;
     int listOffset { 0 };
+    int lastSelectedRow { -1 };
 
     DirectoryValueTree directoryValueTree;
     std::vector<juce::ValueTree> directoryListQuickLookupList;

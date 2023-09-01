@@ -15,13 +15,17 @@ public:
     ~PresetListComponent ();
     void init (juce::ValueTree rootPropertiesVT);
 
+    std::function<bool ()> okToOverwritePreset;
+
 private:
     AppProperties appProperties;
     AppActionProperties appActionProperties;
     PresetProperties presetProperties;
+    PresetProperties unEditedPresetProperties;
     juce::ValueTree appActionsVT;
 
     juce::ListBox presetListBox { {}, this };
+    int lastSelectedRow { -1 };
     juce::File rootFolder;
     std::array<bool, kMaxPresets> presetExists {false};
     juce::CriticalSection queuedFolderLock;

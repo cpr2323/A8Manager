@@ -132,6 +132,9 @@ void FileViewComponent::paintListBoxItem (int row, juce::Graphics& g, int width,
     if (row >= getNumRows ())
         return;
 
+    if (rowIsSelected)
+        lastSelectedRow = row;
+
     juce::Colour textColor { juce::Colours::whitesmoke };
     juce::String fileListItem;
     if (listOffset == 1 && row == 0)
@@ -180,6 +183,12 @@ void FileViewComponent::listBoxItemClicked (int row, [[maybe_unused]] const juce
 {
     if (row >= getNumRows ())
         return;
+
+    if (okToOverwritePreset != nullptr && okToOverwritePreset () == false)
+    {
+        directoryContentsListBox.selectRow (lastSelectedRow, false, true);
+        return;
+    }
 
     if (listOffset == 1 && row == 0)
         appProperties.setMostRecentFolder (juce::File (directoryValueTree.getRootFolder ()).getParentDirectory ().getFullPathName ());

@@ -9,6 +9,7 @@
 #include "Utility/ValueTreeFile.h"
 #include "Utility/ValueTreeMonitor.h"
 #include "Assimil8or/Assimil8orValidator.h"
+#include "Assimil8or/PresetManagerProperties.h"
 #include "Assimil8or/Preset/ParameterPresetsSingleton.h"
 #include "Assimil8or/Preset/PresetProperties.h"
 
@@ -128,14 +129,18 @@ public:
 
     void initAssimil8or ()
     {
+        // debug tool for watching changes on the Preset Value Tree
+        presetPropertiesMonitor.assign (presetProperties.getValueTreeRef ());
+
+        PresetManagerProperties presetManagerProperties (runtimeRootProperties.getValueTree (), PresetManagerProperties::WrapperType::owner, PresetManagerProperties::EnableCallbacks::no);
         // initialize the Preset with defaults
         PresetProperties::copyTreeProperties (ParameterPresetsSingleton::getInstance ()->getParameterPresetListProperties ().getParameterPreset (ParameterPresetListProperties::DefaultParameterPresetType),
                                               presetProperties.getValueTree ());
-        // debug tool for watching changes on the Preset Value Tree
-        presetPropertiesMonitor.assign (presetProperties.getValueTreeRef ());
+        presetManagerProperties.addPreset ("edit", presetProperties.getValueTree ());
+        presetManagerProperties.addPreset ("unedited", presetProperties.getValueTree ().createCopy ());
         // add the Preset to the Runtime Root
-        runtimeRootProperties.getValueTree ().addChild (presetProperties.getValueTree (), -1, nullptr);
-        // assigned Preset Value Tree to the Validator
+        runtimeRootProperties.getValueTree ().addChild (presetManagerProperties.getValueTree (), -1, nullptr);
+
         assimil8orValidator.init (rootProperties.getValueTree ());
         appActionProperties.wrap (runtimeRootProperties.getValueTree (), AppActionProperties::WrapperType::owner, AppActionProperties::EnableCallbacks::no);
     }

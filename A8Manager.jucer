@@ -73,6 +73,10 @@
               file="Source/Assimil8or/FileTypeHelpers.cpp"/>
         <FILE id="tZ8qTH" name="FileTypeHelpers.h" compile="0" resource="0"
               file="Source/Assimil8or/FileTypeHelpers.h"/>
+        <FILE id="YjzwUd" name="PresetManagerProperties.cpp" compile="1" resource="0"
+              file="Source/Assimil8or/PresetManagerProperties.cpp"/>
+        <FILE id="GYpX7O" name="PresetManagerProperties.h" compile="0" resource="0"
+              file="Source/Assimil8or/PresetManagerProperties.h"/>
       </GROUP>
       <GROUP id="{CF0C93A7-2DC9-863C-8999-5F753D262369}" name="GUI">
         <GROUP id="{E38BD768-EC43-B8F0-AB46-78F18BDF75B0}" name="Assimil8or">

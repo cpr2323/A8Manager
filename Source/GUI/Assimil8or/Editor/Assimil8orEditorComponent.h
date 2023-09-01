@@ -26,10 +26,12 @@ public:
 
     void init (juce::ValueTree rootPropertiesVT);
     void receiveSampleLoadRequest (juce::File sampleFile);
+    bool overwriteCheck ();
 
 private:
     AppProperties appProperties;
     PresetProperties presetProperties;
+    PresetProperties unEditedPresetProperties;
     PresetProperties minPresetProperties;
     PresetProperties maxPresetProperties;
 

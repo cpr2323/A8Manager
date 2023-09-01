@@ -3,6 +3,7 @@
 #include "../../../Utility/RuntimeRootProperties.h"
 #include "../../../Assimil8or/Assimil8orPreset.h"
 #include "../../../Assimil8or/FileTypeHelpers.h"
+#include "../../../Assimil8or/PresetManagerProperties.h"
 #include "../../../Assimil8or/Preset/ParameterPresetsSingleton.h"
 
 #define LOG_PRESET_LIST 0
@@ -28,7 +29,10 @@ void PresetListComponent::init (juce::ValueTree rootPropertiesVT)
     LogPresetList ("PresetListComponent::init");
     PersistentRootProperties persistentRootProperties (rootPropertiesVT, PersistentRootProperties::WrapperType::client, PersistentRootProperties::EnableCallbacks::no);
     RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
-    presetProperties.wrap (runtimeRootProperties.getValueTree (), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
+    PresetManagerProperties presetManagerProperties (runtimeRootProperties.getValueTree (), PresetManagerProperties::WrapperType::owner, PresetManagerProperties::EnableCallbacks::no);
+    unEditedPresetProperties.wrap (presetManagerProperties.getPreset ("unedited"), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::yes);
+    presetProperties.wrap (presetManagerProperties.getPreset ("edit"), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::yes);
+
     appActionProperties.wrap (runtimeRootProperties.getValueTree (), AppActionProperties::WrapperType::client, AppActionProperties::EnableCallbacks::no);
     appProperties.wrap (persistentRootProperties.getValueTree (), AppProperties::WrapperType::client, AppProperties::EnableCallbacks::yes);
     appProperties.onMostRecentFolderChange = [this] (juce::String folderName)
@@ -131,6 +135,7 @@ void PresetListComponent::loadDefault (int row)
                                           presetProperties.getValueTree ());
     // set the ID, since the default that was just loaded always has Id 1
     presetProperties.setId (row + 1, false);
+    PresetProperties::copyTreeProperties (presetProperties.getValueTree (), unEditedPresetProperties.getValueTree ());
     appActionProperties.setPresetLoadState (false);
 }
 
@@ -154,6 +159,8 @@ void PresetListComponent::loadPreset (juce::File presetFile)
     PresetProperties::copyTreeProperties (ParameterPresetsSingleton::getInstance ()->getParameterPresetListProperties ().getParameterPreset (ParameterPresetListProperties::DefaultParameterPresetType),
                                           presetProperties.getValueTree ());
     PresetProperties::copyTreeProperties (assimil8orPreset.getPresetVT (), presetProperties.getValueTree ());
+    PresetProperties::copyTreeProperties (presetProperties.getValueTree (), unEditedPresetProperties.getValueTree ());
+
     appActionProperties.setPresetLoadState (false);
 }
 
@@ -168,25 +175,29 @@ int PresetListComponent::getNumRows ()
     return kMaxPresets;
 }
 
-void PresetListComponent::paintListBoxItem (int rowNumber, juce::Graphics& g, int width, int height, bool rowIsSelected)
+void PresetListComponent::paintListBoxItem (int row, juce::Graphics& g, int width, int height, bool rowIsSelected)
 {
-    if (rowNumber < kMaxPresets)
+    if (row < kMaxPresets)
     {
-        if (rowIsSelected)
-            g.setColour (juce::Colours::darkslategrey);
-        else
-            g.setColour (juce::Colours::black);
-
-        g.fillRect (width - 1, 0, 1, height);
         juce::Colour textColor;
+        juce::Colour rowColor;
         if (rowIsSelected)
+        {
+            lastSelectedRow = row;
+            rowColor = juce::Colours::darkslategrey;
             textColor = juce::Colours::yellow;
+        }
         else
+        {
+            rowColor = juce::Colours::black;
             textColor = juce::Colours::whitesmoke;
-        if (! presetExists [rowNumber])
+        }
+        if (! presetExists [row])
             textColor = textColor.withAlpha (0.5f);
+        g.setColour (rowColor);
+        g.fillRect (width - 1, 0, 1, height);
         g.setColour (textColor);
-        g.drawText ("  Preset " + juce::String (rowNumber + 1), juce::Rectangle<float>{ 0.0f, 0.0f, (float) width, (float) height }, juce::Justification::centredLeft, true);
+        g.drawText ("  Preset " + juce::String (row + 1), juce::Rectangle<float>{ 0.0f, 0.0f, (float) width, (float) height }, juce::Justification::centredLeft, true);
     }
 }
 
@@ -197,6 +208,12 @@ juce::String PresetListComponent::getTooltipForRow (int row)
 
 void PresetListComponent::listBoxItemClicked (int row, [[maybe_unused]] const juce::MouseEvent& me)
 {
+    if (okToOverwritePreset != nullptr && okToOverwritePreset () == false)
+    {
+        presetListBox.selectRow (lastSelectedRow, false, true);
+        return;
+    }
+
     auto presetFile { juce::File (appProperties.getMostRecentFolder ()).getChildFile (getPresetName (row)).withFileExtension (".yml") };
     if (presetExists [row])
         loadPreset (presetFile);

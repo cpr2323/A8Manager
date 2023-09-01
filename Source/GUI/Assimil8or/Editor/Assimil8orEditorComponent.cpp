@@ -2,6 +2,7 @@
 #include "FormatHelpers.h"
 #include "ParameterToolTipData.h"
 #include "../../../Assimil8or/Assimil8orPreset.h"
+#include "../../../Assimil8or/PresetManagerProperties.h"
 #include "../../../Assimil8or/Preset/ParameterPresetsSingleton.h"
 #include "../../../Utility/RuntimeRootProperties.h"
 #include "../../../Utility/PersistentRootProperties.h"
@@ -157,7 +158,10 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
     PersistentRootProperties persistentRootProperties (rootPropertiesVT, PersistentRootProperties::WrapperType::client, PersistentRootProperties::EnableCallbacks::no);
     RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
     appProperties.wrap (persistentRootProperties.getValueTree (), AppProperties::WrapperType::client, AppProperties::EnableCallbacks::no);
-    presetProperties.wrap (runtimeRootProperties.getValueTree (), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::yes);
+    PresetManagerProperties presetManagerProperties (runtimeRootProperties.getValueTree (), PresetManagerProperties::WrapperType::owner, PresetManagerProperties::EnableCallbacks::no);
+
+    unEditedPresetProperties.wrap (presetManagerProperties.getPreset ("unedited"), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::yes);
+    presetProperties.wrap (presetManagerProperties.getPreset("edit"), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::yes);
     setupPresetPropertiesCallbacks ();
     auto channelEditorIndex { 0 };
     presetProperties.forEachChannel ([this, &channelEditorIndex, rootPropertiesVT] (juce::ValueTree channelPropertiesVT)
@@ -207,6 +211,105 @@ void Assimil8orEditorComponent::receiveSampleLoadRequest (juce::File sampleFile)
     auto channelIndex { channelTabs.getCurrentTabIndex () };
     auto curChannelEditor { dynamic_cast<ChannelEditor*>(channelTabs.getTabContentComponent (channelIndex)) };
     curChannelEditor->receiveSampleLoadRequest (sampleFile);
+}
+
+bool Assimil8orEditorComponent::overwriteCheck ()
+{
+    auto arePresetsEqual = [this] (PresetProperties& presetPropertiesOne, PresetProperties& presetPropertiesTwo)
+    {
+        return  presetPropertiesOne.getData2AsCV () == presetPropertiesTwo.getData2AsCV () &&
+                presetPropertiesOne.getName () == presetPropertiesTwo.getName () &&
+                presetPropertiesOne.getXfadeACV () == presetPropertiesTwo.getXfadeACV () &&
+                presetPropertiesOne.getXfadeAWidth () == presetPropertiesTwo.getXfadeAWidth () &&
+                presetPropertiesOne.getXfadeBCV () == presetPropertiesTwo.getXfadeBCV () &&
+                presetPropertiesOne.getXfadeBWidth () == presetPropertiesTwo.getXfadeBWidth () &&
+                presetPropertiesOne.getXfadeCCV () == presetPropertiesTwo.getXfadeCCV () &&
+                presetPropertiesOne.getXfadeCWidth () == presetPropertiesTwo.getXfadeCWidth () &&
+                presetPropertiesOne.getXfadeDCV () == presetPropertiesTwo.getXfadeDCV () &&
+                presetPropertiesOne.getXfadeDWidth () == presetPropertiesTwo.getXfadeDWidth ();
+    };
+    auto areChannelsEqual = [this] (ChannelProperties& channelPropertiesOne, ChannelProperties& channelPropertiesTwo)
+    {
+        return channelPropertiesOne.getAliasing () == channelPropertiesTwo.getAliasing () &&
+                channelPropertiesOne.getAliasingMod () == channelPropertiesTwo.getAliasingMod () &&
+                channelPropertiesOne.getAttack () == channelPropertiesTwo.getAttack () &&
+                channelPropertiesOne.getAttackFromCurrent () == channelPropertiesTwo.getAttackFromCurrent () &&
+                channelPropertiesOne.getAttackMod () == channelPropertiesTwo.getAttackMod () &&
+                channelPropertiesOne.getAutoTrigger () == channelPropertiesTwo.getAutoTrigger () &&
+                channelPropertiesOne.getBits () == channelPropertiesTwo.getBits () &&
+                channelPropertiesOne.getBitsMod () == channelPropertiesTwo.getBitsMod () &&
+                channelPropertiesOne.getChannelMode () == channelPropertiesTwo.getChannelMode () &&
+                channelPropertiesOne.getExpAM () == channelPropertiesTwo.getExpAM () &&
+                channelPropertiesOne.getExpFM () == channelPropertiesTwo.getExpFM () &&
+                channelPropertiesOne.getLevel () == channelPropertiesTwo.getLevel () &&
+                channelPropertiesOne.getLinAM () == channelPropertiesTwo.getLinAM () &&
+                channelPropertiesOne.getLinAMisExtEnv () == channelPropertiesTwo.getLinAMisExtEnv () &&
+                channelPropertiesOne.getLinFM () == channelPropertiesTwo.getLinFM () &&
+                channelPropertiesOne.getLoopLengthIsEnd () == channelPropertiesTwo.getLoopLengthIsEnd () &&
+                channelPropertiesOne.getLoopLengthMod () == channelPropertiesTwo.getLoopLengthMod () &&
+                channelPropertiesOne.getLoopMode () == channelPropertiesTwo.getLoopMode () &&
+                channelPropertiesOne.getLoopStartMod () == channelPropertiesTwo.getLoopStartMod () &&
+                channelPropertiesOne.getMixLevel () == channelPropertiesTwo.getMixLevel () &&
+                channelPropertiesOne.getMixMod () == channelPropertiesTwo.getMixMod () &&
+                channelPropertiesOne.getMixModIsFader () == channelPropertiesTwo.getMixModIsFader () &&
+                channelPropertiesOne.getPan () == channelPropertiesTwo.getPan () &&
+                channelPropertiesOne.getPanMod () == channelPropertiesTwo.getPanMod () &&
+                channelPropertiesOne.getPhaseCV () == channelPropertiesTwo.getPhaseCV () &&
+                channelPropertiesOne.getPitch () == channelPropertiesTwo.getPitch () &&
+                channelPropertiesOne.getPitchCV () == channelPropertiesTwo.getPitchCV () &&
+                channelPropertiesOne.getPlayMode () == channelPropertiesTwo.getPlayMode () &&
+                channelPropertiesOne.getPMIndex () == channelPropertiesTwo.getPMIndex () &&
+                channelPropertiesOne.getPMIndexMod () == channelPropertiesTwo.getPMIndexMod () &&
+                channelPropertiesOne.getPMSource () == channelPropertiesTwo.getPMSource () &&
+                channelPropertiesOne.getRelease () == channelPropertiesTwo.getRelease () &&
+                channelPropertiesOne.getReleaseMod () == channelPropertiesTwo.getReleaseMod () &&
+                channelPropertiesOne.getReverse () == channelPropertiesTwo.getReverse () &&
+                channelPropertiesOne.getSampleStartMod () == channelPropertiesTwo.getSampleStartMod () &&
+                channelPropertiesOne.getSampleEndMod () == channelPropertiesTwo.getSampleEndMod () &&
+                channelPropertiesOne.getSpliceSmoothing () == channelPropertiesTwo.getSpliceSmoothing () &&
+                channelPropertiesOne.getXfadeGroup () == channelPropertiesTwo.getXfadeGroup () &&
+                channelPropertiesOne.getZonesCV () == channelPropertiesTwo.getZonesCV () &&
+                channelPropertiesOne.getZonesRT () == channelPropertiesTwo.getZonesRT ();
+    };
+    auto areZonesEqual = [this] (ZoneProperties& zonePropertiesOne, ZoneProperties& zonePropertiesTwo)
+    {
+        return zonePropertiesOne.getLevelOffset () == zonePropertiesTwo.getLevelOffset () &&
+                zonePropertiesOne.getLoopLength ()  == zonePropertiesTwo.getLoopLength () &&
+                zonePropertiesOne.getLoopStart ()   == zonePropertiesTwo.getLoopStart () &&
+                zonePropertiesOne.getMinVoltage ()  == zonePropertiesTwo.getMinVoltage () &&
+                zonePropertiesOne.getPitchOffset () == zonePropertiesTwo.getPitchOffset () &&
+                zonePropertiesOne.getSample ()      == zonePropertiesTwo.getSample () &&
+                zonePropertiesOne.getSampleStart () == zonePropertiesTwo.getSampleStart () &&
+                zonePropertiesOne.getSampleEnd ()   == zonePropertiesTwo.getSampleEnd () &&
+                zonePropertiesOne.getSide ()        == zonePropertiesTwo.getSide ();
+    };
+
+    auto presetsAreEqual { true };
+    if (arePresetsEqual (unEditedPresetProperties, presetProperties))
+    {
+        for (auto channelIndex { 0 }; channelIndex < 8 && presetsAreEqual; ++channelIndex)
+        {
+            ChannelProperties unEditedChannelProperties (unEditedPresetProperties.getChannelVT (channelIndex), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
+            ChannelProperties editedChannelProperties (presetProperties.getChannelVT (channelIndex), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
+            if (! areChannelsEqual (unEditedChannelProperties, editedChannelProperties))
+                presetsAreEqual = false;
+            for (auto zoneIndex { 0 }; zoneIndex < 8 && presetsAreEqual; ++zoneIndex)
+            {
+                ZoneProperties unEditedZoneProperties (unEditedChannelProperties.getZoneVT (zoneIndex), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
+                ZoneProperties editedZoneProperties (editedChannelProperties.getZoneVT (zoneIndex), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
+                if (!areZonesEqual (unEditedZoneProperties, editedZoneProperties))
+                    presetsAreEqual = false;
+            }
+        }
+    }
+
+    if (presetsAreEqual)
+        return true;
+
+    // display dialog: save, cancel, ok?
+    // if save or ok, then return true
+    // if cancel, return false
+    return false;
 }
 
 void Assimil8orEditorComponent::exportPreset ()

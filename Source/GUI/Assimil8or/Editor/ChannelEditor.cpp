@@ -733,6 +733,8 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
             if (sampleFileName.isEmpty ())
             {
                 zoneProperties [zoneEditorIndex].copyFrom (defaultZoneProperties.getValueTree ());
+                // TODO - check if I can move this here from (zoneProperties [zoneEditorIndex].onSampleChange), removing the reentrant issues
+                //removeEmptyZones ();
             }
             else if (zoneProperties [zoneEditorIndex].getSample ().isEmpty ())
             {
@@ -751,11 +753,16 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
                     zoneProperties [zoneEditorIndex].setMinVoltage (bottomRange + ((topRange - bottomRange) / 2), false);
                 }
             }
+            // TODO - check if I can move this here from (zoneProperties [zoneEditorIndex].onSampleChange), removing the reentrant issues
+            //ensureProperZoneIsSelected ();
+            //updateAllZoneTabNames ();
+
         };
         zoneProperties [zoneEditorIndex].wrap (zonePropertiesVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::yes);
         zoneProperties [zoneEditorIndex].onSampleChange = [this, zoneEditorIndex] (juce::String sampleFile)
         {
-            if (! appActionProperties.getPresetLoadState())
+            // TODO - check if I can move this this stuff up to zoneEditors [zoneEditorIndex].onSampleChange
+            if (!appActionProperties.getPresetLoadState ())
                 removeEmptyZones ();
             ensureProperZoneIsSelected ();
             updateAllZoneTabNames ();

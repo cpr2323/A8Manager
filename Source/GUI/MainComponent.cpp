@@ -32,6 +32,14 @@ MainComponent::MainComponent (juce::ValueTree rootPropertiesVT)
 
     addAndMakeVisible (currentFolder);
 
+    // fileViewComponent;
+    // presetListComponent;
+    // assimil8orEditorComponent;
+    // assimil8orValidatorComponent;
+
+    fileViewComponent.okToOverwritePreset = [this] () { return assimil8orEditorComponent.overwriteCheck (); };
+    presetListComponent.okToOverwritePreset = [this] () { return assimil8orEditorComponent.overwriteCheck (); };
+
     assimil8orEditorComponent.init (rootPropertiesVT);
     assimil8orValidatorComponent.init (rootPropertiesVT);
     fileViewComponent.init (rootPropertiesVT);
