@@ -136,6 +136,7 @@ private:
 
     int64_t sampleLength { 0 };
 
+    double snapLoopLength (double rawValue);
     juce::String formatLoopLength (double loopLength);
     bool handleSelectedFile (juce::File fileNameAndPath);
     bool isSupportedAudioFile (juce::File file);

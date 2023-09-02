@@ -266,12 +266,14 @@ void ZoneEditor::setupZoneComponents ()
             else
                 return text.getDoubleValue ();
         }();
-        // TODO - do additional clamping due on the different number of decimal places/increments based on the current value
-        //   loopLength > 2048 | 0 decimal places
-        //
-        const auto loopLength = std::clamp (loopLengthInput, minZoneProperties.getLoopLength ().value_or (static_cast<double>(sampleLength - zoneProperties.getLoopStart ().value_or (0))),
-                                            (sampleLength == 0 ? minZoneProperties.getLoopLength ().value_or (static_cast<double>(sampleLength - zoneProperties.getLoopStart ().value_or (0))) :
-                                                                 static_cast<double>(sampleLength - zoneProperties.getLoopStart ().value_or (0))));
+        // constrain
+        auto loopLength = std::clamp (loopLengthInput,
+                                      minZoneProperties.getLoopLength ().value_or (static_cast<double>(sampleLength - zoneProperties.getLoopStart ().value_or (0))),
+                                      (sampleLength == 0 ? minZoneProperties.getLoopLength ().value_or (static_cast<double>(sampleLength - zoneProperties.getLoopStart ().value_or (0))) :
+                                                           static_cast<double>(sampleLength - zoneProperties.getLoopStart ().value_or (0))));
+        // snap
+        loopLength = snapLoopLength (loopLength);
+
         loopLengthUiChanged (loopLength);
         loopLengthTextEditor.setText (formatLoopLength (loopLength));
     });
@@ -413,6 +415,45 @@ void ZoneEditor::resized ()
 
     levelOffsetLabel.setBounds (xOffset, pitchOffsetLabel.getBottom () + 5, scaleWidth (otherLabelScale), 20);
     levelOffsetTextEditor.setBounds (levelOffsetLabel.getRight () + spaceBetweenLabelAndInput, levelOffsetLabel.getY (), scaleWidth (otherInputScale) - spaceBetweenLabelAndInput, 20);
+}
+
+double ZoneEditor::snapLoopLength (double rawValue)
+{
+    if (rawValue < 2048)
+    {
+        if (rawValue < 4.0)
+            return 4.0;
+
+        auto snapToResolution = [] (double number, double resolution) { return std::round (number / resolution) * resolution; };
+        const auto wholeValue { static_cast<uint32_t>(rawValue) };
+        const auto fractionalValue { rawValue - static_cast<double>(wholeValue) };
+
+        auto getFractionalSize = [] (uint32_t wholeValue)
+            {
+                auto calculateFractionalSize = [] (int numberOfBits) { return 1.0 / (1 << numberOfBits); };
+                if (wholeValue > 1024)
+                    return calculateFractionalSize (1);
+                else if (wholeValue > 512)
+                    return calculateFractionalSize (2);
+                else if (wholeValue > 256)
+                    return calculateFractionalSize (3);
+                else if (wholeValue > 128)
+                    return calculateFractionalSize (4);
+                else if (wholeValue >= 4)
+                    return calculateFractionalSize (5);
+                else
+                {
+                    jassertfalse;
+                    return 0.0;
+                }
+            };
+        const auto snappedFractionalValue { snapToResolution (fractionalValue, getFractionalSize (wholeValue)) };
+        return static_cast<double>(wholeValue) + snappedFractionalValue;
+    }
+    else
+    {
+        return static_cast<uint32_t>(rawValue);
+    }
 }
 
 juce::String ZoneEditor::formatLoopLength (double loopLength)
