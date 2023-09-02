@@ -73,8 +73,74 @@ public:
         root.removeChild (child1, nullptr);
     }
 
+    double constrainLoopLengthValue (double loopLength)
+    {
+        if (loopLength >= 2048.0)
+            return loopLength;
+
+        auto wholeValue { static_cast<uint32_t>(loopLength) };
+        auto fractionalValue { loopLength - static_cast<double>(wholeValue) };
+
+        // 2048 = 1000 0000 0000, 11/1
+        // 1024 = 0100 0000 0000, 10/2
+        //  512 = 0010 0000 0000,  9/3
+        //  256 = 0001 0000 0000,  8/4
+        //  128 = 0000 1000 0000,  7/5
+
+        auto getFractionalSize = [] (int numberOfBits)
+        {
+            return 1.0 / std::pow (2, numberOfBits);
+        };
+        if (wholeValue > 1024)
+        {
+            auto fractionalSize { getFractionalSize (1) };
+        }
+        else if (wholeValue > 512)
+        {
+            auto fractionalSize { getFractionalSize (2) };
+        }
+        else if (wholeValue > 256)
+        {
+            auto fractionalSize { getFractionalSize (3) };
+        }
+        else if (wholeValue > 128)
+        {
+            auto fractionalSize { getFractionalSize (4) };
+        }
+        else if (wholeValue > 4)
+        {
+            auto fractionalSize { getFractionalSize (5) };
+        }
+        else
+        {
+            return 4.0;
+        }
+    }
+
     void initialise ([[maybe_unused]] const juce::String& commandLine) override
     {
+        auto value { 2047 };
+        auto lowerBits { 1 };
+        auto mask { static_cast<int>(std::pow (2, lowerBits) - 1) };
+        auto encodedValue { value << lowerBits };
+        while ((encodedValue >> lowerBits) > 3)
+        {
+            auto decodedValue { encodedValue >> lowerBits }; // strip off the whole number value
+            auto lowerBitsValue { encodedValue & mask }; // strip off the fractional index
+            auto fractionalIncrement { 1.0 / std::pow(2, lowerBits) }; // calculate a single fractional part
+            auto fractionalValue { fractionalIncrement * lowerBitsValue }; // calculate the entire fractional amount
+            auto finalValue { std::round((static_cast<double>(decodedValue) + fractionalValue) * 1000.0) / 1000.0 }; // add the whole and fractional parts and round to 3 decimal places
+            juce::Logger::outputDebugString ("upper/lower: " + juce::String (12 - lowerBits) + "/" + juce::String (lowerBits) + ", encoded: " + juce::String (encodedValue) +
+                                             ", decoded: " + juce::String (decodedValue) + ", fraction: " + juce::String (fractionalValue, 3) + ", value: " + juce::String (finalValue, 3));
+            --encodedValue;
+            if (decodedValue > 63 && decodedValue < std::pow (2, 12 - lowerBits - 1))
+            {
+                ++lowerBits;
+                mask = (mask << 1) + 1; // make the mask one bit bigger
+                encodedValue <<= 1; // slide the previous encoded value up a bit to make room for the next bit
+            }
+        }
+
         //valueTreeTest ();
         initAppDirectory ();
         initLogger ();

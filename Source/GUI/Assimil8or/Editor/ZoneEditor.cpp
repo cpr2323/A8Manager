@@ -420,6 +420,15 @@ juce::String ZoneEditor::formatLoopLength (double loopLength)
     if (loopLengthIsEnd)
         loopLength = static_cast<int>(static_cast<double>(zoneProperties.getLoopStart().value_or (0)) + loopLength);
 
+    // value >= 2048 - no decimals
+    // value < 2048 - 3 decimal places
+    // 1024.000 < value < 2047.000 - 0.500 increment
+    //  512.000 < value < 1024.000 - 0.250 increment (0.25, 0.5, 0.75, 1.000)
+    //  256.000 < value <  512.000 - 0.125 increment (0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1.000)
+    //  128.000 < value <  256.000 - 0.063 increment (0.063, 0.125, 0.188, 0.250, 0.313, 0.375, 0.438, 0.500, 0.563, 0.625, 0.688, 0.750, 0.813, 0.875, 0.938, 1.000)
+    //    0.000 < value <  128.000 - 0.031 increment  (0.031, 0.063, 0.094, 0.125, 0.156, 0.188, 0.219, 0.250, 0.281, 0.313, 0.344, 0.375, 0.406, 0.438, 0.469, 0.500,
+    //                                                 0.531, 0.563, 0.594, 0.625, 0.656, 0.688, 0.719, 0.750, 0.781, 0.813, 0.844, 0.875, 0.906, 0.938, 0.969, 1.000)
+
     if (loopLength < 2048.0)
         return FormatHelpers::formatDouble (loopLength, 3, false);
     else
