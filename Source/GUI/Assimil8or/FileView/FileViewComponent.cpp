@@ -184,11 +184,15 @@ void FileViewComponent::listBoxItemClicked (int row, [[maybe_unused]] const juce
     if (row >= getNumRows ())
         return;
 
-    auto completeSelection = [this, row] ()
+    auto folder { juce::File (directoryListQuickLookupList [row - listOffset].getProperty ("name").toString ()) };
+    if (!folder.isDirectory ())
+        return;
+
+    auto completeSelection = [this, row, &folder] ()
     {
         if (listOffset == 1 && row == 0)
             appProperties.setMostRecentFolder (juce::File (directoryValueTree.getRootFolder ()).getParentDirectory ().getFullPathName ());
-        else if (auto folder { juce::File (directoryListQuickLookupList [row - listOffset].getProperty ("name").toString ()) }; folder.isDirectory ())
+        else 
             appProperties.setMostRecentFolder (folder.getFullPathName ());
     };
 
