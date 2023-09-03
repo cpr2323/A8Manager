@@ -272,6 +272,7 @@ private:
     void removeEmptyZones ();
     void setupChannelComponents ();
     void setupChannelPropertiesCallbacks ();
+    double snapBits (double rawValue);
     double snapEnvelopeValue (double rawValue);
     void updateAllZoneTabNames ();
     void updateZoneTabName (int zoneIndex);

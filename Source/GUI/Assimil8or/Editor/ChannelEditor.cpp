@@ -238,6 +238,18 @@ double ChannelEditor::snapEnvelopeValue (double rawValue)
     return static_cast<double>(static_cast<uint32_t>(rawValue * scalerValue)) / scalerValue;
 }
 
+double ChannelEditor::snapBits (double rawValue)
+{
+    const auto scalerValue = [rawValue] ()
+    {
+        if (rawValue < 10.0)
+            return 10.0;
+        else
+            return 1.0;
+    }();
+    return static_cast<double>(static_cast<uint32_t>(rawValue * scalerValue)) / scalerValue;
+}
+
 void ChannelEditor::setupChannelComponents ()
 {
     juce::XmlDocument xmlDoc { BinaryData::Assimil8orToolTips_xml };
@@ -535,7 +547,7 @@ void ChannelEditor::setupChannelComponents ()
     },
     [this] (juce::String text)
     {
-        const auto bits { std::clamp (text.getDoubleValue (), minChannelProperties.getBits (), maxChannelProperties.getBits ()) };
+        const auto bits { snapBits (std::clamp (text.getDoubleValue (), minChannelProperties.getBits (), maxChannelProperties.getBits ())) };
         bitsUiChanged (bits);
         bitsTextEditor.setText (FormatHelpers::formatDouble (bits, 1, false));
     });
