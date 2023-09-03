@@ -264,6 +264,7 @@ private:
 
     void checkStereoRightOverlay ();
     void ensureProperZoneIsSelected ();
+    int getEnvelopeValueResolution (double envelopeValue);
     void positionColumnOne (int xOffset, int width);
     void positionColumnTwo (int xOffset, int width);
     void positionColumnThree (int xOffset, int width);
@@ -271,6 +272,7 @@ private:
     void removeEmptyZones ();
     void setupChannelComponents ();
     void setupChannelPropertiesCallbacks ();
+    double snapEnvelopeValue (double rawValue);
     void updateAllZoneTabNames ();
     void updateZoneTabName (int zoneIndex);
 

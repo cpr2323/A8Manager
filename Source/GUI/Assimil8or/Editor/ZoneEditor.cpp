@@ -429,24 +429,24 @@ double ZoneEditor::snapLoopLength (double rawValue)
         const auto fractionalValue { rawValue - static_cast<double>(wholeValue) };
 
         auto getFractionalSize = [] (uint32_t wholeValue)
+        {
+            auto calculateFractionalSize = [] (int numberOfBits) { return 1.0 / (1 << numberOfBits); };
+            if (wholeValue > 1024)
+                return calculateFractionalSize (1);
+            else if (wholeValue > 512)
+                return calculateFractionalSize (2);
+            else if (wholeValue > 256)
+                return calculateFractionalSize (3);
+            else if (wholeValue > 128)
+                return calculateFractionalSize (4);
+            else if (wholeValue >= 4)
+                return calculateFractionalSize (5);
+            else
             {
-                auto calculateFractionalSize = [] (int numberOfBits) { return 1.0 / (1 << numberOfBits); };
-                if (wholeValue > 1024)
-                    return calculateFractionalSize (1);
-                else if (wholeValue > 512)
-                    return calculateFractionalSize (2);
-                else if (wholeValue > 256)
-                    return calculateFractionalSize (3);
-                else if (wholeValue > 128)
-                    return calculateFractionalSize (4);
-                else if (wholeValue >= 4)
-                    return calculateFractionalSize (5);
-                else
-                {
-                    jassertfalse;
-                    return 0.0;
-                }
-            };
+                jassertfalse;
+                return 0.0;
+            }
+        };
         const auto snappedFractionalValue { snapToResolution (fractionalValue, getFractionalSize (wholeValue)) };
         return static_cast<double>(wholeValue) + snappedFractionalValue;
     }

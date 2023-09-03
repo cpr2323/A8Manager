@@ -75,16 +75,30 @@ public:
 
 #if 0
     // TEST CODE
-    // encoded flag - 0000 1xxx | xxxx xxxx | xxxx xxxx | xxxx xxxx
+    // encoded flag - 0000 1xxx | xxxx xxxx | xxxx xxxx | xxxy yyyy
+    //                mask
+    //                      whole value
+    //                                                       up to 5 bits of fractional index
+    // uint32_t rawValue
+    // double finalValue
+    // if bits 24-32 are all 0
+    //     finalValue = rawValue
+    // else
+    //  mask = rawValue >> 23
+    //  numberOfIndexBits = mask + 1
+    //  wholeValue = rawValue >> numIndexBits
+    //  fractionalResolution = 1.0 / (1L << (numberOfIndexBits))
+    //  fractionalIndex = rawValue & mask
+    //  fractionalValue = fractionalResolution * fractionalIndex
+    //  finalValue = static_cast<double>(wholeValue) + fractionalValue
     // max 8 digit number - 0101 1111 0101 1110 0000 1111 1111
     // 2048 = 1000 0000 0000, 11/1
     // 1024 = 0100 0000 0000, 10/2
     //  512 = 0010 0000 0000,  9/3
     //  256 = 0001 0000 0000,  8/4
     //  128 = 0000 1000 0000,  7/5
-    uint32_t encodeLoopValue (double rawValue)
+    uint32_t encodeLoopLengthValue (double rawValue)
     {
-        // constrain within boundaries
         if (rawValue < 4.0)
             rawValue = 4.0;
         else if (rawValue > 99999999.0)
@@ -92,22 +106,20 @@ public:
 
         if (rawValue < 2048)
         {
-            auto snapToResolution = [] (double number, double resolution) { return std::round (number / resolution) * resolution; };
-
             // encode
             const auto wholeValue { static_cast<uint32_t>(rawValue) };
             const auto fractionalValue { rawValue - static_cast<double>(wholeValue) };
             const auto mask = [wholeValue] ()
             {
-                if (wholeValue > 1024)
+                if (wholeValue >= 1024) // 2047 - 1024
                     return 1;
-                else if (wholeValue > 512)
+                else if (wholeValue >= 512) // 1023 - 512
                     return 3;
-                else if (wholeValue > 256)
+                else if (wholeValue >= 256) // 511 - 256
                     return 7;
-                else if (wholeValue > 128)
+                else if (wholeValue >= 128)
                     return 15;
-                else if (wholeValue > 4)
+                else if (wholeValue >= 4)
                     return 31;
                 else
                 {
@@ -115,11 +127,11 @@ public:
                     return 0;
                 }
             }();
-            const auto fractionalResolution { 1.0 / (1L << (mask + 1)) };
-            const auto snappedFractionalValue { snapToResolution (fractionalValue, fractionalResolution) };
-            const auto maskValue { mask << 23 };
-            const auto shiftedWholeValue { wholeValue << (mask + 1) };
-            const auto fractionalIndex { static_cast<int>(snappedFractionalValue / fractionalResolution) };
+            const auto numIndexBits { mask + 1 };
+            const auto fractionalResolution { 1.0 / (1L << (numIndexBits - 1)) };
+            const auto maskValue { mask << 27 };
+            const auto shiftedWholeValue { wholeValue << numIndexBits };
+            const auto fractionalIndex { static_cast<int>(fractionalValue / fractionalResolution) };
             return maskValue + shiftedWholeValue + fractionalIndex;
         }
         else
@@ -128,149 +140,44 @@ public:
         }
     }
 
-    // given a double value, snap to the appropriate resolution
-    double constrianLoopValue (double rawValue)
+    double decodeLoopLengthValue (uint32_t rawValue)
     {
-        if (rawValue < 2048)
-        {
-            if (rawValue < 4.0)
-                return 4.0;
+        auto newVal { rawValue & 0xF8000000 };
+        if ((rawValue & 0xF8000000) == 0)
+            return rawValue;
 
-            auto snapToResolution = [] (double number, double resolution) { return std::round (number / resolution) * resolution; };
-            const auto wholeValue { static_cast<uint32_t>(rawValue) };
-            const auto fractionalValue { rawValue - static_cast<double>(wholeValue) };
-
-            auto getFractionalSize = [] (uint32_t wholeValue)
-            {
-               auto calculateFractionalSize = [] (int numberOfBits) { return 1.0 / (1 << numberOfBits); };
-                if (wholeValue > 1024)
-                    return calculateFractionalSize (1);
-                else if (wholeValue > 512)
-                    return calculateFractionalSize (2);
-                else if (wholeValue > 256)
-                    return calculateFractionalSize (3);
-                else if (wholeValue > 128)
-                    return calculateFractionalSize (4);
-                else if (wholeValue > 4)
-                    return calculateFractionalSize (5);
-                else
-                {
-                    jassertfalse;
-                    return 0.0;
-                }
-            };
-            const auto snappedFractionalValue { snapToResolution (fractionalValue, getFractionalSize (wholeValue)) };
-            return static_cast<double>(wholeValue) + snappedFractionalValue;
-        }
-        else
-        {
-            return static_cast<uint32_t>(rawValue);
-        }
-    }
-
-    double getLoopLengthValue (uint32_t encodedValue)
-    {
-        if (encodedValue < 0x8000000)
-            return encodedValue;
-
-        const auto mask { encodedValue & 0xF8000000 };
-        const auto numLowerBits { mask + 1 };
-        const auto twoToNumLowerBits { 1 << numLowerBits };
-
-        const auto decodedValue { encodedValue >> numLowerBits }; // strip off the whole number value
-        const auto lowerBitsValue { encodedValue & mask }; // strip off the fractional index
-        const auto fractionalIncrement { 1.0 / twoToNumLowerBits }; // calculate a single fractional part
-        const auto fractionalValue { fractionalIncrement * lowerBitsValue }; // calculate the entire fractional amount
-        const auto finalValue { std::round ((static_cast<double>(decodedValue) + fractionalValue) * 1000.0) / 1000.0 }; // add the whole and fractional parts and round to 3 decimal places
+        const auto mask { rawValue >> 27 };
+        const auto numIndexBits { mask + 1 };
+        const auto wholeValue { (rawValue & 0x07FFFFFF) >> numIndexBits};
+        const auto fractionalResolution { 1.0 / (1L << (numIndexBits - 1)) };
+        const auto fractionalIndex { rawValue & mask };
+        const auto fractionalValue { fractionalResolution * fractionalIndex};
+        const auto finalValue { std::round ((static_cast<double>(wholeValue) + fractionalValue) * 1000.0) / 1000.0 }; // add the whole and fractional parts and round to 3 decimal places
         return finalValue;
     }
-#endif 0
+#endif // 0
 
     void initialise ([[maybe_unused]] const juce::String& commandLine) override
     {
 #if 0
         auto testAValue = [this] (double valueToTest)
-            {
-                const auto snappedValue { constrianLoopValue(valueToTest) };
-                const auto encodedValue { encodeLoopValue (snappedValue) };
-                const auto decodedValue { getLoopLengthValue (encodedValue) };
-                jassert (snappedValue == decodedValue);
-                juce::Logger::outputDebugString ("valueToTest: " + juce::String (valueToTest, 3) + ", snappedValue: " + juce::String (constrianLoopValue (valueToTest), 3));
-            };
+        {
+            const auto encodedValue { encodeLoopLengthValue (valueToTest) };
+            const auto decodedValue { decodeLoopLengthValue (encodedValue) };
+            jassert (valueToTest == decodedValue);
+        };
         testAValue (2047.0);
         testAValue (2047.5);
-        testAValue (2047.1);
-        testAValue (2047.6);
         testAValue (1024.0);
         testAValue (1023.0);
-        testAValue (1023.2);
-        testAValue (1023.6);
-        testAValue (500.1);
-        testAValue (500.3);
+        testAValue (1023.25);
+        testAValue (500.125);
+        testAValue (400.875);
+        testAValue (212.438);
+        testAValue (93.188);
+        testAValue (86.813);
 
-#define TEST_VALUES_FROM_2047_DOWN 0
-#if TEST_VALUES_FROM_2047_DOWN
-        auto value { 2047 };
-        auto lowerBits { 1 };
-        //auto mask { static_cast<int>(std::pow (2, lowerBits) - 1) };
-        auto mask {(1 << lowerBits) - 1};
-        auto encodedValue { value << lowerBits };
-        while ((encodedValue >> lowerBits) > 3)
-        {
-            auto decodedValue { encodedValue >> lowerBits }; // strip off the whole number value
-            auto lowerBitsValue { encodedValue & mask }; // strip off the fractional index
-            auto fractionalIncrement { 1.0 / (1 << lowerBits) }; // calculate a single fractional part
-            auto fractionalValue { fractionalIncrement * lowerBitsValue }; // calculate the entire fractional amount
-            auto finalValue { std::round((static_cast<double>(decodedValue) + fractionalValue) * 1000.0) / 1000.0 }; // add the whole and fractional parts and round to 3 decimal places
-            juce::Logger::outputDebugString ("upper/lower: " + juce::String (12 - lowerBits) + "/" + juce::String (lowerBits) + ", encoded: " + juce::String (encodedValue) +
-                                             ", decoded: " + juce::String (decodedValue) + ", fraction: " + juce::String (fractionalValue, 3) + ", value: " + juce::String (finalValue, 3));
-            --encodedValue;
-            if (decodedValue > 63 && decodedValue < (1 << (12 - lowerBits - 1)))
-            {
-                ++lowerBits;
-                mask = (mask << 1) + 1; // make the mask one bit bigger
-                encodedValue <<= 1; // slide the previous encoded value up a bit to make room for the next bit
-            }
-        }
-#endif
-#endif 0
-#if 1
-        auto value { 0.0000 };
-        auto increment { 0.0001 };
-        auto resolution { 4 };
-        while (value < 99)
-        {
-            if (value < 0.00991/*0.0100*/)
-            {
-                increment = 0.0001;
-                resolution = 4;
-            }
-            else if (value < 0.0991/*0.1000*/)
-            {
-                increment = 0.001;
-                resolution = 3;
-            }
-            else if (value < 0.991/*1.0000*/)
-            {
-                increment = 0.01;
-                resolution = 2;
-            }
-            else if (value < 9.91/*10.0000*/)
-            {
-                increment = 0.1;
-                resolution = 1;
-            }
-            else
-            {
-                increment = 1.;
-                resolution = 0;
-            }
-            juce::Logger::outputDebugString ("value: " + juce::String (value, resolution) +
-                                            ", inc: " + juce::String (increment, 4) +
-                                            ", res: " + juce::String (resolution));
-            value += increment;
-        }
-#endif
+#endif // 0
         //valueTreeTest ();
         initAppDirectory ();
         initLogger ();

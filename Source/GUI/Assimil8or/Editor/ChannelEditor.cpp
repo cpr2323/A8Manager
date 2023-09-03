@@ -206,6 +206,38 @@ void ChannelEditor::ensureProperZoneIsSelected ()
     }
 }
 
+int ChannelEditor::getEnvelopeValueResolution (double envelopeValue)
+{
+    if (envelopeValue < 0.01)
+        return 4;
+    else if (envelopeValue < 0.1)
+        return 3;
+    else if (envelopeValue < 1.0)
+        return 2;
+    else if (envelopeValue < 10.0)
+        return 1;
+    else
+        return 0;
+}
+
+double ChannelEditor::snapEnvelopeValue (double rawValue)
+{
+    auto scalerValue = [rawValue] ()
+    {
+        if (rawValue < 0.01)
+            return 10000.0;
+        else if (rawValue < 0.1)
+            return 1000.0;
+        else if (rawValue < 1.0)
+            return 100.0;
+        else if (rawValue < 10.0)
+            return 10.0;
+        else
+            return 1.0;
+    }();
+    return static_cast<double>(static_cast<uint32_t>(rawValue * scalerValue)) / scalerValue;
+}
+
 void ChannelEditor::setupChannelComponents ()
 {
     juce::XmlDocument xmlDoc { BinaryData::Assimil8orToolTips_xml };
@@ -450,9 +482,9 @@ void ChannelEditor::setupChannelComponents ()
     },
     [this] (juce::String text)
     {
-        const auto attack { std::clamp (text.getDoubleValue (), minChannelProperties.getAttack (), maxChannelProperties.getAttack ()) };
-        attackUiChanged (attack);
-        attackTextEditor.setText (FormatHelpers::formatDouble (attack, 4, false));
+        const auto attackTime { snapEnvelopeValue (std::clamp (text.getDoubleValue (), minChannelProperties.getAttack (), maxChannelProperties.getAttack ())) };
+        attackUiChanged (attackTime);
+        attackTextEditor.setText (FormatHelpers::formatDouble (attackTime, getEnvelopeValueResolution(attackTime), false));
     });
     setupCvInputComboBox (attackModComboBox, "AttackMod", [this] () { attackModUiChanged (attackModComboBox.getSelectedItemText (), attackModTextEditor.getText ().getDoubleValue ()); });
     setupTextEditor (attackModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "AttackMod", [this] ()
@@ -474,9 +506,9 @@ void ChannelEditor::setupChannelComponents ()
     },
     [this] (juce::String text)
     {
-        const auto release { std::clamp (text.getDoubleValue (), minChannelProperties.getRelease (), maxChannelProperties.getRelease ()) };
-        releaseUiChanged (release);
-        releaseTextEditor.setText (FormatHelpers::formatDouble (release, 4, false));
+        const auto releaseTime { snapEnvelopeValue (std::clamp (text.getDoubleValue (), minChannelProperties.getRelease (), maxChannelProperties.getRelease ())) };
+        releaseUiChanged (releaseTime);
+        releaseTextEditor.setText (FormatHelpers::formatDouble (releaseTime, getEnvelopeValueResolution (releaseTime), false));
     });
     setupLabel (releaseLabel, "RELEASE", kMediumLabelSize, juce::Justification::centredLeft);
     setupCvInputComboBox (releaseModComboBox, "ReleaseMod", [this] () { releaseModUiChanged (releaseModComboBox.getSelectedItemText (), releaseModTextEditor.getText ().getDoubleValue ()); });
@@ -1197,7 +1229,7 @@ void ChannelEditor::aliasingModUiChanged (juce::String cvInput, double aliasingM
 
 void ChannelEditor::attackDataChanged (double attack)
 {
-    attackTextEditor.setText (FormatHelpers::formatDouble (attack, 4, false));
+    attackTextEditor.setText (FormatHelpers::formatDouble (attack, getEnvelopeValueResolution (attack), false));
 }
 
 void ChannelEditor::attackUiChanged (double attack)
@@ -1506,7 +1538,7 @@ void ChannelEditor::pMSourceUiChanged (int pMSource)
 
 void ChannelEditor::releaseDataChanged (double release)
 {
-    releaseTextEditor.setText (FormatHelpers::formatDouble (release, 4, false));
+    releaseTextEditor.setText (FormatHelpers::formatDouble (release, getEnvelopeValueResolution (release), false));
 }
 
 void ChannelEditor::releaseUiChanged (double release)
