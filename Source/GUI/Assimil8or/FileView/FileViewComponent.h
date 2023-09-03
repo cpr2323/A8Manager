@@ -24,7 +24,7 @@ private:
     juce::ListBox directoryContentsListBox { {}, this };
     juce::CriticalSection queuedFolderLock;
     juce::File queuedFolderToScan;
-    int listOffset { 0 };
+    bool isRootFolder { false };
     int lastSelectedRow { -1 };
 
     DirectoryValueTree directoryValueTree;

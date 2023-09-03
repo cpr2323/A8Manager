@@ -233,7 +233,7 @@ public:
     void initAssimil8or ()
     {
         // debug tool for watching changes on the Preset Value Tree
-        presetPropertiesMonitor.assign (presetProperties.getValueTreeRef ());
+        //presetPropertiesMonitor.assign (presetProperties.getValueTreeRef ());
 
         PresetManagerProperties presetManagerProperties (runtimeRootProperties.getValueTree (), PresetManagerProperties::WrapperType::owner, PresetManagerProperties::EnableCallbacks::no);
         // initialize the Preset with defaults

@@ -22,7 +22,7 @@ FileViewComponent::FileViewComponent () : Thread ("FileViewComponentThread")
     {
         if (success)
         {
-            listOffset = juce::File (directoryValueTree.getRootFolder ()).getParentDirectory () != juce::File (directoryValueTree.getRootFolder ()) ? 1 : 0;
+            isRootFolder = juce::File (directoryValueTree.getRootFolder ()).getParentDirectory () == juce::File (directoryValueTree.getRootFolder ());
             juce::MessageManager::callAsync ([this] ()
             {
                 // the call to buildQuickLookupList does not need to happen on the MM thread, but that protects us from some threading issues
@@ -124,7 +124,7 @@ void FileViewComponent::buildQuickLookupList ()
 
 int FileViewComponent::getNumRows ()
 {
-    return static_cast<int> (directoryListQuickLookupList.size () + listOffset);
+    return static_cast<int> (directoryListQuickLookupList.size () + (isRootFolder ? 0 : 1));
 }
 
 void FileViewComponent::paintListBoxItem (int row, juce::Graphics& g, int width, int height, [[maybe_unused]] bool rowIsSelected)
@@ -137,13 +137,13 @@ void FileViewComponent::paintListBoxItem (int row, juce::Graphics& g, int width,
 
     juce::Colour textColor { juce::Colours::whitesmoke };
     juce::String fileListItem;
-    if (listOffset == 1 && row == 0)
+    if (! isRootFolder && row == 0)
     {
         fileListItem = " >  ..";
     }
     else
     {
-        auto file { juce::File (directoryListQuickLookupList [row - listOffset].getProperty ("name").toString ()) };
+        auto file { juce::File (directoryListQuickLookupList [row - (isRootFolder ? 0 : 1)].getProperty ("name").toString ()) };
         juce::String filePrefix;
         if (file.isDirectory ())
         {
@@ -173,10 +173,10 @@ juce::String FileViewComponent::getTooltipForRow (int row)
     if (row >= getNumRows ())
         return {};
 
-    if (listOffset == 1 && row == 0)
+    if (! isRootFolder && row == 0)
         return juce::File (directoryValueTree.getRootFolder ()).getParentDirectory ().getFullPathName ();
     else
-        return juce::File (directoryListQuickLookupList [row - listOffset].getProperty ("name").toString ()).getFileName ();
+        return juce::File (directoryListQuickLookupList [row - (isRootFolder ? 0 : 1)].getProperty ("name").toString ()).getFileName ();
 }
 
 void FileViewComponent::listBoxItemClicked (int row, [[maybe_unused]] const juce::MouseEvent& me)
@@ -184,16 +184,24 @@ void FileViewComponent::listBoxItemClicked (int row, [[maybe_unused]] const juce
     if (row >= getNumRows ())
         return;
 
-    auto folder { juce::File (directoryListQuickLookupList [row - listOffset].getProperty ("name").toString ()) };
-    if (!folder.isDirectory ())
-        return;
-
-    auto completeSelection = [this, row, &folder] ()
+    if (! isRootFolder && row != 0)
     {
-        if (listOffset == 1 && row == 0)
+        auto folder { juce::File (directoryListQuickLookupList [row - (isRootFolder ? 0 : 1)].getProperty ("name").toString ()) };
+        if (! folder.isDirectory ())
+            return;
+    }
+
+    auto completeSelection = [this, row] ()
+    {
+        if (! isRootFolder && row == 0)
+        {
             appProperties.setMostRecentFolder (juce::File (directoryValueTree.getRootFolder ()).getParentDirectory ().getFullPathName ());
+        }
         else 
+        {
+            auto folder { juce::File (directoryListQuickLookupList [row - (isRootFolder ? 0 : 1)].getProperty ("name").toString ()) };
             appProperties.setMostRecentFolder (folder.getFullPathName ());
+        }
     };
 
     if (overwritePresetOrCancel != nullptr)
@@ -213,10 +221,10 @@ void FileViewComponent::listBoxItemClicked (int row, [[maybe_unused]] const juce
 
 void FileViewComponent::listBoxItemDoubleClicked (int row, [[maybe_unused]] const juce::MouseEvent& me)
 {
-    if (row >= getNumRows () || (listOffset == 1 && row == 0))
+    if (row >= getNumRows () || (! isRootFolder && row == 0))
         return;
 
-    auto file { juce::File (directoryListQuickLookupList [row - listOffset].getProperty ("name").toString ()) };
+    auto file { juce::File (directoryListQuickLookupList [row - (isRootFolder ? 0 : 1)].getProperty ("name").toString ()) };
     if (! file.isDirectory () && isSupportedAudioFile (file) && onAudioFileSelected != nullptr)
             onAudioFileSelected (file);
 }
