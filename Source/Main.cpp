@@ -234,6 +234,43 @@ public:
         }
 #endif
 #endif 0
+#if 1
+        auto value { 0.0000 };
+        auto increment { 0.0001 };
+        auto resolution { 4 };
+        while (value < 99)
+        {
+            if (value < 0.00991/*0.0100*/)
+            {
+                increment = 0.0001;
+                resolution = 4;
+            }
+            else if (value < 0.0991/*0.1000*/)
+            {
+                increment = 0.001;
+                resolution = 3;
+            }
+            else if (value < 0.991/*1.0000*/)
+            {
+                increment = 0.01;
+                resolution = 2;
+            }
+            else if (value < 9.91/*10.0000*/)
+            {
+                increment = 0.1;
+                resolution = 1;
+            }
+            else
+            {
+                increment = 1.;
+                resolution = 0;
+            }
+            juce::Logger::outputDebugString ("value: " + juce::String (value, resolution) +
+                                            ", inc: " + juce::String (increment, 4) +
+                                            ", res: " + juce::String (resolution));
+            value += increment;
+        }
+#endif
         //valueTreeTest ();
         initAppDirectory ();
         initLogger ();
