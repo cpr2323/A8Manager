@@ -117,15 +117,6 @@ ChannelEditor::~ChannelEditor ()
 
 void ChannelEditor::removeEmptyZones ()
 {
-    juce::Logger::outputDebugString ("ChannelEditor::removeEmptyZones - entering");
-     if (removingEmptyZones != 0)
-    {
-        juce::Logger::outputDebugString ("ChannelEditor::removeEmptyZones - early exit = " + juce::String(removingEmptyZones));
-        ++removingEmptyZones;
-        return;
-    }
-
-    removingEmptyZones = 1;
     ZoneProperties curZoneProperties;
     for (auto zoneIndex { 0 }; zoneIndex < zoneTabs.getNumTabs () - 1; ++zoneIndex)
     {
@@ -150,8 +141,6 @@ void ChannelEditor::removeEmptyZones ()
                 break;
         }
     }
-    juce::Logger::outputDebugString ("ChannelEditor::removeEmptyZones - exit = " + juce::String (removingEmptyZones));
-    removingEmptyZones = 0;
 }
 
 void ChannelEditor::ensureProperZoneIsSelected ()
@@ -807,33 +796,33 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
             auto [topBoundary, bottomBoundary] { getVoltageBoundaries (zoneEditorIndex, 0) };
             return std::clamp (voltage, bottomBoundary + 0.01, topBoundary - 0.01);
         };
-        zoneEditors [zoneEditorIndex].onSampleChange = [this, zoneEditorIndex, getVoltageBoundaries] (juce::String sampleFileName)
+        zoneEditors [zoneEditorIndex].onSampleChange = [this, zoneEditorIndex, getVoltageBoundaries, getNumUsedZones] (juce::String sampleFileName)
         {
             if (sampleFileName.isEmpty ())
             {
                 zoneProperties [zoneEditorIndex].copyFrom (defaultZoneProperties.getValueTree ());
-                // TODO - check if I can move this here from (zoneProperties [zoneEditorIndex].onSampleChange), removing the reentrant issues
-                //removeEmptyZones ();
+                // if this zone was the last in the list, but not also the first, then set the minVoltage for the new last in list to -5
+                if (zoneEditorIndex == getNumUsedZones () && zoneEditorIndex != 0)
+                    zoneProperties [zoneEditorIndex - 1].setMinVoltage (-5.0, false);
+                removeEmptyZones ();
+                ensureProperZoneIsSelected ();
+                updateAllZoneTabNames ();
             }
             else if (zoneProperties [zoneEditorIndex].getSample ().isEmpty ())
             {
-                // if incoming sample name isn't empty and current sample name is empty
+                // if this zone is empty when assigning the sample, we need to initialize the minVoltage value
+                // we also know this is the last zone in the list, as that is the only place one can insert a new sample
                 auto [topBoundary, bottomBoundary] { getVoltageBoundaries (zoneEditorIndex, 1) };
                 if (zoneEditorIndex > 0)
                     zoneProperties [zoneEditorIndex - 1].setMinVoltage (bottomBoundary + ((topBoundary - bottomBoundary) / 2), false);
                 zoneProperties [zoneEditorIndex].setMinVoltage (-5.0, false);
             }
-            // TODO - check if I can move this here from (zoneProperties [zoneEditorIndex].onSampleChange), removing the reentrant issues
-            //ensureProperZoneIsSelected ();
-            //updateAllZoneTabNames ();
-
+            ensureProperZoneIsSelected ();
+            updateAllZoneTabNames ();
         };
         zoneProperties [zoneEditorIndex].wrap (zonePropertiesVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::yes);
         zoneProperties [zoneEditorIndex].onSampleChange = [this, zoneEditorIndex] (juce::String sampleFile)
         {
-            // TODO - check if I can move this this stuff up to zoneEditors [zoneEditorIndex].onSampleChange
-            if (!appActionProperties.getPresetLoadState ())
-                removeEmptyZones ();
             ensureProperZoneIsSelected ();
             updateAllZoneTabNames ();
         };

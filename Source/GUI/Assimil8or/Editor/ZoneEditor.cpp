@@ -66,6 +66,8 @@ ZoneEditor::ZoneEditor ()
     deleteButton.onClick = [this] ()
     {
         zoneProperties.setSample ("", true);
+        if (onSampleChange != nullptr)
+            onSampleChange ("");
     };
     addAndMakeVisible (deleteButton);
     setupZoneComponents ();
@@ -94,9 +96,6 @@ void ZoneEditor::loadSample (juce::String sampleFileName)
 {
     if (sampleFileName == zoneProperties.getSample ())
         return;
-
-    if (onSampleChange != nullptr)
-        onSampleChange (sampleFileName);
 
     sampleLength = 0;
     if (sampleFileName.isNotEmpty ())
@@ -141,6 +140,10 @@ void ZoneEditor::loadSample (juce::String sampleFileName)
     zoneProperties.setSampleEnd (-1, true);
     zoneProperties.setLoopStart (-1, true);
     zoneProperties.setLoopLength (-1, true);
+
+    if (onSampleChange != nullptr)
+        onSampleChange (sampleFileName);
+
     updateSamplePositionInfo ();
     deleteButton.setVisible (sampleFileName.isNotEmpty ());
 

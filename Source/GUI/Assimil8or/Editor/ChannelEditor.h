@@ -260,8 +260,6 @@ private:
     std::array<ZoneEditor, 8> zoneEditors;
     std::array<ZoneProperties, 8> zoneProperties;
 
-    int removingEmptyZones { 0 };
-
     void checkStereoRightOverlay ();
     void ensureProperZoneIsSelected ();
     int getEnvelopeValueResolution (double envelopeValue);
