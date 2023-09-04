@@ -106,6 +106,8 @@ public:
     void receiveSampleLoadRequest (juce::File sampleFile);
     
     std::function<void(juce::String)> onSampleChange;
+    std::function<bool (double)> isMinVoltageInRange;
+    std::function<double (double)> clampMinVoltage;
 
 private:
     AppProperties appProperties;

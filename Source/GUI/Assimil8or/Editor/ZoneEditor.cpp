@@ -282,10 +282,14 @@ void ZoneEditor::setupZoneComponents ()
     setupTextEditor (minVoltageTextEditor, juce::Justification::centred, 0, "+-.0123456789", "MinVoltage", [this] ()
     {
         FormatHelpers::setColorIfError (minVoltageTextEditor, minZoneProperties.getMinVoltage (), maxZoneProperties.getMinVoltage ());
+        if (isMinVoltageInRange != nullptr)
+            FormatHelpers::setColorIfError (minVoltageTextEditor, isMinVoltageInRange (minVoltageTextEditor.getText().getDoubleValue ()));
     },
     [this] (juce::String text)
     {
-        const auto minVoltage { std::clamp (text.getDoubleValue (), minZoneProperties.getMinVoltage (), maxZoneProperties.getMinVoltage ()) };
+        auto minVoltage { std::clamp (text.getDoubleValue (), minZoneProperties.getMinVoltage (), maxZoneProperties.getMinVoltage ()) };
+        if (clampMinVoltage != nullptr)
+            minVoltage = clampMinVoltage (text.getDoubleValue ());
         minVoltageUiChanged (minVoltage);
         minVoltageTextEditor.setText (FormatHelpers::formatDouble (minVoltage, 2, true));
     });
