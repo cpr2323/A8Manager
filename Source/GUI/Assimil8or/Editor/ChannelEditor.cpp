@@ -773,6 +773,7 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
                 bottomBoundary = zoneProperties [zoneIndex + 1].getMinVoltage ();
             return std::tuple<double, double> { topBoundary, bottomBoundary };
         };
+        // Zone Editor setup
         zoneEditors [zoneEditorIndex].init (zonePropertiesVT, rootPropertiesVT);
         zoneEditors [zoneEditorIndex].isMinVoltageInRange = [this, zoneEditorIndex, getVoltageBoundaries, getNumUsedZones] (double voltage)
         {
@@ -820,6 +821,7 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
             ensureProperZoneIsSelected ();
             updateAllZoneTabNames ();
         };
+        // Zone Properties setup
         zoneProperties [zoneEditorIndex].wrap (zonePropertiesVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::yes);
         zoneProperties [zoneEditorIndex].onSampleChange = [this, zoneEditorIndex] (juce::String sampleFile)
         {

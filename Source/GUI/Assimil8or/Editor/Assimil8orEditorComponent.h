@@ -68,11 +68,13 @@ private:
     };
     std::array<XfadeGroupControls, 4> xfadeGroups;
     std::array<ChannelEditor, 8> channelEditors;
+    std::array<ChannelProperties, 8> channelProperties;
 
     bool arePresetsEqual (juce::ValueTree presetOne, juce::ValueTree presetTwo);
     void exportPreset ();
     juce::String formatXfadeWidthString (double width);
     void importPreset ();
+    bool isChannelActive (int channelIndex);
     void savePreset ();
     void setupPresetComponents ();
     void setupPresetPropertiesCallbacks ();
@@ -91,4 +93,6 @@ private:
     void timerCallback () override;
     void resized () override;
     void paint (juce::Graphics& g) override;
+    void updateAllChannelTabNames ();
+    void updateChannelTabName (int channelIndex);
 };

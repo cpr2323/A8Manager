@@ -180,6 +180,11 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
     presetProperties.forEachChannel ([this, &channelEditorIndex, rootPropertiesVT] (juce::ValueTree channelPropertiesVT)
     {
         channelEditors [channelEditorIndex].init (channelPropertiesVT, rootPropertiesVT);
+        channelProperties [channelEditorIndex].wrap (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::yes);
+        channelProperties [channelEditorIndex].onChannelModeChange = [this, channelEditorIndex] (int channelMode)
+        {
+            updateAllChannelTabNames ();
+        };
         ++channelEditorIndex;
         return true;
     });
@@ -360,6 +365,35 @@ void Assimil8orEditorComponent::savePreset ()
 void Assimil8orEditorComponent::paint ([[maybe_unused]] juce::Graphics& g)
 {
     g.fillAll (juce::Colours::darkgrey.darker (0.7f));
+}
+
+void Assimil8orEditorComponent::updateAllChannelTabNames ()
+{
+    for (auto channelIndex { 0 }; channelIndex < channelTabs.getNumTabs (); ++channelIndex)
+        updateChannelTabName (channelIndex);
+}
+
+bool Assimil8orEditorComponent::isChannelActive (int channelIndex)
+{
+    ZoneProperties zoneProperties (channelProperties [channelIndex].getZoneVT (0), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
+    return ! zoneProperties.getSample ().isEmpty ();
+}
+void Assimil8orEditorComponent::updateChannelTabName (int channelIndex)
+{
+    auto channelTabTitle { juce::String ("CH ") + juce::String::charToString ('1' + channelIndex) };
+
+    if (channelIndex != 7 && channelProperties [channelIndex].getChannelMode () != ChannelProperties::ChannelMode::stereoRight && isChannelActive (channelIndex) &&
+        channelProperties [channelIndex + 1].getChannelMode () == ChannelProperties::ChannelMode::stereoRight)
+    {
+            channelTabTitle += "-L";
+    }
+    else if (channelProperties [channelIndex].getChannelMode () == ChannelProperties::ChannelMode::stereoRight)
+    {
+        channelTabTitle = "R-" + channelTabTitle;
+
+    }
+
+    channelTabs.setTabName (channelIndex, channelTabTitle);
 }
 
 void Assimil8orEditorComponent::resized ()
