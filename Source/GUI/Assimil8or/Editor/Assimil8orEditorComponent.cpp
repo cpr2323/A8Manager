@@ -163,7 +163,7 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
         runtimeRootProperties.setPreferredQuitState (RuntimeRootProperties::QuitState::idle, false);
         overwritePresetOrCancel ([this] ()
         {
-            runtimeRootProperties.setQuitState (RuntimeRootProperties::QuitState::now, false);
+            juce::MessageManager::callAsync ([this] () { runtimeRootProperties.setQuitState (RuntimeRootProperties::QuitState::now, false); });
         }, [this] ()
         {
             // do nothing
