@@ -24,14 +24,16 @@ private:
     juce::TableListBox validationResultsListBox { {}, this };
     std::vector<juce::ValueTree> validatorResultsQuickLookupList;
     juce::StringArray filterList { ValidatorResultProperties::ResultTypeInfo };
-    juce::TextButton idleFilterButton;
+    juce::TextButton infoFilterButton;
     juce::TextButton warningFilterButton;
     juce::TextButton errorFilterButton;
     SafePointer<juce::DialogWindow> renameDialog;
     juce::AudioFormatManager audioFormatManager;
     std::unique_ptr<juce::FileChooser> fileChooser;
-    int totalItems { 0 };
     juce::ValueTree localCopyOfValidatorResultsList;
+    int totalInfoItems { 0 };
+    int totalWarningItems { 0 };
+    int totalErrorItems { 0 };
 
     void buildQuickLookupList ();
     void convert (juce::File file);

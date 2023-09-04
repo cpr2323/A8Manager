@@ -35,7 +35,7 @@ Assimil8orValidatorComponent::Assimil8orValidatorComponent ()
         };
         addAndMakeVisible (button);
     };
-    setupFilterButton (idleFilterButton, "I", "Toggles viewing of Info messages");
+    setupFilterButton (infoFilterButton, "I", "Toggles viewing of Info messages");
     setupFilterButton (warningFilterButton, "W", "Toggles viewing of Warning messages");
     setupFilterButton (errorFilterButton, "E", "Toggles viewing of Error messages");
 
@@ -88,23 +88,28 @@ void Assimil8orValidatorComponent::updateListFromScan (juce::String scanStatus)
 void Assimil8orValidatorComponent::setupFilterList ()
 {
     filterList.clearQuick ();
-    if (idleFilterButton.getToggleState ())
+    if (infoFilterButton.getToggleState ())
         filterList.add (ValidatorResultProperties::ResultTypeInfo);
     if (warningFilterButton.getToggleState ())
         filterList.add (ValidatorResultProperties::ResultTypeWarning);
     if (errorFilterButton.getToggleState ())
         filterList.add (ValidatorResultProperties::ResultTypeError);
 }
-
 void Assimil8orValidatorComponent::updateHeader ()
 {
-    validationResultsListBox.getHeader ().setColumnName (Columns::text, "Message (" + juce::String (validatorResultsQuickLookupList.size ()) + " of " + juce::String (totalItems) + " items)");
+    validationResultsListBox.getHeader ().setColumnName (Columns::text, "Message (" + juce::String (validatorResultsQuickLookupList.size ()) + " of " +
+                                                                        juce::String (totalInfoItems + totalWarningItems + totalErrorItems) + " items | " +
+                                                                        "Info: " + juce::String (totalInfoItems) +
+                                                                        " | Warning : "+ juce::String (totalWarningItems) +
+                                                                        " | Error : "+ juce::String (totalErrorItems) +")");
     validationResultsListBox.repaint ();
 }
 
 void Assimil8orValidatorComponent::buildQuickLookupList ()
 {
-    totalItems = 0;
+    totalInfoItems = 0;
+    totalWarningItems = 0;
+    totalErrorItems = 0;
     if (! localCopyOfValidatorResultsList.isValid ())
         return;
 
@@ -113,8 +118,10 @@ void Assimil8orValidatorComponent::buildQuickLookupList ()
     // iterate over the state message list, adding each one to the quick list
     validatorResultListProperties.forEachResult ([this] (juce::ValueTree validatorResultVT)
     {
-        ++totalItems;
         ValidatorResultProperties validatorResultProperties (validatorResultVT, ValidatorResultProperties::WrapperType::client, ValidatorResultProperties::EnableCallbacks::no);
+        totalInfoItems += (validatorResultProperties.getType () == ValidatorResultProperties::ResultTypeInfo ? 1 : 0);
+        totalWarningItems += (validatorResultProperties.getType () == ValidatorResultProperties::ResultTypeWarning? 1 : 0);
+        totalErrorItems += (validatorResultProperties.getType () == ValidatorResultProperties::ResultTypeError ? 1 : 0);
         if (filterList.contains (validatorResultProperties.getType ()))
             validatorResultsQuickLookupList.emplace_back (validatorResultVT);
         return true;
@@ -155,7 +162,7 @@ void Assimil8orValidatorComponent::resized ()
     filterButtonBounds.removeFromRight (5);
     warningFilterButton.setBounds (filterButtonBounds.removeFromRight (filterButtonBounds.getHeight ()));
     filterButtonBounds.removeFromRight (5);
-    idleFilterButton.setBounds (filterButtonBounds.removeFromRight (filterButtonBounds.getHeight ()));
+    infoFilterButton.setBounds (filterButtonBounds.removeFromRight (filterButtonBounds.getHeight ()));
 }
 
 int Assimil8orValidatorComponent::getNumRows ()
