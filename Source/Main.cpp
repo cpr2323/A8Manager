@@ -218,8 +218,8 @@ public:
     {
         // reset preferred quit state
         runtimeRootProperties.setPreferredQuitState (RuntimeRootProperties::QuitState::now, false);
-        // listeners for 'onSystemRequestedQuit' can do runtimeRootPropertiesVT.setPreferredQuitState (RuntimeRootProperties::QuitState::idle);
-        // if they need to do something, which also makes them responsible for calling runtimeRootPropertiesVT.setQuitState (RuntimeRootProperties::QuitState::now); when they are done...
+        // listeners for 'onSystemRequestedQuit' can do runtimeRootProperties.setPreferredQuitState (RuntimeRootProperties::QuitState::idle);
+        // if they need to do something, which also makes them responsible for calling runtimeRootProperties.setQuitState (RuntimeRootProperties::QuitState::now); when they are done...
         runtimeRootProperties.triggerSystemRequestedQuit (false);
         localQuitState.store (runtimeRootProperties.getPreferredQuitState ());
     }
@@ -260,9 +260,10 @@ public:
         persitentPropertiesFile.init (persistentRootProperties.getValueTree (), appDirectory.getChildFile ("app" + PropertiesFileExtension), true);
         appProperties.wrap (persistentRootProperties.getValueTree (), AppProperties::WrapperType::owner, AppProperties::EnableCallbacks::no);
         appProperties.setMaxMruEntries (1);
-        runtimeRootProperties.wrap (rootProperties.getValueTree (), RuntimeRootProperties::WrapperType::owner, RuntimeRootProperties::EnableCallbacks::no);
+        runtimeRootProperties.wrap (rootProperties.getValueTree (), RuntimeRootProperties::WrapperType::owner, RuntimeRootProperties::EnableCallbacks::yes);
         runtimeRootProperties.setAppVersion (getApplicationVersion (), false);
         runtimeRootProperties.setAppDataPath (appDirectory.getFullPathName (), false);
+        runtimeRootProperties.onQuitStateChanged = [this] (RuntimeRootProperties::QuitState quitState) { localQuitState.store (quitState); };
 
         if (appProperties.getMostRecentFolder ().isEmpty ())
             appProperties.setMostRecentFolder (appDirectory.getFullPathName ());
@@ -355,9 +356,6 @@ public:
 
         void closeButtonPressed () override
         {
-            // This is called when the user tries to close this window. Here, we'll just
-            // ask the app to quit when this happens, but you can change this to do
-            // whatever you need.
             JUCEApplication::getInstance ()->systemRequestedQuit ();
         }
 

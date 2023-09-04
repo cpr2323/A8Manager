@@ -12,3 +12,49 @@ juce::String ParameterToolTipData::getToolTip (juce::String section, juce::Strin
     jassert (toolTipVT.isValid ());
     return toolTipVT.getProperty ("tooltip");
 }
+
+void ParameterToolTipData::processValueTree ()
+{
+#if 1
+    // process all of the tooltip strings for escape characters
+    ValueTreeHelpers::forEachChild (data, [this] (juce::ValueTree sectionVT)
+    {
+        ValueTreeHelpers::forEachChild (sectionVT, [this] (juce::ValueTree tooltipVT)
+        {
+            auto rawToolTipString { tooltipVT.getProperty ("tooltip").toString ()};
+            juce::String processedToolTipString;
+
+            auto escapeCharacterIndex {rawToolTipString.indexOfChar ('\\')};
+            while (escapeCharacterIndex != -1)
+            {
+                if (escapeCharacterIndex > 0)
+                    processedToolTipString += rawToolTipString.substring (0, escapeCharacterIndex);
+                switch (rawToolTipString [escapeCharacterIndex + 1])
+                {
+                    case '\\' : 
+                    {
+                        processedToolTipString += juce::String::charToString ('\\');
+                    }
+                    break;
+                    case 'r':
+                    {
+                        processedToolTipString += juce::String::charToString('\r');
+                    }
+                    break;
+                    case 't':
+                    {
+                        processedToolTipString += juce::String::charToString ('\t');
+                    }
+                    break;
+                }
+                rawToolTipString = rawToolTipString.substring (escapeCharacterIndex + 2);
+                escapeCharacterIndex = rawToolTipString.indexOfChar ('\\');
+            }
+            processedToolTipString += rawToolTipString;
+            tooltipVT.setProperty ("tooltip", processedToolTipString, nullptr);
+            return true;
+        });
+        return true;
+    });
+#endif
+}

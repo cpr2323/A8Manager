@@ -4,7 +4,6 @@
 #include "../../../Assimil8or/Assimil8orPreset.h"
 #include "../../../Assimil8or/PresetManagerProperties.h"
 #include "../../../Assimil8or/Preset/ParameterPresetsSingleton.h"
-#include "../../../Utility/RuntimeRootProperties.h"
 #include "../../../Utility/PersistentRootProperties.h"
 #include <algorithm>
 
@@ -158,7 +157,19 @@ juce::String Assimil8orEditorComponent::formatXfadeWidthString (double width)
 void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
 {
     PersistentRootProperties persistentRootProperties (rootPropertiesVT, PersistentRootProperties::WrapperType::client, PersistentRootProperties::EnableCallbacks::no);
-    RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
+    runtimeRootProperties.wrap (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::yes);
+    runtimeRootProperties.onSystemRequestedQuit = [this] ()
+    {
+        runtimeRootProperties.setPreferredQuitState (RuntimeRootProperties::QuitState::idle, false);
+        overwritePresetOrCancel ([this] ()
+        {
+            runtimeRootProperties.setQuitState (RuntimeRootProperties::QuitState::now, false);
+        }, [this] ()
+        {
+            // do nothing
+        });
+    };
+
     appProperties.wrap (persistentRootProperties.getValueTree (), AppProperties::WrapperType::client, AppProperties::EnableCallbacks::no);
     PresetManagerProperties presetManagerProperties (runtimeRootProperties.getValueTree (), PresetManagerProperties::WrapperType::owner, PresetManagerProperties::EnableCallbacks::no);
 

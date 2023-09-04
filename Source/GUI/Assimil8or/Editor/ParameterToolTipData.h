@@ -29,7 +29,7 @@ public:
     static inline const juce::Identifier ParameterToolTipDataTypeId { "ToolTips" };
 
     void initValueTree () {}
-    void processValueTree () {}
+    void processValueTree ();
 
 private:
 };

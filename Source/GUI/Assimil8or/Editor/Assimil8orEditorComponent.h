@@ -5,6 +5,7 @@
 #include "CvInputComboBox.h"
 #include "../../../AppProperties.h"
 #include "../../../Assimil8or/Preset/PresetProperties.h"
+#include "../../../Utility/RuntimeRootProperties.h"
 
 class WindowDecorator : public juce::Component
 {
@@ -30,6 +31,7 @@ public:
     void overwritePresetOrCancel (std::function<void ()> overwriteFunction, std::function<void ()> cancelFunction);
 
 private:
+    RuntimeRootProperties runtimeRootProperties;
     AppProperties appProperties;
     PresetProperties presetProperties;
     PresetProperties unEditedPresetProperties;
