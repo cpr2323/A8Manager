@@ -28,7 +28,6 @@ FileViewComponent::FileViewComponent () : Thread ("FileViewComponentThread")
                 // the call to buildQuickLookupList does not need to happen on the MM thread, but that protects us from some threading issues
                 buildQuickLookupList ();
                 directoryContentsListBox.updateContent ();
-                directoryContentsListBox.scrollToEnsureRowIsOnscreen (0);
                 directoryContentsListBox.repaint ();
             });
         }
@@ -39,10 +38,12 @@ FileViewComponent::FileViewComponent () : Thread ("FileViewComponentThread")
     };
 
     startThread ();
+    startTimer (333);
 }
 
 FileViewComponent::~FileViewComponent ()
 {
+    stopTimer ();
     stopThread (100);
 }
 
@@ -86,6 +87,11 @@ void FileViewComponent::run ()
         directoryValueTree.setRootFolder (rootFolder.getFullPathName ());
         directoryValueTree.startScan ();
     }
+}
+
+void FileViewComponent::timerCallback ()
+{
+    startScan (appProperties.getMostRecentFolder ());
 }
 
 void FileViewComponent::openFolder ()

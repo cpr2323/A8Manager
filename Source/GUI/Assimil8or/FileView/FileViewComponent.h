@@ -6,6 +6,7 @@
 
 class FileViewComponent : public juce::Component,
                           private juce::Thread,
+                          private juce::Timer,
                           private juce::ListBoxModel
 {
 public:
@@ -35,12 +36,13 @@ private:
     bool isSupportedAudioFile (juce::File file);
     void startScan (juce::File folderToScan);
 
-    void resized () override;
-    void run () override;
     int getNumRows () override;
-    void paintListBoxItem (int rowNumber, juce::Graphics& g, int width, int height, bool rowIsSelected) override;
     juce::String getTooltipForRow (int row) override;
     void listBoxItemClicked (int row, const juce::MouseEvent& me) override;
     void listBoxItemDoubleClicked (int row, const juce::MouseEvent& me) override;
+    void paintListBoxItem (int rowNumber, juce::Graphics& g, int width, int height, bool rowIsSelected) override;
+    void resized () override;
+    void run () override;
+    void timerCallback () override;
 };
     
