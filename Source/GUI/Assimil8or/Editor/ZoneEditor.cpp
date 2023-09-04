@@ -256,7 +256,8 @@ void ZoneEditor::setupZoneComponents ()
             else
                 return text.getDoubleValue ();
         }();
-        FormatHelpers::setColorIfError (loopLengthTextEditor, loopLengthInput, minZoneProperties.getLoopLength ().value_or (static_cast<double>(sampleLength - zoneProperties.getLoopStart ().value_or (0))),
+        FormatHelpers::setColorIfError (loopLengthTextEditor, loopLengthInput,
+                                        sampleLength == 0 ? 0.0 : minZoneProperties.getLoopLength ().value_or (static_cast<double>(sampleLength - zoneProperties.getLoopStart ().value_or (0))),
                                         static_cast<double>(sampleLength - zoneProperties.getLoopStart ().value_or (0)));
     },
     [this] (juce::String text)
@@ -342,7 +343,6 @@ void ZoneEditor::init (juce::ValueTree zonePropertiesVT, juce::ValueTree rootPro
 
 void ZoneEditor::setLoopLengthIsEnd (bool newLoopLengthIsEnd)
 {
-    //loopBoundsLabel
     loopLengthIsEnd = newLoopLengthIsEnd;
     if (! loopLengthIsEnd)
     {
