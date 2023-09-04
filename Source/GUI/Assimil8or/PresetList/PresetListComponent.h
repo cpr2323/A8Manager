@@ -2,12 +2,12 @@
 
 #include <JuceHeader.h>
 #include "../../../AppProperties.h"
-#include "../../../AppActionProperties.h"
 #include "../../../Assimil8or/Preset/PresetProperties.h"
 
 const auto kMaxPresets { 199 };
 class PresetListComponent : public juce::Component,
                             private juce::ListBoxModel,
+                            private juce::Timer,
                             private juce::Thread
 {
 public:
@@ -19,10 +19,8 @@ public:
 
 private:
     AppProperties appProperties;
-    AppActionProperties appActionProperties;
     PresetProperties presetProperties;
     PresetProperties unEditedPresetProperties;
-    juce::ValueTree appActionsVT;
 
     juce::ListBox presetListBox { {}, this };
     int lastSelectedRow { -1 };
@@ -32,7 +30,7 @@ private:
     juce::File queuedFolderToScan;
     std::atomic<bool> newItemQueued { false };
 
-    void checkForPresets ();
+    void checkForPresets (bool resetPosition);
     void forEachPresetFile (std::function<bool (juce::File presetFile, int index)> presetFileCallback);
     juce::String getPresetName (int presetIndex);
     void loadDefault (int row);
@@ -43,8 +41,9 @@ private:
 
     void resized () override;
     int getNumRows () override;
-    void paintListBoxItem (int rowNumber, juce::Graphics& g, int width, int height, bool rowIsSelected) override;
     juce::String getTooltipForRow (int row) override;
     void listBoxItemClicked (int row, const juce::MouseEvent& me) override;
+    void paintListBoxItem (int rowNumber, juce::Graphics& g, int width, int height, bool rowIsSelected) override;
     void run () override;
+    void timerCallback () override;
 };

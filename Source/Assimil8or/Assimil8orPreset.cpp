@@ -39,62 +39,6 @@ void Assimil8orPreset::write (juce::File presetFile, juce::ValueTree presetPrope
     ChannelProperties defaultChannelProperties (defaultPresetProperties.getChannelVT (0), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
     ZoneProperties defaultZoneProperties (defaultChannelProperties.getZoneVT (0), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
 
-    auto isChannelAllDefaults = [this, &defaultChannelProperties] (ChannelProperties& channelProperties)
-    {
-        return channelProperties.getAliasing () == defaultChannelProperties.getAliasing () &&
-               channelProperties.getAliasingMod () == defaultChannelProperties.getAliasingMod () &&
-               channelProperties.getAttack () == defaultChannelProperties.getAttack () &&
-               channelProperties.getAttackFromCurrent () == defaultChannelProperties.getAttackFromCurrent () &&
-               channelProperties.getAttackMod () == defaultChannelProperties.getAttackMod () &&
-               channelProperties.getAutoTrigger () == defaultChannelProperties.getAutoTrigger () &&
-               channelProperties.getBits () == defaultChannelProperties.getBits () &&
-               channelProperties.getBitsMod () == defaultChannelProperties.getBitsMod () &&
-               channelProperties.getChannelMode () == defaultChannelProperties.getChannelMode () &&
-               channelProperties.getExpAM () == defaultChannelProperties.getExpAM () &&
-               channelProperties.getExpFM () == defaultChannelProperties.getExpFM () &&
-               channelProperties.getLevel () == defaultChannelProperties.getLevel () &&
-               channelProperties.getLinAM () == defaultChannelProperties.getLinAM () &&
-               channelProperties.getLinAMisExtEnv () == defaultChannelProperties.getLinAMisExtEnv () &&
-               channelProperties.getLinFM () == defaultChannelProperties.getLinFM () &&
-               channelProperties.getLoopLengthIsEnd () == defaultChannelProperties.getLoopLengthIsEnd () &&
-               channelProperties.getLoopLengthMod () == defaultChannelProperties.getLoopLengthMod () &&
-               channelProperties.getLoopMode () == defaultChannelProperties.getLoopMode () &&
-               channelProperties.getLoopStartMod () == defaultChannelProperties.getLoopStartMod () &&
-               channelProperties.getMixLevel () == defaultChannelProperties.getMixLevel () &&
-               channelProperties.getMixMod () == defaultChannelProperties.getMixMod () &&
-               channelProperties.getMixModIsFader () == defaultChannelProperties.getMixModIsFader () &&
-               channelProperties.getPan () == defaultChannelProperties.getPan () &&
-               channelProperties.getPanMod () == defaultChannelProperties.getPanMod () &&
-               channelProperties.getPhaseCV () == defaultChannelProperties.getPhaseCV () &&
-               channelProperties.getPitch () == defaultChannelProperties.getPitch () &&
-               channelProperties.getPitchCV () == defaultChannelProperties.getPitchCV () &&
-               channelProperties.getPlayMode () == defaultChannelProperties.getPlayMode () &&
-               channelProperties.getPMIndex () == defaultChannelProperties.getPMIndex () &&
-               channelProperties.getPMIndexMod () == defaultChannelProperties.getPMIndexMod () &&
-               channelProperties.getPMSource () == defaultChannelProperties.getPMSource () &&
-               channelProperties.getRelease () == defaultChannelProperties.getRelease () &&
-               channelProperties.getReleaseMod () == defaultChannelProperties.getReleaseMod () &&
-               channelProperties.getReverse () == defaultChannelProperties.getReverse () &&
-               channelProperties.getSampleStartMod () == defaultChannelProperties.getSampleStartMod () &&
-               channelProperties.getSampleEndMod () == defaultChannelProperties.getSampleEndMod () &&
-               channelProperties.getSpliceSmoothing () == defaultChannelProperties.getSpliceSmoothing () &&
-               channelProperties.getXfadeGroup () == defaultChannelProperties.getXfadeGroup () &&
-               channelProperties.getZonesCV () == defaultChannelProperties.getZonesCV () &&
-               channelProperties.getZonesRT () == defaultChannelProperties.getZonesRT ();
-    };
-    auto isZoneAllDefaults = [this, &defaultZoneProperties] (ZoneProperties& zoneProperties)
-    {
-        return zoneProperties.getLevelOffset () == defaultZoneProperties.getLevelOffset () &&
-               zoneProperties.getLoopLength () == defaultZoneProperties.getLoopLength () &&
-               zoneProperties.getLoopStart () == defaultZoneProperties.getLoopStart () &&
-               zoneProperties.getMinVoltage () == defaultZoneProperties.getMinVoltage () &&
-               zoneProperties.getPitchOffset () == defaultZoneProperties.getPitchOffset () &&
-               zoneProperties.getSample () == defaultZoneProperties.getSample () &&
-               zoneProperties.getSampleStart () == defaultZoneProperties.getSampleStart () &&
-               zoneProperties.getSampleEnd () == defaultZoneProperties.getSampleEnd () &&
-               zoneProperties.getSide () == defaultZoneProperties.getSide ();
-    };
-
     auto indentAmount { 0 };
     juce::StringArray lines;
     auto addLine = [this, &indentAmount, &lines] (bool doAdd, juce::String lineToAdd)
@@ -116,10 +60,11 @@ void Assimil8orPreset::write (juce::File presetFile, juce::ValueTree presetPrope
     addLine (presetPropertiesToWrite.getXfadeDCV () != defaultPresetProperties.getXfadeDCV (), Parameter::Preset::XfadeDCVId + " : " + presetPropertiesToWrite.getXfadeDCV ());
     addLine (presetPropertiesToWrite.getXfadeDWidth () != defaultPresetProperties.getXfadeDWidth (), Parameter::Preset::XfadeDWidthId + " : " + juce::String (presetPropertiesToWrite.getXfadeDWidth (), 2));
 
-    presetPropertiesToWrite.forEachChannel ([this, &addLine, &indentAmount, &defaultZoneProperties, &defaultChannelProperties, isZoneAllDefaults, &isChannelAllDefaults] (juce::ValueTree channelVT)
+    presetPropertiesToWrite.forEachChannel ([this, &addLine, &indentAmount, &defaultZoneProperties, &defaultChannelProperties] (juce::ValueTree channelVT)
     {
         ChannelProperties channelProperties (channelVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
-        if (! isChannelAllDefaults (channelProperties))
+        ZoneProperties zoneProperties (channelProperties.getZoneVT(0), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
+        if (! zoneProperties.getSample().isEmpty ())
         {
             addLine (true, Section::ChannelId + " " + juce::String (channelProperties.getId ()) + " :");
             ++indentAmount;
@@ -164,10 +109,10 @@ void Assimil8orPreset::write (juce::File presetFile, juce::ValueTree presetPrope
             addLine (channelProperties.getZonesCV () != defaultChannelProperties.getZonesCV (), Parameter::Channel::ZonesCVId + " : " + channelProperties.getZonesCV ());
             addLine (channelProperties.getZonesRT () != defaultChannelProperties.getZonesRT (), Parameter::Channel::ZonesRTId + " : " + juce::String (channelProperties.getZonesRT ()));
 
-            channelProperties.forEachZone ([this, &indentAmount, &addLine, &defaultZoneProperties, &isZoneAllDefaults] (juce::ValueTree zoneVT)
+            channelProperties.forEachZone ([this, &indentAmount, &addLine, &defaultZoneProperties] (juce::ValueTree zoneVT)
             {
                 ZoneProperties zoneProperties (zoneVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
-                if (! isZoneAllDefaults (zoneProperties))
+                if (! zoneProperties.getSample().isEmpty ())
                 {
                     addLine (true, Section::ZoneId + " " + juce::String (zoneProperties.getId ()) + " :");
                     ++indentAmount;

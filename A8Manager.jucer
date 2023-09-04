@@ -183,10 +183,6 @@
         <FILE id="gBHKT7" name="ValueTreeWrapper.h" compile="0" resource="0"
               file="Source/Utility/ValueTreeWrapper.h"/>
       </GROUP>
-      <FILE id="F9M4me" name="AppActionProperties.cpp" compile="1" resource="0"
-            file="Source/AppActionProperties.cpp"/>
-      <FILE id="EruDsF" name="AppActionProperties.h" compile="0" resource="0"
-            file="Source/AppActionProperties.h"/>
       <FILE id="UhMfE9" name="AppProperties.cpp" compile="1" resource="0"
             file="Source/AppProperties.cpp"/>
       <FILE id="FkHRCS" name="AppProperties.h" compile="0" resource="0" file="Source/AppProperties.h"/>

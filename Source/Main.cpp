@@ -1,6 +1,5 @@
 #include <JuceHeader.h>
 #include "AppProperties.h"
-#include "AppActionProperties.h"
 #include "GUI/MainComponent.h"
 #include "Utility/DebugLog.h"
 #include "Utility/PersistentRootProperties.h"
@@ -245,7 +244,6 @@ public:
         runtimeRootProperties.getValueTree ().addChild (presetManagerProperties.getValueTree (), -1, nullptr);
 
         assimil8orValidator.init (rootProperties.getValueTree ());
-        appActionProperties.wrap (runtimeRootProperties.getValueTree (), AppActionProperties::WrapperType::owner, AppActionProperties::EnableCallbacks::no);
     }
 
     void initUi ()
@@ -379,7 +377,6 @@ private:
     ValueTreeFile persitentPropertiesFile;
     PersistentRootProperties persistentRootProperties;
     AppProperties appProperties;
-    AppActionProperties appActionProperties;
     RuntimeRootProperties runtimeRootProperties;
     Assimil8orValidator assimil8orValidator;
     PresetProperties presetProperties;

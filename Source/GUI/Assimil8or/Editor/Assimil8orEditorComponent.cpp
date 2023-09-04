@@ -9,7 +9,6 @@
 
 // TODO - short list
 //  Visual Edited indicator
-//  Only enable Save button if preset was edited
 //  Update Preset List (switch from dim to highlighted) when new preset created
 
 Assimil8orEditorComponent::Assimil8orEditorComponent ()
@@ -378,6 +377,7 @@ bool Assimil8orEditorComponent::isChannelActive (int channelIndex)
     ZoneProperties zoneProperties (channelProperties [channelIndex].getZoneVT (0), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
     return ! zoneProperties.getSample ().isEmpty ();
 }
+
 void Assimil8orEditorComponent::updateChannelTabName (int channelIndex)
 {
     auto channelTabTitle { juce::String ("CH ") + juce::String::charToString ('1' + channelIndex) };
