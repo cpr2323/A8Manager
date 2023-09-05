@@ -12,9 +12,12 @@ FileViewComponent::FileViewComponent () : Thread ("FileViewComponentThread")
 {
     audioFormatManager.registerBasicFormats ();
 
-    openFolderButton.setButtonText ("Open Folder");
+    openFolderButton.setButtonText ("Open");
     openFolderButton.onClick = [this] () { openFolder (); };
     addAndMakeVisible (openFolderButton);
+    newFolderButton.setButtonText ("New");
+    newFolderButton.onClick = [this] () { newFolder (); };
+    addAndMakeVisible (newFolderButton);
     addAndMakeVisible (directoryContentsListBox);
 
     directoryValueTree.setScanDepth (0); // no depth, only scan root folder
@@ -128,6 +131,27 @@ void FileViewComponent::buildQuickLookupList ()
     });
 }
 
+void FileViewComponent::newFolder ()
+{
+    newAlertWindow = std::make_unique<juce::AlertWindow> ("NEW FOLDER", "Enter the name for new folder", juce::MessageBoxIconType::NoIcon);
+    newAlertWindow->addTextEditor ("foldername", {}, {});
+    newAlertWindow->addButton ("CREATE", 1, juce::KeyPress (juce::KeyPress::returnKey, 0, 0));
+    newAlertWindow->addButton ("CANCEL", 0, juce::KeyPress (juce::KeyPress::escapeKey, 0, 0));
+    newAlertWindow->enterModalState (true, juce::ModalCallbackFunction::create ([this] (int option)
+        {
+            newAlertWindow->exitModalState (option);
+            newAlertWindow->setVisible (false);
+            if (option == 1) // ok
+            {
+            auto newFolderName { newAlertWindow->getTextEditorContents ("foldername") };
+            auto newFolder { juce::File (appProperties.getMostRecentFolder ()).getChildFile (newFolderName) };
+            newFolder.createDirectory ();
+            // TODO handle error
+        }
+        newAlertWindow.reset ();
+    }));
+}
+
 int FileViewComponent::getNumRows ()
 {
     return static_cast<int> (directoryListQuickLookupList.size () + (isRootFolder ? 0 : 1));
@@ -197,31 +221,73 @@ void FileViewComponent::listBoxItemClicked (int row, [[maybe_unused]] const juce
             return;
     }
 
-    auto completeSelection = [this, row] ()
+    if (me.mods.isPopupMenu ())
     {
-        if (! isRootFolder && row == 0)
+        if (!isRootFolder && row == 0)
+            return;
+        auto folder { juce::File (directoryListQuickLookupList [row - (isRootFolder ? 0 : 1)].getProperty ("name").toString ()) };
+        juce::PopupMenu pm;
+        pm.addItem ("Rename", true, false, [this, folder] ()
         {
-            appProperties.setMostRecentFolder (juce::File (directoryValueTree.getRootFolder ()).getParentDirectory ().getFullPathName ());
-        }
-        else 
+            renameAlertWindow = std::make_unique<juce::AlertWindow> ("RENAME FOLDER", "Enter the new name for '" + folder.getFileName ()  + "'", juce::MessageBoxIconType::NoIcon);
+            renameAlertWindow->addTextEditor ("foldername", folder.getFileName (), {});
+            renameAlertWindow->addButton ("RENAME", 1, juce::KeyPress (juce::KeyPress::returnKey, 0, 0));
+            renameAlertWindow->addButton ("CANCEL", 0, juce::KeyPress (juce::KeyPress::escapeKey, 0, 0));
+            renameAlertWindow->enterModalState (true, juce::ModalCallbackFunction::create ([this, folder] (int option)
+            {
+                renameAlertWindow->exitModalState (option);
+                renameAlertWindow->setVisible (false);
+                if (option == 1) // ok
+                {
+                    auto newFolderName { renameAlertWindow->getTextEditorContents ("foldername")};
+                    folder.moveFileTo (folder.getParentDirectory ().getChildFile (newFolderName));
+                    // TODO handle error
+                }
+                renameAlertWindow.reset ();
+            }));
+        });
+        pm.addItem ("Delete", true, false, [this, folder] ()
         {
-            auto folder { juce::File (directoryListQuickLookupList [row - (isRootFolder ? 0 : 1)].getProperty ("name").toString ()) };
-            appProperties.setMostRecentFolder (folder.getFullPathName ());
-        }
-    };
-
-    if (overwritePresetOrCancel != nullptr)
-    {
-        auto cancelSelection = [this] ()
-        {
-            directoryContentsListBox.selectRow (lastSelectedRow, false, true);
-        };
-
-        overwritePresetOrCancel (completeSelection, cancelSelection);
+            juce::AlertWindow::showOkCancelBox (juce::AlertWindow::WarningIcon, "DELETE FOLDER",
+            "Are you sure you want to delete the folder '" + folder.getFileName () + "'", "YES", "NO", nullptr,
+            juce::ModalCallbackFunction::create ([this, folder] (int option)
+            {
+                if (option == 0) // no
+                    return;
+                folder.deleteFile ();
+                // TODO handle delete error
+            }));
+        });
+        pm.showMenuAsync ({}, [this] (int) {});
     }
     else
     {
-        completeSelection ();
+        auto completeSelection = [this, row] ()
+            {
+                if (!isRootFolder && row == 0)
+                {
+                    appProperties.setMostRecentFolder (juce::File (directoryValueTree.getRootFolder ()).getParentDirectory ().getFullPathName ());
+                }
+                else
+                {
+                    auto folder { juce::File (directoryListQuickLookupList [row - (isRootFolder ? 0 : 1)].getProperty ("name").toString ()) };
+                    appProperties.setMostRecentFolder (folder.getFullPathName ());
+                }
+            };
+
+        if (overwritePresetOrCancel != nullptr)
+        {
+            auto cancelSelection = [this] ()
+                {
+                    directoryContentsListBox.selectRow (lastSelectedRow, false, true);
+                };
+
+            overwritePresetOrCancel (completeSelection, cancelSelection);
+        }
+        else
+        {
+            completeSelection ();
+        }
     }
 }
 
@@ -240,7 +306,9 @@ void FileViewComponent::resized ()
     auto localBounds { getLocalBounds () };
     localBounds.reduce (3, 3);
     auto navigationRow { localBounds.removeFromTop (25) };
-    openFolderButton.setBounds (navigationRow.removeFromLeft (100));
+    openFolderButton.setBounds (navigationRow.removeFromLeft (50));
+    navigationRow.removeFromLeft (5);
+    newFolderButton.setBounds (navigationRow.removeFromLeft (50));
     localBounds.removeFromTop (3);
     directoryContentsListBox.setBounds (localBounds);
 }

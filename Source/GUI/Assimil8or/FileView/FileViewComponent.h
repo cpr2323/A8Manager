@@ -21,17 +21,21 @@ private:
     AppProperties appProperties;
     juce::AudioFormatManager audioFormatManager;
     juce::TextButton openFolderButton;
+    juce::TextButton newFolderButton;
     std::unique_ptr<juce::FileChooser> fileChooser;
     juce::ListBox directoryContentsListBox { {}, this };
     juce::CriticalSection queuedFolderLock;
     juce::File queuedFolderToScan;
     bool isRootFolder { false };
     int lastSelectedRow { -1 };
+    std::unique_ptr<juce::AlertWindow> renameAlertWindow;
+    std::unique_ptr<juce::AlertWindow> newAlertWindow;
 
     DirectoryValueTree directoryValueTree;
     std::vector<juce::ValueTree> directoryListQuickLookupList;
 
     void buildQuickLookupList ();
+    void newFolder ();
     void openFolder ();
     bool isSupportedAudioFile (juce::File file);
     void startScan (juce::File folderToScan);

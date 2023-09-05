@@ -346,9 +346,9 @@ void Assimil8orEditorComponent::overwritePresetOrCancel (std::function<void ()> 
             "You are about to overwrite a preset that you have edited. Select Continue to lose your changes, Select Cancel to go back and save.", "Continue (lose changes)", "Cancel", nullptr,
             juce::ModalCallbackFunction::create ([this, overwriteFunction, cancelFunction] (int option)
             {
-                if (option == 1)
+                if (option == 1) // Continue
                     overwriteFunction ();
-                else
+                else // cancel
                     cancelFunction ();
             }));
     }
