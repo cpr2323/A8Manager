@@ -750,48 +750,57 @@ void ChannelEditor::balanceVoltages (VoltageBalanceType balanceType)
     if (numUsedZones < 2)
         return;
 
+    auto fillMinVoltages = [this, numUsedZones] (std::function<double (int zoneIndex)> minVoltageUpdateFunction)
+    {
+        jassert (minVoltageUpdateFunction != nullptr);
+        for (auto curZoneIndex { numUsedZones - 2 }; curZoneIndex >= 0; --curZoneIndex)
+        {
+            zoneProperties [curZoneIndex].setMinVoltage (minVoltageUpdateFunction (curZoneIndex), false);
+        }
+    };
     switch (balanceType)
     {
         case VoltageBalanceType::distributeAcross5V:
         {
             const auto voltageRange { 5.0 / numUsedZones };
             auto curVoltage { 0.0 };
-            for (auto curZoneIndex { numUsedZones - 2 }; curZoneIndex >= 0; --curZoneIndex)
+            fillMinVoltages ([&curVoltage, voltageRange] (int)
             {
                 curVoltage += voltageRange;
-                zoneProperties [curZoneIndex].setMinVoltage (curVoltage, false);
-            }
+                return curVoltage;
+            });
         }
         break;
         case VoltageBalanceType::distributeAcross10V:
         {
             const auto voltageRange { 10.0 / numUsedZones };
             auto curVoltage { -5.0 };
-            for (auto curZoneIndex { numUsedZones - 2 }; curZoneIndex >= 0; --curZoneIndex)
+            fillMinVoltages ([&curVoltage, voltageRange] (int)
             {
                 curVoltage += voltageRange;
-                zoneProperties [curZoneIndex].setMinVoltage (curVoltage, false);
-            }
+                return curVoltage;
+            });
         }
         break;
         case VoltageBalanceType::distribute1vPerOct:
         {
             const auto voltageRange { 0.0833 };
             auto curVoltage { 0.04 };
-            for (auto curZoneIndex { numUsedZones - 2 }; curZoneIndex >= 0; --curZoneIndex)
-            {
-                zoneProperties [curZoneIndex].setMinVoltage (curVoltage, false);
+            fillMinVoltages ([&curVoltage, voltageRange] (int)
+            { 
+                const auto oldVoltage { curVoltage };
                 curVoltage += voltageRange;
-            }
+                return oldVoltage;
+            });
         }
         break;
         case VoltageBalanceType::distribute1vPerOctMajor:
         {
             std::array<double, 7> majorNoteVoltages {0.08, 0.25, 0.37, 0.5, 0.67, 0.83, 0.96};
-            for (auto curZoneIndex { numUsedZones - 2 }; curZoneIndex >= 0; --curZoneIndex)
+            fillMinVoltages ([majorNoteVoltages, numUsedZones] (int curZoneIndex)
             {
-                zoneProperties [curZoneIndex].setMinVoltage (majorNoteVoltages[numUsedZones - 2 - curZoneIndex], false);
-            }
+                return majorNoteVoltages [numUsedZones - 2 - curZoneIndex];
+            });
         }
         break;
         default: jassertfalse; break;
