@@ -7,9 +7,7 @@
 #include "../../../Utility/PersistentRootProperties.h"
 #include <algorithm>
 
-// TODO - short list
-//  Visual Edited indicator
-//  Update Preset List (switch from dim to highlighted) when new preset created
+#define ENABLE_IMPORT_EXPORT 0
 
 Assimil8orEditorComponent::Assimil8orEditorComponent ()
 {
@@ -24,10 +22,12 @@ Assimil8orEditorComponent::Assimil8orEditorComponent ()
     };
     setupButton (saveButton, "Save", [this] () { savePreset ();  });
     saveButton.setEnabled (false);
+#if ENABLE_IMPORT_EXPORT
     setupButton (importButton, "Import", [this] () { importPreset ();  });
     setupButton (exportButton, "Export", [this] () { exportPreset (); });
     importButton.setEnabled (false);
     exportButton.setEnabled (false);
+#endif
 
     for (auto curChannelIndex { 0 }; curChannelIndex < 8; ++curChannelIndex)
         channelTabs.addTab ("CH " + juce::String::charToString ('1' + curChannelIndex), juce::Colours::darkgrey, &channelEditors [curChannelIndex], false);
@@ -408,10 +408,12 @@ void Assimil8orEditorComponent::resized ()
     // Name
     nameEditor.setBounds (topRow.removeFromLeft (150));
 
+#if ENABLE_IMPORT_EXPORT
     topRow.removeFromRight (3);
     exportButton.setBounds (topRow.removeFromRight (75));
     topRow.removeFromRight (3);
     importButton.setBounds (topRow.removeFromRight (75));
+#endif
     topRow.removeFromRight (3);
     saveButton.setBounds (topRow.removeFromRight (75));
     const auto topRowY { titleLabel.getBottom () + 3 };
