@@ -8,9 +8,15 @@
 #define LogDirectoryValueTree(cond, text) ;
 #endif
 
-DirectoryValueTree::DirectoryValueTree (juce::String theRootFolderName)
-    : Thread ("Assimil8orValidator"), rootFolderName { theRootFolderName }
+DirectoryValueTree::DirectoryValueTree () : Thread ("DirectoryValueTree")
 {
+    startThread ();
+}
+
+DirectoryValueTree::DirectoryValueTree (juce::String theRootFolderName)
+    : Thread ("DirectoryValueTree"), rootFolderName { theRootFolderName }
+{
+    startThread ();
 }
 
 DirectoryValueTree::~DirectoryValueTree ()
@@ -46,36 +52,43 @@ void DirectoryValueTree::clear ()
 
 void DirectoryValueTree::cancel ()
 {
-    signalThreadShouldExit ();
+    cancelScan = true;
 }
 
 bool DirectoryValueTree::isScanning ()
 {
-    return isThreadRunning ();
+    return scanning;
 }
 
 void DirectoryValueTree::startScan ()
 {
     LogDirectoryValueTree (doLogging, "DirectoryValueTree::startScan - enter");
-    jassert (! isThreadRunning ());
-    startThread ();
+    jassert (! scanning);
+    notify ();
     LogDirectoryValueTree (doLogging, "DirectoryValueTree::startScan - exit");
 }
 
 void DirectoryValueTree::run ()
 {
     LogDirectoryValueTree (doLogging, "DirectoryValueTree::run - enter");
-    LogDirectoryValueTree (doLogging, "DirectoryValueTree::run - rootFolderVT = {}");
-    rootFolderVT = {};
-    doScan ();
-    // reset the output if scan was canceled
-    if (threadShouldExit ())
+    while (wait (-1) && ! threadShouldExit ())
     {
-        LogDirectoryValueTree (doLogging, "DirectoryValueTree::run - threadShouldExit = true, rootFolderVT = {}");
+        scanning = true;
+        cancelScan = false;
+        LogDirectoryValueTree (doLogging, "DirectoryValueTree::run - rootFolderVT = {}");
+
         rootFolderVT = {};
+        doScan ();
+        // reset the output if scan was canceled
+        if (threadShouldExit ())
+        {
+            LogDirectoryValueTree (doLogging, "DirectoryValueTree::run - threadShouldExit = true, rootFolderVT = {}");
+            rootFolderVT = {};
+        }
+        if (onComplete != nullptr)
+            onComplete (! threadShouldExit ());
+        scanning = false;
     }
-    if (onComplete != nullptr)
-        onComplete (! threadShouldExit());
     LogDirectoryValueTree (doLogging, "DirectoryValueTree::run - exit");
 }
 
@@ -101,11 +114,15 @@ void DirectoryValueTree::doScan ()
     const auto rootEntry { juce::File (rootFolderName) };
     // do one initial progress update to fill in the first one
     doStatusUpdate ("Reading File System", rootEntry.getFileName ());
-    if (! threadShouldExit ())
+    if (! shouldCancelOperation ())
         rootFolderVT = getContentsOfFolder (rootFolderName, 0);
 
-    if (! threadShouldExit ())
+    if (! shouldCancelOperation ())
         sortContentsOfFolder (rootFolderVT);
+}
+bool DirectoryValueTree::shouldCancelOperation ()
+{
+    return threadShouldExit () || cancelScan;
 }
 
 juce::ValueTree DirectoryValueTree::getContentsOfFolder (juce::File folder, int curDepth)
@@ -116,7 +133,7 @@ juce::ValueTree DirectoryValueTree::getContentsOfFolder (juce::File folder, int 
     {
         for (const auto& entry : juce::RangedDirectoryIterator (folder, false, "*", juce::File::findFilesAndDirectories))
         {
-            if (threadShouldExit ())
+            if (shouldCancelOperation ())
                 break;
 
             doIfProgressTimeElapsed ([this, fileName = entry.getFile ().getFileName ()] ()
@@ -190,7 +207,7 @@ void DirectoryValueTree::sortContentsOfFolder (juce::ValueTree folderVT)
         if (section.length == startingSectionLength)
             insertItem (itemIndex, section.startIndex + section.length);
     };
-    for (auto folderIndex { 0 }; folderIndex < numFolderEntries; ++folderIndex)
+    for (auto folderIndex { 0 }; folderIndex < numFolderEntries && ! shouldCancelOperation(); ++folderIndex)
     {
         auto folderEntryVT { folderVT.getChild (folderIndex) };
         doIfProgressTimeElapsed ([this, fileName = folderEntryVT.getProperty ("name").toString ()] ()
