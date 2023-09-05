@@ -105,9 +105,10 @@ public:
     void setLoopLengthIsEnd (bool loopLengthIsEnd);
     void receiveSampleLoadRequest (juce::File sampleFile);
     
-    std::function<void(juce::String)> onSampleChange;
+    std::function<void (juce::String)> onSampleChange;
     std::function<bool (double)> isMinVoltageInRange;
     std::function<double (double)> clampMinVoltage;
+    std::function<void (int zoneIndex)> displayToolsMenu;
 
 private:
     AppProperties appProperties;
@@ -116,6 +117,8 @@ private:
     ZoneProperties maxZoneProperties;
     juce::AudioFormatManager audioFormatManager;
     bool loopLengthIsEnd { false };
+    int64_t sampleLength { 0 };
+    juce::TextButton toolsButton;
 
     juce::Label levelOffsetLabel;
     juce::TextEditor levelOffsetTextEditor; // double
@@ -133,10 +136,6 @@ private:
     juce::TextEditor sampleEndTextEditor; // int
     juce::Label sampleStartLabel;
     juce::TextEditor sampleStartTextEditor; // int
-
-    juce::TextButton deleteButton;
-
-    int64_t sampleLength { 0 };
 
     juce::String formatLoopLength (double loopLength);
     bool handleSelectedFile (juce::File fileNameAndPath);

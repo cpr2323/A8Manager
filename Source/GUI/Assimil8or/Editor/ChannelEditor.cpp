@@ -744,6 +744,69 @@ void ChannelEditor::setupChannelComponents ()
     setupComboBox (zonesRTComboBox, "ZonesRT", [this] () { zonesRTUiChanged (zonesRTComboBox.getSelectedId () - 1); });
 }
 
+void ChannelEditor::balanceVoltages (VoltageBalanceType balanceType)
+{
+    const auto numUsedZones { getNumUsedZones () };
+    if (numUsedZones < 2)
+        return;
+
+    switch (balanceType)
+    {
+        case VoltageBalanceType::distributeAcross5V:
+        {
+            const auto voltageRange { 5.0 / numUsedZones };
+            auto curVoltage { 0.0 };
+            for (auto curZoneIndex { numUsedZones - 2 }; curZoneIndex >= 0; --curZoneIndex)
+            {
+                curVoltage += voltageRange;
+                zoneProperties [curZoneIndex].setMinVoltage (curVoltage, false);
+            }
+        }
+        break;
+        case VoltageBalanceType::distributeAcross10V:
+        {
+            const auto voltageRange { 10.0 / numUsedZones };
+            auto curVoltage { -5.0 };
+            for (auto curZoneIndex { numUsedZones - 2 }; curZoneIndex >= 0; --curZoneIndex)
+            {
+                curVoltage += voltageRange;
+                zoneProperties [curZoneIndex].setMinVoltage (curVoltage, false);
+            }
+        }
+        break;
+        case VoltageBalanceType::distribute1vPerOct:
+        {
+            const auto voltageRange { 0.0833 };
+            auto curVoltage { 0.04 };
+            for (auto curZoneIndex { numUsedZones - 2 }; curZoneIndex >= 0; --curZoneIndex)
+            {
+                zoneProperties [curZoneIndex].setMinVoltage (curVoltage, false);
+                curVoltage += voltageRange;
+            }
+        }
+        break;
+        case VoltageBalanceType::distribute1vPerOctMajor:
+        {
+            std::array<double, 7> majorNoteVoltages {0.08, 0.25, 0.37, 0.5, 0.67, 0.83, 0.96};
+            for (auto curZoneIndex { numUsedZones - 2 }; curZoneIndex >= 0; --curZoneIndex)
+            {
+                zoneProperties [curZoneIndex].setMinVoltage (majorNoteVoltages[numUsedZones - 2 - curZoneIndex], false);
+            }
+        }
+        break;
+        default: jassertfalse; break;
+    }
+    updateAllZoneTabNames ();
+}
+
+int ChannelEditor::getNumUsedZones ()
+{
+    auto numUsedZones { 0 };
+    for (auto curZoneIndex { 0 }; curZoneIndex < zoneProperties.size (); ++curZoneIndex)
+        numUsedZones += zoneProperties [curZoneIndex].getSample ().isNotEmpty () ? 1 : 0;
+    return numUsedZones;
+};
+
 void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree rootPropertiesVT)
 {
     RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
@@ -753,14 +816,7 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
     auto zoneEditorIndex { 0 };
     channelProperties.forEachZone([this, &zoneEditorIndex, rootPropertiesVT] (juce::ValueTree zonePropertiesVT)
     {
-        auto getNumUsedZones = [this] ()
-        {
-            auto numUsedZones { 0 };
-            for (auto curZoneIndex { 0 }; curZoneIndex < zoneProperties.size (); ++curZoneIndex)
-                numUsedZones += zoneProperties [curZoneIndex].getSample ().isNotEmpty () ? 1 : 0;
-            return numUsedZones;
-        };
-        auto getVoltageBoundaries = [this, getNumUsedZones] (int zoneIndex, int topDepth)
+        auto getVoltageBoundaries = [this] (int zoneIndex, int topDepth)
         {
             auto topBoundary { 5.0 };
             auto bottomBoundary { -5.0 };
@@ -774,7 +830,34 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
         };
         // Zone Editor setup
         zoneEditors [zoneEditorIndex].init (zonePropertiesVT, rootPropertiesVT);
-        zoneEditors [zoneEditorIndex].isMinVoltageInRange = [this, zoneEditorIndex, getVoltageBoundaries, getNumUsedZones] (double voltage)
+        zoneEditors [zoneEditorIndex].displayToolsMenu = [this] (int zoneIndex)
+        {
+            juce::PopupMenu pmBalance;
+            pmBalance.addItem ("5V", true, false, [this] () { balanceVoltages (VoltageBalanceType::distributeAcross5V); });
+            pmBalance.addItem ("10V", true, false, [this] () { balanceVoltages (VoltageBalanceType::distributeAcross10V); });
+            pmBalance.addItem ("Kbd", true, false, [this] () { balanceVoltages (VoltageBalanceType::distribute1vPerOct); });
+            pmBalance.addItem ("Maj", true, false, [this] () { balanceVoltages (VoltageBalanceType::distribute1vPerOctMajor); });
+
+            juce::PopupMenu pm;
+            pm.addSubMenu ("Balance", pmBalance, true);
+            if (zoneProperties [zoneIndex].getSample ().isNotEmpty ())
+            {
+                pm.addItem ("Delete", true, false, [this, zoneIndex] ()
+                {
+                    zoneProperties [zoneIndex].setSample ("", true);
+                    zoneProperties [zoneIndex].copyFrom (defaultZoneProperties.getValueTree ());
+                    // if this zone was the last in the list, but not also the first, then set the minVoltage for the new last in list to -5
+                    if (zoneIndex == getNumUsedZones () && zoneIndex != 0)
+                        zoneProperties [zoneIndex - 1].setMinVoltage (-5.0, false);
+                    removeEmptyZones ();
+                    ensureProperZoneIsSelected ();
+                    updateAllZoneTabNames ();
+                });
+            }
+            pm.showMenuAsync ({}, [this] (int) {});
+
+        };
+        zoneEditors [zoneEditorIndex].isMinVoltageInRange = [this, zoneEditorIndex, getVoltageBoundaries] (double voltage)
         {
             const auto numUsedZones { getNumUsedZones () };
             if (zoneEditorIndex + 1 == numUsedZones)
@@ -796,17 +879,10 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
             auto [topBoundary, bottomBoundary] { getVoltageBoundaries (zoneEditorIndex, 0) };
             return std::clamp (voltage, bottomBoundary + 0.01, topBoundary - 0.01);
         };
-        zoneEditors [zoneEditorIndex].onSampleChange = [this, zoneEditorIndex, getVoltageBoundaries, getNumUsedZones] (juce::String sampleFileName)
+        zoneEditors [zoneEditorIndex].onSampleChange = [this, zoneEditorIndex, getVoltageBoundaries] (juce::String sampleFileName)
         {
             if (sampleFileName.isEmpty ())
             {
-                zoneProperties [zoneEditorIndex].copyFrom (defaultZoneProperties.getValueTree ());
-                // if this zone was the last in the list, but not also the first, then set the minVoltage for the new last in list to -5
-                if (zoneEditorIndex == getNumUsedZones () && zoneEditorIndex != 0)
-                    zoneProperties [zoneEditorIndex - 1].setMinVoltage (-5.0, false);
-                removeEmptyZones ();
-                ensureProperZoneIsSelected ();
-                updateAllZoneTabNames ();
             }
             else if (zoneProperties [zoneEditorIndex].getSample ().isEmpty ())
             {

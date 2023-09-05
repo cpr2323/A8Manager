@@ -62,14 +62,13 @@ ZoneEditor::ZoneEditor ()
         sampleNameSelectLabel.repaint ();
     };
 
-    deleteButton.setButtonText ("DEL");
-    deleteButton.onClick = [this] ()
+    toolsButton.setButtonText ("TOOLS");
+    toolsButton.onClick = [this] ()
     {
-        zoneProperties.setSample ("", true);
-        if (onSampleChange != nullptr)
-            onSampleChange ("");
+        if (displayToolsMenu != nullptr)
+            displayToolsMenu (zoneProperties.getId () - 1);
     };
-    addAndMakeVisible (deleteButton);
+    addAndMakeVisible (toolsButton);
     setupZoneComponents ();
 }
 
@@ -144,7 +143,6 @@ void ZoneEditor::loadSample (juce::String sampleFileName)
         onSampleChange (sampleFileName);
 
     updateSamplePositionInfo ();
-    deleteButton.setVisible (sampleFileName.isNotEmpty ());
 
     sampleUiChanged (sampleFileName);
     sampleNameSelectLabel.setText (sampleFileName, juce::NotificationType::dontSendNotification);
@@ -393,7 +391,8 @@ void ZoneEditor::resized ()
     const auto spaceBetweenLabelAndInput { 3 };
     auto scaleWidth = [width] (float scaleAmount) { return static_cast<int>(width * scaleAmount); };
 
-    deleteButton.setBounds (getWidth() - 5 - 40, getHeight() - 5 - 20, 40, 20);
+    if (displayToolsMenu != nullptr)
+        toolsButton.setBounds (getWidth() - 5 - 40, getHeight() - 5 - 20, 40, 20);
 
     const auto sampleNameLabelScale { 0.156f };
     const auto sampleNameInputScale { 1.f - sampleNameLabelScale };
@@ -582,7 +581,6 @@ void ZoneEditor::sampleDataChanged (juce::String sample)
         updateSampleFileInfo (sample);
         updateSamplePositionInfo ();
     }
-    deleteButton.setVisible (sample.isNotEmpty ());
     sampleNameSelectLabel.setText (sample, juce::NotificationType::dontSendNotification);
 }
 

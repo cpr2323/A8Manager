@@ -180,7 +180,7 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
     {
         channelEditors [channelEditorIndex].init (channelPropertiesVT, rootPropertiesVT);
         channelProperties [channelEditorIndex].wrap (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::yes);
-        channelProperties [channelEditorIndex].onChannelModeChange = [this, channelEditorIndex] (int channelMode)
+        channelProperties [channelEditorIndex].onChannelModeChange = [this, channelEditorIndex] (int)
         {
             updateAllChannelTabNames ();
         };
@@ -343,7 +343,7 @@ void Assimil8orEditorComponent::overwritePresetOrCancel (std::function<void ()> 
     else
     {
         juce::AlertWindow::showOkCancelBox (juce::AlertWindow::WarningIcon, "Overwriting Edited Preset",
-            "You are about to overwrite a preset that you have edited. Select OK to lose your changes, Select Cancel to go back and save.", "OK", "Cancel", nullptr,
+            "You are about to overwrite a preset that you have edited. Select Continue to lose your changes, Select Cancel to go back and save.", "Continue (lose changes)", "Cancel", nullptr,
             juce::ModalCallbackFunction::create ([this, overwriteFunction, cancelFunction] (int option)
             {
                 if (option == 1)

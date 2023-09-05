@@ -147,6 +147,13 @@ public:
     void receiveSampleLoadRequest (juce::File sampleFile);
 
 private:
+    enum class VoltageBalanceType
+    {
+        distributeAcross5V,
+        distributeAcross10V,
+        distribute1vPerOct,
+        distribute1vPerOctMajor
+    };
     ChannelProperties channelProperties;
     ChannelProperties defaultChannelProperties;
     ZoneProperties defaultZoneProperties;
@@ -258,9 +265,11 @@ private:
     std::array<ZoneEditor, 8> zoneEditors;
     std::array<ZoneProperties, 8> zoneProperties;
 
+    void balanceVoltages (VoltageBalanceType balanceType);
     void checkStereoRightOverlay ();
     void ensureProperZoneIsSelected ();
     int getEnvelopeValueResolution (double envelopeValue);
+    int getNumUsedZones ();
     void positionColumnOne (int xOffset, int width);
     void positionColumnTwo (int xOffset, int width);
     void positionColumnThree (int xOffset, int width);
