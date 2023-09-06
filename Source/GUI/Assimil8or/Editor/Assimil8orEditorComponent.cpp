@@ -297,14 +297,33 @@ bool Assimil8orEditorComponent::arePresetsEqual (juce::ValueTree presetOneVT, ju
     auto areZonesEqual = [this] (ZoneProperties& zonePropertiesOne, ZoneProperties& zonePropertiesTwo)
     {
         return zonePropertiesOne.getLevelOffset () == zonePropertiesTwo.getLevelOffset () &&
-                zonePropertiesOne.getLoopLength () == zonePropertiesTwo.getLoopLength () &&
-                zonePropertiesOne.getLoopStart () == zonePropertiesTwo.getLoopStart () &&
+                zonePropertiesOne.getLoopLength ().value_or (0.0) == zonePropertiesTwo.getLoopLength ().value_or (0.0) &&
+                zonePropertiesOne.getLoopStart ().value_or (0) == zonePropertiesTwo.getLoopStart ().value_or (0) &&
                 zonePropertiesOne.getMinVoltage () == zonePropertiesTwo.getMinVoltage () &&
                 zonePropertiesOne.getPitchOffset () == zonePropertiesTwo.getPitchOffset () &&
                 zonePropertiesOne.getSample () == zonePropertiesTwo.getSample () &&
-                zonePropertiesOne.getSampleStart () == zonePropertiesTwo.getSampleStart () &&
-                zonePropertiesOne.getSampleEnd () == zonePropertiesTwo.getSampleEnd () &&
+                zonePropertiesOne.getSampleStart ().value_or (0) == zonePropertiesTwo.getSampleStart ().value_or (0) &&
+                zonePropertiesOne.getSampleEnd ().value_or (0) == zonePropertiesTwo.getSampleEnd ().value_or (0) &&
                 zonePropertiesOne.getSide () == zonePropertiesTwo.getSide ();
+    };
+
+    auto displayZoneDifferences = [this] (ZoneProperties& zonePropertiesOne, ZoneProperties& zonePropertiesTwo)
+    {
+        auto displayIfDiff = [this] (auto value1, auto value2, juce::String parameterName)
+        {
+            if (value1 != value2)
+                juce::Logger::outputDebugString (parameterName + " mismatch. " + juce::String (value1) + " != " + juce::String (value2));
+        };
+
+        displayIfDiff (zonePropertiesOne.getLevelOffset (), zonePropertiesTwo.getLevelOffset (), "LevelOffset");
+        displayIfDiff (zonePropertiesOne.getLoopLength ().value_or (99999999), zonePropertiesTwo.getLoopLength ().value_or (99999999), "LoopLength");
+        displayIfDiff (zonePropertiesOne.getLoopStart ().value_or (99999999), zonePropertiesTwo.getLoopStart ().value_or (99999999), "LoopStart");
+        displayIfDiff (zonePropertiesOne.getMinVoltage (), zonePropertiesTwo.getMinVoltage (), "MinVoltage");
+        displayIfDiff (zonePropertiesOne.getPitchOffset (), zonePropertiesTwo.getPitchOffset (), "PitchOffset");
+        displayIfDiff (zonePropertiesOne.getSample (), zonePropertiesTwo.getSample (), "Sample");
+        displayIfDiff (zonePropertiesOne.getSampleStart ().value_or (99999999), zonePropertiesTwo.getSampleStart ().value_or (99999999), "SampleStart");
+        displayIfDiff (zonePropertiesOne.getSampleEnd ().value_or (99999999), zonePropertiesTwo.getSampleEnd ().value_or (99999999), "SampleEnd");
+        displayIfDiff (zonePropertiesOne.getSide (), zonePropertiesTwo.getSide (), "Side");
     };
 
     auto presetsAreEqual { true };
@@ -317,15 +336,27 @@ bool Assimil8orEditorComponent::arePresetsEqual (juce::ValueTree presetOneVT, ju
             ChannelProperties presetOneChannelProperties (presetOne.getChannelVT (channelIndex), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
             ChannelProperties presetTwoChannelProperties (presetTwo.getChannelVT (channelIndex), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
             if (! areChannelsEqual (presetOneChannelProperties, presetTwoChannelProperties))
+            {
+                //juce::Logger::outputDebugString ("Channel "+juce::String(channelIndex) + " mismatch");
                 presetsAreEqual = false;
+            }
             for (auto zoneIndex { 0 }; zoneIndex < 8 && presetsAreEqual; ++zoneIndex)
             {
                 ZoneProperties presetOneZoneProperties (presetOneChannelProperties.getZoneVT (zoneIndex), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
                 ZoneProperties presetTwoZoneProperties (presetTwoChannelProperties.getZoneVT (zoneIndex), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
                 if (! areZonesEqual (presetOneZoneProperties, presetTwoZoneProperties))
+                {
+                    //juce::Logger::outputDebugString ("Zone " + juce::String (zoneIndex) + " mismatch");
+                    //displayZoneDifferences (presetOneZoneProperties, presetTwoZoneProperties);
                     presetsAreEqual = false;
+                }
             }
         }
+    }
+    else
+    {
+        //juce::Logger::outputDebugString ("Preset mismatch");
+        presetsAreEqual = false;
     }
 
     return presetsAreEqual;
@@ -359,6 +390,7 @@ void Assimil8orEditorComponent::savePreset ()
     auto presetFile { juce::File (appProperties.getMRUList () [0]) };
     Assimil8orPreset assimil8orPreset;
     assimil8orPreset.write (presetFile, presetProperties.getValueTree ());
+    PresetProperties::copyTreeProperties (presetProperties.getValueTree (), unEditedPresetProperties.getValueTree ());
 }
 
 void Assimil8orEditorComponent::paint ([[maybe_unused]] juce::Graphics& g)
