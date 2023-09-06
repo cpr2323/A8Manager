@@ -138,11 +138,11 @@ void FileViewComponent::newFolder ()
     newAlertWindow->addButton ("CREATE", 1, juce::KeyPress (juce::KeyPress::returnKey, 0, 0));
     newAlertWindow->addButton ("CANCEL", 0, juce::KeyPress (juce::KeyPress::escapeKey, 0, 0));
     newAlertWindow->enterModalState (true, juce::ModalCallbackFunction::create ([this] (int option)
+    {
+        newAlertWindow->exitModalState (option);
+        newAlertWindow->setVisible (false);
+        if (option == 1) // ok
         {
-            newAlertWindow->exitModalState (option);
-            newAlertWindow->setVisible (false);
-            if (option == 1) // ok
-            {
             auto newFolderName { newAlertWindow->getTextEditorContents ("foldername") };
             auto newFolder { juce::File (appProperties.getMostRecentFolder ()).getChildFile (newFolderName) };
             newFolder.createDirectory ();
