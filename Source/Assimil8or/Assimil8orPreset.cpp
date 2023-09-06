@@ -63,8 +63,8 @@ void Assimil8orPreset::write (juce::File presetFile, juce::ValueTree presetPrope
     presetPropertiesToWrite.forEachChannel ([this, &addLine, &indentAmount, &defaultZoneProperties, &defaultChannelProperties] (juce::ValueTree channelVT)
     {
         ChannelProperties channelProperties (channelVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
-        ZoneProperties zoneProperties (channelProperties.getZoneVT(0), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
-        if (! zoneProperties.getSample().isEmpty ())
+        ZoneProperties zoneProperties (channelProperties.getZoneVT (0), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
+        if (! zoneProperties.getSample ().isEmpty ())
         {
             addLine (true, Section::ChannelId + " " + juce::String (channelProperties.getId ()) + " :");
             ++indentAmount;
@@ -112,7 +112,7 @@ void Assimil8orPreset::write (juce::File presetFile, juce::ValueTree presetPrope
             channelProperties.forEachZone ([this, &indentAmount, &addLine, &defaultZoneProperties] (juce::ValueTree zoneVT)
             {
                 ZoneProperties zoneProperties (zoneVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
-                if (! zoneProperties.getSample().isEmpty ())
+                if (! zoneProperties.getSample ().isEmpty ())
                 {
                     addLine (true, Section::ZoneId + " " + juce::String (zoneProperties.getId ()) + " :");
                     ++indentAmount;
@@ -179,7 +179,7 @@ void Assimil8orPreset::parse (juce::StringArray presetLines)
             {
                 // undoActionsStack should have items to reset
                 jassert (! undoActionsStack.empty ());
-                auto undoAction = undoActionsStack.top ();
+                auto undoAction { undoActionsStack.top () };
                 undoActionsStack.pop ();
                 undoAction ();
             }
@@ -247,19 +247,19 @@ void Assimil8orPreset::initParser ()
         jassert (id > 0);
         return id;
     };
-    
+
     auto setActions = [this] (ActionMap* newActions, Action undoAction)
     {
         curActions = newActions;
         undoActionsStack.push (undoAction);
     };
-    
+
     auto undoAction = [this, setActions] (ActionMap* newActions, juce::ValueTree & sectionToRevert)
     {
         curActions = newActions;
         sectionToRevert = {};
     };
-    
+
     // Global Action
     globalActions.insert ({
         {Section::PresetId, [this, getParameterId, undoAction, setActions] () {

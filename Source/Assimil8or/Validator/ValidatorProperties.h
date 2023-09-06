@@ -13,7 +13,6 @@ public:
     void setProgressUpdate (juce::String progressUpdate, bool includeSelfCallback);
     void startScan (bool includeSelfCallback);
 
-
     juce::String getScanStatus ();
     juce::String getProgressUpdate ();
 

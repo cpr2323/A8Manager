@@ -100,7 +100,7 @@ void Assimil8orEditorComponent::setupPresetComponents ()
             xfadeCvUiChanged (xfadeGroupIndex, xfadeGroups [xfadeGroupIndex].xfadeCvComboBox.getSelectedItemText ());
         };
         // XfadeACV
-        xfadeGroup.xfadeCvComboBox.setTooltip (parameterToolTipData.getToolTip ("Preset", "Xfade" + juce::String::charToString('A' + xfadeGroupIndex) + "CV"));
+        xfadeGroup.xfadeCvComboBox.setTooltip (parameterToolTipData.getToolTip ("Preset", "Xfade" + juce::String::charToString ('A' + xfadeGroupIndex) + "CV"));
         addAndMakeVisible (xfadeGroup.xfadeCvComboBox);
 
         // xfade group width
@@ -173,7 +173,7 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
     PresetManagerProperties presetManagerProperties (runtimeRootProperties.getValueTree (), PresetManagerProperties::WrapperType::owner, PresetManagerProperties::EnableCallbacks::no);
 
     unEditedPresetProperties.wrap (presetManagerProperties.getPreset ("unedited"), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::yes);
-    presetProperties.wrap (presetManagerProperties.getPreset("edit"), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::yes);
+    presetProperties.wrap (presetManagerProperties.getPreset ("edit"), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::yes);
     setupPresetPropertiesCallbacks ();
     auto channelEditorIndex { 0 };
     presetProperties.forEachChannel ([this, &channelEditorIndex, rootPropertiesVT] (juce::ValueTree channelPropertiesVT)
@@ -231,7 +231,7 @@ void Assimil8orEditorComponent::exportPreset ()
 void Assimil8orEditorComponent::receiveSampleLoadRequest (juce::File sampleFile)
 {
     auto channelIndex { channelTabs.getCurrentTabIndex () };
-    auto curChannelEditor { dynamic_cast<ChannelEditor*>(channelTabs.getTabContentComponent (channelIndex)) };
+    auto curChannelEditor { dynamic_cast<ChannelEditor*> (channelTabs.getTabContentComponent (channelIndex)) };
     curChannelEditor->receiveSampleLoadRequest (sampleFile);
 }
 
@@ -316,13 +316,13 @@ bool Assimil8orEditorComponent::arePresetsEqual (juce::ValueTree presetOneVT, ju
         {
             ChannelProperties presetOneChannelProperties (presetOne.getChannelVT (channelIndex), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
             ChannelProperties presetTwoChannelProperties (presetTwo.getChannelVT (channelIndex), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
-            if (!areChannelsEqual (presetOneChannelProperties, presetTwoChannelProperties))
+            if (! areChannelsEqual (presetOneChannelProperties, presetTwoChannelProperties))
                 presetsAreEqual = false;
             for (auto zoneIndex { 0 }; zoneIndex < 8 && presetsAreEqual; ++zoneIndex)
             {
                 ZoneProperties presetOneZoneProperties (presetOneChannelProperties.getZoneVT (zoneIndex), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
                 ZoneProperties presetTwoZoneProperties (presetTwoChannelProperties.getZoneVT (zoneIndex), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
-                if (!areZonesEqual (presetOneZoneProperties, presetTwoZoneProperties))
+                if (! areZonesEqual (presetOneZoneProperties, presetTwoZoneProperties))
                     presetsAreEqual = false;
             }
         }
@@ -336,7 +336,7 @@ void Assimil8orEditorComponent::overwritePresetOrCancel (std::function<void ()> 
     jassert (overwriteFunction != nullptr);
     jassert (cancelFunction != nullptr);
 
-    if (arePresetsEqual (unEditedPresetProperties.getValueTree(), presetProperties.getValueTree()))
+    if (arePresetsEqual (unEditedPresetProperties.getValueTree (), presetProperties.getValueTree ()))
     {
         overwriteFunction ();
     }
@@ -487,7 +487,7 @@ void Assimil8orEditorComponent::xfadeCvUiChanged (int group, juce::String data2A
 void Assimil8orEditorComponent::xfadeWidthDataChanged (int group, double width)
 {
     jassert (group >= 0 && group < 4);
-    xfadeGroups [group].xfadeWidthEditor.setText (formatXfadeWidthString(width));
+    xfadeGroups [group].xfadeWidthEditor.setText (formatXfadeWidthString (width));
 }
 
 void Assimil8orEditorComponent::xfadeWidthUiChanged (int group, double width)

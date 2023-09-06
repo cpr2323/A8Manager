@@ -31,14 +31,14 @@ void ParameterToolTipData::processValueTree ()
                     processedToolTipString += rawToolTipString.substring (0, escapeCharacterIndex);
                 switch (rawToolTipString [escapeCharacterIndex + 1])
                 {
-                    case '\\' : 
+                    case '\\' :
                     {
                         processedToolTipString += juce::String::charToString ('\\');
                     }
                     break;
                     case 'r':
                     {
-                        processedToolTipString += juce::String::charToString('\r');
+                        processedToolTipString += juce::String::charToString ('\r');
                     }
                     break;
                     case 't':

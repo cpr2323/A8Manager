@@ -139,7 +139,7 @@ void PresetListComponent::loadFirstPreset ()
 
 void PresetListComponent::loadDefault (int row)
 {
-    PresetProperties::copyTreeProperties (ParameterPresetsSingleton::getInstance()->getParameterPresetListProperties().getParameterPreset(ParameterPresetListProperties::DefaultParameterPresetType),
+    PresetProperties::copyTreeProperties (ParameterPresetsSingleton::getInstance ()->getParameterPresetListProperties ().getParameterPreset (ParameterPresetListProperties::DefaultParameterPresetType),
                                           presetProperties.getValueTree ());
     // set the ID, since the default that was just loaded always has Id 1
     presetProperties.setId (row + 1, false);

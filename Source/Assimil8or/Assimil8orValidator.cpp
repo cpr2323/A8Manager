@@ -157,7 +157,7 @@ void Assimil8orValidator::run ()
 {
     while (wait (-1) && ! threadShouldExit ())
     {
-        LogValidation ("Assimil8orValidator::run: state " + juce::String (static_cast<int>(valdatationState)));
+        LogValidation ("Assimil8orValidator::run: state " + juce::String (static_cast<int> (valdatationState)));
         switch (valdatationState)
         {
             case Assimil8orValidator::ValdatationState::idle:

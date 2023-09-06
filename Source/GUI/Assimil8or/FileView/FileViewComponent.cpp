@@ -85,7 +85,7 @@ void FileViewComponent::run ()
         }
         // TODO - probably want to do something else to not get deadlocked, ie. track time and try and catch deadlock
         //        maybe request an exit again here
-        while (directoryValueTree.isScanning());
+        while (directoryValueTree.isScanning ());
         directoryListQuickLookupList.clear ();
         directoryValueTree.setRootFolder (rootFolder.getFullPathName ());
         directoryValueTree.startScan ();
@@ -223,7 +223,7 @@ void FileViewComponent::listBoxItemClicked (int row, [[maybe_unused]] const juce
 
     if (me.mods.isPopupMenu ())
     {
-        if (!isRootFolder && row == 0)
+        if (! isRootFolder && row == 0)
             return;
         auto folder { juce::File (directoryListQuickLookupList [row - (isRootFolder ? 0 : 1)].getProperty ("name").toString ()) };
         juce::PopupMenu pm;
@@ -264,7 +264,7 @@ void FileViewComponent::listBoxItemClicked (int row, [[maybe_unused]] const juce
     {
         auto completeSelection = [this, row] ()
             {
-                if (!isRootFolder && row == 0)
+                if (! isRootFolder && row == 0)
                 {
                     appProperties.setMostRecentFolder (juce::File (directoryValueTree.getRootFolder ()).getParentDirectory ().getFullPathName ());
                 }

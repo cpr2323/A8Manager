@@ -8,7 +8,7 @@ public:
     void drawComboBox (juce::Graphics& g, int width, int height, bool,
         int, int, int, int, juce::ComboBox& box)
     {
-        auto cornerSize = box.findParentComponentOfClass<juce::ChoicePropertyComponent> () != nullptr ? 0.0f : 3.0f;
+        auto cornerSize { box.findParentComponentOfClass<juce::ChoicePropertyComponent> () != nullptr ? 0.0f : 3.0f };
         juce::Rectangle<int> boxBounds (0, 0, width, height);
 
         g.setColour (box.findColour (juce::ComboBox::backgroundColourId));

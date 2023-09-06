@@ -198,7 +198,7 @@ void DirectoryValueTree::sortContentsOfFolder (juce::ValueTree folderVT)
         };
         for (auto sectionEntryIndex { section.startIndex }; sectionEntryIndex < section.startIndex + section.length; ++sectionEntryIndex)
         {
-            if (folderVT.getChild (itemIndex).getProperty ("name").toString ().toLowerCase() < folderVT.getChild (sectionEntryIndex).getProperty ("name").toString ().toLowerCase())
+            if (folderVT.getChild (itemIndex).getProperty ("name").toString ().toLowerCase () < folderVT.getChild (sectionEntryIndex).getProperty ("name").toString ().toLowerCase ())
             {
                 insertItem (itemIndex, sectionEntryIndex);
                 break;
@@ -207,7 +207,7 @@ void DirectoryValueTree::sortContentsOfFolder (juce::ValueTree folderVT)
         if (section.length == startingSectionLength)
             insertItem (itemIndex, section.startIndex + section.length);
     };
-    for (auto folderIndex { 0 }; folderIndex < numFolderEntries && ! shouldCancelOperation(); ++folderIndex)
+    for (auto folderIndex { 0 }; folderIndex < numFolderEntries && ! shouldCancelOperation (); ++folderIndex)
     {
         auto folderEntryVT { folderVT.getChild (folderIndex) };
         doIfProgressTimeElapsed ([this, fileName = folderEntryVT.getProperty ("name").toString ()] ()

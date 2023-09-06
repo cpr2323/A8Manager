@@ -73,14 +73,14 @@ public:
             if (o != juce::TabbedButtonBar::TabsAtRight)    g.fillRect (r.removeFromLeft (1));
             if (o != juce::TabbedButtonBar::TabsAtLeft)     g.fillRect (r.removeFromRight (1));
 
-            const float alpha = button.isEnabled () ? ((isMouseOver || isMouseDown) ? 1.0f : 0.8f) : 0.3f;
+            const float alpha { button.isEnabled () ? ((isMouseOver || isMouseDown) ? 1.0f : 0.8f) : 0.3f };
 
             juce::Colour col (bkg.contrasting ().withMultipliedAlpha (alpha));
 
-            if (juce::TabbedButtonBar* bar = button.findParentComponentOfClass<juce::TabbedButtonBar> ())
+            if (juce::TabbedButtonBar * bar { button.findParentComponentOfClass<juce::TabbedButtonBar> () })
             {
-                juce::TabbedButtonBar::ColourIds colID = button.isFrontTab () ? juce::TabbedButtonBar::frontTextColourId :
-                                                                                juce::TabbedButtonBar::tabTextColourId;
+                juce::TabbedButtonBar::ColourIds colID { button.isFrontTab () ? juce::TabbedButtonBar::frontTextColourId :
+                                                                                juce::TabbedButtonBar::tabTextColourId };
 
                 if (bar->isColourSpecified (colID))
                     col = bar->findColour (colID);
@@ -90,8 +90,8 @@ public:
 
             const juce::Rectangle<float> area (button.getTextArea ().toFloat ());
 
-            float length = area.getWidth ();
-            float depth = area.getHeight ();
+            float length { area.getWidth () };
+            float depth { area.getHeight () };
 
             if (button.getTabbedButtonBar ().isVertical ())
                 std::swap (length, depth);
@@ -195,8 +195,8 @@ private:
     juce::Label linAMLabel;
     CvInputChannelComboBox linAMComboBox; // 0A - 8C
     juce::TextEditor linAMTextEditor; // double
-    juce::Label linAMisExtEnvLabel; // 
-    juce::ComboBox linAMisExtEnvComboBox; // 
+    juce::Label linAMisExtEnvLabel; //
+    juce::ComboBox linAMisExtEnvComboBox; //
     juce::Label linFMLabel;
     CvInputChannelComboBox linFMComboBox; // 0A - 8C
     juce::TextEditor linFMTextEditor; // double
@@ -214,8 +214,8 @@ private:
     juce::TextEditor mixLevelTextEditor; // double
     CvInputChannelComboBox mixModComboBox; // 0A - 8C
     juce::TextEditor mixModTextEditor; // double
-    juce::Label mixModIsFaderLabel; // 
-    juce::ComboBox mixModIsFaderComboBox; // 
+    juce::Label mixModIsFaderLabel; //
+    juce::ComboBox mixModIsFaderComboBox; //
     juce::Label mutateLabel;
     juce::Label panMixLabel;
     juce::TextEditor panTextEditor; // double
@@ -243,7 +243,7 @@ private:
     juce::TextEditor releaseTextEditor; // double
     CvInputChannelComboBox releaseModComboBox; // 0A - 8C
     juce::TextEditor releaseModTextEditor; // double
-    juce::TextButton reverseButton; // 
+    juce::TextButton reverseButton; //
     juce::Label sampleEndModLabel;
     CvInputChannelComboBox sampleEndModComboBox; // 0A - 8C
     juce::TextEditor sampleEndModTextEditor; // double

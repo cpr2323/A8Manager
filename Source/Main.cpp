@@ -80,16 +80,16 @@ public:
     //                                                       up to 5 bits of fractional index
     // uint32_t rawValue
     // double finalValue
-    // if bits 24-32 are all 0
+    // if bits 28-32 are all 0
     //     finalValue = rawValue
     // else
-    //  mask = rawValue >> 23
+    //  mask = rawValue >> 27
     //  numberOfIndexBits = mask + 1
     //  wholeValue = rawValue >> numIndexBits
     //  fractionalResolution = 1.0 / (1L << (numberOfIndexBits))
     //  fractionalIndex = rawValue & mask
     //  fractionalValue = fractionalResolution * fractionalIndex
-    //  finalValue = static_cast<double>(wholeValue) + fractionalValue
+    //  finalValue = static_cast<double> (wholeValue) + fractionalValue
     // max 8 digit number - 0101 1111 0101 1110 0000 1111 1111
     // 2048 = 1000 0000 0000, 11/1
     // 1024 = 0100 0000 0000, 10/2
@@ -106,8 +106,8 @@ public:
         if (rawValue < 2048)
         {
             // encode
-            const auto wholeValue { static_cast<uint32_t>(rawValue) };
-            const auto fractionalValue { rawValue - static_cast<double>(wholeValue) };
+            const auto wholeValue { static_cast<uint32_t> (rawValue) };
+            const auto fractionalValue { rawValue - static_cast<double> (wholeValue) };
             const auto mask = [wholeValue] ()
             {
                 if (wholeValue >= 1024) // 2047 - 1024
@@ -130,12 +130,12 @@ public:
             const auto fractionalResolution { 1.0 / (1L << (numIndexBits - 1)) };
             const auto maskValue { mask << 27 };
             const auto shiftedWholeValue { wholeValue << numIndexBits };
-            const auto fractionalIndex { static_cast<int>(fractionalValue / fractionalResolution) };
+            const auto fractionalIndex { static_cast<int> (fractionalValue / fractionalResolution) };
             return maskValue + shiftedWholeValue + fractionalIndex;
         }
         else
         {
-            return static_cast<uint32_t>(rawValue);
+            return static_cast<uint32_t> (rawValue);
         }
     }
 
@@ -151,7 +151,7 @@ public:
         const auto fractionalResolution { 1.0 / (1L << (numIndexBits - 1)) };
         const auto fractionalIndex { rawValue & mask };
         const auto fractionalValue { fractionalResolution * fractionalIndex};
-        const auto finalValue { std::round ((static_cast<double>(wholeValue) + fractionalValue) * 1000.0) / 1000.0 }; // add the whole and fractional parts and round to 3 decimal places
+        const auto finalValue { std::round ((static_cast<double> (wholeValue) + fractionalValue) * 1000.0) / 1000.0 }; // add the whole and fractional parts and round to 3 decimal places
         return finalValue;
     }
 #endif // 0

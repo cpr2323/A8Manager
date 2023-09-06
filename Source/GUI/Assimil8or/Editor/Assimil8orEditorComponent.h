@@ -79,7 +79,7 @@ private:
     void setupPresetComponents ();
     void setupPresetPropertiesCallbacks ();
 
-    // Preset callbacks 
+    // Preset callbacks
     void idDataChanged (int id); // tracks when a new preset has been loaded
     void nameDataChanged (juce::String name);
     void nameUiChanged (juce::String name);

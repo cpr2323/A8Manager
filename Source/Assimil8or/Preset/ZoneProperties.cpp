@@ -128,7 +128,7 @@ std::optional <int64_t> ZoneProperties::getSampleStart ()
 
 std::optional <int64_t> ZoneProperties::getSampleEnd ()
 {
-    const auto sampleEnd{ getValue<int64_t> (SampleEndPropertyId) };
+    const auto sampleEnd { getValue<int64_t> (SampleEndPropertyId) };
     if (sampleEnd == -1) // -1 indicate uninitialized
         return {};
     return sampleEnd;

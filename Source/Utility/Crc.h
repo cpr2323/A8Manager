@@ -138,8 +138,6 @@ public:
     type getSum() const { return SumHelper<T>::accum; }
 
 private:
-
-
 };
 
 int main(int argc, const char * argv[]) {
@@ -153,7 +151,6 @@ int main(int argc, const char * argv[]) {
 
     Fake8 eight;
     eight.updateBuffer(data, 5);
-
 
     FakeCrc<uint32_t> crc1(data, 5);
 

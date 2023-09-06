@@ -58,7 +58,7 @@ public:
 private:
     juce::Colour outlineColor { juce::Colours::transparentWhite };
     std::unique_ptr<juce::FileChooser> fileChooser;
-    
+
     class MouseEavesDropper : public juce::MouseListener
     {
     public:
@@ -104,7 +104,7 @@ public:
     void init (juce::ValueTree zonePropertiesVT, juce::ValueTree rootPropertiesVT);
     void setLoopLengthIsEnd (bool loopLengthIsEnd);
     void receiveSampleLoadRequest (juce::File sampleFile);
-    
+
     std::function<void (juce::String)> onSampleChange;
     std::function<bool (double)> isMinVoltageInRange;
     std::function<double (double)> clampMinVoltage;

@@ -15,7 +15,7 @@ public:
     ~PresetListComponent ();
     void init (juce::ValueTree rootPropertiesVT);
 
-    std::function<void (std::function<void()>, std::function<void ()>)> overwritePresetOrCancel;
+    std::function<void (std::function<void ()>, std::function<void ()>)> overwritePresetOrCancel;
 
 private:
     AppProperties appProperties;
