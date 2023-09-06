@@ -22,13 +22,15 @@ private:
     PresetProperties presetProperties;
     PresetProperties unEditedPresetProperties;
 
+    juce::ToggleButton showAllPresets { "Show All" };
     juce::ListBox presetListBox { {}, this };
-    int lastSelectedRow { -1 };
+    std::array<std::tuple <int, bool>, kMaxPresets> presetExists;
+    int numPresets { kMaxPresets };
     juce::File rootFolder;
-    std::array<bool, kMaxPresets> presetExists {false};
     juce::CriticalSection queuedFolderLock;
     juce::File queuedFolderToScan;
     std::atomic<bool> newItemQueued { false };
+    int lastSelectedRow { -1 };
 
     void checkForPresets (bool resetPosition);
     void forEachPresetFile (std::function<bool (juce::File presetFile, int index)> presetFileCallback);

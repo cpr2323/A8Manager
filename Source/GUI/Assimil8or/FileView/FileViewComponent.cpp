@@ -305,10 +305,10 @@ void FileViewComponent::resized ()
 {
     auto localBounds { getLocalBounds () };
     localBounds.reduce (3, 3);
-    auto navigationRow { localBounds.removeFromTop (25) };
-    openFolderButton.setBounds (navigationRow.removeFromLeft (50));
-    navigationRow.removeFromLeft (5);
-    newFolderButton.setBounds (navigationRow.removeFromLeft (50));
+    auto toolRow { localBounds.removeFromTop (25) };
+    openFolderButton.setBounds (toolRow.removeFromLeft (50));
+    toolRow.removeFromLeft (5);
+    newFolderButton.setBounds (toolRow.removeFromLeft (50));
     localBounds.removeFromTop (3);
     directoryContentsListBox.setBounds (localBounds);
 }

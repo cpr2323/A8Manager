@@ -15,6 +15,9 @@
 
 PresetListComponent::PresetListComponent () : Thread ("PresetListComponent")
 {
+    showAllPresets.onClick = [this] () { checkForPresets (false); };
+    addAndMakeVisible (showAllPresets);
+    showAllPresets.setButtonText ("Show All");
     addAndMakeVisible (presetListBox);
     startThread ();
     startTimer (333);
@@ -76,6 +79,7 @@ void PresetListComponent::run ()
 
 void PresetListComponent::timerCallback ()
 {
+    // TODO - this should run in the thread
     checkForPresets (false);
 }
 
@@ -93,9 +97,16 @@ void PresetListComponent::forEachPresetFile (std::function<bool (juce::File pres
 void PresetListComponent::checkForPresets (bool newFolder)
 {
     LogPresetList ("PresetListComponent::checkForPresets");
-    forEachPresetFile ([this] (juce::File presetFile, int index)
+    const auto showAll { showAllPresets.getToggleState () };
+    numPresets = 0;
+    forEachPresetFile ([this, showAll] (juce::File presetFile, int index)
     {
-        presetExists [index] = presetFile.exists ();
+        auto thisPresetExists { presetFile.exists () };
+        if (showAll || thisPresetExists)
+        {
+            presetExists [numPresets] = { index, thisPresetExists };
+            ++numPresets;
+        }
         return ! shouldCancelOperation ();
     });
 
@@ -118,7 +129,7 @@ void PresetListComponent::loadFirstPreset ()
     bool presetLoaded { false };
     forEachPresetFile ([this, &presetLoaded] (juce::File presetFile, int index)
     {
-        if (! presetExists [index])
+        if (auto [presetNumber, thisPresetExists] = presetExists [index]; ! thisPresetExists)
             return ! shouldCancelOperation ();
 
         presetListBox.selectRow (index, false, true);
@@ -171,17 +182,19 @@ void PresetListComponent::loadPreset (juce::File presetFile)
 void PresetListComponent::resized ()
 {
     auto localBounds { getLocalBounds () };
+    auto toolRow { localBounds.removeFromTop (25) };
+    showAllPresets.setBounds (toolRow.removeFromLeft (100));
     presetListBox.setBounds (localBounds);
 }
 
 int PresetListComponent::getNumRows ()
 {
-    return kMaxPresets;
+    return numPresets;
 }
 
 void PresetListComponent::paintListBoxItem (int row, juce::Graphics& g, int width, int height, bool rowIsSelected)
 {
-    if (row < kMaxPresets)
+    if (row < numPresets)
     {
         juce::Colour textColor;
         juce::Colour rowColor;
@@ -196,12 +209,13 @@ void PresetListComponent::paintListBoxItem (int row, juce::Graphics& g, int widt
             rowColor = juce::Colours::black;
             textColor = juce::Colours::whitesmoke;
         }
-        if (! presetExists [row])
+        auto [presetNumber, thisPresetExists] { presetExists [row] };
+        if (! thisPresetExists)
             textColor = textColor.withAlpha (0.5f);
         g.setColour (rowColor);
         g.fillRect (width - 1, 0, 1, height);
         g.setColour (textColor);
-        g.drawText ("  Preset " + juce::String (row + 1), juce::Rectangle<float>{ 0.0f, 0.0f, (float) width, (float) height }, juce::Justification::centredLeft, true);
+        g.drawText ("  Preset " + juce::String (presetNumber + 1), juce::Rectangle<float>{ 0.0f, 0.0f, (float) width, (float) height }, juce::Justification::centredLeft, true);
     }
 }
 
@@ -217,8 +231,9 @@ void PresetListComponent::listBoxItemClicked (int row, [[maybe_unused]] const ju
 
     auto completeSelection = [this, row] ()
     {
-        auto presetFile { juce::File (appProperties.getMostRecentFolder ()).getChildFile (getPresetName (row)).withFileExtension (".yml") };
-        if (presetExists [row])
+        const auto [presetNumber, thisPresetExists] = presetExists [row];
+        auto presetFile { juce::File (appProperties.getMostRecentFolder ()).getChildFile (getPresetName (presetNumber)).withFileExtension (".yml") };
+        if (thisPresetExists)
             loadPreset (presetFile);
         else
             loadDefault (row);
