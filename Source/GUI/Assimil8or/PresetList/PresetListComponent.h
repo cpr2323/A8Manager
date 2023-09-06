@@ -21,6 +21,7 @@ private:
     AppProperties appProperties;
     PresetProperties presetProperties;
     PresetProperties unEditedPresetProperties;
+    PresetProperties copyBuffer;
 
     juce::ToggleButton showAllPresets { "Show All" };
     juce::ListBox presetListBox { {}, this };
@@ -32,12 +33,15 @@ private:
     std::atomic<bool> newItemQueued { false };
     int lastSelectedRow { -1 };
 
+    void copyPreset (int presetNumber);
     void checkForPresets (bool resetPosition);
+    void deletePreset (int presetNumber);
     void forEachPresetFile (std::function<bool (juce::File presetFile, int index)> presetFileCallback);
     juce::String getPresetName (int presetIndex);
     void loadDefault (int row);
     void loadFirstPreset ();
     void loadPreset (juce::File presetFile);
+    void pastePreset (int presetNumber);
     bool shouldCancelOperation ();
     void startScan (juce::File folderToScan);
 

@@ -224,35 +224,60 @@ juce::String PresetListComponent::getTooltipForRow (int row)
     return "Preset " + juce::String (row + 1);
 }
 
+void PresetListComponent::copyPreset (int presetNumber)
+{
+}
+
+void PresetListComponent::pastePreset (int presetNumber)
+{
+}
+
+void PresetListComponent::deletePreset (int presetNumber)
+{
+}
+
+
 void PresetListComponent::listBoxItemClicked (int row, [[maybe_unused]] const juce::MouseEvent& me)
 {
-    if (row == lastSelectedRow)
-        return;
-
-    auto completeSelection = [this, row] ()
+    if (me.mods.isPopupMenu ())
     {
-        const auto [presetNumber, thisPresetExists] = presetExists [row];
-        auto presetFile { juce::File (appProperties.getMostRecentFolder ()).getChildFile (getPresetName (presetNumber)).withFileExtension (".yml") };
-        if (thisPresetExists)
-            loadPreset (presetFile);
-        else
-            loadDefault (row);
-        presetListBox.selectRow (row, false, true);
-        presetListBox.scrollToEnsureRowIsOnscreen (row);
-        appProperties.addRecentlyUsedFile (presetFile.getFullPathName ());
-    };
-
-    if (overwritePresetOrCancel != nullptr)
-    {
-        auto cancelSelection = [this] ()
-        {
-        };
-
         presetListBox.selectRow (lastSelectedRow, false, true);
-        overwritePresetOrCancel (completeSelection, cancelSelection);
+        const auto [presetNumber, thisPresetExists] { presetExists [row] };
+        auto presetFile { rootFolder.getChildFile (getPresetName (presetNumber)).withFileExtension (".yml") };
+
+        juce::PopupMenu pm;
+        pm.addSectionHeader ("Preset " + juce::String(presetNumber + 1));
+        pm.addItem ("Copy", thisPresetExists, false, [this, presetNumber = presetNumber] () { copyPreset (presetNumber); });
+        pm.addItem ("Paste", copyBuffer.getName ().isNotEmpty(), false, [this, presetNumber = presetNumber] () { pastePreset (presetNumber); });
+        pm.addItem ("Delete", thisPresetExists, false, [this, presetNumber = presetNumber] () { deletePreset (presetNumber); });
+        pm.showMenuAsync ({}, [this] (int) {});
     }
     else
     {
-        completeSelection ();
+        if (row == lastSelectedRow)
+            return;
+
+        auto completeSelection = [this, row] ()
+            {
+                const auto [presetNumber, thisPresetExists] = presetExists [row];
+                auto presetFile { juce::File (appProperties.getMostRecentFolder ()).getChildFile (getPresetName (presetNumber)).withFileExtension (".yml") };
+                if (thisPresetExists)
+                    loadPreset (presetFile);
+                else
+                    loadDefault (row);
+                presetListBox.selectRow (row, false, true);
+                presetListBox.scrollToEnsureRowIsOnscreen (row);
+                appProperties.addRecentlyUsedFile (presetFile.getFullPathName ());
+            };
+
+        if (overwritePresetOrCancel != nullptr)
+        {
+            presetListBox.selectRow (lastSelectedRow, false, true);
+            overwritePresetOrCancel (completeSelection, [this] () {});
+        }
+        else
+        {
+            completeSelection ();
+        }
     }
 }
