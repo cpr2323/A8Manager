@@ -70,7 +70,6 @@ private:
     std::array<ChannelEditor, 8> channelEditors;
     std::array<ChannelProperties, 8> channelProperties;
 
-    bool arePresetsEqual (juce::ValueTree presetOne, juce::ValueTree presetTwo);
     void exportPreset ();
     juce::String formatXfadeWidthString (double width);
     void importPreset ();

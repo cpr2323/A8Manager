@@ -156,9 +156,11 @@ private:
     };
     ChannelProperties channelProperties;
     ChannelProperties defaultChannelProperties;
-    ZoneProperties defaultZoneProperties;
     ChannelProperties minChannelProperties;
     ChannelProperties maxChannelProperties;
+    ZoneProperties defaultZoneProperties;
+    ZoneProperties copyBufferZoneProperties;
+    bool copyBufferActive { false };
 
     juce::Label zonesLabel;
     juce::Label zoneMaxVoltage;
@@ -270,6 +272,7 @@ private:
     void ensureProperZoneIsSelected ();
     int getEnvelopeValueResolution (double envelopeValue);
     int getNumUsedZones ();
+    std::tuple<double, double> getVoltageBoundaries (int zoneIndex, int topDepth);
     void positionColumnOne (int xOffset, int width);
     void positionColumnTwo (int xOffset, int width);
     void positionColumnThree (int xOffset, int width);
@@ -277,7 +280,7 @@ private:
     void removeEmptyZones ();
     void setupChannelComponents ();
     void setupChannelPropertiesCallbacks ();
-    double snapBits (double rawValue);
+    double snapBitsValue (double rawValue);
     double snapEnvelopeValue (double rawValue);
     void updateAllZoneTabNames ();
     void updateZoneTabName (int zoneIndex);

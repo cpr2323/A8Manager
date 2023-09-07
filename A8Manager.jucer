@@ -14,6 +14,9 @@
                 file="Source/Assimil8or/Fixer/FixerEntryProperties.h"/>
         </GROUP>
         <GROUP id="{F93A3946-B57B-8541-1536-2BE5E57D6EED}" name="Preset">
+          <FILE id="VbC2qz" name="PresetHelpers.cpp" compile="1" resource="0"
+                file="Source/Assimil8or/Preset/PresetHelpers.cpp"/>
+          <FILE id="D1sejr" name="PresetHelpers.h" compile="0" resource="0" file="Source/Assimil8or/Preset/PresetHelpers.h"/>
           <GROUP id="{0055013E-0772-F469-C083-194778EF0E95}" name="Data">
             <FILE id="krTGci" name="DefaultPreset.xml" compile="0" resource="1"
                   file="Source/Assimil8or/Preset/Data/DefaultPreset.xml"/>

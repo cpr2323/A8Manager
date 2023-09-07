@@ -227,7 +227,7 @@ double ChannelEditor::snapEnvelopeValue (double rawValue)
     return static_cast<double> (static_cast<uint32_t> (rawValue * scalerValue)) / scalerValue;
 }
 
-double ChannelEditor::snapBits (double rawValue)
+double ChannelEditor::snapBitsValue (double rawValue)
 {
     const auto scalerValue = [rawValue] ()
     {
@@ -536,7 +536,7 @@ void ChannelEditor::setupChannelComponents ()
     },
     [this] (juce::String text)
     {
-        const auto bits { snapBits (std::clamp (text.getDoubleValue (), minChannelProperties.getBits (), maxChannelProperties.getBits ())) };
+        const auto bits { snapBitsValue (std::clamp (text.getDoubleValue (), minChannelProperties.getBits (), maxChannelProperties.getBits ())) };
         bitsUiChanged (bits);
         bitsTextEditor.setText (FormatHelpers::formatDouble (bits, 1, false));
     });
@@ -816,6 +816,19 @@ int ChannelEditor::getNumUsedZones ()
     return numUsedZones;
 };
 
+std::tuple<double, double> ChannelEditor::getVoltageBoundaries (int zoneIndex, int topDepth)
+    {
+        auto topBoundary { 5.0 };
+        auto bottomBoundary { -5.0 };
+
+        // neither index 0 or 1 can look at the 'top boundary' index (ie. index - 2, the previous previous one)
+        if (zoneIndex > topDepth)
+            topBoundary = zoneProperties [zoneIndex - topDepth - 1].getMinVoltage ();
+        if (zoneIndex < getNumUsedZones ())
+            bottomBoundary = zoneProperties [zoneIndex + 1].getMinVoltage ();
+        return { topBoundary, bottomBoundary };
+    };
+
 void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree rootPropertiesVT)
 {
     RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
@@ -825,18 +838,6 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
     auto zoneEditorIndex { 0 };
     channelProperties.forEachZone ([this, &zoneEditorIndex, rootPropertiesVT] (juce::ValueTree zonePropertiesVT)
     {
-        auto getVoltageBoundaries = [this] (int zoneIndex, int topDepth)
-        {
-            auto topBoundary { 5.0 };
-            auto bottomBoundary { -5.0 };
-
-            // neither index 0 or 1 can look at the 'top boundary' index (ie. index - 2, the previous previous one)
-            if (zoneIndex > topDepth)
-                topBoundary = zoneProperties [zoneIndex - topDepth - 1].getMinVoltage ();
-            if (zoneIndex < getNumUsedZones ())
-                bottomBoundary = zoneProperties [zoneIndex + 1].getMinVoltage ();
-            return std::tuple<double, double> { topBoundary, bottomBoundary };
-        };
         // Zone Editor setup
         zoneEditors [zoneEditorIndex].init (zonePropertiesVT, rootPropertiesVT);
         zoneEditors [zoneEditorIndex].displayToolsMenu = [this] (int zoneIndex)
@@ -849,24 +850,41 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
 
             juce::PopupMenu pm;
             pm.addSubMenu ("Balance", pmBalance, true);
-            if (zoneProperties [zoneIndex].getSample ().isNotEmpty ())
+            pm.addItem ("Copy", true, false, [this, zoneIndex] ()
             {
-                pm.addItem ("Delete", true, false, [this, zoneIndex] ()
+                copyBufferZoneProperties.copyFrom (zoneProperties [zoneIndex].getValueTree ());
+                copyBufferActive = true;
+            });
+            pm.addItem ("Paste", copyBufferActive, false, [this, zoneIndex] ()
+            {
+                const auto numZones { getNumUsedZones () };
+                zoneProperties [zoneIndex].copyFrom (copyBufferZoneProperties.getValueTree ());
+                // if this was on the end of the zone list, make sure it's minVoltage is set to -5
+                if (zoneIndex == numZones)
                 {
-                    zoneProperties [zoneIndex].setSample ("", true);
-                    zoneProperties [zoneIndex].copyFrom (defaultZoneProperties.getValueTree ());
-                    // if this zone was the last in the list, but not also the first, then set the minVoltage for the new last in list to -5
-                    if (zoneIndex == getNumUsedZones () && zoneIndex != 0)
-                        zoneProperties [zoneIndex - 1].setMinVoltage (-5.0, false);
-                    removeEmptyZones ();
-                    ensureProperZoneIsSelected ();
-                    updateAllZoneTabNames ();
-                });
-            }
+                    auto [topBoundary, bottomBoundary] { getVoltageBoundaries (zoneIndex, 1) };
+                    zoneProperties [zoneIndex - 1].setMinVoltage (bottomBoundary + ((topBoundary - bottomBoundary) / 2), false);
+                    zoneProperties [zoneIndex].setMinVoltage (-5.0, false);
+                }
+                updateAllZoneTabNames ();
+                ensureProperZoneIsSelected ();
+            });
+            pm.addItem ("Delete", zoneProperties [zoneIndex].getSample ().isNotEmpty (), false, [this, zoneIndex] ()
+            {
+                // TODO - this setSample call seems redundant with the follow copyFrom call
+                zoneProperties [zoneIndex].setSample ("", true);
+                zoneProperties [zoneIndex].copyFrom (defaultZoneProperties.getValueTree ());
+                // if this zone was the last in the list, but not also the first, then set the minVoltage for the new last in list to -5
+                if (zoneIndex == getNumUsedZones () && zoneIndex != 0)
+                    zoneProperties [zoneIndex - 1].setMinVoltage (-5.0, false);
+                removeEmptyZones ();
+                ensureProperZoneIsSelected ();
+                updateAllZoneTabNames ();
+            });
             pm.showMenuAsync ({}, [this] (int) {});
 
         };
-        zoneEditors [zoneEditorIndex].isMinVoltageInRange = [this, zoneEditorIndex, getVoltageBoundaries] (double voltage)
+        zoneEditors [zoneEditorIndex].isMinVoltageInRange = [this, zoneEditorIndex] (double voltage)
         {
             const auto numUsedZones { getNumUsedZones () };
             if (zoneEditorIndex + 1 == numUsedZones)
@@ -879,27 +897,29 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
             }
             else
             {
-                const auto [topBoundary, bottomBoundary] { getVoltageBoundaries (zoneEditorIndex, 0) };
+                auto [topBoundary, bottomBoundary] { getVoltageBoundaries (zoneEditorIndex, 0) };
                 return voltage > bottomBoundary && voltage < topBoundary;
             }
         };
-        zoneEditors [zoneEditorIndex].clampMinVoltage = [this, zoneEditorIndex, getVoltageBoundaries] (double voltage)
+        zoneEditors [zoneEditorIndex].clampMinVoltage = [this, zoneEditorIndex] (double voltage)
         {
             auto [topBoundary, bottomBoundary] { getVoltageBoundaries (zoneEditorIndex, 0) };
             return std::clamp (voltage, bottomBoundary + 0.01, topBoundary - 0.01);
         };
-        zoneEditors [zoneEditorIndex].onSampleChange = [this, zoneEditorIndex, getVoltageBoundaries] (juce::String sampleFileName)
+        zoneEditors [zoneEditorIndex].onSampleChange = [this, zoneEditorIndex] (juce::String sampleFileName)
         {
             if (sampleFileName.isEmpty ())
             {
             }
             else if (zoneProperties [zoneEditorIndex].getSample ().isEmpty ())
             {
-                // if this zone is empty when assigning the sample, we need to initialize the minVoltage value
-                // we also know this is the last zone in the list, as that is the only place one can insert a new sample
-                auto [topBoundary, bottomBoundary] { getVoltageBoundaries (zoneEditorIndex, 1) };
                 if (zoneEditorIndex > 0)
+                {
+                    // if this zone is empty when assigning the sample, we need to initialize the minVoltage value
+                    // we also know this is the last zone in the list, as that is the only place one can insert a new sample
+                    auto [topBoundary, bottomBoundary] { getVoltageBoundaries (zoneEditorIndex, 1) };
                     zoneProperties [zoneEditorIndex - 1].setMinVoltage (bottomBoundary + ((topBoundary - bottomBoundary) / 2), false);
+                }
                 zoneProperties [zoneEditorIndex].setMinVoltage (-5.0, false);
             }
             ensureProperZoneIsSelected ();
