@@ -155,6 +155,7 @@ public:
     void forEachZone (std::function<bool (juce::ValueTree zoneVT)> zoneVTCallback);
     juce::ValueTree getZoneVT (int zoneIndex);
 
+    void copyFrom (juce::ValueTree sourceVT);
     static juce::ValueTree create (int id);
     static juce::String getCvInputAndValueString (juce::String cvInput, double value, int decimalPlaces);
     static juce::String getCvInputAndValueString (CvInputAndAmount cvInputAndValue, int decimalPlaces);

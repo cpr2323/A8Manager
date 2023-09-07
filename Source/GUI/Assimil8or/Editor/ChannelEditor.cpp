@@ -1,6 +1,7 @@
 #include "ChannelEditor.h"
 #include "FormatHelpers.h"
 #include "ParameterToolTipData.h"
+#include "../../../Assimil8or/Preset/PresetHelpers.h"
 #include "../../../Assimil8or/Preset/PresetProperties.h"
 #include "../../../Assimil8or/Preset/ParameterPresetsSingleton.h"
 #include "../../../Utility/RuntimeRootProperties.h"
@@ -94,6 +95,13 @@ ChannelEditor::ChannelEditor ()
         defaultZoneProperties.wrap (defaultChannelProperties.getZoneVT (0), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
     }
 
+    toolsButton.setButtonText ("TOOLS");
+    toolsButton.onClick = [this] ()
+    {
+        if (displayToolsMenu != nullptr)
+            displayToolsMenu (channelProperties.getId () - 1);
+    };
+    addAndMakeVisible (toolsButton);
     setupChannelComponents ();
     updateAllZoneTabNames ();
     addChildComponent (stereoRightTransparantOverly);
@@ -940,48 +948,42 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
         return true;
     });
 
-    auto splitAndPassAsParams = [] (CvInputAndAmount amountAndCvInput, std::function<void (juce::String,double)> setter)
-    {
-        jassert (setter != nullptr);
-        const auto& [cvInput, value] { amountAndCvInput };
-        setter (cvInput, value);
-    };
     aliasingDataChanged (channelProperties.getAliasing ());
-    splitAndPassAsParams (channelProperties.getAliasingMod (), [this] (juce::String cvInput, double value) { aliasingModDataChanged (cvInput, value); });
+    PresetHelpers::setCvInputAndAmount (channelProperties.getAliasingMod (), [this] (juce::String cvInput, double value) { aliasingModDataChanged (cvInput, value); });
     attackDataChanged (channelProperties.getAttack ());
     attackFromCurrentDataChanged (channelProperties.getAttackFromCurrent ());
-    splitAndPassAsParams (channelProperties.getAttackMod (), [this] (juce::String cvInput, double value) { attackModDataChanged (cvInput, value); });
+    PresetHelpers::setCvInputAndAmount (channelProperties.getAttackMod (), [this] (juce::String cvInput, double value) { attackModDataChanged (cvInput, value); });
     autoTriggerDataChanged (channelProperties.getAutoTrigger ());
     bitsDataChanged (channelProperties.getBits ());
-    splitAndPassAsParams (channelProperties.getBitsMod (), [this] (juce::String cvInput, double value) { bitsModDataChanged (cvInput, value); });
+    PresetHelpers::setCvInputAndAmount (channelProperties.getBitsMod (), [this] (juce::String cvInput, double value) { bitsModDataChanged (cvInput, value); });
     channelModeDataChanged (channelProperties.getChannelMode ());
-    splitAndPassAsParams (channelProperties.getExpAM (), [this] (juce::String cvInput, double value) { expAMDataChanged (cvInput, value); });
-    splitAndPassAsParams (channelProperties.getExpFM (), [this] (juce::String cvInput, double value) { expFMDataChanged (cvInput, value); });
+    PresetHelpers::setCvInputAndAmount (channelProperties.getExpAM (), [this] (juce::String cvInput, double value) { expAMDataChanged (cvInput, value); });
+    PresetHelpers::setCvInputAndAmount (channelProperties.getExpFM (), [this] (juce::String cvInput, double value) { expFMDataChanged (cvInput, value); });
     levelDataChanged (channelProperties.getLevel ());
-    splitAndPassAsParams (channelProperties.getLinAM (), [this] (juce::String cvInput, double value) { linAMDataChanged (cvInput, value); });
+    PresetHelpers::setCvInputAndAmount (channelProperties.getLinAM (), [this] (juce::String cvInput, double value) { linAMDataChanged (cvInput, value); });
     linAMisExtEnvDataChanged (channelProperties.getLinAMisExtEnv ());
-    splitAndPassAsParams (channelProperties.getLinFM (), [this] (juce::String cvInput, double value) { linFMDataChanged (cvInput, value); });
+    PresetHelpers::setCvInputAndAmount (channelProperties.getLinFM (), [this] (juce::String cvInput, double value) { linFMDataChanged (cvInput, value); });
     loopLengthIsEndDataChanged (channelProperties.getLoopLengthIsEnd ());
-    splitAndPassAsParams (channelProperties.getLoopLengthMod (), [this] (juce::String cvInput, double value) { loopLengthModDataChanged (cvInput, value); });
+    PresetHelpers::setCvInputAndAmount (channelProperties.getLoopLengthMod (), [this] (juce::String cvInput, double value) { loopLengthModDataChanged (cvInput, value); });
     loopModeDataChanged (channelProperties.getLoopMode ());
-    splitAndPassAsParams (channelProperties.getLoopStartMod (), [this] (juce::String cvInput, double value) { loopStartModDataChanged (cvInput, value); });
+    PresetHelpers::setCvInputAndAmount (channelProperties.getLoopStartMod (), [this] (juce::String cvInput, double value) { loopStartModDataChanged (cvInput, value); });
     mixLevelDataChanged (channelProperties.getMixLevel ());
-    splitAndPassAsParams (channelProperties.getMixMod (), [this] (juce::String cvInput, double value) { mixModDataChanged (cvInput, value); });
+    PresetHelpers::setCvInputAndAmount (channelProperties.getMixMod (), [this] (juce::String cvInput, double value) { mixModDataChanged (cvInput, value); });
     mixModIsFaderDataChanged (channelProperties.getMixModIsFader ());
     panDataChanged (channelProperties.getPan ());
-    splitAndPassAsParams (channelProperties.getPanMod (), [this] (juce::String cvInput, double value) { panModDataChanged (cvInput, value); });
-    splitAndPassAsParams (channelProperties.getPhaseCV (), [this] (juce::String cvInput, double value) { phaseCVDataChanged (cvInput, value); });
+    PresetHelpers::setCvInputAndAmount (channelProperties.getPanMod (), [this] (juce::String cvInput, double value) { panModDataChanged (cvInput, value); });
+    PresetHelpers::setCvInputAndAmount (channelProperties.getPhaseCV (), [this] (juce::String cvInput, double value) { phaseCVDataChanged (cvInput, value); });
     pitchDataChanged (channelProperties.getPitch ());
-    splitAndPassAsParams (channelProperties.getPitchCV (), [this] (juce::String cvInput, double value) { pitchCVDataChanged (cvInput, value); });
+    PresetHelpers::setCvInputAndAmount (channelProperties.getPitchCV (), [this] (juce::String cvInput, double value) { pitchCVDataChanged (cvInput, value); });
     playModeDataChanged (channelProperties.getPlayMode ());
     pMIndexDataChanged (channelProperties.getPMIndex ());
-    splitAndPassAsParams (channelProperties.getPMIndexMod (), [this] (juce::String cvInput, double value) { pMIndexModDataChanged (cvInput, value); });
+    PresetHelpers::setCvInputAndAmount (channelProperties.getPMIndexMod (), [this] (juce::String cvInput, double value) { pMIndexModDataChanged (cvInput, value); });
     pMSourceDataChanged (channelProperties.getPMSource ());
     releaseDataChanged (channelProperties.getRelease ());
-    splitAndPassAsParams (channelProperties.getReleaseMod (), [this] (juce::String cvInput, double value) { releaseModDataChanged (cvInput, value); });
+    PresetHelpers::setCvInputAndAmount (channelProperties.getReleaseMod (), [this] (juce::String cvInput, double value) { releaseModDataChanged (cvInput, value); });
     reverseDataChanged (channelProperties.getReverse ());
-    splitAndPassAsParams (channelProperties.getSampleStartMod (), [this] (juce::String cvInput, double value) { sampleStartModDataChanged (cvInput, value); });
-    splitAndPassAsParams (channelProperties.getSampleEndMod (), [this] (juce::String cvInput, double value) { sampleEndModDataChanged (cvInput, value); });
+    PresetHelpers::setCvInputAndAmount (channelProperties.getSampleStartMod (), [this] (juce::String cvInput, double value) { sampleStartModDataChanged (cvInput, value); });
+    PresetHelpers::setCvInputAndAmount (channelProperties.getSampleEndMod (), [this] (juce::String cvInput, double value) { sampleEndModDataChanged (cvInput, value); });
     spliceSmoothingDataChanged (channelProperties.getSpliceSmoothing ());
     xfadeGroupDataChanged (channelProperties.getXfadeGroup ());
     zonesCVDataChanged (channelProperties.getZonesCV ());
@@ -1293,6 +1295,9 @@ void ChannelEditor::resized ()
 
     // this is the overlay that is used to indicate a channel is in Stereo/Right mode
     stereoRightTransparantOverly.setBounds (getLocalBounds ());
+
+    if (displayToolsMenu != nullptr)
+        toolsButton.setBounds (5, getHeight () - 5 - 20, 40, 20);
 
     // layout the Zones section. ie. the tabs and the channel level controls
     auto zoneColumn {getLocalBounds ().removeFromRight (200)};

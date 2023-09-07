@@ -38,6 +38,9 @@ Assimil8orEditorComponent::Assimil8orEditorComponent ()
                               PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
     maxPresetProperties.wrap (ParameterPresetsSingleton::getInstance ()->getParameterPresetListProperties ().getParameterPreset (ParameterPresetListProperties::MaxParameterPresetType),
                               PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
+    PresetProperties defaultPresetProperties (ParameterPresetsSingleton::getInstance ()->getParameterPresetListProperties ().getParameterPreset (ParameterPresetListProperties::DefaultParameterPresetType),
+                                              PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
+    defaultChannelProperties.wrap (defaultPresetProperties.getChannelVT (0), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
 
      setupPresetComponents ();
 
@@ -180,6 +183,25 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
     presetProperties.forEachChannel ([this, &channelEditorIndex, rootPropertiesVT] (juce::ValueTree channelPropertiesVT)
     {
         channelEditors [channelEditorIndex].init (channelPropertiesVT, rootPropertiesVT);
+        channelEditors [channelEditorIndex].displayToolsMenu = [this] (int channelIndex)
+        {
+            juce::PopupMenu pm;
+            pm.addItem ("Copy", true, false, [this, channelIndex] ()
+            {
+                copyBufferChannelProperties.copyFrom (channelProperties [channelIndex].getValueTree ());
+                copyBufferActive = true;
+            });
+            pm.addItem ("Paste", copyBufferActive, false, [this, channelIndex] ()
+            {
+                channelProperties [channelIndex].copyFrom (copyBufferChannelProperties.getValueTree ());
+            });
+            pm.addItem ("Clear", true, false, [this, channelIndex] ()
+            {
+                channelProperties [channelIndex].copyFrom (defaultChannelProperties.getValueTree ());
+            });
+            pm.showMenuAsync ({}, [this] (int) {});
+        };
+
         channelProperties [channelEditorIndex].wrap (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::yes);
         channelProperties [channelEditorIndex].onChannelModeChange = [this, channelEditorIndex] (int)
         {

@@ -65,8 +65,6 @@ public:
     void initValueTree () {}
     void processValueTree () {}
 
-    static void copyTreeProperties (juce::ValueTree source, juce::ValueTree destination);
-
 private:
 
     void valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property) override;

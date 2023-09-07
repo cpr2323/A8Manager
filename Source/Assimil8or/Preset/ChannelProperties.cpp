@@ -1,4 +1,5 @@
 #include "ChannelProperties.h"
+#include "../../Assimil8or/Preset/PresetHelpers.h"
 
 int ChannelProperties::getNumZones ()
 {
@@ -40,6 +41,51 @@ juce::ValueTree ChannelProperties::getZoneVT (int zoneIndex)
     });
     jassert (requestedChannelVT.isValid ());
     return requestedChannelVT;
+}
+
+void ChannelProperties::copyFrom (juce::ValueTree sourceVT)
+{
+    ChannelProperties sourceChannelProperties (sourceVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
+    setAliasing (sourceChannelProperties.getAliasing (), false);
+    PresetHelpers::setCvInputAndAmount (sourceChannelProperties.getAliasingMod (), [this] (juce::String cvInput, double amount) {setAliasingMod (cvInput, amount, false); });
+    setAttack (sourceChannelProperties.getAttack (), false);
+    setAttackFromCurrent (sourceChannelProperties.getAttackFromCurrent (), false);
+    PresetHelpers::setCvInputAndAmount (sourceChannelProperties.getAttackMod (), [this] (juce::String cvInput, double amount) {setAttackMod (cvInput, amount, false); });
+    setAutoTrigger (sourceChannelProperties.getAutoTrigger (), false);
+    setBits (sourceChannelProperties.getBits (), false);
+    PresetHelpers::setCvInputAndAmount (sourceChannelProperties.getBitsMod (), [this] (juce::String cvInput, double amount) {setBitsMod (cvInput, amount, false); });
+    setChannelMode (sourceChannelProperties.getChannelMode (), false);
+    PresetHelpers::setCvInputAndAmount (sourceChannelProperties.getExpAM (), [this] (juce::String cvInput, double amount) {setExpAM (cvInput, amount, false); });
+    PresetHelpers::setCvInputAndAmount (sourceChannelProperties.getExpFM (), [this] (juce::String cvInput, double amount) {setExpFM (cvInput, amount, false); });
+    setLevel (sourceChannelProperties.getLevel (), false);
+    PresetHelpers::setCvInputAndAmount (sourceChannelProperties.getLinAM (), [this] (juce::String cvInput, double amount) {setLinAM (cvInput, amount, false); });
+    setLinAMisExtEnv (sourceChannelProperties.getLinAMisExtEnv (), false);
+    PresetHelpers::setCvInputAndAmount (sourceChannelProperties.getLinFM (), [this] (juce::String cvInput, double amount) {setLinFM (cvInput, amount, false); });
+    setLoopLengthIsEnd (sourceChannelProperties.getLoopLengthIsEnd (), false);
+    PresetHelpers::setCvInputAndAmount (sourceChannelProperties.getLoopLengthMod (), [this] (juce::String cvInput, double amount) {setLoopLengthMod (cvInput, amount, false); });
+    setLoopMode (sourceChannelProperties.getLoopMode (), false);
+    PresetHelpers::setCvInputAndAmount (sourceChannelProperties.getLoopStartMod (), [this] (juce::String cvInput, double amount) {setLoopStartMod (cvInput, amount, false); });
+    setMixLevel (sourceChannelProperties.getMixLevel (), false);
+    PresetHelpers::setCvInputAndAmount (sourceChannelProperties.getMixMod (), [this] (juce::String cvInput, double amount) {setMixMod (cvInput, amount, false); });
+    setMixModIsFader (sourceChannelProperties.getMixModIsFader (), false);
+    setPan (sourceChannelProperties.getPan (), false);
+    PresetHelpers::setCvInputAndAmount (sourceChannelProperties.getPanMod (), [this] (juce::String cvInput, double amount) {setPanMod (cvInput, amount, false); });
+    PresetHelpers::setCvInputAndAmount (sourceChannelProperties.getPhaseCV (), [this] (juce::String cvInput, double amount) {setPhaseCV (cvInput, amount, false); });
+    setPitch (sourceChannelProperties.getPitch (), false);
+    PresetHelpers::setCvInputAndAmount (sourceChannelProperties.getPitchCV (), [this] (juce::String cvInput, double amount) {setPitchCV (cvInput, amount, false); });
+    setPlayMode (sourceChannelProperties.getPlayMode (), false);
+    setPMIndex (sourceChannelProperties.getPMIndex (), false);
+    PresetHelpers::setCvInputAndAmount (sourceChannelProperties.getPMIndexMod (), [this] (juce::String cvInput, double amount) {setPMIndexMod (cvInput, amount, false); });
+    setPMSource (sourceChannelProperties.getPMSource (), false);
+    setRelease (sourceChannelProperties.getRelease (), false);
+    PresetHelpers::setCvInputAndAmount (sourceChannelProperties.getReleaseMod (), [this] (juce::String cvInput, double amount) {setReleaseMod (cvInput, amount, false); });
+    setReverse (sourceChannelProperties.getReverse (), false);
+    PresetHelpers::setCvInputAndAmount (sourceChannelProperties.getSampleStartMod (), [this] (juce::String cvInput, double amount) {setSampleStartMod (cvInput, amount, false); });
+    PresetHelpers::setCvInputAndAmount (sourceChannelProperties.getSampleEndMod (), [this] (juce::String cvInput, double amount) {setSampleEndMod (cvInput, amount, false); });
+    setSpliceSmoothing (sourceChannelProperties.getSpliceSmoothing (), false);
+    setXfadeGroup (sourceChannelProperties.getXfadeGroup (), false);
+    setZonesCV (sourceChannelProperties.getZonesCV (), false);
+    setZonesRT (sourceChannelProperties.getZonesRT (), false);
 }
 
 juce::String ChannelProperties::getCvInputAndValueString (juce::String cvInput, double value, int decimalPlaces)

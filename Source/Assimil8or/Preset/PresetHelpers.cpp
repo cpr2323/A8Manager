@@ -2,6 +2,13 @@
 
 namespace PresetHelpers
 {
+    void setCvInputAndAmount (CvInputAndAmount cvInputAndAmount, std::function<void (juce::String, double)> setter)
+    {
+        jassert (setter != nullptr);
+        const auto& [cvInput, value] { cvInputAndAmount };
+        setter (cvInput, value);
+    };
+
     // TODO - add options to check Preset Id as well
     bool areEntirePresetsEqual (juce::ValueTree presetOneVT, juce::ValueTree presetTwoVT)
     {

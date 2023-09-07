@@ -37,6 +37,9 @@ private:
     PresetProperties unEditedPresetProperties;
     PresetProperties minPresetProperties;
     PresetProperties maxPresetProperties;
+    ChannelProperties defaultChannelProperties;
+    ChannelProperties copyBufferChannelProperties;
+    bool copyBufferActive { false };
 
     juce::Label titleLabel;
     juce::TextButton saveButton;

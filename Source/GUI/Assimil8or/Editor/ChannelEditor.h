@@ -146,6 +146,8 @@ public:
     void init (juce::ValueTree channelPropertiesVT, juce::ValueTree rootPropertiesVT);
     void receiveSampleLoadRequest (juce::File sampleFile);
 
+    std::function<void (int channelIndex)> displayToolsMenu;
+
 private:
     enum class VoltageBalanceType
     {
@@ -165,6 +167,7 @@ private:
     juce::Label zonesLabel;
     juce::Label zoneMaxVoltage;
     juce::TabbedComponent zoneTabs { juce::TabbedButtonBar::Orientation::TabsAtLeft };
+    juce::TextButton toolsButton;
 
     juce::Label aliasingLabel;
     juce::TextEditor aliasingTextEditor; // integer
