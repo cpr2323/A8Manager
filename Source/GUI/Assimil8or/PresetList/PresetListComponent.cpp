@@ -15,6 +15,7 @@
 
 PresetListComponent::PresetListComponent () : Thread ("PresetListComponent")
 {
+    showAllPresets.setToggleState (true, juce::NotificationType::dontSendNotification);
     showAllPresets.onClick = [this] () { checkForPresets (false); };
     addAndMakeVisible (showAllPresets);
     showAllPresets.setButtonText ("Show All");
@@ -88,8 +89,7 @@ void PresetListComponent::forEachPresetFile (std::function<bool (juce::File pres
     jassert (presetFileCallback != nullptr);
     for (auto presetIndex { 0 }; presetIndex < kMaxPresets && ! shouldCancelOperation (); ++presetIndex)
     {
-        auto presetFile { rootFolder.getChildFile (getPresetName (presetIndex)).withFileExtension (".yml") };
-        if (! presetFileCallback (presetFile, presetIndex))
+        if (! presetFileCallback (getPresetFile (presetIndex), presetIndex))
             break;
     }
 }
@@ -164,9 +164,8 @@ juce::String PresetListComponent::getPresetName (int presetIndex)
     return "prst" + presetIndexString;
 }
 
-void PresetListComponent::loadPreset (juce::File presetFile)
+void PresetListComponent::loadPresetFile (juce::File presetFile, juce::ValueTree presetPropertiesVT)
 {
-    jassert (presetProperties.isValid ());
     juce::StringArray fileContents;
     presetFile.readLines (fileContents);
 
@@ -174,8 +173,13 @@ void PresetListComponent::loadPreset (juce::File presetFile)
     assimil8orPreset.parse (fileContents);
 
     PresetProperties::copyTreeProperties (ParameterPresetsSingleton::getInstance ()->getParameterPresetListProperties ().getParameterPreset (ParameterPresetListProperties::DefaultParameterPresetType),
-                                          presetProperties.getValueTree ());
-    PresetProperties::copyTreeProperties (assimil8orPreset.getPresetVT (), presetProperties.getValueTree ());
+                                          presetPropertiesVT);
+    PresetProperties::copyTreeProperties (assimil8orPreset.getPresetVT (), presetPropertiesVT);
+}
+
+void PresetListComponent::loadPreset (juce::File presetFile)
+{
+    loadPresetFile (presetFile, presetProperties.getValueTree ());
     PresetProperties::copyTreeProperties (presetProperties.getValueTree (), unEditedPresetProperties.getValueTree ());
 }
 
@@ -226,16 +230,42 @@ juce::String PresetListComponent::getTooltipForRow (int row)
 
 void PresetListComponent::copyPreset (int presetNumber)
 {
+    loadPresetFile (getPresetFile (presetNumber), copyBufferPresetProperties.getValueTree ());
 }
 
 void PresetListComponent::pastePreset (int presetNumber)
 {
+    Assimil8orPreset assimil8orPreset;
+    PresetProperties::copyTreeProperties (copyBufferPresetProperties.getValueTree (), assimil8orPreset.getPresetVT ());
+    assimil8orPreset.write (getPresetFile (presetNumber));
+    auto [lastSelectedPresetNumber, _] = presetExists [lastSelectedRow];
+    if (presetNumber == lastSelectedPresetNumber)
+    {
+        PresetProperties::copyTreeProperties (copyBufferPresetProperties.getValueTree (), unEditedPresetProperties.getValueTree ());
+        PresetProperties::copyTreeProperties (copyBufferPresetProperties.getValueTree (), presetProperties.getValueTree ());
+    }
 }
 
 void PresetListComponent::deletePreset (int presetNumber)
 {
+    juce::AlertWindow::showOkCancelBox (juce::AlertWindow::WarningIcon, "DELETE PRESET", "Are you sure you want to '" + getPresetName(presetNumber) + "'", "YES", "NO", nullptr,
+        juce::ModalCallbackFunction::create ([this, presetNumber, presetFile = getPresetFile (presetNumber)] (int option)
+        {
+            if (option == 0) // no
+                return;
+            presetFile.deleteFile ();
+            // TODO handle delete error
+            auto [lastSelectedPresetNumber, _] = presetExists [lastSelectedRow];
+            if (presetNumber == lastSelectedPresetNumber)
+                PresetProperties::copyTreeProperties (ParameterPresetsSingleton::getInstance ()->getParameterPresetListProperties ().getParameterPreset (ParameterPresetListProperties::DefaultParameterPresetType),
+                                                      unEditedPresetProperties.getValueTree ());
+        }));
 }
 
+juce::File PresetListComponent::getPresetFile (int presetNumber)
+{
+    return rootFolder.getChildFile (getPresetName (presetNumber)).withFileExtension (".yml");
+}
 
 void PresetListComponent::listBoxItemClicked (int row, [[maybe_unused]] const juce::MouseEvent& me)
 {
@@ -243,12 +273,12 @@ void PresetListComponent::listBoxItemClicked (int row, [[maybe_unused]] const ju
     {
         presetListBox.selectRow (lastSelectedRow, false, true);
         const auto [presetNumber, thisPresetExists] { presetExists [row] };
-        auto presetFile { rootFolder.getChildFile (getPresetName (presetNumber)).withFileExtension (".yml") };
+        //auto presetFile { rootFolder.getChildFile (getPresetName (presetNumber)).withFileExtension (".yml") };
 
         juce::PopupMenu pm;
-        pm.addSectionHeader ("Preset " + juce::String(presetNumber + 1));
+        pm.addSectionHeader ("Preset " + juce::String (presetNumber + 1));
         pm.addItem ("Copy", thisPresetExists, false, [this, presetNumber = presetNumber] () { copyPreset (presetNumber); });
-        pm.addItem ("Paste", copyBuffer.getName ().isNotEmpty(), false, [this, presetNumber = presetNumber] () { pastePreset (presetNumber); });
+        pm.addItem ("Paste", copyBufferPresetProperties.getName ().isNotEmpty(), false, [this, presetNumber = presetNumber] () { pastePreset (presetNumber); });
         pm.addItem ("Delete", thisPresetExists, false, [this, presetNumber = presetNumber] () { deletePreset (presetNumber); });
         pm.showMenuAsync ({}, [this] (int) {});
     }
@@ -258,17 +288,17 @@ void PresetListComponent::listBoxItemClicked (int row, [[maybe_unused]] const ju
             return;
 
         auto completeSelection = [this, row] ()
-            {
-                const auto [presetNumber, thisPresetExists] = presetExists [row];
-                auto presetFile { juce::File (appProperties.getMostRecentFolder ()).getChildFile (getPresetName (presetNumber)).withFileExtension (".yml") };
-                if (thisPresetExists)
-                    loadPreset (presetFile);
-                else
-                    loadDefault (row);
-                presetListBox.selectRow (row, false, true);
-                presetListBox.scrollToEnsureRowIsOnscreen (row);
-                appProperties.addRecentlyUsedFile (presetFile.getFullPathName ());
-            };
+        {
+            const auto [presetNumber, thisPresetExists] = presetExists [row];
+            auto presetFile { getPresetFile (presetNumber) };
+            if (thisPresetExists)
+                loadPreset (presetFile);
+            else
+                loadDefault (row);
+            presetListBox.selectRow (row, false, true);
+            presetListBox.scrollToEnsureRowIsOnscreen (row);
+            appProperties.addRecentlyUsedFile (presetFile.getFullPathName ());
+        };
 
         if (overwritePresetOrCancel != nullptr)
         {
