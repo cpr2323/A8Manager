@@ -235,20 +235,39 @@ void PresetListComponent::copyPreset (int presetNumber)
 
 void PresetListComponent::pastePreset (int presetNumber)
 {
-    Assimil8orPreset assimil8orPreset;
-    PresetProperties::copyTreeProperties (copyBufferPresetProperties.getValueTree (), assimil8orPreset.getPresetVT ());
-    assimil8orPreset.write (getPresetFile (presetNumber));
-    auto [lastSelectedPresetNumber, _] = presetExists [lastSelectedRow];
-    if (presetNumber == lastSelectedPresetNumber)
+    auto doPaste = [this, presetNumber] ()
     {
-        PresetProperties::copyTreeProperties (copyBufferPresetProperties.getValueTree (), unEditedPresetProperties.getValueTree ());
-        PresetProperties::copyTreeProperties (copyBufferPresetProperties.getValueTree (), presetProperties.getValueTree ());
+        Assimil8orPreset assimil8orPreset;
+        PresetProperties::copyTreeProperties (copyBufferPresetProperties.getValueTree (), assimil8orPreset.getPresetVT ());
+        assimil8orPreset.write (getPresetFile (presetNumber));
+        auto [lastSelectedPresetNumber, _] = presetExists [lastSelectedRow];
+        if (presetNumber == lastSelectedPresetNumber)
+        {
+            PresetProperties::copyTreeProperties (copyBufferPresetProperties.getValueTree (), unEditedPresetProperties.getValueTree ());
+            PresetProperties::copyTreeProperties (copyBufferPresetProperties.getValueTree (), presetProperties.getValueTree ());
+        }
+    };
+
+    auto [_, thisPresetExists] = presetExists [lastSelectedRow];
+    if (thisPresetExists)
+    {
+        juce::AlertWindow::showOkCancelBox (juce::AlertWindow::WarningIcon, "OVERWRITE PRESET", "Are you sure you want to overwrite '" + getPresetName (presetNumber) + "'", "YES", "NO", nullptr,
+            juce::ModalCallbackFunction::create ([this, doPaste] (int option)
+            {
+                if (option == 0) // no
+                    return;
+                doPaste ();
+            }));
+    }
+    else
+    {
+        doPaste ();
     }
 }
 
 void PresetListComponent::deletePreset (int presetNumber)
 {
-    juce::AlertWindow::showOkCancelBox (juce::AlertWindow::WarningIcon, "DELETE PRESET", "Are you sure you want to '" + getPresetName(presetNumber) + "'", "YES", "NO", nullptr,
+    juce::AlertWindow::showOkCancelBox (juce::AlertWindow::WarningIcon, "DELETE PRESET", "Are you sure you want to delete '" + getPresetName(presetNumber) + "'", "YES", "NO", nullptr,
         juce::ModalCallbackFunction::create ([this, presetNumber, presetFile = getPresetFile (presetNumber)] (int option)
         {
             if (option == 0) // no
