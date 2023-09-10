@@ -272,6 +272,7 @@ private:
 
     void balanceVoltages (VoltageBalanceType balanceType);
     void checkStereoRightOverlay ();
+    void duplicateZone (int zoneIndex);
     void ensureProperZoneIsSelected ();
     int getEnvelopeValueResolution (double envelopeValue);
     int getNumUsedZones ();

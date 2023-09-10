@@ -123,12 +123,34 @@ ChannelEditor::~ChannelEditor ()
     zonesRTComboBox.setLookAndFeel (nullptr);
 }
 
+void ChannelEditor::duplicateZone (int zoneIndex)
+{
+    // if the list is full, we can't copy the end anywhere, so we'll start with the one before the end, otherwise start at the end
+    auto startingZoneIndex { getNumUsedZones () - (getNumUsedZones () == zoneProperties.size () ? 2 : 1) };
+    for (auto curZoneIndex { startingZoneIndex }; curZoneIndex >= zoneIndex; --curZoneIndex)
+    {
+        ZoneProperties destZoneProperties (channelProperties.getZoneVT (curZoneIndex + 1), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
+        destZoneProperties.copyFrom (channelProperties.getZoneVT (curZoneIndex));
+    }
+    // if our duplicated zone is not on the end, set the voltage 1/2 between it's neighbors
+    if (zoneIndex + 1 < getNumUsedZones () - 1)
+    {
+        auto [topBoundary, bottomBoundary] { getVoltageBoundaries (zoneIndex + 1, 0) };
+        zoneProperties [zoneIndex + 1].setMinVoltage (bottomBoundary + ((topBoundary - bottomBoundary) / 2), false);
+    }
+
+    // if the zone on the end does not have a -5 minVoltage, then set it to -5
+    const auto indexOfLastZone { getNumUsedZones () - 1 };
+    if (zoneProperties[indexOfLastZone].getMinVoltage() != -5.0)
+        zoneProperties [indexOfLastZone].setMinVoltage (-5.0, false);
+}
+
+// TODO - does this function really need to look for multiple empty zones? assuming it gets called when a zone is deleted, there should only be one
 void ChannelEditor::removeEmptyZones ()
 {
-    ZoneProperties curZoneProperties;
     for (auto zoneIndex { 0 }; zoneIndex < zoneTabs.getNumTabs () - 1; ++zoneIndex)
     {
-        curZoneProperties.wrap (channelProperties.getZoneVT (zoneIndex), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
+        ZoneProperties curZoneProperties (channelProperties.getZoneVT (zoneIndex), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
         if (curZoneProperties.getSample ().isEmpty ())
         {
             bool moveHappened { false };
@@ -832,7 +854,7 @@ std::tuple<double, double> ChannelEditor::getVoltageBoundaries (int zoneIndex, i
         // neither index 0 or 1 can look at the 'top boundary' index (ie. index - 2, the previous previous one)
         if (zoneIndex > topDepth)
             topBoundary = zoneProperties [zoneIndex - topDepth - 1].getMinVoltage ();
-        if (zoneIndex < getNumUsedZones ())
+        if (zoneIndex < getNumUsedZones () - 1)
             bottomBoundary = zoneProperties [zoneIndex + 1].getMinVoltage ();
         return { topBoundary, bottomBoundary };
     };
@@ -865,10 +887,9 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
             });
             pm.addItem ("Paste", copyBufferActive, false, [this, zoneIndex] ()
             {
-                const auto numZones { getNumUsedZones () };
                 zoneProperties [zoneIndex].copyFrom (copyBufferZoneProperties.getValueTree ());
                 // if this was on the end of the zone list, make sure it's minVoltage is set to -5
-                if (zoneIndex == numZones)
+                if (zoneIndex == getNumUsedZones ())
                 {
                     auto [topBoundary, bottomBoundary] { getVoltageBoundaries (zoneIndex, 1) };
                     zoneProperties [zoneIndex - 1].setMinVoltage (bottomBoundary + ((topBoundary - bottomBoundary) / 2), false);
@@ -886,6 +907,12 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
                 if (zoneIndex == getNumUsedZones () && zoneIndex != 0)
                     zoneProperties [zoneIndex - 1].setMinVoltage (-5.0, false);
                 removeEmptyZones ();
+                ensureProperZoneIsSelected ();
+                updateAllZoneTabNames ();
+            });
+            pm.addItem ("Insert", zoneProperties [zoneIndex].getSample ().isNotEmpty () && zoneIndex > 0 && zoneIndex < zoneProperties.size () - 1, false, [this, zoneIndex] ()
+            {
+                duplicateZone (zoneIndex);
                 ensureProperZoneIsSelected ();
                 updateAllZoneTabNames ();
             });
