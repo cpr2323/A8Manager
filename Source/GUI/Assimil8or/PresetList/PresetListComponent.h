@@ -31,6 +31,7 @@ private:
     juce::CriticalSection queuedFolderLock;
     juce::File queuedFolderToScan;
     std::atomic<bool> newItemQueued { false };
+    std::atomic<bool> newItemIsNewFolder { true };
     int lastSelectedRow { -1 };
 
     void copyPreset (int presetNumber);
@@ -45,7 +46,7 @@ private:
     void loadPreset (juce::File presetFile);
     void pastePreset (int presetNumber);
     bool shouldCancelOperation ();
-    void startScan (juce::File folderToScan);
+    void startScan (juce::File folderToScan, bool selectingNewFolder);
 
     void resized () override;
     int getNumRows () override;

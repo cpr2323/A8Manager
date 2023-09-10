@@ -16,7 +16,7 @@
 PresetListComponent::PresetListComponent () : Thread ("PresetListComponent")
 {
     showAllPresets.setToggleState (true, juce::NotificationType::dontSendNotification);
-    showAllPresets.onClick = [this] () { checkForPresets (false); };
+    showAllPresets.onClick = [this] () { startScan (appProperties.getMostRecentFolder (), false); };
     addAndMakeVisible (showAllPresets);
     showAllPresets.setButtonText ("Show All");
     addAndMakeVisible (presetListBox);
@@ -42,17 +42,18 @@ void PresetListComponent::init (juce::ValueTree rootPropertiesVT)
     appProperties.wrap (persistentRootProperties.getValueTree (), AppProperties::WrapperType::client, AppProperties::EnableCallbacks::yes);
     appProperties.onMostRecentFolderChange = [this] (juce::String folderName)
     {
-        startScan (juce::File (folderName));
+        startScan (juce::File (folderName), true);
     };
-    startScan (appProperties.getMostRecentFolder ());
+    startScan (appProperties.getMostRecentFolder (), true);
 }
 
-void PresetListComponent::startScan (juce::File folderToScan)
+void PresetListComponent::startScan (juce::File folderToScan, bool selectingNewFolder)
 {
     {
         juce::ScopedLock sl (queuedFolderLock);
         queuedFolderToScan = folderToScan;
         newItemQueued = true;
+        newItemIsNewFolder = selectingNewFolder;
         LogPresetList ("PresetListComponent::startScan: " + queuedFolderToScan.getFullPathName ());
     }
     notify ();
@@ -74,14 +75,13 @@ void PresetListComponent::run ()
             queuedFolderToScan = juce::File ();
             LogPresetList ("PresetListComponent::run: " + rootFolder.getFullPathName ());
         }
-        checkForPresets (true);
+        checkForPresets (newItemIsNewFolder);
     }
 }
 
 void PresetListComponent::timerCallback ()
 {
-    // TODO - this should run in the thread
-    checkForPresets (false);
+    startScan (appProperties.getMostRecentFolder (), false);
 }
 
 void PresetListComponent::forEachPresetFile (std::function<bool (juce::File presetFile, int index)> presetFileCallback)
@@ -109,8 +109,8 @@ void PresetListComponent::checkForPresets (bool newFolder)
             presetFile.readLines (fileContents);
             Assimil8orPreset assimil8orPreset;
             assimil8orPreset.parse (fileContents);
-            PresetProperties presetProperties (assimil8orPreset.getPresetVT (), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
-            presetName = presetProperties.getName ();
+            PresetProperties thisPresetProperties (assimil8orPreset.getPresetVT (), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
+            presetName = thisPresetProperties.getName ();
         }
         if (showAll || thisPresetExists)
         {
