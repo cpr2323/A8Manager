@@ -102,9 +102,19 @@ void PresetListComponent::checkForPresets (bool newFolder)
     forEachPresetFile ([this, showAll] (juce::File presetFile, int index)
     {
         auto thisPresetExists { presetFile.exists () };
+        juce::String presetName;
+        if (thisPresetExists)
+        {
+            juce::StringArray fileContents;
+            presetFile.readLines (fileContents);
+            Assimil8orPreset assimil8orPreset;
+            assimil8orPreset.parse (fileContents);
+            PresetProperties presetProperties (assimil8orPreset.getPresetVT (), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
+            presetName = presetProperties.getName ();
+        }
         if (showAll || thisPresetExists)
         {
-            presetExists [numPresets] = { index, thisPresetExists };
+            presetInfo [numPresets] = { index, thisPresetExists, presetName };
             ++numPresets;
         }
         return ! shouldCancelOperation ();
@@ -129,7 +139,7 @@ void PresetListComponent::loadFirstPreset ()
     bool presetLoaded { false };
     forEachPresetFile ([this, &presetLoaded] (juce::File presetFile, int index)
     {
-        if (auto [presetNumber, thisPresetExists] = presetExists [index]; ! thisPresetExists)
+        if (auto [presetNumber, thisPresetExists, presetName] = presetInfo [index]; ! thisPresetExists)
             return ! shouldCancelOperation ();
 
         presetListBox.selectRow (index, false, true);
@@ -213,13 +223,21 @@ void PresetListComponent::paintListBoxItem (int row, juce::Graphics& g, int widt
             rowColor = juce::Colours::black;
             textColor = juce::Colours::whitesmoke;
         }
-        auto [presetNumber, thisPresetExists] { presetExists [row] };
-        if (! thisPresetExists)
+        auto [presetNumber, thisPresetExists, presetName] { presetInfo [row] };
+        if (thisPresetExists)
+        {
+
+        }
+        else
+        {
+            presetName = "(preset)";
             textColor = textColor.withAlpha (0.5f);
+        }
         g.setColour (rowColor);
         g.fillRect (width - 1, 0, 1, height);
         g.setColour (textColor);
-        g.drawText ("  Preset " + juce::String (presetNumber + 1), juce::Rectangle<float>{ 0.0f, 0.0f, (float) width, (float) height }, juce::Justification::centredLeft, true);
+        g.drawText ("  " + juce::String (presetNumber + 1) + "-" + presetName, juce::Rectangle<float>{ 0.0f, 0.0f, (float) width, (float) height }, juce::Justification::centredLeft, true);
+        //g.drawText ("  Preset " + juce::String (presetNumber + 1), juce::Rectangle<float>{ 0.0f, 0.0f, (float) width, (float) height }, juce::Justification::centredLeft, true);
     }
 }
 
@@ -240,7 +258,7 @@ void PresetListComponent::pastePreset (int presetNumber)
         Assimil8orPreset assimil8orPreset;
         PresetProperties::copyTreeProperties (copyBufferPresetProperties.getValueTree (), assimil8orPreset.getPresetVT ());
         assimil8orPreset.write (getPresetFile (presetNumber));
-        auto [lastSelectedPresetNumber, _] = presetExists [lastSelectedRow];
+        auto [lastSelectedPresetNumber, thisPresetExists, presetName] = presetInfo [lastSelectedRow];
         if (presetNumber == lastSelectedPresetNumber)
         {
             PresetProperties::copyTreeProperties (copyBufferPresetProperties.getValueTree (), unEditedPresetProperties.getValueTree ());
@@ -248,7 +266,7 @@ void PresetListComponent::pastePreset (int presetNumber)
         }
     };
 
-    auto [_, thisPresetExists] = presetExists [lastSelectedRow];
+    auto [thisPresetNumber, thisPresetExists, presetName] = presetInfo [lastSelectedRow];
     if (thisPresetExists)
     {
         juce::AlertWindow::showOkCancelBox (juce::AlertWindow::WarningIcon, "OVERWRITE PRESET", "Are you sure you want to overwrite '" + getPresetName (presetNumber) + "'", "YES", "NO", nullptr,
@@ -274,7 +292,7 @@ void PresetListComponent::deletePreset (int presetNumber)
                 return;
             presetFile.deleteFile ();
             // TODO handle delete error
-            auto [lastSelectedPresetNumber, _] = presetExists [lastSelectedRow];
+            auto [lastSelectedPresetNumber, thisPresetExists, presetName] = presetInfo [lastSelectedRow];
             if (presetNumber == lastSelectedPresetNumber)
                 PresetProperties::copyTreeProperties (ParameterPresetsSingleton::getInstance ()->getParameterPresetListProperties ().getParameterPreset (ParameterPresetListProperties::DefaultParameterPresetType),
                                                       unEditedPresetProperties.getValueTree ());
@@ -291,11 +309,12 @@ void PresetListComponent::listBoxItemClicked (int row, [[maybe_unused]] const ju
     if (me.mods.isPopupMenu ())
     {
         presetListBox.selectRow (lastSelectedRow, false, true);
-        const auto [presetNumber, thisPresetExists] { presetExists [row] };
-        //auto presetFile { rootFolder.getChildFile (getPresetName (presetNumber)).withFileExtension (".yml") };
+        auto [presetNumber, thisPresetExists, presetName] { presetInfo [row] };
+        if (!thisPresetExists)
+            presetName = "(preset)";
 
         juce::PopupMenu pm;
-        pm.addSectionHeader ("Preset " + juce::String (presetNumber + 1));
+        pm.addSectionHeader (juce::String (presetNumber + 1) + "-" + presetName);
         pm.addItem ("Copy", thisPresetExists, false, [this, presetNumber = presetNumber] () { copyPreset (presetNumber); });
         pm.addItem ("Paste", copyBufferPresetProperties.getName ().isNotEmpty(), false, [this, presetNumber = presetNumber] () { pastePreset (presetNumber); });
         pm.addItem ("Delete", thisPresetExists, false, [this, presetNumber = presetNumber] () { deletePreset (presetNumber); });
@@ -308,7 +327,7 @@ void PresetListComponent::listBoxItemClicked (int row, [[maybe_unused]] const ju
 
         auto completeSelection = [this, row] ()
         {
-            const auto [presetNumber, thisPresetExists] = presetExists [row];
+            const auto [presetNumber, thisPresetExists, presetName] = presetInfo [row];
             auto presetFile { getPresetFile (presetNumber) };
             if (thisPresetExists)
                 loadPreset (presetFile);

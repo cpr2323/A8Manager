@@ -25,7 +25,7 @@ private:
 
     juce::ToggleButton showAllPresets { "Show All" };
     juce::ListBox presetListBox { {}, this };
-    std::array<std::tuple <int, bool>, kMaxPresets> presetExists;
+    std::array<std::tuple <int, bool, juce::String>, kMaxPresets> presetInfo;
     int numPresets { kMaxPresets };
     juce::File rootFolder;
     juce::CriticalSection queuedFolderLock;
