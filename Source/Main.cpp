@@ -74,8 +74,8 @@ public:
 
 #if 0
     // TEST CODE
-    // encoded flag - 0000 1xxx | xxxx xxxx | xxxx xxxx | xxxy yyyy
-    //                mask
+    // encoded flag - zzzz zxxx | xxxx xxxx | xxxx xxxx | xxxy yyyy
+    //                num index bits
     //                      whole value
     //                                                       up to 5 bits of fractional index
     // uint32_t rawValue
@@ -83,10 +83,10 @@ public:
     // if bits 28-32 are all 0
     //     finalValue = rawValue
     // else
-    //  mask = rawValue >> 27
-    //  numberOfIndexBits = mask + 1
+    //  numberOfIndexBits = rawValue >> 27
+    //  mask = (1L << numIndexBits) - 1
     //  wholeValue = rawValue >> numIndexBits
-    //  fractionalResolution = 1.0 / (1L << (numberOfIndexBits))
+    //  fractionalResolution = 1.0 / (1L << numberOfIndexBits)
     //  fractionalIndex = rawValue & mask
     //  fractionalValue = fractionalResolution * fractionalIndex
     //  finalValue = static_cast<double> (wholeValue) + fractionalValue
@@ -108,30 +108,30 @@ public:
             // encode
             const auto wholeValue { static_cast<uint32_t> (rawValue) };
             const auto fractionalValue { rawValue - static_cast<double> (wholeValue) };
-            const auto mask = [wholeValue] ()
+            const auto numIndexBits = [wholeValue] ()
             {
                 if (wholeValue >= 1024) // 2047 - 1024
                     return 1;
                 else if (wholeValue >= 512) // 1023 - 512
-                    return 3;
+                    return 2;
                 else if (wholeValue >= 256) // 511 - 256
-                    return 7;
+                    return 3;
                 else if (wholeValue >= 128)
-                    return 15;
+                    return 4;
                 else if (wholeValue >= 4)
-                    return 31;
+                    return 5;
                 else
                 {
                     jassertfalse;
                     return 0;
                 }
             }();
-            const auto numIndexBits { mask + 1 };
-            const auto fractionalResolution { 1.0 / (1L << (numIndexBits - 1)) };
-            const auto maskValue { mask << 27 };
+            const auto mask { (1L << numIndexBits) - 1};
+            const auto fractionalResolution { 1.0 / (1L << numIndexBits) };
+            const auto numIndexBitsValue { numIndexBits << 27 };
             const auto shiftedWholeValue { wholeValue << numIndexBits };
             const auto fractionalIndex { static_cast<int> (fractionalValue / fractionalResolution) };
-            return maskValue + shiftedWholeValue + fractionalIndex;
+            return numIndexBitsValue + shiftedWholeValue + fractionalIndex;
         }
         else
         {
@@ -145,10 +145,10 @@ public:
         if ((rawValue & 0xF8000000) == 0)
             return rawValue;
 
-        const auto mask { rawValue >> 27 };
-        const auto numIndexBits { mask + 1 };
+        const auto numIndexBits { rawValue >> 27 };
+        const auto mask { (1L << numIndexBits) - 1 };
         const auto wholeValue { (rawValue & 0x07FFFFFF) >> numIndexBits};
-        const auto fractionalResolution { 1.0 / (1L << (numIndexBits - 1)) };
+        const auto fractionalResolution { 1.0 / (1L << numIndexBits) };
         const auto fractionalIndex { rawValue & mask };
         const auto fractionalValue { fractionalResolution * fractionalIndex};
         const auto finalValue { std::round ((static_cast<double> (wholeValue) + fractionalValue) * 1000.0) / 1000.0 }; // add the whole and fractional parts and round to 3 decimal places
