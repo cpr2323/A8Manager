@@ -77,19 +77,39 @@ void DirectoryValueTree::run ()
         cancelScan = false;
         LogDirectoryValueTree (doLogging, "DirectoryValueTree::run - rootFolderVT = {}");
 
-        rootFolderVT = {};
-        doScan ();
+        auto newFolderScanVT = doScan ();
         // reset the output if scan was canceled
-        if (threadShouldExit ())
+        if (shouldCancelOperation ())
         {
             LogDirectoryValueTree (doLogging, "DirectoryValueTree::run - threadShouldExit = true, rootFolderVT = {}");
             rootFolderVT = {};
         }
-        if (onComplete != nullptr)
-            onComplete (! threadShouldExit ());
+        juce::MessageManager::callAsync ([this, newFolderScanVT, wasCanceled = shouldCancelOperation ()] ()
+        {
+            if (! wasCanceled)
+                rootFolderVT = newFolderScanVT;
+            else
+                rootFolderVT = {};
+            if (onComplete != nullptr)
+                onComplete (! wasCanceled);
+        });
         scanning = false;
     }
     LogDirectoryValueTree (doLogging, "DirectoryValueTree::run - exit");
+}
+
+juce::ValueTree DirectoryValueTree::doScan ()
+{
+    lastScanInProgressUpdate = juce::Time::currentTimeMillis ();
+    const auto rootEntry { juce::File (rootFolderName) };
+    // do one initial progress update to fill in the first one
+    doStatusUpdate ("Reading File System", rootEntry.getFileName ());
+    auto newDirectoryListVT { getContentsOfFolder (rootFolderName, 0) };
+
+    if (!shouldCancelOperation ())
+        sortContentsOfFolder (newDirectoryListVT);
+
+    return newDirectoryListVT;
 }
 
 void DirectoryValueTree::doStatusUpdate (juce::String operation, juce::String fileName)
@@ -108,18 +128,6 @@ void DirectoryValueTree::doIfProgressTimeElapsed (std::function<void ()> functio
     }
 }
 
-void DirectoryValueTree::doScan ()
-{
-    lastScanInProgressUpdate = juce::Time::currentTimeMillis ();
-    const auto rootEntry { juce::File (rootFolderName) };
-    // do one initial progress update to fill in the first one
-    doStatusUpdate ("Reading File System", rootEntry.getFileName ());
-    if (! shouldCancelOperation ())
-        rootFolderVT = getContentsOfFolder (rootFolderName, 0);
-
-    if (! shouldCancelOperation ())
-        sortContentsOfFolder (rootFolderVT);
-}
 bool DirectoryValueTree::shouldCancelOperation ()
 {
     return threadShouldExit () || cancelScan;
@@ -196,9 +204,10 @@ void DirectoryValueTree::sortContentsOfFolder (juce::ValueTree folderVT)
             for (auto curSectionIndex { 1 }; curSectionIndex < SectionIndex::size; ++curSectionIndex)
                 sections [curSectionIndex].startIndex = sections [curSectionIndex - 1].startIndex + sections [curSectionIndex - 1].length;
         };
+        const auto fileName { folderVT.getChild (itemIndex).getProperty ("name").toString ().toLowerCase () };
         for (auto sectionEntryIndex { section.startIndex }; sectionEntryIndex < section.startIndex + section.length; ++sectionEntryIndex)
         {
-            if (folderVT.getChild (itemIndex).getProperty ("name").toString ().toLowerCase () < folderVT.getChild (sectionEntryIndex).getProperty ("name").toString ().toLowerCase ())
+            if (fileName < folderVT.getChild (sectionEntryIndex).getProperty ("name").toString ().toLowerCase ())
             {
                 insertItem (itemIndex, sectionEntryIndex);
                 break;
