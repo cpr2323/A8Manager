@@ -1,5 +1,6 @@
 #include "DirectoryValueTree.h"
 #include "../Assimil8or/FileTypeHelpers.h"
+#include "../Utility/RuntimeRootProperties.h"
 
 #define LOG_DIRECTORY_VALUE_TREE 0
 #if LOG_DIRECTORY_VALUE_TREE
@@ -22,6 +23,15 @@ DirectoryValueTree::DirectoryValueTree (juce::String theRootFolderName)
 DirectoryValueTree::~DirectoryValueTree ()
 {
     stopThread (500);
+}
+
+void DirectoryValueTree::init (juce::ValueTree rootPropertiesVT)
+{
+    RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
+    directoryDataProperties.wrap (runtimeRootProperties.getValueTree (), DirectoryDataProperties::WrapperType::owner, DirectoryDataProperties::EnableCallbacks::yes);
+    directoryDataProperties.onRootFolderChange = [this] (juce::String rootFolder) { setRootFolder (rootFolder); };
+    directoryDataProperties.onScanDepthChange= [this] (int scanDepth) { setScanDepth (scanDepth); };
+    directoryDataProperties.onStartScanChange= [this] () { startScan (); };
 }
 
 void DirectoryValueTree::setRootFolder (juce::String theRootFolderName)
@@ -64,8 +74,30 @@ void DirectoryValueTree::startScan ()
 {
     LogDirectoryValueTree (doLogging, "DirectoryValueTree::startScan - enter");
     jassert (! scanning);
+    jassert (! rootFolderName.isEmpty ());
     notify ();
     LogDirectoryValueTree (doLogging, "DirectoryValueTree::startScan - exit");
+}
+
+void DirectoryValueTree::doStatusUpdate (juce::String operation, juce::String fileName)
+{
+    if (onStatusChange != nullptr)
+        onStatusChange (operation, fileName);
+}
+
+void DirectoryValueTree::doIfProgressTimeElapsed (std::function<void ()> functionToDo)
+{
+    jassert (functionToDo != nullptr);
+    if (juce::Time::currentTimeMillis () - lastScanInProgressUpdate > 250)
+    {
+        lastScanInProgressUpdate = juce::Time::currentTimeMillis ();
+        functionToDo ();
+    }
+}
+
+bool DirectoryValueTree::shouldCancelOperation ()
+{
+    return threadShouldExit () || cancelScan;
 }
 
 void DirectoryValueTree::run ()
@@ -106,31 +138,10 @@ juce::ValueTree DirectoryValueTree::doScan ()
     doStatusUpdate ("Reading File System", rootEntry.getFileName ());
     auto newDirectoryListVT { getContentsOfFolder (rootFolderName, 0) };
 
-    if (!shouldCancelOperation ())
+    if (! shouldCancelOperation ())
         sortContentsOfFolder (newDirectoryListVT);
 
     return newDirectoryListVT;
-}
-
-void DirectoryValueTree::doStatusUpdate (juce::String operation, juce::String fileName)
-{
-    if (onStatusChange != nullptr)
-        onStatusChange (operation, fileName);
-}
-
-void DirectoryValueTree::doIfProgressTimeElapsed (std::function<void ()> functionToDo)
-{
-    jassert (functionToDo != nullptr);
-    if (juce::Time::currentTimeMillis () - lastScanInProgressUpdate > 250)
-    {
-        lastScanInProgressUpdate = juce::Time::currentTimeMillis ();
-        functionToDo ();
-    }
-}
-
-bool DirectoryValueTree::shouldCancelOperation ()
-{
-    return threadShouldExit () || cancelScan;
 }
 
 juce::ValueTree DirectoryValueTree::getContentsOfFolder (juce::File folder, int curDepth)
@@ -144,10 +155,7 @@ juce::ValueTree DirectoryValueTree::getContentsOfFolder (juce::File folder, int 
             if (shouldCancelOperation ())
                 break;
 
-            doIfProgressTimeElapsed ([this, fileName = entry.getFile ().getFileName ()] ()
-            {
-                doStatusUpdate ("Reading File System", fileName);
-            });
+            doIfProgressTimeElapsed ([this, fileName = entry.getFile ().getFileName ()] () { doStatusUpdate ("Reading File System", fileName); });
             if (const auto& curFile { entry.getFile () }; curFile.isDirectory ())
             {
                 folderVT.addChild (getContentsOfFolder (curFile, curDepth + 1), -1, nullptr);
@@ -219,10 +227,7 @@ void DirectoryValueTree::sortContentsOfFolder (juce::ValueTree folderVT)
     for (auto folderIndex { 0 }; folderIndex < numFolderEntries && ! shouldCancelOperation (); ++folderIndex)
     {
         auto folderEntryVT { folderVT.getChild (folderIndex) };
-        doIfProgressTimeElapsed ([this, fileName = folderEntryVT.getProperty ("name").toString ()] ()
-        {
-            doStatusUpdate ("Sorting File System", fileName);
-        });
+        doIfProgressTimeElapsed ([this, fileName = folderEntryVT.getProperty ("name").toString ()] () { doStatusUpdate ("Sorting File System", fileName); });
         if (folderEntryVT.getType ().toString () == "Folder")
         {
             insertSorted (folderIndex, SectionIndex::folders);
@@ -249,6 +254,53 @@ void DirectoryValueTree::sortContentsOfFolder (juce::ValueTree folderVT)
         else
         {
             jassertfalse;
+        }
+    }
+}
+
+void DirectoryDataProperties::setRootFolder (juce::String rootFolder, bool includeSelfCallback)
+{
+    setValue (rootFolder, RootFolderPropertyId, includeSelfCallback);
+}
+
+void DirectoryDataProperties::setScanDepth (int scanDepth, bool includeSelfCallback)
+{
+    setValue (scanDepth, ScanDepthPropertyId, includeSelfCallback);
+}
+
+void DirectoryDataProperties::triggerStartScan (bool includeSelfCallback)
+{
+    toggleValue (StartScanPropertyId, includeSelfCallback);
+}
+
+juce::String DirectoryDataProperties::getRootFolder ()
+{
+    return getValue<juce::String> (RootFolderPropertyId);
+}
+
+int DirectoryDataProperties::getScanDepth ()
+{
+    return getValue<int> (ScanDepthPropertyId);
+}
+
+void DirectoryDataProperties::valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property)
+{
+    if (vt == data)
+    {
+        if (property == RootFolderPropertyId)
+        {
+            if (onRootFolderChange != nullptr)
+                onRootFolderChange (getRootFolder ());
+        }
+        else if (property == ScanDepthPropertyId)
+        {
+            if (onScanDepthChange != nullptr)
+                onScanDepthChange (getScanDepth ());
+        }
+        else if (property == StartScanPropertyId)
+        {
+            if (onStartScanChange != nullptr)
+                onStartScanChange ();
         }
     }
 }
