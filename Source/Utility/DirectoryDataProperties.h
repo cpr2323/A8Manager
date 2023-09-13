@@ -1,0 +1,47 @@
+#pragma once
+
+#include <JuceHeader.h>
+#include "ValueTreeWrapper.h"
+
+class DirectoryDataProperties : public ValueTreeWrapper<DirectoryDataProperties>
+{
+public:
+    DirectoryDataProperties () noexcept : ValueTreeWrapper<DirectoryDataProperties> (DirectoryDataTypeId)
+    {
+    }
+    DirectoryDataProperties (juce::ValueTree vt, WrapperType wrapperType, EnableCallbacks shouldEnableCallbacks) noexcept
+        : ValueTreeWrapper<DirectoryDataProperties> (DirectoryDataTypeId, vt, wrapperType, shouldEnableCallbacks)
+    {
+    }
+
+    void setRootFolder (juce::String rootFolder, bool includeSelfCallback);
+    void setScanDepth (int scanDepth, bool includeSelfCallback);
+    void setStatus (int status, bool includeSelfCallback);
+    void triggerStartScan (bool includeSelfCallback);
+
+    juce::String getRootFolder ();
+    int getScanDepth ();
+    int getStatus ();
+
+    std::function<void (juce::String rootFolder)> onRootFolderChange;
+    std::function<void (int scanDepth)> onScanDepthChange;
+    std::function<void (int status)> onStatusChange;
+    std::function<void ()> onStartScanChange;
+
+    juce::ValueTree getDirectoryValueTreeVT ();
+
+    static inline const juce::Identifier DirectoryDataTypeId { "DirectoryData" };
+    static inline const juce::Identifier RootFolderPropertyId { "rootFolder" };
+    static inline const juce::Identifier ScanDepthPropertyId  { "scanDepth" };
+    static inline const juce::Identifier StartScanPropertyId  { "startScan" };
+    static inline const juce::Identifier StatusPropertyId     { "status" };
+
+    static inline const juce::Identifier DirectoryValueTreeTypeId { "directoryValueTree" };
+
+    void initValueTree ();
+    void processValueTree () {}
+
+private:
+    void valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property) override;
+};
+

@@ -1,16 +1,17 @@
 #include <JuceHeader.h>
 #include "AppProperties.h"
+#include "Assimil8or/Assimil8orValidator.h"
+#include "Assimil8or/PresetManagerProperties.h"
+#include "Assimil8or/Preset/ParameterPresetsSingleton.h"
+#include "Assimil8or/Preset/PresetProperties.h"
 #include "GUI/MainComponent.h"
 #include "Utility/DebugLog.h"
+#include "Utility/DirectoryValueTree.h"
 #include "Utility/PersistentRootProperties.h"
 #include "Utility/RootProperties.h"
 #include "Utility/RuntimeRootProperties.h"
 #include "Utility/ValueTreeFile.h"
 #include "Utility/ValueTreeMonitor.h"
-#include "Assimil8or/Assimil8orValidator.h"
-#include "Assimil8or/PresetManagerProperties.h"
-#include "Assimil8or/Preset/ParameterPresetsSingleton.h"
-#include "Assimil8or/Preset/PresetProperties.h"
 
 // this requires the third party Melatonin Inspector be installed and added to the project
 // https://github.com/sudara/melatonin_inspector
@@ -243,6 +244,14 @@ public:
         // add the Preset to the Runtime Root
         runtimeRootProperties.getValueTree ().addChild (presetManagerProperties.getValueTree (), -1, nullptr);
 
+        directoryValueTree.init (rootProperties.getValueTree ());
+        directoryDataProperties.wrap (directoryValueTree.getDirectoryDataPropertiesVT (), DirectoryDataProperties::WrapperType::client, DirectoryDataProperties::EnableCallbacks::no);
+        appProperties.onMostRecentFolderChange = [this] (juce::String folderName)
+        {
+            directoryDataProperties.setRootFolder (folderName, false);
+            directoryDataProperties.triggerStartScan (false);
+        };
+
         assimil8orValidator.init (rootProperties.getValueTree ());
     }
 
@@ -256,7 +265,7 @@ public:
         persistentRootProperties.wrap (rootProperties.getValueTree (), PersistentRootProperties::WrapperType::owner, PersistentRootProperties::EnableCallbacks::no);
         // connect the Properties file and the AppProperties ValueTree with the propertiesFile (ValueTreeFile with auto-save)
         persitentPropertiesFile.init (persistentRootProperties.getValueTree (), appDirectory.getChildFile ("app" + PropertiesFileExtension), true);
-        appProperties.wrap (persistentRootProperties.getValueTree (), AppProperties::WrapperType::owner, AppProperties::EnableCallbacks::no);
+        appProperties.wrap (persistentRootProperties.getValueTree (), AppProperties::WrapperType::owner, AppProperties::EnableCallbacks::yes);
         appProperties.setMaxMruEntries (1);
         runtimeRootProperties.wrap (rootProperties.getValueTree (), RuntimeRootProperties::WrapperType::owner, RuntimeRootProperties::EnableCallbacks::yes);
         runtimeRootProperties.setAppVersion (getApplicationVersion (), false);
@@ -380,6 +389,8 @@ private:
     RuntimeRootProperties runtimeRootProperties;
     Assimil8orValidator assimil8orValidator;
     PresetProperties presetProperties;
+    DirectoryValueTree directoryValueTree;
+    DirectoryDataProperties directoryDataProperties;
     std::unique_ptr<juce::FileLogger> fileLogger;
     std::atomic<RuntimeRootProperties::QuitState> localQuitState { RuntimeRootProperties::QuitState::idle };
     std::unique_ptr<MainWindow> mainWindow;

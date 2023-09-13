@@ -2,11 +2,9 @@
 
 #include <JuceHeader.h>
 #include "../../../AppProperties.h"
-#include "../../../Utility/DirectoryValueTree.h"
+#include "../../../Utility/DirectoryDataProperties.h"
 
 class FileViewComponent : public juce::Component,
-                          private juce::Thread,
-                          private juce::Timer,
                           private juce::ListBoxModel
 {
 public:
@@ -19,7 +17,10 @@ public:
 
 private:
     AppProperties appProperties;
-    juce::AudioFormatManager audioFormatManager;
+    DirectoryDataProperties directoryDataProperties;
+
+    std::vector<juce::ValueTree> directoryListQuickLookupList;
+
     juce::TextButton openFolderButton;
     juce::TextButton newFolderButton;
     std::unique_ptr<juce::FileChooser> fileChooser;
@@ -31,14 +32,9 @@ private:
     std::unique_ptr<juce::AlertWindow> renameAlertWindow;
     std::unique_ptr<juce::AlertWindow> newAlertWindow;
 
-    DirectoryValueTree directoryValueTree;
-    std::vector<juce::ValueTree> directoryListQuickLookupList;
-
     void buildQuickLookupList ();
     void newFolder ();
     void openFolder ();
-    bool isSupportedAudioFile (juce::File file);
-    void startScan (juce::File folderToScan);
 
     int getNumRows () override;
     juce::String getTooltipForRow (int row) override;
@@ -46,7 +42,5 @@ private:
     void listBoxItemDoubleClicked (int row, const juce::MouseEvent& me) override;
     void paintListBoxItem (int rowNumber, juce::Graphics& g, int width, int height, bool rowIsSelected) override;
     void resized () override;
-    void run () override;
-    void timerCallback () override;
 };
     

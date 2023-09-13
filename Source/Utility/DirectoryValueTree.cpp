@@ -34,6 +34,11 @@ void DirectoryValueTree::init (juce::ValueTree rootPropertiesVT)
     directoryDataProperties.onStartScanChange= [this] () { startScan (); };
 }
 
+juce::ValueTree DirectoryValueTree::getDirectoryDataPropertiesVT ()
+{
+    return directoryDataProperties.getValueTree ();
+}
+
 void DirectoryValueTree::setRootFolder (juce::String theRootFolderName)
 {
     rootFolderName = theRootFolderName;
@@ -58,6 +63,7 @@ void DirectoryValueTree::clear ()
 {
     LogDirectoryValueTree (doLogging, "DirectoryValueTree::clear - enter");
     rootFolderVT = {};
+    LogDirectoryValueTree (doLogging, "DirectoryValueTree::clear - exit");
 }
 
 void DirectoryValueTree::cancel ()
@@ -68,15 +74,6 @@ void DirectoryValueTree::cancel ()
 bool DirectoryValueTree::isScanning ()
 {
     return scanning;
-}
-
-void DirectoryValueTree::startScan ()
-{
-    LogDirectoryValueTree (doLogging, "DirectoryValueTree::startScan - enter");
-    jassert (! scanning);
-    jassert (! rootFolderName.isEmpty ());
-    notify ();
-    LogDirectoryValueTree (doLogging, "DirectoryValueTree::startScan - exit");
 }
 
 void DirectoryValueTree::doStatusUpdate (juce::String operation, juce::String fileName)
@@ -98,6 +95,32 @@ void DirectoryValueTree::doIfProgressTimeElapsed (std::function<void ()> functio
 bool DirectoryValueTree::shouldCancelOperation ()
 {
     return threadShouldExit () || cancelScan;
+}
+
+void DirectoryValueTree::startScan ()
+{
+    LogDirectoryValueTree (doLogging, "DirectoryValueTree::startScan - enter");
+    if (! isScanning ())
+    {
+        LogDirectoryValueTree (doLogging, "DirectoryValueTree::startScan - waking up scan thread");
+        jassert (! rootFolderName.isEmpty ());
+        notify ();
+    }
+    else
+    {
+        LogDirectoryValueTree (doLogging, "DirectoryValueTree::startScan - still scanning - cancelling and starting timer");
+        cancel ();
+        startTimer (1);
+    }
+    LogDirectoryValueTree (doLogging, "DirectoryValueTree::startScan - exit");
+}
+
+void DirectoryValueTree::timerCallback ()
+{
+    LogDirectoryValueTree (doLogging, "DirectoryValueTree::timerCallback - enter");
+    stopTimer ();
+    startScan ();
+    LogDirectoryValueTree (doLogging, "DirectoryValueTree::timerCallback - exit");
 }
 
 void DirectoryValueTree::run ()
@@ -254,53 +277,6 @@ void DirectoryValueTree::sortContentsOfFolder (juce::ValueTree folderVT)
         else
         {
             jassertfalse;
-        }
-    }
-}
-
-void DirectoryDataProperties::setRootFolder (juce::String rootFolder, bool includeSelfCallback)
-{
-    setValue (rootFolder, RootFolderPropertyId, includeSelfCallback);
-}
-
-void DirectoryDataProperties::setScanDepth (int scanDepth, bool includeSelfCallback)
-{
-    setValue (scanDepth, ScanDepthPropertyId, includeSelfCallback);
-}
-
-void DirectoryDataProperties::triggerStartScan (bool includeSelfCallback)
-{
-    toggleValue (StartScanPropertyId, includeSelfCallback);
-}
-
-juce::String DirectoryDataProperties::getRootFolder ()
-{
-    return getValue<juce::String> (RootFolderPropertyId);
-}
-
-int DirectoryDataProperties::getScanDepth ()
-{
-    return getValue<int> (ScanDepthPropertyId);
-}
-
-void DirectoryDataProperties::valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property)
-{
-    if (vt == data)
-    {
-        if (property == RootFolderPropertyId)
-        {
-            if (onRootFolderChange != nullptr)
-                onRootFolderChange (getRootFolder ());
-        }
-        else if (property == ScanDepthPropertyId)
-        {
-            if (onScanDepthChange != nullptr)
-                onScanDepthChange (getScanDepth ());
-        }
-        else if (property == StartScanPropertyId)
-        {
-            if (onStartScanChange != nullptr)
-                onStartScanChange ();
         }
     }
 }

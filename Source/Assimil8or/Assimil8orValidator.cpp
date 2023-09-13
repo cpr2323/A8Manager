@@ -79,7 +79,7 @@ void Assimil8orValidator::init (juce::ValueTree rootPropertiesVT)
         startValidation (rootFolderToScan.getFullPathName ());
     };
 
-    appProperties.wrap (persistentRootProperties.getValueTree (), AppProperties::WrapperType::owner, AppProperties::EnableCallbacks::yes);
+    appProperties.wrap (persistentRootProperties.getValueTree (), AppProperties::WrapperType::client, AppProperties::EnableCallbacks::yes);
     appProperties.onMostRecentFolderChange = [this] (juce::String folderName)
     {
         startValidation (folderName);

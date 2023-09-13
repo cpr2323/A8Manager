@@ -1,5 +1,7 @@
 #include "FileViewComponent.h"
+#include "../../../Assimil8or/Preset/PresetHelpers.h"
 #include "../../../Utility/PersistentRootProperties.h"
+#include "../../../Utility/RuntimeRootProperties.h"
 
 #define LOG_FILE_VIEW 0
 #if LOG_FILE_VIEW
@@ -8,10 +10,10 @@
 #define LogFileView(text) ;
 #endif
 
-FileViewComponent::FileViewComponent () : Thread ("FileViewComponentThread")
-{
-    audioFormatManager.registerBasicFormats ();
+const auto kDialogTextEditorName { "foldername" };
 
+FileViewComponent::FileViewComponent ()
+{
     openFolderButton.setButtonText ("Open");
     openFolderButton.onClick = [this] () { openFolder (); };
     addAndMakeVisible (openFolderButton);
@@ -19,13 +21,25 @@ FileViewComponent::FileViewComponent () : Thread ("FileViewComponentThread")
     newFolderButton.onClick = [this] () { newFolder (); };
     addAndMakeVisible (newFolderButton);
     addAndMakeVisible (directoryContentsListBox);
+}
 
-    directoryValueTree.setScanDepth (0); // no depth, only scan root folder
-    directoryValueTree.onComplete = [this] (bool success)
+FileViewComponent::~FileViewComponent ()
+{
+}
+
+void FileViewComponent::init (juce::ValueTree rootPropertiesVT)
+{
+    PersistentRootProperties persistentRootProperties (rootPropertiesVT, PersistentRootProperties::WrapperType::client, PersistentRootProperties::EnableCallbacks::no);
+    appProperties.wrap (persistentRootProperties.getValueTree (), AppProperties::WrapperType::client, AppProperties::EnableCallbacks::yes);
+
+    RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
+    directoryDataProperties.wrap (runtimeRootProperties.getValueTree (), DirectoryDataProperties::WrapperType::client, DirectoryDataProperties::EnableCallbacks::yes);
+    directoryDataProperties.onStatusChange = [this] (int status)
     {
-        if (success)
+        // TODO - put real status values in
+        if (status == 1)
         {
-            isRootFolder = juce::File (directoryValueTree.getRootFolder ()).getParentDirectory () == juce::File (directoryValueTree.getRootFolder ());
+            isRootFolder = juce::File (directoryDataProperties.getRootFolder ()).getParentDirectory () == juce::File (directoryDataProperties.getRootFolder ());
             juce::MessageManager::callAsync ([this] ()
             {
                 // the call to buildQuickLookupList does not need to happen on the MM thread, but that protects us from some threading issues
@@ -35,66 +49,9 @@ FileViewComponent::FileViewComponent () : Thread ("FileViewComponentThread")
             });
         }
     };
-    directoryValueTree.onStatusChange = [this] (juce::String operation, juce::String fileName)
-    {
-        //validatorProperties.setProgressUpdate (operation + ": " + fileName, false);
-    };
 
-    startThread ();
-    startTimer (333);
-}
-
-FileViewComponent::~FileViewComponent ()
-{
-    stopTimer ();
-    stopThread (100);
-}
-
-void FileViewComponent::init (juce::ValueTree rootPropertiesVT)
-{
-    PersistentRootProperties persistentRootProperties (rootPropertiesVT, PersistentRootProperties::WrapperType::client, PersistentRootProperties::EnableCallbacks::no);
-    appProperties.wrap (persistentRootProperties.getValueTree (), AppProperties::WrapperType::client, AppProperties::EnableCallbacks::yes);
-    appProperties.onMostRecentFolderChange = [this] (juce::String folderName)
-    {
-        startScan (juce::File (folderName));
-    };
-    startScan (appProperties.getMostRecentFolder ());
-}
-
-void FileViewComponent::startScan (juce::File folderToScan)
-{
-    {
-        juce::ScopedLock sl (queuedFolderLock);
-        queuedFolderToScan = folderToScan;
-        directoryValueTree.cancel ();
-        LogFileView ("FileViewComponent::startScan: " + queuedFolderToScan.getFullPathName ());
-    }
-    notify ();
-}
-
-void FileViewComponent::run ()
-{
-    while (wait (-1) && ! threadShouldExit ())
-    {
-        juce::File rootFolder;
-        {
-            juce::ScopedLock sl (queuedFolderLock);
-            rootFolder = queuedFolderToScan;
-            queuedFolderToScan = juce::File ();
-            LogFileView ("FileViewComponent::run: " + rootFolder.getFullPathName ());
-        }
-        // TODO - probably want to do something else to not get deadlocked, ie. track time and try and catch deadlock
-        //        maybe request an exit again here
-        while (directoryValueTree.isScanning ());
-        directoryListQuickLookupList.clear ();
-        directoryValueTree.setRootFolder (rootFolder.getFullPathName ());
-        directoryValueTree.startScan ();
-    }
-}
-
-void FileViewComponent::timerCallback ()
-{
-    startScan (appProperties.getMostRecentFolder ());
+    // TODO - do initial check of data that is available
+    //startScan (appProperties.getMostRecentFolder ());
 }
 
 void FileViewComponent::openFolder ()
@@ -108,23 +65,9 @@ void FileViewComponent::openFolder ()
     }, nullptr);
 }
 
-bool FileViewComponent::isSupportedAudioFile (juce::File file)
-{
-    if (file.isDirectory () || file.getFileExtension () != ".wav")
-        return false;
-    std::unique_ptr<juce::AudioFormatReader> reader (audioFormatManager.createReaderFor (file));
-    if (reader == nullptr)
-        return false;
-    // check for any format settings that are unsupported
-    if ((reader->usesFloatingPointData == true) || (reader->bitsPerSample < 8 || reader->bitsPerSample > 32) || (reader->numChannels == 0 || reader->numChannels > 2) || (reader->sampleRate > 192000))
-        return false;
-
-    return true;
-}
-
 void FileViewComponent::buildQuickLookupList ()
 {
-    ValueTreeHelpers::forEachChild (directoryValueTree.getDirectoryVT (), [this] (juce::ValueTree child)
+    ValueTreeHelpers::forEachChild (directoryDataProperties.getDirectoryValueTreeVT (), [this] (juce::ValueTree child)
     {
         directoryListQuickLookupList.emplace_back (child);
         return true;
@@ -134,7 +77,7 @@ void FileViewComponent::buildQuickLookupList ()
 void FileViewComponent::newFolder ()
 {
     newAlertWindow = std::make_unique<juce::AlertWindow> ("NEW FOLDER", "Enter the name for new folder", juce::MessageBoxIconType::NoIcon);
-    newAlertWindow->addTextEditor ("foldername", {}, {});
+    newAlertWindow->addTextEditor (kDialogTextEditorName, {}, {});
     newAlertWindow->addButton ("CREATE", 1, juce::KeyPress (juce::KeyPress::returnKey, 0, 0));
     newAlertWindow->addButton ("CANCEL", 0, juce::KeyPress (juce::KeyPress::escapeKey, 0, 0));
     newAlertWindow->enterModalState (true, juce::ModalCallbackFunction::create ([this] (int option)
@@ -143,7 +86,7 @@ void FileViewComponent::newFolder ()
         newAlertWindow->setVisible (false);
         if (option == 1) // ok
         {
-            auto newFolderName { newAlertWindow->getTextEditorContents ("foldername") };
+            auto newFolderName { newAlertWindow->getTextEditorContents (kDialogTextEditorName) };
             auto newFolder { juce::File (appProperties.getMostRecentFolder ()).getChildFile (newFolderName) };
             newFolder.createDirectory ();
             // TODO handle error
@@ -179,7 +122,7 @@ void FileViewComponent::paintListBoxItem (int row, juce::Graphics& g, int width,
         {
             filePrefix = "> ";
         }
-        else if (isSupportedAudioFile (file))
+        else if (PresetHelpers::isSupportedAudioFile (file))
         {
             filePrefix = "-  ";
             textColor = juce::Colours::forestgreen;
@@ -204,7 +147,7 @@ juce::String FileViewComponent::getTooltipForRow (int row)
         return {};
 
     if (! isRootFolder && row == 0)
-        return juce::File (directoryValueTree.getRootFolder ()).getParentDirectory ().getFullPathName ();
+        return juce::File (directoryDataProperties.getRootFolder ()).getParentDirectory ().getFullPathName ();
     else
         return juce::File (directoryListQuickLookupList [row - (isRootFolder ? 0 : 1)].getProperty ("name").toString ()).getFileName ();
 }
@@ -230,7 +173,7 @@ void FileViewComponent::listBoxItemClicked (int row, [[maybe_unused]] const juce
         pm.addItem ("Rename", true, false, [this, folder] ()
         {
             renameAlertWindow = std::make_unique<juce::AlertWindow> ("RENAME FOLDER", "Enter the new name for '" + folder.getFileName ()  + "'", juce::MessageBoxIconType::NoIcon);
-            renameAlertWindow->addTextEditor ("foldername", folder.getFileName (), {});
+            renameAlertWindow->addTextEditor (kDialogTextEditorName, folder.getFileName (), {});
             renameAlertWindow->addButton ("RENAME", 1, juce::KeyPress (juce::KeyPress::returnKey, 0, 0));
             renameAlertWindow->addButton ("CANCEL", 0, juce::KeyPress (juce::KeyPress::escapeKey, 0, 0));
             renameAlertWindow->enterModalState (true, juce::ModalCallbackFunction::create ([this, folder] (int option)
@@ -239,7 +182,7 @@ void FileViewComponent::listBoxItemClicked (int row, [[maybe_unused]] const juce
                 renameAlertWindow->setVisible (false);
                 if (option == 1) // ok
                 {
-                    auto newFolderName { renameAlertWindow->getTextEditorContents ("foldername")};
+                    auto newFolderName { renameAlertWindow->getTextEditorContents (kDialogTextEditorName)};
                     folder.moveFileTo (folder.getParentDirectory ().getChildFile (newFolderName));
                     // TODO handle error
                 }
@@ -266,7 +209,7 @@ void FileViewComponent::listBoxItemClicked (int row, [[maybe_unused]] const juce
         {
             if (! isRootFolder && row == 0)
             {
-                appProperties.setMostRecentFolder (juce::File (directoryValueTree.getRootFolder ()).getParentDirectory ().getFullPathName ());
+                appProperties.setMostRecentFolder (juce::File (directoryDataProperties.getRootFolder ()).getParentDirectory ().getFullPathName ());
             }
             else
             {
@@ -297,7 +240,7 @@ void FileViewComponent::listBoxItemDoubleClicked (int row, [[maybe_unused]] cons
         return;
 
     auto file { juce::File (directoryListQuickLookupList [row - (isRootFolder ? 0 : 1)].getProperty ("name").toString ()) };
-    if (! file.isDirectory () && isSupportedAudioFile (file) && onAudioFileSelected != nullptr)
+    if (! file.isDirectory () && PresetHelpers::isSupportedAudioFile (file) && onAudioFileSelected != nullptr)
             onAudioFileSelected (file);
 }
 

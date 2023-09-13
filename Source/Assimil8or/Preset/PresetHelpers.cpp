@@ -144,4 +144,23 @@ namespace PresetHelpers
         displayIfDiff (zonePropertiesOne.getSampleEnd ().value_or (99999999), zonePropertiesTwo.getSampleEnd ().value_or (99999999), "SampleEnd");
         displayIfDiff (zonePropertiesOne.getSide (), zonePropertiesTwo.getSide (), "Side");
     };
+
+    // TODO - this should be done in the Directory scan, and stored in a property
+    bool isSupportedAudioFile (juce::File file)
+    {
+        juce::AudioFormatManager audioFormatManager;
+        audioFormatManager.registerBasicFormats ();
+
+        if (file.isDirectory () || file.getFileExtension () != ".wav")
+            return false;
+        std::unique_ptr<juce::AudioFormatReader> reader (audioFormatManager.createReaderFor (file));
+        if (reader == nullptr)
+            return false;
+        // check for any format settings that are unsupported
+        if ((reader->usesFloatingPointData == true) || (reader->bitsPerSample < 8 || reader->bitsPerSample > 32) || (reader->numChannels == 0 || reader->numChannels > 2) || (reader->sampleRate > 192000))
+            return false;
+
+        return true;
+    }
+
 };
