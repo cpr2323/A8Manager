@@ -6,6 +6,7 @@ void DirectoryDataProperties::initValueTree ()
     setRootFolder ("", false);
     setScanDepth (-1, false);
     triggerStartScan (false);
+    setStatus (ScanStatus::empty, false);
     data.addChild (juce::ValueTree (DirectoryValueTreeTypeId), -1, nullptr);
 }
 
@@ -19,9 +20,9 @@ void DirectoryDataProperties::setScanDepth (int scanDepth, bool includeSelfCallb
     setValue (scanDepth, ScanDepthPropertyId, includeSelfCallback);
 }
 
-void DirectoryDataProperties::setStatus (int status, bool includeSelfCallback)
+void DirectoryDataProperties::setStatus (DirectoryDataProperties::ScanStatus status, bool includeSelfCallback)
 {
-    setValue (status, StatusPropertyId, includeSelfCallback);
+    setValue (static_cast<int>(status), StatusPropertyId, includeSelfCallback);
 }
 
 void DirectoryDataProperties::triggerStartScan (bool includeSelfCallback)
@@ -39,16 +40,23 @@ int DirectoryDataProperties::getScanDepth ()
     return getValue<int> (ScanDepthPropertyId);
 }
 
-int DirectoryDataProperties::getStatus ()
+DirectoryDataProperties::ScanStatus DirectoryDataProperties::getStatus ()
 {
-    return getValue<int> (StatusPropertyId);
+    return static_cast<DirectoryDataProperties::ScanStatus>(getValue<int> (StatusPropertyId));
 }
 
 juce::ValueTree DirectoryDataProperties::getDirectoryValueTreeVT ()
 {
-    auto directoryValueTreeVT { data.getChildWithName (DirectoryValueTreeTypeId).getChildWithName("Folder")};
+    auto directoryValueTreeVT { data.getChildWithName (DirectoryValueTreeTypeId).getChildWithName ("Folder")};
     jassert (directoryValueTreeVT.isValid ());
     return directoryValueTreeVT;
+}
+
+juce::ValueTree DirectoryDataProperties::getDirectoryValueTreeContainerVT ()
+{
+    auto directoryValueTreeContainerVT { data.getChildWithName (DirectoryValueTreeTypeId) };
+    jassert (directoryValueTreeContainerVT.isValid ());
+    return directoryValueTreeContainerVT;
 }
 
 void DirectoryDataProperties::valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property)

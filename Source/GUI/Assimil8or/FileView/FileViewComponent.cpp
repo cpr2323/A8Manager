@@ -34,24 +34,45 @@ void FileViewComponent::init (juce::ValueTree rootPropertiesVT)
 
     RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
     directoryDataProperties.wrap (runtimeRootProperties.getValueTree (), DirectoryDataProperties::WrapperType::client, DirectoryDataProperties::EnableCallbacks::yes);
-    directoryDataProperties.onStatusChange = [this] (int status)
+    directoryDataProperties.onStatusChange = [this] (DirectoryDataProperties::ScanStatus status)
     {
-        // TODO - put real status values in
-        if (status == 1)
+        switch (status)
         {
-            isRootFolder = juce::File (directoryDataProperties.getRootFolder ()).getParentDirectory () == juce::File (directoryDataProperties.getRootFolder ());
-            juce::MessageManager::callAsync ([this] ()
+            case DirectoryDataProperties::ScanStatus::empty:
             {
-                // the call to buildQuickLookupList does not need to happen on the MM thread, but that protects us from some threading issues
-                buildQuickLookupList ();
-                directoryContentsListBox.updateContent ();
-                directoryContentsListBox.repaint ();
-            });
+                juce::Logger::outputDebugString ("ScanStatus::empty");
+            }
+            break;
+            case DirectoryDataProperties::ScanStatus::scanning:
+            {
+                juce::Logger::outputDebugString ("ScanStatus::scanning");
+            }
+            break;
+            case DirectoryDataProperties::ScanStatus::canceled:
+            {
+                juce::Logger::outputDebugString ("ScanStatus::canceled");
+            }
+            break;
+            case DirectoryDataProperties::ScanStatus::done:
+            {
+                juce::Logger::outputDebugString ("ScanStatus::done");
+                jassert (juce::MessageManager::getInstance()->isThisTheMessageThread ());
+                isRootFolder = juce::File (directoryDataProperties.getRootFolder ()).getParentDirectory () == juce::File (directoryDataProperties.getRootFolder ());
+                updateFromData ();
+            }
+            break;
         }
     };
 
-    // TODO - do initial check of data that is available
-    //startScan (appProperties.getMostRecentFolder ());
+    updateFromData ();
+}
+
+void FileViewComponent::updateFromData ()
+{
+    // the call to buildQuickLookupList does not need to happen on the MM thread, but that protects us from some threading issues
+    buildQuickLookupList ();
+    directoryContentsListBox.updateContent ();
+    directoryContentsListBox.repaint ();
 }
 
 void FileViewComponent::openFolder ()

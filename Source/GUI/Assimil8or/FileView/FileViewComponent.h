@@ -35,6 +35,7 @@ private:
     void buildQuickLookupList ();
     void newFolder ();
     void openFolder ();
+    void updateFromData ();
 
     int getNumRows () override;
     juce::String getTooltipForRow (int row) override;

@@ -252,7 +252,7 @@ public:
             directoryDataProperties.triggerStartScan (false);
         };
 
-        assimil8orValidator.init (rootProperties.getValueTree ());
+//        assimil8orValidator.init (rootProperties.getValueTree ());
     }
 
     void initUi ()

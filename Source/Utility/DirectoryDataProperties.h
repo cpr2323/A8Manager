@@ -14,21 +14,30 @@ public:
     {
     }
 
+    enum class ScanStatus
+    {
+        empty,
+        scanning,
+        canceled,
+        done
+    };
+
     void setRootFolder (juce::String rootFolder, bool includeSelfCallback);
     void setScanDepth (int scanDepth, bool includeSelfCallback);
-    void setStatus (int status, bool includeSelfCallback);
+    void setStatus (ScanStatus status, bool includeSelfCallback);
     void triggerStartScan (bool includeSelfCallback);
 
     juce::String getRootFolder ();
     int getScanDepth ();
-    int getStatus ();
+    DirectoryDataProperties::ScanStatus getStatus ();
 
     std::function<void (juce::String rootFolder)> onRootFolderChange;
     std::function<void (int scanDepth)> onScanDepthChange;
-    std::function<void (int status)> onStatusChange;
+    std::function<void (ScanStatus status)> onStatusChange;
     std::function<void ()> onStartScanChange;
 
     juce::ValueTree getDirectoryValueTreeVT ();
+    juce::ValueTree getDirectoryValueTreeContainerVT ();
 
     static inline const juce::Identifier DirectoryDataTypeId { "DirectoryData" };
     static inline const juce::Identifier RootFolderPropertyId { "rootFolder" };

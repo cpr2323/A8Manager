@@ -25,13 +25,33 @@ DirectoryValueTree::~DirectoryValueTree ()
     stopThread (500);
 }
 
+juce::ValueTree DirectoryValueTree::getFolderEntry ()
+{
+    auto folderEntryVT { juce::ValueTree ("Folder") };
+    folderEntryVT.setProperty ("name", "", nullptr);
+    return folderEntryVT;
+}
+
+void DirectoryValueTree::updateDirectoryData (juce::ValueTree newDirectoryData)
+{
+    // TODO - hard coding index 0 for now, should give some more thought
+    directoryDataProperties.getDirectoryValueTreeContainerVT ().removeChild (0, nullptr);
+    directoryDataProperties.getDirectoryValueTreeContainerVT ().addChild (newDirectoryData, -1, nullptr);
+}
+
 void DirectoryValueTree::init (juce::ValueTree rootPropertiesVT)
 {
     RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
     directoryDataProperties.wrap (runtimeRootProperties.getValueTree (), DirectoryDataProperties::WrapperType::owner, DirectoryDataProperties::EnableCallbacks::yes);
+
+    ddpMonitor.assign (directoryDataProperties.getValueTreeRef ());
+
     directoryDataProperties.onRootFolderChange = [this] (juce::String rootFolder) { setRootFolder (rootFolder); };
     directoryDataProperties.onScanDepthChange= [this] (int scanDepth) { setScanDepth (scanDepth); };
     directoryDataProperties.onStartScanChange= [this] () { startScan (); };
+
+    // attach the actual DirectoryValueTree data to the container
+    updateDirectoryData (getFolderEntry ());
 }
 
 juce::ValueTree DirectoryValueTree::getDirectoryDataPropertiesVT ()
@@ -56,13 +76,14 @@ void DirectoryValueTree::setScanDepth (int theScanDepth)
 
 juce::ValueTree DirectoryValueTree::getDirectoryVT ()
 {
-    return rootFolderVT;
+    return {}; //rootFolderVT;
 }
 
 void DirectoryValueTree::clear ()
 {
     LogDirectoryValueTree (doLogging, "DirectoryValueTree::clear - enter");
-    rootFolderVT = {};
+    // TODO - we need to tell clients
+    updateDirectoryData (getFolderEntry ());
     LogDirectoryValueTree (doLogging, "DirectoryValueTree::clear - exit");
 }
 
@@ -123,11 +144,22 @@ void DirectoryValueTree::timerCallback ()
     LogDirectoryValueTree (doLogging, "DirectoryValueTree::timerCallback - exit");
 }
 
+void DirectoryValueTree::sendStatusUpdate (DirectoryDataProperties::ScanStatus scanStatus)
+{
+    juce::MessageManager::callAsync ([this, scanStatus] ()
+        {
+            juce::Logger::outputDebugString ("setting scanStatus: " + juce::String(static_cast<int>(scanStatus)));
+
+            directoryDataProperties.setStatus (scanStatus, false);
+        });
+}
+
 void DirectoryValueTree::run ()
 {
     LogDirectoryValueTree (doLogging, "DirectoryValueTree::run - enter");
     while (wait (-1) && ! threadShouldExit ())
     {
+        sendStatusUpdate (DirectoryDataProperties::ScanStatus::scanning);
         scanning = true;
         cancelScan = false;
         LogDirectoryValueTree (doLogging, "DirectoryValueTree::run - rootFolderVT = {}");
@@ -137,18 +169,18 @@ void DirectoryValueTree::run ()
         if (shouldCancelOperation ())
         {
             LogDirectoryValueTree (doLogging, "DirectoryValueTree::run - threadShouldExit = true, rootFolderVT = {}");
-            rootFolderVT = {};
+            updateDirectoryData (getFolderEntry ());
         }
         juce::MessageManager::callAsync ([this, newFolderScanVT, wasCanceled = shouldCancelOperation ()] ()
         {
             if (! wasCanceled)
-                rootFolderVT = newFolderScanVT;
+                updateDirectoryData (newFolderScanVT);
             else
-                rootFolderVT = {};
+                updateDirectoryData (getFolderEntry ());
             if (onComplete != nullptr)
                 onComplete (! wasCanceled);
         });
-        scanning = false;
+        sendStatusUpdate (DirectoryDataProperties::ScanStatus::done);
     }
     LogDirectoryValueTree (doLogging, "DirectoryValueTree::run - exit");
 }

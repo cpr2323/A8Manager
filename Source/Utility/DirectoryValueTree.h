@@ -2,6 +2,7 @@
 
 #include <JuceHeader.h>
 #include "DirectoryDataProperties.h"
+#include "../Utility/ValueTreeMonitor.h"
 
 class DirectoryValueTree : public juce::Thread,
                            private juce::Timer
@@ -34,7 +35,7 @@ private:
     juce::String rootFolderName;
     int scanDepth { 0 };
     int64_t lastScanInProgressUpdate {};
-    juce::ValueTree rootFolderVT;
+    //juce::ValueTree rootFolderVT;
     bool doLogging { false };
     std::atomic<bool> scanning { false };
     std::atomic<bool> cancelScan { false };
@@ -43,8 +44,14 @@ private:
     juce::ValueTree doScan ();
     void doStatusUpdate (juce::String operation, juce::String fileName);
     juce::ValueTree getContentsOfFolder (juce::File folder, int curDepth);
+    juce::ValueTree getFolderEntry ();
+    void updateDirectoryData (juce::ValueTree newDirectoryData);
+    void sendStatusUpdate (DirectoryDataProperties::ScanStatus scanStatus);
     void sortContentsOfFolder (juce::ValueTree rootFolderVT);
     bool shouldCancelOperation ();
+
+    ValueTreeMonitor ddpMonitor;
+    ValueTreeMonitor rootFolderMonitor;
 
     void run () override;
     void timerCallback () override;
