@@ -252,7 +252,9 @@ public:
             directoryDataProperties.triggerStartScan (false);
         };
 
-//        assimil8orValidator.init (rootProperties.getValueTree ());
+        directoryDataProperties.setRootFolder (appProperties.getMostRecentFolder (), false);
+        directoryDataProperties.triggerStartScan (false);
+        //        assimil8orValidator.init (rootProperties.getValueTree ());
     }
 
     void initUi ()

@@ -2,7 +2,7 @@
 #include "../Assimil8or/FileTypeHelpers.h"
 #include "../Utility/RuntimeRootProperties.h"
 
-#define LOG_DIRECTORY_VALUE_TREE 0
+#define LOG_DIRECTORY_VALUE_TREE 1
 #if LOG_DIRECTORY_VALUE_TREE
 #define LogDirectoryValueTree(cond, text) if (cond) {juce::Logger::outputDebugString (text); }
 #else
@@ -47,8 +47,11 @@ void DirectoryValueTree::init (juce::ValueTree rootPropertiesVT)
     ddpMonitor.assign (directoryDataProperties.getValueTreeRef ());
 
     directoryDataProperties.onRootFolderChange = [this] (juce::String rootFolder) { setRootFolder (rootFolder); };
-    directoryDataProperties.onScanDepthChange= [this] (int scanDepth) { setScanDepth (scanDepth); };
-    directoryDataProperties.onStartScanChange= [this] () { startScan (); };
+    directoryDataProperties.onScanDepthChange = [this] (int scanDepth) { setScanDepth (scanDepth); };
+    directoryDataProperties.onStartScanChange = [this] ()
+        {
+            startScan ();
+        };
 
     // attach the actual DirectoryValueTree data to the container
     updateDirectoryData (getFolderEntry ());
@@ -171,15 +174,16 @@ void DirectoryValueTree::run ()
             LogDirectoryValueTree (doLogging, "DirectoryValueTree::run - threadShouldExit = true, rootFolderVT = {}");
             updateDirectoryData (getFolderEntry ());
         }
+        else
+        {
+            updateDirectoryData (newFolderScanVT);
+        }
         juce::MessageManager::callAsync ([this, newFolderScanVT, wasCanceled = shouldCancelOperation ()] ()
         {
-            if (! wasCanceled)
-                updateDirectoryData (newFolderScanVT);
-            else
-                updateDirectoryData (getFolderEntry ());
             if (onComplete != nullptr)
                 onComplete (! wasCanceled);
         });
+        scanning = false;
         sendStatusUpdate (DirectoryDataProperties::ScanStatus::done);
     }
     LogDirectoryValueTree (doLogging, "DirectoryValueTree::run - exit");

@@ -88,6 +88,7 @@ void FileViewComponent::openFolder ()
 
 void FileViewComponent::buildQuickLookupList ()
 {
+    directoryListQuickLookupList.clear ();
     ValueTreeHelpers::forEachChild (directoryDataProperties.getDirectoryValueTreeVT (), [this] (juce::ValueTree child)
     {
         directoryListQuickLookupList.emplace_back (child);
