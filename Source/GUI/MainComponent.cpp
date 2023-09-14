@@ -42,10 +42,10 @@ MainComponent::MainComponent (juce::ValueTree rootPropertiesVT)
     };
 
     assimil8orEditorComponent.init (rootPropertiesVT);
-    //assimil8orValidatorComponent.init (rootPropertiesVT);
+    assimil8orValidatorComponent.init (rootPropertiesVT);
     fileViewComponent.init (rootPropertiesVT);
     presetListComponent.init (rootPropertiesVT);
-    //toolWindow.init (rootPropertiesVT);
+    toolWindow.init (rootPropertiesVT);
 
     presetListEditorSplitter.setComponents (&presetListComponent, &assimil8orEditorComponent);
     presetListEditorSplitter.setHorizontalSplit (false);

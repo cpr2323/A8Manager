@@ -241,20 +241,26 @@ public:
                                               presetProperties.getValueTree ());
         presetManagerProperties.addPreset ("edit", presetProperties.getValueTree ());
         presetManagerProperties.addPreset ("unedited", presetProperties.getValueTree ().createCopy ());
-        // add the Preset to the Runtime Root
+        // add the Preset Manager to the Runtime Root
         runtimeRootProperties.getValueTree ().addChild (presetManagerProperties.getValueTree (), -1, nullptr);
 
+        // setup the directory scanner
         directoryValueTree.init (rootProperties.getValueTree ());
         directoryDataProperties.wrap (directoryValueTree.getDirectoryDataPropertiesVT (), DirectoryDataProperties::WrapperType::client, DirectoryDataProperties::EnableCallbacks::no);
+
+        // when the folder being viewed changes, signal the directory scanner to rescan
         appProperties.onMostRecentFolderChange = [this] (juce::String folderName)
         {
             directoryDataProperties.setRootFolder (folderName, false);
             directoryDataProperties.triggerStartScan (false);
         };
 
+        // start the initial directory scan, based on the last accessed folder stored in the app properties
         directoryDataProperties.setRootFolder (appProperties.getMostRecentFolder (), false);
         directoryDataProperties.triggerStartScan (false);
-        //        assimil8orValidator.init (rootProperties.getValueTree ());
+
+        // initialize the Validator
+        assimil8orValidator.init (rootProperties.getValueTree ());
     }
 
     void initUi ()

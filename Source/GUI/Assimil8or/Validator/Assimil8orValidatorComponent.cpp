@@ -58,6 +58,8 @@ Assimil8orValidatorComponent::~Assimil8orValidatorComponent ()
 void Assimil8orValidatorComponent::init (juce::ValueTree rootPropertiesVT)
 {
     RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
+    directoryDataProperties.wrap (runtimeRootProperties.getValueTree (), DirectoryDataProperties::WrapperType::client, DirectoryDataProperties::EnableCallbacks::yes);
+
     validatorProperties.wrap (runtimeRootProperties.getValueTree (), ValidatorProperties::WrapperType::client, ValidatorProperties::EnableCallbacks::yes);
     validatorProperties.onScanStatusChanged = [this] (juce::String scanStatus)
     {
@@ -254,7 +256,7 @@ void Assimil8orValidatorComponent::rename (juce::File file, int maxLength)
     auto renameContent { std::make_unique<RenameDialogContent> (file, maxLength, [this] (bool wasRenamed)
     {
         if (wasRenamed)
-            validatorProperties.startScan (false);
+            directoryDataProperties.triggerStartScan (false);
     }) };
     options.content.setOwned (renameContent.release ());
 
@@ -337,7 +339,7 @@ void Assimil8orValidatorComponent::convert (juce::File file)
                         errorDialog ("Failure to move converted file to original file");
                         jassertfalse;
                     }
-                    validatorProperties.startScan (false);
+                    directoryDataProperties.triggerStartScan (false);
                 }
                 else
                 {
@@ -385,7 +387,7 @@ void Assimil8orValidatorComponent::locate (juce::File file)
                                                        "Unable to rename '" + sourceFile.getFileName () + "' to '" + file.getFileName () + "'", {}, nullptr,
                                                        juce::ModalCallbackFunction::create ([this] (int) {}));
             }
-            validatorProperties.startScan (false);
+            directoryDataProperties.triggerStartScan (false);
         }
     }, nullptr);
 }

@@ -2,7 +2,7 @@
 
 #include <JuceHeader.h>
 #include "../AppProperties.h"
-#include "../Utility/DirectoryValueTree.h"
+#include "../Utility/DirectoryDataProperties.h"
 #include "../Utility/LambdaThread.h"
 #include "Validator/ValidatorProperties.h"
 
@@ -25,22 +25,21 @@ private:
     enum class ValdatationState
     {
         idle,
-        reading,
         validating,
         restarting
     };
     AppProperties appProperties;
     ValidatorProperties validatorProperties;
     ValidatorResultListProperties validatorResultListProperties;
+    DirectoryDataProperties directoryDataProperties;
+
+    // TODO - my current thought is that the DirectoryValueTree class should perform all of the checks (files types, supported audio, etc), and store into in the valuetree
     juce::AudioFormatManager audioFormatManager;
-    DirectoryValueTree directoryValueTree;
-    juce::ValueTree rootFolderVT;
+
     int64_t lastScanInProgressUpdate {};
-    ValdatationState valdatationState { ValdatationState::reading };
-    juce::File rootFolderToScan;
-    juce::File queuedFolderToScan;
+    ValdatationState valdatationState { ValdatationState::idle };
     juce::CriticalSection threadManagmentLock;
-    std::atomic<bool> newItemQueued { false };
+    std::atomic<bool> cancelCurrentValidation { false };
     LambdaThread validateThread { "ValidateThread", 100 };
 
     void addResult (juce::String statusType, juce::String statusText);
@@ -48,7 +47,7 @@ private:
     void doIfProgressTimeElapsed (std::function<void ()> functionToDo);
     void processFolder (juce::ValueTree folder);
     bool shouldCancelOperation ();
-    void startValidation (juce::String folderToScan);
+    void startValidation ();
     std::tuple<uint64_t, std::optional<uint64_t>> validateFile (juce::File file, juce::ValueTree validatorResultsVT);
     void validateFolder (juce::File folder, juce::ValueTree validatorResultsVT);
     void validateRootFolder ();

@@ -3,6 +3,7 @@
 #include <JuceHeader.h>
 #include "../../../Assimil8or/Validator/ValidatorProperties.h"
 #include "../../../Assimil8or/Validator/ValidatorResultProperties.h"
+#include "../../../Utility/DirectoryDataProperties.h"
 
 class Assimil8orValidatorComponent : public juce::Component,
                                      private juce::TableListBoxModel
@@ -21,6 +22,8 @@ private:
         text
     };
     ValidatorProperties validatorProperties;
+    DirectoryDataProperties directoryDataProperties;
+
     juce::TableListBox validationResultsListBox { {}, this };
     std::vector<juce::ValueTree> validatorResultsQuickLookupList;
     juce::StringArray filterList { ValidatorResultProperties::ResultTypeInfo };

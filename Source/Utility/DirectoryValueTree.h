@@ -33,9 +33,8 @@ public:
 private:
     DirectoryDataProperties directoryDataProperties;
     juce::String rootFolderName;
-    int scanDepth { 0 };
+    int scanDepth { -1 };
     int64_t lastScanInProgressUpdate {};
-    //juce::ValueTree rootFolderVT;
     bool doLogging { false };
     std::atomic<bool> scanning { false };
     std::atomic<bool> cancelScan { false };

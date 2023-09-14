@@ -11,20 +11,17 @@ public:
 
     void setScanStatus (juce::String scanStatus, bool includeSelfCallback);
     void setProgressUpdate (juce::String progressUpdate, bool includeSelfCallback);
-    void startScan (bool includeSelfCallback);
 
     juce::String getScanStatus ();
     juce::String getProgressUpdate ();
 
     std::function<void (juce::String scanStatus)> onScanStatusChanged;
     std::function<void (juce::String progressUpdate)> onProgressUpdateChanged;
-    std::function<void ()> onStartScan;
 
     juce::ValueTree getValidatorResultListVT ();
 
     static inline const juce::Identifier Assimil8orValidatorId { "Assimil8orValidator" };
     static inline const juce::Identifier ScanStatusPropertyId     { "scanStatus" };
-    static inline const juce::Identifier StartScanPropertyId      { "startScan" };
     static inline const juce::Identifier ProgressUpdatePropertyId { "progressUpdate" };
 
     void initValueTree ();

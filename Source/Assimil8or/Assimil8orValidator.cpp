@@ -38,22 +38,6 @@ juce::String getMemorySizeString (uint64_t memoryUsage)
 Assimil8orValidator::Assimil8orValidator () : Thread ("Assimil8orValidator")
 {
     audioFormatManager.registerBasicFormats ();
-    directoryValueTree.tempEnableLogging ();
-    directoryValueTree.setScanDepth (-1); // no depth limit
-    directoryValueTree.onComplete = [this] (bool success)
-    {
-        LogValidation ("Assimil8orValidator::Assimil8orValidator - directoryValueTree.onComplete");
-        if (success)
-        {
-            valdatationState = ValdatationState::validating;
-            LogValidation ("Assimil8orValidator::Assimil8orValidator - directoryValueTree.onComplete - notify");
-            notify ();
-        }
-    };
-    directoryValueTree.onStatusChange = [this] (juce::String operation, juce::String fileName)
-    {
-        validatorProperties.setProgressUpdate (operation + ": " + fileName, false);
-    };
 
     validateThread.onThreadLoop = [this] ()
     {
@@ -71,23 +55,42 @@ Assimil8orValidator::~Assimil8orValidator ()
 
 void Assimil8orValidator::init (juce::ValueTree rootPropertiesVT)
 {
-    PersistentRootProperties persistentRootProperties (rootPropertiesVT, PersistentRootProperties::WrapperType::client, PersistentRootProperties::EnableCallbacks::no);
     RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
     validatorProperties.wrap (runtimeRootProperties.getValueTree (), ValidatorProperties::WrapperType::owner, ValidatorProperties::EnableCallbacks::yes);
-    validatorProperties.onStartScan = [this] ()
+
+    directoryDataProperties.wrap (runtimeRootProperties.getValueTree (), DirectoryDataProperties::WrapperType::client, DirectoryDataProperties::EnableCallbacks::yes);
+    directoryDataProperties.onStatusChange = [this] (DirectoryDataProperties::ScanStatus status)
     {
-        startValidation (rootFolderToScan.getFullPathName ());
+        switch (status)
+        {
+            case DirectoryDataProperties::ScanStatus::empty:
+            {
+                juce::Logger::outputDebugString ("ScanStatus::empty");
+            }
+            break;
+            case DirectoryDataProperties::ScanStatus::scanning:
+            {
+                juce::Logger::outputDebugString ("ScanStatus::scanning");
+            }
+            break;
+            case DirectoryDataProperties::ScanStatus::canceled:
+            {
+                juce::Logger::outputDebugString ("ScanStatus::canceled");
+            }
+            break;
+            case DirectoryDataProperties::ScanStatus::done:
+            {
+                juce::Logger::outputDebugString ("ScanStatus::done");
+                jassert (juce::MessageManager::getInstance ()->isThisTheMessageThread ());
+                startValidation ();
+            }
+            break;
+        }
     };
 
-    appProperties.wrap (persistentRootProperties.getValueTree (), AppProperties::WrapperType::client, AppProperties::EnableCallbacks::yes);
-    appProperties.onMostRecentFolderChange = [this] (juce::String folderName)
-    {
-        startValidation (folderName);
-    };
     validatorResultListProperties.wrap (validatorProperties.getValueTree (),
                                         ValidatorResultListProperties::WrapperType::client, ValidatorResultListProperties::EnableCallbacks::no);
-
-    startValidation (appProperties.getMostRecentFolder ());
+    startValidation ();
 }
 
 void Assimil8orValidator::addResult (juce::String statusType, juce::String statusText)
@@ -116,37 +119,20 @@ void Assimil8orValidator::doIfProgressTimeElapsed (std::function<void ()> functi
     }
 }
 
-void Assimil8orValidator::startValidation (juce::String folderToScan)
+void Assimil8orValidator::startValidation ()
 {
     LogValidation ("Assimil8orValidator::startValidation - enter");
-    auto waitForRestart { false };
-    {
-        juce::ScopedLock sl (threadManagmentLock);
-        const auto isReading { directoryValueTree.isScanning () };
-        const auto isValidating { validateThread.isThreadRunning () };
-        queuedFolderToScan = folderToScan;
-        if (isValidating)
-        {
-            newItemQueued = true;
-            waitForRestart = true;
-        }
-        if (isReading)
-        {
-            directoryValueTree.cancel ();
-            LogValidation ("Assimil8orValidator::startValidation: directoryValueTree.cancel ()");
-            waitForRestart = true;
-        }
-    }
-    if (waitForRestart)
+    if (validateThread.isThreadRunning ())
     {
         valdatationState = ValdatationState::restarting;
+        cancelCurrentValidation = true;
         LogValidation ("Assimil8orValidator::startValidation: wait for restart");
     }
     else
     {
         LogValidation ("Assimil8orValidator::startValidation: " + queuedFolderToScan.getFullPathName ());
+        valdatationState = ValdatationState::validating;
         validatorProperties.setScanStatus ("scanning", false);
-        valdatationState = ValdatationState::reading;
     }
     LogValidation ("Assimil8orValidator::startValidation - notify");
     notify ();
@@ -162,18 +148,6 @@ void Assimil8orValidator::run ()
         {
             case Assimil8orValidator::ValdatationState::idle:
             break;
-            case Assimil8orValidator::ValdatationState::reading:
-            {
-                {
-                    juce::ScopedLock sl (threadManagmentLock);
-                    rootFolderToScan = queuedFolderToScan;
-                    queuedFolderToScan = juce::File ();
-                    LogValidation ("Assimil8orValidator::run - reading folder: " + rootFolderToScan.getFullPathName ());
-                }
-                directoryValueTree.setRootFolder (rootFolderToScan.getFullPathName ());
-                directoryValueTree.startScan ();
-            }
-            break;
             case Assimil8orValidator::ValdatationState::validating:
             {
                 LogValidation ("Assimil8orValidator::run: validating");
@@ -185,11 +159,10 @@ void Assimil8orValidator::run ()
                 LogValidation ("Assimil8orValidator::run - ValdatationState::restarting");
                 // TODO - probably want to do something else to not get deadlocked, ie. track time and try and catch deadlock
                 //        maybe request an exit again here
-                while (directoryValueTree.isScanning () || validateThread.isThreadRunning ());
-                newItemQueued = false;
-                LogValidation ("Assimil8orValidator::startValidation: " + queuedFolderToScan.getFullPathName ());
+                while (validateThread.isThreadRunning ());
+                cancelCurrentValidation = true;
+                valdatationState = ValdatationState::validating;
                 validatorProperties.setScanStatus ("scanning", false);
-                valdatationState = ValdatationState::reading;
                 LogValidation ("Assimil8orValidator::run - ValdatationState::restarting - notify");
                 notify ();
             }
@@ -202,16 +175,19 @@ void Assimil8orValidator::run ()
 void Assimil8orValidator::validateRootFolder ()
 {
     LogValidation ("Assimil8orValidator::validateRootFolder - enter");
-    jassert (rootFolderToScan.getFileName ().isNotEmpty ());
     validatorResultListProperties.clear ();
     lastScanInProgressUpdate = juce::Time::currentTimeMillis ();
 
+    auto directoryValueTreeVT { directoryDataProperties.getDirectoryValueTreeVT () };
+    jassert (directoryValueTreeVT.isValid ());
+    jassert (directoryValueTreeVT.getType ().toString ()  == "Folder");
+    auto rootFolderToScan { juce::File (directoryValueTreeVT.getProperty ("name")) };
     addResult (ValidatorResultProperties::ResultTypeInfo, "Root Folder: " + rootFolderToScan.getFileName ());
+
     // do one initial progress update to fill in the first one
     validatorProperties.setProgressUpdate ("Validating: " + rootFolderToScan.getFileName (), false);
 
-    processFolder (directoryValueTree.getDirectoryVT ());
-    directoryValueTree.clear ();
+    processFolder (directoryValueTreeVT);
 
     validatorProperties.setProgressUpdate ("", false);
     validatorProperties.setScanStatus ("idle", false);
@@ -279,7 +255,7 @@ void Assimil8orValidator::processFolder (juce::ValueTree folderVT)
 
 bool Assimil8orValidator::shouldCancelOperation ()
 {
-    return threadShouldExit () || newItemQueued;
+    return threadShouldExit () || cancelCurrentValidation;
 }
 
 void Assimil8orValidator::validateFolder (juce::File folder, juce::ValueTree validatorResultsVT)
