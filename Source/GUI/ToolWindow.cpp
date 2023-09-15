@@ -3,7 +3,7 @@
 
 ToolWindow::ToolWindow ()
 {
-    progressUpdateLabel.setColour (juce::Label::ColourIds::textColourId, juce::Colours::darkgreen);
+    progressUpdateLabel.setColour (juce::Label::ColourIds::textColourId, juce::Colours::white);
     addAndMakeVisible (progressUpdateLabel);
 }
 
@@ -27,7 +27,7 @@ void ToolWindow::updateProgress (juce::String progressUpdate)
 
 void ToolWindow::paint (juce::Graphics& g)
 {
-    g.fillAll (juce::Colours::cadetblue);
+    g.fillAll (progressUpdateLabel.findColour(juce::Label::ColourIds::backgroundColourId).brighter (0.9f));
 }
 
 void ToolWindow::resized ()

@@ -25,13 +25,6 @@ DirectoryValueTree::~DirectoryValueTree ()
     stopThread (500);
 }
 
-juce::ValueTree DirectoryValueTree::getFolderEntry ()
-{
-    auto folderEntryVT { juce::ValueTree ("Folder") };
-    folderEntryVT.setProperty ("name", "", nullptr);
-    return folderEntryVT;
-}
-
 void DirectoryValueTree::updateDirectoryData (juce::ValueTree newDirectoryData)
 {
     // TODO - hard coding index 0 for now, should give some more thought
@@ -51,7 +44,7 @@ void DirectoryValueTree::init (juce::ValueTree rootPropertiesVT)
     directoryDataProperties.onStartScanChange = [this] () { startScan (); };
 
     // attach the actual DirectoryValueTree data to the container
-    updateDirectoryData (getFolderEntry ());
+    updateDirectoryData (makeFolderEntry (""));
 }
 
 juce::ValueTree DirectoryValueTree::getDirectoryDataPropertiesVT ()
@@ -83,7 +76,7 @@ void DirectoryValueTree::clear ()
 {
     LogDirectoryValueTree (doLogging, "DirectoryValueTree::clear - enter");
     // TODO - we need to tell clients
-    updateDirectoryData (getFolderEntry ());
+    updateDirectoryData (makeFolderEntry (""));
     LogDirectoryValueTree (doLogging, "DirectoryValueTree::clear - exit");
 }
 
@@ -162,7 +155,7 @@ void DirectoryValueTree::run ()
         if (shouldCancelOperation ())
         {
             LogDirectoryValueTree (doLogging, "DirectoryValueTree::run - threadShouldExit = true, rootFolderVT = {}");
-            updateDirectoryData (getFolderEntry ());
+            updateDirectoryData (makeFolderEntry (""));
         }
         else
         {
@@ -195,8 +188,7 @@ juce::ValueTree DirectoryValueTree::doScan ()
 
 juce::ValueTree DirectoryValueTree::getContentsOfFolder (juce::File folder, int curDepth)
 {
-    juce::ValueTree folderVT {"Folder"};
-    folderVT.setProperty ("name", folder.getFullPathName (), nullptr);
+    auto folderVT { makeFolderEntry (folder) };
     if (scanDepth == -1 || curDepth <= scanDepth)
     {
         for (const auto& entry : juce::RangedDirectoryIterator (folder, false, "*", juce::File::findFilesAndDirectories))
@@ -207,23 +199,51 @@ juce::ValueTree DirectoryValueTree::getContentsOfFolder (juce::File folder, int 
             // TODO - do we want to route this message through DirectoryDataProperties
             //doIfProgressTimeElapsed ([this, fileName = entry.getFile ().getFileName ()] () { doStatusUpdate ("Reading File System", fileName); });
             if (const auto& curFile { entry.getFile () }; curFile.isDirectory ())
-            {
                 folderVT.addChild (getContentsOfFolder (curFile, curDepth + 1), -1, nullptr);
-            }
             else
-            {
-                juce::ValueTree fileVT {"File"};
-                fileVT.setProperty ("name", curFile.getFullPathName (), nullptr);
-                folderVT.addChild (fileVT, -1, nullptr);
-            }
+                folderVT.addChild (makeFileEntry (curFile), -1, nullptr);
         }
     }
     return folderVT;
 }
 
+juce::ValueTree DirectoryValueTree::makeFileEntry (juce::File file)
+{
+    juce::ValueTree fileVT { "File" };
+    fileVT.setProperty ("name", file.getFullPathName (), nullptr);
+    return fileVT;
+}
+
+bool DirectoryValueTree::isFolderEntry (juce::ValueTree folderVT)
+{
+    return folderVT.getType ().toString () == "Folder";
+}
+
+bool DirectoryValueTree::isFileEntry (juce::ValueTree fileVT)
+{
+    return fileVT.getType ().toString () == "File";
+}
+
+juce::String DirectoryValueTree::getEntryName (juce::ValueTree fileVT)
+{
+    return fileVT.getProperty ("name").toString ();
+}
+
+juce::ValueTree DirectoryValueTree::makeFolderEntry (juce::String filePath)
+{
+    juce::ValueTree fileVT { "Folder" };
+    fileVT.setProperty ("name", filePath, nullptr);
+    return fileVT;
+}
+
+juce::ValueTree DirectoryValueTree::makeFolderEntry (juce::File folder)
+{
+    return makeFolderEntry (folder.getFullPathName ());
+}
+
 void DirectoryValueTree::sortContentsOfFolder (juce::ValueTree folderVT)
 {
-    jassert (folderVT.getType ().toString () == "Folder");
+    jassert (isFolderEntry (folderVT));
 
     // Folders
     // System files (folderprefs, lastfolder, lastpreset)
@@ -247,7 +267,7 @@ void DirectoryValueTree::sortContentsOfFolder (juce::ValueTree folderVT)
     std::array<SectionInfo, SectionIndex::size> sections;
     const auto numFolderEntries { folderVT.getNumChildren () };
 
-    auto insertSorted = [&sections, &folderVT] (int itemIndex, int sectionIndex)
+    auto insertSorted = [this, &sections, &folderVT] (int itemIndex, int sectionIndex)
     {
         jassert (sectionIndex < SectionIndex::size);
         auto& section { sections [sectionIndex] };
@@ -262,10 +282,10 @@ void DirectoryValueTree::sortContentsOfFolder (juce::ValueTree folderVT)
             for (auto curSectionIndex { 1 }; curSectionIndex < SectionIndex::size; ++curSectionIndex)
                 sections [curSectionIndex].startIndex = sections [curSectionIndex - 1].startIndex + sections [curSectionIndex - 1].length;
         };
-        const auto fileName { folderVT.getChild (itemIndex).getProperty ("name").toString ().toLowerCase () };
+        const auto fileName { getEntryName (folderVT.getChild (itemIndex)).toLowerCase () };
         for (auto sectionEntryIndex { section.startIndex }; sectionEntryIndex < section.startIndex + section.length; ++sectionEntryIndex)
         {
-            if (fileName < folderVT.getChild (sectionEntryIndex).getProperty ("name").toString ().toLowerCase ())
+            if (fileName < getEntryName (folderVT.getChild (sectionEntryIndex)).toLowerCase ())
             {
                 insertItem (itemIndex, sectionEntryIndex);
                 break;
@@ -279,19 +299,19 @@ void DirectoryValueTree::sortContentsOfFolder (juce::ValueTree folderVT)
         auto folderEntryVT { folderVT.getChild (folderIndex) };
         // TODO - do we want to route this message through DirectoryDataProperties
         // doIfProgressTimeElapsed ([this, fileName = folderEntryVT.getProperty ("name").toString ()] () { doStatusUpdate ("Sorting File System", fileName); });
-        if (folderEntryVT.getType ().toString () == "Folder")
+        if (isFolderEntry (folderEntryVT))
         {
             insertSorted (folderIndex, SectionIndex::folders);
             sortContentsOfFolder (folderEntryVT);
         }
-        else if (folderEntryVT.getType ().toString () == "File")
+        else if (isFileEntry (folderEntryVT))
         {
             // alphabetize in these lists
             //   System files
             //   Preset files
             //   Audio files
             //   unknown files
-            auto curFile { juce::File (folderEntryVT.getProperty ("name").toString ()) };
+            auto curFile { juce::File (getEntryName (folderEntryVT)) };
             //jassert (curFile.exists ());
             if (FileTypeHelpers::isSystemFile (curFile))
                 insertSorted (folderIndex, SectionIndex::systemFiles);

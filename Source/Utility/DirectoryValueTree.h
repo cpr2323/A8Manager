@@ -41,7 +41,12 @@ private:
     void doIfProgressTimeElapsed (std::function<void ()> functionToDo);
     juce::ValueTree doScan ();
     juce::ValueTree getContentsOfFolder (juce::File folder, int curDepth);
-    juce::ValueTree getFolderEntry ();
+    juce::ValueTree makeFileEntry (juce::File file);
+    bool isFolderEntry (juce::ValueTree folderVT);
+    bool isFileEntry (juce::ValueTree fileVT);
+    juce::String getEntryName (juce::ValueTree fileVT);
+    juce::ValueTree makeFolderEntry (juce::File folder);
+    juce::ValueTree makeFolderEntry (juce::String filePath);
     void updateDirectoryData (juce::ValueTree newDirectoryData);
     void sendStatusUpdate (DirectoryDataProperties::ScanStatus scanStatus);
     void sortContentsOfFolder (juce::ValueTree rootFolderVT);
