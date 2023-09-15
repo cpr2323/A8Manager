@@ -6,6 +6,10 @@ class WatchdogTimer : public juce::Timer
 {
 public:
     WatchdogTimer () = default;
+    ~WatchdogTimer ()
+    {
+        stop ();
+    }
 
     void start(int timeOut)
     {
