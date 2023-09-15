@@ -5,7 +5,7 @@
 #include "../../../Assimil8or/Preset/ParameterPresetsSingleton.h"
 #include "../../../Utility/PersistentRootProperties.h"
 #include "../../../Utility/RuntimeRootProperties.h"
-#include "../../../Utility/WatchdogTimer.h"
+#include "../../../Utility/WatchDogTimer.h"
 
 #define LOG_PRESET_LIST 1
 #if LOG_PRESET_LIST
@@ -120,6 +120,8 @@ void PresetListComponent::checkForPresets ()
                 inPresetList = true;
                 const auto presetIndex { FileTypeHelpers::getPresetNumberFromName (fileToCheck) - 1 };
 
+                if (presetIndex >= kMaxPresets)
+                    return true;
                 juce::String presetName;
                 juce::StringArray fileContents;
                 fileToCheck.readLines (fileContents);

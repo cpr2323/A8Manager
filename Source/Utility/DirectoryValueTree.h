@@ -3,7 +3,7 @@
 #include <JuceHeader.h>
 #include "DirectoryDataProperties.h"
 #include "../Utility/ValueTreeMonitor.h"
-#include "../Utility/WatchdogTimer.h"
+#include "../Utility/WatchDogTimer.h"
 
 class DirectoryValueTree : public juce::Thread,
                            private juce::Timer

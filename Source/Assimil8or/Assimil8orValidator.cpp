@@ -4,7 +4,7 @@
 #include "Validator/ValidatorResultProperties.h"
 #include "../Utility/PersistentRootProperties.h"
 #include "../Utility/RuntimeRootProperties.h"
-#include "../Utility/WatchdogTimer.h"
+#include "../Utility/WatchDogTimer.h"
 
 #define LOG_VALIDATION 0
 #if LOG_VALIDATION
