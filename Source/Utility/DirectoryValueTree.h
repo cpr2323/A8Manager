@@ -28,9 +28,6 @@ public:
     void startScan ();
     void tempEnableLogging () { doLogging = true; }
 
-    std::function<void (bool success)> onComplete;
-    std::function<void (juce::String operation, juce::String fileName)> onStatusChange;
-
 private:
     WatchdogTimer timer;
     DirectoryDataProperties directoryDataProperties;
@@ -43,7 +40,6 @@ private:
 
     void doIfProgressTimeElapsed (std::function<void ()> functionToDo);
     juce::ValueTree doScan ();
-    void doStatusUpdate (juce::String operation, juce::String fileName);
     juce::ValueTree getContentsOfFolder (juce::File folder, int curDepth);
     juce::ValueTree getFolderEntry ();
     void updateDirectoryData (juce::ValueTree newDirectoryData);

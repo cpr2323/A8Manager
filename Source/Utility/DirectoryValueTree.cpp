@@ -97,12 +97,6 @@ bool DirectoryValueTree::isScanning ()
     return scanning;
 }
 
-void DirectoryValueTree::doStatusUpdate (juce::String operation, juce::String fileName)
-{
-    if (onStatusChange != nullptr)
-        onStatusChange (operation, fileName);
-}
-
 void DirectoryValueTree::doIfProgressTimeElapsed (std::function<void ()> functionToDo)
 {
     jassert (functionToDo != nullptr);
@@ -174,11 +168,6 @@ void DirectoryValueTree::run ()
         {
             updateDirectoryData (newFolderScanVT);
         }
-        juce::MessageManager::callAsync ([this, newFolderScanVT, wasCanceled = shouldCancelOperation ()] ()
-        {
-            if (onComplete != nullptr)
-                onComplete (! wasCanceled);
-        });
         scanning = false;
         sendStatusUpdate (DirectoryDataProperties::ScanStatus::done);
     }
@@ -190,7 +179,8 @@ juce::ValueTree DirectoryValueTree::doScan ()
     lastScanInProgressUpdate = juce::Time::currentTimeMillis ();
     const auto rootEntry { juce::File (rootFolderName) };
     // do one initial progress update to fill in the first one
-    doStatusUpdate ("Reading File System", rootEntry.getFileName ());
+    // TODO - do we want to route this message through DirectoryDataProperties
+    //doStatusUpdate ("Reading File System", rootEntry.getFileName ());
     timer.start (100000);
     auto newDirectoryListVT { getContentsOfFolder (rootFolderName, 0) };
     juce::Logger::outputDebugString ("DirectoryValueTree::doScan - getContentOfFolder - elapsed time: " + juce::String (timer.getElapsedTime ()));
@@ -214,7 +204,8 @@ juce::ValueTree DirectoryValueTree::getContentsOfFolder (juce::File folder, int 
             if (shouldCancelOperation ())
                 break;
 
-            doIfProgressTimeElapsed ([this, fileName = entry.getFile ().getFileName ()] () { doStatusUpdate ("Reading File System", fileName); });
+            // TODO - do we want to route this message through DirectoryDataProperties
+            //doIfProgressTimeElapsed ([this, fileName = entry.getFile ().getFileName ()] () { doStatusUpdate ("Reading File System", fileName); });
             if (const auto& curFile { entry.getFile () }; curFile.isDirectory ())
             {
                 folderVT.addChild (getContentsOfFolder (curFile, curDepth + 1), -1, nullptr);
@@ -286,7 +277,8 @@ void DirectoryValueTree::sortContentsOfFolder (juce::ValueTree folderVT)
     for (auto folderIndex { 0 }; folderIndex < numFolderEntries && ! shouldCancelOperation (); ++folderIndex)
     {
         auto folderEntryVT { folderVT.getChild (folderIndex) };
-        doIfProgressTimeElapsed ([this, fileName = folderEntryVT.getProperty ("name").toString ()] () { doStatusUpdate ("Sorting File System", fileName); });
+        // TODO - do we want to route this message through DirectoryDataProperties
+        // doIfProgressTimeElapsed ([this, fileName = folderEntryVT.getProperty ("name").toString ()] () { doStatusUpdate ("Sorting File System", fileName); });
         if (folderEntryVT.getType ().toString () == "Folder")
         {
             insertSorted (folderIndex, SectionIndex::folders);

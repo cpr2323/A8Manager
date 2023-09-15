@@ -3,13 +3,15 @@
 #include <JuceHeader.h>
 #include "../../../AppProperties.h"
 #include "../../../Utility/DirectoryDataProperties.h"
+#include "../../../Utility/LambdaThread.h"
 
 class FileViewComponent : public juce::Component,
                           private juce::ListBoxModel
 {
 public:
     FileViewComponent ();
-    ~FileViewComponent ();
+    ~FileViewComponent () = default;
+
     void init (juce::ValueTree rootPropertiesVT);
 
     std::function<void (juce::File audioFile)> onAudioFileSelected;
@@ -31,11 +33,12 @@ private:
     int lastSelectedRow { -1 };
     std::unique_ptr<juce::AlertWindow> renameAlertWindow;
     std::unique_ptr<juce::AlertWindow> newAlertWindow;
+    LambdaThread updateFromNewDataThread { "UpdateFromNewDataThread", 100 };
 
     void buildQuickLookupList ();
     void newFolder ();
     void openFolder ();
-    void updateFromData ();
+    void updateFromNewData ();
 
     int getNumRows () override;
     juce::String getTooltipForRow (int row) override;

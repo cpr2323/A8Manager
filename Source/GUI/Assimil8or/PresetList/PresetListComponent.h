@@ -4,6 +4,7 @@
 #include "../../../AppProperties.h"
 #include "../../../Assimil8or/Preset/PresetProperties.h"
 #include "../../../Utility/DirectoryDataProperties.h"
+#include "../../../Utility/LambdaThread.h"
 
 const auto kMaxPresets { 199 };
 class PresetListComponent : public juce::Component,
@@ -30,9 +31,10 @@ private:
     juce::File currentFolder;
     juce::File previousFolder;
     int lastSelectedRow { -1 };
+    LambdaThread checkPresetsThread { "CheckPresetsThread", 100 };
 
     void copyPreset (int presetNumber);
-    void checkForPresets ();
+    void checkPresets ();
     void deletePreset (int presetNumber);
     juce::File getPresetFile (int presetNumber);
     void forEachPresetFile (std::function<bool (juce::File presetFile, int index)> presetFileCallback);

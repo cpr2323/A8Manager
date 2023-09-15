@@ -21,10 +21,12 @@ FileViewComponent::FileViewComponent ()
     newFolderButton.onClick = [this] () { newFolder (); };
     addAndMakeVisible (newFolderButton);
     addAndMakeVisible (directoryContentsListBox);
-}
 
-FileViewComponent::~FileViewComponent ()
-{
+    updateFromNewDataThread.onThreadLoop = [this] ()
+    {
+        updateFromNewData ();
+        return false;
+    };
 }
 
 void FileViewComponent::init (juce::ValueTree rootPropertiesVT)
@@ -52,23 +54,24 @@ void FileViewComponent::init (juce::ValueTree rootPropertiesVT)
             break;
             case DirectoryDataProperties::ScanStatus::done:
             {
-                jassert (juce::MessageManager::getInstance()->isThisTheMessageThread ());
                 isRootFolder = juce::File (directoryDataProperties.getRootFolder ()).getParentDirectory () == juce::File (directoryDataProperties.getRootFolder ());
-                updateFromData ();
+                updateFromNewDataThread.start ();
             }
             break;
         }
     };
 
-    updateFromData ();
+    updateFromNewDataThread.start ();
 }
 
-void FileViewComponent::updateFromData ()
+void FileViewComponent::updateFromNewData ()
 {
-    // the call to buildQuickLookupList does not need to happen on the MM thread, but that protects us from some threading issues
     buildQuickLookupList ();
-    directoryContentsListBox.updateContent ();
-    directoryContentsListBox.repaint ();
+    juce::MessageManager::callAsync ([this] ()
+    {
+        directoryContentsListBox.updateContent ();
+        directoryContentsListBox.repaint ();
+    });
 }
 
 void FileViewComponent::buildQuickLookupList ()

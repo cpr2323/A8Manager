@@ -17,10 +17,16 @@
 PresetListComponent::PresetListComponent ()
 {
     showAllPresets.setToggleState (true, juce::NotificationType::dontSendNotification);
-    showAllPresets.onClick = [this] () { checkForPresets (); };
+    showAllPresets.onClick = [this] () { checkPresetsThread.start (); };
     addAndMakeVisible (showAllPresets);
     showAllPresets.setButtonText ("Show All");
     addAndMakeVisible (presetListBox);
+
+    checkPresetsThread.onThreadLoop = [this] ()
+    {
+        checkPresets ();
+        return false;
+    };
 }
 
 void PresetListComponent::init (juce::ValueTree rootPropertiesVT)
@@ -49,8 +55,7 @@ void PresetListComponent::init (juce::ValueTree rootPropertiesVT)
             break;
             case DirectoryDataProperties::ScanStatus::done:
             {
-                jassert (juce::MessageManager::getInstance ()->isThisTheMessageThread ());
-                checkForPresets ();
+                checkPresetsThread.startThread ();
             }
             break;
         }
@@ -59,7 +64,7 @@ void PresetListComponent::init (juce::ValueTree rootPropertiesVT)
     unEditedPresetProperties.wrap (presetManagerProperties.getPreset ("unedited"), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::yes);
     presetProperties.wrap (presetManagerProperties.getPreset ("edit"), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::yes);
 
-    checkForPresets ();
+    checkPresetsThread.startThread ();
 }
 
 void PresetListComponent::forEachPresetFile (std::function<bool (juce::File presetFile, int index)> presetFileCallback)
@@ -90,7 +95,7 @@ void PresetListComponent::forEachPresetFile (std::function<bool (juce::File pres
     });
 }
 
-void PresetListComponent::checkForPresets ()
+void PresetListComponent::checkPresets ()
 {
     WatchdogTimer timer;
     timer.start (100000);
@@ -148,14 +153,17 @@ void PresetListComponent::checkForPresets ()
         return true; // keep looking
     });
 
-    presetListBox.updateContent ();
-    if (currentFolder != previousFolder)
+    juce::MessageManager::callAsync ([this, newFolder = (currentFolder != previousFolder)] ()
     {
-        presetListBox.scrollToEnsureRowIsOnscreen (0);
-        loadFirstPreset ();
-        previousFolder = currentFolder;
-    }
-    presetListBox.repaint ();
+        presetListBox.updateContent ();
+        if (newFolder)
+        {
+            presetListBox.scrollToEnsureRowIsOnscreen (0);
+            loadFirstPreset ();
+        }
+        presetListBox.repaint ();
+    });
+    previousFolder = currentFolder;
 
     juce::Logger::outputDebugString ("PresetListComponent::checkPresets - elapsed time: " + juce::String (timer.getElapsedTime ()));
 }

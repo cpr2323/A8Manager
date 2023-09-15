@@ -1,10 +1,10 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "Validator/ValidatorProperties.h"
 #include "../AppProperties.h"
 #include "../Utility/DirectoryDataProperties.h"
 #include "../Utility/LambdaThread.h"
-#include "Validator/ValidatorProperties.h"
 
 // validate
 //  SD Card (max folders unknown)
