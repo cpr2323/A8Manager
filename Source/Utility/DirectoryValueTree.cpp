@@ -140,6 +140,41 @@ void DirectoryValueTree::sendStatusUpdate (DirectoryDataProperties::ScanStatus s
     });
 }
 
+juce::ValueTree DirectoryValueTree::makeFileEntry (juce::File file, DirectoryValueTree::SectionIndex fileType)
+{
+    juce::ValueTree fileVT { "File" };
+    fileVT.setProperty ("name", file.getFullPathName (), nullptr);
+    fileVT.setProperty ("type", static_cast<int>(fileType), nullptr);
+    return fileVT;
+}
+
+bool DirectoryValueTree::isFolderEntry (juce::ValueTree folderVT)
+{
+    return folderVT.getType ().toString () == "Folder";
+}
+
+bool DirectoryValueTree::isFileEntry (juce::ValueTree fileVT)
+{
+    return fileVT.getType ().toString () == "File";
+}
+
+juce::String DirectoryValueTree::getEntryName (juce::ValueTree fileVT)
+{
+    return fileVT.getProperty ("name").toString ();
+}
+
+juce::ValueTree DirectoryValueTree::makeFolderEntry (juce::String filePath)
+{
+    juce::ValueTree fileVT { "Folder" };
+    fileVT.setProperty ("name", filePath, nullptr);
+    return fileVT;
+}
+
+juce::ValueTree DirectoryValueTree::makeFolderEntry (juce::File folder)
+{
+    return makeFolderEntry (folder.getFullPathName ());
+}
+
 void DirectoryValueTree::run ()
 {
     LogDirectoryValueTree (doLogging, "DirectoryValueTree::run - enter");
@@ -186,6 +221,18 @@ juce::ValueTree DirectoryValueTree::doScan ()
     return newDirectoryListVT;
 }
 
+DirectoryValueTree::SectionIndex DirectoryValueTree::getFileType (juce::File file)
+{
+    if (FileTypeHelpers::isSystemFile (file))
+        return SectionIndex::systemFiles;
+    else if (FileTypeHelpers::isPresetFile (file))
+        return SectionIndex::presetFiles;
+    else if (FileTypeHelpers::isAudioFile (file))
+        return SectionIndex::audioFiles;
+    else // unknown file
+        return SectionIndex::unknownFiles;
+
+}
 juce::ValueTree DirectoryValueTree::getContentsOfFolder (juce::File folder, int curDepth)
 {
     auto folderVT { makeFolderEntry (folder) };
@@ -201,44 +248,10 @@ juce::ValueTree DirectoryValueTree::getContentsOfFolder (juce::File folder, int 
             if (const auto& curFile { entry.getFile () }; curFile.isDirectory ())
                 folderVT.addChild (getContentsOfFolder (curFile, curDepth + 1), -1, nullptr);
             else
-                folderVT.addChild (makeFileEntry (curFile), -1, nullptr);
+                folderVT.addChild (makeFileEntry (curFile, getFileType (curFile)), -1, nullptr);
         }
     }
     return folderVT;
-}
-
-juce::ValueTree DirectoryValueTree::makeFileEntry (juce::File file)
-{
-    juce::ValueTree fileVT { "File" };
-    fileVT.setProperty ("name", file.getFullPathName (), nullptr);
-    return fileVT;
-}
-
-bool DirectoryValueTree::isFolderEntry (juce::ValueTree folderVT)
-{
-    return folderVT.getType ().toString () == "Folder";
-}
-
-bool DirectoryValueTree::isFileEntry (juce::ValueTree fileVT)
-{
-    return fileVT.getType ().toString () == "File";
-}
-
-juce::String DirectoryValueTree::getEntryName (juce::ValueTree fileVT)
-{
-    return fileVT.getProperty ("name").toString ();
-}
-
-juce::ValueTree DirectoryValueTree::makeFolderEntry (juce::String filePath)
-{
-    juce::ValueTree fileVT { "Folder" };
-    fileVT.setProperty ("name", filePath, nullptr);
-    return fileVT;
-}
-
-juce::ValueTree DirectoryValueTree::makeFolderEntry (juce::File folder)
-{
-    return makeFolderEntry (folder.getFullPathName ());
 }
 
 void DirectoryValueTree::sortContentsOfFolder (juce::ValueTree folderVT)
@@ -254,15 +267,6 @@ void DirectoryValueTree::sortContentsOfFolder (juce::ValueTree folderVT)
     {
         int startIndex { 0 };
         int length { 0 };
-    };
-    enum SectionIndex
-    {
-        folders,
-        systemFiles,
-        presetFiles,
-        audioFiles,
-        unknownFiles,
-        size
     };
     std::array<SectionInfo, SectionIndex::size> sections;
     const auto numFolderEntries { folderVT.getNumChildren () };
@@ -313,14 +317,13 @@ void DirectoryValueTree::sortContentsOfFolder (juce::ValueTree folderVT)
             //   unknown files
             auto curFile { juce::File (getEntryName (folderEntryVT)) };
             //jassert (curFile.exists ());
-            if (FileTypeHelpers::isSystemFile (curFile))
-                insertSorted (folderIndex, SectionIndex::systemFiles);
-            else if (FileTypeHelpers::isPresetFile (curFile))
-                insertSorted (folderIndex, SectionIndex::presetFiles);
-            else if (FileTypeHelpers::isAudioFile (curFile))
-                insertSorted (folderIndex, SectionIndex::audioFiles);
-            else // unknown file
-                insertSorted (folderIndex, SectionIndex::unknownFiles);
+            switch (getFileType (curFile))
+            {
+                case SectionIndex::systemFiles: insertSorted (folderIndex, SectionIndex::systemFiles); break;
+                case SectionIndex::presetFiles: insertSorted (folderIndex, SectionIndex::presetFiles); break;
+                case SectionIndex::audioFiles:  insertSorted (folderIndex, SectionIndex::audioFiles); break;
+                default: insertSorted (folderIndex, SectionIndex::unknownFiles); break;
+            }
         }
         else
         {

@@ -9,6 +9,15 @@ class DirectoryValueTree : public juce::Thread,
                            private juce::Timer
 {
 public:
+    enum SectionIndex
+    {
+        folders,
+        systemFiles,
+        presetFiles,
+        audioFiles,
+        unknownFiles,
+        size
+    };
     DirectoryValueTree ();
     DirectoryValueTree (juce::String theRootFolderName);
     ~DirectoryValueTree ();
@@ -40,8 +49,9 @@ private:
 
     void doIfProgressTimeElapsed (std::function<void ()> functionToDo);
     juce::ValueTree doScan ();
+    DirectoryValueTree::SectionIndex getFileType (juce::File file);
     juce::ValueTree getContentsOfFolder (juce::File folder, int curDepth);
-    juce::ValueTree makeFileEntry (juce::File file);
+    juce::ValueTree makeFileEntry (juce::File file, DirectoryValueTree::SectionIndex fileType);
     bool isFolderEntry (juce::ValueTree folderVT);
     bool isFileEntry (juce::ValueTree fileVT);
     juce::String getEntryName (juce::ValueTree fileVT);
