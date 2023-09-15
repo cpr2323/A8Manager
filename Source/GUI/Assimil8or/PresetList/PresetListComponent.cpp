@@ -66,18 +66,26 @@ void PresetListComponent::forEachPresetFile (std::function<bool (juce::File pres
 {
     jassert (presetFileCallback != nullptr);
 
-
-    auto directoryValueTreeVT { directoryDataProperties.getDirectoryValueTreeVT () };
-    jassert (directoryValueTreeVT.getType ().toString () == "Folder");
-    currentFolder = juce::File (directoryValueTreeVT.getProperty ("name").toString ());
-
-    auto presetIndex { 0 };
-    ValueTreeHelpers::forEachChild (directoryDataProperties.getDirectoryValueTreeVT (), [this, &presetIndex, presetFileCallback] (juce::ValueTree child)
+    auto inPresetList { false };
+    ValueTreeHelpers::forEachChild (directoryDataProperties.getDirectoryValueTreeVT (), [this, presetFileCallback, &inPresetList] (juce::ValueTree child)
     {
-        auto presetFile { getPresetFile (presetIndex) };
-        if (FileTypeHelpers::isPresetFile (presetFile) && ! presetFileCallback (presetFile, presetIndex))
-            return false;
-        ++presetIndex;
+        if (child.getType ().toString () == "File")
+        {
+            const auto fileToCheck { juce::File (child.getProperty ("name")) };
+            if (FileTypeHelpers::isPresetFile (fileToCheck))
+            {
+                inPresetList = true;
+                const auto presetIndex { FileTypeHelpers::getPresetNumberFromName (fileToCheck) - 1 };
+                if (! presetFileCallback (fileToCheck, presetIndex))
+                    return false;
+            }
+            else
+            {
+                // if the entry is not a preset file, but we were processing preset files, then we are done
+                if (inPresetList)
+                    return false;
+            }
+        }
         return true;
     });
 }
@@ -87,20 +95,23 @@ void PresetListComponent::checkForPresets ()
     WatchdogTimer timer;
     timer.start (100000);
 
+    auto directoryValueTreeVT { directoryDataProperties.getDirectoryValueTreeVT () };
+    jassert (directoryValueTreeVT.getType ().toString () == "Folder");
+    currentFolder = juce::File (directoryValueTreeVT.getProperty ("name").toString ());
+
     const auto showAll { showAllPresets.getToggleState () };
 
     // clear preset info list
     for (auto curPresetInfoIndex { 0 }; curPresetInfoIndex < presetInfoList.size (); ++curPresetInfoIndex)
         presetInfoList[curPresetInfoIndex] = {curPresetInfoIndex, false, ""};
 
-    // find first preset file in list
+    if (showAll)
+        numPresets = kMaxPresets;
+    else 
+        numPresets = 0;
     auto inPresetList { false };
-    numPresets = kMaxPresets;
-    ValueTreeHelpers::forEachChild (directoryDataProperties.getDirectoryValueTreeVT (), [this, &inPresetList] (juce::ValueTree child)
+    ValueTreeHelpers::forEachChild (directoryDataProperties.getDirectoryValueTreeVT (), [this, &inPresetList, showAll] (juce::ValueTree child)
     {
-        // TODO - still need to
-        //    if (showAll)
-
         if (child.getType ().toString () == "File")
         {
             const auto fileToCheck { juce::File (child.getProperty ("name")) };
@@ -117,8 +128,13 @@ void PresetListComponent::checkForPresets ()
                 PresetProperties thisPresetProperties (assimil8orPreset.getPresetVT (), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
                 presetName = thisPresetProperties.getName ();
 
-                presetInfoList [presetIndex] = { presetIndex , true, presetName };
-                //++numPresets;
+                if (showAll)
+                    presetInfoList [presetIndex] = { presetIndex , true, presetName };
+                else
+                {
+                    presetInfoList [numPresets] = { presetIndex , true, presetName };
+                    ++numPresets;
+                }
             }
             else
             {
