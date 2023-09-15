@@ -3,6 +3,7 @@
 #include <JuceHeader.h>
 #include "DirectoryDataProperties.h"
 #include "../Utility/ValueTreeMonitor.h"
+#include "../Utility/WatchdogTimer.h"
 
 class DirectoryValueTree : public juce::Thread,
                            private juce::Timer
@@ -31,6 +32,7 @@ public:
     std::function<void (juce::String operation, juce::String fileName)> onStatusChange;
 
 private:
+    WatchdogTimer timer;
     DirectoryDataProperties directoryDataProperties;
     juce::String rootFolderName;
     int scanDepth { -1 };

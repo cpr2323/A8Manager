@@ -40,22 +40,18 @@ void FileViewComponent::init (juce::ValueTree rootPropertiesVT)
         {
             case DirectoryDataProperties::ScanStatus::empty:
             {
-                juce::Logger::outputDebugString ("ScanStatus::empty");
             }
             break;
             case DirectoryDataProperties::ScanStatus::scanning:
             {
-                juce::Logger::outputDebugString ("ScanStatus::scanning");
             }
             break;
             case DirectoryDataProperties::ScanStatus::canceled:
             {
-                juce::Logger::outputDebugString ("ScanStatus::canceled");
             }
             break;
             case DirectoryDataProperties::ScanStatus::done:
             {
-                juce::Logger::outputDebugString ("ScanStatus::done");
                 jassert (juce::MessageManager::getInstance()->isThisTheMessageThread ());
                 isRootFolder = juce::File (directoryDataProperties.getRootFolder ()).getParentDirectory () == juce::File (directoryDataProperties.getRootFolder ());
                 updateFromData ();
@@ -75,6 +71,16 @@ void FileViewComponent::updateFromData ()
     directoryContentsListBox.repaint ();
 }
 
+void FileViewComponent::buildQuickLookupList ()
+{
+    directoryListQuickLookupList.clear ();
+    ValueTreeHelpers::forEachChild (directoryDataProperties.getDirectoryValueTreeVT (), [this] (juce::ValueTree child)
+    {
+        directoryListQuickLookupList.emplace_back (child);
+        return true;
+    });
+}
+
 void FileViewComponent::openFolder ()
 {
     fileChooser.reset (new juce::FileChooser ("Please select the folder to scan as an Assimil8or SD Card...",
@@ -84,16 +90,6 @@ void FileViewComponent::openFolder ()
         if (fc.getURLResults ().size () == 1 && fc.getURLResults () [0].isLocalFile ())
             appProperties.setMostRecentFolder (fc.getURLResults () [0].getLocalFile ().getFullPathName ());
     }, nullptr);
-}
-
-void FileViewComponent::buildQuickLookupList ()
-{
-    directoryListQuickLookupList.clear ();
-    ValueTreeHelpers::forEachChild (directoryDataProperties.getDirectoryValueTreeVT (), [this] (juce::ValueTree child)
-    {
-        directoryListQuickLookupList.emplace_back (child);
-        return true;
-    });
 }
 
 void FileViewComponent::newFolder ()

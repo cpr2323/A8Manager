@@ -65,22 +65,18 @@ void Assimil8orValidator::init (juce::ValueTree rootPropertiesVT)
         {
             case DirectoryDataProperties::ScanStatus::empty:
             {
-                juce::Logger::outputDebugString ("ScanStatus::empty");
             }
             break;
             case DirectoryDataProperties::ScanStatus::scanning:
             {
-                juce::Logger::outputDebugString ("ScanStatus::scanning");
             }
             break;
             case DirectoryDataProperties::ScanStatus::canceled:
             {
-                juce::Logger::outputDebugString ("ScanStatus::canceled");
             }
             break;
             case DirectoryDataProperties::ScanStatus::done:
             {
-                juce::Logger::outputDebugString ("ScanStatus::done");
                 jassert (juce::MessageManager::getInstance ()->isThisTheMessageThread ());
                 startValidation ();
             }

@@ -44,14 +44,11 @@ void DirectoryValueTree::init (juce::ValueTree rootPropertiesVT)
     RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
     directoryDataProperties.wrap (runtimeRootProperties.getValueTree (), DirectoryDataProperties::WrapperType::owner, DirectoryDataProperties::EnableCallbacks::yes);
 
-    ddpMonitor.assign (directoryDataProperties.getValueTreeRef ());
+    //ddpMonitor.assign (directoryDataProperties.getValueTreeRef ());
 
     directoryDataProperties.onRootFolderChange = [this] (juce::String rootFolder) { setRootFolder (rootFolder); };
     directoryDataProperties.onScanDepthChange = [this] (int scanDepth) { setScanDepth (scanDepth); };
-    directoryDataProperties.onStartScanChange = [this] ()
-        {
-            startScan ();
-        };
+    directoryDataProperties.onStartScanChange = [this] () { startScan (); };
 
     // attach the actual DirectoryValueTree data to the container
     updateDirectoryData (getFolderEntry ());
@@ -150,11 +147,10 @@ void DirectoryValueTree::timerCallback ()
 void DirectoryValueTree::sendStatusUpdate (DirectoryDataProperties::ScanStatus scanStatus)
 {
     juce::MessageManager::callAsync ([this, scanStatus] ()
-        {
-            juce::Logger::outputDebugString ("setting scanStatus: " + juce::String(static_cast<int>(scanStatus)));
-
-            directoryDataProperties.setStatus (scanStatus, false);
-        });
+    {
+        //juce::Logger::outputDebugString ("setting scanStatus: " + juce::String(static_cast<int>(scanStatus)));
+        directoryDataProperties.setStatus (scanStatus, false);
+    });
 }
 
 void DirectoryValueTree::run ()
@@ -195,10 +191,14 @@ juce::ValueTree DirectoryValueTree::doScan ()
     const auto rootEntry { juce::File (rootFolderName) };
     // do one initial progress update to fill in the first one
     doStatusUpdate ("Reading File System", rootEntry.getFileName ());
+    timer.start (100000);
     auto newDirectoryListVT { getContentsOfFolder (rootFolderName, 0) };
+    juce::Logger::outputDebugString ("DirectoryValueTree::doScan - getContentOfFolder - elapsed time: " + juce::String (timer.getElapsedTime ()));
 
+    timer.start (100000);
     if (! shouldCancelOperation ())
         sortContentsOfFolder (newDirectoryListVT);
+    juce::Logger::outputDebugString ("DirectoryValueTree::doScan - sortContentOfFolder - elapsed time: " + juce::String (timer.getElapsedTime ()));
 
     return newDirectoryListVT;
 }

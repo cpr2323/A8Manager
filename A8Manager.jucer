@@ -84,6 +84,20 @@
       <GROUP id="{CF0C93A7-2DC9-863C-8999-5F753D262369}" name="GUI">
         <GROUP id="{E38BD768-EC43-B8F0-AB46-78F18BDF75B0}" name="Assimil8or">
           <GROUP id="{A4F77B47-09C1-3696-74AC-1CB15C7BFE75}" name="Data">
+            <FILE id="WPBimm" name="377935316_605972298278234_3982868804397026662_n.png"
+                  compile="0" resource="1" file="Source/GUI/Assimil8or/Data/377935316_605972298278234_3982868804397026662_n.png"/>
+            <FILE id="t6YFbW" name="379313820_290057216986877_8377143342958664508_n.png"
+                  compile="0" resource="1" file="Source/GUI/Assimil8or/Data/379313820_290057216986877_8377143342958664508_n.png"/>
+            <FILE id="fifH95" name="379342397_1019467619075859_1228747790893365825_n.png"
+                  compile="0" resource="1" file="Source/GUI/Assimil8or/Data/379342397_1019467619075859_1228747790893365825_n.png"/>
+            <FILE id="r8tDaY" name="A8 logo test black.png" compile="0" resource="1"
+                  file="Source/GUI/Assimil8or/Data/A8 logo test black.png"/>
+            <FILE id="SJ3b9J" name="A8 logo test blue.png" compile="0" resource="1"
+                  file="Source/GUI/Assimil8or/Data/A8 logo test blue.png"/>
+            <FILE id="a3m8SS" name="A8 logo test grey.png" compile="0" resource="1"
+                  file="Source/GUI/Assimil8or/Data/A8 logo test grey.png"/>
+            <FILE id="Sac7ok" name="A8 logo test logo white.png" compile="0" resource="1"
+                  file="Source/GUI/Assimil8or/Data/A8 logo test logo white.png"/>
             <FILE id="hJiS2y" name="A8Manager_300.png" compile="0" resource="1"
                   file="Source/GUI/Assimil8or/Data/A8Manager_300.png"/>
             <FILE id="M1fY5n" name="Assimil8orToolTips.xml" compile="0" resource="1"
@@ -189,6 +203,7 @@
               file="Source/Utility/ValueTreeWrapper.cpp"/>
         <FILE id="gBHKT7" name="ValueTreeWrapper.h" compile="0" resource="0"
               file="Source/Utility/ValueTreeWrapper.h"/>
+        <FILE id="KZKPft" name="WatchDogTimer.h" compile="0" resource="0" file="Source/Utility/WatchDogTimer.h"/>
       </GROUP>
       <FILE id="UhMfE9" name="AppProperties.cpp" compile="1" resource="0"
             file="Source/AppProperties.cpp"/>
@@ -208,7 +223,7 @@
   </MODULES>
   <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1"/>
   <EXPORTFORMATS>
-    <VS2022 targetFolder="Builds/VisualStudio2022" smallIcon="hteBAz" bigIcon="hteBAz">
+    <VS2022 targetFolder="Builds/VisualStudio2022" smallIcon="fifH95" bigIcon="fifH95">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" targetName="A8Manager"/>
         <CONFIGURATION isDebug="0" name="Release" targetName="A8Manager"/>

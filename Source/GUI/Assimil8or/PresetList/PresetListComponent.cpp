@@ -1,136 +1,145 @@
 #include "PresetListComponent.h"
-#include "../../../Utility/PersistentRootProperties.h"
-#include "../../../Utility/RuntimeRootProperties.h"
 #include "../../../Assimil8or/Assimil8orPreset.h"
 #include "../../../Assimil8or/FileTypeHelpers.h"
 #include "../../../Assimil8or/PresetManagerProperties.h"
 #include "../../../Assimil8or/Preset/ParameterPresetsSingleton.h"
+#include "../../../Utility/PersistentRootProperties.h"
+#include "../../../Utility/RuntimeRootProperties.h"
+#include "../../../Utility/WatchdogTimer.h"
 
-#define LOG_PRESET_LIST 0
+#define LOG_PRESET_LIST 1
 #if LOG_PRESET_LIST
 #define LogPresetList(text) juce::Logger::outputDebugString (text);
 #else
 #define LogPresetList(text) ;
 #endif
 
-PresetListComponent::PresetListComponent () : Thread ("PresetListComponent")
+PresetListComponent::PresetListComponent ()
 {
     showAllPresets.setToggleState (true, juce::NotificationType::dontSendNotification);
-    showAllPresets.onClick = [this] () { startScan (appProperties.getMostRecentFolder (), false); };
+    showAllPresets.onClick = [this] () { checkForPresets (); };
     addAndMakeVisible (showAllPresets);
     showAllPresets.setButtonText ("Show All");
     addAndMakeVisible (presetListBox);
-    startThread ();
-    startTimer (333);
-}
-
-PresetListComponent::~PresetListComponent ()
-{
-    stopTimer ();
-    stopThread (100);
 }
 
 void PresetListComponent::init (juce::ValueTree rootPropertiesVT)
 {
     LogPresetList ("PresetListComponent::init");
     PersistentRootProperties persistentRootProperties (rootPropertiesVT, PersistentRootProperties::WrapperType::client, PersistentRootProperties::EnableCallbacks::no);
+    appProperties.wrap (persistentRootProperties.getValueTree (), AppProperties::WrapperType::client, AppProperties::EnableCallbacks::no);
+
     RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
+    directoryDataProperties.wrap (runtimeRootProperties.getValueTree (), DirectoryDataProperties::WrapperType::client, DirectoryDataProperties::EnableCallbacks::yes);
+    directoryDataProperties.onStatusChange = [this] (DirectoryDataProperties::ScanStatus status)
+    {
+        switch (status)
+        {
+            case DirectoryDataProperties::ScanStatus::empty:
+            {
+            }
+            break;
+            case DirectoryDataProperties::ScanStatus::scanning:
+            {
+            }
+            break;
+            case DirectoryDataProperties::ScanStatus::canceled:
+            {
+            }
+            break;
+            case DirectoryDataProperties::ScanStatus::done:
+            {
+                jassert (juce::MessageManager::getInstance ()->isThisTheMessageThread ());
+                checkForPresets ();
+            }
+            break;
+        }
+    };
     PresetManagerProperties presetManagerProperties (runtimeRootProperties.getValueTree (), PresetManagerProperties::WrapperType::owner, PresetManagerProperties::EnableCallbacks::no);
     unEditedPresetProperties.wrap (presetManagerProperties.getPreset ("unedited"), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::yes);
     presetProperties.wrap (presetManagerProperties.getPreset ("edit"), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::yes);
 
-    appProperties.wrap (persistentRootProperties.getValueTree (), AppProperties::WrapperType::client, AppProperties::EnableCallbacks::yes);
-    appProperties.onMostRecentFolderChange = [this] (juce::String folderName)
-    {
-        startScan (juce::File (folderName), true);
-    };
-    startScan (appProperties.getMostRecentFolder (), true);
-}
-
-void PresetListComponent::startScan (juce::File folderToScan, bool selectingNewFolder)
-{
-    {
-        juce::ScopedLock sl (queuedFolderLock);
-        queuedFolderToScan = folderToScan;
-        newItemQueued = true;
-        newItemIsNewFolder = selectingNewFolder;
-        LogPresetList ("PresetListComponent::startScan: " + queuedFolderToScan.getFullPathName ());
-    }
-    notify ();
-}
-
-bool PresetListComponent::shouldCancelOperation ()
-{
-    return threadShouldExit () || newItemQueued;
-}
-
-void PresetListComponent::run ()
-{
-    while (wait (-1) && ! threadShouldExit ())
-    {
-        {
-            juce::ScopedLock sl (queuedFolderLock);
-            rootFolder = queuedFolderToScan;
-            newItemQueued = false;
-            queuedFolderToScan = juce::File ();
-            LogPresetList ("PresetListComponent::run: " + rootFolder.getFullPathName ());
-        }
-        checkForPresets (newItemIsNewFolder);
-    }
-}
-
-void PresetListComponent::timerCallback ()
-{
-    startScan (appProperties.getMostRecentFolder (), false);
+    checkForPresets ();
 }
 
 void PresetListComponent::forEachPresetFile (std::function<bool (juce::File presetFile, int index)> presetFileCallback)
 {
     jassert (presetFileCallback != nullptr);
-    for (auto presetIndex { 0 }; presetIndex < kMaxPresets && ! shouldCancelOperation (); ++presetIndex)
+
+
+    auto directoryValueTreeVT { directoryDataProperties.getDirectoryValueTreeVT () };
+    jassert (directoryValueTreeVT.getType ().toString () == "Folder");
+    currentFolder = juce::File (directoryValueTreeVT.getProperty ("name").toString ());
+
+    auto presetIndex { 0 };
+    ValueTreeHelpers::forEachChild (directoryDataProperties.getDirectoryValueTreeVT (), [this, &presetIndex, presetFileCallback] (juce::ValueTree child)
     {
-        if (! presetFileCallback (getPresetFile (presetIndex), presetIndex))
-            break;
-    }
+        auto presetFile { getPresetFile (presetIndex) };
+        if (FileTypeHelpers::isPresetFile (presetFile) && ! presetFileCallback (presetFile, presetIndex))
+            return false;
+        ++presetIndex;
+        return true;
+    });
 }
 
-void PresetListComponent::checkForPresets (bool newFolder)
+void PresetListComponent::checkForPresets ()
 {
-    LogPresetList ("PresetListComponent::checkForPresets");
+    WatchdogTimer timer;
+    timer.start (100000);
+
     const auto showAll { showAllPresets.getToggleState () };
-    numPresets = 0;
-    forEachPresetFile ([this, showAll] (juce::File presetFile, int index)
+
+    // clear preset info list
+    for (auto curPresetInfoIndex { 0 }; curPresetInfoIndex < presetInfoList.size (); ++curPresetInfoIndex)
+        presetInfoList[curPresetInfoIndex] = {curPresetInfoIndex, false, ""};
+
+    // find first preset file in list
+    auto inPresetList { false };
+    numPresets = kMaxPresets;
+    ValueTreeHelpers::forEachChild (directoryDataProperties.getDirectoryValueTreeVT (), [this, &inPresetList] (juce::ValueTree child)
     {
-        auto thisPresetExists { presetFile.exists () };
-        juce::String presetName;
-        if (thisPresetExists)
+        // TODO - still need to
+        //    if (showAll)
+
+        if (child.getType ().toString () == "File")
         {
-            juce::StringArray fileContents;
-            presetFile.readLines (fileContents);
-            Assimil8orPreset assimil8orPreset;
-            assimil8orPreset.parse (fileContents);
-            PresetProperties thisPresetProperties (assimil8orPreset.getPresetVT (), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
-            presetName = thisPresetProperties.getName ();
+            const auto fileToCheck { juce::File (child.getProperty ("name")) };
+            if (FileTypeHelpers::isPresetFile (fileToCheck))
+            {
+                inPresetList = true;
+                const auto presetIndex { FileTypeHelpers::getPresetNumberFromName (fileToCheck) - 1 };
+
+                juce::String presetName;
+                juce::StringArray fileContents;
+                fileToCheck.readLines (fileContents);
+                Assimil8orPreset assimil8orPreset;
+                assimil8orPreset.parse (fileContents);
+                PresetProperties thisPresetProperties (assimil8orPreset.getPresetVT (), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
+                presetName = thisPresetProperties.getName ();
+
+                presetInfoList [presetIndex] = { presetIndex , true, presetName };
+                //++numPresets;
+            }
+            else
+            {
+                // if the entry is not a preset file, but we were processing preset files, then we are done
+                if (inPresetList)
+                    return false;
+            }
         }
-        if (showAll || thisPresetExists)
-        {
-            presetInfo [numPresets] = { index, thisPresetExists, presetName };
-            ++numPresets;
-        }
-        return ! shouldCancelOperation ();
+        return true; // keep looking
     });
 
-    if (! shouldCancelOperation ())
-        juce::MessageManager::callAsync ([this, newFolder] ()
-        {
-            presetListBox.updateContent ();
-            if (newFolder)
-            {
-                presetListBox.scrollToEnsureRowIsOnscreen (0);
-                loadFirstPreset ();
-            }
-            presetListBox.repaint ();
-        });
+    presetListBox.updateContent ();
+    if (currentFolder != previousFolder)
+    {
+        presetListBox.scrollToEnsureRowIsOnscreen (0);
+        loadFirstPreset ();
+        previousFolder = currentFolder;
+    }
+    presetListBox.repaint ();
+
+    juce::Logger::outputDebugString ("PresetListComponent::checkPresets - elapsed time: " + juce::String (timer.getElapsedTime ()));
 }
 
 void PresetListComponent::loadFirstPreset ()
@@ -139,8 +148,8 @@ void PresetListComponent::loadFirstPreset ()
     bool presetLoaded { false };
     forEachPresetFile ([this, &presetLoaded] (juce::File presetFile, int index)
     {
-        if (auto [presetNumber, thisPresetExists, presetName] = presetInfo [index]; ! thisPresetExists)
-            return ! shouldCancelOperation ();
+        if (auto [presetNumber, thisPresetExists, presetName] = presetInfoList [index]; ! thisPresetExists)
+            return true;
 
         presetListBox.selectRow (index, false, true);
         presetListBox.scrollToEnsureRowIsOnscreen (index);
@@ -223,7 +232,7 @@ void PresetListComponent::paintListBoxItem (int row, juce::Graphics& g, int widt
             rowColor = juce::Colours::black;
             textColor = juce::Colours::whitesmoke;
         }
-        auto [presetNumber, thisPresetExists, presetName] { presetInfo [row] };
+        auto [presetNumber, thisPresetExists, presetName] { presetInfoList [row] };
         if (thisPresetExists)
         {
 
@@ -258,7 +267,7 @@ void PresetListComponent::pastePreset (int presetNumber)
         Assimil8orPreset assimil8orPreset;
         PresetProperties::copyTreeProperties (copyBufferPresetProperties.getValueTree (), assimil8orPreset.getPresetVT ());
         assimil8orPreset.write (getPresetFile (presetNumber));
-        auto [lastSelectedPresetNumber, thisPresetExists, presetName] = presetInfo [lastSelectedRow];
+        auto [lastSelectedPresetNumber, thisPresetExists, presetName] = presetInfoList [lastSelectedRow];
         if (presetNumber == lastSelectedPresetNumber)
         {
             PresetProperties::copyTreeProperties (copyBufferPresetProperties.getValueTree (), unEditedPresetProperties.getValueTree ());
@@ -266,7 +275,7 @@ void PresetListComponent::pastePreset (int presetNumber)
         }
     };
 
-    auto [thisPresetNumber, thisPresetExists, presetName] = presetInfo [lastSelectedRow];
+    auto [thisPresetNumber, thisPresetExists, presetName] = presetInfoList [lastSelectedRow];
     if (thisPresetExists)
     {
         juce::AlertWindow::showOkCancelBox (juce::AlertWindow::WarningIcon, "OVERWRITE PRESET", "Are you sure you want to overwrite '" + getPresetName (presetNumber) + "'", "YES", "NO", nullptr,
@@ -292,7 +301,7 @@ void PresetListComponent::deletePreset (int presetNumber)
                 return;
             presetFile.deleteFile ();
             // TODO handle delete error
-            auto [lastSelectedPresetNumber, thisPresetExists, presetName] = presetInfo [lastSelectedRow];
+            auto [lastSelectedPresetNumber, thisPresetExists, presetName] = presetInfoList [lastSelectedRow];
             if (presetNumber == lastSelectedPresetNumber)
                 PresetProperties::copyTreeProperties (ParameterPresetsSingleton::getInstance ()->getParameterPresetListProperties ().getParameterPreset (ParameterPresetListProperties::DefaultParameterPresetType),
                                                       unEditedPresetProperties.getValueTree ());
@@ -301,7 +310,7 @@ void PresetListComponent::deletePreset (int presetNumber)
 
 juce::File PresetListComponent::getPresetFile (int presetNumber)
 {
-    return rootFolder.getChildFile (getPresetName (presetNumber)).withFileExtension (".yml");
+    return currentFolder.getChildFile (getPresetName (presetNumber)).withFileExtension (".yml");
 }
 
 void PresetListComponent::listBoxItemClicked (int row, [[maybe_unused]] const juce::MouseEvent& me)
@@ -309,7 +318,7 @@ void PresetListComponent::listBoxItemClicked (int row, [[maybe_unused]] const ju
     if (me.mods.isPopupMenu ())
     {
         presetListBox.selectRow (lastSelectedRow, false, true);
-        auto [presetNumber, thisPresetExists, presetName] { presetInfo [row] };
+        auto [presetNumber, thisPresetExists, presetName] { presetInfoList [row] };
         if (!thisPresetExists)
             presetName = "(preset)";
 
@@ -327,7 +336,7 @@ void PresetListComponent::listBoxItemClicked (int row, [[maybe_unused]] const ju
 
         auto completeSelection = [this, row] ()
         {
-            const auto [presetNumber, thisPresetExists, presetName] = presetInfo [row];
+            const auto [presetNumber, thisPresetExists, presetName] = presetInfoList [row];
             auto presetFile { getPresetFile (presetNumber) };
             if (thisPresetExists)
                 loadPreset (presetFile);
