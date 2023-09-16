@@ -21,7 +21,11 @@ private:
     AppProperties appProperties;
     DirectoryDataProperties directoryDataProperties;
 
-    std::vector<juce::ValueTree> directoryListQuickLookupList;
+    juce::CriticalSection directoryListQuickLookupListLock;
+    std::vector<juce::ValueTree> directoryListQuickLookupListA;
+    std::vector<juce::ValueTree> directoryListQuickLookupListB;
+    std::vector<juce::ValueTree>* curDirectoryListQuickLookupList { &directoryListQuickLookupListA };
+    std::vector<juce::ValueTree>* updateDirectoryListQuickLookupList { &directoryListQuickLookupListB };
 
     juce::TextButton openFolderButton;
     juce::TextButton newFolderButton;
@@ -37,6 +41,7 @@ private:
     LambdaThread updateFromNewDataThread { "UpdateFromNewDataThread", 100 };
 
     void buildQuickLookupList ();
+    juce::ValueTree getDirectoryEntryVT (int row);
     void newFolder ();
     void openFolder ();
     void updateFromNewData ();

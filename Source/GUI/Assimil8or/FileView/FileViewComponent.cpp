@@ -80,23 +80,34 @@ void FileViewComponent::updateFromNewData ()
 
 void FileViewComponent::buildQuickLookupList ()
 {
-    directoryListQuickLookupList.clear ();
+    updateDirectoryListQuickLookupList->clear ();
     ValueTreeHelpers::forEachChild (directoryDataProperties.getDirectoryValueTreeVT (), [this] (juce::ValueTree child)
     {
         const auto typeIndex { static_cast<int>(child.getProperty("type")) };
         if (showAllFiles.getToggleState())
         {
-            directoryListQuickLookupList.emplace_back (child);
+            updateDirectoryListQuickLookupList->emplace_back (child);
         }
         else if (typeIndex == DirectoryDataProperties::TypeIndex::audioFile ||
                  typeIndex == DirectoryDataProperties::TypeIndex::folder ||
                  typeIndex == DirectoryDataProperties::TypeIndex::presetFile ||
                  typeIndex == DirectoryDataProperties::TypeIndex::systemFile)
         {
-            directoryListQuickLookupList.emplace_back (child);
+            updateDirectoryListQuickLookupList->emplace_back (child);
         }
         return true;
     });
+    juce::ScopedLock sl (directoryListQuickLookupListLock);
+    if (curDirectoryListQuickLookupList == &directoryListQuickLookupListA)
+    {
+        curDirectoryListQuickLookupList = &directoryListQuickLookupListB;
+        updateDirectoryListQuickLookupList = &directoryListQuickLookupListA;
+    }
+    else
+    {
+        curDirectoryListQuickLookupList = &directoryListQuickLookupListA;
+        updateDirectoryListQuickLookupList = &directoryListQuickLookupListB;
+    }
 }
 
 void FileViewComponent::openFolder ()
@@ -133,7 +144,15 @@ void FileViewComponent::newFolder ()
 
 int FileViewComponent::getNumRows ()
 {
-    return static_cast<int> (directoryListQuickLookupList.size () + (isRootFolder ? 0 : 1));
+    juce::ScopedLock sl (directoryListQuickLookupListLock);
+    return static_cast<int> (curDirectoryListQuickLookupList->size () + (isRootFolder ? 0 : 1));
+}
+
+juce::ValueTree FileViewComponent::getDirectoryEntryVT (int row)
+{
+    juce::ScopedLock sl (directoryListQuickLookupListLock);
+    const auto quickLookupIndex { row - (isRootFolder ? 0 : 1) };
+    return (*curDirectoryListQuickLookupList) [quickLookupIndex];
 }
 
 void FileViewComponent::paintListBoxItem (int row, juce::Graphics& g, int width, int height, [[maybe_unused]] bool rowIsSelected)
@@ -152,8 +171,7 @@ void FileViewComponent::paintListBoxItem (int row, juce::Graphics& g, int width,
     }
     else
     {
-        const auto quickLookupIndex { row - (isRootFolder ? 0 : 1) };
-        const auto directoryEntryVT { directoryListQuickLookupList [quickLookupIndex] };
+        const auto directoryEntryVT { getDirectoryEntryVT (row) };
         juce::String filePrefix;
         if (directoryEntryVT.getType ().toString () == "Folder")
         {
@@ -188,8 +206,7 @@ juce::String FileViewComponent::getTooltipForRow (int row)
         return juce::File (directoryDataProperties.getRootFolder ()).getParentDirectory ().getFullPathName ();
     else
     {
-        const auto quickLookupIndex { row - (isRootFolder ? 0 : 1) };
-        const auto directoryEntryVT { directoryListQuickLookupList [quickLookupIndex] };
+        const auto directoryEntryVT { getDirectoryEntryVT (row) };
 
         juce::String toolTip { juce::File (directoryEntryVT.getProperty ("name").toString ()).getFileName () };
         if (static_cast<int>(directoryEntryVT.getProperty ("type")) == DirectoryDataProperties::TypeIndex::audioFile)
@@ -214,8 +231,7 @@ void FileViewComponent::listBoxItemClicked (int row, [[maybe_unused]] const juce
 
     if (! isRootFolder && row != 0)
     {
-        const auto quickLookupIndex { row - (isRootFolder ? 0 : 1) };
-        const auto directoryEntryVT { directoryListQuickLookupList [quickLookupIndex] };
+        const auto directoryEntryVT { getDirectoryEntryVT (row) };
         if (static_cast<int>(directoryEntryVT.getProperty ("type")) != DirectoryDataProperties::TypeIndex::folder)
             return;
     }
@@ -224,8 +240,7 @@ void FileViewComponent::listBoxItemClicked (int row, [[maybe_unused]] const juce
     {
         if (! isRootFolder && row == 0)
             return;
-        const auto quickLookupIndex { row - (isRootFolder ? 0 : 1) };
-        const auto directoryEntryVT { directoryListQuickLookupList [quickLookupIndex] };
+        const auto directoryEntryVT { getDirectoryEntryVT (row) };
         auto folder { juce::File (directoryEntryVT.getProperty ("name").toString ()) };
         juce::PopupMenu pm;
         pm.addItem ("Rename", true, false, [this, folder] ()
@@ -271,8 +286,7 @@ void FileViewComponent::listBoxItemClicked (int row, [[maybe_unused]] const juce
             }
             else
             {
-                const auto quickLookupIndex { row - (isRootFolder ? 0 : 1) };
-                const auto directoryEntryVT { directoryListQuickLookupList [quickLookupIndex] };
+                const auto directoryEntryVT { getDirectoryEntryVT (row) };
                 auto folder { juce::File (directoryEntryVT.getProperty ("name").toString ()) };
                 appProperties.setMostRecentFolder (folder.getFullPathName ());
             }
@@ -299,8 +313,7 @@ void FileViewComponent::listBoxItemDoubleClicked (int row, [[maybe_unused]] cons
     if (row >= getNumRows () || (! isRootFolder && row == 0))
         return;
 
-    const auto quickLookupIndex { row - (isRootFolder ? 0 : 1) };
-    const auto directoryEntryVT { directoryListQuickLookupList [quickLookupIndex] };
+    const auto directoryEntryVT { getDirectoryEntryVT (row) };
     if (directoryEntryVT.getType ().toString () == "File" && static_cast<int>(directoryEntryVT.getProperty ("type")) == DirectoryDataProperties::TypeIndex::audioFile)
     {
         if (onAudioFileSelected != nullptr)
