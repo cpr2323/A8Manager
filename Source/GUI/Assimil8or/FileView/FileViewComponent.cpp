@@ -137,13 +137,14 @@ void FileViewComponent::paintListBoxItem (int row, juce::Graphics& g, int width,
     }
     else
     {
-        auto file { juce::File (directoryListQuickLookupList [row - (isRootFolder ? 0 : 1)].getProperty ("name").toString ()) };
+        const auto quickLookupIndex { row - (isRootFolder ? 0 : 1) };
+        const auto directoryEntryVT { directoryListQuickLookupList [quickLookupIndex] };
         juce::String filePrefix;
-        if (file.isDirectory ())
+        if (directoryEntryVT.getType ().toString () == "Folder")
         {
             filePrefix = "> ";
         }
-        else if (PresetHelpers::isSupportedAudioFile (file))
+        else if (static_cast<int>(directoryEntryVT.getProperty ("type")) == DirectoryDataProperties::TypeIndex::audioFile)
         {
             filePrefix = "-  ";
             textColor = juce::Colours::forestgreen;
@@ -153,7 +154,8 @@ void FileViewComponent::paintListBoxItem (int row, juce::Graphics& g, int width,
             filePrefix = "   ";
             textColor = textColor.darker (0.4f);
         }
-        fileListItem = " " + filePrefix+ file.getFileName ();
+        auto file { juce::File (directoryEntryVT.getProperty ("name").toString ()) };
+        fileListItem = " " + filePrefix + file.getFileName ();
     }
 
     g.setColour (juce::Colours::darkslategrey);
@@ -170,7 +172,24 @@ juce::String FileViewComponent::getTooltipForRow (int row)
     if (! isRootFolder && row == 0)
         return juce::File (directoryDataProperties.getRootFolder ()).getParentDirectory ().getFullPathName ();
     else
-        return juce::File (directoryListQuickLookupList [row - (isRootFolder ? 0 : 1)].getProperty ("name").toString ()).getFileName ();
+    {
+        const auto quickLookupIndex { row - (isRootFolder ? 0 : 1) };
+        const auto directoryEntryVT { directoryListQuickLookupList [quickLookupIndex] };
+
+        juce::String toolTip { juce::File (directoryEntryVT.getProperty ("name").toString ()).getFileName () };
+        if (static_cast<int>(directoryEntryVT.getProperty ("type")) == DirectoryDataProperties::TypeIndex::audioFile)
+        {
+            const auto sampleRate { static_cast<int>(directoryEntryVT.getProperty ("sampleRate")) };
+            if (auto errorString { directoryEntryVT.getProperty ("error").toString () }; errorString != "")
+                toolTip += juce::String ("\r") + "Error: " + errorString;
+            toolTip += juce::String ("\r") + "DataType: " + directoryEntryVT.getProperty ("dataType").toString ();
+            toolTip += juce::String ("\r") + "BitDepth: " + juce::String(static_cast<int>(directoryEntryVT.getProperty ("bitDepth")));
+            toolTip += juce::String ("\r") + "Channels: " + juce::String (static_cast<int>(directoryEntryVT.getProperty ("numChannels")));
+            toolTip += juce::String ("\r") + "SampleRate: " + juce::String (sampleRate);
+            toolTip += juce::String ("\r") + "Length: " + juce::String (static_cast<double>(static_cast<int64_t>(directoryEntryVT.getProperty ("lengthSamples"))) / sampleRate, 2);
+        }
+        return toolTip;
+    }
 }
 
 void FileViewComponent::listBoxItemClicked (int row, [[maybe_unused]] const juce::MouseEvent& me)
@@ -180,8 +199,9 @@ void FileViewComponent::listBoxItemClicked (int row, [[maybe_unused]] const juce
 
     if (! isRootFolder && row != 0)
     {
-        auto folder { juce::File (directoryListQuickLookupList [row - (isRootFolder ? 0 : 1)].getProperty ("name").toString ()) };
-        if (! folder.isDirectory ())
+        const auto quickLookupIndex { row - (isRootFolder ? 0 : 1) };
+        const auto directoryEntryVT { directoryListQuickLookupList [quickLookupIndex] };
+        if (static_cast<int>(directoryEntryVT.getProperty ("type")) != DirectoryDataProperties::TypeIndex::folder)
             return;
     }
 
@@ -189,7 +209,9 @@ void FileViewComponent::listBoxItemClicked (int row, [[maybe_unused]] const juce
     {
         if (! isRootFolder && row == 0)
             return;
-        auto folder { juce::File (directoryListQuickLookupList [row - (isRootFolder ? 0 : 1)].getProperty ("name").toString ()) };
+        const auto quickLookupIndex { row - (isRootFolder ? 0 : 1) };
+        const auto directoryEntryVT { directoryListQuickLookupList [quickLookupIndex] };
+        auto folder { juce::File (directoryEntryVT.getProperty ("name").toString ()) };
         juce::PopupMenu pm;
         pm.addItem ("Rename", true, false, [this, folder] ()
         {
@@ -234,7 +256,9 @@ void FileViewComponent::listBoxItemClicked (int row, [[maybe_unused]] const juce
             }
             else
             {
-                auto folder { juce::File (directoryListQuickLookupList [row - (isRootFolder ? 0 : 1)].getProperty ("name").toString ()) };
+                const auto quickLookupIndex { row - (isRootFolder ? 0 : 1) };
+                const auto directoryEntryVT { directoryListQuickLookupList [quickLookupIndex] };
+                auto folder { juce::File (directoryEntryVT.getProperty ("name").toString ()) };
                 appProperties.setMostRecentFolder (folder.getFullPathName ());
             }
         };
@@ -260,9 +284,13 @@ void FileViewComponent::listBoxItemDoubleClicked (int row, [[maybe_unused]] cons
     if (row >= getNumRows () || (! isRootFolder && row == 0))
         return;
 
-    auto file { juce::File (directoryListQuickLookupList [row - (isRootFolder ? 0 : 1)].getProperty ("name").toString ()) };
-    if (! file.isDirectory () && PresetHelpers::isSupportedAudioFile (file) && onAudioFileSelected != nullptr)
-            onAudioFileSelected (file);
+    const auto quickLookupIndex { row - (isRootFolder ? 0 : 1) };
+    const auto directoryEntryVT { directoryListQuickLookupList [quickLookupIndex] };
+    if (directoryEntryVT.getType ().toString () == "File" && static_cast<int>(directoryEntryVT.getProperty ("type")) == DirectoryDataProperties::TypeIndex::audioFile)
+    {
+        if (onAudioFileSelected != nullptr)
+            onAudioFileSelected (juce::File (directoryEntryVT.getProperty ("name").toString ()));
+    }
 }
 
 void FileViewComponent::resized ()

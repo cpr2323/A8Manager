@@ -274,8 +274,8 @@ void Assimil8orValidator::validateFolder (juce::File folder, juce::ValueTree val
     {
         LogValidation ("  [ Warning : folder name too long ]");
         validatorResultProperties.update (ValidatorResultProperties::ResultTypeError, "[name too long. " +
-            juce::String (folder.getFileName ().length ()) + "(length) vs " +
-            juce::String (kMaxFolderNameLength) + "(max)]", false);
+                                          juce::String (folder.getFileName ().length ()) + "(length) vs " +
+                                          juce::String (kMaxFolderNameLength) + "(max)]", false);
         validatorResultProperties.addFixerEntry (FixerEntryProperties::FixerTypeRenameFolder, folder.getFullPathName ());
     }
 }

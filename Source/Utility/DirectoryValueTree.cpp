@@ -1,4 +1,5 @@
 #include "DirectoryValueTree.h"
+#include "DirectoryValueTree.h"
 #include "../Assimil8or/FileTypeHelpers.h"
 #include "../Utility/RuntimeRootProperties.h"
 
@@ -34,6 +35,8 @@ void DirectoryValueTree::updateDirectoryData (juce::ValueTree newDirectoryData)
 
 void DirectoryValueTree::init (juce::ValueTree rootPropertiesVT)
 {
+    audioFormatManager.registerBasicFormats ();
+
     RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
     directoryDataProperties.wrap (runtimeRootProperties.getValueTree (), DirectoryDataProperties::WrapperType::owner, DirectoryDataProperties::EnableCallbacks::yes);
 
@@ -128,6 +131,35 @@ juce::ValueTree DirectoryValueTree::makeFileEntry (juce::File file, DirectoryDat
     juce::ValueTree fileVT { "File" };
     fileVT.setProperty ("name", file.getFullPathName (), nullptr);
     fileVT.setProperty ("type", static_cast<int>(fileType), nullptr);
+    switch (fileType)
+    {
+        case DirectoryDataProperties::TypeIndex::audioFile:
+        {
+            if (std::unique_ptr<juce::AudioFormatReader> reader (audioFormatManager.createReaderFor (file)); reader == nullptr)
+            {
+                fileVT.setProperty ("error", "invalid format", nullptr);
+            }
+            else
+            {
+                fileVT.setProperty ("dataType", (reader->usesFloatingPointData == true ? "floating point" : "integer"), nullptr);
+                fileVT.setProperty ("bitDepth", static_cast<int>(reader->bitsPerSample), nullptr);
+                fileVT.setProperty ("numChannels", static_cast<int>(reader->numChannels), nullptr);
+                fileVT.setProperty ("sampleRate", static_cast<int>(reader->sampleRate), nullptr);
+                fileVT.setProperty ("lengthSamples", static_cast<int64_t>(reader->lengthInSamples), nullptr);
+            }
+
+        }
+        break;
+        case DirectoryDataProperties::TypeIndex::folder:
+        case DirectoryDataProperties::TypeIndex::systemFile:
+        case DirectoryDataProperties::TypeIndex::presetFile:
+        case DirectoryDataProperties::TypeIndex::unknownFile:
+        {
+
+        }
+        break;
+        default: jassertfalse; break;
+    }
     return fileVT;
 }
 

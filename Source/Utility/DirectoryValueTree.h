@@ -19,6 +19,7 @@ public:
 private:
     WatchdogTimer timer;
     DirectoryDataProperties directoryDataProperties;
+    juce::AudioFormatManager audioFormatManager;
     juce::String rootFolderName;
     int scanDepth { -1 };
     int64_t lastScanInProgressUpdate {};
