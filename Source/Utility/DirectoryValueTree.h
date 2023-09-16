@@ -28,8 +28,10 @@ private:
 
     void cancel ();
     void doIfProgressTimeElapsed (std::function<void ()> functionToDo);
+    void doProgressUpdate (juce::String progressString);
     juce::ValueTree doScan ();
     juce::ValueTree getContentsOfFolder (juce::File folder, int curDepth);
+    juce::String getPathFromCurrentRoot (juce::String fullPath);
     bool isFolderEntry (juce::ValueTree folderVT);
     bool isFileEntry (juce::ValueTree fileVT);
     bool isScanning ();

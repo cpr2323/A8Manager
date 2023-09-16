@@ -3,11 +3,17 @@
 void DirectoryDataProperties::initValueTree ()
 {
     // create all the initial properties
+    setProgress ("", false);
     setRootFolder ("", false);
     setScanDepth (-1, false);
     triggerStartScan (false);
     setStatus (ScanStatus::empty, false);
     data.addChild (juce::ValueTree (DirectoryValueTreeTypeId), -1, nullptr);
+}
+
+void DirectoryDataProperties::setProgress (juce::String progressString, bool includeSelfCallback)
+{
+    setValue (progressString, ProgressPropertyId, includeSelfCallback);
 }
 
 void DirectoryDataProperties::setRootFolder (juce::String rootFolder, bool includeSelfCallback)
@@ -28,6 +34,11 @@ void DirectoryDataProperties::setStatus (DirectoryDataProperties::ScanStatus sta
 void DirectoryDataProperties::triggerStartScan (bool includeSelfCallback)
 {
     toggleValue (StartScanPropertyId, includeSelfCallback);
+}
+
+juce::String DirectoryDataProperties::getProgress ()
+{
+    return getValue<juce::String> (ProgressPropertyId);
 }
 
 juce::String DirectoryDataProperties::getRootFolder ()
@@ -63,7 +74,12 @@ void DirectoryDataProperties::valueTreePropertyChanged (juce::ValueTree& vt, con
 {
     if (vt == data)
     {
-        if (property == RootFolderPropertyId)
+        if (property == ProgressPropertyId)
+        {
+            if (onProgressChange != nullptr)
+                onProgressChange (getProgress ());
+        }
+        else if (property == RootFolderPropertyId)
         {
             if (onRootFolderChange != nullptr)
                 onRootFolderChange (getRootFolder ());

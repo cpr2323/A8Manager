@@ -30,8 +30,6 @@ MainComponent::MainComponent (juce::ValueTree rootPropertiesVT)
 {
     setSize (1085, 585);
 
-    addAndMakeVisible (currentFolder);
-
     fileViewComponent.overwritePresetOrCancel = [this] (std::function<void ()> overwriteFunction, std::function<void ()> cancelFunction)
     {
         assimil8orEditorComponent.overwritePresetOrCancel (overwriteFunction, cancelFunction);
@@ -46,6 +44,7 @@ MainComponent::MainComponent (juce::ValueTree rootPropertiesVT)
     fileViewComponent.init (rootPropertiesVT);
     presetListComponent.init (rootPropertiesVT);
     toolWindow.init (rootPropertiesVT);
+    currentFolderComponent.init (rootPropertiesVT);
 
     presetListEditorSplitter.setComponents (&presetListComponent, &assimil8orEditorComponent);
     presetListEditorSplitter.setHorizontalSplit (false);
@@ -59,18 +58,9 @@ MainComponent::MainComponent (juce::ValueTree rootPropertiesVT)
     topAndBottomSplitter.setHorizontalSplit (true);
     topAndBottomSplitter.setLayout (2, -0.032);
 
+    addAndMakeVisible (currentFolderComponent);
     addAndMakeVisible (topAndBottomSplitter);
     addAndMakeVisible (toolWindow);
-
-    RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
-    PersistentRootProperties persistentRootProperties (rootPropertiesVT, PersistentRootProperties::WrapperType::client, PersistentRootProperties::EnableCallbacks::no);
-    appProperties.wrap (persistentRootProperties.getValueTree (), AppProperties::WrapperType::client, AppProperties::EnableCallbacks::yes);
-    appProperties.onMostRecentFolderChange = [this] (juce::String folderName)
-    {
-        currentFolder.setText (folderName, juce::NotificationType::dontSendNotification);
-    };
-
-    currentFolder.setText (appProperties.getMostRecentFolder (), juce::NotificationType::dontSendNotification);
 
     fileViewComponent.onAudioFileSelected = [this] (juce::File audioFile) { assimil8orEditorComponent.receiveSampleLoadRequest (audioFile); };
 }
@@ -83,7 +73,7 @@ void MainComponent::paint ([[maybe_unused]] juce::Graphics& g)
 void MainComponent::resized ()
 {
     auto localBounds { getLocalBounds () };
-    currentFolder.setBounds (localBounds.removeFromTop (30));
+    currentFolderComponent.setBounds (localBounds.removeFromTop (30));
     toolWindow.setBounds (localBounds.removeFromBottom (toolWindowHeight));
     localBounds.reduce (3, 3);
     topAndBottomSplitter.setBounds (localBounds);

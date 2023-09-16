@@ -157,6 +157,10 @@
                   file="Source/GUI/Assimil8or/Validator/RenameDialogComponent.h"/>
           </GROUP>
         </GROUP>
+        <FILE id="VJPDMS" name="CurrentFolderComponent.cpp" compile="1" resource="0"
+              file="Source/GUI/CurrentFolderComponent.cpp"/>
+        <FILE id="RdTALO" name="CurrentFolderComponent.h" compile="0" resource="0"
+              file="Source/GUI/CurrentFolderComponent.h"/>
         <FILE id="Van35d" name="MainComponent.cpp" compile="1" resource="0"
               file="Source/GUI/MainComponent.cpp"/>
         <FILE id="aJmy63" name="MainComponent.h" compile="0" resource="0" file="Source/GUI/MainComponent.h"/>

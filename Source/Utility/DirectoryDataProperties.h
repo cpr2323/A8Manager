@@ -32,15 +32,18 @@ public:
         size
     };
 
+    void setProgress (juce::String progressString, bool includeSelfCallback);
     void setRootFolder (juce::String rootFolder, bool includeSelfCallback);
     void setScanDepth (int scanDepth, bool includeSelfCallback);
     void setStatus (ScanStatus status, bool includeSelfCallback);
     void triggerStartScan (bool includeSelfCallback);
 
+    juce::String getProgress ();
     juce::String getRootFolder ();
     int getScanDepth ();
     DirectoryDataProperties::ScanStatus getStatus ();
 
+    std::function<void (juce::String progressString)> onProgressChange;
     std::function<void (juce::String rootFolder)> onRootFolderChange;
     std::function<void (int scanDepth)> onScanDepthChange;
     std::function<void (ScanStatus status)> onStatusChange;
@@ -50,6 +53,7 @@ public:
     juce::ValueTree getDirectoryValueTreeContainerVT ();
 
     static inline const juce::Identifier DirectoryDataTypeId { "DirectoryData" };
+    static inline const juce::Identifier ProgressPropertyId   { "progress" };
     static inline const juce::Identifier RootFolderPropertyId { "rootFolder" };
     static inline const juce::Identifier ScanDepthPropertyId  { "scanDepth" };
     static inline const juce::Identifier StartScanPropertyId  { "startScan" };

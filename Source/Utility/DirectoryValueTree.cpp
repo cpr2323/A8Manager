@@ -155,7 +155,7 @@ juce::ValueTree DirectoryValueTree::makeFileEntry (juce::File file, DirectoryDat
         case DirectoryDataProperties::TypeIndex::presetFile:
         case DirectoryDataProperties::TypeIndex::unknownFile:
         {
-
+            // TODO - implement specific properties where it makes sense. display entire contents of system files? display some stats about the preset files?
         }
         break;
         default: jassertfalse; break;
@@ -213,16 +213,22 @@ void DirectoryValueTree::run ()
         }
         scanning = false;
         sendStatusUpdate (DirectoryDataProperties::ScanStatus::done);
+        doProgressUpdate ("");
     }
     LogDirectoryValueTree (true, "DirectoryValueTree::run - exit");
+}
+
+juce::String DirectoryValueTree::getPathFromCurrentRoot (juce::String fullPath)
+{
+    const auto partialPath { fullPath.fromLastOccurrenceOf (rootFolderName, false, true) };
+    return partialPath;
 }
 
 juce::ValueTree DirectoryValueTree::doScan ()
 {
     lastScanInProgressUpdate = juce::Time::currentTimeMillis ();
     // do one initial progress update to fill in the first one
-    // TODO - do we want to route this message through DirectoryDataProperties
-    //doStatusUpdate ("Reading File System", rootEntry.getFileName ());
+    doProgressUpdate ("Reading File System: " + getPathFromCurrentRoot (juce::File (rootFolderName).getFileName ()));
     timer.start (100000);
     auto newDirectoryListVT { getContentsOfFolder (rootFolderName, 0) };
     juce::Logger::outputDebugString ("DirectoryValueTree::doScan - getContentOfFolder - elapsed time: " + juce::String (timer.getElapsedTime ()));
@@ -235,6 +241,14 @@ juce::ValueTree DirectoryValueTree::doScan ()
     return newDirectoryListVT;
 }
 
+void DirectoryValueTree::doProgressUpdate (juce::String progressString)
+{
+    juce::MessageManager::callAsync ([this, progressString] ()
+    {
+        directoryDataProperties.setProgress (progressString, false);
+    });
+}
+
 juce::ValueTree DirectoryValueTree::getContentsOfFolder (juce::File folder, int curDepth)
 {
     auto folderVT { makeFolderEntry (folder) };
@@ -245,8 +259,7 @@ juce::ValueTree DirectoryValueTree::getContentsOfFolder (juce::File folder, int 
             if (shouldCancelOperation ())
                 break;
 
-            // TODO - do we want to route this message through DirectoryDataProperties
-            //doIfProgressTimeElapsed ([this, fileName = entry.getFile ().getFileName ()] () { doStatusUpdate ("Reading File System", fileName); });
+            doIfProgressTimeElapsed ([this, fileName = entry.getFile ().getFileName ()] () { doProgressUpdate ("Reading File System: " + getPathFromCurrentRoot (fileName)); });
             if (const auto& curFile { entry.getFile () }; curFile.isDirectory ())
                 folderVT.addChild (getContentsOfFolder (curFile, curDepth + 1), -1, nullptr);
             else
@@ -303,8 +316,7 @@ void DirectoryValueTree::sortContentsOfFolder (juce::ValueTree folderVT)
     for (auto folderIndex { 0 }; folderIndex < numFolderEntries && ! shouldCancelOperation (); ++folderIndex)
     {
         auto folderEntryVT { folderVT.getChild (folderIndex) };
-        // TODO - do we want to route this message through DirectoryDataProperties
-        // doIfProgressTimeElapsed ([this, fileName = folderEntryVT.getProperty ("name").toString ()] () { doStatusUpdate ("Sorting File System", fileName); });
+        doIfProgressTimeElapsed ([this, fileName = folderEntryVT.getProperty ("name").toString ()] () { doProgressUpdate ("Sorting File System: " + getPathFromCurrentRoot (fileName)); });
         if (isFolderEntry (folderEntryVT))
         {
             insertSorted (folderIndex, DirectoryDataProperties::TypeIndex::folder);
