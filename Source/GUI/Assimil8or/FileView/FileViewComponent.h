@@ -25,6 +25,7 @@ private:
 
     juce::TextButton openFolderButton;
     juce::TextButton newFolderButton;
+    juce::ToggleButton showAllFiles { "Show All" };
     std::unique_ptr<juce::FileChooser> fileChooser;
     juce::ListBox directoryContentsListBox { {}, this };
     juce::CriticalSection queuedFolderLock;

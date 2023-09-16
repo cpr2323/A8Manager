@@ -17,9 +17,9 @@
 PresetListComponent::PresetListComponent ()
 {
     showAllPresets.setToggleState (true, juce::NotificationType::dontSendNotification);
+    showAllPresets.setButtonText ("Show All");
     showAllPresets.onClick = [this] () { checkPresetsThread.start (); };
     addAndMakeVisible (showAllPresets);
-    showAllPresets.setButtonText ("Show All");
     addAndMakeVisible (presetListBox);
 
     checkPresetsThread.onThreadLoop = [this] ()

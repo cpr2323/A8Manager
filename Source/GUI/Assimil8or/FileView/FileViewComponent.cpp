@@ -21,6 +21,10 @@ FileViewComponent::FileViewComponent ()
     newFolderButton.onClick = [this] () { newFolder (); };
     addAndMakeVisible (newFolderButton);
     addAndMakeVisible (directoryContentsListBox);
+    showAllFiles.setToggleState (false, juce::NotificationType::dontSendNotification);
+    showAllFiles.setButtonText ("Show All");
+    showAllFiles.onClick = [this] () { updateFromNewDataThread.start (); };
+    addAndMakeVisible (showAllFiles);
 
     updateFromNewDataThread.onThreadLoop = [this] ()
     {
@@ -79,7 +83,18 @@ void FileViewComponent::buildQuickLookupList ()
     directoryListQuickLookupList.clear ();
     ValueTreeHelpers::forEachChild (directoryDataProperties.getDirectoryValueTreeVT (), [this] (juce::ValueTree child)
     {
-        directoryListQuickLookupList.emplace_back (child);
+        const auto typeIndex { static_cast<int>(child.getProperty("type")) };
+        if (showAllFiles.getToggleState())
+        {
+            directoryListQuickLookupList.emplace_back (child);
+        }
+        else if (typeIndex == DirectoryDataProperties::TypeIndex::audioFile ||
+                 typeIndex == DirectoryDataProperties::TypeIndex::folder ||
+                 typeIndex == DirectoryDataProperties::TypeIndex::presetFile ||
+                 typeIndex == DirectoryDataProperties::TypeIndex::systemFile)
+        {
+            directoryListQuickLookupList.emplace_back (child);
+        }
         return true;
     });
 }
@@ -301,6 +316,8 @@ void FileViewComponent::resized ()
     openFolderButton.setBounds (toolRow.removeFromLeft (50));
     toolRow.removeFromLeft (5);
     newFolderButton.setBounds (toolRow.removeFromLeft (50));
+    showAllFiles.setBounds (toolRow);
+
     localBounds.removeFromTop (3);
     directoryContentsListBox.setBounds (localBounds);
 }
