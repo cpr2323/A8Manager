@@ -86,10 +86,18 @@
           <GROUP id="{A4F77B47-09C1-3696-74AC-1CB15C7BFE75}" name="Data">
             <FILE id="WPBimm" name="377935316_605972298278234_3982868804397026662_n.png"
                   compile="0" resource="1" file="Source/GUI/Assimil8or/Data/377935316_605972298278234_3982868804397026662_n.png"/>
+            <FILE id="H9RxNG" name="378050114_339763128525855_7062773882030585322_n.png"
+                  compile="0" resource="1" file="Source/GUI/Assimil8or/Data/378050114_339763128525855_7062773882030585322_n.png"/>
             <FILE id="t6YFbW" name="379313820_290057216986877_8377143342958664508_n.png"
                   compile="0" resource="1" file="Source/GUI/Assimil8or/Data/379313820_290057216986877_8377143342958664508_n.png"/>
             <FILE id="fifH95" name="379342397_1019467619075859_1228747790893365825_n.png"
                   compile="0" resource="1" file="Source/GUI/Assimil8or/Data/379342397_1019467619075859_1228747790893365825_n.png"/>
+            <FILE id="ltv6M2" name="379403158_3396337237250670_4726445264217380727_n.png"
+                  compile="0" resource="1" file="Source/GUI/Assimil8or/Data/379403158_3396337237250670_4726445264217380727_n.png"/>
+            <FILE id="mEbIuf" name="379444644_1404673993430453_2964062811252271248_n.png"
+                  compile="0" resource="1" file="Source/GUI/Assimil8or/Data/379444644_1404673993430453_2964062811252271248_n.png"/>
+            <FILE id="nymuST" name="379611433_847964663222151_6261125189292550011_n.png"
+                  compile="0" resource="1" file="Source/GUI/Assimil8or/Data/379611433_847964663222151_6261125189292550011_n.png"/>
             <FILE id="r8tDaY" name="A8 logo test black.png" compile="0" resource="1"
                   file="Source/GUI/Assimil8or/Data/A8 logo test black.png"/>
             <FILE id="SJ3b9J" name="A8 logo test blue.png" compile="0" resource="1"
@@ -223,7 +231,7 @@
   </MODULES>
   <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1"/>
   <EXPORTFORMATS>
-    <VS2022 targetFolder="Builds/VisualStudio2022" smallIcon="fifH95" bigIcon="fifH95">
+    <VS2022 targetFolder="Builds/VisualStudio2022" smallIcon="H9RxNG" bigIcon="H9RxNG">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" targetName="A8Manager"/>
         <CONFIGURATION isDebug="0" name="Release" targetName="A8Manager"/>
@@ -239,7 +247,7 @@
         <MODULEPATH id="juce_gui_basics" path="../JUCE/modules"/>
       </MODULEPATHS>
     </VS2022>
-    <XCODE_MAC targetFolder="Builds/MacOSX" smallIcon="hteBAz" bigIcon="hteBAz">
+    <XCODE_MAC targetFolder="Builds/MacOSX" smallIcon="H9RxNG" bigIcon="H9RxNG">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug"/>
         <CONFIGURATION isDebug="0" name="Release"/>

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "../Utility/DirectoryDataProperties.h"
 
 namespace FileTypeHelpers
 {
@@ -16,12 +17,13 @@ namespace FileTypeHelpers
     const auto kMaxPresets { 199 };
     const auto kBadPresetNumber { 9999 };
 
+    DirectoryDataProperties::TypeIndex getFileType (juce::File file);
+    juce::String getPresetFileName (int presetIndex);
+    int  getPresetNumberFromName (juce::File file);
     bool isAudioFile (juce::File file);
     bool isPresetFile (juce::File file);
     bool isFolderPrefsFile (juce::File file);
     bool isLastFolderFile (juce::File file);
     bool isLastPresetFile (juce::File file);
     bool isSystemFile (juce::File file);
-    int  getPresetNumberFromName (juce::File file);
-    juce::String getPresetFileName (int presetIndex);
 };

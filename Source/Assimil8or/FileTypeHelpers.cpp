@@ -2,6 +2,33 @@
 
 namespace FileTypeHelpers
 {
+    DirectoryDataProperties::TypeIndex getFileType (juce::File file)
+    {
+        if (FileTypeHelpers::isSystemFile (file))
+            return DirectoryDataProperties::TypeIndex::systemFile;
+        else if (FileTypeHelpers::isPresetFile (file))
+            return DirectoryDataProperties::TypeIndex::presetFile;
+        else if (FileTypeHelpers::isAudioFile (file))
+            return DirectoryDataProperties::TypeIndex::audioFile;
+        else // unknown file
+            return DirectoryDataProperties::TypeIndex::unknownFile;
+    }
+
+    juce::String getPresetFileName (int presetIndex)
+    {
+        jassert (presetIndex < kMaxPresets);
+        const auto rawPresetIndexString { juce::String (presetIndex) };
+        const auto presetIndexString { juce::String ("000").substring (0, 3 - rawPresetIndexString.length ()) + rawPresetIndexString };
+        return kPresetFileNamePrefix + presetIndexString;
+    }
+
+    int getPresetNumberFromName (juce::File file)
+    {
+        if (!isPresetFile (file))
+            return kBadPresetNumber;
+        return file.getFileNameWithoutExtension ().substring (kPresetFileNumberOffset).getIntValue ();
+    }
+
     bool isAudioFile (juce::File file)
     {
         return file.getFileExtension ().toLowerCase () == kWaveFileExtension;
@@ -29,23 +56,8 @@ namespace FileTypeHelpers
     bool isPresetFile (juce::File file)
     {
         return file.getFileExtension ().toLowerCase () == kYmlFileExtension &&
-            file.getFileNameWithoutExtension ().length () == kPresetFileNameLen &&
-            file.getFileNameWithoutExtension ().toLowerCase ().startsWith (kPresetFileNamePrefix) &&
-            file.getFileNameWithoutExtension ().substring (kPresetFileNumberOffset).containsOnly ("0123456789");
-    }
-
-    int getPresetNumberFromName (juce::File file)
-    {
-        if (! isPresetFile (file))
-            return kBadPresetNumber;
-        return file.getFileNameWithoutExtension ().substring (kPresetFileNumberOffset).getIntValue ();
-    }
-
-    juce::String getPresetFileName (int presetIndex)
-    {
-        jassert (presetIndex < kMaxPresets);
-        const auto rawPresetIndexString { juce::String (presetIndex) };
-        const auto presetIndexString { juce::String ("000").substring (0, 3 - rawPresetIndexString.length ()) + rawPresetIndexString };
-        return kPresetFileNamePrefix + presetIndexString;
+               file.getFileNameWithoutExtension ().length () == kPresetFileNameLen &&
+               file.getFileNameWithoutExtension ().toLowerCase ().startsWith (kPresetFileNamePrefix) &&
+               file.getFileNameWithoutExtension ().substring (kPresetFileNumberOffset).containsOnly ("0123456789");
     }
 };

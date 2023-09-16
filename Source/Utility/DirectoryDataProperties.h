@@ -22,6 +22,16 @@ public:
         done
     };
 
+    enum TypeIndex
+    {
+        folder,
+        systemFile,
+        presetFile,
+        audioFile,
+        unknownFile,
+        size
+    };
+
     void setRootFolder (juce::String rootFolder, bool includeSelfCallback);
     void setScanDepth (int scanDepth, bool includeSelfCallback);
     void setStatus (ScanStatus status, bool includeSelfCallback);

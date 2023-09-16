@@ -38,7 +38,6 @@ private:
     void deletePreset (int presetNumber);
     juce::File getPresetFile (int presetNumber);
     void forEachPresetFile (std::function<bool (juce::File presetFile, int index)> presetFileCallback);
-    juce::String getPresetName (int presetIndex);
     void loadPresetFile (juce::File presetFile, juce::ValueTree vt);
     void loadDefault (int row);
     void loadFirstPreset ();

@@ -76,10 +76,10 @@ void PresetListComponent::forEachPresetFile (std::function<bool (juce::File pres
     {
         if (child.getType ().toString () == "File")
         {
-            const auto fileToCheck { juce::File (child.getProperty ("name")) };
-            if (FileTypeHelpers::isPresetFile (fileToCheck))
+            if (static_cast<int>(child.getProperty("type")) == DirectoryDataProperties::presetFile)
             {
                 inPresetList = true;
+                const auto fileToCheck { juce::File (child.getProperty ("name")) };
                 const auto presetIndex { FileTypeHelpers::getPresetNumberFromName (fileToCheck) - 1 };
                 if (! presetFileCallback (fileToCheck, presetIndex))
                     return false;
@@ -119,10 +119,10 @@ void PresetListComponent::checkPresets ()
     {
         if (child.getType ().toString () == "File")
         {
-            const auto fileToCheck { juce::File (child.getProperty ("name")) };
-            if (FileTypeHelpers::isPresetFile (fileToCheck))
+            if (static_cast<int>(child.getProperty("type")) == DirectoryDataProperties::TypeIndex::presetFile)
             {
                 inPresetList = true;
+                const auto fileToCheck { juce::File (child.getProperty ("name")) };
                 const auto presetIndex { FileTypeHelpers::getPresetNumberFromName (fileToCheck) - 1 };
 
                 if (presetIndex >= kMaxPresets)
@@ -200,13 +200,6 @@ void PresetListComponent::loadDefault (int row)
     // set the ID, since the default that was just loaded always has Id 1
     presetProperties.setId (row + 1, false);
     PresetProperties::copyTreeProperties (presetProperties.getValueTree (), unEditedPresetProperties.getValueTree ());
-}
-
-juce::String PresetListComponent::getPresetName (int presetIndex)
-{
-    const auto rawPresetIndexString { juce::String (presetIndex + 1) };
-    const auto presetIndexString { juce::String ("000").substring (0, 3 - rawPresetIndexString.length ()) + rawPresetIndexString };
-    return "prst" + presetIndexString;
 }
 
 void PresetListComponent::loadPresetFile (juce::File presetFile, juce::ValueTree presetPropertiesVT)
@@ -304,7 +297,7 @@ void PresetListComponent::pastePreset (int presetNumber)
     auto [thisPresetNumber, thisPresetExists, presetName] = presetInfoList [lastSelectedRow];
     if (thisPresetExists)
     {
-        juce::AlertWindow::showOkCancelBox (juce::AlertWindow::WarningIcon, "OVERWRITE PRESET", "Are you sure you want to overwrite '" + getPresetName (presetNumber) + "'", "YES", "NO", nullptr,
+        juce::AlertWindow::showOkCancelBox (juce::AlertWindow::WarningIcon, "OVERWRITE PRESET", "Are you sure you want to overwrite '" + FileTypeHelpers::getPresetFileName (presetNumber) + "'", "YES", "NO", nullptr,
             juce::ModalCallbackFunction::create ([this, doPaste] (int option)
             {
                 if (option == 0) // no
@@ -320,7 +313,7 @@ void PresetListComponent::pastePreset (int presetNumber)
 
 void PresetListComponent::deletePreset (int presetNumber)
 {
-    juce::AlertWindow::showOkCancelBox (juce::AlertWindow::WarningIcon, "DELETE PRESET", "Are you sure you want to delete '" + getPresetName(presetNumber) + "'", "YES", "NO", nullptr,
+    juce::AlertWindow::showOkCancelBox (juce::AlertWindow::WarningIcon, "DELETE PRESET", "Are you sure you want to delete '" + FileTypeHelpers::getPresetFileName (presetNumber) + "'", "YES", "NO", nullptr,
         juce::ModalCallbackFunction::create ([this, presetNumber, presetFile = getPresetFile (presetNumber)] (int option)
         {
             if (option == 0) // no
@@ -336,7 +329,7 @@ void PresetListComponent::deletePreset (int presetNumber)
 
 juce::File PresetListComponent::getPresetFile (int presetNumber)
 {
-    return currentFolder.getChildFile (getPresetName (presetNumber)).withFileExtension (".yml");
+    return currentFolder.getChildFile (FileTypeHelpers::getPresetFileName (presetNumber)).withFileExtension (".yml");
 }
 
 void PresetListComponent::listBoxItemClicked (int row, [[maybe_unused]] const juce::MouseEvent& me)
