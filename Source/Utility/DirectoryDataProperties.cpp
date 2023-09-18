@@ -35,6 +35,11 @@ void DirectoryDataProperties::setStatus (DirectoryDataProperties::ScanStatus sta
     setValue (static_cast<int>(status), StatusPropertyId, includeSelfCallback);
 }
 
+void DirectoryDataProperties::triggerRootScanComplete (bool includeSelfCallback)
+{
+    toggleValue (RootScanCompletePropertyId, includeSelfCallback);
+}
+
 void DirectoryDataProperties::triggerStartScan (bool includeSelfCallback)
 {
     toggleValue (StartScanPropertyId, includeSelfCallback);
@@ -79,6 +84,11 @@ void DirectoryDataProperties::valueTreePropertyChanged (juce::ValueTree& vt, con
         {
             if (onRootFolderChange != nullptr)
                 onRootFolderChange (getRootFolder ());
+        }
+        else if (property == RootScanCompletePropertyId)
+        {
+            if (onRootScanComplete != nullptr)
+                onRootScanComplete ();
         }
         else if (property == ScanDepthPropertyId)
         {

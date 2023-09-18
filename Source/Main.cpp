@@ -228,7 +228,7 @@ public:
         // setup the directory scanner
         directoryValueTree.init (rootProperties.getValueTree ());
         directoryDataProperties.wrap (directoryValueTree.getDirectoryDataPropertiesVT (), DirectoryDataProperties::WrapperType::client, DirectoryDataProperties::EnableCallbacks::no);
-        directoryDataMonitor.assign (directoryDataProperties.getValueTreeRef ());
+        //directoryDataMonitor.assign (directoryDataProperties.getValueTreeRef ());
 
         // when the folder being viewed changes, signal the directory scanner to rescan
         appProperties.onMostRecentFolderChange = [this] (juce::String folderName)

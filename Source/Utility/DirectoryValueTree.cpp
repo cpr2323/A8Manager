@@ -214,6 +214,7 @@ void DirectoryValueTree::doScan ()
     // do one initial progress update to fill in the first one
     doProgressUpdate ("Reading File System: " + getPathFromCurrentRoot (juce::File (rootFolderProperties.getName ()).getFileName ()));
     timer.start (100000);
+    directoryDataProperties.getRootFolderVT ().removeAllChildren (nullptr);
     getContentsOfFolder (directoryDataProperties.getRootFolderVT (), 0);
     juce::Logger::outputDebugString ("DirectoryValueTree::doScan - getContentOfFolder - elapsed time: " + juce::String (timer.getElapsedTime ()));
 
@@ -233,7 +234,6 @@ void DirectoryValueTree::doProgressUpdate (juce::String progressString)
 
 void DirectoryValueTree::getContentsOfFolder (juce::ValueTree folderVT, int curDepth)
 {
-//    auto folderVT { makeFolderEntry (folder) };
     FolderProperties folderProperties (folderVT, FolderProperties::WrapperType::client, FolderProperties::EnableCallbacks::no);
     if (scanDepth == -1 || curDepth <= scanDepth)
     {
@@ -244,16 +244,17 @@ void DirectoryValueTree::getContentsOfFolder (juce::ValueTree folderVT, int curD
 
             doIfProgressTimeElapsed ([this, fileName = entry.getFile ().getFileName ()] () { doProgressUpdate ("Reading File System: " + getPathFromCurrentRoot (fileName)); });
             if (const auto& curFile { entry.getFile () }; curFile.isDirectory ())
-            {
-                auto newFolderVT { makeFolderEntry (curFile.getFullPathName ()) };
-                getContentsOfFolder (newFolderVT, curDepth + 1);
-                folderVT.addChild (newFolderVT, -1, nullptr);
-            }
+                folderVT.addChild (makeFolderEntry (curFile.getFullPathName ()), -1, nullptr);
             else
-            {
                 folderVT.addChild (makeFileEntry (curFile, FileTypeHelpers::getFileType (curFile)), -1, nullptr);
-            }
         }
+        if (curDepth == 0)
+            directoryDataProperties.triggerRootScanComplete (false);
+        ValueTreeHelpers::forEachChildOfType (folderVT, FolderProperties::FolderTypeId, [this, curDepth] (juce::ValueTree childFolderVT)
+        {
+            getContentsOfFolder (childFolderVT, curDepth + 1);
+            return true;
+        });
     }
 }
 

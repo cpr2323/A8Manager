@@ -40,6 +40,13 @@ void FileViewComponent::init (juce::ValueTree rootPropertiesVT)
 
     RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
     directoryDataProperties.wrap (runtimeRootProperties.getValueTree (), DirectoryDataProperties::WrapperType::client, DirectoryDataProperties::EnableCallbacks::yes);
+    directoryDataProperties.onRootScanComplete = [this] ()
+    {
+        juce::Logger::outputDebugString ("FileViewComponent/onRootScanComplete");
+        isRootFolder = juce::File (directoryDataProperties.getRootFolder ()).getParentDirectory () == juce::File (directoryDataProperties.getRootFolder ());
+        updateFromNewDataThread.start ();
+    };
+
     directoryDataProperties.onStatusChange = [this] (DirectoryDataProperties::ScanStatus status)
     {
         switch (status)
@@ -58,8 +65,8 @@ void FileViewComponent::init (juce::ValueTree rootPropertiesVT)
             break;
             case DirectoryDataProperties::ScanStatus::done:
             {
-                isRootFolder = juce::File (directoryDataProperties.getRootFolder ()).getParentDirectory () == juce::File (directoryDataProperties.getRootFolder ());
-                updateFromNewDataThread.start ();
+//                 isRootFolder = juce::File (directoryDataProperties.getRootFolder ()).getParentDirectory () == juce::File (directoryDataProperties.getRootFolder ());
+//                 updateFromNewDataThread.start ();
             }
             break;
         }

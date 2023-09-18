@@ -20,7 +20,6 @@ private:
     WatchdogTimer timer;
     DirectoryDataProperties directoryDataProperties;
     juce::AudioFormatManager audioFormatManager;
-//    juce::String rootFolderName;
     int scanDepth { -1 };
     int64_t lastScanInProgressUpdate {};
     std::atomic<bool> scanning { false };
@@ -39,9 +38,7 @@ private:
     juce::ValueTree makeFileEntry (juce::File file, DirectoryDataProperties::TypeIndex fileType);
     juce::ValueTree makeFolderEntry (juce::File folder);
     juce::ValueTree makeFolderEntry (juce::String filePath);
-    //void updateDirectoryData (juce::ValueTree newDirectoryData);
     void sendStatusUpdate (DirectoryDataProperties::ScanStatus scanStatus);
-//    void setRootFolder (juce::String theRootFolderName);
     void setScanDepth (int theScanDepth);
     void sortContentsOfFolder (juce::ValueTree rootFolderVT);
     void startScan ();
