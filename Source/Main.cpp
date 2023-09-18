@@ -37,40 +37,21 @@ public:
     void valueTreeTest ()
     {
         juce::ValueTree root { "Root" };
-        juce::ValueTree child1 { "RootChild1" };
-        juce::ValueTree child2 { "RootChild2" };
-        juce::ValueTree child3 { "RootChild3" };
-        juce::ValueTree child4 { "RootChild4" };
+        juce::ValueTree rootChild1 { "RootChild1" };
+        juce::ValueTree rootChild2 { "RootChild2" };
+        juce::ValueTree child1Child1 { "Child1Child1" };
+        juce::ValueTree child1Child2 { "Child1Child2" };
+        juce::ValueTree child1Child1Child1 { "Child1Child1Child1" };
+        juce::ValueTree child1Child1Child1Child1 { "Child1Child1Child1Child1" };
         ValueTreeMonitor rootListenerLogger;
         rootListenerLogger.assign (root);
-        ValueTreeMonitor child1ListenerLogger;
-        child1ListenerLogger.assign (child1);
-        ValueTreeMonitor child2ListenerLogger;
-        child2ListenerLogger.assign (child2);
-        ValueTreeMonitor child3ListenerLogger;
-        child3ListenerLogger.assign (child3);
-        root.addListener (&rootListenerLogger);
-        child1.addListener (&child1ListenerLogger);
-        child2.addListener (&child2ListenerLogger);
-        child3.addListener (&child3ListenerLogger);
 
-        auto basicPropertyTest = [] (juce::ValueTree& vt)
-        {
-            vt.setProperty ("propOne", "1", nullptr);
-            vt.setProperty ("propOne", "2", nullptr);
-            vt.removeProperty ("propOne", nullptr);
-            vt.setProperty ("propTwo", "3", nullptr);
-            vt.setProperty ("propThree", "4", nullptr);
-        };
-        basicPropertyTest (root);
-
-        root.addChild (child1, -1, nullptr);
-        basicPropertyTest (child1);
-        child1.addChild (child2, -1, nullptr);
-        child3.copyPropertiesAndChildrenFrom (child1, nullptr);
-        child2 = child4;
-        basicPropertyTest (child4);
-        root.removeChild (child1, nullptr);
+        root.addChild (rootChild1, -1, nullptr);
+        root.addChild (rootChild2, -1, nullptr);
+        rootChild1.addChild (child1Child1, -1, nullptr);
+        rootChild1.addChild (child1Child2, -1, nullptr);
+        child1Child1.addChild (child1Child1Child1, -1, nullptr);
+        child1Child1Child1.addChild (child1Child1Child1Child1, -1, nullptr);
     }
 
 #if 0
@@ -247,6 +228,7 @@ public:
         // setup the directory scanner
         directoryValueTree.init (rootProperties.getValueTree ());
         directoryDataProperties.wrap (directoryValueTree.getDirectoryDataPropertiesVT (), DirectoryDataProperties::WrapperType::client, DirectoryDataProperties::EnableCallbacks::no);
+        directoryDataMonitor.assign (directoryDataProperties.getValueTreeRef ());
 
         // when the folder being viewed changes, signal the directory scanner to rescan
         appProperties.onMostRecentFolderChange = [this] (juce::String folderName)
@@ -403,6 +385,7 @@ private:
     std::atomic<RuntimeRootProperties::QuitState> localQuitState { RuntimeRootProperties::QuitState::idle };
     std::unique_ptr<MainWindow> mainWindow;
 
+    ValueTreeMonitor directoryDataMonitor;
     ValueTreeMonitor presetPropertiesMonitor;
 };
 

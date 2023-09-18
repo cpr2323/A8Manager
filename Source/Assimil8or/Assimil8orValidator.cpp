@@ -177,16 +177,14 @@ void Assimil8orValidator::validateRootFolder ()
     validatorResultListProperties.clear ();
     lastScanInProgressUpdate = juce::Time::currentTimeMillis ();
 
-    auto directoryValueTreeVT { directoryDataProperties.getDirectoryValueTreeVT () };
-    jassert (directoryValueTreeVT.isValid ());
-    jassert (directoryValueTreeVT.getType ().toString ()  == "Folder");
-    auto rootFolderToScan { juce::File (directoryValueTreeVT.getProperty ("name")) };
-    addResult (ValidatorResultProperties::ResultTypeInfo, "Root Folder: " + rootFolderToScan.getFileName ());
+    FolderProperties rootFolderProperties (directoryDataProperties.getRootFolderVT (), FolderProperties::WrapperType::client, FolderProperties::EnableCallbacks::no);
+    auto rootFolder { juce::File (rootFolderProperties.getName ()) };
+    addResult (ValidatorResultProperties::ResultTypeInfo, "Root Folder: " + rootFolder.getFileName ());
 
     // do one initial progress update to fill in the first one
-    validatorProperties.setProgressUpdate ("Validating: " + rootFolderToScan.getFileName (), false);
+    validatorProperties.setProgressUpdate ("Validating: " + rootFolder.getFileName (), false);
 
-    processFolder (directoryValueTreeVT);
+    processFolder (rootFolderProperties.getValueTree ());
 
     validatorProperties.setProgressUpdate ("", false);
     validatorProperties.setScanStatus ("idle", false);

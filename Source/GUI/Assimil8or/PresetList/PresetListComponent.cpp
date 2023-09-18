@@ -72,7 +72,7 @@ void PresetListComponent::forEachPresetFile (std::function<bool (juce::File pres
     jassert (presetFileCallback != nullptr);
 
     auto inPresetList { false };
-    ValueTreeHelpers::forEachChild (directoryDataProperties.getDirectoryValueTreeVT (), [this, presetFileCallback, &inPresetList] (juce::ValueTree child)
+    ValueTreeHelpers::forEachChild (directoryDataProperties.getRootFolderVT (), [this, presetFileCallback, &inPresetList] (juce::ValueTree child)
     {
         if (child.getType ().toString () == "File")
         {
@@ -100,7 +100,7 @@ void PresetListComponent::checkPresets ()
     WatchdogTimer timer;
     timer.start (100000);
 
-    auto directoryValueTreeVT { directoryDataProperties.getDirectoryValueTreeVT () };
+    auto directoryValueTreeVT { directoryDataProperties.getRootFolderVT () };
     jassert (directoryValueTreeVT.getType ().toString () == "Folder");
     currentFolder = juce::File (directoryValueTreeVT.getProperty ("name").toString ());
 
@@ -115,7 +115,7 @@ void PresetListComponent::checkPresets ()
     else 
         numPresets = 0;
     auto inPresetList { false };
-    ValueTreeHelpers::forEachChild (directoryDataProperties.getDirectoryValueTreeVT (), [this, &inPresetList, showAll] (juce::ValueTree child)
+    ValueTreeHelpers::forEachChild (directoryDataProperties.getRootFolderVT (), [this, &inPresetList, showAll] (juce::ValueTree child)
     {
         if (child.getType ().toString () == "File")
         {

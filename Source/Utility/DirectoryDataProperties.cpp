@@ -2,13 +2,15 @@
 
 void DirectoryDataProperties::initValueTree ()
 {
+    // add folder object to store root folder
+    FolderProperties rootFolderProperties (data, FolderProperties::WrapperType::owner, FolderProperties::EnableCallbacks::no);
+
     // create all the initial properties
     setProgress ("", false);
     setRootFolder ("", false);
     setScanDepth (-1, false);
     triggerStartScan (false);
     setStatus (ScanStatus::empty, false);
-    data.addChild (juce::ValueTree (DirectoryValueTreeTypeId), -1, nullptr);
 }
 
 void DirectoryDataProperties::setProgress (juce::String progressString, bool includeSelfCallback)
@@ -18,6 +20,8 @@ void DirectoryDataProperties::setProgress (juce::String progressString, bool inc
 
 void DirectoryDataProperties::setRootFolder (juce::String rootFolder, bool includeSelfCallback)
 {
+    FolderProperties rootFolderProperties (data, FolderProperties::WrapperType::client, FolderProperties::EnableCallbacks::no);
+    rootFolderProperties.setName (rootFolder, false);
     setValue (rootFolder, RootFolderPropertyId, includeSelfCallback);
 }
 
@@ -56,18 +60,10 @@ DirectoryDataProperties::ScanStatus DirectoryDataProperties::getStatus ()
     return static_cast<DirectoryDataProperties::ScanStatus>(getValue<int> (StatusPropertyId));
 }
 
-juce::ValueTree DirectoryDataProperties::getDirectoryValueTreeVT ()
+juce::ValueTree DirectoryDataProperties::getRootFolderVT ()
 {
-    auto directoryValueTreeVT { data.getChildWithName (DirectoryValueTreeTypeId).getChildWithName ("Folder")};
-    jassert (directoryValueTreeVT.isValid ());
-    return directoryValueTreeVT;
-}
-
-juce::ValueTree DirectoryDataProperties::getDirectoryValueTreeContainerVT ()
-{
-    auto directoryValueTreeContainerVT { data.getChildWithName (DirectoryValueTreeTypeId) };
-    jassert (directoryValueTreeContainerVT.isValid ());
-    return directoryValueTreeContainerVT;
+    FolderProperties rootFolderProperties (data, FolderProperties::WrapperType::client, FolderProperties::EnableCallbacks::no);
+    return rootFolderProperties.getValueTree ();
 }
 
 void DirectoryDataProperties::valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property)
@@ -100,4 +96,14 @@ void DirectoryDataProperties::valueTreePropertyChanged (juce::ValueTree& vt, con
                 onStatusChange (getStatus ());
         }
     }
+}
+
+void DirectoryDataProperties::valueTreeChildAdded (juce::ValueTree& vt, juce::ValueTree& child)
+{
+
+}
+
+void DirectoryDataProperties::valueTreeChildRemoved (juce::ValueTree& vt, juce::ValueTree& child, int index)
+{
+
 }
