@@ -183,10 +183,8 @@ void Assimil8orValidator::validateRootFolder ()
 
     // do one initial progress update to fill in the first one
     validatorProperties.setProgressUpdate ("Validating: " + rootFolder.getFileName (), false);
-
     processFolder (rootFolderProperties.getValueTree ());
-
-    validatorProperties.setProgressUpdate ("", false);
+        validatorProperties.setProgressUpdate ("", false);
     validatorProperties.setScanStatus ("idle", false);
     LogValidation ("Assimil8orValidator::validateRootFolder - exit");
 }

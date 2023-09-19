@@ -213,15 +213,10 @@ void DirectoryValueTree::doScan ()
     FolderProperties rootFolderProperties (directoryDataProperties.getRootFolderVT (), FolderProperties::WrapperType::client, FolderProperties::EnableCallbacks::no);
     // do one initial progress update to fill in the first one
     doProgressUpdate ("Reading File System: " + getPathFromCurrentRoot (juce::File (rootFolderProperties.getName ()).getFileName ()));
-    timer.start (100000);
+    // clear old contents
     directoryDataProperties.getRootFolderVT ().removeAllChildren (nullptr);
     getContentsOfFolder (directoryDataProperties.getRootFolderVT (), 0);
-    juce::Logger::outputDebugString ("DirectoryValueTree::doScan - getContentOfFolder - elapsed time: " + juce::String (timer.getElapsedTime ()));
 
-    timer.start (100000);
-    if (! shouldCancelOperation ())
-        sortContentsOfFolder (directoryDataProperties.getRootFolderVT ());
-    juce::Logger::outputDebugString ("DirectoryValueTree::doScan - sortContentOfFolder - elapsed time: " + juce::String (timer.getElapsedTime ()));
 }
 
 void DirectoryValueTree::doProgressUpdate (juce::String progressString)
@@ -234,6 +229,7 @@ void DirectoryValueTree::doProgressUpdate (juce::String progressString)
 
 void DirectoryValueTree::getContentsOfFolder (juce::ValueTree folderVT, int curDepth)
 {
+    timer.start (100000);
     FolderProperties folderProperties (folderVT, FolderProperties::WrapperType::client, FolderProperties::EnableCallbacks::no);
     if (scanDepth == -1 || curDepth <= scanDepth)
     {
@@ -248,6 +244,7 @@ void DirectoryValueTree::getContentsOfFolder (juce::ValueTree folderVT, int curD
             else
                 folderVT.addChild (makeFileEntry (curFile, FileTypeHelpers::getFileType (curFile)), -1, nullptr);
         }
+        sortContentsOfFolder (folderVT);
         if (curDepth == 0)
             directoryDataProperties.triggerRootScanComplete (false);
         ValueTreeHelpers::forEachChildOfType (folderVT, FolderProperties::FolderTypeId, [this, curDepth] (juce::ValueTree childFolderVT)
@@ -256,10 +253,13 @@ void DirectoryValueTree::getContentsOfFolder (juce::ValueTree folderVT, int curD
             return true;
         });
     }
+    juce::Logger::outputDebugString ("DirectoryValueTree::getContentOfFolder - elapsed time: " + juce::String (timer.getElapsedTime ()));
 }
 
 void DirectoryValueTree::sortContentsOfFolder (juce::ValueTree folderVT)
 {
+    timer.start (100000);
+
     jassert (isFolderEntry (folderVT));
 
     // Folders
@@ -309,7 +309,6 @@ void DirectoryValueTree::sortContentsOfFolder (juce::ValueTree folderVT)
         if (isFolderEntry (folderEntryVT))
         {
             insertSorted (folderIndex, DirectoryDataProperties::TypeIndex::folder);
-            sortContentsOfFolder (folderEntryVT);
         }
         else if (isFileEntry (folderEntryVT))
         {
@@ -332,4 +331,5 @@ void DirectoryValueTree::sortContentsOfFolder (juce::ValueTree folderVT)
             jassertfalse;
         }
     }
+   juce::Logger::outputDebugString ("DirectoryValueTree::sortContentOfFolder - elapsed time: " + juce::String (timer.getElapsedTime ()));
 }
