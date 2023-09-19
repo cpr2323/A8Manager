@@ -31,14 +31,9 @@ private:
     void doScan ();
     void getContentsOfFolder (juce::ValueTree folderVT, int curDepth);
     juce::String getPathFromCurrentRoot (juce::String fullPath);
-    bool isFolderEntry (juce::ValueTree folderVT);
-    bool isFileEntry (juce::ValueTree fileVT);
     bool isScanning ();
-    juce::String getEntryName (juce::ValueTree fileVT);
-    juce::ValueTree makeFileEntry (juce::File file, DirectoryDataProperties::TypeIndex fileType);
-    juce::ValueTree makeFolderEntry (juce::File folder);
-    juce::ValueTree makeFolderEntry (juce::String filePath);
     void sendStatusUpdate (DirectoryDataProperties::ScanStatus scanStatus);
+    juce::ValueTree makeFileEntry (juce::File file, DirectoryDataProperties::TypeIndex fileType);
     void setScanDepth (int theScanDepth);
     void sortContentsOfFolder (juce::ValueTree rootFolderVT);
     void startScan ();

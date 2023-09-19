@@ -129,7 +129,7 @@ void Assimil8orValidator::startValidation ()
     }
     else
     {
-        LogValidation ("Assimil8orValidator::startValidation: " + queuedFolderToScan.getFullPathName ());
+        LogValidation ("Assimil8orValidator::startValidation: "/* + queuedFolderToScan.getFullPathName ()*/);
         valdatationState = ValdatationState::validating;
         validatorProperties.setScanStatus ("scanning", false);
     }
@@ -184,7 +184,7 @@ void Assimil8orValidator::validateRootFolder ()
     // do one initial progress update to fill in the first one
     validatorProperties.setProgressUpdate ("Validating: " + rootFolder.getFileName (), false);
     processFolder (rootFolderProperties.getValueTree ());
-        validatorProperties.setProgressUpdate ("", false);
+    validatorProperties.setProgressUpdate ("", false);
     validatorProperties.setScanStatus ("idle", false);
     LogValidation ("Assimil8orValidator::validateRootFolder - exit");
 }
@@ -202,12 +202,15 @@ void Assimil8orValidator::processFolder (juce::ValueTree folderVT)
     //      report if name over 47 characters
     //      report if it does not match supported formats
     // report any other files as unused by assimil8or
-    jassert (folderVT.getType ().toString () == "Folder");
+    
+    jassert (FolderProperties::isFolderVT (folderVT));
     uint64_t totalSizeOfRamRequiredPresets {};
     uint64_t totalSizeOfRamRequiredAllAudioFiles {};
     int numberOfPresets {};
-    for (auto folderEntryVT : folderVT)
+    for (auto childIndex { 0 }; childIndex < folderVT.getNumChildren (); ++childIndex)
     {
+        auto folderEntryVT { folderVT.getChild (childIndex) };
+
         if (shouldCancelOperation ())
             break;
 

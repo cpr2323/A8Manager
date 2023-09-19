@@ -2,6 +2,7 @@
 #include "../../../Assimil8or/Preset/PresetHelpers.h"
 #include "../../../Utility/PersistentRootProperties.h"
 #include "../../../Utility/RuntimeRootProperties.h"
+#include "../../../Utility/WatchDogTimer.h"
 
 #define LOG_FILE_VIEW 0
 #if LOG_FILE_VIEW
@@ -35,6 +36,7 @@ FileViewComponent::FileViewComponent ()
 
 void FileViewComponent::init (juce::ValueTree rootPropertiesVT)
 {
+    juce::Logger::outputDebugString ("FileViewComponent::init");
     PersistentRootProperties persistentRootProperties (rootPropertiesVT, PersistentRootProperties::WrapperType::client, PersistentRootProperties::EnableCallbacks::no);
     appProperties.wrap (persistentRootProperties.getValueTree (), AppProperties::WrapperType::client, AppProperties::EnableCallbacks::yes);
 
@@ -47,42 +49,46 @@ void FileViewComponent::init (juce::ValueTree rootPropertiesVT)
         updateFromNewDataThread.start ();
     };
 
-    directoryDataProperties.onStatusChange = [this] (DirectoryDataProperties::ScanStatus status)
-    {
-        switch (status)
-        {
-            case DirectoryDataProperties::ScanStatus::empty:
-            {
-            }
-            break;
-            case DirectoryDataProperties::ScanStatus::scanning:
-            {
-            }
-            break;
-            case DirectoryDataProperties::ScanStatus::canceled:
-            {
-            }
-            break;
-            case DirectoryDataProperties::ScanStatus::done:
-            {
+//     directoryDataProperties.onStatusChange = [this] (DirectoryDataProperties::ScanStatus status)
+//     {
+//         switch (status)
+//         {
+//             case DirectoryDataProperties::ScanStatus::empty:
+//             {
+//             }
+//             break;
+//             case DirectoryDataProperties::ScanStatus::scanning:
+//             {
+//             }
+//             break;
+//             case DirectoryDataProperties::ScanStatus::canceled:
+//             {
+//             }
+//             break;
+//             case DirectoryDataProperties::ScanStatus::done:
+//             {
 //                 isRootFolder = juce::File (directoryDataProperties.getRootFolder ()).getParentDirectory () == juce::File (directoryDataProperties.getRootFolder ());
 //                 updateFromNewDataThread.start ();
-            }
-            break;
-        }
-    };
+//             }
+//             break;
+//         }
+//     };
 
     updateFromNewDataThread.start ();
 }
 
 void FileViewComponent::updateFromNewData ()
 {
+    juce::Logger::outputDebugString ("FileViewComponent::updateFromNewData ()");
+    WatchdogTimer timer;
+    timer.start (10000);
     buildQuickLookupList ();
     juce::MessageManager::callAsync ([this] ()
     {
         directoryContentsListBox.updateContent ();
         directoryContentsListBox.repaint ();
     });
+    juce::Logger::outputDebugString ("FileViewComponent::updateFromNewData () - elapsed time: " + juce::String (timer.getElapsedTime ()));
 }
 
 void FileViewComponent::buildQuickLookupList ()

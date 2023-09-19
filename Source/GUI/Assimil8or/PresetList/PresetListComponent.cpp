@@ -37,29 +37,33 @@ void PresetListComponent::init (juce::ValueTree rootPropertiesVT)
 
     RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
     directoryDataProperties.wrap (runtimeRootProperties.getValueTree (), DirectoryDataProperties::WrapperType::client, DirectoryDataProperties::EnableCallbacks::yes);
-    directoryDataProperties.onStatusChange = [this] (DirectoryDataProperties::ScanStatus status)
+    directoryDataProperties.onRootScanComplete = [this] ()
     {
-        switch (status)
-        {
-            case DirectoryDataProperties::ScanStatus::empty:
-            {
-            }
-            break;
-            case DirectoryDataProperties::ScanStatus::scanning:
-            {
-            }
-            break;
-            case DirectoryDataProperties::ScanStatus::canceled:
-            {
-            }
-            break;
-            case DirectoryDataProperties::ScanStatus::done:
-            {
-                checkPresetsThread.startThread ();
-            }
-            break;
-        }
+        checkPresetsThread.startThread ();
     };
+//     directoryDataProperties.onStatusChange = [this] (DirectoryDataProperties::ScanStatus status)
+//     {
+//         switch (status)
+//         {
+//             case DirectoryDataProperties::ScanStatus::empty:
+//             {
+//             }
+//             break;
+//             case DirectoryDataProperties::ScanStatus::scanning:
+//             {
+//             }
+//             break;
+//             case DirectoryDataProperties::ScanStatus::canceled:
+//             {
+//             }
+//             break;
+//             case DirectoryDataProperties::ScanStatus::done:
+//             {
+//                 checkPresetsThread.startThread ();
+//             }
+//             break;
+//         }
+//     };
     PresetManagerProperties presetManagerProperties (runtimeRootProperties.getValueTree (), PresetManagerProperties::WrapperType::owner, PresetManagerProperties::EnableCallbacks::no);
     unEditedPresetProperties.wrap (presetManagerProperties.getPreset ("unedited"), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::yes);
     presetProperties.wrap (presetManagerProperties.getPreset ("edit"), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::yes);
@@ -74,12 +78,13 @@ void PresetListComponent::forEachPresetFile (std::function<bool (juce::File pres
     auto inPresetList { false };
     ValueTreeHelpers::forEachChild (directoryDataProperties.getRootFolderVT (), [this, presetFileCallback, &inPresetList] (juce::ValueTree child)
     {
-        if (child.getType ().toString () == "File")
+        if (FileProperties::isFileVT(child))
         {
-            if (static_cast<int>(child.getProperty("type")) == DirectoryDataProperties::presetFile)
+            FileProperties fileProperties (child, FileProperties::WrapperType::client, FileProperties::EnableCallbacks::no);
+            if (fileProperties.getType ()== DirectoryDataProperties::presetFile)
             {
                 inPresetList = true;
-                const auto fileToCheck { juce::File (child.getProperty ("name")) };
+                const auto fileToCheck { juce::File (fileProperties.getName()) };
                 const auto presetIndex { FileTypeHelpers::getPresetNumberFromName (fileToCheck) - 1 };
                 if (! presetFileCallback (fileToCheck, presetIndex))
                     return false;
@@ -100,9 +105,8 @@ void PresetListComponent::checkPresets ()
     WatchdogTimer timer;
     timer.start (100000);
 
-    auto directoryValueTreeVT { directoryDataProperties.getRootFolderVT () };
-    jassert (directoryValueTreeVT.getType ().toString () == "Folder");
-    currentFolder = juce::File (directoryValueTreeVT.getProperty ("name").toString ());
+    FolderProperties rootFolder (directoryDataProperties.getRootFolderVT (), FolderProperties::WrapperType::client, FolderProperties::EnableCallbacks::no);
+    currentFolder = juce::File (rootFolder.getName ());
 
     const auto showAll { showAllPresets.getToggleState () };
 
@@ -117,12 +121,13 @@ void PresetListComponent::checkPresets ()
     auto inPresetList { false };
     ValueTreeHelpers::forEachChild (directoryDataProperties.getRootFolderVT (), [this, &inPresetList, showAll] (juce::ValueTree child)
     {
-        if (child.getType ().toString () == "File")
+        if (FileProperties::isFileVT(child))
         {
-            if (static_cast<int>(child.getProperty("type")) == DirectoryDataProperties::TypeIndex::presetFile)
+            FileProperties fileProperties (child, FileProperties::WrapperType::client, FileProperties::EnableCallbacks::no);
+            if (fileProperties.getType () == DirectoryDataProperties::TypeIndex::presetFile)
             {
                 inPresetList = true;
-                const auto fileToCheck { juce::File (child.getProperty ("name")) };
+                const auto fileToCheck { juce::File (fileProperties.getName ()) };
                 const auto presetIndex { FileTypeHelpers::getPresetNumberFromName (fileToCheck) - 1 };
 
                 if (presetIndex >= kMaxPresets)

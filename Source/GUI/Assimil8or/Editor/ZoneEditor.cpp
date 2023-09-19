@@ -152,8 +152,8 @@ void ZoneEditor::setupZoneComponents ()
 {
     juce::XmlDocument xmlDoc { BinaryData::Assimil8orToolTips_xml };
     auto xmlElement { xmlDoc.getDocumentElement (false) };
-    if (auto parseError { xmlDoc.getLastParseError () }; parseError != "")
-        juce::Logger::outputDebugString ("XML Parsing Error for Assimil8orToolTips_xml: " + parseError);
+//     if (auto parseError { xmlDoc.getLastParseError () }; parseError != "")
+//         juce::Logger::outputDebugString ("XML Parsing Error for Assimil8orToolTips_xml: " + parseError);
     // NOTE: this is a hard failure, which indicates there is a problem in the file the parameterPresetXml passed in
     jassert (xmlDoc.getLastParseError () == "");
     auto toolTipsVT { juce::ValueTree::fromXml (*xmlElement) };

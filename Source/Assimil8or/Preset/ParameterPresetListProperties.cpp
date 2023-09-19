@@ -24,8 +24,8 @@ void ParameterPresetListProperties::initValueTree ()
         {
             juce::XmlDocument xmlDoc { parameterPresetXml };
             auto xmlElement { xmlDoc.getDocumentElement (false) };
-            if (auto parseError { xmlDoc.getLastParseError () }; parseError != "")
-                juce::Logger::outputDebugString ("XML Parsing Error for ParameterPreset type '" + parameterPresetType + "': " + parseError);
+//             if (auto parseError { xmlDoc.getLastParseError () }; parseError != "")
+//                 juce::Logger::outputDebugString ("XML Parsing Error for ParameterPreset type '" + parameterPresetType + "': " + parseError);
             // NOTE: this is a hard failure, which indicates there is a problem in the file the parameterPresetXml passed in
             jassert (xmlDoc.getLastParseError () == "");
             if (xmlElement == nullptr)

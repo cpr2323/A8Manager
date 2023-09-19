@@ -5,7 +5,7 @@
 class ThreadedLogger : private juce::Thread
 {
 public:
-    ThreadedLogger () : juce::Thread ("ArtiLogger") { startThread (); }
+    ThreadedLogger () : juce::Thread ("ThreadedLogger") { startThread (); }
     ~ThreadedLogger () { flush ();  stopThread (5000); }
 
     void logMsg (juce::String msg)
