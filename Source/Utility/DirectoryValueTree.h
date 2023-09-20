@@ -17,6 +17,12 @@ public:
     juce::ValueTree getDirectoryDataPropertiesVT ();
 
 private:
+    enum class ScanType
+    {
+        checkForUpdate,
+        fullScan
+    };
+
     WatchdogTimer timer;
     DirectoryDataProperties directoryDataProperties;
     juce::AudioFormatManager audioFormatManager;
@@ -24,8 +30,10 @@ private:
     int64_t lastScanInProgressUpdate {};
     std::atomic<bool> scanning { false };
     std::atomic<bool> cancelScan { false };
-
+    std::atomic<bool> restarting { false };
+    std::atomic<ScanType> scanType { ScanType::fullScan };
     void cancel ();
+    bool checkFolderForChanges (juce::ValueTree directoryVT);
     void doIfProgressTimeElapsed (std::function<void ()> functionToDo);
     void doProgressUpdate (juce::String progressString);
     void doScan ();

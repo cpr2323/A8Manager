@@ -30,9 +30,9 @@ namespace ValueTreeHelpers
 
     void forEachChild (juce::ValueTree parent, std::function<bool (juce::ValueTree child)> childCallback)
     {
-        for (auto child : parent)
+        for (auto childIndex { 0 }; childIndex < parent.getNumChildren(); ++childIndex)
         {
-            if (! childCallback (child))
+            if (! childCallback (parent.getChild (childIndex)))
                 break;
         }
     }

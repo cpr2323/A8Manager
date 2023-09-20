@@ -30,7 +30,7 @@ private:
     int numPresets { kMaxPresets };
     juce::File currentFolder;
     juce::File previousFolder;
-    int lastSelectedRow { -1 };
+    int lastSelectedPresetIndex { -1 };
     LambdaThread checkPresetsThread { "CheckPresetsThread", 100 };
 
     void copyPreset (int presetNumber);

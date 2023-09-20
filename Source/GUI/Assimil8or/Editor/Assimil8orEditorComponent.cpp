@@ -21,7 +21,7 @@ Assimil8orEditorComponent::Assimil8orEditorComponent ()
         button.onClick = buttonFunction;
         addAndMakeVisible (button);
     };
-    setupButton (saveButton, "Save", [this] () { savePreset ();  });
+    setupButton (saveButton, "SAVE", [this] () { savePreset ();  });
     saveButton.setEnabled (false);
 #if ENABLE_IMPORT_EXPORT
     setupButton (importButton, "Import", [this] () { importPreset ();  });

@@ -37,6 +37,8 @@ void DirectoryValueTree::init (juce::ValueTree rootPropertiesVT)
 
     directoryDataProperties.onScanDepthChange = [this] (int scanDepth) { setScanDepth (scanDepth); };
     directoryDataProperties.onStartScanChange = [this] () { startScan (); };
+
+    startTimer (250);
 }
 
 juce::ValueTree DirectoryValueTree::getDirectoryDataPropertiesVT ()
@@ -88,6 +90,7 @@ void DirectoryValueTree::startScan ()
     else
     {
         LogDirectoryValueTree (true, "DirectoryValueTree::startScan - still scanning - cancelling and starting timer");
+        restarting = true;
         cancel ();
         startTimer (1);
     }
@@ -97,9 +100,15 @@ void DirectoryValueTree::startScan ()
 void DirectoryValueTree::timerCallback ()
 {
     LogDirectoryValueTree (true, "DirectoryValueTree::timerCallback - enter");
-    stopTimer ();
-    startScan ();
+    if (restarting)
+    {
+        startScan ();
+        restarting = false;
+    }
+    else if (! isScanning() && ! checkFolderForChanges (directoryDataProperties.getRootFolderVT ()))
+        startScan ();
     LogDirectoryValueTree (true, "DirectoryValueTree::timerCallback - exit");
+    startTimer (250);
 }
 
 void DirectoryValueTree::sendStatusUpdate (DirectoryDataProperties::ScanStatus scanStatus)
@@ -114,33 +123,36 @@ void DirectoryValueTree::sendStatusUpdate (DirectoryDataProperties::ScanStatus s
 juce::ValueTree DirectoryValueTree::makeFileEntry (juce::File file, DirectoryDataProperties::TypeIndex fileType)
 {
     auto fileVT { FileProperties::create (file.getFullPathName (), fileType) };
-    switch (fileType)
+    if (scanType == ScanType::fullScan)
     {
-        case DirectoryDataProperties::TypeIndex::audioFile:
+        switch (fileType)
         {
-            if (std::unique_ptr<juce::AudioFormatReader> reader (audioFormatManager.createReaderFor (file)); reader == nullptr)
+            case DirectoryDataProperties::TypeIndex::audioFile:
             {
-                fileVT.setProperty ("error", "invalid format", nullptr);
+                if (std::unique_ptr<juce::AudioFormatReader> reader (audioFormatManager.createReaderFor (file)); reader == nullptr)
+                {
+                    fileVT.setProperty ("error", "invalid format", nullptr);
+                }
+                else
+                {
+                    fileVT.setProperty ("dataType", (reader->usesFloatingPointData == true ? "floating point" : "integer"), nullptr);
+                    fileVT.setProperty ("bitDepth", static_cast<int>(reader->bitsPerSample), nullptr);
+                    fileVT.setProperty ("numChannels", static_cast<int>(reader->numChannels), nullptr);
+                    fileVT.setProperty ("sampleRate", static_cast<int>(reader->sampleRate), nullptr);
+                    fileVT.setProperty ("lengthSamples", static_cast<int64_t>(reader->lengthInSamples), nullptr);
+                }
             }
-            else
+            break;
+            case DirectoryDataProperties::TypeIndex::folder:
+            case DirectoryDataProperties::TypeIndex::systemFile:
+            case DirectoryDataProperties::TypeIndex::presetFile:
+            case DirectoryDataProperties::TypeIndex::unknownFile:
             {
-                fileVT.setProperty ("dataType", (reader->usesFloatingPointData == true ? "floating point" : "integer"), nullptr);
-                fileVT.setProperty ("bitDepth", static_cast<int>(reader->bitsPerSample), nullptr);
-                fileVT.setProperty ("numChannels", static_cast<int>(reader->numChannels), nullptr);
-                fileVT.setProperty ("sampleRate", static_cast<int>(reader->sampleRate), nullptr);
-                fileVT.setProperty ("lengthSamples", static_cast<int64_t>(reader->lengthInSamples), nullptr);
+                // TODO - implement specific properties where it makes sense. display entire contents of system files? display some stats about the preset files?
             }
+            break;
+            default: jassertfalse; break;
         }
-        break;
-        case DirectoryDataProperties::TypeIndex::folder:
-        case DirectoryDataProperties::TypeIndex::systemFile:
-        case DirectoryDataProperties::TypeIndex::presetFile:
-        case DirectoryDataProperties::TypeIndex::unknownFile:
-        {
-            // TODO - implement specific properties where it makes sense. display entire contents of system files? display some stats about the preset files?
-        }
-        break;
-        default: jassertfalse; break;
     }
     return fileVT;
 }
@@ -156,6 +168,7 @@ void DirectoryValueTree::run ()
         LogDirectoryValueTree (true, "DirectoryValueTree::run");
 
         doScan ();
+        checkFolderForChanges (directoryDataProperties.getRootFolderVT ());
         // reset the output if scan was canceled
         if (shouldCancelOperation ())
         {
@@ -186,6 +199,7 @@ void DirectoryValueTree::doScan ()
     // clear old contents
     timer.start (100000);
     directoryDataProperties.getRootFolderVT ().removeAllChildren (nullptr);
+    scanType = ScanType::fullScan;
     getContentsOfFolder (directoryDataProperties.getRootFolderVT (), 0);
     juce::Logger::outputDebugString ("DirectoryValueTree::doScan ()- elapsed time: " + juce::String (timer.getElapsedTime ()));
 }
@@ -198,6 +212,62 @@ void DirectoryValueTree::doProgressUpdate (juce::String progressString)
     });
 }
 
+bool DirectoryValueTree::checkFolderForChanges (juce::ValueTree rootFolderVT)
+{
+    FolderProperties rootFolderProperties (rootFolderVT, FolderProperties::WrapperType::owner, FolderProperties::EnableCallbacks::no);
+    FolderProperties newCopyOfFolderProperties ({}, FolderProperties::WrapperType::owner, FolderProperties::EnableCallbacks::no);
+    newCopyOfFolderProperties.setName (rootFolderProperties.getName (), false);
+    scanType = ScanType::checkForUpdate;
+    getContentsOfFolder (newCopyOfFolderProperties.getValueTree (), 0);
+    if (rootFolderProperties.getValueTree ().getNumChildren () != newCopyOfFolderProperties.getValueTree ().getNumChildren ())
+    {
+        juce::Logger::outputDebugString ("DirectoryValueTree::checkFolderForChanges - number of children differ - do rescan");
+        return false;
+    }
+    for (auto childIndex { 0 }; childIndex < rootFolderProperties.getValueTree ().getNumChildren (); ++childIndex)
+    {
+        auto rootChildVT { rootFolderProperties.getValueTree ().getChild (childIndex) };
+        auto newChildVT { newCopyOfFolderProperties.getValueTree ().getChild (childIndex) };
+        if (FolderProperties::isFolderVT (rootChildVT))
+        {
+            FolderProperties curRootFolderChildFolder (rootChildVT, FolderProperties::WrapperType::owner, FolderProperties::EnableCallbacks::no);
+            if (! FolderProperties::isFolderVT (newChildVT))
+            {
+                juce::Logger::outputDebugString ("DirectoryValueTree::checkFolderForChanges - item #" + juce::String (childIndex) + " differ in type - do rescan");
+                return false;
+            }
+            else
+            {
+                FolderProperties curNewFolderChildFolder (newChildVT, FolderProperties::WrapperType::owner, FolderProperties::EnableCallbacks::no);
+                if (curRootFolderChildFolder.getName () != curNewFolderChildFolder.getName())
+                {
+                    juce::Logger::outputDebugString ("DirectoryValueTree::checkFolderForChanges - item #" + juce::String (childIndex) + " names differ - do rescan");
+                    return false;
+                }
+            }
+        }
+        else
+        {
+            FileProperties curRootFolderChildFile (rootChildVT, FileProperties::WrapperType::owner, FileProperties::EnableCallbacks::no);
+            if (! FileProperties::isFileVT (newChildVT))
+            {
+                juce::Logger::outputDebugString ("DirectoryValueTree::checkFolderForChanges - item #" + juce::String (childIndex) + " differ in type - do rescan");
+                return false;
+            }
+            else
+            {
+                FileProperties curNewFolderChildFile (newChildVT, FileProperties::WrapperType::owner, FileProperties::EnableCallbacks::no);
+                if (curRootFolderChildFile.getName () != curNewFolderChildFile.getName ())
+                {
+                    juce::Logger::outputDebugString ("DirectoryValueTree::checkFolderForChanges - item #" + juce::String (childIndex) + " names differ - do rescan");
+                    return false;
+                }
+            }
+        }
+    }
+    return true;
+}
+
 void DirectoryValueTree::getContentsOfFolder (juce::ValueTree folderVT, int curDepth)
 {
     FolderProperties folderProperties (folderVT, FolderProperties::WrapperType::client, FolderProperties::EnableCallbacks::no);
@@ -208,15 +278,18 @@ void DirectoryValueTree::getContentsOfFolder (juce::ValueTree folderVT, int curD
             if (shouldCancelOperation ())
                 break;
 
-            doIfProgressTimeElapsed ([this, fileName = entry.getFile ().getFileName ()] () { doProgressUpdate ("Reading File System: " + getPathFromCurrentRoot (fileName)); });
+            if (scanType == ScanType::fullScan)
+                doIfProgressTimeElapsed ([this, fileName = entry.getFile ().getFileName ()] () { doProgressUpdate ("Reading File System: " + getPathFromCurrentRoot (fileName)); });
             if (const auto& curFile { entry.getFile () }; curFile.isDirectory ())
                 folderVT.addChild (FolderProperties::create (curFile.getFullPathName ()), -1, nullptr);
             else
                 folderVT.addChild (makeFileEntry (curFile, FileTypeHelpers::getFileType (curFile)), -1, nullptr);
         }
         sortContentsOfFolder (folderVT);
-        if (curDepth == 0)
+        if (scanType == ScanType::fullScan && curDepth == 0)
             directoryDataProperties.triggerRootScanComplete (false);
+
+        // scan the subfolders
         ValueTreeHelpers::forEachChildOfType (folderVT, FolderProperties::FolderTypeId, [this, curDepth] (juce::ValueTree childFolderVT)
         {
             getContentsOfFolder (childFolderVT, curDepth + 1);
@@ -278,7 +351,8 @@ void DirectoryValueTree::sortContentsOfFolder (juce::ValueTree rootFolderVT)
     for (auto folderIndex { 0 }; folderIndex < numFolderEntries && ! shouldCancelOperation (); ++folderIndex)
     {
         auto directoryEntryVT { rootFolderVT.getChild (folderIndex) };
-        doIfProgressTimeElapsed ([this, fileName = directoryEntryVT.getProperty ("name").toString ()] () { doProgressUpdate ("Sorting File System: " + getPathFromCurrentRoot (fileName)); });
+        if (scanType == ScanType::fullScan)
+            doIfProgressTimeElapsed ([this, fileName = directoryEntryVT.getProperty ("name").toString ()] () { doProgressUpdate ("Sorting File System: " + getPathFromCurrentRoot (fileName)); });
         if (FolderProperties::isFolderVT (directoryEntryVT))
         {
             insertSorted (folderIndex, DirectoryDataProperties::TypeIndex::folder);
