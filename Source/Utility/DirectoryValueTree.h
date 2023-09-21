@@ -28,15 +28,17 @@ private:
     juce::AudioFormatManager audioFormatManager;
     int scanDepth { -1 };
     int64_t lastScanInProgressUpdate {};
+    std::atomic<ScanType> scanType { ScanType::fullScan };
     std::atomic<bool> scanning { false };
     std::atomic<bool> cancelScan { false };
     std::atomic<bool> restarting { false };
-    std::atomic<ScanType> scanType { ScanType::fullScan };
+    std::atomic<bool> doChangeCheck { false };
+
     void cancel ();
-    bool checkFolderForChanges (juce::ValueTree directoryVT);
+    bool hasFolderChanged (juce::ValueTree directoryVT);
     void doIfProgressTimeElapsed (std::function<void ()> functionToDo);
     void doProgressUpdate (juce::String progressString);
-    void doScan ();
+    void scanDirectory ();
     void getContentsOfFolder (juce::ValueTree folderVT, int curDepth);
     juce::String getPathFromCurrentRoot (juce::String fullPath);
     bool isScanning ();
