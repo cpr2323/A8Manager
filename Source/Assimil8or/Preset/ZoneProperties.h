@@ -6,47 +6,52 @@
 class ZoneProperties : public ValueTreeWrapper<ZoneProperties>
 {
 public:
-    ZoneProperties () noexcept : ValueTreeWrapper<ZoneProperties> (ZoneTypeId) {}
+    ZoneProperties () noexcept : ValueTreeWrapper<ZoneProperties> (ZoneTypeId)
+    {
+    }
     ZoneProperties (juce::ValueTree vt, WrapperType wrapperType, EnableCallbacks shouldEnableCallbacks) noexcept
-        : ValueTreeWrapper<ZoneProperties> (ZoneTypeId, vt, wrapperType, shouldEnableCallbacks) {}
+        : ValueTreeWrapper<ZoneProperties> (ZoneTypeId, vt, wrapperType, shouldEnableCallbacks)
+    {
+    }
 
-    void setIndex (int index, bool includeSelfCallback);
+    void setId (int id, bool includeSelfCallback);
     void setLevelOffset (double levelOffset, bool includeSelfCallback);
     void setLoopLength (double loopLength, bool includeSelfCallback);
-    void setLoopStart (int loopStart, bool includeSelfCallback);
+    void setLoopStart (int64_t loopStart, bool includeSelfCallback);
     void setMinVoltage (double minVoltage, bool includeSelfCallback);
     void setPitchOffset (double pitchOffset, bool includeSelfCallback);
     void setSample (juce::String sampleFileName, bool includeSelfCallback);
-    void setSampleStart (int sampleStart, bool includeSelfCallback);
-    void setSampleEnd (int sampleEnd, bool includeSelfCallback);
+    void setSampleStart (int64_t sampleStart, bool includeSelfCallback);
+    void setSampleEnd (int64_t sampleEnd, bool includeSelfCallback);
     void setSide (int side, bool includeSelfCallback);
 
-    int getIndex ();
+    int getId ();
     double getLevelOffset ();
-    double getLoopLength ();
-    int getLoopStart ();
+    std::optional<double> getLoopLength ();
+    std::optional<int64_t> getLoopStart ();
     double getMinVoltage ();
     double getPitchOffset ();
     juce::String getSample ();
-    int getSampleStart ();
-    int getSampleEnd ();
+    std::optional<int64_t> getSampleStart ();
+    std::optional<int64_t> getSampleEnd ();
     int getSide ();
 
-    std::function<void (int index)> onIndexChange;
+    std::function<void (int id)> onIdChange;
     std::function<void (double levelOffset)> onLevelOffsetChange;
-    std::function<void (double loopLength)> onLoopLengthChange;
-    std::function<void (int loopStart)> onLoopStartChange;
+    std::function<void (std::optional<double> loopLength)> onLoopLengthChange;
+    std::function<void (std::optional<int64_t> loopStart)> onLoopStartChange;
     std::function<void (double minVoltage)> onMinVoltageChange;
     std::function<void (double pitchOffset)> onPitchOffsetChange;
     std::function<void (juce::String sampleFileName)> onSampleChange;
-    std::function<void (int sampleStart)> onSampleStartChange;
-    std::function<void (int sampleEnd)> onSampleEndChange;
+    std::function<void (std::optional<int64_t> sampleStart)> onSampleStartChange;
+    std::function<void (std::optional<int64_t> sampleEnd)> onSampleEndChange;
     std::function<void (int side)> onSideChange;
 
-    static juce::ValueTree create (int index);
+    void copyFrom (juce::ValueTree sourceVT);
+    static juce::ValueTree create (int id);
 
     static inline const juce::Identifier ZoneTypeId { "Zone" };
-    static inline const juce::Identifier IndexPropertyId       { "_index" };
+    static inline const juce::Identifier IdPropertyId          { "_id" };
     static inline const juce::Identifier LevelOffsetPropertyId { "levelOffset" };
     static inline const juce::Identifier LoopLengthPropertyId  { "loopLength" };
     static inline const juce::Identifier LoopStartPropertyId   { "loopStart" };
@@ -57,9 +62,10 @@ public:
     static inline const juce::Identifier SampleEndPropertyId   { "sampleEnd" };
     static inline const juce::Identifier SidePropertyId        { "side" };
 
-    void initValueTree ();
+    void initValueTree () {}
     void processValueTree () {}
 
 private:
+
     void valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property) override;
 };

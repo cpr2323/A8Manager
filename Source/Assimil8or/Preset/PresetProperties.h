@@ -2,33 +2,21 @@
 
 #include <JuceHeader.h>
 #include "ChannelProperties.h"
+#include "ZoneProperties.h"
 #include "../../Utility/ValueTreeWrapper.h"
-
-// TODO - under construction - idea exploration
-///////////////////////////////////////////////
-//
-template <typename T>
-struct ParameterSpec
-{
-    T min;
-    T max;
-    T dflt;
-};
-
-using ParameterSpecInt = ParameterSpec<int>;
-using ParameterSpecFloat = ParameterSpec<float>;
-using ParameterSpecString = ParameterSpec<juce::String>;
-//
-///////////////////////////////////////////////
 
 class PresetProperties : public ValueTreeWrapper<PresetProperties>
 {
 public:
-    PresetProperties () noexcept : ValueTreeWrapper<PresetProperties> (PresetTypeId) {}
+    PresetProperties () noexcept : ValueTreeWrapper<PresetProperties> (PresetTypeId)
+    {
+    }
     PresetProperties (juce::ValueTree vt, WrapperType wrapperType, EnableCallbacks shouldEnableCallbacks) noexcept
-        : ValueTreeWrapper<PresetProperties> (PresetTypeId, vt, wrapperType, shouldEnableCallbacks) {}
+        : ValueTreeWrapper<PresetProperties> (PresetTypeId, vt, wrapperType, shouldEnableCallbacks)
+    {
+    }
 
-    void setIndex (int index, bool includeSelfCallback);
+    void setId (int id, bool includeSelfCallback);
     void setData2AsCV (juce::String data2AsCv, bool includeSelfCallback);
     void setName (juce::String name, bool includeSelfCallback);
     void setXfadeACV (juce::String cvInput, bool includeSelfCallback);
@@ -40,7 +28,7 @@ public:
     void setXfadeDCV (juce::String cvInput, bool includeSelfCallback);
     void setXfadeDWidth (double width, bool includeSelfCallback);
 
-    int getIndex ();
+    int getId ();
     juce::String getData2AsCV ();
     juce::String getName ();
     juce::String getXfadeACV ();
@@ -52,7 +40,7 @@ public:
     juce::String getXfadeDCV ();
     double getXfadeDWidth ();
 
-    std::function<void (int index)> onIndexChange;
+    std::function<void (int id)> onIdChange;
     std::function<void (juce::String data2AsCv)> onData2AsCVChange;
     std::function<void (juce::String name)> onNameChange;
     std::function<void (juce::String cvInput)> onXfadeACVChange;
@@ -64,13 +52,11 @@ public:
     std::function<void (juce::String cvInput)> onXfadeDCVChange;
     std::function<void (double width)> onXfadeDWidthChange;
 
-    void clear ();
-    juce::ValueTree addChannel (int index);
     void forEachChannel (std::function<bool (juce::ValueTree channelVT)> channelVTCallback);
-    int getNumChannels ();
+    juce::ValueTree getChannelVT (int channelIndex);
 
     static inline const juce::Identifier PresetTypeId { "Preset" };
-    static inline const juce::Identifier IndexPropertyId       { "_index" };
+    static inline const juce::Identifier IdPropertyId          { "_id" };
     static inline const juce::Identifier Data2asCVPropertyId   { "data2asCV" };
     static inline const juce::Identifier NamePropertyId        { "name" };
     static inline const juce::Identifier XfadeACVPropertyId    { "xfadeACV" };
@@ -85,6 +71,10 @@ public:
     void initValueTree ();
     void processValueTree () {}
 
+    static void copyTreeProperties (juce::ValueTree source, juce::ValueTree destination);
+
 private:
+    int getNumChannels ();
+
     void valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property) override;
 };

@@ -1,13 +1,21 @@
 #include <JuceHeader.h>
 #include "AppProperties.h"
+#include "Assimil8or/Assimil8orValidator.h"
+#include "Assimil8or/PresetManagerProperties.h"
+#include "Assimil8or/Preset/ParameterPresetsSingleton.h"
+#include "Assimil8or/Preset/PresetProperties.h"
 #include "GUI/MainComponent.h"
 #include "Utility/DebugLog.h"
+#include "Utility/DirectoryValueTree.h"
 #include "Utility/PersistentRootProperties.h"
 #include "Utility/RootProperties.h"
 #include "Utility/RuntimeRootProperties.h"
 #include "Utility/ValueTreeFile.h"
-#include "Assimil8or/Assimil8orValidator.h"
-#include "Assimil8or/Preset/PresetProperties.h"
+#include "Utility/ValueTreeMonitor.h"
+
+// this requires the third party Melatonin Inspector be installed and added to the project
+// https://github.com/sudara/melatonin_inspector
+#define ENABLE_MELATONIN_INSPECTOR 0
 
 const juce::String PropertiesFileExtension { ".properties" };
 
@@ -22,149 +30,135 @@ class A8ManagerApplication : public juce::JUCEApplication, public juce::Timer
 {
 public:
     A8ManagerApplication () {}
-
     const juce::String getApplicationName () override { return ProjectInfo::projectName; }
     const juce::String getApplicationVersion () override { return ProjectInfo::versionString; }
     bool moreThanOneInstanceAllowed () override { return true; }
 
-    class ListenerLogger : public juce::ValueTree::Listener
-    {
-    public:
-        void assign (juce::ValueTree& vtToListenTo)
-        {
-            vtBeingListened = vtToListenTo;
-        }
-    private:
-        juce::ValueTree vtBeingListened;
-
-        void valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property) override
-        {
-            juce::Logger::outputDebugString ("valueTreePropertyChanged(" + vtBeingListened.getType ().toString () + ")");
-            if (vt == vtBeingListened)
-            {
-                if (vt.hasProperty (property))
-                {
-                    // change in value
-                    juce::Logger::outputDebugString ("  (property value changed) - property: " +
-                                                     property.toString () + ", value: " + vt.getProperty (property).toString ());
-                }
-                else
-                {
-                    // property removed
-                    juce::Logger::outputDebugString ("  (property removed) - property: " + property.toString ());
-                }
-            }
-            else
-            {
-                if (vt.hasProperty (property))
-                {
-                    // change in value
-                    juce::Logger::outputDebugString ("  (value changed) - vt: " + vt.getType ().toString () +
-                                                     ", property: " + property.toString () + ", value: " + vt.getProperty (property).toString ());
-                }
-                else
-                {
-                    // property removed
-                    juce::Logger::outputDebugString ("  (property removed) - vt: " + vt.getType ().toString () + ", property: " + property.toString ());
-                }
-            }
-        };
-        void valueTreeChildAdded (juce::ValueTree& vt, juce::ValueTree& child) override
-        {
-            juce::Logger::outputDebugString ("valueTreeChildAdded(" + vtBeingListened.getType ().toString () + ")");
-
-            if (vt == vtBeingListened)
-                juce::Logger::outputDebugString ("  child: " + child.getType ().toString ());
-            else
-                juce::Logger::outputDebugString ("  vt: " + vt.getType ().toString () + ", child: " + child.getType ().toString ());
-
-        }
-        void valueTreeChildRemoved (juce::ValueTree& vt, juce::ValueTree& child , int index) override
-        {
-            juce::Logger::outputDebugString ("valueTreeChildRemoved(" + vtBeingListened.getType ().toString () + ")");
-            if (vt == vtBeingListened)
-                juce::Logger::outputDebugString ("  child: " + child.getType ().toString () + ", index: " + juce::String (index));
-            else
-                juce::Logger::outputDebugString ("  vt: " + vt.getType ().toString () +
-                                                 ", child: " + child.getType ().toString () + ", index: " + juce::String (index));
-        }
-        void valueTreeChildOrderChanged (juce::ValueTree& vt, int oldIndex, int newIndex) override
-        {
-            juce::Logger::outputDebugString ("valueTreeChildOrderChanged(" + vtBeingListened.getType ().toString () + ")");
-            if (vt == vtBeingListened)
-                juce::Logger::outputDebugString ("  old index: " + juce::String (oldIndex) + ", new index: " + juce::String (newIndex));
-            else
-                juce::Logger::outputDebugString ("  vt: " + vt.getType ().toString () +
-                                                 ", old index: " + juce::String (oldIndex) + ", new index: " + juce::String (newIndex));
-        }
-        void valueTreeParentChanged (juce::ValueTree& vt) override
-        {
-            juce::Logger::outputDebugString ("valueTreeParentChanged(" + vtBeingListened.getType ().toString () + ")");
-            if (vt == vtBeingListened)
-            {
-                if (vt.getParent ().isValid ())
-                    juce::Logger::outputDebugString ("  new parent: " + vt.getParent ().getType ().toString ());
-                else
-                    juce::Logger::outputDebugString ("  (removed)");
-            }
-            else
-            {
-                if (vt.getParent ().isValid ())
-                    juce::Logger::outputDebugString ("  vt: " + vt.getType ().toString () +
-                                                     ", new parent: " + vt.getParent ().getType ().toString ());
-                else
-                    juce::Logger::outputDebugString ("  (removed) vt: " + vt.getType ().toString ());
-            }
-        }
-        void valueTreeRedirected (juce::ValueTree& vt) override
-        {
-            juce::Logger::outputDebugString ("valueTreeRedirected(" + vtBeingListened.getType ().toString () + "): " + vt.getType ().toString ());
-            vtBeingListened = vt;
-            //if (vt == vtBeingListened)
-        }
-    };
-
     void valueTreeTest ()
     {
         juce::ValueTree root { "Root" };
-        juce::ValueTree child1 { "RootChild1" };
-        juce::ValueTree child2 { "RootChild2" };
-        juce::ValueTree child3 { "RootChild3" };
-        juce::ValueTree child4 { "RootChild4" };
-        ListenerLogger rootListenerLogger;
+        juce::ValueTree rootChild1 { "RootChild1" };
+        juce::ValueTree rootChild2 { "RootChild2" };
+        juce::ValueTree child1Child1 { "Child1Child1" };
+        juce::ValueTree child1Child2 { "Child1Child2" };
+        juce::ValueTree child1Child1Child1 { "Child1Child1Child1" };
+        juce::ValueTree child1Child1Child1Child1 { "Child1Child1Child1Child1" };
+        ValueTreeMonitor rootListenerLogger;
         rootListenerLogger.assign (root);
-        ListenerLogger child1ListenerLogger;
-        child1ListenerLogger.assign (child1);
-        ListenerLogger child2ListenerLogger;
-        child2ListenerLogger.assign (child2);
-        ListenerLogger child3ListenerLogger;
-        child3ListenerLogger.assign (child3);
-        root.addListener (&rootListenerLogger);
-        child1.addListener (&child1ListenerLogger);
-        child2.addListener (&child2ListenerLogger);
-        child3.addListener (&child3ListenerLogger);
 
-        auto basicPropertyTest = [] (juce::ValueTree& vt)
-        {
-            vt.setProperty ("propOne", "1", nullptr);
-            vt.setProperty ("propOne", "2", nullptr);
-            vt.removeProperty ("propOne", nullptr);
-            vt.setProperty ("propTwo", "3", nullptr);
-            vt.setProperty ("propThree", "4", nullptr);
-        };
-        basicPropertyTest (root);
-
-        root.addChild (child1, -1, nullptr);
-        basicPropertyTest (child1);
-        child1.addChild (child2, -1, nullptr);
-        child3.copyPropertiesAndChildrenFrom (child1, nullptr);
-        child2 = child4;
-        basicPropertyTest (child4);
-        root.removeChild (child1, nullptr);
+        root.addChild (rootChild1, -1, nullptr);
+        root.addChild (rootChild2, -1, nullptr);
+        rootChild1.addChild (child1Child1, -1, nullptr);
+        rootChild1.addChild (child1Child2, -1, nullptr);
+        child1Child1.addChild (child1Child1Child1, -1, nullptr);
+        child1Child1Child1.addChild (child1Child1Child1Child1, -1, nullptr);
     }
+
+#if 0
+    // TEST CODE
+    // encoded flag - zzzz zxxx | xxxx xxxx | xxxx xxxx | xxxy yyyy
+    //                num index bits
+    //                      whole value
+    //                                                       up to 5 bits of fractional index
+    // uint32_t rawValue
+    // double finalValue
+    // if bits 28-32 are all 0
+    //     finalValue = rawValue
+    // else
+    //  numberOfIndexBits = rawValue >> 27
+    //  mask = (1L << numIndexBits) - 1
+    //  wholeValue = rawValue >> numIndexBits
+    //  fractionalResolution = 1.0 / (1L << numberOfIndexBits)
+    //  fractionalIndex = rawValue & mask
+    //  fractionalValue = fractionalResolution * fractionalIndex
+    //  finalValue = static_cast<double> (wholeValue) + fractionalValue
+    // max 8 digit number - 0101 1111 0101 1110 0000 1111 1111
+    // 2048 = 1000 0000 0000, 11/1
+    // 1024 = 0100 0000 0000, 10/2
+    //  512 = 0010 0000 0000,  9/3
+    //  256 = 0001 0000 0000,  8/4
+    //  128 = 0000 1000 0000,  7/5
+    uint32_t encodeLoopLengthValue (double rawValue)
+    {
+        if (rawValue < 4.0)
+            rawValue = 4.0;
+        else if (rawValue > 99999999.0)
+            rawValue = 99999999.0;
+
+        if (rawValue < 2048)
+        {
+            // encode
+            const auto wholeValue { static_cast<uint32_t> (rawValue) };
+            const auto fractionalValue { rawValue - static_cast<double> (wholeValue) };
+            const auto numIndexBits = [wholeValue] ()
+            {
+                if (wholeValue >= 1024) // 2047 - 1024
+                    return 1;
+                else if (wholeValue >= 512) // 1023 - 512
+                    return 2;
+                else if (wholeValue >= 256) // 511 - 256
+                    return 3;
+                else if (wholeValue >= 128)
+                    return 4;
+                else if (wholeValue >= 4)
+                    return 5;
+                else
+                {
+                    jassertfalse;
+                    return 0;
+                }
+            }();
+            const auto mask { (1L << numIndexBits) - 1};
+            const auto fractionalResolution { 1.0 / (1L << numIndexBits) };
+            const auto numIndexBitsValue { numIndexBits << 27 };
+            const auto shiftedWholeValue { wholeValue << numIndexBits };
+            const auto fractionalIndex { static_cast<int> (fractionalValue / fractionalResolution) };
+            return numIndexBitsValue + shiftedWholeValue + fractionalIndex;
+        }
+        else
+        {
+            return static_cast<uint32_t> (rawValue);
+        }
+    }
+
+    double decodeLoopLengthValue (uint32_t rawValue)
+    {
+        auto newVal { rawValue & 0xF8000000 };
+        if ((rawValue & 0xF8000000) == 0)
+            return rawValue;
+
+        const auto numIndexBits { rawValue >> 27 };
+        const auto mask { (1L << numIndexBits) - 1 };
+        const auto wholeValue { (rawValue & 0x07FFFFFF) >> numIndexBits};
+        const auto fractionalResolution { 1.0 / (1L << numIndexBits) };
+        const auto fractionalIndex { rawValue & mask };
+        const auto fractionalValue { fractionalResolution * fractionalIndex};
+        const auto finalValue { std::round ((static_cast<double> (wholeValue) + fractionalValue) * 1000.0) / 1000.0 }; // add the whole and fractional parts and round to 3 decimal places
+        return finalValue;
+    }
+#endif // 0
 
     void initialise ([[maybe_unused]] const juce::String& commandLine) override
     {
+#if 0
+        auto testAValue = [this] (double valueToTest)
+        {
+            const auto encodedValue { encodeLoopLengthValue (valueToTest) };
+            const auto decodedValue { decodeLoopLengthValue (encodedValue) };
+            jassert (valueToTest == decodedValue);
+        };
+        testAValue (2047.0);
+        testAValue (2047.5);
+        testAValue (1024.0);
+        testAValue (1023.0);
+        testAValue (1023.25);
+        testAValue (500.125);
+        testAValue (400.875);
+        testAValue (212.438);
+        testAValue (93.188);
+        testAValue (86.813);
+
+#endif // 0
         //valueTreeTest ();
         initAppDirectory ();
         initLogger ();
@@ -205,8 +199,8 @@ public:
     {
         // reset preferred quit state
         runtimeRootProperties.setPreferredQuitState (RuntimeRootProperties::QuitState::now, false);
-        // listeners for 'onSystemRequestedQuit' can do runtimeRootPropertiesVT.setPreferredQuitState (RuntimeRootProperties::QuitState::idle);
-        // if they need to do something, which also makes them responsible for calling runtimeRootPropertiesVT.setQuitState (RuntimeRootProperties::QuitState::now); when they are done...
+        // listeners for 'onSystemRequestedQuit' can do runtimeRootProperties.setPreferredQuitState (RuntimeRootProperties::QuitState::idle);
+        // if they need to do something, which also makes them responsible for calling runtimeRootProperties.setQuitState (RuntimeRootProperties::QuitState::now); when they are done...
         runtimeRootProperties.triggerSystemRequestedQuit (false);
         localQuitState.store (runtimeRootProperties.getPreferredQuitState ());
     }
@@ -219,9 +213,36 @@ public:
 
     void initAssimil8or ()
     {
-        // hack the preset data on to the runtime root until we get a proper valuetreewrapper for the preset
-        runtimeRootProperties.getValueTree ().addChild (presetProperties.getValueTree (), -1, nullptr);
-        assimil8orValidator.init (runtimeRootProperties.getValueTree ());
+        // debug tool for watching changes on the Preset Value Tree
+        //presetPropertiesMonitor.assign (presetProperties.getValueTreeRef ());
+
+        PresetManagerProperties presetManagerProperties (runtimeRootProperties.getValueTree (), PresetManagerProperties::WrapperType::owner, PresetManagerProperties::EnableCallbacks::no);
+        // initialize the Preset with defaults
+        PresetProperties::copyTreeProperties (ParameterPresetsSingleton::getInstance ()->getParameterPresetListProperties ().getParameterPreset (ParameterPresetListProperties::DefaultParameterPresetType),
+                                              presetProperties.getValueTree ());
+        presetManagerProperties.addPreset ("edit", presetProperties.getValueTree ());
+        presetManagerProperties.addPreset ("unedited", presetProperties.getValueTree ().createCopy ());
+        // add the Preset Manager to the Runtime Root
+        runtimeRootProperties.getValueTree ().addChild (presetManagerProperties.getValueTree (), -1, nullptr);
+
+        // setup the directory scanner
+        directoryValueTree.init (rootProperties.getValueTree ());
+        directoryDataProperties.wrap (directoryValueTree.getDirectoryDataPropertiesVT (), DirectoryDataProperties::WrapperType::client, DirectoryDataProperties::EnableCallbacks::no);
+        //directoryDataMonitor.assign (directoryDataProperties.getValueTreeRef ());
+
+        // when the folder being viewed changes, signal the directory scanner to rescan
+        appProperties.onMostRecentFolderChange = [this] (juce::String folderName)
+        {
+            directoryDataProperties.setRootFolder (folderName, false);
+            directoryDataProperties.triggerStartScan (false);
+        };
+
+        // start the initial directory scan, based on the last accessed folder stored in the app properties
+        directoryDataProperties.setRootFolder (appProperties.getMostRecentFolder (), false);
+        directoryDataProperties.triggerStartScan (false);
+
+        // initialize the Validator
+        assimil8orValidator.init (rootProperties.getValueTree ());
     }
 
     void initUi ()
@@ -234,11 +255,15 @@ public:
         persistentRootProperties.wrap (rootProperties.getValueTree (), PersistentRootProperties::WrapperType::owner, PersistentRootProperties::EnableCallbacks::no);
         // connect the Properties file and the AppProperties ValueTree with the propertiesFile (ValueTreeFile with auto-save)
         persitentPropertiesFile.init (persistentRootProperties.getValueTree (), appDirectory.getChildFile ("app" + PropertiesFileExtension), true);
-        appProperties.wrap (persistentRootProperties.getValueTree (), AppProperties::WrapperType::owner, AppProperties::EnableCallbacks::no);
-
-        runtimeRootProperties.wrap (rootProperties.getValueTree (), RuntimeRootProperties::WrapperType::owner, RuntimeRootProperties::EnableCallbacks::no);
+        appProperties.wrap (persistentRootProperties.getValueTree (), AppProperties::WrapperType::owner, AppProperties::EnableCallbacks::yes);
+        appProperties.setMaxMruEntries (1);
+        runtimeRootProperties.wrap (rootProperties.getValueTree (), RuntimeRootProperties::WrapperType::owner, RuntimeRootProperties::EnableCallbacks::yes);
         runtimeRootProperties.setAppVersion (getApplicationVersion (), false);
         runtimeRootProperties.setAppDataPath (appDirectory.getFullPathName (), false);
+        runtimeRootProperties.onQuitStateChanged = [this] (RuntimeRootProperties::QuitState quitState) { localQuitState.store (quitState); };
+
+        if (appProperties.getMostRecentFolder ().isEmpty ())
+            appProperties.setMostRecentFolder (appDirectory.getFullPathName ());
     }
 
     void initAppDirectory ()
@@ -320,13 +345,14 @@ public:
            #endif
 
             setVisible (true);
+
+#if ENABLE_MELATONIN_INSPECTOR
+            inspector.setVisible (true);
+#endif
         }
 
         void closeButtonPressed () override
         {
-            // This is called when the user tries to close this window. Here, we'll just
-            // ask the app to quit when this happens, but you can change this to do
-            // whatever you need.
             JUCEApplication::getInstance ()->systemRequestedQuit ();
         }
 
@@ -338,6 +364,9 @@ public:
         */
 
     private:
+#if ENABLE_MELATONIN_INSPECTOR
+        melatonin::Inspector inspector { *this, false };
+#endif
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainWindow)
     };
 
@@ -350,9 +379,14 @@ private:
     RuntimeRootProperties runtimeRootProperties;
     Assimil8orValidator assimil8orValidator;
     PresetProperties presetProperties;
+    DirectoryValueTree directoryValueTree;
+    DirectoryDataProperties directoryDataProperties;
     std::unique_ptr<juce::FileLogger> fileLogger;
     std::atomic<RuntimeRootProperties::QuitState> localQuitState { RuntimeRootProperties::QuitState::idle };
     std::unique_ptr<MainWindow> mainWindow;
+
+    ValueTreeMonitor directoryDataMonitor;
+    ValueTreeMonitor presetPropertiesMonitor;
 };
 
 // This macro generates the main () routine that launches the app.

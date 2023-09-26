@@ -2,6 +2,9 @@
 
 #include <JuceHeader.h>
 #include "Validator/ValidatorProperties.h"
+#include "../AppProperties.h"
+#include "../Utility/DirectoryDataProperties.h"
+#include "../Utility/LambdaThread.h"
 
 // validate
 //  SD Card (max folders unknown)
@@ -16,29 +19,35 @@ public:
     Assimil8orValidator ();
     ~Assimil8orValidator ();
 
-    void init (juce::ValueTree vt);
-
-    static bool isAudioFile (juce::File file);
-    static bool isPresetFile (juce::File file);
-    static bool isFolderPrefsFile (juce::File file);
-    static bool isLastFolderFile (juce::File file);
-    static bool isLastPresetFile (juce::File file);
-    static int  getPresetNumberFromName (juce::File file);
+    void init (juce::ValueTree rootPropertiesVT);
 
 private:
-    juce::AudioFormatManager audioFormatManager;
+    enum class ValdatationState
+    {
+        idle,
+        validating,
+        restarting
+    };
+    AppProperties appProperties;
     ValidatorProperties validatorProperties;
     ValidatorResultListProperties validatorResultListProperties;
+    DirectoryDataProperties directoryDataProperties;
+
+    // TODO - my current thought is that the DirectoryValueTree class should perform all of the checks (files types, supported audio, etc), and store into in the valuetree
+    juce::AudioFormatManager audioFormatManager;
+
     int64_t lastScanInProgressUpdate {};
-    juce::ValueTree rootFolderVT { "AssimilatorFileList" };
+    ValdatationState valdatationState { ValdatationState::idle };
+    juce::CriticalSection threadManagmentLock;
+    std::atomic<bool> cancelCurrentValidation { false };
+    LambdaThread validateThread { "ValidateThread", 100 };
 
     void addResult (juce::String statusType, juce::String statusText);
     void addResult (juce::ValueTree validatorResultsVT);
     void doIfProgressTimeElapsed (std::function<void ()> functionToDo);
-    juce::ValueTree getContentsOfFolder (juce::File folder);
     void processFolder (juce::ValueTree folder);
-    void sortContentsOfFolder (juce::ValueTree rootFolderVT);
-    void validate ();
+    bool shouldCancelOperation ();
+    void startValidation ();
     std::tuple<uint64_t, std::optional<uint64_t>> validateFile (juce::File file, juce::ValueTree validatorResultsVT);
     void validateFolder (juce::File folder, juce::ValueTree validatorResultsVT);
     void validateRootFolder ();

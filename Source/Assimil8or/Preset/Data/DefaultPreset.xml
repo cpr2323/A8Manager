@@ -1,0 +1,284 @@
+<Preset _id="1" name="New" data2asCV="Off" xfadeACV="Off" xfadeAWidth="1.0"
+        xfadeBCV="Off" xfadeBWidth="1.0" xfadeCCV="Off" xfadeCWidth="1.0"
+        xfadeDCV="Off" xfadeDWidth="1.0">
+  <Channel aliasing="0" aliasingMod="Off 1.0000" attack="0.0" attackFromCurrent="0"
+           attackMod="Off 1.0000" autoTrigger="0" bits="32.0" bitsMod="Off 1.0000"
+           channelMode="0" expAM="Off 1.0" expFM="Off 1.0" level="0.0" linAM="Off 1.0"
+           linAMisExtEnv="0" linFM="Off 1.0" loopLengthIsEnd="0" loopLengthMod="Off 1.0000" loopMode="0"
+           loopStartMod="Off 1.0000" mixLevel="1.0" mixMod="Off 1.0000"
+           mixModIsFader="0" pan="0.0" panMod="Off 1.0000" phaseCV="Off 1.0000"
+           pitch="0.0" pitchCV="Off 0.5000" playMode="0" pMIndex="0.0" pMIndexMod="Off 1.0000"
+           pMSource="0" release="0.1" releaseMod="Off 1.0000" reverse="0"
+           sampleStartMod="Off 1.0000" sampleEndMod="Off 1.0000" spliceSmoothing="0"
+           xfadeGroup="None" zonesCV="Off" zonesRT="0" _id="1">
+    <Zone levelOffset="0.0" loopLength="-1.0" loopStart="-1" minVoltage="0.0"
+          pitchOffset="0.0" sample="" sampleStart="-1" sampleEnd="-1" side="0"
+          _id="1"/>
+    <Zone levelOffset="0.0" loopLength="-1.0" loopStart="-1" minVoltage="0.0"
+          pitchOffset="0.0" sample="" sampleStart="-1" sampleEnd="-1" side="0"
+          _id="2"/>
+    <Zone levelOffset="0.0" loopLength="-1.0" loopStart="-1" minVoltage="0.0"
+          pitchOffset="0.0" sample="" sampleStart="-1" sampleEnd="-1" side="0"
+          _id="3"/>
+    <Zone levelOffset="0.0" loopLength="-1.0" loopStart="-1" minVoltage="0.0"
+          pitchOffset="0.0" sample="" sampleStart="-1" sampleEnd="-1" side="0"
+          _id="4"/>
+    <Zone levelOffset="0.0" loopLength="-1.0" loopStart="-1" minVoltage="0.0"
+          pitchOffset="0.0" sample="" sampleStart="-1" sampleEnd="-1" side="0"
+          _id="5"/>
+    <Zone levelOffset="0.0" loopLength="-1.0" loopStart="-1" minVoltage="0.0"
+          pitchOffset="0.0" sample="" sampleStart="-1" sampleEnd="-1" side="0"
+          _id="6"/>
+    <Zone levelOffset="0.0" loopLength="-1.0" loopStart="-1" minVoltage="0.0"
+          pitchOffset="0.0" sample="" sampleStart="-1" sampleEnd="-1" side="0"
+          _id="7"/>
+    <Zone levelOffset="0.0" loopLength="-1.0" loopStart="-1" minVoltage="0.0"
+          pitchOffset="0.0" sample="" sampleStart="-1" sampleEnd="-1" side="0"
+          _id="8"/>
+  </Channel>
+  <Channel aliasing="0" aliasingMod="Off 1.0000" attack="0.0" attackFromCurrent="0"
+           attackMod="Off 1.0000" autoTrigger="0" bits="32.0" bitsMod="Off 1.0000"
+           channelMode="0" expAM="Off 1.0" expFM="Off 1.0" level="0.0" linAM="Off 1.0"
+           linAMisExtEnv="0" linFM="Off 1.0" loopLengthIsEnd="0" loopLengthMod="Off 1.0000" loopMode="0"
+           loopStartMod="Off 1.0000" mixLevel="1.0" mixMod="Off 1.0000"
+           mixModIsFader="0" pan="0.0" panMod="Off 1.0000" phaseCV="Off 1.0000"
+           pitch="0.0" pitchCV="Off 0.5000" playMode="0" pMIndex="0.0" pMIndexMod="Off 1.0000"
+           pMSource="0" release="0.1" releaseMod="Off 1.0000" reverse="0"
+           sampleStartMod="Off 1.0000" sampleEndMod="Off 1.0000" spliceSmoothing="0"
+           xfadeGroup="None" zonesCV="Off" zonesRT="0" _id="2">
+    <Zone levelOffset="0.0" loopLength="-1.0" loopStart="-1" minVoltage="0.0"
+          pitchOffset="0.0" sample="" sampleStart="-1" sampleEnd="-1" side="0"
+          _id="1"/>
+    <Zone levelOffset="0.0" loopLength="-1.0" loopStart="-1" minVoltage="0.0"
+          pitchOffset="0.0" sample="" sampleStart="-1" sampleEnd="-1" side="0"
+          _id="2"/>
+    <Zone levelOffset="0.0" loopLength="-1.0" loopStart="-1" minVoltage="0.0"
+          pitchOffset="0.0" sample="" sampleStart="-1" sampleEnd="-1" side="0"
+          _id="3"/>
+    <Zone levelOffset="0.0" loopLength="-1.0" loopStart="-1" minVoltage="0.0"
+          pitchOffset="0.0" sample="" sampleStart="-1" sampleEnd="-1" side="0"
+          _id="4"/>
+    <Zone levelOffset="0.0" loopLength="-1.0" loopStart="-1" minVoltage="0.0"
+          pitchOffset="0.0" sample="" sampleStart="-1" sampleEnd="-1" side="0"
+          _id="5"/>
+    <Zone levelOffset="0.0" loopLength="-1.0" loopStart="-1" minVoltage="0.0"
+          pitchOffset="0.0" sample="" sampleStart="-1" sampleEnd="-1" side="0"
+          _id="6"/>
+    <Zone levelOffset="0.0" loopLength="-1.0" loopStart="-1" minVoltage="0.0"
+          pitchOffset="0.0" sample="" sampleStart="-1" sampleEnd="-1" side="0"
+          _id="7"/>
+    <Zone levelOffset="0.0" loopLength="-1.0" loopStart="-1" minVoltage="0.0"
+          pitchOffset="0.0" sample="" sampleStart="-1" sampleEnd="-1" side="0"
+          _id="8"/>
+  </Channel>
+  <Channel aliasing="0" aliasingMod="Off 1.0000" attack="0.0" attackFromCurrent="0"
+           attackMod="Off 1.0000" autoTrigger="0" bits="32.0" bitsMod="Off 1.0000"
+           channelMode="0" expAM="Off 1.0" expFM="Off 1.0" level="0.0" linAM="Off 1.0"
+           linAMisExtEnv="0" linFM="Off 1.0" loopLengthIsEnd="0" loopLengthMod="Off 1.0000" loopMode="0"
+           loopStartMod="Off 1.0000" mixLevel="1.0" mixMod="Off 1.0000"
+           mixModIsFader="0" pan="0.0" panMod="Off 1.0000" phaseCV="Off 1.0000"
+           pitch="0.0" pitchCV="Off 0.5000" playMode="0" pMIndex="0.0" pMIndexMod="Off 1.0000"
+           pMSource="0" release="0.1" releaseMod="Off 1.0000" reverse="0"
+           sampleStartMod="Off 1.0000" sampleEndMod="Off 1.0000" spliceSmoothing="0"
+           xfadeGroup="None" zonesCV="Off" zonesRT="0" _id="3">
+    <Zone levelOffset="0.0" loopLength="-1.0" loopStart="-1" minVoltage="0.0"
+          pitchOffset="0.0" sample="" sampleStart="-1" sampleEnd="-1" side="0"
+          _id="1"/>
+    <Zone levelOffset="0.0" loopLength="-1.0" loopStart="-1" minVoltage="0.0"
+          pitchOffset="0.0" sample="" sampleStart="-1" sampleEnd="-1" side="0"
+          _id="2"/>
+    <Zone levelOffset="0.0" loopLength="-1.0" loopStart="-1" minVoltage="0.0"
+          pitchOffset="0.0" sample="" sampleStart="-1" sampleEnd="-1" side="0"
+          _id="3"/>
+    <Zone levelOffset="0.0" loopLength="-1.0" loopStart="-1" minVoltage="0.0"
+          pitchOffset="0.0" sample="" sampleStart="-1" sampleEnd="-1" side="0"
+          _id="4"/>
+    <Zone levelOffset="0.0" loopLength="-1.0" loopStart="-1" minVoltage="0.0"
+          pitchOffset="0.0" sample="" sampleStart="-1" sampleEnd="-1" side="0"
+          _id="5"/>
+    <Zone levelOffset="0.0" loopLength="-1.0" loopStart="-1" minVoltage="0.0"
+          pitchOffset="0.0" sample="" sampleStart="-1" sampleEnd="-1" side="0"
+          _id="6"/>
+    <Zone levelOffset="0.0" loopLength="-1.0" loopStart="-1" minVoltage="0.0"
+          pitchOffset="0.0" sample="" sampleStart="-1" sampleEnd="-1" side="0"
+          _id="7"/>
+    <Zone levelOffset="0.0" loopLength="-1.0" loopStart="-1" minVoltage="0.0"
+          pitchOffset="0.0" sample="" sampleStart="-1" sampleEnd="-1" side="0"
+          _id="8"/>
+  </Channel>
+  <Channel aliasing="0" aliasingMod="Off 1.0000" attack="0.0" attackFromCurrent="0"
+           attackMod="Off 1.0000" autoTrigger="0" bits="32.0" bitsMod="Off 1.0000"
+           channelMode="0" expAM="Off 1.0" expFM="Off 1.0" level="0.0" linAM="Off 1.0"
+           linAMisExtEnv="0" linFM="Off 1.0" loopLengthIsEnd="0" loopLengthMod="Off 1.0000" loopMode="0"
+           loopStartMod="Off 1.0000" mixLevel="1.0" mixMod="Off 1.0000"
+           mixModIsFader="0" pan="0.0" panMod="Off 1.0000" phaseCV="Off 1.0000"
+           pitch="0.0" pitchCV="Off 0.5000" playMode="0" pMIndex="0.0" pMIndexMod="Off 1.0000"
+           pMSource="0" release="0.1" releaseMod="Off 1.0000" reverse="0"
+           sampleStartMod="Off 1.0000" sampleEndMod="Off 1.0000" spliceSmoothing="0"
+           xfadeGroup="None" zonesCV="Off" zonesRT="0" _id="4">
+    <Zone levelOffset="0.0" loopLength="-1.0" loopStart="-1" minVoltage="0.0"
+          pitchOffset="0.0" sample="" sampleStart="-1" sampleEnd="-1" side="0"
+          _id="1"/>
+    <Zone levelOffset="0.0" loopLength="-1.0" loopStart="-1" minVoltage="0.0"
+          pitchOffset="0.0" sample="" sampleStart="-1" sampleEnd="-1" side="0"
+          _id="2"/>
+    <Zone levelOffset="0.0" loopLength="-1.0" loopStart="-1" minVoltage="0.0"
+          pitchOffset="0.0" sample="" sampleStart="-1" sampleEnd="-1" side="0"
+          _id="3"/>
+    <Zone levelOffset="0.0" loopLength="-1.0" loopStart="-1" minVoltage="0.0"
+          pitchOffset="0.0" sample="" sampleStart="-1" sampleEnd="-1" side="0"
+          _id="4"/>
+    <Zone levelOffset="0.0" loopLength="-1.0" loopStart="-1" minVoltage="0.0"
+          pitchOffset="0.0" sample="" sampleStart="-1" sampleEnd="-1" side="0"
+          _id="5"/>
+    <Zone levelOffset="0.0" loopLength="-1.0" loopStart="-1" minVoltage="0.0"
+          pitchOffset="0.0" sample="" sampleStart="-1" sampleEnd="-1" side="0"
+          _id="6"/>
+    <Zone levelOffset="0.0" loopLength="-1.0" loopStart="-1" minVoltage="0.0"
+          pitchOffset="0.0" sample="" sampleStart="-1" sampleEnd="-1" side="0"
+          _id="7"/>
+    <Zone levelOffset="0.0" loopLength="-1.0" loopStart="-1" minVoltage="0.0"
+          pitchOffset="0.0" sample="" sampleStart="-1" sampleEnd="-1" side="0"
+          _id="8"/>
+  </Channel>
+  <Channel aliasing="0" aliasingMod="Off 1.0000" attack="0.0" attackFromCurrent="0"
+           attackMod="Off 1.0000" autoTrigger="0" bits="32.0" bitsMod="Off 1.0000"
+           channelMode="0" expAM="Off 1.0" expFM="Off 1.0" level="0.0" linAM="Off 1.0"
+           linAMisExtEnv="0" linFM="Off 1.0" loopLengthIsEnd="0" loopLengthMod="Off 1.0000" loopMode="0"
+           loopStartMod="Off 1.0000" mixLevel="1.0" mixMod="Off 1.0000"
+           mixModIsFader="0" pan="0.0" panMod="Off 1.0000" phaseCV="Off 1.0000"
+           pitch="0.0" pitchCV="Off 0.5000" playMode="0" pMIndex="0.0" pMIndexMod="Off 1.0000"
+           pMSource="0" release="0.1" releaseMod="Off 1.0000" reverse="0"
+           sampleStartMod="Off 1.0000" sampleEndMod="Off 1.0000" spliceSmoothing="0"
+           xfadeGroup="None" zonesCV="Off" zonesRT="0" _id="5">
+    <Zone levelOffset="0.0" loopLength="-1.0" loopStart="-1" minVoltage="0.0"
+          pitchOffset="0.0" sample="" sampleStart="-1" sampleEnd="-1" side="0"
+          _id="1"/>
+    <Zone levelOffset="0.0" loopLength="-1.0" loopStart="-1" minVoltage="0.0"
+          pitchOffset="0.0" sample="" sampleStart="-1" sampleEnd="-1" side="0"
+          _id="2"/>
+    <Zone levelOffset="0.0" loopLength="-1.0" loopStart="-1" minVoltage="0.0"
+          pitchOffset="0.0" sample="" sampleStart="-1" sampleEnd="-1" side="0"
+          _id="3"/>
+    <Zone levelOffset="0.0" loopLength="-1.0" loopStart="-1" minVoltage="0.0"
+          pitchOffset="0.0" sample="" sampleStart="-1" sampleEnd="-1" side="0"
+          _id="4"/>
+    <Zone levelOffset="0.0" loopLength="-1.0" loopStart="-1" minVoltage="0.0"
+          pitchOffset="0.0" sample="" sampleStart="-1" sampleEnd="-1" side="0"
+          _id="5"/>
+    <Zone levelOffset="0.0" loopLength="-1.0" loopStart="-1" minVoltage="0.0"
+          pitchOffset="0.0" sample="" sampleStart="-1" sampleEnd="-1" side="0"
+          _id="6"/>
+    <Zone levelOffset="0.0" loopLength="-1.0" loopStart="-1" minVoltage="0.0"
+          pitchOffset="0.0" sample="" sampleStart="-1" sampleEnd="-1" side="0"
+          _id="7"/>
+    <Zone levelOffset="0.0" loopLength="-1.0" loopStart="-1" minVoltage="0.0"
+          pitchOffset="0.0" sample="" sampleStart="-1" sampleEnd="-1" side="0"
+          _id="8"/>
+  </Channel>
+  <Channel aliasing="0" aliasingMod="Off 1.0000" attack="0.0" attackFromCurrent="0"
+           attackMod="Off 1.0000" autoTrigger="0" bits="32.0" bitsMod="Off 1.0000"
+           channelMode="0" expAM="Off 1.0" expFM="Off 1.0" level="0.0" linAM="Off 1.0"
+           linAMisExtEnv="0" linFM="Off 1.0" loopLengthIsEnd="0" loopLengthMod="Off 1.0000" loopMode="0"
+           loopStartMod="Off 1.0000" mixLevel="1.0" mixMod="Off 1.0000"
+           mixModIsFader="0" pan="0.0" panMod="Off 1.0000" phaseCV="Off 1.0000"
+           pitch="0.0" pitchCV="Off 0.5000" playMode="0" pMIndex="0.0" pMIndexMod="Off 1.0000"
+           pMSource="0" release="0.1" releaseMod="Off 1.0000" reverse="0"
+           sampleStartMod="Off 1.0000" sampleEndMod="Off 1.0000" spliceSmoothing="0"
+           xfadeGroup="None" zonesCV="Off" zonesRT="0" _id="6">
+    <Zone levelOffset="0.0" loopLength="-1.0" loopStart="-1" minVoltage="0.0"
+          pitchOffset="0.0" sample="" sampleStart="-1" sampleEnd="-1" side="0"
+          _id="1"/>
+    <Zone levelOffset="0.0" loopLength="-1.0" loopStart="-1" minVoltage="0.0"
+          pitchOffset="0.0" sample="" sampleStart="-1" sampleEnd="-1" side="0"
+          _id="2"/>
+    <Zone levelOffset="0.0" loopLength="-1.0" loopStart="-1" minVoltage="0.0"
+          pitchOffset="0.0" sample="" sampleStart="-1" sampleEnd="-1" side="0"
+          _id="3"/>
+    <Zone levelOffset="0.0" loopLength="-1.0" loopStart="-1" minVoltage="0.0"
+          pitchOffset="0.0" sample="" sampleStart="-1" sampleEnd="-1" side="0"
+          _id="4"/>
+    <Zone levelOffset="0.0" loopLength="-1.0" loopStart="-1" minVoltage="0.0"
+          pitchOffset="0.0" sample="" sampleStart="-1" sampleEnd="-1" side="0"
+          _id="5"/>
+    <Zone levelOffset="0.0" loopLength="-1.0" loopStart="-1" minVoltage="0.0"
+          pitchOffset="0.0" sample="" sampleStart="-1" sampleEnd="-1" side="0"
+          _id="6"/>
+    <Zone levelOffset="0.0" loopLength="-1.0" loopStart="-1" minVoltage="0.0"
+          pitchOffset="0.0" sample="" sampleStart="-1" sampleEnd="-1" side="0"
+          _id="7"/>
+    <Zone levelOffset="0.0" loopLength="-1.0" loopStart="-1" minVoltage="0.0"
+          pitchOffset="0.0" sample="" sampleStart="-1" sampleEnd="-1" side="0"
+          _id="8"/>
+  </Channel>
+  <Channel aliasing="0" aliasingMod="Off 1.0000" attack="0.0" attackFromCurrent="0"
+           attackMod="Off 1.0000" autoTrigger="0" bits="32.0" bitsMod="Off 1.0000"
+           channelMode="0" expAM="Off 1.0" expFM="Off 1.0" level="0.0" linAM="Off 1.0"
+           linAMisExtEnv="0" linFM="Off 1.0" loopLengthIsEnd="0" loopLengthMod="Off 1.0000" loopMode="0"
+           loopStartMod="Off 1.0000" mixLevel="1.0" mixMod="Off 1.0000"
+           mixModIsFader="0" pan="0.0" panMod="Off 1.0000" phaseCV="Off 1.0000"
+           pitch="0.0" pitchCV="Off 0.5000" playMode="0" pMIndex="0.0" pMIndexMod="Off 1.0000"
+           pMSource="0" release="0.1" releaseMod="Off 1.0000" reverse="0"
+           sampleStartMod="Off 1.0000" sampleEndMod="Off 1.0000" spliceSmoothing="0"
+           xfadeGroup="None" zonesCV="Off" zonesRT="0" _id="7">
+    <Zone levelOffset="0.0" loopLength="-1.0" loopStart="-1" minVoltage="0.0"
+          pitchOffset="0.0" sample="" sampleStart="-1" sampleEnd="-1" side="0"
+          _id="1"/>
+    <Zone levelOffset="0.0" loopLength="-1.0" loopStart="-1" minVoltage="0.0"
+          pitchOffset="0.0" sample="" sampleStart="-1" sampleEnd="-1" side="0"
+          _id="2"/>
+    <Zone levelOffset="0.0" loopLength="-1.0" loopStart="-1" minVoltage="0.0"
+          pitchOffset="0.0" sample="" sampleStart="-1" sampleEnd="-1" side="0"
+          _id="3"/>
+    <Zone levelOffset="0.0" loopLength="-1.0" loopStart="-1" minVoltage="0.0"
+          pitchOffset="0.0" sample="" sampleStart="-1" sampleEnd="-1" side="0"
+          _id="4"/>
+    <Zone levelOffset="0.0" loopLength="-1.0" loopStart="-1" minVoltage="0.0"
+          pitchOffset="0.0" sample="" sampleStart="-1" sampleEnd="-1" side="0"
+          _id="5"/>
+    <Zone levelOffset="0.0" loopLength="-1.0" loopStart="-1" minVoltage="0.0"
+          pitchOffset="0.0" sample="" sampleStart="-1" sampleEnd="-1" side="0"
+          _id="6"/>
+    <Zone levelOffset="0.0" loopLength="-1.0" loopStart="-1" minVoltage="0.0"
+          pitchOffset="0.0" sample="" sampleStart="-1" sampleEnd="-1" side="0"
+          _id="7"/>
+    <Zone levelOffset="0.0" loopLength="-1.0" loopStart="-1" minVoltage="0.0"
+          pitchOffset="0.0" sample="" sampleStart="-1" sampleEnd="-1" side="0"
+          _id="8"/>
+  </Channel>
+  <Channel aliasing="0" aliasingMod="Off 1.0000" attack="0.0" attackFromCurrent="0"
+           attackMod="Off 1.0000" autoTrigger="0" bits="32.0" bitsMod="Off 1.0000"
+           channelMode="0" expAM="Off 1.0" expFM="Off 1.0" level="0.0" linAM="Off 1.0"
+           linAMisExtEnv="0" linFM="Off 1.0" loopLengthIsEnd="0" loopLengthMod="Off 1.0000" loopMode="0"
+           loopStartMod="Off 1.0000" mixLevel="1.0" mixMod="Off 1.0000"
+           mixModIsFader="0" pan="0.0" panMod="Off 1.0000" phaseCV="Off 1.0000"
+           pitch="0.0" pitchCV="Off 0.5000" playMode="0" pMIndex="0.0" pMIndexMod="Off 1.0000"
+           pMSource="0" release="0.1" releaseMod="Off 1.0000" reverse="0"
+           sampleStartMod="Off 1.0000" sampleEndMod="Off 1.0000" spliceSmoothing="0"
+           xfadeGroup="None" zonesCV="Off" zonesRT="0" _id="8">
+    <Zone levelOffset="0.0" loopLength="-1.0" loopStart="-1" minVoltage="0.0"
+          pitchOffset="0.0" sample="" sampleStart="-1" sampleEnd="-1" side="0"
+          _id="1"/>
+    <Zone levelOffset="0.0" loopLength="-1.0" loopStart="-1" minVoltage="0.0"
+          pitchOffset="0.0" sample="" sampleStart="-1" sampleEnd="-1" side="0"
+          _id="2"/>
+    <Zone levelOffset="0.0" loopLength="-1.0" loopStart="-1" minVoltage="0.0"
+          pitchOffset="0.0" sample="" sampleStart="-1" sampleEnd="-1" side="0"
+          _id="3"/>
+    <Zone levelOffset="0.0" loopLength="-1.0" loopStart="-1" minVoltage="0.0"
+          pitchOffset="0.0" sample="" sampleStart="-1" sampleEnd="-1" side="0"
+          _id="4"/>
+    <Zone levelOffset="0.0" loopLength="-1.0" loopStart="-1" minVoltage="0.0"
+          pitchOffset="0.0" sample="" sampleStart="-1" sampleEnd="-1" side="0"
+          _id="5"/>
+    <Zone levelOffset="0.0" loopLength="-1.0" loopStart="-1" minVoltage="0.0"
+          pitchOffset="0.0" sample="" sampleStart="-1" sampleEnd="-1" side="0"
+          _id="6"/>
+    <Zone levelOffset="0.0" loopLength="-1.0" loopStart="-1" minVoltage="0.0"
+          pitchOffset="0.0" sample="" sampleStart="-1" sampleEnd="-1" side="0"
+          _id="7"/>
+    <Zone levelOffset="0.0" loopLength="-1.0" loopStart="-1" minVoltage="0.0"
+          pitchOffset="0.0" sample="" sampleStart="-1" sampleEnd="-1" side="0"
+          _id="8"/>
+  </Channel>
+</Preset>

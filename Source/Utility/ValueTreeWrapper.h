@@ -10,7 +10,7 @@
 */
 
 template <class derived>
-class ValueTreeWrapper : private juce::ValueTree::Listener
+class ValueTreeWrapper : public juce::ValueTree::Listener
 {
 public:
     enum class WrapperType { owner, client };
@@ -230,7 +230,7 @@ template <class derived> void ValueTreeWrapper<derived>::wrap (juce::ValueTree v
 
 template <class derived>void ValueTreeWrapper<derived>::init (juce::ValueTree vt, bool createIfNotFound)
 {
-    const auto derviedClass { static_cast<derived*>(this) };
+    const auto derviedClass { static_cast<derived*> (this) };
     dataWasRestored = false;
 
     if (vt.isValid ())
@@ -274,7 +274,7 @@ template <class derived>void ValueTreeWrapper<derived>::init (juce::ValueTree vt
 template <class derived> void ValueTreeWrapper<derived>::createValueTree ()
 {
     data = juce::ValueTree (type);
-    const auto derviedClass { static_cast<derived*>(this) };
+    const auto derviedClass { static_cast<derived*> (this) };
     derviedClass->initValueTree ();
 }
 

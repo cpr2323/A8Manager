@@ -31,21 +31,16 @@ Assimil8orValidatorComponent::Assimil8orValidatorComponent ()
             validatorResultsQuickLookupList.clear ();
             buildQuickLookupList ();
             validationResultsListBox.updateContent ();
-            udpateHeader ();
+            updateHeader ();
         };
         addAndMakeVisible (button);
     };
-    setupFilterButton (idleFilterButton, "I", "Toggles viewing of Info messages");
+    setupFilterButton (infoFilterButton, "I", "Toggles viewing of Info messages");
     setupFilterButton (warningFilterButton, "W", "Toggles viewing of Warning messages");
     setupFilterButton (errorFilterButton, "E", "Toggles viewing of Error messages");
 
-    setupFilterList ();
-    validatorResultsQuickLookupList.clear ();
-    buildQuickLookupList ();
-    validationResultsListBox.updateContent ();
-    udpateHeader ();
-
     audioFormatManager.registerBasicFormats ();
+    setupFilterList ();
 }
 
 Assimil8orValidatorComponent::~Assimil8orValidatorComponent ()
@@ -63,49 +58,72 @@ Assimil8orValidatorComponent::~Assimil8orValidatorComponent ()
 void Assimil8orValidatorComponent::init (juce::ValueTree rootPropertiesVT)
 {
     RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
+    directoryDataProperties.wrap (runtimeRootProperties.getValueTree (), DirectoryDataProperties::WrapperType::client, DirectoryDataProperties::EnableCallbacks::yes);
+
     validatorProperties.wrap (runtimeRootProperties.getValueTree (), ValidatorProperties::WrapperType::client, ValidatorProperties::EnableCallbacks::yes);
     validatorProperties.onScanStatusChanged = [this] (juce::String scanStatus)
     {
-        validatorResultsQuickLookupList.clear ();
-        if (scanStatus == "idle")
-            buildQuickLookupList ();
-
-        validationResultsListBox.updateContent ();
-        udpateHeader ();
-        // TODO - this is a crazy work around because when I am getting the initial list, a horizontal scroll bar is appearing
-        //        the only experiment that worked was doing this
-        setSize (getWidth(), getHeight() + 1);
-        setSize (getWidth (), getHeight () - 1);
+        localCopyOfValidatorResultsList = validatorProperties.getValidatorResultListVT ().createCopy ();
+        juce::MessageManager::callAsync ([this, scanStatus] ()
+        {
+            updateListFromScan (scanStatus);
+        });
     };
+    localCopyOfValidatorResultsList = validatorProperties.getValidatorResultListVT ().createCopy ();
+    updateListFromScan ("idle");
+}
+
+void Assimil8orValidatorComponent::updateListFromScan (juce::String scanStatus)
+{
+    validatorResultsQuickLookupList.clear ();
+    if (scanStatus == "idle")
+        buildQuickLookupList ();
+
+    validationResultsListBox.updateContent ();
+    updateHeader ();
+    // TODO - this is a crazy work around because when I am getting the initial list, a horizontal scroll bar is appearing.
+    //        the only experiment that worked was doing this
+    setSize (getWidth (), getHeight () + 1);
+    setSize (getWidth (), getHeight () - 1);
 }
 
 void Assimil8orValidatorComponent::setupFilterList ()
 {
     filterList.clearQuick ();
-    if (idleFilterButton.getToggleState ())
+    if (infoFilterButton.getToggleState ())
         filterList.add (ValidatorResultProperties::ResultTypeInfo);
     if (warningFilterButton.getToggleState ())
         filterList.add (ValidatorResultProperties::ResultTypeWarning);
     if (errorFilterButton.getToggleState ())
         filterList.add (ValidatorResultProperties::ResultTypeError);
 }
-
-void Assimil8orValidatorComponent::udpateHeader ()
+void Assimil8orValidatorComponent::updateHeader ()
 {
-    validationResultsListBox.getHeader ().setColumnName (Columns::text, "Message (" + juce::String (validatorResultsQuickLookupList.size ()) + " of " + juce::String (totalItems) + " items)");
+    validationResultsListBox.getHeader ().setColumnName (Columns::text, "Message (" + juce::String (validatorResultsQuickLookupList.size ()) + " of " +
+                                                                        juce::String (totalInfoItems + totalWarningItems + totalErrorItems) + " items | " +
+                                                                        "Info: " + juce::String (totalInfoItems) +
+                                                                        " | Warning : "+ juce::String (totalWarningItems) +
+                                                                        " | Error : "+ juce::String (totalErrorItems) +")");
     validationResultsListBox.repaint ();
 }
 
 void Assimil8orValidatorComponent::buildQuickLookupList ()
 {
-    totalItems = 0;
-    ValidatorResultListProperties validatorResultListProperties (validatorProperties.getValidatorResultListVT (),
+    totalInfoItems = 0;
+    totalWarningItems = 0;
+    totalErrorItems = 0;
+    if (! localCopyOfValidatorResultsList.isValid ())
+        return;
+
+    ValidatorResultListProperties validatorResultListProperties (localCopyOfValidatorResultsList,
                                                                  ValidatorResultListProperties::WrapperType::client, ValidatorResultListProperties::EnableCallbacks::no);
     // iterate over the state message list, adding each one to the quick list
     validatorResultListProperties.forEachResult ([this] (juce::ValueTree validatorResultVT)
     {
-        ++totalItems;
         ValidatorResultProperties validatorResultProperties (validatorResultVT, ValidatorResultProperties::WrapperType::client, ValidatorResultProperties::EnableCallbacks::no);
+        totalInfoItems += (validatorResultProperties.getType () == ValidatorResultProperties::ResultTypeInfo ? 1 : 0);
+        totalWarningItems += (validatorResultProperties.getType () == ValidatorResultProperties::ResultTypeWarning? 1 : 0);
+        totalErrorItems += (validatorResultProperties.getType () == ValidatorResultProperties::ResultTypeError ? 1 : 0);
         if (filterList.contains (validatorResultProperties.getType ()))
             validatorResultsQuickLookupList.emplace_back (validatorResultVT);
         return true;
@@ -122,11 +140,14 @@ juce::String Assimil8orValidatorComponent::getCellTooltip (int rowNumber, int co
     if (columnId != Columns::text)
         return {};
 
+    if (rowNumber >= validatorResultsQuickLookupList.size ())
+        return {};
+
     ValidatorResultProperties validatorResultProperties (validatorResultsQuickLookupList [rowNumber],
                                                          ValidatorResultProperties::WrapperType::client, ValidatorResultProperties::EnableCallbacks::no);
     auto getPrefix = [this, &validatorResultProperties] () -> juce::String
     {
-        if (!validatorResultProperties.getValueTree ().hasProperty ("fullFileName"))
+        if (! validatorResultProperties.getValueTree ().hasProperty ("fullFileName"))
             return {};
 
         juce::File file (validatorResultProperties.getValueTree ().getProperty ("fullFileName").toString ());
@@ -138,12 +159,12 @@ void Assimil8orValidatorComponent::resized ()
 {
     auto localBounds { getLocalBounds () };
     validationResultsListBox.setBounds (localBounds);
-    auto filterButtonBounds { getLocalBounds ().removeFromBottom (45).withTrimmedBottom (15).withTrimmedRight (15) };
+    auto filterButtonBounds { getLocalBounds ().removeFromBottom (28).withTrimmedBottom (3).withTrimmedRight (3) };
     errorFilterButton.setBounds (filterButtonBounds.removeFromRight (filterButtonBounds.getHeight ()));
     filterButtonBounds.removeFromRight (5);
     warningFilterButton.setBounds (filterButtonBounds.removeFromRight (filterButtonBounds.getHeight ()));
     filterButtonBounds.removeFromRight (5);
-    idleFilterButton.setBounds (filterButtonBounds.removeFromRight (filterButtonBounds.getHeight ()));
+    infoFilterButton.setBounds (filterButtonBounds.removeFromRight (filterButtonBounds.getHeight ()));
 }
 
 int Assimil8orValidatorComponent::getNumRows ()
@@ -233,10 +254,10 @@ void Assimil8orValidatorComponent::rename (juce::File file, int maxLength)
     // bring up a dialog showing the old name, a field for typing the new name (length constrained), and an ok/cancel button
     juce::DialogWindow::LaunchOptions options;
     auto renameContent { std::make_unique<RenameDialogContent> (file, maxLength, [this] (bool wasRenamed)
-        {
-            if (wasRenamed)
-                validatorProperties.startAsyncScan (false);
-        }) };
+    {
+        if (wasRenamed)
+            directoryDataProperties.triggerStartScan (false);
+    }) };
     options.content.setOwned (renameContent.release ());
 
     juce::Rectangle<int> area (0, 0, 380, 110);
@@ -318,7 +339,7 @@ void Assimil8orValidatorComponent::convert (juce::File file)
                         errorDialog ("Failure to move converted file to original file");
                         jassertfalse;
                     }
-                    validatorProperties.startAsyncScan (false);
+                    directoryDataProperties.triggerStartScan (false);
                 }
                 else
                 {
@@ -366,7 +387,7 @@ void Assimil8orValidatorComponent::locate (juce::File file)
                                                        "Unable to rename '" + sourceFile.getFileName () + "' to '" + file.getFileName () + "'", {}, nullptr,
                                                        juce::ModalCallbackFunction::create ([this] (int) {}));
             }
-            validatorProperties.startAsyncScan (false);
+            directoryDataProperties.triggerStartScan (false);
         }
     }, nullptr);
 }

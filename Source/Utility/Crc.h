@@ -114,7 +114,6 @@ void SumHelper<uint8_t>::updateBuffer(uint8_t* data, int len)
     }
 }
 
-
 template <>
 void SumHelper<uint32_t>::updateBuffer(uint8_t* data, int len)
 {
@@ -139,8 +138,6 @@ public:
     type getSum() const { return SumHelper<T>::accum; }
 
 private:
-
-
 };
 
 int main(int argc, const char * argv[]) {
@@ -154,7 +151,6 @@ int main(int argc, const char * argv[]) {
 
     Fake8 eight;
     eight.updateBuffer(data, 5);
-
 
     FakeCrc<uint32_t> crc1(data, 5);
 

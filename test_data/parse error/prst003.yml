@@ -1,0 +1,81 @@
+Preset 003 :
+  Name : pyPre 001
+  Channel 1 :
+    Bits : 12
+    Aliasing : 89
+    PlayMode : 1
+    MixLevel : -3.0
+    LoopMode : 1
+    Zone 1 :
+      Sample : 29850-21907-24409.wav
+      SampleStartMod : 1A 1.00
+  Channel 2 :
+    Bits : 12
+    Aliasing : 89
+    PlayMode : 1
+    MixLevel : -3.0
+    ChannelMode : 1
+    LoopMode : 1
+    Zone 1 :
+      Sample : 4125-17985-1768.wav
+      SampleStartMod : 1A 1.00
+  Channel 3 :
+    Bits : 12
+    Aliasing : 89
+    PlayMode : 1
+    MixLevel : -3.0
+    ChannelMode : 1
+    LoopMode : 1
+    Zone 1 :
+      Sample : 2924-18765-30461.wav
+      SampleStartMod : 1A 1.00
+  Channel 4 :
+    Bits : 12
+    Aliasing : 89
+    PlayMode : 1
+    MixLevel : -3.0
+    ChannelMode : 1
+    LoopMode : 1
+    Zone 1 :
+      Sample : 4008-3247-7296.wav
+      SampleStartMod : 1A 1.00
+  Channel 5 :
+    Bits : 12
+    Aliasing : 89
+    PlayMode : 1
+    MixLevel : -3.0
+    ChannelMode : 1
+    LoopMode : 1
+    Zone 1 :
+      Sample : 16809-17146-2918.wav
+      SampleStartMod : 1A 1.00
+  Channel 6 :
+    Bits : 12
+    Aliasing : 89
+    PlayMode : 1
+    MixLevel : -3.0
+    ChannelMode : 1
+    LoopMode : 1
+    Zone 1 :
+      Sample : 25670-28306-21698.wav
+      SampleStartMod : 1A 1.00
+  Channel 7 :
+    Bits : 12
+    Aliasing : 89
+    PlayMode : 1
+    MixLevel : -3.0
+    ChannelMode : 1
+    LoopMode : 1
+    Zone 1 :
+      Sample : 22519-21985-9776.wav
+      SampleStartMod : 1A 1.00
+  Channel 8 :
+    Bits : 12
+    Aliasing : 89
+    PlayMode : 1
+    MixLevel : -3.0
+    ChannelMode : 1
+    LoopMode : 1
+    Zone 1 :
+      Sample : 4341-25935-20783.wav
+      SampleStartMod : 1A 1.00

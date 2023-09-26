@@ -3,6 +3,7 @@
 #include <JuceHeader.h>
 #include "../../../Assimil8or/Validator/ValidatorProperties.h"
 #include "../../../Assimil8or/Validator/ValidatorResultProperties.h"
+#include "../../../Utility/DirectoryDataProperties.h"
 
 class Assimil8orValidatorComponent : public juce::Component,
                                      private juce::TableListBoxModel
@@ -21,23 +22,29 @@ private:
         text
     };
     ValidatorProperties validatorProperties;
+    DirectoryDataProperties directoryDataProperties;
+
     juce::TableListBox validationResultsListBox { {}, this };
     std::vector<juce::ValueTree> validatorResultsQuickLookupList;
     juce::StringArray filterList { ValidatorResultProperties::ResultTypeInfo };
-    juce::TextButton idleFilterButton;
+    juce::TextButton infoFilterButton;
     juce::TextButton warningFilterButton;
     juce::TextButton errorFilterButton;
     SafePointer<juce::DialogWindow> renameDialog;
     juce::AudioFormatManager audioFormatManager;
     std::unique_ptr<juce::FileChooser> fileChooser;
-    int totalItems { 0 };
+    juce::ValueTree localCopyOfValidatorResultsList;
+    int totalInfoItems { 0 };
+    int totalWarningItems { 0 };
+    int totalErrorItems { 0 };
 
     void buildQuickLookupList ();
     void convert (juce::File file);
     void locate (juce::File file);
     void rename (juce::File file, int maxLength);
     void setupFilterList ();
-    void udpateHeader ();
+    void updateHeader ();
+    void updateListFromScan (juce::String scanStatus);
 
     void resized () override;
     void paint (juce::Graphics& g) override;

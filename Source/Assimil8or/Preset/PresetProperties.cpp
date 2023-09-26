@@ -1,6 +1,18 @@
 #include "PresetProperties.h"
 
-const auto kMaxChannels { 8 };
+const auto kNumChannels { 8 };
+const auto kNumZones { 8 };
+
+void PresetProperties::initValueTree ()
+{
+    for (auto channelIndex { 0 }; channelIndex < kNumChannels; ++channelIndex)
+    {
+        auto channel { ChannelProperties::create (channelIndex + 1) };
+        data.addChild (channel, -1, nullptr);
+        for (auto zoneIndex { 0 }; zoneIndex < kNumZones; ++zoneIndex)
+            channel.addChild (ZoneProperties::create (zoneIndex + 1), -1, nullptr);
+    }
+}
 
 int PresetProperties::getNumChannels ()
 {
@@ -9,31 +21,22 @@ int PresetProperties::getNumChannels ()
     return numChannels;
 }
 
-void PresetProperties::initValueTree ()
+void PresetProperties::copyTreeProperties (juce::ValueTree sourcePresetPropertiesVT, juce::ValueTree destinationPresetPropertiesVT)
 {
-    // normally in this function we create all of the properties
-    // but, as the Assimil8or only writes out parameters that have changed from the defaults
-    // we will emulate this by only adding properties when they change, or are in a preset file that is read in
+    destinationPresetPropertiesVT.copyPropertiesFrom (sourcePresetPropertiesVT, nullptr);
+    for (auto channelIndex { 0 }; channelIndex < sourcePresetPropertiesVT.getNumChildren (); ++channelIndex)
+    {
+        auto channelSource { sourcePresetPropertiesVT.getChild (channelIndex) };
+        auto channelDestination { destinationPresetPropertiesVT.getChild (channelIndex) };
+        channelDestination.copyPropertiesFrom (channelSource, nullptr);
 
-    clear ();
-}
-
-void PresetProperties::clear ()
-{
-    data.removeAllChildren (nullptr);
-    data.removeAllProperties (nullptr);
-
-    const auto kDefaultPresetName { "New" };
-    setIndex (1, false);
-    setName (kDefaultPresetName, false);
-}
-
-juce::ValueTree PresetProperties::addChannel (int index)
-{
-    jassert (getNumChannels () < kMaxChannels);
-    auto channelProperties { ChannelProperties::create (index) };
-    data.addChild (channelProperties, -1, nullptr);
-    return channelProperties;
+        for (auto zoneIndex { 0 }; zoneIndex < channelSource.getNumChildren (); ++zoneIndex)
+        {
+            auto zoneSource { channelSource.getChild (zoneIndex) };
+            auto zoneDestination { channelDestination.getChild (zoneIndex) };
+            zoneDestination.copyPropertiesFrom (zoneSource, nullptr);
+        }
+    }
 }
 
 void PresetProperties::forEachChannel (std::function<bool (juce::ValueTree channelVT)> channelVTCallback)
@@ -45,9 +48,31 @@ void PresetProperties::forEachChannel (std::function<bool (juce::ValueTree chann
     });
 }
 
-void PresetProperties::setIndex (int index, bool includeSelfCallback)
+juce::ValueTree PresetProperties::getChannelVT (int channelIndex)
 {
-    setValue (index, IndexPropertyId, includeSelfCallback);
+    jassert (channelIndex < getNumChannels ());
+    juce::ValueTree requestedChannelVT;
+    auto curChannelIndex { 0 };
+    forEachChannel ([this, &requestedChannelVT, &curChannelIndex, channelIndex] (juce::ValueTree channelVT)
+    {
+        if (curChannelIndex == channelIndex)
+        {
+            requestedChannelVT = channelVT;
+            return false;
+        }
+        ++curChannelIndex;
+        return true;
+    });
+    jassert (requestedChannelVT.isValid ());
+    return requestedChannelVT;
+}
+
+////////////////////////////////////////////////////////////////////
+// set___
+////////////////////////////////////////////////////////////////////
+void PresetProperties::setId (int id, bool includeSelfCallback)
+{
+    setValue (id, IdPropertyId, includeSelfCallback);
 }
 
 void PresetProperties::setData2AsCV (juce::String data2AsCv, bool includeSelfCallback)
@@ -100,9 +125,12 @@ void PresetProperties::setXfadeDWidth (double width, bool includeSelfCallback)
     setValue (width, XfadeDWidthPropertyId, includeSelfCallback);
 }
 
-int PresetProperties::getIndex ()
+////////////////////////////////////////////////////////////////////
+// get___
+////////////////////////////////////////////////////////////////////
+int PresetProperties::getId ()
 {
-    return getValue<int> (IndexPropertyId);
+    return getValue<int> (IdPropertyId);
 }
 
 juce::String PresetProperties::getData2AsCV ()
@@ -159,10 +187,10 @@ void PresetProperties::valueTreePropertyChanged (juce::ValueTree& vt, const juce
 {
     if (vt == data)
     {
-        if (property == IndexPropertyId)
+        if (property == IdPropertyId)
         {
-            if (onIndexChange != nullptr)
-                onIndexChange (getIndex ());
+            if (onIdChange != nullptr)
+                onIdChange (getId ());
         }
         else if (property == Data2asCVPropertyId)
         {

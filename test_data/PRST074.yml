@@ -1,0 +1,7 @@
+Preset 74 :
+  Name : New1
+  Channel 1 :
+    ExpAM : 1
+    LoopMode : 1
+    Zone 1 :
+      Sample : file2.wav

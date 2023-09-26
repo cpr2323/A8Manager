@@ -1,15 +1,32 @@
 #include "ZoneProperties.h"
 
-void ZoneProperties::initValueTree ()
+juce::ValueTree ZoneProperties::create (int id)
 {
-    // normally in this function we create all of the properties
-    // but, as the Assimil8or only writes out parameters that have changed from the defaults
-    // we will emulate this by only adding properties when they change, or are in a preset file that is read in
+    ZoneProperties zoneProperties;
+    zoneProperties.setId (id, false);
+    return zoneProperties.getValueTree ();
 }
 
-void ZoneProperties::setIndex (int index, bool includeSelfCallback)
+void ZoneProperties::copyFrom (juce::ValueTree sourceVT)
 {
-    setValue (index, IndexPropertyId, includeSelfCallback);
+    ZoneProperties sourceZoneProperties (sourceVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
+    setSample (sourceZoneProperties.getSample (), false);
+    setLevelOffset (sourceZoneProperties.getLevelOffset (), false);
+    setLoopLength (sourceZoneProperties.getLoopLength ().value_or (-1.0), false);
+    setLoopStart (sourceZoneProperties.getLoopStart ().value_or (-1), false);
+    setMinVoltage (sourceZoneProperties.getMinVoltage (), false);
+    setPitchOffset (sourceZoneProperties.getPitchOffset (), false);
+    setSampleEnd (sourceZoneProperties.getSampleEnd ().value_or (-1), false);
+    setSampleStart (sourceZoneProperties.getSampleStart ().value_or (-1), false);
+    setSide (sourceZoneProperties.getSide (), false);
+}
+
+////////////////////////////////////////////////////////////////////
+// set___
+////////////////////////////////////////////////////////////////////
+void ZoneProperties::setId (int id, bool includeSelfCallback)
+{
+    setValue (id, IdPropertyId, includeSelfCallback);
 }
 
 void ZoneProperties::setLevelOffset (double levelOffset, bool includeSelfCallback)
@@ -22,7 +39,7 @@ void ZoneProperties::setLoopLength (double loopLength, bool includeSelfCallback)
     setValue (loopLength, LoopLengthPropertyId, includeSelfCallback);
 }
 
-void ZoneProperties::setLoopStart (int loopStart, bool includeSelfCallback)
+void ZoneProperties::setLoopStart (int64_t loopStart, bool includeSelfCallback)
 {
     setValue (loopStart, LoopStartPropertyId, includeSelfCallback);
 }
@@ -42,12 +59,12 @@ void ZoneProperties::setSample (juce::String sampleFileName, bool includeSelfCal
     setValue (sampleFileName, SamplePropertyId, includeSelfCallback);
 }
 
-void ZoneProperties::setSampleStart (int sampleStart, bool includeSelfCallback)
+void ZoneProperties::setSampleStart (int64_t sampleStart, bool includeSelfCallback)
 {
     setValue (sampleStart, SampleStartPropertyId, includeSelfCallback);
 }
 
-void ZoneProperties::setSampleEnd (int sampleEnd, bool includeSelfCallback)
+void ZoneProperties::setSampleEnd (int64_t sampleEnd, bool includeSelfCallback)
 {
     setValue (sampleEnd, SampleEndPropertyId, includeSelfCallback);
 }
@@ -57,9 +74,12 @@ void ZoneProperties::setSide (int side, bool includeSelfCallback)
     setValue (side, SidePropertyId, includeSelfCallback);
 }
 
-int ZoneProperties::getIndex ()
+////////////////////////////////////////////////////////////////////
+// get___
+////////////////////////////////////////////////////////////////////
+int ZoneProperties::getId ()
 {
-    return getValue<int> (IndexPropertyId);
+    return getValue<int> (IdPropertyId);
 }
 
 double ZoneProperties::getLevelOffset ()
@@ -67,14 +87,20 @@ double ZoneProperties::getLevelOffset ()
     return getValue<double> (LevelOffsetPropertyId);
 }
 
-double ZoneProperties::getLoopLength ()
+std::optional<double> ZoneProperties::getLoopLength ()
 {
-    return getValue<double> (LoopLengthPropertyId);
+    const auto loopLength { getValue<double> (LoopLengthPropertyId) };
+    if (loopLength == -1.0) // -1 indicates uninitialized
+        return {};
+    return loopLength;
 }
 
-int ZoneProperties::getLoopStart ()
+std::optional <int64_t> ZoneProperties::getLoopStart ()
 {
-    return getValue<int> (LoopStartPropertyId);
+    const auto loopStart { getValue<int64_t> (LoopStartPropertyId) };
+    if (loopStart == -1) // -1 indicates uninitialized
+        return {};
+    return loopStart;
 }
 
 double ZoneProperties::getMinVoltage ()
@@ -92,14 +118,20 @@ juce::String ZoneProperties::getSample ()
     return getValue<juce::String> (SamplePropertyId);
 }
 
-int ZoneProperties::getSampleStart ()
+std::optional <int64_t> ZoneProperties::getSampleStart ()
 {
-    return getValue<int> (SampleStartPropertyId);
+    const auto sampleStart { getValue<int64_t> (SampleStartPropertyId) };
+    if (sampleStart == -1) // -1 indicate uninitialized
+        return {};
+    return sampleStart;
 }
 
-int ZoneProperties::getSampleEnd ()
+std::optional <int64_t> ZoneProperties::getSampleEnd ()
 {
-    return getValue<int> (SampleEndPropertyId);
+    const auto sampleEnd { getValue<int64_t> (SampleEndPropertyId) };
+    if (sampleEnd == -1) // -1 indicate uninitialized
+        return {};
+    return sampleEnd;
 }
 
 int ZoneProperties::getSide ()
@@ -107,21 +139,14 @@ int ZoneProperties::getSide ()
     return getValue<int> (SidePropertyId);
 }
 
-juce::ValueTree ZoneProperties::create (int index)
-{
-    ZoneProperties zoneProperties;
-    zoneProperties.setIndex (index, false);
-    return zoneProperties.getValueTree ();
-}
-
 void ZoneProperties::valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property)
 {
     if (data == vt)
     {
-        if (property == IndexPropertyId)
+        if (property == IdPropertyId)
         {
-            if (onIndexChange!= nullptr)
-                onIndexChange (getIndex ());
+            if (onIdChange!= nullptr)
+                onIdChange (getId ());
         }
         else if (property == LevelOffsetPropertyId)
         {

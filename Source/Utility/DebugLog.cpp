@@ -7,7 +7,7 @@ static auto startTime { juce::Time::currentTimeMillis () };
 static auto lastTime { startTime };
 
 #if USE_DEFERRED_LOGGER
-static auto debugLogger { ArtiLogger () };
+static auto debugLogger { ThreadedLogger () };
 #endif
 
 namespace DebugLogger
