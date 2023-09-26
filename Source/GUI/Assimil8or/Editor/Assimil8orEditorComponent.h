@@ -13,7 +13,7 @@ public:
 private:
     void paint (juce::Graphics& g) override
     {
-        g.fillAll (juce::Colours::white.withAlpha (0.2f));
+        g.fillAll (juce::Colours::grey);
         g.setColour (juce::Colours::white);
         g.drawLine ({ getLocalBounds ().getTopLeft ().toFloat (),getLocalBounds ().getTopRight ().toFloat () });
     }

@@ -334,7 +334,7 @@ void DirectoryValueTree::scanDirectory ()
         LogDirectoryValueTree (true, "DirectoryValueTree::scanDirectory - operation cancelled, removing all data");
         directoryDataProperties.getRootFolderVT ().removeAllChildren (nullptr);
     }
-    juce::Logger::outputDebugString ("DirectoryValueTree::scanDirectory ()- elapsed time: " + juce::String (timer.getElapsedTime ()));
+    //juce::Logger::outputDebugString ("DirectoryValueTree::scanDirectory ()- elapsed time: " + juce::String (timer.getElapsedTime ()));
 }
 
 void DirectoryValueTree::doProgressUpdate (juce::String progressString)
