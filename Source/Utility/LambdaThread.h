@@ -5,21 +5,26 @@
 class LambdaThread : public juce::Thread
 {
 public:
-    LambdaThread (juce::String threadName, int stopTimeout) : Thread (threadName)
+    LambdaThread (juce::String threadName, int theStopTimeout) : Thread (threadName)
     {
-        timeout = stopTimeout;
+        stopTimeout = theStopTimeout;
     }
     ~LambdaThread () noexcept { stop (); }
 
+    bool isWaiting () { return waiting; }
     void start () { jassert (onThreadLoop != nullptr); startThread (); }
-    void stop () { stopThread (timeout); }
+    void stop () { stopThread (stopTimeout); }
     void sleep (int ms) { Thread::sleep (ms); }
-    bool setPriority (Priority priority) { return Thread::setPriority (priority); };
+    bool setPriority (Priority priority) { return Thread::setPriority (priority); }
+    void wake () { notify (); }
+    bool waitForNotification (double timeout) { waiting = true; const auto returnValue { wait (timeout) }; waiting = false; return returnValue; }
+    bool shouldExit () { return threadShouldExit (); }
 
     std::function<bool ()> onThreadLoop;
 
 private:
-    int timeout { 1 };
+    int stopTimeout { 1 };
+    std::atomic<bool> waiting { false };
     void run () override
     {
         jassert (onThreadLoop != nullptr);

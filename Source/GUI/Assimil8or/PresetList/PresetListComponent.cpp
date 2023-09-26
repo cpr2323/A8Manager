@@ -7,7 +7,7 @@
 #include "../../../Utility/RuntimeRootProperties.h"
 #include "../../../Utility/WatchDogTimer.h"
 
-#define LOG_PRESET_LIST 1
+#define LOG_PRESET_LIST 0
 #if LOG_PRESET_LIST
 #define LogPresetList(text) juce::Logger::outputDebugString (text);
 #else
@@ -39,7 +39,17 @@ void PresetListComponent::init (juce::ValueTree rootPropertiesVT)
     directoryDataProperties.wrap (runtimeRootProperties.getValueTree (), DirectoryDataProperties::WrapperType::client, DirectoryDataProperties::EnableCallbacks::yes);
     directoryDataProperties.onRootScanComplete = [this] ()
     {
-        checkPresetsThread.startThread ();
+        LogPresetList ("PresetListComponent::init - directoryDataProperties.onRootScanComplete");
+        if (! checkPresetsThread.isThreadRunning ())
+        {
+            LogPresetList ("PresetListComponent::init - directoryDataProperties.onRootScanComplete - starting thread");
+            checkPresetsThread.startThread ();
+        }
+        else
+        {
+            LogPresetList ("PresetListComponent::init - directoryDataProperties.onRootScanComplete - starting timer");
+            startTimer (1);
+        }
     };
 //     directoryDataProperties.onStatusChange = [this] (DirectoryDataProperties::ScanStatus status)
 //     {
@@ -273,6 +283,18 @@ void PresetListComponent::paintListBoxItem (int row, juce::Graphics& g, int widt
         g.setColour (textColor);
         g.drawText ("  " + juce::String (presetNumber) + "-" + presetName, juce::Rectangle<float>{ 0.0f, 0.0f, (float) width, (float) height }, juce::Justification::centredLeft, true);
     }
+}
+
+void PresetListComponent::timerCallback ()
+{
+    LogPresetList ("PresetListComponent::timerCallback - enter");
+    if (! checkPresetsThread.isThreadRunning ())
+    {
+        LogPresetList ("PresetListComponent::timerCallback - starting thread, stopping timer");
+        checkPresetsThread.start ();
+        stopTimer ();
+    }
+    LogPresetList ("PresetListComponent::timerCallback - enter");
 }
 
 juce::String PresetListComponent::getTooltipForRow (int row)

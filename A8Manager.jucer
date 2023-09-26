@@ -90,33 +90,8 @@
                   compile="0" resource="1" file="Source/GUI/Assimil8or/Data/377406562_23959160547061655_5780406445368602361_n.png"/>
             <FILE id="FQ9PfM" name="377906243_984640136172516_2914152204379747274_n.png"
                   compile="0" resource="1" file="Source/GUI/Assimil8or/Data/377906243_984640136172516_2914152204379747274_n.png"/>
-            <FILE id="WPBimm" name="377935316_605972298278234_3982868804397026662_n.png"
-                  compile="0" resource="1" file="Source/GUI/Assimil8or/Data/377935316_605972298278234_3982868804397026662_n.png"/>
-            <FILE id="H9RxNG" name="378050114_339763128525855_7062773882030585322_n.png"
-                  compile="0" resource="1" file="Source/GUI/Assimil8or/Data/378050114_339763128525855_7062773882030585322_n.png"/>
-            <FILE id="t6YFbW" name="379313820_290057216986877_8377143342958664508_n.png"
-                  compile="0" resource="1" file="Source/GUI/Assimil8or/Data/379313820_290057216986877_8377143342958664508_n.png"/>
-            <FILE id="fifH95" name="379342397_1019467619075859_1228747790893365825_n.png"
-                  compile="0" resource="1" file="Source/GUI/Assimil8or/Data/379342397_1019467619075859_1228747790893365825_n.png"/>
-            <FILE id="ltv6M2" name="379403158_3396337237250670_4726445264217380727_n.png"
-                  compile="0" resource="1" file="Source/GUI/Assimil8or/Data/379403158_3396337237250670_4726445264217380727_n.png"/>
-            <FILE id="mEbIuf" name="379444644_1404673993430453_2964062811252271248_n.png"
-                  compile="0" resource="1" file="Source/GUI/Assimil8or/Data/379444644_1404673993430453_2964062811252271248_n.png"/>
-            <FILE id="nymuST" name="379611433_847964663222151_6261125189292550011_n.png"
-                  compile="0" resource="1" file="Source/GUI/Assimil8or/Data/379611433_847964663222151_6261125189292550011_n.png"/>
-            <FILE id="r8tDaY" name="A8 logo test black.png" compile="0" resource="1"
-                  file="Source/GUI/Assimil8or/Data/A8 logo test black.png"/>
-            <FILE id="SJ3b9J" name="A8 logo test blue.png" compile="0" resource="1"
-                  file="Source/GUI/Assimil8or/Data/A8 logo test blue.png"/>
-            <FILE id="a3m8SS" name="A8 logo test grey.png" compile="0" resource="1"
-                  file="Source/GUI/Assimil8or/Data/A8 logo test grey.png"/>
-            <FILE id="Sac7ok" name="A8 logo test logo white.png" compile="0" resource="1"
-                  file="Source/GUI/Assimil8or/Data/A8 logo test logo white.png"/>
-            <FILE id="hJiS2y" name="A8Manager_300.png" compile="0" resource="1"
-                  file="Source/GUI/Assimil8or/Data/A8Manager_300.png"/>
             <FILE id="M1fY5n" name="Assimil8orToolTips.xml" compile="0" resource="1"
                   file="Source/GUI/Assimil8or/Data/Assimil8orToolTips.xml"/>
-            <FILE id="hteBAz" name="tst_icon_2.png" compile="0" resource="1" file="Source/GUI/Assimil8or/Data/tst_icon_2.png"/>
           </GROUP>
           <GROUP id="{E38A382D-990E-A82D-2924-1AE3B97D907B}" name="Editor">
             <FILE id="liNFVw" name="Assimil8orEditorComponent.cpp" compile="1"

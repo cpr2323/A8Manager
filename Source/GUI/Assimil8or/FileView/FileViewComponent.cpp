@@ -36,7 +36,7 @@ FileViewComponent::FileViewComponent ()
 
 void FileViewComponent::init (juce::ValueTree rootPropertiesVT)
 {
-    juce::Logger::outputDebugString ("FileViewComponent::init");
+    LogFileView ("FileViewComponent::init");
     PersistentRootProperties persistentRootProperties (rootPropertiesVT, PersistentRootProperties::WrapperType::client, PersistentRootProperties::EnableCallbacks::no);
     appProperties.wrap (persistentRootProperties.getValueTree (), AppProperties::WrapperType::client, AppProperties::EnableCallbacks::yes);
 
@@ -44,7 +44,7 @@ void FileViewComponent::init (juce::ValueTree rootPropertiesVT)
     directoryDataProperties.wrap (runtimeRootProperties.getValueTree (), DirectoryDataProperties::WrapperType::client, DirectoryDataProperties::EnableCallbacks::yes);
     directoryDataProperties.onRootScanComplete = [this] ()
     {
-        juce::Logger::outputDebugString ("FileViewComponent/onRootScanComplete");
+        LogFileView ("FileViewComponent/onRootScanComplete");
         isRootFolder = juce::File (directoryDataProperties.getRootFolder ()).getParentDirectory () == juce::File (directoryDataProperties.getRootFolder ());
         updateFromNewDataThread.start ();
     };
@@ -79,7 +79,7 @@ void FileViewComponent::init (juce::ValueTree rootPropertiesVT)
 
 void FileViewComponent::updateFromNewData ()
 {
-    juce::Logger::outputDebugString ("FileViewComponent::updateFromNewData ()");
+    LogFileView ("FileViewComponent::updateFromNewData ()");
     WatchdogTimer timer;
     timer.start (10000);
     buildQuickLookupList ();

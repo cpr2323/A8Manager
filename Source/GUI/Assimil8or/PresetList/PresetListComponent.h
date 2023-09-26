@@ -8,7 +8,8 @@
 
 const auto kMaxPresets { 199 };
 class PresetListComponent : public juce::Component,
-                            private juce::ListBoxModel
+                            private juce::ListBoxModel,
+                            private juce::Timer
 {
 public:
     PresetListComponent ();
@@ -49,4 +50,5 @@ private:
     juce::String getTooltipForRow (int row) override;
     void listBoxItemClicked (int row, const juce::MouseEvent& me) override;
     void paintListBoxItem (int rowNumber, juce::Graphics& g, int width, int height, bool rowIsSelected) override;
+    void timerCallback () override;
 };
