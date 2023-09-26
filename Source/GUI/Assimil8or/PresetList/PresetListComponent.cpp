@@ -182,7 +182,7 @@ void PresetListComponent::checkPresets ()
     });
     previousFolder = currentFolder;
 
-    juce::Logger::outputDebugString ("PresetListComponent::checkPresets - elapsed time: " + juce::String (timer.getElapsedTime ()));
+    //juce::Logger::outputDebugString ("PresetListComponent::checkPresets - elapsed time: " + juce::String (timer.getElapsedTime ()));
 }
 
 void PresetListComponent::loadFirstPreset ()

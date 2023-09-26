@@ -88,7 +88,7 @@ void FileViewComponent::updateFromNewData ()
         directoryContentsListBox.updateContent ();
         directoryContentsListBox.repaint ();
     });
-    juce::Logger::outputDebugString ("FileViewComponent::updateFromNewData () - elapsed time: " + juce::String (timer.getElapsedTime ()));
+    //juce::Logger::outputDebugString ("FileViewComponent::updateFromNewData () - elapsed time: " + juce::String (timer.getElapsedTime ()));
 }
 
 void FileViewComponent::buildQuickLookupList ()

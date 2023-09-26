@@ -45,7 +45,7 @@ Assimil8orValidator::Assimil8orValidator () : Thread ("Assimil8orValidator")
         WatchdogTimer timer;
         timer.start (100000);
         validateRootFolder ();
-        juce::Logger::outputDebugString ("Assimil8orValidator::thread - elapsed time: " + juce::String (timer.getElapsedTime ()));
+        //juce::Logger::outputDebugString ("Assimil8orValidator::thread - elapsed time: " + juce::String (timer.getElapsedTime ()));
         valdatationState = Assimil8orValidator::ValdatationState::idle;
         return false;
     };
