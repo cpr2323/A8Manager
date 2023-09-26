@@ -68,8 +68,6 @@ public:
 
 private:
     void valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property) override;
-    void valueTreeChildAdded (juce::ValueTree& vt, juce::ValueTree& child) override;
-    void valueTreeChildRemoved (juce::ValueTree& vt, juce::ValueTree& child, int index) override;
 };
 
 class FileProperties : public ValueTreeWrapper<FileProperties>
@@ -95,12 +93,12 @@ public:
 
     void setType (DirectoryDataProperties::TypeIndex theType, bool includeSelfCallback)
     {
-        setValue (static_cast<int>(theType), TypePropertyId, includeSelfCallback);
+        setValue (static_cast<int> (theType), TypePropertyId, includeSelfCallback);
     }
 
-    DirectoryDataProperties::TypeIndex getType()
+    DirectoryDataProperties::TypeIndex getType ()
     {
-        return static_cast<DirectoryDataProperties::TypeIndex>(getValue<int> (TypePropertyId));
+        return static_cast<DirectoryDataProperties::TypeIndex> (getValue<int> (TypePropertyId));
     }
 
     static inline const juce::Identifier FileTypeId { "File" };
@@ -111,7 +109,7 @@ public:
     {
         juce::ValueTree fileVT { FileTypeId };
         fileVT.setProperty (NamePropertyId, filePath, nullptr);
-        fileVT.setProperty (TypePropertyId, static_cast<int>(fileType), nullptr);
+        fileVT.setProperty (TypePropertyId, static_cast<int> (fileType), nullptr);
         return fileVT;
     }
 

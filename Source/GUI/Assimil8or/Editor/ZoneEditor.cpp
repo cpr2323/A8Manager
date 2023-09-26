@@ -234,7 +234,7 @@ void ZoneEditor::setupZoneComponents ()
             else
                 return std::clamp (text.getLargeIntValue (), minZoneProperties.getLoopStart ().value_or (0),
                                    zoneProperties.getLoopStart ().value_or (0) + static_cast<int64_t> (zoneProperties.getLoopLength ().value_or (static_cast<double> (sampleLength - zoneProperties.getLoopStart ().value_or (0)))));
-        }();
+        } ();
         loopStartUiChanged (loopStart);
         loopStartTextEditor.setText (juce::String (loopStart));
         if (loopLengthIsEnd)
@@ -253,7 +253,7 @@ void ZoneEditor::setupZoneComponents ()
                 return text.getDoubleValue () - zoneProperties.getLoopStart ().value_or (0);
             else
                 return text.getDoubleValue ();
-        }();
+        } ();
         FormatHelpers::setColorIfError (loopLengthTextEditor, loopLengthInput,
                                         sampleLength == 0 ? 0.0 : minZoneProperties.getLoopLength ().value_or (static_cast<double> (sampleLength - zoneProperties.getLoopStart ().value_or (0))),
                                         static_cast<double> (sampleLength - zoneProperties.getLoopStart ().value_or (0)));
@@ -266,7 +266,7 @@ void ZoneEditor::setupZoneComponents ()
                 return text.getDoubleValue () - zoneProperties.getLoopStart ().value_or (0);
             else
                 return text.getDoubleValue ();
-        }();
+        } ();
         // constrain
         auto loopLength { std::clamp (loopLengthInput,
                                       minZoneProperties.getLoopLength ().value_or (static_cast<double> (sampleLength - zoneProperties.getLoopStart ().value_or (0))),

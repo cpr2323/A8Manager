@@ -19,7 +19,7 @@ void CurrentFolderComponent::init (juce::ValueTree rootPropertiesVT)
     directoryDataProperties.wrap (runtimeRootProperties.getValueTree (), DirectoryDataProperties::WrapperType::client, DirectoryDataProperties::EnableCallbacks::yes);
     directoryDataProperties.onProgressChange = [this] (juce::String progressString)
     {
-        currentFolderAndProgressLabel.setText (getFolderAndProgressString(appProperties.getMostRecentFolder (), progressString), juce::NotificationType::dontSendNotification);
+        currentFolderAndProgressLabel.setText (getFolderAndProgressString (appProperties.getMostRecentFolder (), progressString), juce::NotificationType::dontSendNotification);
     };
 
     currentFolderAndProgressLabel.setText (getFolderAndProgressString (appProperties.getMostRecentFolder (), directoryDataProperties.getProgress ()), juce::NotificationType::dontSendNotification);

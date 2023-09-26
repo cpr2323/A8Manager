@@ -88,13 +88,13 @@ void PresetListComponent::forEachPresetFile (std::function<bool (juce::File pres
     auto inPresetList { false };
     ValueTreeHelpers::forEachChild (directoryDataProperties.getRootFolderVT (), [this, presetFileCallback, &inPresetList] (juce::ValueTree child)
     {
-        if (FileProperties::isFileVT(child))
+        if (FileProperties::isFileVT (child))
         {
             FileProperties fileProperties (child, FileProperties::WrapperType::client, FileProperties::EnableCallbacks::no);
             if (fileProperties.getType ()== DirectoryDataProperties::presetFile)
             {
                 inPresetList = true;
-                const auto fileToCheck { juce::File (fileProperties.getName()) };
+                const auto fileToCheck { juce::File (fileProperties.getName ()) };
                 const auto presetIndex { FileTypeHelpers::getPresetNumberFromName (fileToCheck) - 1 };
                 if (presetIndex < 0 || presetIndex >= kMaxPresets)
                     return false;
@@ -128,12 +128,12 @@ void PresetListComponent::checkPresets ()
 
     if (showAll)
         numPresets = kMaxPresets;
-    else 
+    else
         numPresets = 0;
     auto inPresetList { false };
     ValueTreeHelpers::forEachChild (directoryDataProperties.getRootFolderVT (), [this, &inPresetList, showAll] (juce::ValueTree child)
     {
-        if (FileProperties::isFileVT(child))
+        if (FileProperties::isFileVT (child))
         {
             FileProperties fileProperties (child, FileProperties::WrapperType::client, FileProperties::EnableCallbacks::no);
             if (fileProperties.getType () == DirectoryDataProperties::TypeIndex::presetFile)
@@ -366,13 +366,13 @@ void PresetListComponent::listBoxItemClicked (int row, [[maybe_unused]] const ju
     {
         presetListBox.selectRow (lastSelectedPresetIndex, false, true);
         auto [presetNumber, thisPresetExists, presetName] { presetInfoList [row] };
-        if (!thisPresetExists)
+        if (! thisPresetExists)
             presetName = "(preset)";
 
         juce::PopupMenu pm;
         pm.addSectionHeader (juce::String (presetNumber) + "-" + presetName);
         pm.addItem ("Copy", thisPresetExists, false, [this, presetNumber = presetNumber] () { copyPreset (presetNumber); });
-        pm.addItem ("Paste", copyBufferPresetProperties.getName ().isNotEmpty(), false, [this, presetNumber = presetNumber] () { pastePreset (presetNumber); });
+        pm.addItem ("Paste", copyBufferPresetProperties.getName ().isNotEmpty (), false, [this, presetNumber = presetNumber] () { pastePreset (presetNumber); });
         pm.addItem ("Delete", thisPresetExists, false, [this, presetNumber = presetNumber] () { deletePreset (presetNumber); });
         pm.showMenuAsync ({}, [this] (int) {});
     }

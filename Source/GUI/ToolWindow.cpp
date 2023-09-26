@@ -27,7 +27,7 @@ void ToolWindow::updateProgress (juce::String progressUpdate)
 
 void ToolWindow::paint (juce::Graphics& g)
 {
-    g.fillAll (progressUpdateLabel.findColour(juce::Label::ColourIds::backgroundColourId).brighter (0.9f));
+    g.fillAll (progressUpdateLabel.findColour (juce::Label::ColourIds::backgroundColourId).brighter (0.9f));
 }
 
 void ToolWindow::resized ()

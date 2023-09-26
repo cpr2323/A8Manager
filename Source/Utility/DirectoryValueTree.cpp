@@ -121,7 +121,7 @@ void DirectoryValueTree::sendStatusUpdate (DirectoryDataProperties::ScanStatus s
 {
     juce::MessageManager::callAsync ([this, scanStatus] ()
     {
-        //juce::Logger::outputDebugString ("setting scanStatus: " + juce::String(static_cast<int>(scanStatus)));
+        //juce::Logger::outputDebugString ("setting scanStatus: " + juce::String (static_cast<int> (scanStatus)));
         directoryDataProperties.setStatus (scanStatus, false);
     });
 }
@@ -142,10 +142,10 @@ juce::ValueTree DirectoryValueTree::makeFileEntry (juce::File file, DirectoryDat
             else
             {
                 fileVT.setProperty ("dataType", (reader->usesFloatingPointData == true ? "floating point" : "integer"), nullptr);
-                fileVT.setProperty ("bitDepth", static_cast<int>(reader->bitsPerSample), nullptr);
-                fileVT.setProperty ("numChannels", static_cast<int>(reader->numChannels), nullptr);
-                fileVT.setProperty ("sampleRate", static_cast<int>(reader->sampleRate), nullptr);
-                fileVT.setProperty ("lengthSamples", static_cast<int64_t>(reader->lengthInSamples), nullptr);
+                fileVT.setProperty ("bitDepth", static_cast<int> (reader->bitsPerSample), nullptr);
+                fileVT.setProperty ("numChannels", static_cast<int> (reader->numChannels), nullptr);
+                fileVT.setProperty ("sampleRate", static_cast<int> (reader->sampleRate), nullptr);
+                fileVT.setProperty ("lengthSamples", static_cast<int64_t> (reader->lengthInSamples), nullptr);
             }
         }
         break;
@@ -372,7 +372,7 @@ bool DirectoryValueTree::hasFolderChanged (juce::ValueTree rootFolderVT)
             else
             {
                 FolderProperties curNewFolderChildFolder (newChildVT, FolderProperties::WrapperType::owner, FolderProperties::EnableCallbacks::no);
-                if (curRootFolderChildFolder.getName () != curNewFolderChildFolder.getName())
+                if (curRootFolderChildFolder.getName () != curNewFolderChildFolder.getName ())
                 {
                     LogDirectoryValueTree (true, "DirectoryValueTree::hasFolderChanged - item #" + juce::String (childIndex) + " names differ - do rescan");
                     return true;
@@ -433,7 +433,7 @@ void DirectoryValueTree::getContentsOfFolder (juce::ValueTree folderVT, int curD
 
 void DirectoryValueTree::sortContentsOfFolder (juce::ValueTree rootFolderVT, std::function<bool ()> shouldCancelFunc)
 {
-    jassert (FolderProperties::isFolderVT(rootFolderVT));
+    jassert (FolderProperties::isFolderVT (rootFolderVT));
 
     // Folders
     // System files (folderprefs, lastfolder, lastpreset)
@@ -497,7 +497,7 @@ void DirectoryValueTree::sortContentsOfFolder (juce::ValueTree rootFolderVT, std
             //   Preset files
             //   Audio files
             //   unknown files
-            switch (static_cast<int> (directoryEntryVT.getProperty("type")))
+            switch (static_cast<int> (directoryEntryVT.getProperty ("type")))
             {
                 case DirectoryDataProperties::TypeIndex::systemFile:  insertSorted (folderIndex, DirectoryDataProperties::TypeIndex::systemFile); break;
                 case DirectoryDataProperties::TypeIndex::presetFile:  insertSorted (folderIndex, DirectoryDataProperties::TypeIndex::presetFile); break;

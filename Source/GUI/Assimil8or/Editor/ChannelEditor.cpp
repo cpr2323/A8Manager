@@ -141,7 +141,7 @@ void ChannelEditor::duplicateZone (int zoneIndex)
 
     // if the zone on the end does not have a -5 minVoltage, then set it to -5
     const auto indexOfLastZone { getNumUsedZones () - 1 };
-    if (zoneProperties[indexOfLastZone].getMinVoltage() != -5.0)
+    if (zoneProperties[indexOfLastZone].getMinVoltage () != -5.0)
         zoneProperties [indexOfLastZone].setMinVoltage (-5.0, false);
 }
 
@@ -253,7 +253,7 @@ double ChannelEditor::snapEnvelopeValue (double rawValue)
             return 10.0;
         else
             return 1.0;
-    }();
+    } ();
     return static_cast<double> (static_cast<uint32_t> (rawValue * scalerValue)) / scalerValue;
 }
 
@@ -265,7 +265,7 @@ double ChannelEditor::snapBitsValue (double rawValue)
             return 10.0;
         else
             return 1.0;
-    }();
+    } ();
     return static_cast<double> (static_cast<uint32_t> (rawValue * scalerValue)) / scalerValue;
 }
 

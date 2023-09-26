@@ -32,7 +32,7 @@ void DirectoryDataProperties::setScanDepth (int scanDepth, bool includeSelfCallb
 
 void DirectoryDataProperties::setStatus (DirectoryDataProperties::ScanStatus status, bool includeSelfCallback)
 {
-    setValue (static_cast<int>(status), StatusPropertyId, includeSelfCallback);
+    setValue (static_cast<int> (status), StatusPropertyId, includeSelfCallback);
 }
 
 void DirectoryDataProperties::triggerRootScanComplete (bool includeSelfCallback)
@@ -62,7 +62,7 @@ int DirectoryDataProperties::getScanDepth ()
 
 DirectoryDataProperties::ScanStatus DirectoryDataProperties::getStatus ()
 {
-    return static_cast<DirectoryDataProperties::ScanStatus>(getValue<int> (StatusPropertyId));
+    return static_cast<DirectoryDataProperties::ScanStatus> (getValue<int> (StatusPropertyId));
 }
 
 juce::ValueTree DirectoryDataProperties::getRootFolderVT ()
@@ -106,14 +106,4 @@ void DirectoryDataProperties::valueTreePropertyChanged (juce::ValueTree& vt, con
                 onStatusChange (getStatus ());
         }
     }
-}
-
-void DirectoryDataProperties::valueTreeChildAdded (juce::ValueTree& vt, juce::ValueTree& child)
-{
-
-}
-
-void DirectoryDataProperties::valueTreeChildRemoved (juce::ValueTree& vt, juce::ValueTree& child, int index)
-{
-
 }

@@ -48,7 +48,7 @@ private:
 
     void doIfProgressTimeElapsed (std::function<void ()> functionToDo);
     void doProgressUpdate (juce::String progressString);
-    void getContentsOfFolder (juce::ValueTree folderVT, int curDepth, std::function<bool()> shouldCancelFunc);
+    void getContentsOfFolder (juce::ValueTree folderVT, int curDepth, std::function<bool ()> shouldCancelFunc);
     juce::String getPathFromCurrentRoot (juce::String fullPath);
     TaskManagementState getCurrentTaskManagementState ();
     juce::String getTaskManagementStateString (TaskManagementState theThreadState);

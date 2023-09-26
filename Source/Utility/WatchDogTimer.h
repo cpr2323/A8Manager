@@ -11,7 +11,7 @@ public:
         stop ();
     }
 
-    void start(int timeOut)
+    void start (int timeOut)
     {
         timeExpired = false;
         startTimer (timeOut);

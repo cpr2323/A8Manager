@@ -26,7 +26,7 @@ namespace PresetHelpers
             {
                 if (! areChannelsEqual (presetOne.getChannelVT (channelIndex), presetTwo.getChannelVT (channelIndex)))
                 {
-                    //juce::Logger::outputDebugString ("Channel "+juce::String(channelIndex) + " mismatch");
+                    //juce::Logger::outputDebugString ("Channel "+juce::String (channelIndex) + " mismatch");
                     presetsAreEqual = false;
                 }
 

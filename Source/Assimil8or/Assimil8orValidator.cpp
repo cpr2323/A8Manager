@@ -202,7 +202,6 @@ void Assimil8orValidator::processFolder (juce::ValueTree folderVT)
     //      report if name over 47 characters
     //      report if it does not match supported formats
     // report any other files as unused by assimil8or
-    
     jassert (FolderProperties::isFolderVT (folderVT));
     uint64_t totalSizeOfRamRequiredPresets {};
     uint64_t totalSizeOfRamRequiredAllAudioFiles {};

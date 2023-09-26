@@ -97,8 +97,8 @@ void FileViewComponent::buildQuickLookupList ()
     auto rf { directoryDataProperties.getRootFolderVT () };
     ValueTreeHelpers::forEachChild (directoryDataProperties.getRootFolderVT (), [this] (juce::ValueTree child)
     {
-        const auto typeIndex { static_cast<int>(child.getProperty("type")) };
-        if (showAllFiles.getToggleState())
+        const auto typeIndex { static_cast<int> (child.getProperty ("type")) };
+        if (showAllFiles.getToggleState ())
         {
             updateDirectoryListQuickLookupList->emplace_back (child);
         }
@@ -191,7 +191,7 @@ void FileViewComponent::paintListBoxItem (int row, juce::Graphics& g, int width,
         {
             filePrefix = "> ";
         }
-        else if (static_cast<int>(directoryEntryVT.getProperty ("type")) == DirectoryDataProperties::TypeIndex::audioFile)
+        else if (static_cast<int> (directoryEntryVT.getProperty ("type")) == DirectoryDataProperties::TypeIndex::audioFile)
         {
             filePrefix = "-  ";
             textColor = juce::Colours::forestgreen;
@@ -223,16 +223,16 @@ juce::String FileViewComponent::getTooltipForRow (int row)
         const auto directoryEntryVT { getDirectoryEntryVT (row) };
 
         juce::String toolTip { juce::File (directoryEntryVT.getProperty ("name").toString ()).getFileName () };
-        if (static_cast<int>(directoryEntryVT.getProperty ("type")) == DirectoryDataProperties::TypeIndex::audioFile)
+        if (static_cast<int> (directoryEntryVT.getProperty ("type")) == DirectoryDataProperties::TypeIndex::audioFile)
         {
-            const auto sampleRate { static_cast<int>(directoryEntryVT.getProperty ("sampleRate")) };
+            const auto sampleRate { static_cast<int> (directoryEntryVT.getProperty ("sampleRate")) };
             if (auto errorString { directoryEntryVT.getProperty ("error").toString () }; errorString != "")
                 toolTip += juce::String ("\r") + "Error: " + errorString;
             toolTip += juce::String ("\r") + "DataType: " + directoryEntryVT.getProperty ("dataType").toString ();
-            toolTip += juce::String ("\r") + "BitDepth: " + juce::String(static_cast<int>(directoryEntryVT.getProperty ("bitDepth")));
-            toolTip += juce::String ("\r") + "Channels: " + juce::String (static_cast<int>(directoryEntryVT.getProperty ("numChannels")));
+            toolTip += juce::String ("\r") + "BitDepth: " + juce::String (static_cast<int> (directoryEntryVT.getProperty ("bitDepth")));
+            toolTip += juce::String ("\r") + "Channels: " + juce::String (static_cast<int> (directoryEntryVT.getProperty ("numChannels")));
             toolTip += juce::String ("\r") + "SampleRate: " + juce::String (sampleRate);
-            toolTip += juce::String ("\r") + "Length: " + juce::String (static_cast<double>(static_cast<int64_t>(directoryEntryVT.getProperty ("lengthSamples"))) / sampleRate, 2);
+            toolTip += juce::String ("\r") + "Length: " + juce::String (static_cast<double> (static_cast<int64_t> (directoryEntryVT.getProperty ("lengthSamples"))) / sampleRate, 2);
         }
         return toolTip;
     }
@@ -246,7 +246,7 @@ void FileViewComponent::listBoxItemClicked (int row, [[maybe_unused]] const juce
     if (! isRootFolder && row != 0)
     {
         const auto directoryEntryVT { getDirectoryEntryVT (row) };
-        if (static_cast<int>(directoryEntryVT.getProperty ("type")) != DirectoryDataProperties::TypeIndex::folder)
+        if (static_cast<int> (directoryEntryVT.getProperty ("type")) != DirectoryDataProperties::TypeIndex::folder)
             return;
     }
 
@@ -328,7 +328,7 @@ void FileViewComponent::listBoxItemDoubleClicked (int row, [[maybe_unused]] cons
         return;
 
     const auto directoryEntryVT { getDirectoryEntryVT (row) };
-    if (directoryEntryVT.getType ().toString () == "File" && static_cast<int>(directoryEntryVT.getProperty ("type")) == DirectoryDataProperties::TypeIndex::audioFile)
+    if (directoryEntryVT.getType ().toString () == "File" && static_cast<int> (directoryEntryVT.getProperty ("type")) == DirectoryDataProperties::TypeIndex::audioFile)
     {
         if (onAudioFileSelected != nullptr)
             onAudioFileSelected (juce::File (directoryEntryVT.getProperty ("name").toString ()));
