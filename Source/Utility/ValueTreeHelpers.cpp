@@ -7,11 +7,29 @@ static void dumpValueTreeContentInternal (juce::ValueTree vt, bool displayProper
     juce::String indentString { std::string (indentLevel, ' ') };
     displayFunction (indentString + vt.getType ().toString ());
     if (displayProperties)
+    {
+        juce::String outputLine;
         for (auto propIndex { 0 }; propIndex < vt.getNumProperties (); ++propIndex)
         {
             const auto propertyName { vt.getPropertyName (propIndex) };
-            displayFunction (indentString + "  " + propertyName + " = '" + vt.getProperty (propertyName).toString () + "'");
+            const auto propertyOutput { propertyName + " = '" + vt.getProperty (propertyName).toString () + "'" };
+            if (outputLine.length () == 0)
+            {
+                outputLine = propertyOutput;
+            }
+            else if (outputLine.length () + propertyOutput.length () + 1 > 80)
+            {
+                displayFunction (indentString + "  " + outputLine);
+                outputLine = propertyOutput;
+            }
+            else
+            {
+                outputLine += " " + propertyOutput;
+            }
         }
+        if (outputLine.length() > 0)
+            displayFunction (indentString + "  " + outputLine);
+    }
     for (const auto& child : vt)
         dumpValueTreeContentInternal (child, displayProperties, indentLevel + 1, displayFunction);
 }
