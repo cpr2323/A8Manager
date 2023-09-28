@@ -1,5 +1,3 @@
-// Copyright (c) 2019 Artiphon, Inc. All Rights Reserved.
-
 #pragma once
 
 #include <JuceHeader.h>
