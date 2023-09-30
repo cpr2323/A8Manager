@@ -4,8 +4,7 @@
 #include "../../../Assimil8or/Preset/ZoneProperties.h"
 #include "../../../AppProperties.h"
 
-class FileSelectLabel : public juce::Label,
-                        public juce::FileDragAndDropTarget
+class FileSelectLabel : public juce::Label
 {
 public:
     FileSelectLabel ()
@@ -17,40 +16,8 @@ public:
     {
         removeMouseListener (&mouseEavesDropper);
     }
-    std::function<bool (const juce::StringArray& files)> onCheckInterest;
     std::function<void (const juce::StringArray& files)> onFilesSelected;
-    std::function<void (const juce::StringArray& files)> onDragEnter;
-    std::function<void (const juce::StringArray& files)> onDragMove;
-    std::function<void (const juce::StringArray& files)> onDragExit;
 
-    bool isInterestedInFileDrag (const juce::StringArray& files) override
-    {
-        if (onCheckInterest != nullptr)
-            return onCheckInterest (files);
-        return false;
-    }
-    void filesDropped (const juce::StringArray& files, int, int) override
-    {
-        if (onFilesSelected!= nullptr)
-            onFilesSelected (files);
-    }
-    void fileDragEnter (const juce::StringArray& files, int, int) override
-    {
-        if (onDragEnter!= nullptr)
-            onDragEnter (files);
-
-    }
-    void fileDragMove (const juce::StringArray& files, int, int) override
-    {
-        if (onDragMove!= nullptr)
-            onDragMove (files);
-
-    }
-    void fileDragExit (const juce::StringArray& files) override
-    {
-        if (onDragExit!= nullptr)
-            onDragExit (files);
-    }
     void setOutline (juce::Colour colour)
     {
         outlineColor = colour;
@@ -95,7 +62,8 @@ private:
     }
 };
 
-class ZoneEditor : public juce::Component
+class ZoneEditor : public juce::Component,
+    public juce::FileDragAndDropTarget
 {
 public:
     ZoneEditor ();
@@ -110,6 +78,7 @@ public:
     std::function<double (double)> clampMinVoltage;
     std::function<void (int zoneIndex)> displayToolsMenu;
 
+
 private:
     AppProperties appProperties;
     ZoneProperties zoneProperties;
@@ -119,6 +88,9 @@ private:
     bool loopLengthIsEnd { false };
     int64_t sampleLength { 0 };
     juce::TextButton toolsButton;
+
+    std::atomic<bool> draggingFiles { false };
+    //DropTargetOverlay dropTargetOverlay;
 
     juce::Label levelOffsetLabel;
     juce::TextEditor levelOffsetTextEditor; // double
@@ -164,6 +136,13 @@ private:
     void sampleEndDataChanged (std::optional <int64_t> sampleEnd);
     void sampleEndUiChanged (int64_t sampleEnd);
 
+    bool isInterestedInFileDrag (const juce::StringArray& files) override;
+    void filesDropped (const juce::StringArray& files, int, int) override;
+    void fileDragEnter (const juce::StringArray& files, int, int) override;
+    void fileDragMove (const juce::StringArray& files, int, int) override;
+    void fileDragExit (const juce::StringArray& files) override;
+
     void paint (juce::Graphics& g) override;
+    void paintOverChildren (juce::Graphics& g) override;
     void resized () override;
 };

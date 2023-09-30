@@ -23,43 +23,14 @@ ZoneEditor::ZoneEditor ()
         maxZoneProperties.wrap (maxChannelProperties.getZoneVT (0), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
     }
 
-    sampleNameSelectLabel.onCheckInterest = [this] (const juce::StringArray& files)
-    {
-        if (files.size () != 1)
-            return false;
-        const auto draggedFile { juce::File (files [0]) };
-        return isSupportedAudioFile (draggedFile);
-    };
     sampleNameSelectLabel.onFilesSelected = [this] (const juce::StringArray& files)
     {
-        sampleNameSelectLabel.setOutline (levelOffsetTextEditor.findColour (juce::TextEditor::ColourIds::outlineColourId));
-        sampleNameSelectLabel.repaint ();
-
         if (files.size () != 1)
             return;
         if (! handleSelectedFile (juce::File (files [0])))
         {
             // TODO - indicate an error? first thought was a red outline that fades out over a couple of second
         }
-    };
-    sampleNameSelectLabel.onDragEnter = [this] (const juce::StringArray& files)
-    {
-        if (files.size () != 1)
-            sampleNameSelectLabel.setOutline (juce::Colours::red);
-        else
-        {
-            const auto draggedFile { juce::File (files [0]) };
-            if (isSupportedAudioFile (draggedFile))
-                sampleNameSelectLabel.setOutline (juce::Colours::white);
-            else
-                sampleNameSelectLabel.setOutline (juce::Colours::red);
-        }
-        sampleNameSelectLabel.repaint ();
-    };
-    sampleNameSelectLabel.onDragExit = [this] (const juce::StringArray&)
-    {
-        sampleNameSelectLabel.setOutline (levelOffsetTextEditor.findColour (juce::TextEditor::ColourIds::outlineColourId));
-        sampleNameSelectLabel.repaint ();
     };
 
     toolsButton.setButtonText ("TOOLS");
@@ -72,6 +43,43 @@ ZoneEditor::ZoneEditor ()
     setupZoneComponents ();
 }
 
+bool ZoneEditor::isInterestedInFileDrag (const juce::StringArray& files)
+{
+    if (files.size () != 1)
+        return false;
+    const auto draggedFile { juce::File (files [0]) };
+    return isSupportedAudioFile (draggedFile);
+}
+
+void ZoneEditor::filesDropped (const juce::StringArray& files, int, int)
+{
+    draggingFiles = false;
+    repaint ();
+    if (files.size () != 1)
+        return;
+    if (! handleSelectedFile (juce::File (files [0])))
+    {
+        // TODO - indicate an error? first thought was a red outline that fades out over a couple of second
+    }
+
+}
+
+void ZoneEditor::fileDragEnter (const juce::StringArray& files, int, int)
+{
+    draggingFiles = true;
+    repaint ();
+}
+
+void ZoneEditor::fileDragMove (const juce::StringArray& files, int, int)
+{
+}
+
+void ZoneEditor::fileDragExit (const juce::StringArray& files)
+{
+    draggingFiles = false;;
+    repaint ();
+}
+
 bool ZoneEditor::handleSelectedFile (juce::File fileNameAndPath)
 {
     if (! isSupportedAudioFile (fileNameAndPath))
@@ -81,7 +89,8 @@ bool ZoneEditor::handleSelectedFile (juce::File fileNameAndPath)
     if (appProperties.getMostRecentFolder () != fileNameAndPath.getParentDirectory ().getFullPathName ())
     {
         // TODO handle case where file of same name already exists
-
+        // TODO should copy be moved to a thread?
+        // 
         // copy file
         fileNameAndPath.copyFileTo (juce::File (appProperties.getMostRecentFolder ()).getChildFile (fileNameAndPath.getFileName ()));
     }
@@ -146,6 +155,7 @@ void ZoneEditor::loadSample (juce::String sampleFileName)
 
     sampleUiChanged (sampleFileName);
     sampleNameSelectLabel.setText (sampleFileName, juce::NotificationType::dontSendNotification);
+    sampleNameSelectLabel.setColour (juce::Label::ColourIds::textColourId, juce::Colours::white);
 }
 
 void ZoneEditor::setupZoneComponents ()
@@ -383,6 +393,14 @@ void ZoneEditor::paint ([[maybe_unused]] juce::Graphics& g)
 //     g.drawRect (getLocalBounds ());
 }
 
+void ZoneEditor::paintOverChildren (juce::Graphics& g)
+{
+    juce::Colour fillColor { juce::Colours::white };
+    float alpha { 0.2f };
+    if (draggingFiles)
+        g.fillAll (fillColor.withAlpha (alpha));
+}
+
 void ZoneEditor::resized ()
 {
     const auto xOffset { 3 };
@@ -390,6 +408,8 @@ void ZoneEditor::resized ()
     const auto interParameterYOffset { 1 };
     const auto spaceBetweenLabelAndInput { 3 };
     auto scaleWidth = [width] (float scaleAmount) { return static_cast<int> (width * scaleAmount); };
+
+    //dropTargetOverlay.setBounds (getLocalBounds ());
 
     if (displayToolsMenu != nullptr)
         toolsButton.setBounds (getWidth () - 5 - 40, getHeight () - 5 - 20, 40, 20);
@@ -566,6 +586,7 @@ void ZoneEditor::updateSampleFileInfo (juce::String sample)
     }
     sampleNameSelectLabel.setColour (juce::Label::ColourIds::textColourId, textColor);
 }
+
 void ZoneEditor::updateSamplePositionInfo ()
 {
     loopLengthDataChanged (zoneProperties.getLoopLength ());
