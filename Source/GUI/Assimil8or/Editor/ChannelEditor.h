@@ -3,6 +3,7 @@
 #include <JuceHeader.h>
 #include "CvInputComboBox.h"
 #include "ZoneEditor.h"
+#include "../../../AppProperties.h"
 #include "../../../Assimil8or/Preset/ChannelProperties.h"
 #include "../../../Utility/NoArrowComboBoxLnF.h"
 
@@ -156,6 +157,7 @@ private:
         distribute1vPerOct,
         distribute1vPerOctMajor
     };
+    AppProperties appProperties;
     ChannelProperties channelProperties;
     ChannelProperties defaultChannelProperties;
     ChannelProperties minChannelProperties;

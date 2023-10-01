@@ -25,9 +25,7 @@ ZoneEditor::ZoneEditor ()
 
     sampleNameSelectLabel.onFilesSelected = [this] (const juce::StringArray& files)
     {
-        if (files.size () != 1)
-            return;
-        if (! handleSelectedFile (juce::File (files [0])))
+        if (! handleSamplesInternal (files))
         {
             // TODO - indicate an error? first thought was a red outline that fades out over a couple of second
         }
@@ -45,59 +43,58 @@ ZoneEditor::ZoneEditor ()
 
 bool ZoneEditor::isInterestedInFileDrag (const juce::StringArray& files)
 {
-    if (files.size () != 1)
-        return false;
-    const auto draggedFile { juce::File (files [0]) };
-    return isSupportedAudioFile (draggedFile);
+    for (auto file : files)
+        if (! isSupportedAudioFile (file))
+            return false;
+
+    return true;
 }
 
-void ZoneEditor::filesDropped (const juce::StringArray& files, int, int)
+void ZoneEditor::setDropIndex (const juce::StringArray& files, int x, int y)
 {
+       dropIndex = -1;
+//     if (files.size () == 1)
+//         dropIndex = -1;
+//     else if (getLocalBounds ().removeFromTop (getLocalBounds ().getHeight () / 2).contains (x, y))
+//         dropIndex = 0;
+//     else
+//         dropIndex = 1;
+}
+
+void ZoneEditor::filesDropped (const juce::StringArray& files, int x, int y)
+{
+    setDropIndex (files, x, y);
     draggingFiles = false;
     repaint ();
-    if (files.size () != 1)
-        return;
-    if (! handleSelectedFile (juce::File (files [0])))
+    if (! handleSamplesInternal (files))
     {
         // TODO - indicate an error? first thought was a red outline that fades out over a couple of second
     }
-
 }
 
-void ZoneEditor::fileDragEnter (const juce::StringArray& files, int, int)
+void ZoneEditor::fileDragEnter (const juce::StringArray& files, int x, int y)
 {
+    setDropIndex (files, x, y);
     draggingFiles = true;
     repaint ();
 }
 
-void ZoneEditor::fileDragMove (const juce::StringArray& files, int, int)
+void ZoneEditor::fileDragMove (const juce::StringArray& files, int x, int y)
 {
+    setDropIndex (files, x, y);
+    repaint ();
 }
 
-void ZoneEditor::fileDragExit (const juce::StringArray& files)
+void ZoneEditor::fileDragExit (const juce::StringArray&)
 {
     draggingFiles = false;;
     repaint ();
 }
 
-bool ZoneEditor::handleSelectedFile (juce::File fileNameAndPath)
+bool ZoneEditor::handleSamplesInternal (const juce::StringArray& files)
 {
-    if (! isSupportedAudioFile (fileNameAndPath))
-        return false;
-
-    // if file not in preset folder, then copy
-    if (appProperties.getMostRecentFolder () != fileNameAndPath.getParentDirectory ().getFullPathName ())
-    {
-        // TODO handle case where file of same name already exists
-        // TODO should copy be moved to a thread?
-        // 
-        // copy file
-        fileNameAndPath.copyFileTo (juce::File (appProperties.getMostRecentFolder ()).getChildFile (fileNameAndPath.getFileName ()));
-    }
-    // assign file to zone
-    loadSample (fileNameAndPath.getFileName ());
-
-    return true;
+    jassert (handleSamples != nullptr);
+    return handleSamples (zoneProperties.getId() - 1, files);
 }
 
 void ZoneEditor::loadSample (juce::String sampleFileName)
@@ -368,7 +365,7 @@ void ZoneEditor::setLoopLengthIsEnd (bool newLoopLengthIsEnd)
 
 void ZoneEditor::receiveSampleLoadRequest (juce::File sampleFile)
 {
-    if (! handleSelectedFile (sampleFile))
+    if (! handleSamplesInternal ({ sampleFile.getFullPathName () }))
     {
         // TODO - indicate an error? first thought was a red outline that fades out over a couple of second
     }
@@ -396,9 +393,24 @@ void ZoneEditor::paint ([[maybe_unused]] juce::Graphics& g)
 void ZoneEditor::paintOverChildren (juce::Graphics& g)
 {
     juce::Colour fillColor { juce::Colours::white };
-    float alpha { 0.2f };
+    float activeAlpha { 0.4f };
+    float nonActiveAlpha { 0.2f };
     if (draggingFiles)
-        g.fillAll (fillColor.withAlpha (alpha));
+    {
+        auto localBounds { getLocalBounds () };
+        if (dropIndex == -1)
+        {
+            g.setColour (fillColor.withAlpha (activeAlpha));
+            g.fillRect (localBounds);
+        }
+        else
+        {
+            g.setColour (fillColor.withAlpha (dropIndex == 0 ? activeAlpha : nonActiveAlpha));
+            g.fillRect (localBounds.removeFromTop (localBounds.getHeight () / 2));
+            g.setColour (fillColor.withAlpha (dropIndex == 1 ? activeAlpha : nonActiveAlpha));
+            g.fillRect (localBounds);
+        }
+    }
 }
 
 void ZoneEditor::resized ()
