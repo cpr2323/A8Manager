@@ -944,20 +944,15 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
         };
         zoneEditor.onSampleChange = [this, zoneEditorIndex] (juce::String sampleFileName)
         {
-            if (sampleFileName.isEmpty ())
+            jassert (!sampleFileName.isEmpty ());
+            if (zoneEditorIndex > 0)
             {
+                // if this zone is empty when assigning the sample, we need to initialize the minVoltage value
+                // we also know this is the last zone in the list, as that is the only place one can insert a new sample
+                auto [topBoundary, bottomBoundary] { getVoltageBoundaries (zoneEditorIndex, 1) };
+                zoneProperties [zoneEditorIndex - 1].setMinVoltage (bottomBoundary + ((topBoundary - bottomBoundary) / 2), false);
             }
-            else if (zoneProperties [zoneEditorIndex].getSample ().isEmpty ())
-            {
-                if (zoneEditorIndex > 0)
-                {
-                    // if this zone is empty when assigning the sample, we need to initialize the minVoltage value
-                    // we also know this is the last zone in the list, as that is the only place one can insert a new sample
-                    auto [topBoundary, bottomBoundary] { getVoltageBoundaries (zoneEditorIndex, 1) };
-                    zoneProperties [zoneEditorIndex - 1].setMinVoltage (bottomBoundary + ((topBoundary - bottomBoundary) / 2), false);
-                }
-                zoneProperties [zoneEditorIndex].setMinVoltage (-5.0, false);
-            }
+            zoneProperties [zoneEditorIndex].setMinVoltage (-5.0, false);
             ensureProperZoneIsSelected ();
             updateAllZoneTabNames ();
         };
@@ -965,20 +960,18 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
         {
             // TODO - should this have been checked prior to this call?
             for (auto fileName : files)
-                if (!zoneEditors [zoneIndex].isSupportedAudioFile (fileName))
+                if (! zoneEditors [zoneIndex].isSupportedAudioFile (fileName))
                     return false;
 
-            for (auto filesIndex { 0 }; filesIndex < files.size () && filesIndex < 8; ++filesIndex)
+            for (auto filesIndex { 0 }; filesIndex < files.size () && zoneIndex + filesIndex < 8; ++filesIndex)
             {
-                auto& zoneEditor { zoneEditors [filesIndex] };
+                auto& zoneEditor { zoneEditors [zoneIndex + filesIndex] };
                 juce::File file (files [filesIndex]);
                 // if file not in preset folder, then copy
                 if (appProperties.getMostRecentFolder () != file.getParentDirectory ().getFullPathName ())
                 {
                     // TODO handle case where file of same name already exists
                     // TODO should copy be moved to a thread?
-                    // 
-                    // copy file
                     file.copyFileTo (juce::File (appProperties.getMostRecentFolder ()).getChildFile (file.getFileName ()));
                     // TODO handle failure
                 }

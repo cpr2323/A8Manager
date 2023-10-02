@@ -99,60 +99,62 @@ bool ZoneEditor::handleSamplesInternal (const juce::StringArray& files)
 
 void ZoneEditor::loadSample (juce::String sampleFileName)
 {
+    // TODO - I don't think we need this anymore, verify and remove
     if (sampleFileName == zoneProperties.getSample ())
         return;
 
-    sampleLength = 0;
-    if (sampleFileName.isNotEmpty ())
-    {
-        auto sampleFile { juce::File (appProperties.getMostRecentFolder ()).getChildFile (sampleFileName) };
-        if (sampleFile.getFileExtension () == "")
-            sampleFile = sampleFile.withFileExtension (".wav");
-        if (sampleFile.getFileName () == zoneProperties.getSample ())
-            return;
+    // TODO - I don't think we need this anymore, verify and remove
+    auto sampleFile { juce::File (appProperties.getMostRecentFolder ()).getChildFile (sampleFileName) };
+    if (sampleFile.getFileName () == zoneProperties.getSample ())
+        return;
 
-        if (std::unique_ptr<juce::AudioFormatReader> reader (audioFormatManager.createReaderFor (sampleFile)); reader != nullptr)
+    sampleLength = 0;
+    jassert (sampleFileName.isNotEmpty ());
+    if (std::unique_ptr<juce::AudioFormatReader> reader (audioFormatManager.createReaderFor (sampleFile)); reader != nullptr)
+    {
+        sampleLength = reader->lengthInSamples;
+        sampleFileName = sampleFile.getFileName (); // this copies the added .wav extension if it wasn't in the original name
+
+        zoneProperties.setSampleStart (-1, true);
+        zoneProperties.setSampleEnd (-1, true);
+        zoneProperties.setLoopStart (-1, true);
+        zoneProperties.setLoopLength (-1, true);
+        updateSamplePositionInfo ();
+        sampleUiChanged (sampleFileName);
+        sampleNameSelectLabel.setText (sampleFileName, juce::NotificationType::dontSendNotification);
+        sampleNameSelectLabel.setColour (juce::Label::ColourIds::textColourId, juce::Colours::white);
+
+        if (reader->numChannels == 2)
         {
-            sampleLength = reader->lengthInSamples;
-            sampleFileName = sampleFile.getFileName (); // this copies the added .wav extension if it wasn't in the original name
-            if (reader->numChannels == 2)
+            ChannelProperties parentChannelProperties (zoneProperties.getValueTree ().getParent (), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
+            // if this zone not the last channel && the parent channel isn't set to Stereo/Right
+            if (auto parentChannelId { parentChannelProperties.getId () }; parentChannelId < 8 && parentChannelProperties.getChannelMode () != ChannelProperties::ChannelMode::stereoRight)
             {
-                ChannelProperties parentChannelProperties (zoneProperties.getValueTree ().getParent (), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
-                // if this zone not the last channel && the parent channel isn't set to Stereo/Right
-                if (auto parentChannelId { parentChannelProperties.getId () }; parentChannelId < 8 && parentChannelProperties.getChannelMode () != ChannelProperties::ChannelMode::stereoRight)
+                PresetProperties presetProperties (parentChannelProperties.getValueTree ().getParent (), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
+                // NOTE PresetProperties.getChannelVT takes a 0 based index, but Id's are 1 based. and since we want the NEXT channel, we can use the Id, because it is already +1 to the index
+                ChannelProperties nextChannelProperties (presetProperties.getChannelVT (parentChannelId), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
+                ZoneProperties nextChannelZone1Properties (nextChannelProperties.getZoneVT (zoneProperties.getId () - 1), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
+                // if next Channel does not have a sample
+                if (nextChannelZone1Properties.getSample ().isEmpty ())
                 {
-                    PresetProperties presetProperties (parentChannelProperties.getValueTree ().getParent (), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
-                    // NOTE PresetProperties.getChannelVT takes a 0 based index, but Id's are 1 based. and since we want the NEXT channel, we can use the Id, because it is already +1 to the index
-                    ChannelProperties nextChannelProperties (presetProperties.getChannelVT (parentChannelId), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
-                    ZoneProperties nextChannelZone1Properties (nextChannelProperties.getZoneVT (zoneProperties.getId () - 1), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
-                    // if next Channel does not have a sample
-                    if (nextChannelZone1Properties.getSample ().isEmpty ())
-                    {
-                        nextChannelProperties.setChannelMode (ChannelProperties::ChannelMode::stereoRight, false);
-                        nextChannelZone1Properties.setSide (1, false);
-                        nextChannelZone1Properties.setSampleStart (-1, true);
-                        nextChannelZone1Properties.setSampleEnd (-1, true);
-                        nextChannelZone1Properties.setLoopStart (-1, true);
-                        nextChannelZone1Properties.setLoopLength (-1, true);
-                        nextChannelZone1Properties.setSample (sampleFileName, false); // when the other editor receives this update, it will also update the sample positions, so do it after setting them
-                    }
+                    nextChannelProperties.setChannelMode (ChannelProperties::ChannelMode::stereoRight, false);
+                    nextChannelZone1Properties.setSide (1, false);
+                    nextChannelZone1Properties.setSampleStart (-1, true);
+                    nextChannelZone1Properties.setSampleEnd (-1, true);
+                    nextChannelZone1Properties.setLoopStart (-1, true);
+                    nextChannelZone1Properties.setLoopLength (-1, true);
+                    nextChannelZone1Properties.setSample (sampleFileName, false); // when the other editor receives this update, it will also update the sample positions, so do it after setting them
                 }
             }
         }
     }
-    zoneProperties.setSampleStart (-1, true);
-    zoneProperties.setSampleEnd (-1, true);
-    zoneProperties.setLoopStart (-1, true);
-    zoneProperties.setLoopLength (-1, true);
+    else
+    {
+        jassertfalse;
+    }
 
     if (onSampleChange != nullptr)
         onSampleChange (sampleFileName);
-
-    updateSamplePositionInfo ();
-
-    sampleUiChanged (sampleFileName);
-    sampleNameSelectLabel.setText (sampleFileName, juce::NotificationType::dontSendNotification);
-    sampleNameSelectLabel.setColour (juce::Label::ColourIds::textColourId, juce::Colours::white);
 }
 
 void ZoneEditor::setupZoneComponents ()
