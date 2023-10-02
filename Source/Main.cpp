@@ -2,6 +2,7 @@
 #include "AppProperties.h"
 #include "Assimil8or/Assimil8orValidator.h"
 #include "Assimil8or/PresetManagerProperties.h"
+#include "Assimil8or/Audio/AudioPlayer.h"
 #include "Assimil8or/Preset/ParameterPresetsSingleton.h"
 #include "Assimil8or/Preset/PresetProperties.h"
 #include "GUI/MainComponent.h"
@@ -164,6 +165,7 @@ public:
         initLogger ();
         initCrashHandler ();
         initPropertyRoots ();
+        initAudio ();
         initAssimil8or ();
         initUi ();
 
@@ -173,6 +175,7 @@ public:
 
     void shutdown () override
     {
+        audioPlayer.shutdownAudio ();
         persitentPropertiesFile.save ();
         mainWindow = nullptr; // (deletes our window)
         juce::Logger::setCurrentLogger (nullptr);
@@ -264,6 +267,11 @@ public:
 
         if (appProperties.getMostRecentFolder ().isEmpty ())
             appProperties.setMostRecentFolder (appDirectory.getFullPathName ());
+    }
+
+    void initAudio ()
+    {
+        audioPlayer.init (rootProperties.getValueTree ());
     }
 
     void initAppDirectory ()
@@ -384,6 +392,8 @@ private:
     std::unique_ptr<juce::FileLogger> fileLogger;
     std::atomic<RuntimeRootProperties::QuitState> localQuitState { RuntimeRootProperties::QuitState::idle };
     std::unique_ptr<MainWindow> mainWindow;
+
+    AudioPlayer audioPlayer;
 
     ValueTreeMonitor directoryDataMonitor;
     ValueTreeMonitor presetPropertiesMonitor;

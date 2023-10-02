@@ -64,10 +64,10 @@ MainComponent::MainComponent (juce::ValueTree rootPropertiesVT)
 
     fileViewComponent.onAudioFileSelected = [this] (juce::File audioFile) { assimil8orEditorComponent.receiveSampleLoadRequest (audioFile); };
 
-    ValueTreeHelpers::dumpValueTreeContent (rootPropertiesVT, true, [] (juce::String lineToDisplay)
-        {
-            juce::Logger::outputDebugString (lineToDisplay);
-        });
+//     ValueTreeHelpers::dumpValueTreeContent (rootPropertiesVT, true, [] (juce::String lineToDisplay)
+//         {
+//             juce::Logger::outputDebugString (lineToDisplay);
+//         });
 }
 
 void MainComponent::paint ([[maybe_unused]] juce::Graphics& g)
