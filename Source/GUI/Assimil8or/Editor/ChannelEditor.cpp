@@ -64,6 +64,10 @@ ChannelEditor::ChannelEditor ()
     }
     zoneTabs.setTabBarDepth (zoneTabs.getTabBarDepth () + 5);
     zoneTabs.setLookAndFeel (&zonesTabbedLookAndFeel);
+    zoneTabs.onSelectedTabChanged = [this] (int tabIndex)
+    {
+        juce::Logger::outputDebugString ("tab: " + juce::String (tabIndex));
+    };
     addAndMakeVisible (zoneTabs);
 
     attackFromCurrentComboBox.setLookAndFeel (&noArrowComboBoxLnF);

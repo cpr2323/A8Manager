@@ -17,6 +17,7 @@ private:
     int blockSize { 128 };
 
     void configureAudioDevice (juce::String deviceName);
+    void handlePlayState (AudioConfigProperties::PlayState playState);
 
     void prepareToPlay (int samplesPerBlockExpected, double sampleRate) override;
     void getNextAudioBlock (const juce::AudioSourceChannelInfo& bufferToFill) override;

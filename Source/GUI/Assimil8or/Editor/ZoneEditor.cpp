@@ -5,7 +5,6 @@
 #include "../../../Assimil8or/Preset/PresetProperties.h"
 #include "../../../Assimil8or/Preset/ParameterPresetsSingleton.h"
 #include "../../../Utility/PersistentRootProperties.h"
-#include <algorithm>
 
 ZoneEditor::ZoneEditor ()
 {

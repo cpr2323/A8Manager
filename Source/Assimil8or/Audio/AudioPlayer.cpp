@@ -9,6 +9,10 @@ void AudioPlayer::init (juce::ValueTree rootPropertiesVT)
     {
         configureAudioDevice (deviceName);
     };
+    audioConfigProperties.onPlayStateChange= [this] (AudioConfigProperties::PlayState playState)
+    {
+        handlePlayState (playState);
+    };
     configureAudioDevice (audioConfigProperties.getDeviceName ());
 }
 
@@ -33,7 +37,7 @@ void AudioPlayer::configureAudioDevice (juce::String deviceName)
         audioConfigError = audioDeviceManager.initialise (0, 2, nullptr, true, {}, &audioDeviceSetup);
     }
 
-    if (!audioConfigError.isEmpty ())
+    if (! audioConfigError.isEmpty ())
     {
         jassertfalse;
     }
@@ -45,6 +49,18 @@ void AudioPlayer::configureAudioDevice (juce::String deviceName)
 
     audioDeviceManager.addAudioCallback (&audioSourcePlayer);
     audioSourcePlayer.setSource (this);
+}
+
+void AudioPlayer::handlePlayState (AudioConfigProperties::PlayState playState)
+{
+    if (playState == AudioConfigProperties::stop)
+    {
+        // TODO - stop playback
+    }
+    else if (playState == AudioConfigProperties::play)
+    {
+        // TODO - start playback
+    }
 }
 
 void AudioPlayer::prepareToPlay (int samplesPerBlockExpected, double newSampleRate)

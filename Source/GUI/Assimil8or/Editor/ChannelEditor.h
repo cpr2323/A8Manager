@@ -7,6 +7,21 @@
 #include "../../../Assimil8or/Preset/ChannelProperties.h"
 #include "../../../Utility/NoArrowComboBoxLnF.h"
 
+class TabbedComponentWithChangeCallback : public juce::TabbedComponent
+{
+public:
+    TabbedComponentWithChangeCallback (juce::TabbedButtonBar::Orientation orientation) : juce::TabbedComponent (orientation) {}
+
+    std::function<void (int)> onSelectedTabChanged;
+
+private:
+    void currentTabChanged (int newTabIndex, [[maybe_unused]] const juce::String& tabName)
+    {
+        if (onSelectedTabChanged != nullptr)
+            onSelectedTabChanged (newTabIndex);
+    }
+};
+
 class TransparantOverly : public juce::Component
 {
 public:
@@ -168,7 +183,7 @@ private:
 
     juce::Label zonesLabel;
     juce::Label zoneMaxVoltage;
-    juce::TabbedComponent zoneTabs { juce::TabbedButtonBar::Orientation::TabsAtLeft };
+    TabbedComponentWithChangeCallback zoneTabs { juce::TabbedButtonBar::Orientation::TabsAtLeft };
     juce::TextButton toolsButton;
 
     juce::Label aliasingLabel;
