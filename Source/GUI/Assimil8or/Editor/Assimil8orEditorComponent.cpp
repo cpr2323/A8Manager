@@ -173,7 +173,13 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
         });
     };
 
-    appProperties.wrap (persistentRootProperties.getValueTree (), AppProperties::WrapperType::client, AppProperties::EnableCallbacks::no);
+    audioConfigProperties.wrap (persistentRootProperties.getValueTree (), AudioConfigProperties::WrapperType::client, AudioConfigProperties::EnableCallbacks::no);
+
+    appProperties.wrap (persistentRootProperties.getValueTree (), AppProperties::WrapperType::client, AppProperties::EnableCallbacks::yes);
+    appProperties.onMostRecentFileChange = [this] (juce::String fileName)
+    {
+        audioConfigProperties.setPlayState (AudioConfigProperties::PlayState::stop, false);
+    };
     PresetManagerProperties presetManagerProperties (runtimeRootProperties.getValueTree (), PresetManagerProperties::WrapperType::owner, PresetManagerProperties::EnableCallbacks::no);
 
     unEditedPresetProperties.wrap (presetManagerProperties.getPreset ("unedited"), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::yes);

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "../../../Assimil8or/Audio/AudioConfigProperties.h"
 #include "../../../Assimil8or/Preset/ZoneProperties.h"
 #include "../../../AppProperties.h"
 
@@ -99,9 +100,12 @@ private:
     bool loopLengthIsEnd { false };
     int64_t sampleLength { 0 };
     juce::TextButton toolsButton;
+    juce::TextButton transportButton;
+    AudioConfigProperties audioConfigProperties;
 
     bool draggingFiles { false };
     int dropIndex { 0 };
+
 
     juce::Label levelOffsetLabel;
     juce::TextEditor levelOffsetTextEditor; // double

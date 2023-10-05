@@ -66,7 +66,7 @@ ChannelEditor::ChannelEditor ()
     zoneTabs.setLookAndFeel (&zonesTabbedLookAndFeel);
     zoneTabs.onSelectedTabChanged = [this] (int tabIndex)
     {
-        juce::Logger::outputDebugString ("tab: " + juce::String (tabIndex));
+        configAudioPlayer ();
     };
     addAndMakeVisible (zoneTabs);
 
@@ -125,6 +125,12 @@ ChannelEditor::~ChannelEditor ()
     pMSourceComboBox.setLookAndFeel (nullptr);
     xfadeGroupComboBox.setLookAndFeel (nullptr);
     zonesRTComboBox.setLookAndFeel (nullptr);
+}
+
+void ChannelEditor::visibilityChanged ()
+{
+    if (isVisible ())
+        configAudioPlayer ();
 }
 
 void ChannelEditor::duplicateZone (int zoneIndex)
@@ -867,6 +873,7 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
 {
     PersistentRootProperties persistentRootProperties (rootPropertiesVT, PersistentRootProperties::WrapperType::client, PersistentRootProperties::EnableCallbacks::no);
     appProperties.wrap (persistentRootProperties.getValueTree(), AppProperties::WrapperType::client, AppProperties::EnableCallbacks::no);
+    audioConfigProperties.wrap (persistentRootProperties.getValueTree (), AudioConfigProperties::WrapperType::client, AudioConfigProperties::EnableCallbacks::no);
 
     channelProperties.wrap (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::yes);
     setupChannelPropertiesCallbacks ();
@@ -1045,6 +1052,8 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
 
     ensureProperZoneIsSelected ();
     updateAllZoneTabNames ();
+    if (isVisible ())
+        configAudioPlayer ();
 }
 
 void ChannelEditor::receiveSampleLoadRequest (juce::File sampleFile)
@@ -1102,6 +1111,11 @@ void ChannelEditor::setupChannelPropertiesCallbacks ()
 void ChannelEditor::checkStereoRightOverlay ()
 {
     stereoRightTransparantOverly.setVisible (channelProperties.getChannelMode () == ChannelProperties::ChannelMode::stereoRight);
+}
+
+void ChannelEditor::configAudioPlayer ()
+{
+    audioConfigProperties.setPlayState (AudioConfigProperties::stop, false);
 }
 
 void ChannelEditor::paint ([[maybe_unused]] juce::Graphics& g)
@@ -1827,4 +1841,3 @@ void ChannelEditor::zonesRTUiChanged (int zonesRT)
 {
     channelProperties.setZonesRT (zonesRT, false);
 }
-

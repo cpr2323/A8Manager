@@ -225,12 +225,15 @@ public:
                                               presetProperties.getValueTree ());
         presetManagerProperties.addPreset ("edit", presetProperties.getValueTree ());
         presetManagerProperties.addPreset ("unedited", presetProperties.getValueTree ().createCopy ());
+        audioPlayer.setPresetProperties (presetProperties.getValueTree ());
+
         // add the Preset Manager to the Runtime Root
         runtimeRootProperties.getValueTree ().addChild (presetManagerProperties.getValueTree (), -1, nullptr);
 
         // setup the directory scanner
         directoryValueTree.init (rootProperties.getValueTree ());
         directoryDataProperties.wrap (directoryValueTree.getDirectoryDataPropertiesVT (), DirectoryDataProperties::WrapperType::client, DirectoryDataProperties::EnableCallbacks::no);
+        // debug tool for watching changes on the Directory Data Properties Value Tree
         //directoryDataMonitor.assign (directoryDataProperties.getValueTreeRef ());
 
         // when the folder being viewed changes, signal the directory scanner to rescan

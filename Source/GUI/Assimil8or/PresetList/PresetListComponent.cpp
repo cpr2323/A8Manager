@@ -189,7 +189,8 @@ void PresetListComponent::loadFirstPreset ()
 {
     LogPresetList ("PresetListComponent::loadFirstPreset");
     bool presetLoaded { false };
-    forEachPresetFile ([this, &presetLoaded] (juce::File presetFile, int presetIndex)
+    juce::File loadedPresetFile;
+    forEachPresetFile ([this, &presetLoaded, &loadedPresetFile] (juce::File presetFile, int presetIndex)
     {
         if (auto [presetNumber, thisPresetExists, presetName] = presetInfoList [presetIndex]; ! thisPresetExists)
             return true;
@@ -197,7 +198,7 @@ void PresetListComponent::loadFirstPreset ()
         presetListBox.selectRow (presetIndex, false, true);
         presetListBox.scrollToEnsureRowIsOnscreen (presetIndex);
         loadPreset (presetFile);
-        appProperties.addRecentlyUsedFile (presetFile.getFullPathName ());
+        loadedPresetFile = presetFile;
         presetLoaded = true;
         return false;
     });
@@ -207,7 +208,9 @@ void PresetListComponent::loadFirstPreset ()
         presetListBox.selectRow (0, false, true);
         presetListBox.scrollToEnsureRowIsOnscreen (0);
         loadDefault (0);
+        loadedPresetFile = getPresetFile (0);
     }
+    appProperties.addRecentlyUsedFile (loadedPresetFile.getFullPathName ());
 }
 
 void PresetListComponent::loadDefault (int row)

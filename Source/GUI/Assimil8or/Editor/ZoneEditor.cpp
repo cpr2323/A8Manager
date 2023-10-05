@@ -37,6 +37,26 @@ ZoneEditor::ZoneEditor ()
             displayToolsMenu (zoneProperties.getId () - 1);
     };
     addAndMakeVisible (toolsButton);
+    transportButton.setButtonText ("PLAY");
+    transportButton.setEnabled (false);
+    transportButton.onClick = [this] ()
+    {
+        if (transportButton.getButtonText () == "PLAY")
+        {
+            audioConfigProperties.setSourceFile (juce::File (appProperties.getMostRecentFolder ()).getChildFile (zoneProperties.getSample ()).getFullPathName (), false);
+            const auto loopStart { static_cast<int>(zoneProperties.getLoopStart ().value_or (0)) };
+            audioConfigProperties.setLoopStart (loopStart, false);
+            audioConfigProperties.setLoopEnd (loopStart + static_cast<int>(zoneProperties.getLoopLength ().value_or (sampleLength)), false);
+            audioConfigProperties.setPlayState (AudioConfigProperties::play, false);
+            transportButton.setButtonText ("STOP");
+        }
+        else
+        {
+            audioConfigProperties.setPlayState (AudioConfigProperties::stop, false);
+            transportButton.setButtonText ("PLAY");
+        }
+    };
+    addAndMakeVisible (transportButton);
     setupZoneComponents ();
 }
 
@@ -151,6 +171,7 @@ void ZoneEditor::loadSample (juce::String sampleFileName)
     {
         jassertfalse;
     }
+    transportButton.setEnabled (!sampleFileName.isEmpty () && juce::File (appProperties.getMostRecentFolder ()).getChildFile (sampleFileName).exists ());
 
     if (onSampleChange != nullptr)
         onSampleChange (sampleFileName);
@@ -330,6 +351,16 @@ void ZoneEditor::init (juce::ValueTree zonePropertiesVT, juce::ValueTree rootPro
 {
     PersistentRootProperties persistentRootProperties (rootPropertiesVT, PersistentRootProperties::WrapperType::client, PersistentRootProperties::EnableCallbacks::no);
     appProperties.wrap (persistentRootProperties.getValueTree (), AppProperties::WrapperType::client, AppProperties::EnableCallbacks::no);
+    audioConfigProperties.wrap (persistentRootProperties.getValueTree (), AudioConfigProperties::WrapperType::client, AudioConfigProperties::EnableCallbacks::yes);
+    audioConfigProperties.onPlayStateChange = [this] (AudioConfigProperties::PlayState playState)
+    {
+        if (playState == AudioConfigProperties::play)
+            transportButton.setButtonText ("STOP");
+        else if (playState == AudioConfigProperties::stop)
+            transportButton.setButtonText ("PLAY");
+        else
+            jassertfalse;
+    };
 
     zoneProperties.wrap (zonePropertiesVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::yes);
     setupZonePropertiesCallbacks ();
@@ -441,11 +472,13 @@ void ZoneEditor::resized ()
     loopStartLabel.setBounds (xOffset, sampleEndTextEditor.getBottom (), scaleWidth (samplePointLabelScale), 20);
     loopStartTextEditor.setBounds (loopStartLabel.getRight () + spaceBetweenLabelAndInput, loopStartLabel.getY (), scaleWidth (samplePointInputScale) - spaceBetweenLabelAndInput, 20);
     loopLengthLabel.setBounds (xOffset, loopStartLabel.getBottom () + interParameterYOffset, scaleWidth (samplePointLabelScale), 20);
-    loopLengthTextEditor.setBounds (loopLengthLabel.getRight ()+ spaceBetweenLabelAndInput, loopLengthLabel.getY (), scaleWidth (samplePointInputScale) - spaceBetweenLabelAndInput, 20);
+    loopLengthTextEditor.setBounds (loopLengthLabel.getRight () + spaceBetweenLabelAndInput, loopLengthLabel.getY (), scaleWidth (samplePointInputScale) - spaceBetweenLabelAndInput, 20);
+
+    transportButton.setBounds (getWidth () - 2 - 35, loopLengthTextEditor.getBottom () + interParameterYOffset, 35, 20);
 
     const auto otherLabelScale { 0.66f };
     const auto otherInputScale { 1.f - otherLabelScale };
-    minVoltageLabel.setBounds (xOffset, loopLengthTextEditor.getBottom () + 5, scaleWidth (otherLabelScale), 20);
+    minVoltageLabel.setBounds (xOffset, transportButton.getBottom () + 5, scaleWidth (otherLabelScale), 20);
     minVoltageTextEditor.setBounds (minVoltageLabel.getRight () + spaceBetweenLabelAndInput, minVoltageLabel.getY (), scaleWidth (otherInputScale) - spaceBetweenLabelAndInput, 20);
 
     pitchOffsetLabel.setBounds (xOffset, minVoltageTextEditor.getBottom () + 5, scaleWidth (otherLabelScale), 20);
@@ -616,6 +649,7 @@ void ZoneEditor::sampleDataChanged (juce::String sample)
         updateSamplePositionInfo ();
     }
     sampleNameSelectLabel.setText (sample, juce::NotificationType::dontSendNotification);
+    transportButton.setEnabled (! sample.isEmpty () && juce::File (appProperties.getMostRecentFolder ()).getChildFile (sample).exists ());
 }
 
 void ZoneEditor::sampleUiChanged (juce::String sample)

@@ -17,7 +17,7 @@ public:
     int getMaxMruEntries ();
 
     std::function<void (juce::String folderName)> onMostRecentFolderChange;
-//    std::function<void (juce::String fileName)> onMostRecentFileChange;
+    std::function<void (juce::String fileName)> onMostRecentFileChange;
 
     static inline const juce::Identifier AppPropertiesId { "App" };
 
@@ -34,10 +34,9 @@ public:
     void processValueTree ();
 
 private:
-//    juce::ValueTree mruListChildVT { juce::ValueTree (MRUListTypeId) };
-
     juce::ValueTree getMRUListChildVT ();
     int getNumMRUEntries ();
 
     void valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property) override;
+    void valueTreeChildAdded (juce::ValueTree&, juce::ValueTree&) override;
 };

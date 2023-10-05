@@ -4,6 +4,7 @@
 #include "ChannelEditor.h"
 #include "CvInputComboBox.h"
 #include "../../../AppProperties.h"
+#include "../../../Assimil8or/Audio/AudioConfigProperties.h"
 #include "../../../Assimil8or/Preset/PresetProperties.h"
 #include "../../../Utility/RuntimeRootProperties.h"
 
@@ -40,6 +41,7 @@ private:
     ChannelProperties defaultChannelProperties;
     ChannelProperties copyBufferChannelProperties;
     bool copyBufferActive { false };
+    AudioConfigProperties audioConfigProperties;
 
     juce::Label titleLabel;
     juce::TextButton saveButton;
