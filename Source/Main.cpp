@@ -225,7 +225,6 @@ public:
                                               presetProperties.getValueTree ());
         presetManagerProperties.addPreset ("edit", presetProperties.getValueTree ());
         presetManagerProperties.addPreset ("unedited", presetProperties.getValueTree ().createCopy ());
-        audioPlayer.setPresetProperties (presetProperties.getValueTree ());
 
         // add the Preset Manager to the Runtime Root
         runtimeRootProperties.getValueTree ().addChild (presetManagerProperties.getValueTree (), -1, nullptr);
@@ -275,6 +274,8 @@ public:
     void initAudio ()
     {
         audioPlayer.init (rootProperties.getValueTree ());
+        AudioConfigProperties audioConfigProperties (persistentRootProperties.getValueTree (), AudioConfigProperties::WrapperType::client, AudioConfigProperties::EnableCallbacks::no);
+        audioConfigPropertiesMonitor.assign (audioConfigProperties.getValueTreeRef ());
     }
 
     void initAppDirectory ()
@@ -397,6 +398,8 @@ private:
     std::unique_ptr<MainWindow> mainWindow;
 
     AudioPlayer audioPlayer;
+
+    ValueTreeMonitor audioConfigPropertiesMonitor;
 
     ValueTreeMonitor directoryDataMonitor;
     ValueTreeMonitor presetPropertiesMonitor;

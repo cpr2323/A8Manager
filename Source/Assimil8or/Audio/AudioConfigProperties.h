@@ -3,6 +3,8 @@
 #include <JuceHeader.h>
 #include "../../Utility/ValueTreeWrapper.h"
 
+//TODO - This needs to be two classes, one for persistent and another for runtime
+
 class AudioConfigProperties : public ValueTreeWrapper<AudioConfigProperties>
 {
 public:
@@ -20,6 +22,7 @@ public:
     void setSourceFile (juce::String sourceFile, bool includeSelfCallback);
     void setLoopStart (int startSample, bool includeSelfCallback);
     void setLoopEnd (int endSample, bool includeSelfCallback);
+    void showConfigDialog (bool includeSelfCallback);
 
     juce::String getDeviceName ();
     PlayState getPlayState ();
@@ -32,13 +35,15 @@ public:
     std::function<void (juce::String sourceFile)> onSourceFileChanged;
     std::function<void (int startSample)> onLoopStartChanged;
     std::function<void (int endSample)> onLoopEndChanged;
+    std::function<void ()> onShowConfigDialog;
 
     static inline const juce::Identifier AudioConfigTypeId { "AudioConfig" };
-    static inline const juce::Identifier DeviceNamePropertyId { "deviceName" };
-    static inline const juce::Identifier PlayStatePropertyId  { "playState" };
-    static inline const juce::Identifier SourceFilePropertyId { "sourceFile" };
-    static inline const juce::Identifier LoopStartPropertyId  { "loopStart" };
-    static inline const juce::Identifier LoopEndPropertyId    { "loopEnd" };
+    static inline const juce::Identifier DeviceNamePropertyId       { "deviceName" };
+    static inline const juce::Identifier PlayStatePropertyId        { "playState" };
+    static inline const juce::Identifier SourceFilePropertyId       { "sourceFile" };
+    static inline const juce::Identifier LoopStartPropertyId        { "loopStart" };
+    static inline const juce::Identifier LoopEndPropertyId          { "loopEnd" };
+    static inline const juce::Identifier ShowConfigDialogPropertyId { "showConfigDialog" };
 
     void initValueTree ();
     void processValueTree () {}

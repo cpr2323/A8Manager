@@ -1,14 +1,27 @@
 #include "ToolWindow.h"
+#include "../Utility/PersistentRootProperties.h"
 #include "../Utility/RuntimeRootProperties.h"
+
+const auto kDialogComboboxName { "combobox" };
 
 ToolWindow::ToolWindow ()
 {
     progressUpdateLabel.setColour (juce::Label::ColourIds::textColourId, juce::Colours::white);
     addAndMakeVisible (progressUpdateLabel);
+
+    settingsButton.setButtonText ("SETTINGS");
+    settingsButton.onClick = [this] ()
+    {
+        audioConfigProperties.showConfigDialog (false);
+    };
+    addAndMakeVisible (settingsButton);
 }
 
 void ToolWindow::init (juce::ValueTree rootPropertiesVT)
 {
+    PersistentRootProperties persistentRootProperties (rootPropertiesVT, PersistentRootProperties::WrapperType::client, PersistentRootProperties::EnableCallbacks::no);
+    audioConfigProperties.wrap (persistentRootProperties.getValueTree (), AudioConfigProperties::WrapperType::owner, AudioConfigProperties::EnableCallbacks::yes);
+
     RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
     validatorProperties.wrap (runtimeRootProperties.getValueTree (), ValidatorProperties::WrapperType::client, ValidatorProperties::EnableCallbacks::yes);
     validatorProperties.onProgressUpdateChanged = [this] (juce::String progressUpdate)
@@ -36,4 +49,6 @@ void ToolWindow::resized ()
     localBounds.reduce (5, 3);
 
     progressUpdateLabel.setBounds (localBounds);
+    const auto buttonWidth { 70 };
+    settingsButton.setBounds (getWidth () - 5 - buttonWidth, getHeight () / 2 - 10, buttonWidth, 20);
 }

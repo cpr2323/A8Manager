@@ -9,7 +9,7 @@ void AudioPlayer::init (juce::ValueTree rootPropertiesVT)
     audioConfigProperties.wrap (persistentRootProperties.getValueTree (), AudioConfigProperties::WrapperType::owner, AudioConfigProperties::EnableCallbacks::yes);
     audioConfigProperties.onDeviceNameChange = [this] (juce::String deviceName)
     {
-        configureAudioDevice (deviceName);
+        //configureAudioDevice (deviceName);
     };
     audioConfigProperties.onPlayStateChange = [this] (AudioConfigProperties::PlayState playState)
     {
@@ -35,12 +35,9 @@ void AudioPlayer::init (juce::ValueTree rootPropertiesVT)
     {
         juce::Logger::outputDebugString ("AudioPlayer - Loop End: " + juce::String (loopEnd));
     };
+    audioConfigProperties.onShowConfigDialog = [this] () { showConfigDialog (); };
+    audioDeviceManager.addChangeListener (this);
     configureAudioDevice (audioConfigProperties.getDeviceName ());
-}
-
-void AudioPlayer::setPresetProperties (juce::ValueTree presetPropertiesVT)
-{
-    presetProperties.wrap (presetPropertiesVT, PresetProperties::WrapperType::owner, PresetProperties::EnableCallbacks::no);
 }
 
 void AudioPlayer::shutdownAudio ()
@@ -52,7 +49,6 @@ void AudioPlayer::shutdownAudio ()
 
 void AudioPlayer::configureAudioDevice (juce::String deviceName)
 {
-    deviceName = "Speakers (AudioBox USB 96)";
     juce::String audioConfigError;
     if (deviceName.isEmpty ())
     {
@@ -95,12 +91,23 @@ void AudioPlayer::handlePlayState (AudioConfigProperties::PlayState playState)
     }
 }
 
+void AudioPlayer::showConfigDialog ()
+{
+    juce::DialogWindow::LaunchOptions o;
+    o.escapeKeyTriggersCloseButton = true;
+    o.dialogBackgroundColour = juce::Colours::grey;
+    o.dialogTitle = "AUDIO SETTTINGS";
+    audioSetupComp.setBounds (0, 0, 400, 600);
+    o.content.set (&audioSetupComp, false);
+    audioSettingsDialog.reset (o.launchAsync ());
+}
+
 void AudioPlayer::prepareToPlay (int samplesPerBlockExpected, double newSampleRate)
 {
     sampleRate = newSampleRate;
     blockSize = samplesPerBlockExpected;
 
-    if (playing)
+    if (resamplingAudioSource != nullptr)
     {
         resamplingAudioSource->setResamplingRatio (readerSource->getAudioFormatReader ()->sampleRate / sampleRate);
         resamplingAudioSource->prepareToPlay (blockSize, sampleRate);
@@ -109,7 +116,15 @@ void AudioPlayer::prepareToPlay (int samplesPerBlockExpected, double newSampleRa
 
 void AudioPlayer::releaseResources ()
 {
-    resamplingAudioSource->releaseResources ();
+    if (resamplingAudioSource != nullptr)
+        resamplingAudioSource->releaseResources ();
+}
+
+void AudioPlayer::changeListenerCallback (juce::ChangeBroadcaster* source)
+{
+    juce::Logger::outputDebugString ("audio device settings changed");
+    auto currentAudioSetup { audioDeviceManager.getAudioDeviceSetup () };
+    audioConfigProperties.setDeviceName (currentAudioSetup.outputDeviceName, false);
 }
 
 void AudioPlayer::getNextAudioBlock (const juce::AudioSourceChannelInfo& bufferToFill)

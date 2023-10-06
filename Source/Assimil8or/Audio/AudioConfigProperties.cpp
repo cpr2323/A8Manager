@@ -33,6 +33,11 @@ void AudioConfigProperties::setLoopEnd (int endSample, bool includeSelfCallback)
     setValue (endSample, LoopEndPropertyId, includeSelfCallback);
 }
 
+void AudioConfigProperties::showConfigDialog (bool includeSelfCallback)
+{
+    toggleValue (ShowConfigDialogPropertyId, includeSelfCallback);
+}
+
 juce::String AudioConfigProperties::getDeviceName ()
 {
     return getValue<juce::String> (DeviceNamePropertyId);
@@ -86,6 +91,11 @@ void AudioConfigProperties::valueTreePropertyChanged (juce::ValueTree& treeWhose
         {
             if (onLoopEndChanged != nullptr)
                 onLoopEndChanged (getLoopEnd ());
+        }
+        else if (property == ShowConfigDialogPropertyId)
+        {
+            if (onShowConfigDialog!= nullptr)
+                onShowConfigDialog ();
         }
     }
 }
