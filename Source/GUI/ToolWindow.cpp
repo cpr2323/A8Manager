@@ -2,8 +2,6 @@
 #include "../Utility/PersistentRootProperties.h"
 #include "../Utility/RuntimeRootProperties.h"
 
-const auto kDialogComboboxName { "combobox" };
-
 ToolWindow::ToolWindow ()
 {
     progressUpdateLabel.setColour (juce::Label::ColourIds::textColourId, juce::Colours::white);
