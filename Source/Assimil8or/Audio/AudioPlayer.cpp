@@ -99,7 +99,7 @@ void AudioPlayer::showConfigDialog ()
     o.dialogTitle = "AUDIO SETTTINGS";
     audioSetupComp.setBounds (0, 0, 400, 600);
     o.content.set (&audioSetupComp, false);
-    audioSettingsDialog.reset (o.launchAsync ());
+    o.launchAsync ();
 }
 
 void AudioPlayer::prepareToPlay (int samplesPerBlockExpected, double newSampleRate)

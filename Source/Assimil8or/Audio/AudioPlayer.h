@@ -19,7 +19,6 @@ private:
     juce::AudioSourcePlayer audioSourcePlayer;
     std::unique_ptr <juce::AudioFormatReaderSource> readerSource;
     std::unique_ptr<juce::ResamplingAudioSource> resamplingAudioSource;
-    std::unique_ptr<juce::DialogWindow> audioSettingsDialog;
     juce::AudioDeviceSelectorComponent audioSetupComp { audioDeviceManager, 0, 0, 0, 256, false, false, true, false};
 
     juce::File audioFile;
