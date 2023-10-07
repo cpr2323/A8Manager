@@ -1,7 +1,7 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include "../../../Assimil8or/Audio/AudioConfigProperties.h"
+#include "../../../Assimil8or/Audio/AudioPlayerProperties.h"
 #include "../../../Assimil8or/Preset/ZoneProperties.h"
 #include "../../../AppProperties.h"
 
@@ -101,7 +101,7 @@ private:
     int64_t sampleLength { 0 };
     juce::TextButton toolsButton;
     juce::TextButton transportButton;
-    AudioConfigProperties audioConfigProperties;
+    AudioPlayerProperties audioPlayerProperties;
 
     bool draggingFiles { false };
     int dropIndex { 0 };

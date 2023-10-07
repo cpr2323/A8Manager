@@ -5,6 +5,7 @@
 #include "../../../Assimil8or/Preset/PresetProperties.h"
 #include "../../../Assimil8or/Preset/ParameterPresetsSingleton.h"
 #include "../../../Utility/PersistentRootProperties.h"
+#include "../../../Utility/RuntimeRootProperties.h"
 
 const auto kLargeLabelSize { 20.0f };
 const auto kMediumLabelSize { 14.0f };
@@ -872,8 +873,9 @@ std::tuple<double, double> ChannelEditor::getVoltageBoundaries (int zoneIndex, i
 void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree rootPropertiesVT)
 {
     PersistentRootProperties persistentRootProperties (rootPropertiesVT, PersistentRootProperties::WrapperType::client, PersistentRootProperties::EnableCallbacks::no);
+    RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
     appProperties.wrap (persistentRootProperties.getValueTree(), AppProperties::WrapperType::client, AppProperties::EnableCallbacks::no);
-    audioConfigProperties.wrap (persistentRootProperties.getValueTree (), AudioConfigProperties::WrapperType::client, AudioConfigProperties::EnableCallbacks::no);
+    audioPlayerProperties.wrap (runtimeRootProperties.getValueTree (), AudioPlayerProperties::WrapperType::client, AudioPlayerProperties::EnableCallbacks::no);
 
     channelProperties.wrap (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::yes);
     setupChannelPropertiesCallbacks ();
@@ -1115,7 +1117,7 @@ void ChannelEditor::checkStereoRightOverlay ()
 
 void ChannelEditor::configAudioPlayer ()
 {
-    audioConfigProperties.setPlayState (AudioConfigProperties::stop, false);
+    audioPlayerProperties.setPlayState (AudioPlayerProperties::PlayState::stop, false);
 }
 
 void ChannelEditor::paint ([[maybe_unused]] juce::Graphics& g)

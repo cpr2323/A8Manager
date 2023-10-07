@@ -274,8 +274,8 @@ public:
     void initAudio ()
     {
         audioPlayer.init (rootProperties.getValueTree ());
-        AudioConfigProperties audioConfigProperties (persistentRootProperties.getValueTree (), AudioConfigProperties::WrapperType::client, AudioConfigProperties::EnableCallbacks::no);
-        audioConfigPropertiesMonitor.assign (audioConfigProperties.getValueTreeRef ());
+        AudioSettingsProperties audioSettingsProperties (persistentRootProperties.getValueTree (), AudioSettingsProperties::WrapperType::client, AudioSettingsProperties::EnableCallbacks::no);
+        audioConfigPropertiesMonitor.assign (audioSettingsProperties.getValueTreeRef ());
     }
 
     void initAppDirectory ()

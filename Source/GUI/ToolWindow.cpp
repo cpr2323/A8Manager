@@ -12,7 +12,7 @@ ToolWindow::ToolWindow ()
     settingsButton.setButtonText ("SETTINGS");
     settingsButton.onClick = [this] ()
     {
-        audioConfigProperties.showConfigDialog (false);
+        audioSettingsProperties.showConfigDialog (false);
     };
     addAndMakeVisible (settingsButton);
 }
@@ -20,7 +20,7 @@ ToolWindow::ToolWindow ()
 void ToolWindow::init (juce::ValueTree rootPropertiesVT)
 {
     PersistentRootProperties persistentRootProperties (rootPropertiesVT, PersistentRootProperties::WrapperType::client, PersistentRootProperties::EnableCallbacks::no);
-    audioConfigProperties.wrap (persistentRootProperties.getValueTree (), AudioConfigProperties::WrapperType::owner, AudioConfigProperties::EnableCallbacks::yes);
+    audioSettingsProperties.wrap (persistentRootProperties.getValueTree (), AudioSettingsProperties::WrapperType::owner, AudioSettingsProperties::EnableCallbacks::yes);
 
     RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
     validatorProperties.wrap (runtimeRootProperties.getValueTree (), ValidatorProperties::WrapperType::client, ValidatorProperties::EnableCallbacks::yes);

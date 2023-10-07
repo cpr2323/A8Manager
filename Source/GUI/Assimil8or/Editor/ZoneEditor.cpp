@@ -5,6 +5,7 @@
 #include "../../../Assimil8or/Preset/PresetProperties.h"
 #include "../../../Assimil8or/Preset/ParameterPresetsSingleton.h"
 #include "../../../Utility/PersistentRootProperties.h"
+#include "../../../Utility/RuntimeRootProperties.h"
 
 ZoneEditor::ZoneEditor ()
 {
@@ -43,16 +44,16 @@ ZoneEditor::ZoneEditor ()
     {
         if (transportButton.getButtonText () == "PLAY")
         {
-            audioConfigProperties.setSourceFile (juce::File (appProperties.getMostRecentFolder ()).getChildFile (zoneProperties.getSample ()).getFullPathName (), false);
+            audioPlayerProperties.setSourceFile (juce::File (appProperties.getMostRecentFolder ()).getChildFile (zoneProperties.getSample ()).getFullPathName (), false);
             const auto loopStart { static_cast<int>(zoneProperties.getLoopStart ().value_or (0)) };
-            audioConfigProperties.setLoopStart (loopStart, false);
-            audioConfigProperties.setLoopEnd (loopStart + static_cast<int>(zoneProperties.getLoopLength ().value_or (sampleLength)), false);
-            audioConfigProperties.setPlayState (AudioConfigProperties::play, false);
+            audioPlayerProperties.setLoopStart (loopStart, false);
+            audioPlayerProperties.setLoopEnd (loopStart + static_cast<int>(zoneProperties.getLoopLength ().value_or (sampleLength)), false);
+            audioPlayerProperties.setPlayState (AudioPlayerProperties::PlayState::play, false);
             transportButton.setButtonText ("STOP");
         }
         else
         {
-            audioConfigProperties.setPlayState (AudioConfigProperties::stop, false);
+            audioPlayerProperties.setPlayState (AudioPlayerProperties::PlayState::stop, false);
             transportButton.setButtonText ("PLAY");
         }
     };
@@ -350,13 +351,15 @@ void ZoneEditor::setupZoneComponents ()
 void ZoneEditor::init (juce::ValueTree zonePropertiesVT, juce::ValueTree rootPropertiesVT)
 {
     PersistentRootProperties persistentRootProperties (rootPropertiesVT, PersistentRootProperties::WrapperType::client, PersistentRootProperties::EnableCallbacks::no);
+    RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
+
     appProperties.wrap (persistentRootProperties.getValueTree (), AppProperties::WrapperType::client, AppProperties::EnableCallbacks::no);
-    audioConfigProperties.wrap (persistentRootProperties.getValueTree (), AudioConfigProperties::WrapperType::client, AudioConfigProperties::EnableCallbacks::yes);
-    audioConfigProperties.onPlayStateChange = [this] (AudioConfigProperties::PlayState playState)
+    audioPlayerProperties.wrap (runtimeRootProperties.getValueTree (), AudioPlayerProperties::WrapperType::client, AudioPlayerProperties::EnableCallbacks::yes);
+    audioPlayerProperties.onPlayStateChange = [this] (AudioPlayerProperties::PlayState playState)
     {
-        if (playState == AudioConfigProperties::play)
+        if (playState == AudioPlayerProperties::PlayState::play)
             transportButton.setButtonText ("STOP");
-        else if (playState == AudioConfigProperties::stop)
+        else if (playState == AudioPlayerProperties::PlayState::stop)
             transportButton.setButtonText ("PLAY");
         else
             jassertfalse;

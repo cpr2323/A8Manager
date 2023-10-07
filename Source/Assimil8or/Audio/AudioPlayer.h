@@ -1,9 +1,10 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include "AudioConfigProperties.h"
-#include "../../AppProperties.h"
+#include "AudioPlayerProperties.h"
+#include "AudioSettingsProperties.h"
 #include "../Preset/PresetProperties.h"
+#include "../../AppProperties.h"
 
 class AudioPlayer : public juce::AudioSource,
                     public juce::ChangeListener
@@ -13,7 +14,8 @@ public:
     void shutdownAudio ();
 
 private:
-    AudioConfigProperties audioConfigProperties;
+    AudioSettingsProperties audioSettingsProperties;
+    AudioPlayerProperties audioPlayerProperties;
     AppProperties appProperties;
     juce::AudioDeviceManager audioDeviceManager;
     juce::AudioSourcePlayer audioSourcePlayer;
@@ -27,7 +29,7 @@ private:
     bool playing { false };
 
     void configureAudioDevice (juce::String deviceName);
-    void handlePlayState (AudioConfigProperties::PlayState playState);
+    void handlePlayState (AudioPlayerProperties::PlayState playState);
     void showConfigDialog ();
 
     void prepareToPlay (int samplesPerBlockExpected, double sampleRate) override;

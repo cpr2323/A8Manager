@@ -1,21 +1,27 @@
 #include "AudioPlayer.h"
 #include "../../Utility/PersistentRootProperties.h"
+#include "../../Utility/RuntimeRootProperties.h"
 
 void AudioPlayer::init (juce::ValueTree rootPropertiesVT)
 {
     PersistentRootProperties persistentRootProperties (rootPropertiesVT, PersistentRootProperties::WrapperType::client, PersistentRootProperties::EnableCallbacks::no);
+    RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
+
     appProperties.wrap (persistentRootProperties.getValueTree (), AppProperties::WrapperType::owner, AppProperties::EnableCallbacks::yes);
 
-    audioConfigProperties.wrap (persistentRootProperties.getValueTree (), AudioConfigProperties::WrapperType::owner, AudioConfigProperties::EnableCallbacks::yes);
-    audioConfigProperties.onDeviceNameChange = [this] (juce::String deviceName)
+    audioSettingsProperties.wrap (persistentRootProperties.getValueTree (), AudioSettingsProperties::WrapperType::owner, AudioSettingsProperties::EnableCallbacks::yes);
+    audioSettingsProperties.onDeviceNameChange = [this] (juce::String deviceName)
     {
         //configureAudioDevice (deviceName);
     };
-    audioConfigProperties.onPlayStateChange = [this] (AudioConfigProperties::PlayState playState)
+    audioSettingsProperties.onShowConfigDialog = [this] () { showConfigDialog (); };
+
+    audioPlayerProperties.wrap (runtimeRootProperties.getValueTree (), AudioPlayerProperties::WrapperType::owner, AudioPlayerProperties::EnableCallbacks::yes);
+    audioPlayerProperties.onPlayStateChange = [this] (AudioPlayerProperties::PlayState playState)
     {
         handlePlayState (playState);
     };
-    audioConfigProperties.onSourceFileChanged = [this] (juce::String sourceFile)
+    audioPlayerProperties.onSourceFileChanged = [this] (juce::String sourceFile)
     {
         juce::Logger::outputDebugString ("AudioPlayer - Source File: " + sourceFile);
         audioFile = juce::File (sourceFile);
@@ -27,17 +33,16 @@ void AudioPlayer::init (juce::ValueTree rootPropertiesVT)
         resamplingAudioSource->setResamplingRatio (readerSource->getAudioFormatReader ()->sampleRate / sampleRate);
         resamplingAudioSource->prepareToPlay (blockSize, sampleRate);
     };
-    audioConfigProperties.onLoopStartChanged = [this] (int loopStart)
+    audioPlayerProperties.onLoopStartChanged = [this] (int loopStart)
     {
-        juce::Logger::outputDebugString ("AudioPlayer - Loop Start: " + juce::String(loopStart));
+        juce::Logger::outputDebugString ("AudioPlayer - Loop Start: " + juce::String (loopStart));
     };
-    audioConfigProperties.onLoopEndChanged = [this] (int loopEnd)
+    audioPlayerProperties.onLoopEndChanged = [this] (int loopEnd)
     {
         juce::Logger::outputDebugString ("AudioPlayer - Loop End: " + juce::String (loopEnd));
     };
-    audioConfigProperties.onShowConfigDialog = [this] () { showConfigDialog (); };
     audioDeviceManager.addChangeListener (this);
-    configureAudioDevice (audioConfigProperties.getDeviceName ());
+    configureAudioDevice (audioSettingsProperties.getDeviceName ());
 }
 
 void AudioPlayer::shutdownAudio ()
@@ -69,21 +74,21 @@ void AudioPlayer::configureAudioDevice (juce::String deviceName)
     // if the configuration device differs from the requested device, update AudioConfig
     const auto setup = audioDeviceManager.getAudioDeviceSetup ();
     if (setup.outputDeviceName != deviceName)
-        audioConfigProperties.setDeviceName (setup.outputDeviceName, false);
+        audioSettingsProperties.setDeviceName (setup.outputDeviceName, false);
 
     audioDeviceManager.addAudioCallback (&audioSourcePlayer);
     audioSourcePlayer.setSource (this);
 }
 
-void AudioPlayer::handlePlayState (AudioConfigProperties::PlayState playState)
+void AudioPlayer::handlePlayState (AudioPlayerProperties::PlayState playState)
 {
-    if (playState == AudioConfigProperties::stop)
+    if (playState == AudioPlayerProperties::PlayState::stop)
     {
         juce::Logger::outputDebugString ("AudioPlayer::handlePlayState: stop");
         // TODO - stop playback, with quick fade out
         playing = false;
     }
-    else if (playState == AudioConfigProperties::play)
+    else if (playState == AudioPlayerProperties::PlayState::play)
     {
         juce::Logger::outputDebugString ("AudioPlayer::handlePlayState: play");
         // TODO - start playback, with quick fade in
@@ -120,11 +125,11 @@ void AudioPlayer::releaseResources ()
         resamplingAudioSource->releaseResources ();
 }
 
-void AudioPlayer::changeListenerCallback (juce::ChangeBroadcaster* source)
+void AudioPlayer::changeListenerCallback (juce::ChangeBroadcaster*)
 {
     juce::Logger::outputDebugString ("audio device settings changed");
     auto currentAudioSetup { audioDeviceManager.getAudioDeviceSetup () };
-    audioConfigProperties.setDeviceName (currentAudioSetup.outputDeviceName, false);
+    audioSettingsProperties.setDeviceName (currentAudioSetup.outputDeviceName, false);
 }
 
 void AudioPlayer::getNextAudioBlock (const juce::AudioSourceChannelInfo& bufferToFill)

@@ -4,7 +4,7 @@
 #include "CvInputComboBox.h"
 #include "ZoneEditor.h"
 #include "../../../AppProperties.h"
-#include "../../../Assimil8or/Audio/AudioConfigProperties.h"
+#include "../../../Assimil8or/Audio/AudioPlayerProperties.h"
 #include "../../../Assimil8or/Preset/ChannelProperties.h"
 #include "../../../Utility/NoArrowComboBoxLnF.h"
 
@@ -181,7 +181,7 @@ private:
     ZoneProperties defaultZoneProperties;
     ZoneProperties copyBufferZoneProperties;
     bool copyBufferActive { false };
-    AudioConfigProperties audioConfigProperties;
+    AudioPlayerProperties audioPlayerProperties;
 
     juce::Label zonesLabel;
     juce::Label zoneMaxVoltage;
