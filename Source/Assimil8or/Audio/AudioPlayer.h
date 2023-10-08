@@ -19,9 +19,12 @@ private:
     AppProperties appProperties;
     juce::AudioDeviceManager audioDeviceManager;
     juce::AudioSourcePlayer audioSourcePlayer;
-    std::unique_ptr <juce::AudioFormatReaderSource> readerSource;
-    std::unique_ptr<juce::ResamplingAudioSource> resamplingAudioSource;
+    std::unique_ptr < juce::AudioBuffer<float>> sampleBuffer;
     juce::AudioDeviceSelectorComponent audioSetupComp { audioDeviceManager, 0, 0, 0, 256, false, false, true, false};
+
+    int position { 0 };
+    int loopStart { 0 };
+    int loopEnd { 0 };
 
     juce::File audioFile;
     double sampleRate { 44100.0 };

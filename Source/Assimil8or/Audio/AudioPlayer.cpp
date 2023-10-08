@@ -27,18 +27,24 @@ void AudioPlayer::init (juce::ValueTree rootPropertiesVT)
         audioFile = juce::File (sourceFile);
         juce::AudioFormatManager audioFormatManager;
         audioFormatManager.registerBasicFormats ();
-        readerSource = std::make_unique<juce::AudioFormatReaderSource> (audioFormatManager.createReaderFor (audioFile), true);
-        resamplingAudioSource = std::make_unique<juce::ResamplingAudioSource> (readerSource.get (), false, 2);
-
+        std::unique_ptr <juce::AudioFormatReaderSource> readerSource = std::make_unique<juce::AudioFormatReaderSource> (audioFormatManager.createReaderFor (audioFile), true);
+        std::unique_ptr<juce::ResamplingAudioSource> resamplingAudioSource = std::make_unique<juce::ResamplingAudioSource> (readerSource.get (), false, 2);
         resamplingAudioSource->setResamplingRatio (readerSource->getAudioFormatReader ()->sampleRate / sampleRate);
         resamplingAudioSource->prepareToPlay (blockSize, sampleRate);
+        sampleBuffer = std::make_unique<juce::AudioBuffer<float>> (readerSource->getAudioFormatReader ()->numChannels,
+                                                                   static_cast<int>(readerSource->getAudioFormatReader ()->lengthInSamples * sampleRate / readerSource->getAudioFormatReader ()->sampleRate));
+        // resample into output buffer
+        resamplingAudioSource->getNextAudioBlock (juce::AudioSourceChannelInfo (*sampleBuffer.get ()));
+        position = 0;
     };
-    audioPlayerProperties.onLoopStartChanged = [this] (int loopStart)
+    audioPlayerProperties.onLoopStartChanged = [this] (int newLoopStart)
     {
+        loopStart = newLoopStart;
         juce::Logger::outputDebugString ("AudioPlayer - Loop Start: " + juce::String (loopStart));
     };
-    audioPlayerProperties.onLoopEndChanged = [this] (int loopEnd)
+    audioPlayerProperties.onLoopEndChanged = [this] (int newLoopEnd)
     {
+        loopEnd = newLoopEnd;
         juce::Logger::outputDebugString ("AudioPlayer - Loop End: " + juce::String (loopEnd));
     };
     audioDeviceManager.addChangeListener (this);
@@ -112,17 +118,11 @@ void AudioPlayer::prepareToPlay (int samplesPerBlockExpected, double newSampleRa
     sampleRate = newSampleRate;
     blockSize = samplesPerBlockExpected;
 
-    if (resamplingAudioSource != nullptr)
-    {
-        resamplingAudioSource->setResamplingRatio (readerSource->getAudioFormatReader ()->sampleRate / sampleRate);
-        resamplingAudioSource->prepareToPlay (blockSize, sampleRate);
-    }
+    // TODO - need to resample here if sample rate changes
 }
 
 void AudioPlayer::releaseResources ()
 {
-    if (resamplingAudioSource != nullptr)
-        resamplingAudioSource->releaseResources ();
 }
 
 void AudioPlayer::changeListenerCallback (juce::ChangeBroadcaster*)
@@ -140,8 +140,29 @@ void AudioPlayer::getNextAudioBlock (const juce::AudioSourceChannelInfo& bufferT
     if (! playing)
         return;
 
-    if (readerSource->getNextReadPosition () > readerSource->getTotalLength ())
-        readerSource->setNextReadPosition (0);
+    auto& dst = *bufferToFill.buffer;
+    auto channels = juce::jmin (dst.getNumChannels (), sampleBuffer->getNumChannels ());
+    int numSamplesToCopy = 0, pos = 0;
+    auto numInputSamples = loopEnd - loopStart;
+    auto numOutputSamples = bufferToFill.numSamples;
 
-    resamplingAudioSource->getNextAudioBlock (bufferToFill);
+    int i = position;
+    for (; pos < numOutputSamples; i += numSamplesToCopy)
+    {
+        numSamplesToCopy = juce::jmin (numOutputSamples - pos, numInputSamples - (i % numInputSamples));
+
+        int ch = 0;
+        for (; ch < channels; ++ch)
+            dst.copyFrom (ch, bufferToFill.startSample + pos, *sampleBuffer, ch, loopStart + (i % numInputSamples), numSamplesToCopy);
+
+        for (; ch < dst.getNumChannels (); ++ch)
+            dst.clear (ch, bufferToFill.startSample + pos, numSamplesToCopy);
+
+        pos += numSamplesToCopy;
+    }
+
+    if (pos < numOutputSamples)
+        dst.clear (bufferToFill.startSample + pos, numOutputSamples - pos);
+
+    position = i;
 }

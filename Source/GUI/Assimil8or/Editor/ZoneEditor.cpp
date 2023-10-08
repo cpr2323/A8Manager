@@ -207,7 +207,10 @@ void ZoneEditor::setupZoneComponents ()
         textEditor.setIndents (2, 0);
         textEditor.setInputRestrictions (maxLen, validInputCharacters);
         textEditor.onFocusLost = [this, &textEditor, doneEditingCallback] () { doneEditingCallback (textEditor.getText ()); };
-        textEditor.onReturnKey = [this, &textEditor, doneEditingCallback] () { doneEditingCallback (textEditor.getText ()); };
+        textEditor.onReturnKey = [this, &textEditor, doneEditingCallback] ()
+            {
+                doneEditingCallback (textEditor.getText ());
+            };
         textEditor.setTooltip (parameterToolTipData.getToolTip ("Zone", parameterName));
         if (validateCallback != nullptr)
             textEditor.onTextChange = [this, validateCallback] () { validateCallback (); };
@@ -229,7 +232,7 @@ void ZoneEditor::setupZoneComponents ()
     {
         const auto sampleStart { std::clamp (text.getLargeIntValue (), minZoneProperties.getSampleStart ().value_or (0), zoneProperties.getSampleEnd ().value_or (sampleLength)) };
         sampleStartUiChanged (sampleStart);
-        sampleStartTextEditor.setText (juce::String (sampleStart));
+        sampleStartTextEditor.setText (juce::String (sampleStart), false);
     });
     // SAMPLE END
     setupLabel (sampleEndLabel, "SMPL END", 12.0, juce::Justification::centredRight);
@@ -241,7 +244,7 @@ void ZoneEditor::setupZoneComponents ()
     {
         const auto sampleEnd { std::clamp (text.getLargeIntValue (), zoneProperties.getSampleStart ().value_or (0), sampleLength)};
         sampleEndUiChanged (sampleEnd);
-        sampleEndTextEditor.setText (juce::String (sampleEnd));
+        sampleEndTextEditor.setText (juce::String (sampleEnd), false);
     });
     // LOOP START
     setupLabel (loopStartLabel, "LOOP START", 12.0, juce::Justification::centredRight);
@@ -266,11 +269,12 @@ void ZoneEditor::setupZoneComponents ()
                                    zoneProperties.getLoopStart ().value_or (0) + static_cast<int64_t> (zoneProperties.getLoopLength ().value_or (static_cast<double> (sampleLength - zoneProperties.getLoopStart ().value_or (0)))));
         } ();
         loopStartUiChanged (loopStart);
-        loopStartTextEditor.setText (juce::String (loopStart));
+        loopStartTextEditor.setText (juce::String (loopStart), false);
         if (loopLengthIsEnd)
         {
             const auto loopLength { loopLengthTextEditor.getText ().getDoubleValue () - static_cast<double> (zoneProperties.getLoopStart ().value_or (0)) };
             loopLengthUiChanged (loopLength);
+            audioPlayerProperties.setLoopEnd (zoneProperties.getLoopStart ().value_or (0) + static_cast<int>(loopLength), false);
         }
     });
     // LOOP LENGTH
@@ -306,7 +310,8 @@ void ZoneEditor::setupZoneComponents ()
         loopLength = snapLoopLength (loopLength);
 
         loopLengthUiChanged (loopLength);
-        loopLengthTextEditor.setText (formatLoopLength (loopLength));
+        audioPlayerProperties.setLoopEnd (zoneProperties.getLoopStart ().value_or (0) + static_cast<int>(loopLength), false);
+        loopLengthTextEditor.setText (formatLoopLength (loopLength), false);
     });
     setupLabel (minVoltageLabel, "MIN VOLTAGE", 15.0, juce::Justification::centredRight);
     // MIN VOLTAGE
@@ -322,7 +327,7 @@ void ZoneEditor::setupZoneComponents ()
         if (clampMinVoltage != nullptr)
             minVoltage = clampMinVoltage (text.getDoubleValue ());
         minVoltageUiChanged (minVoltage);
-        minVoltageTextEditor.setText (FormatHelpers::formatDouble (minVoltage, 2, true));
+        minVoltageTextEditor.setText (FormatHelpers::formatDouble (minVoltage, 2, true), false);
     });
     setupLabel (pitchOffsetLabel, "PITCH OFFSET", 15.0, juce::Justification::centredRight);
     setupTextEditor (pitchOffsetTextEditor, juce::Justification::centred, 0, "+-.0123456789", "PitchOffset", [this] ()
@@ -333,7 +338,7 @@ void ZoneEditor::setupZoneComponents ()
     {
         const auto pitchOffset { std::clamp (text.getDoubleValue (), minZoneProperties.getPitchOffset (), maxZoneProperties.getPitchOffset ()) };
         pitchOffsetUiChanged (pitchOffset);
-        pitchOffsetTextEditor.setText (FormatHelpers::formatDouble (pitchOffset, 2, true));
+        pitchOffsetTextEditor.setText (FormatHelpers::formatDouble (pitchOffset, 2, true), false);
     });
     setupLabel (levelOffsetLabel, "LEVEL OFFSET", 15.0, juce::Justification::centredRight);
     setupTextEditor (levelOffsetTextEditor, juce::Justification::centred, 0, "+-.0123456789", "LevelOffset", [this] ()
@@ -344,7 +349,7 @@ void ZoneEditor::setupZoneComponents ()
     {
         const auto levelOffset { std::clamp (text.getDoubleValue (), minZoneProperties.getLevelOffset (), maxZoneProperties.getLevelOffset ()) };
         levelOffsetUiChanged (levelOffset);
-        levelOffsetTextEditor.setText (FormatHelpers::formatDouble (levelOffset, 1, true));
+        levelOffsetTextEditor.setText (FormatHelpers::formatDouble (levelOffset, 1, true), false);
     });
 }
 
@@ -581,6 +586,7 @@ void ZoneEditor::loopLengthDataChanged (std::optional<double> loopLength)
 
 void ZoneEditor::loopLengthUiChanged (double loopLength)
 {
+    juce::Logger::outputDebugString ("ZoneEditor::ZoneEditor::loopLengthUiChanged : " + juce::String (loopLength));
     zoneProperties.setLoopLength (loopLength, false);
 }
 
@@ -592,6 +598,8 @@ void ZoneEditor::loopStartDataChanged (std::optional<int64_t> loopStart)
 
 void ZoneEditor::loopStartUiChanged (int64_t  loopStart)
 {
+    juce::Logger::outputDebugString ("ZoneEditor::loopStartUiChanged: " + juce::String (loopStart));
+    audioPlayerProperties.setLoopStart (loopStart, false);
     zoneProperties.setLoopStart (loopStart, false);
 }
 
