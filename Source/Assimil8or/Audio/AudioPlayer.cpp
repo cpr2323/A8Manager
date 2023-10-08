@@ -42,10 +42,10 @@ void AudioPlayer::init (juce::ValueTree rootPropertiesVT)
         loopStart = newLoopStart;
         juce::Logger::outputDebugString ("AudioPlayer - Loop Start: " + juce::String (loopStart));
     };
-    audioPlayerProperties.onLoopEndChanged = [this] (int newLoopEnd)
+    audioPlayerProperties.onLoopLengthChanged = [this] (int newLoopLength)
     {
-        loopEnd = newLoopEnd;
-        juce::Logger::outputDebugString ("AudioPlayer - Loop End: " + juce::String (loopEnd));
+        loopLength = newLoopLength;
+        juce::Logger::outputDebugString ("AudioPlayer - Loop Length: " + juce::String (loopLength));
     };
     audioDeviceManager.addChangeListener (this);
     configureAudioDevice (audioSettingsProperties.getDeviceName ());
@@ -143,8 +143,8 @@ void AudioPlayer::getNextAudioBlock (const juce::AudioSourceChannelInfo& bufferT
     auto& dst = *bufferToFill.buffer;
     auto channels = juce::jmin (dst.getNumChannels (), sampleBuffer->getNumChannels ());
     int numSamplesToCopy = 0, pos = 0;
-    auto numInputSamples = loopEnd - loopStart;
-    auto numOutputSamples = bufferToFill.numSamples;
+    const auto numInputSamples { loopLength };
+    const auto numOutputSamples { bufferToFill.numSamples };
 
     int i = position;
     for (; pos < numOutputSamples; i += numSamplesToCopy)

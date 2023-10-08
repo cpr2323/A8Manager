@@ -47,7 +47,7 @@ ZoneEditor::ZoneEditor ()
             audioPlayerProperties.setSourceFile (juce::File (appProperties.getMostRecentFolder ()).getChildFile (zoneProperties.getSample ()).getFullPathName (), false);
             const auto loopStart { static_cast<int>(zoneProperties.getLoopStart ().value_or (0)) };
             audioPlayerProperties.setLoopStart (loopStart, false);
-            audioPlayerProperties.setLoopEnd (loopStart + static_cast<int>(zoneProperties.getLoopLength ().value_or (sampleLength)), false);
+            audioPlayerProperties.setLoopLength (static_cast<int>(zoneProperties.getLoopLength ().value_or (sampleLength)), false);
             audioPlayerProperties.setPlayState (AudioPlayerProperties::PlayState::play, false);
             transportButton.setButtonText ("STOP");
         }
@@ -274,7 +274,7 @@ void ZoneEditor::setupZoneComponents ()
         {
             const auto loopLength { loopLengthTextEditor.getText ().getDoubleValue () - static_cast<double> (zoneProperties.getLoopStart ().value_or (0)) };
             loopLengthUiChanged (loopLength);
-            audioPlayerProperties.setLoopEnd (zoneProperties.getLoopStart ().value_or (0) + static_cast<int>(loopLength), false);
+            audioPlayerProperties.setLoopLength (static_cast<int>(loopLength), false);
         }
     });
     // LOOP LENGTH
@@ -310,7 +310,7 @@ void ZoneEditor::setupZoneComponents ()
         loopLength = snapLoopLength (loopLength);
 
         loopLengthUiChanged (loopLength);
-        audioPlayerProperties.setLoopEnd (zoneProperties.getLoopStart ().value_or (0) + static_cast<int>(loopLength), false);
+        audioPlayerProperties.setLoopLength (static_cast<int>(loopLength), false);
         loopLengthTextEditor.setText (formatLoopLength (loopLength), false);
     });
     setupLabel (minVoltageLabel, "MIN VOLTAGE", 15.0, juce::Justification::centredRight);

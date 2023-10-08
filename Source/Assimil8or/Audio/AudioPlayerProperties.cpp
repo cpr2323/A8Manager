@@ -4,7 +4,7 @@ void AudioPlayerProperties::initValueTree ()
 {
     setSourceFile ({}, false);
     setLoopStart (0, false);
-    setLoopEnd (0, false);
+    setLoopLength (0, false);
 }
 
 void AudioPlayerProperties::setPlayState (PlayState playState, bool includeSelfCallback)
@@ -17,14 +17,14 @@ void AudioPlayerProperties::setSourceFile (juce::String sourceFile, bool include
     setValue (sourceFile, SourceFilePropertyId, includeSelfCallback);
 }
 
-void AudioPlayerProperties::setLoopStart (int startSample, bool includeSelfCallback)
+void AudioPlayerProperties::setLoopStart (int loopStart, bool includeSelfCallback)
 {
-    setValue (startSample, LoopStartPropertyId, includeSelfCallback);
+    setValue (loopStart , LoopStartPropertyId, includeSelfCallback);
 }
 
-void AudioPlayerProperties::setLoopEnd (int endSample, bool includeSelfCallback)
+void AudioPlayerProperties::setLoopLength (int loopLength, bool includeSelfCallback)
 {
-    setValue (endSample, LoopEndPropertyId, includeSelfCallback);
+    setValue (loopLength, LoopLengthPropertyId, includeSelfCallback);
 }
 
 AudioPlayerProperties::PlayState AudioPlayerProperties::getPlayState ()
@@ -42,9 +42,9 @@ int AudioPlayerProperties::getLoopStart ()
     return getValue<int> (LoopStartPropertyId);
 }
 
-int AudioPlayerProperties::getLoopEnd ()
+int AudioPlayerProperties::getLoopLength ()
 {
-    return getValue<int> (LoopEndPropertyId);
+    return getValue<int> (LoopLengthPropertyId);
 }
 
 void AudioPlayerProperties::valueTreePropertyChanged (juce::ValueTree& treeWhosePropertyHasChanged, const juce::Identifier& property)
@@ -66,10 +66,10 @@ void AudioPlayerProperties::valueTreePropertyChanged (juce::ValueTree& treeWhose
             if (onLoopStartChanged != nullptr)
                 onLoopStartChanged (getLoopStart ());
         }
-        else if (property == LoopEndPropertyId)
+        else if (property == LoopLengthPropertyId)
         {
-            if (onLoopEndChanged != nullptr)
-                onLoopEndChanged (getLoopEnd ());
+            if (onLoopLengthChanged != nullptr)
+                onLoopLengthChanged (getLoopLength ());
         }
     }
 }

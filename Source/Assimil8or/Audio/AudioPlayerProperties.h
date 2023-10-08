@@ -18,23 +18,23 @@ public:
     void setPlayState (PlayState playState, bool includeSelfCallback);
     void setSourceFile (juce::String sourceFile, bool includeSelfCallback);
     void setLoopStart (int startSample, bool includeSelfCallback);
-    void setLoopEnd (int endSample, bool includeSelfCallback);
+    void setLoopLength (int endSample, bool includeSelfCallback);
 
     PlayState getPlayState ();
     juce::String getSourceFile ();
     int getLoopStart ();
-    int getLoopEnd ();
+    int getLoopLength ();
 
     std::function<void (PlayState playState)> onPlayStateChange;
     std::function<void (juce::String sourceFile)> onSourceFileChanged;
-    std::function<void (int startSample)> onLoopStartChanged;
-    std::function<void (int endSample)> onLoopEndChanged;
+    std::function<void (int loopStart)> onLoopStartChanged;
+    std::function<void (int loopLength)> onLoopLengthChanged;
 
     static inline const juce::Identifier AudioConfigTypeId { "AudioPlayer" };
-    static inline const juce::Identifier PlayStatePropertyId { "playState" };
+    static inline const juce::Identifier PlayStatePropertyId  { "playState" };
     static inline const juce::Identifier SourceFilePropertyId { "sourceFile" };
-    static inline const juce::Identifier LoopStartPropertyId { "loopStart" };
-    static inline const juce::Identifier LoopEndPropertyId { "loopEnd" };
+    static inline const juce::Identifier LoopStartPropertyId  { "loopStart" };
+    static inline const juce::Identifier LoopLengthPropertyId { "loopLength" };
 
     void initValueTree ();
     void processValueTree () {}

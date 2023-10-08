@@ -24,7 +24,7 @@ private:
 
     int position { 0 };
     int loopStart { 0 };
-    int loopEnd { 0 };
+    int loopLength { 0 };
 
     juce::File audioFile;
     double sampleRate { 44100.0 };
