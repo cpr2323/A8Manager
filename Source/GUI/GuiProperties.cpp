@@ -14,6 +14,13 @@ void GuiProperties::initValueTree ()
 {
     setPosition (0, 0, false);
     setSize (100, 100, false);
+    setPaneSizes (-0.06, -0.10, -0.032, false);
+}
+
+void GuiProperties::processValueTree ()
+{
+    if (!data.hasProperty (PaneSizesPropertyId))
+        setPaneSizes (-0.06, -0.10, -0.032, false);
 }
 
 void GuiProperties::setPosition (int x, int y, bool includeSelfCallback)
@@ -27,9 +34,10 @@ void GuiProperties::setSize (int width, int height, bool includeSelfCallback)
 
 }
 
-void GuiProperties::setPaneSizes (int width, int height, bool includeSelfCallback)
+void GuiProperties::setPaneSizes (double pane1Size, double pane2Size, double pane3Size, bool includeSelfCallback)
 {
-
+    const auto paneSizes { juce::String (pane1Size) + "," + juce::String (pane2Size) + "," + juce::String (pane3Size) };
+    setValue (paneSizes, PaneSizesPropertyId, includeSelfCallback);
 }
 
 std::tuple<int, int> GuiProperties::getPosition ()
@@ -44,6 +52,13 @@ std::tuple<int, int> GuiProperties::getSize ()
     const auto values { juce::StringArray::fromTokens (getValue<juce::String> (SizePropertyId), ",", {}) };
     jassert (values.size () == 2);
     return { values [0].getIntValue (), values [1].getIntValue () };
+}
+
+std::tuple<double, double, double> GuiProperties::getPaneSizes ()
+{
+    const auto values { juce::StringArray::fromTokens (getValue<juce::String> (PaneSizesPropertyId), ",", {}) };
+    jassert (values.size () == 3);
+    return { values [0].getDoubleValue (), values [1].getDoubleValue (), values [2].getDoubleValue () };
 }
 
 void GuiProperties::valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property)

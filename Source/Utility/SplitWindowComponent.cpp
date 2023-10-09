@@ -68,7 +68,7 @@ void SplitWindowComponent::setHorizontalSplit (bool theHorizontalSplit)
     horizontalSplit = theHorizontalSplit;
 
     removeAllChildren ();
-    resizerBar = std::make_unique<juce::StretchableLayoutResizerBar> (&stretchableManager, 1, ! horizontalSplit);
+    resizerBar = std::make_unique<StretchableLayoutResizerBarWithCallback> (&stretchableManager, 1, ! horizontalSplit);
     resizerBar->setLookAndFeel (resizerLookAndFeel.get ());
 
     addAndMakeVisible (firstComponent);
@@ -79,12 +79,17 @@ void SplitWindowComponent::setHorizontalSplit (bool theHorizontalSplit)
                                        -0.001, -0.99,
                                        -0.5);
 
-    stretchableManager.setItemLayout (1,          // for the resize bar
+    stretchableManager.setItemLayout (1, // for the resize bar
                                        kSplitBorderWidth, kSplitBorderWidth, kSplitBorderWidth);   // hard limit to 'kSplitBorderWidth' pixels
 
     stretchableManager.setItemLayout (2,
                                        -0.001, -0.99,
                                        -0.5);
+    resizerBar->onLayoutChange = [this] ()
+    {
+        if (onLayoutChange != nullptr)
+            onLayoutChange ();
+    };
     resized ();
 }
 
@@ -95,6 +100,11 @@ void SplitWindowComponent::setLayout (int componentIndex, double size)
 
     stretchableManager.setItemLayout (componentIndex, -0.001, -0.99, size);
     resized ();
+}
+
+double SplitWindowComponent::getSize (int componentIndex)
+{
+    return stretchableManager.getItemCurrentRelativeSize (componentIndex);
 }
 
 void SplitWindowComponent::resized ()
