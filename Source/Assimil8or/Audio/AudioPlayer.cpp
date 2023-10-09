@@ -14,9 +14,9 @@ void AudioPlayer::init (juce::ValueTree rootPropertiesVT)
     {
         //configureAudioDevice (deviceName);
     };
-    audioSettingsProperties.onShowConfigDialog = [this] () { showConfigDialog (); };
 
     audioPlayerProperties.wrap (runtimeRootProperties.getValueTree (), AudioPlayerProperties::WrapperType::owner, AudioPlayerProperties::EnableCallbacks::yes);
+    audioPlayerProperties.onShowConfigDialog = [this] () { showConfigDialog (); };
     audioPlayerProperties.onPlayStateChange = [this] (AudioPlayerProperties::PlayState playState)
     {
         handlePlayState (playState);

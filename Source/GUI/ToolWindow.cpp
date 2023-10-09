@@ -1,5 +1,4 @@
 #include "ToolWindow.h"
-#include "../Utility/PersistentRootProperties.h"
 #include "../Utility/RuntimeRootProperties.h"
 
 ToolWindow::ToolWindow ()
@@ -10,17 +9,16 @@ ToolWindow::ToolWindow ()
     settingsButton.setButtonText ("SETTINGS");
     settingsButton.onClick = [this] ()
     {
-        audioSettingsProperties.showConfigDialog (false);
+        audioPlayerProperties.showConfigDialog (false);
     };
     addAndMakeVisible (settingsButton);
 }
 
 void ToolWindow::init (juce::ValueTree rootPropertiesVT)
 {
-    PersistentRootProperties persistentRootProperties (rootPropertiesVT, PersistentRootProperties::WrapperType::client, PersistentRootProperties::EnableCallbacks::no);
-    audioSettingsProperties.wrap (persistentRootProperties.getValueTree (), AudioSettingsProperties::WrapperType::owner, AudioSettingsProperties::EnableCallbacks::yes);
-
     RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
+    audioPlayerProperties.wrap (runtimeRootProperties.getValueTree (), AudioPlayerProperties::WrapperType::owner, AudioPlayerProperties::EnableCallbacks::yes);
+
     validatorProperties.wrap (runtimeRootProperties.getValueTree (), ValidatorProperties::WrapperType::client, ValidatorProperties::EnableCallbacks::yes);
     validatorProperties.onProgressUpdateChanged = [this] (juce::String progressUpdate)
     {

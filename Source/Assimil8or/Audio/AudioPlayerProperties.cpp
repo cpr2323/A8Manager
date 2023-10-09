@@ -27,6 +27,11 @@ void AudioPlayerProperties::setLoopLength (int loopLength, bool includeSelfCallb
     setValue (loopLength, LoopLengthPropertyId, includeSelfCallback);
 }
 
+void AudioPlayerProperties::showConfigDialog (bool includeSelfCallback)
+{
+    toggleValue (ShowConfigDialogPropertyId, includeSelfCallback);
+}
+
 AudioPlayerProperties::PlayState AudioPlayerProperties::getPlayState ()
 {
     return static_cast<PlayState>(getValue<int> (PlayStatePropertyId));
@@ -70,6 +75,11 @@ void AudioPlayerProperties::valueTreePropertyChanged (juce::ValueTree& treeWhose
         {
             if (onLoopLengthChanged != nullptr)
                 onLoopLengthChanged (getLoopLength ());
+        }
+        else if (property == ShowConfigDialogPropertyId)
+        {
+            if (onShowConfigDialog != nullptr)
+                onShowConfigDialog ();
         }
     }
 }

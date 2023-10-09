@@ -10,11 +10,6 @@ void AudioSettingsProperties::setDeviceName (juce::String deviceName, bool inclu
     setValue (deviceName, DeviceNamePropertyId, includeSelfCallback);
 }
 
-void AudioSettingsProperties::showConfigDialog (bool includeSelfCallback)
-{
-    toggleValue (ShowConfigDialogPropertyId, includeSelfCallback);
-}
-
 juce::String AudioSettingsProperties::getDeviceName ()
 {
     return getValue<juce::String> (DeviceNamePropertyId);
@@ -28,11 +23,6 @@ void AudioSettingsProperties::valueTreePropertyChanged (juce::ValueTree& treeWho
         {
             if (onDeviceNameChange != nullptr)
                 onDeviceNameChange (getDeviceName ());
-        }
-        else if (property == ShowConfigDialogPropertyId)
-        {
-            if (onShowConfigDialog!= nullptr)
-                onShowConfigDialog ();
         }
     }
 }

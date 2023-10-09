@@ -11,16 +11,12 @@ public:
         : ValueTreeWrapper<AudioSettingsProperties> (AudioConfigTypeId, vt, wrapperType, shouldEnableCallbacks) {}
 
     void setDeviceName (juce::String deviceName, bool includeSelfCallback);
-    void showConfigDialog (bool includeSelfCallback);
-
     juce::String getDeviceName ();
 
     std::function<void (juce::String deviceName)> onDeviceNameChange;
-    std::function<void ()> onShowConfigDialog;
 
     static inline const juce::Identifier AudioConfigTypeId { "AudioSettings" };
-    static inline const juce::Identifier DeviceNamePropertyId       { "deviceName" };
-    static inline const juce::Identifier ShowConfigDialogPropertyId { "showConfigDialog" };
+    static inline const juce::Identifier DeviceNamePropertyId { "deviceName" };
 
     void initValueTree ();
     void processValueTree () {}
