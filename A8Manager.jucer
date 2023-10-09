@@ -8,16 +8,16 @@
     <GROUP id="{26A00EED-F319-636E-6162-8A113C6EE925}" name="Source">
       <GROUP id="{B33B27D7-84B5-739E-6EF4-3DA0243B11AC}" name="Assimil8or">
         <GROUP id="{83CA1B10-C350-95FD-802D-488AEB6104FA}" name="Audio">
-          <FILE id="PvtHj9" name="AudioSettingsProperties.cpp" compile="1" resource="0"
-                file="Source/Assimil8or/Audio/AudioSettingsProperties.cpp"/>
-          <FILE id="MmgsqA" name="AudioSettingsProperties.h" compile="0" resource="0"
-                file="Source/Assimil8or/Audio/AudioSettingsProperties.h"/>
           <FILE id="U8EWD4" name="AudioPlayer.cpp" compile="1" resource="0" file="Source/Assimil8or/Audio/AudioPlayer.cpp"/>
           <FILE id="JIblHe" name="AudioPlayer.h" compile="0" resource="0" file="Source/Assimil8or/Audio/AudioPlayer.h"/>
           <FILE id="i2OwG7" name="AudioPlayerProperties.cpp" compile="1" resource="0"
                 file="Source/Assimil8or/Audio/AudioPlayerProperties.cpp"/>
           <FILE id="YR962M" name="AudioPlayerProperties.h" compile="0" resource="0"
                 file="Source/Assimil8or/Audio/AudioPlayerProperties.h"/>
+          <FILE id="PvtHj9" name="AudioSettingsProperties.cpp" compile="1" resource="0"
+                file="Source/Assimil8or/Audio/AudioSettingsProperties.cpp"/>
+          <FILE id="MmgsqA" name="AudioSettingsProperties.h" compile="0" resource="0"
+                file="Source/Assimil8or/Audio/AudioSettingsProperties.h"/>
         </GROUP>
         <GROUP id="{E4BF0D54-E9DB-96DD-63AF-39AFFF42EEB8}" name="Fixer">
           <FILE id="p6DDYe" name="FixerEntryProperties.cpp" compile="1" resource="0"
@@ -150,6 +150,9 @@
               file="Source/GUI/CurrentFolderComponent.cpp"/>
         <FILE id="RdTALO" name="CurrentFolderComponent.h" compile="0" resource="0"
               file="Source/GUI/CurrentFolderComponent.h"/>
+        <FILE id="Ky1FeG" name="GuiProperties.cpp" compile="1" resource="0"
+              file="Source/GUI/GuiProperties.cpp"/>
+        <FILE id="BYrQvg" name="GuiProperties.h" compile="0" resource="0" file="Source/GUI/GuiProperties.h"/>
         <FILE id="Van35d" name="MainComponent.cpp" compile="1" resource="0"
               file="Source/GUI/MainComponent.cpp"/>
         <FILE id="aJmy63" name="MainComponent.h" compile="0" resource="0" file="Source/GUI/MainComponent.h"/>

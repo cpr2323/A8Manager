@@ -5,6 +5,7 @@
 #include "Assimil8or/Audio/AudioPlayer.h"
 #include "Assimil8or/Preset/ParameterPresetsSingleton.h"
 #include "Assimil8or/Preset/PresetProperties.h"
+#include "GUI/GuiProperties.h"
 #include "GUI/MainComponent.h"
 #include "Utility/DebugLog.h"
 #include "Utility/DirectoryValueTree.h"
@@ -341,13 +342,13 @@ public:
     class MainWindow    : public juce::DocumentWindow
     {
     public:
-        MainWindow (juce::String name, juce::ValueTree rootProperties)
+        MainWindow (juce::String name, juce::ValueTree rootPropertiesVT)
             : DocumentWindow (name,
                               juce::Desktop::getInstance ().getDefaultLookAndFeel ().findColour (juce::ResizableWindow::backgroundColourId),
                               DocumentWindow::allButtons)
         {
             setUsingNativeTitleBar (true);
-            setContentOwned (new MainComponent (rootProperties), true);
+            setContentOwned (new MainComponent (rootPropertiesVT), true);
 
            #if JUCE_IOS || JUCE_ANDROID
             setFullScreen (true);
@@ -356,12 +357,40 @@ public:
             centreWithSize (getWidth (), getHeight ());
            #endif
 
+            PersistentRootProperties prp (rootPropertiesVT, PersistentRootProperties::WrapperType::client, PersistentRootProperties::EnableCallbacks::no);
+            guiProperties.wrap (prp.getValueTree (), GuiProperties::WrapperType::owner, GuiProperties::EnableCallbacks::no);
+            if (guiProperties.wasDataRestored ())
+            {
+                const auto [x, y] = guiProperties.getPosition ();
+                const auto [width, height] = guiProperties.getSize ();
+                setBounds (x, y, width, height);
+            }
+            else
+            {
+                guiProperties.setPosition (getBounds ().getX (), getBounds ().getY (), false);
+                guiProperties.setSize (getBounds ().getWidth (), getBounds ().getHeight (), false);
+            }
+
             setVisible (true);
 
 #if ENABLE_MELATONIN_INSPECTOR
             inspector.setVisible (true);
 #endif
         }
+
+#if (! JUCE_IOS) && (! JUCE_ANDROID)
+        void moved () override
+        {
+            guiProperties.setPosition (getBounds ().getX (), getBounds ().getY (), false);
+            DocumentWindow::moved ();
+        }
+
+        void resized () override
+        {
+            guiProperties.setSize (getBounds ().getWidth (), getBounds ().getHeight (), false);
+            DocumentWindow::resized ();
+        }
+#endif // ! JUCE_IOS && ! JUCE_ANDROID
 
         void closeButtonPressed () override
         {
@@ -376,6 +405,7 @@ public:
         */
 
     private:
+        GuiProperties guiProperties;
 #if ENABLE_MELATONIN_INSPECTOR
         melatonin::Inspector inspector { *this, false };
 #endif

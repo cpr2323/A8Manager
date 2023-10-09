@@ -6,7 +6,7 @@
 class AppProperties : public ValueTreeWrapper<AppProperties>
 {
 public:
-    AppProperties () noexcept : ValueTreeWrapper<AppProperties> (AppPropertiesId) {}
+    AppProperties () noexcept : ValueTreeWrapper<AppProperties> (AppTypeId) {}
 
     void setMostRecentFolder (juce::String folderName);
     juce::String getMostRecentFolder ();
@@ -19,7 +19,7 @@ public:
     std::function<void (juce::String folderName)> onMostRecentFolderChange;
     std::function<void (juce::String fileName)> onMostRecentFileChange;
 
-    static inline const juce::Identifier AppPropertiesId { "App" };
+    static inline const juce::Identifier AppTypeId { "App" };
 
     static inline const juce::Identifier FileTypeId { "Files" };
     static inline const juce::Identifier MostRecentFolderPropertyId { "mostRecentFolder" };
