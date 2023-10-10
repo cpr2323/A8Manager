@@ -253,6 +253,7 @@ public:
 
     void initUi ()
     {
+        guiProperties.wrap (persistentRootProperties.getValueTree (), GuiProperties::WrapperType::owner, GuiProperties::EnableCallbacks::no);
         mainWindow.reset (new MainWindow (getApplicationName () + " - v" + getApplicationVersion (), rootProperties.getValueTree ()));
     }
 
@@ -358,7 +359,7 @@ public:
            #endif
 
             PersistentRootProperties prp (rootPropertiesVT, PersistentRootProperties::WrapperType::client, PersistentRootProperties::EnableCallbacks::no);
-            guiProperties.wrap (prp.getValueTree (), GuiProperties::WrapperType::owner, GuiProperties::EnableCallbacks::no);
+            guiProperties.wrap (prp.getValueTree (), GuiProperties::WrapperType::client, GuiProperties::EnableCallbacks::no);
             if (guiProperties.wasDataRestored ())
             {
                 const auto [x, y] = guiProperties.getPosition ();
@@ -418,6 +419,7 @@ private:
     ValueTreeFile persitentPropertiesFile;
     PersistentRootProperties persistentRootProperties;
     AppProperties appProperties;
+    GuiProperties guiProperties;
     RuntimeRootProperties runtimeRootProperties;
     Assimil8orValidator assimil8orValidator;
     PresetProperties presetProperties;
