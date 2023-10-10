@@ -44,16 +44,6 @@ private:
     }
 };
 
-class ResizerBar : public juce::Component
-{
-public:
-private:
-    void paint (juce::Graphics& g)
-    {
-        g.fillAll (juce::Colours::darkgrey);
-    }
-};
-
 class SplitWindowComponent : public juce::Component
 {
 public:
@@ -71,13 +61,13 @@ public:
 private:
     juce::Component* firstComponent { nullptr };
     juce::Component* secondComponent { nullptr };
-    ResizerBar resizerBar;
-    MouseProxy resizerBarMouseListener;
+    juce::Rectangle<int> resizeBarBounds;
     bool horizontalSplit { true };
     int splitOffset { 0 };
     bool mouseOver { false };
 
     void resized () override;
     void paint (juce::Graphics& g) override;
-    void paintOverChildren (juce::Graphics& g) override;
+    void mouseMove (const juce::MouseEvent& me) override;
+    void mouseDrag (const juce::MouseEvent& me) override;
 };

@@ -37,29 +37,10 @@ class ResizerLookAndFeel : public juce::LookAndFeel_V2
 //////////////////////////////////////////////////////////////////////////////////////
 SplitWindowComponent::SplitWindowComponent ()
 {
-    addAndMakeVisible (resizerBar);
-    resizerBar.addMouseListener (&resizerBarMouseListener, false);
-    resizerBarMouseListener.onMouseEnter = [this] ()
-    {
-        mouseOver = true;
-        repaint ();
-    };
-    resizerBarMouseListener.onMouseExit = [this] ()
-    {
-        mouseOver = false;
-        repaint ();
-    };
-    resizerBarMouseListener.onMouseDrag = [this] (const juce::MouseEvent& me)
-    {
-        auto mousePosition { me.getPosition () };
-        //setSplitOffset (horizontalSplit ? mousePosition.getY () : mousePosition.getX ());
-        repaint ();
-    };
 }
 
 SplitWindowComponent::~SplitWindowComponent ()
 {
-    resizerBar.removeMouseListener (&resizerBarMouseListener);
 }
 
 void SplitWindowComponent::setComponents (Component* theFirstComponent, Component* theSecondComponent)
@@ -102,27 +83,56 @@ int SplitWindowComponent::getSplitOffset ()
 void SplitWindowComponent::paint (juce::Graphics& g)
 {
     g.fillAll (juce::Colours::lightslategrey);
-}
-
-void SplitWindowComponent::paintOverChildren (juce::Graphics& g)
-{
+    g.setColour (juce::Colours::darkgrey);
+    g.fillRect (resizeBarBounds);
     if (mouseOver)
     {
         g.setColour (juce::Colours::white);
-        g.drawRect (resizerBar.getBounds ());
+        g.drawRect (resizeBarBounds);
     }
 }
+
+void SplitWindowComponent::mouseMove (const juce::MouseEvent& me)
+{
+    auto mousePosition { me.getPosition () };
+    {
+        if (resizeBarBounds.contains (me.getPosition ()))
+        {
+            if (mouseOver)
+                return;
+            mouseOver = true;
+            repaint ();
+        }
+        else
+        {
+            if (mouseOver)
+            {
+                mouseOver = false;
+                repaint ();
+            }
+        }
+    }
+};
+
+void SplitWindowComponent::mouseDrag (const juce::MouseEvent& me)
+{
+    if (mouseOver)
+    {
+        auto mousePosition { me.getPosition () };
+        setSplitOffset (horizontalSplit ? mousePosition.getY () : mousePosition.getX ());
+        repaint ();
+    }
+};
 
 void SplitWindowComponent::resized ()
 {
     auto r { getLocalBounds ().reduced (4) };
-
     if (horizontalSplit)
     {
         auto firstComponentBounds { r.removeFromTop (splitOffset - (kSplitBarWidth / 2)) };
         if (firstComponent != nullptr)
             firstComponent->setBounds (firstComponentBounds);
-        resizerBar.setBounds (r.removeFromTop (kSplitBarWidth));
+        resizeBarBounds = r.removeFromTop (kSplitBarWidth);
         if (secondComponent != nullptr)
             secondComponent->setBounds (r);
     }
@@ -131,7 +141,7 @@ void SplitWindowComponent::resized ()
         auto firstComponentBounds { r.removeFromLeft (splitOffset - (kSplitBarWidth / 2)) };
         if (firstComponent != nullptr)
             firstComponent->setBounds (firstComponentBounds);
-        resizerBar.setBounds (r.removeFromLeft (kSplitBarWidth));
+        resizeBarBounds = r.removeFromLeft (kSplitBarWidth);
         if (secondComponent != nullptr)
             secondComponent->setBounds (r);
     }
