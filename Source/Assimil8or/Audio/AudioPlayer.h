@@ -22,7 +22,7 @@ private:
     std::unique_ptr < juce::AudioBuffer<float>> sampleBuffer;
     juce::AudioDeviceSelectorComponent audioSetupComp { audioDeviceManager, 0, 0, 0, 256, false, false, true, false};
 
-    int position { 0 };
+    int savedSampleBufferReadPos { 0 };
     int loopStart { 0 };
     int loopLength { 0 };
 

@@ -35,7 +35,7 @@ void AudioPlayer::init (juce::ValueTree rootPropertiesVT)
                                                                    static_cast<int>(readerSource->getAudioFormatReader ()->lengthInSamples * sampleRate / readerSource->getAudioFormatReader ()->sampleRate));
         // resample into output buffer
         resamplingAudioSource->getNextAudioBlock (juce::AudioSourceChannelInfo (*sampleBuffer.get ()));
-        position = 0;
+        savedSampleBufferReadPos = 0;
     };
     audioPlayerProperties.onLoopStartChanged = [this] (int newLoopStart)
     {
@@ -142,27 +142,28 @@ void AudioPlayer::getNextAudioBlock (const juce::AudioSourceChannelInfo& bufferT
 
     auto& dst = *bufferToFill.buffer;
     auto channels = juce::jmin (dst.getNumChannels (), sampleBuffer->getNumChannels ());
-    int numSamplesToCopy = 0, pos = 0;
+    int numSamplesToCopy = 0;
+    int outputBufferWritePos = 0;
     const auto numInputSamples { loopLength };
     const auto numOutputSamples { bufferToFill.numSamples };
 
-    int i = position;
-    for (; pos < numOutputSamples; i += numSamplesToCopy)
+    int curSampleBufferReadPos = savedSampleBufferReadPos;
+    for (; outputBufferWritePos < numOutputSamples; curSampleBufferReadPos += numSamplesToCopy)
     {
-        numSamplesToCopy = juce::jmin (numOutputSamples - pos, numInputSamples - (i % numInputSamples));
+        numSamplesToCopy = juce::jmin (numOutputSamples - outputBufferWritePos, numInputSamples - (curSampleBufferReadPos % numInputSamples));
 
         int ch = 0;
         for (; ch < channels; ++ch)
-            dst.copyFrom (ch, bufferToFill.startSample + pos, *sampleBuffer, ch, loopStart + (i % numInputSamples), numSamplesToCopy);
+            dst.copyFrom (ch, bufferToFill.startSample + outputBufferWritePos, *sampleBuffer, ch, loopStart + (curSampleBufferReadPos % numInputSamples), numSamplesToCopy);
 
         for (; ch < dst.getNumChannels (); ++ch)
-            dst.clear (ch, bufferToFill.startSample + pos, numSamplesToCopy);
+            dst.clear (ch, bufferToFill.startSample + outputBufferWritePos, numSamplesToCopy);
 
-        pos += numSamplesToCopy;
+        outputBufferWritePos += numSamplesToCopy;
     }
 
-    if (pos < numOutputSamples)
-        dst.clear (bufferToFill.startSample + pos, numOutputSamples - pos);
+    if (outputBufferWritePos < numOutputSamples)
+        dst.clear (bufferToFill.startSample + outputBufferWritePos, numOutputSamples - outputBufferWritePos);
 
-    position = i;
+    savedSampleBufferReadPos = curSampleBufferReadPos;
 }
