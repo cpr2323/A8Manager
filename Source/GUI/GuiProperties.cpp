@@ -2,17 +2,19 @@
 
 void GuiProperties::initValueTree ()
 {
-    setPosition (0, 0, false);
-    setSize (100, 100, false);
+    setPosition (-1, -1, false);
+    setSize (1117, 585, false);
     setPaneSizes (140, 170, 480, false);
 }
 
 void GuiProperties::processValueTree ()
 {
-    if (! data.hasProperty (PaneSizesPropertyId))
-        setPaneSizes (140, 170, 480, false);
+    if (! data.hasProperty (PositionPropertyId))
+        setPosition (-1, -1, false);
     if (! data.hasProperty (SizePropertyId))
         setSize (1117, 585, false);
+    if (! data.hasProperty (PaneSizesPropertyId))
+        setPaneSizes (140, 170, 480, false);
 }
 
 void GuiProperties::setPosition (int x, int y, bool includeSelfCallback)

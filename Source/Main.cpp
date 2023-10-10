@@ -231,22 +231,16 @@ public:
             setFullScreen (true);
            #else
             setResizable (true, true);
-            centreWithSize (getWidth (), getHeight ());
            #endif
 
             PersistentRootProperties prp (rootPropertiesVT, PersistentRootProperties::WrapperType::client, PersistentRootProperties::EnableCallbacks::no);
             guiProperties.wrap (prp.getValueTree (), GuiProperties::WrapperType::client, GuiProperties::EnableCallbacks::no);
-            if (guiProperties.wasDataRestored ())
-            {
-                const auto [x, y] = guiProperties.getPosition ();
-                const auto [width, height] = guiProperties.getSize ();
-                setBounds (x, y, width, height);
-            }
+            auto [width, height] = guiProperties.getSize ();
+            auto [x, y] = guiProperties.getPosition ();
+            if (x == -1 || y == -1)
+                centreWithSize (width, height);
             else
-            {
-                guiProperties.setPosition (getBounds ().getX (), getBounds ().getY (), false);
-                guiProperties.setSize (getBounds ().getWidth (), getBounds ().getHeight (), false);
-            }
+                setBounds (x, y, width, height);
 
             setVisible (true);
 
@@ -274,13 +268,6 @@ public:
             JUCEApplication::getInstance ()->systemRequestedQuit ();
         }
 
-        /* Note: Be careful if you override any DocumentWindow methods - the base
-           class uses a lot of them, so by overriding you might break its functionality.
-           It's best to do all your work in your content component instead, but if
-           you really have to override any DocumentWindow methods, make sure your
-           subclass also calls the superclass's method.
-        */
-
     private:
         GuiProperties guiProperties;
 #if ENABLE_MELATONIN_INSPECTOR
@@ -304,11 +291,9 @@ private:
     std::unique_ptr<juce::FileLogger> fileLogger;
     std::atomic<RuntimeRootProperties::QuitState> localQuitState { RuntimeRootProperties::QuitState::idle };
     std::unique_ptr<MainWindow> mainWindow;
-
     AudioPlayer audioPlayer;
 
     ValueTreeMonitor audioConfigPropertiesMonitor;
-
     ValueTreeMonitor directoryDataMonitor;
     ValueTreeMonitor presetPropertiesMonitor;
 };
