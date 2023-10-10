@@ -121,6 +121,8 @@ void SplitWindowComponent::mouseDrag (const juce::MouseEvent& me)
         auto mousePosition { me.getPosition () };
         setSplitOffset (horizontalSplit ? mousePosition.getY () : mousePosition.getX ());
         repaint ();
+        if (onLayoutChange != nullptr)
+            onLayoutChange ();
     }
 };
 

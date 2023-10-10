@@ -16,14 +16,15 @@ public:
 
     void setPosition (int x, int y, bool includeSelfCallback);
     void setSize (int width, int height, bool includeSelfCallback);
-    void setPaneSizes (double pane1Size, double pane2Size, double pane3Size, bool includeSelfCallback);
+    void setPaneSizes (int pane1Size, int pane2Size, int pane3Size, bool includeSelfCallback);
 
     std::tuple<int,int> getPosition ();
     std::tuple<int, int> getSize ();
-    std::tuple<double, double, double> getPaneSizes ();
+    std::tuple<int, int, int> getPaneSizes ();
 
     std::function<void (int x, int y)> onPositionChange;
     std::function<void (int width, int height)> onSizeChange;
+    std::function<void (int, int, int)> onPaneSizeChange;
 
     static inline const juce::Identifier GuiTypeId { "GUI" };
     static inline const juce::Identifier PositionPropertyId  { "position" };

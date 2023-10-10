@@ -36,7 +36,7 @@ void GuiProperties::setSize (int width, int height, bool includeSelfCallback)
 
 }
 
-void GuiProperties::setPaneSizes (double pane1Size, double pane2Size, double pane3Size, bool includeSelfCallback)
+void GuiProperties::setPaneSizes (int pane1Size, int pane2Size, int pane3Size, bool includeSelfCallback)
 {
     const auto paneSizes { juce::String (pane1Size) + "," + juce::String (pane2Size) + "," + juce::String (pane3Size) };
     setValue (paneSizes, PaneSizesPropertyId, includeSelfCallback);
@@ -56,11 +56,11 @@ std::tuple<int, int> GuiProperties::getSize ()
     return { values [0].getIntValue (), values [1].getIntValue () };
 }
 
-std::tuple<double, double, double> GuiProperties::getPaneSizes ()
+std::tuple<int, int, int> GuiProperties::getPaneSizes ()
 {
     const auto values { juce::StringArray::fromTokens (getValue<juce::String> (PaneSizesPropertyId), ",", {}) };
     jassert (values.size () == 3);
-    return { values [0].getDoubleValue (), values [1].getDoubleValue (), values [2].getDoubleValue () };
+    return { values [0].getIntValue (), values [1].getIntValue (), values [2].getIntValue () };
 }
 
 void GuiProperties::valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property)
