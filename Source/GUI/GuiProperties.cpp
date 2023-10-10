@@ -1,20 +1,28 @@
 #include "GuiProperties.h"
 
+const auto defaultXPos { -1 };
+const auto defaultYPos { -1 };
+const auto defaultWidth { 1117 };
+const auto defaultHeight { 585 };
+const auto defaultSplitter1Offset { 140 };
+const auto defaultSplitter2Offset { 170 };
+const auto defaultSplitter3Offset { 480 };
+
 void GuiProperties::initValueTree ()
 {
-    setPosition (-1, -1, false);
-    setSize (1117, 585, false);
-    setPaneSizes (140, 170, 480, false);
+    setPosition (defaultXPos, defaultYPos, false);
+    setSize (defaultWidth, defaultHeight, false);
+    setPaneSizes (defaultSplitter1Offset, defaultSplitter2Offset, defaultSplitter3Offset, false);
 }
 
 void GuiProperties::processValueTree ()
 {
     if (! data.hasProperty (PositionPropertyId))
-        setPosition (-1, -1, false);
+        setPosition (defaultXPos, defaultYPos, false);
     if (! data.hasProperty (SizePropertyId))
-        setSize (1117, 585, false);
+        setSize (defaultWidth, defaultHeight, false);
     if (! data.hasProperty (PaneSizesPropertyId))
-        setPaneSizes (140, 170, 480, false);
+        setPaneSizes (defaultSplitter1Offset, defaultSplitter2Offset, defaultSplitter3Offset, false);
 }
 
 void GuiProperties::setPosition (int x, int y, bool includeSelfCallback)
