@@ -16,7 +16,7 @@ namespace FileTypeHelpers
 
     juce::String getPresetFileName (int presetIndex)
     {
-        jassert (presetIndex < kMaxPresets);
+        jassert (presetIndex > 0 && presetIndex <= kMaxPresets);
         const auto rawPresetIndexString { juce::String (presetIndex) };
         const auto presetIndexString { juce::String ("000").substring (0, 3 - rawPresetIndexString.length ()) + rawPresetIndexString };
         return kPresetFileNamePrefix + presetIndexString;
