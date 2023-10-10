@@ -13,6 +13,7 @@ namespace Parameter
 {
     namespace Preset
     {
+        static juce::String MidiSetupId   { "MidiSetup" };
         static juce::String NameId        { "Name" };
         static juce::String Data2asCVId   { "Data2asCV" };
         static juce::String XfadeACVId    { "XfadeACV" };

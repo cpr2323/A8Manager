@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<Preset _id="1" name="New" data2asCV="" xfadeACV="" xfadeAWidth="10.0"
+<Preset _id="1" name="New"  midiSetup="8" data2asCV="" xfadeACV="" xfadeAWidth="10.0"
         xfadeBCV="" xfadeBWidth="10.0" xfadeCCV="" xfadeCWidth="10.0"
         xfadeDCV="" xfadeDWidth="10.0">
   <Channel _id="1" aliasing="100" aliasingMod="Off 1.0000" attack="99.0"

@@ -1,4 +1,4 @@
-<Preset _id="1" name="New" data2asCV="Off" xfadeACV="Off" xfadeAWidth="1.0"
+<Preset _id="1" name="New" midiSetup="0" data2asCV="Off" xfadeACV="Off" xfadeAWidth="1.0"
         xfadeBCV="Off" xfadeBWidth="1.0" xfadeCCV="Off" xfadeCWidth="1.0"
         xfadeDCV="Off" xfadeDWidth="1.0">
   <Channel aliasing="0" aliasingMod="Off 1.0000" attack="0.0" attackFromCurrent="0"

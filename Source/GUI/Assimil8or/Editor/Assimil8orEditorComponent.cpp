@@ -58,6 +58,18 @@ void Assimil8orEditorComponent::setupPresetComponents ()
     auto toolTipsVT { juce::ValueTree::fromXml (*xmlElement) };
     ParameterToolTipData parameterToolTipData (toolTipsVT, ParameterToolTipData::WrapperType::owner, ParameterToolTipData::EnableCallbacks::no);
 
+    auto setupLabel = [this] (juce::Label& label, juce::String text, float fontSize, juce::Justification justification)
+    {
+        const auto textColor { juce::Colours::white };
+        label.setBorderSize ({ 0, 0, 0, 0 });
+        label.setJustificationType (justification);
+        label.setColour (juce::Label::ColourIds::textColourId, textColor);
+        label.setFont (label.getFont ().withPointHeight (fontSize));
+        label.setMinimumHorizontalScale (1.0f);
+        label.setText (text, juce::NotificationType::dontSendNotification);
+        addAndMakeVisible (label);
+    };
+
     titleLabel.setText ("Preset _ :", juce::NotificationType::dontSendNotification);
 
     // NAME EDITOR
@@ -71,6 +83,15 @@ void Assimil8orEditorComponent::setupPresetComponents ()
     nameEditor.setInputRestrictions (12, " !\"#$%^&'()#+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~");
     nameEditor.setTooltip (parameterToolTipData.getToolTip ("Preset", "Name"));
     addAndMakeVisible (nameEditor);
+
+    setupLabel (midiSetupLabel, "MIDI SETUP", 12.0, juce::Justification::centredLeft);
+    for (auto midiSetupId { 0 }; midiSetupId < 9; ++midiSetupId)
+        midiSetupComboBox.addItem (juce::String (midiSetupId + 1), midiSetupId + 1);
+    midiSetupComboBox.onChange = [this] ()
+    {
+        midiSetupUiChanged (midiSetupComboBox.getSelectedItemIndex ());
+    };
+    addAndMakeVisible (midiSetupComboBox);
 
     addAndMakeVisible (windowDecorator);
     data2AsCvLabel.setBorderSize ({ 1, 0, 1, 0 });
@@ -218,6 +239,7 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
     });
 
     idDataChanged (presetProperties.getId ());
+    midiSetupDataChanged (presetProperties.getMidiSetup ());
     nameDataChanged (presetProperties.getName ());
     data2AsCvDataChanged (presetProperties.getData2AsCV ());
     xfadeCvDataChanged (0, presetProperties.getXfadeACV ());
@@ -233,6 +255,7 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
 void Assimil8orEditorComponent::setupPresetPropertiesCallbacks ()
 {
     presetProperties.onIdChange = [this] (int id) { idDataChanged (id); };
+    presetProperties.onMidiSetupChange = [this] (int midiSetupId) { midiSetupDataChanged (midiSetupId); };
     presetProperties.onNameChange = [this] (juce::String name) { nameDataChanged (name); };
     presetProperties.onData2AsCVChange = [this] (juce::String cvInput) { data2AsCvDataChanged (cvInput); };
     // Xfade_CV
@@ -337,10 +360,15 @@ void Assimil8orEditorComponent::resized ()
     auto topRow { localBounds.removeFromTop (25) };
     topRow.removeFromTop (3);
     topRow.removeFromLeft (5);
-    titleLabel.setBounds (topRow.removeFromLeft (75));
+    titleLabel.setBounds (topRow.removeFromLeft (57));
     topRow.removeFromLeft (3);
     // Name
     nameEditor.setBounds (topRow.removeFromLeft (150));
+    topRow.removeFromLeft (10);
+    // Midi Setup
+    midiSetupLabel.setBounds(topRow.removeFromLeft(75));
+    topRow.removeFromLeft (3);
+    midiSetupComboBox.setBounds (topRow.removeFromLeft(60));
 
 #if ENABLE_IMPORT_EXPORT
     topRow.removeFromRight (3);
@@ -377,7 +405,17 @@ void Assimil8orEditorComponent::resized ()
 
 void Assimil8orEditorComponent::idDataChanged (int id)
 {
-    titleLabel.setText ("Preset " + juce::String (id) + " :", juce::NotificationType::dontSendNotification);
+    titleLabel.setText ("Preset " + juce::String (id), juce::NotificationType::dontSendNotification);
+}
+
+void Assimil8orEditorComponent::midiSetupDataChanged (int midiSetupId)
+{
+    midiSetupComboBox.setSelectedItemIndex (midiSetupId);
+}
+
+void Assimil8orEditorComponent::midiSetupUiChanged (int midiSetupId)
+{
+    presetProperties.setMidiSetup (midiSetupId, false);
 }
 
 void Assimil8orEditorComponent::nameDataChanged (juce::String name)
