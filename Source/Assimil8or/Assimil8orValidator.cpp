@@ -19,7 +19,7 @@ const double oneGB { oneMB * oneK };
 const auto maxMemory { static_cast<int> (422 * oneMB) };
 const auto maxPresets { 199 };
 const auto bytesPerSampleInAssimMemory { 4 };
-const auto kValidFileSystemCharacters { juce::String (" !#$%&'()+,-.0123456789;=@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]`{}~abcdefghijklmnopqrstuvwxyz")};
+const auto kValidFileSystemCharacters { juce::String (" !#$%&'()+,-.0123456789;=@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]_`{}~abcdefghijklmnopqrstuvwxyz")};
 
 juce::String getMemorySizeString (uint64_t memoryUsage)
 {
