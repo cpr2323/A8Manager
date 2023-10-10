@@ -28,7 +28,7 @@ const auto toolWindowHeight { 30 };
 
 MainComponent::MainComponent (juce::ValueTree rootPropertiesVT)
 {
-    setSize (1085, 585);
+    setSize (1117, 585);
 
     PersistentRootProperties persistentRootProperties (rootPropertiesVT, PersistentRootProperties::WrapperType::client, PersistentRootProperties::EnableCallbacks::no);
     guiProperties.wrap (persistentRootProperties.getValueTree (), GuiProperties::WrapperType::client, GuiProperties::EnableCallbacks::no);
@@ -58,9 +58,9 @@ MainComponent::MainComponent (juce::ValueTree rootPropertiesVT)
     topAndBottomSplitter.setComponents (&folderBrowserEditorSplitter, &assimil8orValidatorComponent);
     topAndBottomSplitter.setHorizontalSplit (true);
 
-//     presetListEditorSplitter.setLayout (0, -0.06);
-//     folderBrowserEditorSplitter.setLayout (0, -0.10);
-//     topAndBottomSplitter.setLayout (2, -0.032);
+    presetListEditorSplitter.setSplitOffset (85);
+    folderBrowserEditorSplitter.setSplitOffset (100);
+    topAndBottomSplitter.setSplitOffset (500);
 
     presetListEditorSplitter.onLayoutChange = [this] () { saveLayoutChanges (); };
     folderBrowserEditorSplitter.onLayoutChange = [this] () { saveLayoutChanges (); };
@@ -78,16 +78,16 @@ MainComponent::MainComponent (juce::ValueTree rootPropertiesVT)
 void MainComponent::restoreLayout ()
 {
     const auto [pane1Size, pane2Size, pane3Size] {guiProperties.getPaneSizes ()};
-    presetListEditorSplitter.setLayout (0, pane1Size);
-    folderBrowserEditorSplitter.setLayout (0, pane2Size);
-    topAndBottomSplitter.setLayout (2, pane3Size);
+    presetListEditorSplitter.setSplitOffset (pane1Size);
+    folderBrowserEditorSplitter.setSplitOffset (pane2Size);
+    topAndBottomSplitter.setSplitOffset (pane3Size);
 }
 
 void MainComponent::saveLayoutChanges ()
 {
-    auto splitter1Size { presetListEditorSplitter.getSize (0) };
-    auto splitter2Size { folderBrowserEditorSplitter.getSize (0) };
-    auto splitter3Size { topAndBottomSplitter.getSize (2) };
+    auto splitter1Size { presetListEditorSplitter.getSplitOffset () };
+    auto splitter2Size { folderBrowserEditorSplitter.getSplitOffset () };
+    auto splitter3Size { topAndBottomSplitter.getSplitOffset () };
     guiProperties.setPaneSizes (splitter1Size, splitter2Size, splitter3Size, false);
 }
 

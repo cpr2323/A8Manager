@@ -26,8 +26,8 @@ public:
     std::function<void (int width, int height)> onSizeChange;
 
     static inline const juce::Identifier GuiTypeId { "GUI" };
-    static inline const juce::Identifier PositionPropertyId { "position" };
-    static inline const juce::Identifier SizePropertyId     { "size" };
+    static inline const juce::Identifier PositionPropertyId  { "position" };
+    static inline const juce::Identifier SizePropertyId      { "size" };
     static inline const juce::Identifier PaneSizesPropertyId { "paneSizes" };
 
     void initValueTree ();

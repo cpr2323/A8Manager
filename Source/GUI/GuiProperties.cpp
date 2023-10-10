@@ -1,26 +1,18 @@
-/*
-  ==============================================================================
-
-    GuiProperties.cpp
-    Created: 9 Oct 2023 7:41:26am
-    Author:  cpran
-
-  ==============================================================================
-*/
-
 #include "GuiProperties.h"
 
 void GuiProperties::initValueTree ()
 {
     setPosition (0, 0, false);
     setSize (100, 100, false);
-    setPaneSizes (-0.06, -0.10, -0.032, false);
+    setPaneSizes (140, 170, 480, false);
 }
 
 void GuiProperties::processValueTree ()
 {
-    if (!data.hasProperty (PaneSizesPropertyId))
-        setPaneSizes (-0.06, -0.10, -0.032, false);
+    if (! data.hasProperty (PaneSizesPropertyId))
+        setPaneSizes (140, 170, 480, false);
+    if (! data.hasProperty (SizePropertyId))
+        setSize (1117, 585, false);
 }
 
 void GuiProperties::setPosition (int x, int y, bool includeSelfCallback)
