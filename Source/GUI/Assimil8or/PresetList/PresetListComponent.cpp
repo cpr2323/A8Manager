@@ -208,7 +208,7 @@ void PresetListComponent::loadFirstPreset ()
         presetListBox.selectRow (0, false, true);
         presetListBox.scrollToEnsureRowIsOnscreen (0);
         loadDefault (0);
-        loadedPresetFile = getPresetFile (0);
+        loadedPresetFile = getPresetFile (1);
     }
     appProperties.addRecentlyUsedFile (loadedPresetFile.getFullPathName ());
 }

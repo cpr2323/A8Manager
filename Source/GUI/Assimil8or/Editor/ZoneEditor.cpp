@@ -38,6 +38,40 @@ ZoneEditor::ZoneEditor ()
             displayToolsMenu (zoneProperties.getId () - 1);
     };
     addAndMakeVisible (toolsButton);
+
+    sourceSamplePointsButton.setButtonText ("SMPL");
+    sourceSamplePointsButton.onClick = [this] ()
+    {
+        sourceSamplePointsButton.setToggleState (true, juce::NotificationType::dontSendNotification);
+        sourceLoopPointsButton.setToggleState (false, juce::NotificationType::dontSendNotification);
+        if (audioPlayerProperties.getPlayState () == AudioPlayerProperties::PlayState::play)
+        {
+            const auto sampleStart { static_cast<int>(zoneProperties.getSampleStart ().value_or (0)) };
+            audioPlayerProperties.setLoopStart (sampleStart, false);
+            audioPlayerProperties.setLoopLength (static_cast<int>(zoneProperties.getSampleEnd ().value_or (sampleLength) - sampleStart), false);
+        }
+    };
+    addAndMakeVisible (sourceSamplePointsButton);
+    sourceLoopPointsButton.onClick = [this] ()
+    {
+        sourceSamplePointsButton.setToggleState (false, juce::NotificationType::dontSendNotification);
+        sourceLoopPointsButton.setToggleState (true, juce::NotificationType::dontSendNotification);
+        if (audioPlayerProperties.getPlayState () == AudioPlayerProperties::PlayState::play)
+        {
+            const auto loopStart { static_cast<int>(zoneProperties.getLoopStart ().value_or (0)) };
+            audioPlayerProperties.setLoopStart (loopStart, false);
+            audioPlayerProperties.setLoopLength (static_cast<int>(zoneProperties.getLoopLength ().value_or (sampleLength)), false);
+        }
+    };
+    addAndMakeVisible (sourceLoopPointsButton);
+    sourceLoopPointsButton.setButtonText ("LOOP");
+
+    loopingCheckBox.onClick = [this] ()
+    {
+        audioPlayerProperties.setLooping (loopingCheckBox.getToggleState (), false);
+    };
+    addAndMakeVisible (loopingCheckBox);
+
     transportButton.setButtonText ("PLAY");
     transportButton.setEnabled (false);
     transportButton.onClick = [this] ()
@@ -45,9 +79,18 @@ ZoneEditor::ZoneEditor ()
         if (transportButton.getButtonText () == "PLAY")
         {
             audioPlayerProperties.setSourceFile (juce::File (appProperties.getMostRecentFolder ()).getChildFile (zoneProperties.getSample ()).getFullPathName (), false);
-            const auto loopStart { static_cast<int>(zoneProperties.getLoopStart ().value_or (0)) };
-            audioPlayerProperties.setLoopStart (loopStart, false);
-            audioPlayerProperties.setLoopLength (static_cast<int>(zoneProperties.getLoopLength ().value_or (sampleLength)), false);
+            if (sourceSamplePointsButton.getToggleState ())
+            {
+                const auto sampleStart { static_cast<int>(zoneProperties.getSampleStart ().value_or (0)) };
+                audioPlayerProperties.setLoopStart (sampleStart, false);
+                audioPlayerProperties.setLoopLength (static_cast<int>(zoneProperties.getSampleEnd ().value_or (sampleLength) - sampleStart), false);
+            }
+            else
+            {
+                const auto loopStart { static_cast<int>(zoneProperties.getLoopStart ().value_or (0)) };
+                audioPlayerProperties.setLoopStart (loopStart, false);
+                audioPlayerProperties.setLoopLength (static_cast<int>(zoneProperties.getLoopLength ().value_or (sampleLength)), false);
+            }
             audioPlayerProperties.setPlayState (AudioPlayerProperties::PlayState::play, false);
             transportButton.setButtonText ("STOP");
         }
@@ -233,7 +276,9 @@ void ZoneEditor::setupZoneComponents ()
         const auto sampleStart { std::clamp (text.getLargeIntValue (), minZoneProperties.getSampleStart ().value_or (0), zoneProperties.getSampleEnd ().value_or (sampleLength)) };
         sampleStartUiChanged (sampleStart);
         sampleStartTextEditor.setText (juce::String (sampleStart), false);
-    });
+        if (sourceSamplePointsButton.getToggleState ())
+            audioPlayerProperties.setLoopStart(static_cast<int>(sampleStart), false);
+        });
     // SAMPLE END
     setupLabel (sampleEndLabel, "SMPL END", 12.0, juce::Justification::centredRight);
     setupTextEditor (sampleEndTextEditor, juce::Justification::centred, 0, "0123456789", "SampleEnd", [this] ()
@@ -245,6 +290,8 @@ void ZoneEditor::setupZoneComponents ()
         const auto sampleEnd { std::clamp (text.getLargeIntValue (), zoneProperties.getSampleStart ().value_or (0), sampleLength)};
         sampleEndUiChanged (sampleEnd);
         sampleEndTextEditor.setText (juce::String (sampleEnd), false);
+        if (sourceSamplePointsButton.getToggleState ())
+            audioPlayerProperties.setLoopLength (static_cast<int>(sampleEnd - zoneProperties.getSampleStart().value_or(0)), false);
     });
     // LOOP START
     setupLabel (loopStartLabel, "LOOP START", 12.0, juce::Justification::centredRight);
@@ -270,11 +317,14 @@ void ZoneEditor::setupZoneComponents ()
         } ();
         loopStartUiChanged (loopStart);
         loopStartTextEditor.setText (juce::String (loopStart), false);
+        if (sourceLoopPointsButton.getToggleState ())
+            audioPlayerProperties.setLoopStart (static_cast<int>(loopStart), false);
         if (loopLengthIsEnd)
         {
             const auto loopLength { loopLengthTextEditor.getText ().getDoubleValue () - static_cast<double> (zoneProperties.getLoopStart ().value_or (0)) };
             loopLengthUiChanged (loopLength);
-            audioPlayerProperties.setLoopLength (static_cast<int>(loopLength), false);
+            if (sourceLoopPointsButton.getToggleState ())
+                audioPlayerProperties.setLoopLength (static_cast<int>(loopLength), false);
         }
     });
     // LOOP LENGTH
@@ -310,8 +360,9 @@ void ZoneEditor::setupZoneComponents ()
         loopLength = snapLoopLength (loopLength);
 
         loopLengthUiChanged (loopLength);
-        audioPlayerProperties.setLoopLength (static_cast<int>(loopLength), false);
         loopLengthTextEditor.setText (formatLoopLength (loopLength), false);
+        if (sourceLoopPointsButton.getToggleState ())
+            audioPlayerProperties.setLoopLength (static_cast<int>(loopLength), false);
     });
     setupLabel (minVoltageLabel, "MIN VOLTAGE", 15.0, juce::Justification::centredRight);
     // MIN VOLTAGE
@@ -362,16 +413,35 @@ void ZoneEditor::init (juce::ValueTree zonePropertiesVT, juce::ValueTree rootPro
     audioPlayerProperties.wrap (runtimeRootProperties.getValueTree (), AudioPlayerProperties::WrapperType::client, AudioPlayerProperties::EnableCallbacks::yes);
     audioPlayerProperties.onPlayStateChange = [this] (AudioPlayerProperties::PlayState playState)
     {
-        if (playState == AudioPlayerProperties::PlayState::play)
-            transportButton.setButtonText ("STOP");
-        else if (playState == AudioPlayerProperties::PlayState::stop)
-            transportButton.setButtonText ("PLAY");
-        else
-            jassertfalse;
+        auto getButtonText = [this, &playState] ()
+        {
+            if (playState == AudioPlayerProperties::PlayState::play)
+                return "STOP";
+            else if (playState == AudioPlayerProperties::PlayState::stop)
+                return "PLAY";
+            else
+            {
+                return "";
+                jassertfalse;
+            }
+        };
+        juce::MessageManager::callAsync ([this, buttonText = getButtonText ()] ()
+        {
+            transportButton.setButtonText (buttonText);
+        });
+    };
+    audioPlayerProperties.onLoopingChanged = [this] (bool isLooping)
+    {
+        juce::MessageManager::callAsync ([this, isLooping] ()
+        {
+            loopingCheckBox.setToggleState (isLooping, juce::NotificationType::dontSendNotification);
+        });
     };
 
     zoneProperties.wrap (zonePropertiesVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::yes);
     setupZonePropertiesCallbacks ();
+
+    loopingCheckBox.setToggleState (audioPlayerProperties.getLooping (), juce::NotificationType::dontSendNotification);
 
     levelOffsetDataChanged (zoneProperties.getLevelOffset ());
     loopLengthDataChanged (zoneProperties.getLoopLength ());
@@ -384,6 +454,7 @@ void ZoneEditor::init (juce::ValueTree zonePropertiesVT, juce::ValueTree rootPro
 
     ChannelProperties channelProperties (zoneProperties.getValueTree ().getParent (), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
     setLoopLengthIsEnd (channelProperties.getLoopLengthIsEnd ());
+
 }
 
 void ZoneEditor::setLoopLengthIsEnd (bool newLoopLengthIsEnd)
@@ -482,7 +553,15 @@ void ZoneEditor::resized ()
     loopLengthLabel.setBounds (xOffset, loopStartLabel.getBottom () + interParameterYOffset, scaleWidth (samplePointLabelScale), 20);
     loopLengthTextEditor.setBounds (loopLengthLabel.getRight () + spaceBetweenLabelAndInput, loopLengthLabel.getY (), scaleWidth (samplePointInputScale) - spaceBetweenLabelAndInput, 20);
 
-    transportButton.setBounds (getWidth () - 2 - 35, loopLengthTextEditor.getBottom () + interParameterYOffset, 35, 20);
+    auto playControlsBounds { juce::Rectangle<int> {0, loopLengthTextEditor.getBottom () + interParameterYOffset, getWidth(), 20} };
+    playControlsBounds.removeFromLeft (3);
+    sourceSamplePointsButton.setBounds (playControlsBounds.removeFromLeft (35));
+    playControlsBounds.removeFromLeft (3);
+    sourceLoopPointsButton.setBounds (playControlsBounds.removeFromLeft (35));
+    playControlsBounds.removeFromLeft (3);
+    loopingCheckBox.setBounds (playControlsBounds.removeFromLeft (23));
+    playControlsBounds.removeFromLeft (3);
+    transportButton.setBounds (playControlsBounds);
 
     const auto otherLabelScale { 0.66f };
     const auto otherInputScale { 1.f - otherLabelScale };
@@ -599,7 +678,6 @@ void ZoneEditor::loopStartDataChanged (std::optional<int64_t> loopStart)
 void ZoneEditor::loopStartUiChanged (int64_t  loopStart)
 {
     juce::Logger::outputDebugString ("ZoneEditor::loopStartUiChanged: " + juce::String (loopStart));
-    audioPlayerProperties.setLoopStart (loopStart, false);
     zoneProperties.setLoopStart (loopStart, false);
 }
 

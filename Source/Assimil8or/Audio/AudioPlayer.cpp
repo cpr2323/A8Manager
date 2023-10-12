@@ -35,17 +35,26 @@ void AudioPlayer::init (juce::ValueTree rootPropertiesVT)
                                                                    static_cast<int>(readerSource->getAudioFormatReader ()->lengthInSamples * sampleRate / readerSource->getAudioFormatReader ()->sampleRate));
         // resample into output buffer
         resamplingAudioSource->getNextAudioBlock (juce::AudioSourceChannelInfo (*sampleBuffer.get ()));
-        savedSampleBufferReadPos = 0;
+        curSampleOffset = 0;
+    };
+    audioPlayerProperties.onLoopingChanged = [this] (bool isLooping)
+    {
+        looping = isLooping;
     };
     audioPlayerProperties.onLoopStartChanged = [this] (int newLoopStart)
     {
-        loopStart = newLoopStart;
-        juce::Logger::outputDebugString ("AudioPlayer - Loop Start: " + juce::String (loopStart));
+        sampleStart = newLoopStart;
+        if (curSampleOffset > sampleStart || curSampleOffset > sampleStart + sampleLength)
+            curSampleOffset = 0;
+
+        juce::Logger::outputDebugString ("AudioPlayer - Loop Start: " + juce::String (sampleStart));
     };
     audioPlayerProperties.onLoopLengthChanged = [this] (int newLoopLength)
     {
-        loopLength = newLoopLength;
-        juce::Logger::outputDebugString ("AudioPlayer - Loop Length: " + juce::String (loopLength));
+        sampleLength = newLoopLength;
+        if (curSampleOffset > sampleStart + sampleLength)
+            curSampleOffset = 0;
+        juce::Logger::outputDebugString ("AudioPlayer - Loop Length: " + juce::String (sampleLength));
     };
     audioDeviceManager.addChangeListener (this);
     configureAudioDevice (audioSettingsProperties.getDeviceName ());
@@ -98,6 +107,7 @@ void AudioPlayer::handlePlayState (AudioPlayerProperties::PlayState playState)
     {
         juce::Logger::outputDebugString ("AudioPlayer::handlePlayState: play");
         // TODO - start playback, with quick fade in
+        curSampleOffset = 0;
         playing = true;
     }
 }
@@ -140,30 +150,47 @@ void AudioPlayer::getNextAudioBlock (const juce::AudioSourceChannelInfo& bufferT
     if (! playing)
         return;
 
-    auto& dst = *bufferToFill.buffer;
-    auto channels = juce::jmin (dst.getNumChannels (), sampleBuffer->getNumChannels ());
-    int numSamplesToCopy = 0;
-    int outputBufferWritePos = 0;
-    const auto numInputSamples { loopLength };
     const auto numOutputSamples { bufferToFill.numSamples };
+    auto& outputBuffer { *bufferToFill.buffer };
+    const auto channels { juce::jmin (outputBuffer.getNumChannels (), sampleBuffer->getNumChannels ()) };
 
-    int curSampleBufferReadPos = savedSampleBufferReadPos;
-    for (; outputBufferWritePos < numOutputSamples; curSampleBufferReadPos += numSamplesToCopy)
+    const auto originalSampleOffset { curSampleOffset };
+    const auto cachedSampleLength { sampleLength };
+    const auto cachedSampleStart { sampleStart };
+    const auto chachedLooping { looping };
+    auto cachedSampleOffset { curSampleOffset };
+    auto numSamplesToCopy { 0 };
+    auto outputBufferWritePos { 0 };
+    while (outputBufferWritePos < numOutputSamples)
     {
-        numSamplesToCopy = juce::jmin (numOutputSamples - outputBufferWritePos, numInputSamples - (curSampleBufferReadPos % numInputSamples));
+        numSamplesToCopy = juce::jmin (numOutputSamples - outputBufferWritePos, cachedSampleLength - cachedSampleOffset);
 
-        int ch = 0;
+        // copy data from sample buffer to output buffer, this may, or may not, fill the entire output buffer
+        auto ch { 0 };
         for (; ch < channels; ++ch)
-            dst.copyFrom (ch, bufferToFill.startSample + outputBufferWritePos, *sampleBuffer, ch, loopStart + (curSampleBufferReadPos % numInputSamples), numSamplesToCopy);
+            outputBuffer.copyFrom (ch, bufferToFill.startSample + outputBufferWritePos, *sampleBuffer, ch, cachedSampleStart + cachedSampleOffset, numSamplesToCopy);
 
-        for (; ch < dst.getNumChannels (); ++ch)
-            dst.clear (ch, bufferToFill.startSample + outputBufferWritePos, numSamplesToCopy);
+        // clear any unused channels
+        for (; ch < outputBuffer.getNumChannels (); ++ch)
+            outputBuffer.clear (ch, bufferToFill.startSample + outputBufferWritePos, numSamplesToCopy);
 
         outputBufferWritePos += numSamplesToCopy;
+        cachedSampleOffset += numSamplesToCopy;
+        if (chachedLooping)
+        {
+            if (cachedSampleOffset >= cachedSampleLength)
+                cachedSampleOffset = 0;
+        }
+        else
+        {
+            if (outputBufferWritePos < numOutputSamples)
+            {
+                outputBuffer.clear (bufferToFill.startSample + outputBufferWritePos, numOutputSamples - outputBufferWritePos);
+                audioPlayerProperties.setPlayState (AudioPlayerProperties::PlayState::stop, true);
+                break;
+            }
+        }
     }
-
-    if (outputBufferWritePos < numOutputSamples)
-        dst.clear (bufferToFill.startSample + outputBufferWritePos, numOutputSamples - outputBufferWritePos);
-
-    savedSampleBufferReadPos = curSampleBufferReadPos;
+    if (originalSampleOffset == curSampleOffset)
+        curSampleOffset = cachedSampleOffset;
 }

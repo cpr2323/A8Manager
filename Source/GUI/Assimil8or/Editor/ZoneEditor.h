@@ -93,19 +93,23 @@ public:
 
 private:
     AppProperties appProperties;
+    AudioPlayerProperties audioPlayerProperties;
     ZoneProperties zoneProperties;
     ZoneProperties minZoneProperties;
     ZoneProperties maxZoneProperties;
     juce::AudioFormatManager audioFormatManager;
+
     bool loopLengthIsEnd { false };
     int64_t sampleLength { 0 };
-    juce::TextButton toolsButton;
-    juce::TextButton transportButton;
-    AudioPlayerProperties audioPlayerProperties;
 
     bool draggingFiles { false };
     int dropIndex { 0 };
 
+    juce::TextButton toolsButton;
+    juce::TextButton transportButton;
+    juce::ToggleButton loopingCheckBox;
+    juce::TextButton sourceSamplePointsButton;
+    juce::TextButton sourceLoopPointsButton;
 
     juce::Label levelOffsetLabel;
     juce::TextEditor levelOffsetTextEditor; // double

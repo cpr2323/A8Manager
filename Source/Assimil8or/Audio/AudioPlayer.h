@@ -22,14 +22,15 @@ private:
     std::unique_ptr < juce::AudioBuffer<float>> sampleBuffer;
     juce::AudioDeviceSelectorComponent audioSetupComp { audioDeviceManager, 0, 0, 0, 256, false, false, true, false};
 
-    int savedSampleBufferReadPos { 0 };
-    int loopStart { 0 };
-    int loopLength { 0 };
+    bool playing { false };
+    bool looping { false };
+    int curSampleOffset { 0 };
+    int sampleStart { 0 };
+    int sampleLength { 0 };
 
     juce::File audioFile;
     double sampleRate { 44100.0 };
     int blockSize { 128 };
-    bool playing { false };
 
     void configureAudioDevice (juce::String deviceName);
     void handlePlayState (AudioPlayerProperties::PlayState playState);
