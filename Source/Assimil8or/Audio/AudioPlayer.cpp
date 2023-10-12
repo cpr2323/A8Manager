@@ -33,10 +33,6 @@ void AudioPlayer::init (juce::ValueTree rootPropertiesVT)
         // TODO - maybe move this into a thread, as long files will block the UI
         prepareSampleForPlayback ();
     };
-    audioPlayerProperties.onLoopingChanged = [this] (bool isLooping)
-    {
-        looping = isLooping;
-    };
     audioPlayerProperties.onLoopStartChanged = [this] (int newLoopStart)
     {
         sampleStart = newLoopStart * sampleRateRatio;
@@ -90,21 +86,23 @@ void AudioPlayer::configureAudioDevice (juce::String deviceName)
     audioSourcePlayer.setSource (this);
 }
 
-void AudioPlayer::handlePlayState (AudioPlayerProperties::PlayState playState)
+void AudioPlayer::handlePlayState (AudioPlayerProperties::PlayState newPlayState)
 {
     if (playState == AudioPlayerProperties::PlayState::stop)
     {
         juce::Logger::outputDebugString ("AudioPlayer::handlePlayState: stop");
-        // TODO - stop playback, with quick fade out
-        playing = false;
+    }
+    else if (playState == AudioPlayerProperties::PlayState::loop)
+    {
+        juce::Logger::outputDebugString ("AudioPlayer::handlePlayState: play");
+        curSampleOffset = 0;
     }
     else if (playState == AudioPlayerProperties::PlayState::play)
     {
         juce::Logger::outputDebugString ("AudioPlayer::handlePlayState: play");
-        // TODO - start playback, with quick fade in
         curSampleOffset = 0;
-        playing = true;
     }
+    playState = newPlayState;
 }
 
 void AudioPlayer::showConfigDialog ()
@@ -157,7 +155,7 @@ void AudioPlayer::getNextAudioBlock (const juce::AudioSourceChannelInfo& bufferT
     bufferToFill.clearActiveBufferRegion ();
     // fill buffer with data
 
-    if (! playing)
+    if (playState == AudioPlayerProperties::PlayState::stop)
         return;
 
     const auto numOutputSamples { bufferToFill.numSamples };
@@ -167,7 +165,7 @@ void AudioPlayer::getNextAudioBlock (const juce::AudioSourceChannelInfo& bufferT
     const auto originalSampleOffset { curSampleOffset };
     const auto cachedSampleLength { sampleLength };
     const auto cachedSampleStart { sampleStart };
-    const auto chachedLooping { looping };
+    const auto chachedPlayState { playState };
     auto cachedSampleOffset { curSampleOffset };
     auto numSamplesToCopy { 0 };
     auto outputBufferWritePos { 0 };
@@ -186,7 +184,7 @@ void AudioPlayer::getNextAudioBlock (const juce::AudioSourceChannelInfo& bufferT
 
         outputBufferWritePos += numSamplesToCopy;
         cachedSampleOffset += numSamplesToCopy;
-        if (chachedLooping)
+        if (chachedPlayState == AudioPlayerProperties::PlayState::loop)
         {
             if (cachedSampleOffset >= cachedSampleLength)
                 cachedSampleOffset = 0;

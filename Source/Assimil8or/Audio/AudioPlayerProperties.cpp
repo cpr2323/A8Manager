@@ -27,11 +27,6 @@ void AudioPlayerProperties::setLoopLength (int loopLength, bool includeSelfCallb
     setValue (loopLength, LoopLengthPropertyId, includeSelfCallback);
 }
 
-void AudioPlayerProperties::setLooping (bool isLooping, bool includeSelfCallback)
-{
-    setValue (isLooping, LoopingPropertyId, includeSelfCallback);
-}
-
 void AudioPlayerProperties::showConfigDialog (bool includeSelfCallback)
 {
     toggleValue (ShowConfigDialogPropertyId, includeSelfCallback);
@@ -57,11 +52,6 @@ int AudioPlayerProperties::getLoopLength ()
     return getValue<int> (LoopLengthPropertyId);
 }
 
-bool AudioPlayerProperties::getLooping ()
-{
-    return getValue<bool> (LoopingPropertyId);
-}
-
 void AudioPlayerProperties::valueTreePropertyChanged (juce::ValueTree& treeWhosePropertyHasChanged, const juce::Identifier& property)
 {
     if (treeWhosePropertyHasChanged == data)
@@ -70,11 +60,6 @@ void AudioPlayerProperties::valueTreePropertyChanged (juce::ValueTree& treeWhose
         {
             if (onPlayStateChange != nullptr)
                 onPlayStateChange (getPlayState ());
-        }
-        else if (property == LoopingPropertyId)
-        {
-            if (onLoopingChanged != nullptr)
-                onLoopingChanged (getLooping ());
         }
         else if (property == SourceFilePropertyId)
         {

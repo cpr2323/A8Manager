@@ -25,8 +25,7 @@ private:
     std::unique_ptr < juce::AudioBuffer<float>> sampleBuffer;
     juce::AudioDeviceSelectorComponent audioSetupComp { audioDeviceManager, 0, 0, 0, 256, false, false, true, false};
 
-    bool playing { false };
-    bool looping { false };
+    AudioPlayerProperties::PlayState playState { AudioPlayerProperties::PlayState::stop };
     int curSampleOffset { 0 };
     int sampleStart { 0 };
     int sampleLength { 0 };

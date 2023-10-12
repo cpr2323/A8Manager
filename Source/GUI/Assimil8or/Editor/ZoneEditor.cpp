@@ -60,7 +60,7 @@ ZoneEditor::ZoneEditor ()
     {
         sourceSamplePointsButton.setToggleState (true, juce::NotificationType::dontSendNotification);
         sourceLoopPointsButton.setToggleState (false, juce::NotificationType::dontSendNotification);
-        if (audioPlayerProperties.getPlayState () == AudioPlayerProperties::PlayState::play)
+        if (audioPlayerProperties.getPlayState () != AudioPlayerProperties::PlayState::stop)
         {
             const auto sampleStart { static_cast<int>(zoneProperties.getSampleStart ().value_or (0)) };
             audioPlayerProperties.setLoopStart (sampleStart, false);
@@ -75,7 +75,7 @@ ZoneEditor::ZoneEditor ()
     {
         sourceSamplePointsButton.setToggleState (false, juce::NotificationType::dontSendNotification);
         sourceLoopPointsButton.setToggleState (true, juce::NotificationType::dontSendNotification);
-        if (audioPlayerProperties.getPlayState () == AudioPlayerProperties::PlayState::play)
+        if (audioPlayerProperties.getPlayState () != AudioPlayerProperties::PlayState::stop)
         {
             const auto loopStart { static_cast<int>(zoneProperties.getLoopStart ().value_or (0)) };
             audioPlayerProperties.setLoopStart (loopStart, false);
@@ -106,8 +106,7 @@ ZoneEditor::ZoneEditor ()
                     audioPlayerProperties.setLoopStart (loopStart, false);
                     audioPlayerProperties.setLoopLength (static_cast<int>(zoneProperties.getLoopLength ().value_or (sampleLength)), false);
                 }
-                audioPlayerProperties.setLooping (true, false);
-                audioPlayerProperties.setPlayState (AudioPlayerProperties::PlayState::play, false);
+                audioPlayerProperties.setPlayState (AudioPlayerProperties::PlayState::loop, false);
                 oneShotPlayButton.setButtonText ("ONCE");
                 loopPlayButton.setButtonText ("STOP");
             }
@@ -138,7 +137,6 @@ ZoneEditor::ZoneEditor ()
                 audioPlayerProperties.setLoopStart (loopStart, false);
                 audioPlayerProperties.setLoopLength (static_cast<int>(zoneProperties.getLoopLength ().value_or (sampleLength)), false);
             }
-            audioPlayerProperties.setLooping (false, false);
             audioPlayerProperties.setPlayState (AudioPlayerProperties::PlayState::play, false);
             loopPlayButton.setButtonText ("LOOP");
             oneShotPlayButton.setButtonText ("STOP");
@@ -465,34 +463,34 @@ void ZoneEditor::init (juce::ValueTree zonePropertiesVT, juce::ValueTree rootPro
     audioPlayerProperties.wrap (runtimeRootProperties.getValueTree (), AudioPlayerProperties::WrapperType::client, AudioPlayerProperties::EnableCallbacks::yes);
     audioPlayerProperties.onPlayStateChange = [this] (AudioPlayerProperties::PlayState playState)
     {
-        auto getButtonText = [this, &playState] ()
+        if (playState == AudioPlayerProperties::PlayState::stop)
         {
-            if (playState == AudioPlayerProperties::PlayState::play)
-                return "STOP";
-            else if (playState == AudioPlayerProperties::PlayState::stop)
+            juce::MessageManager::callAsync ([this] ()
             {
-                if (audioPlayerProperties.getLooping ())
-                    return "LOOP";
-                else
-                    return "ONCE";
-            }
-            else
+                oneShotPlayButton.setButtonText ("ONCE");
+                loopPlayButton.setButtonText ("LOOP");
+            });
+        }
+        else if (playState == AudioPlayerProperties::PlayState::play)
+        {
+            juce::MessageManager::callAsync ([this] ()
             {
-                return "";
-                jassertfalse;
-            }
-        };
-        juce::MessageManager::callAsync ([this, buttonText = getButtonText ()] ()
+                oneShotPlayButton.setButtonText ("STOP");
+                loopPlayButton.setButtonText ("LOOP");
+            });
+        }
+        else if (playState == AudioPlayerProperties::PlayState::loop)
         {
-            oneShotPlayButton.setButtonText (buttonText);
-        });
-    };
-    audioPlayerProperties.onLoopingChanged = [this] (bool isLooping)
-    {
-        juce::MessageManager::callAsync ([this, isLooping] ()
+            juce::MessageManager::callAsync ([this] ()
+            {
+                oneShotPlayButton.setButtonText ("ONCE");
+                loopPlayButton.setButtonText ("STOP");
+            });
+        }
+        else
         {
-            // TODO
-        });
+            jassertfalse;
+        }
     };
 
     zoneProperties.wrap (zonePropertiesVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::yes);
