@@ -206,6 +206,7 @@ void ZoneEditor::fileDragExit (const juce::StringArray&)
 bool ZoneEditor::handleSamplesInternal (const juce::StringArray& files)
 {
     jassert (handleSamples != nullptr);
+    audioPlayerProperties.setPlayState (AudioPlayerProperties::PlayState::stop, true);
     return handleSamples (zoneProperties.getId() - 1, files);
 }
 
