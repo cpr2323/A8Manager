@@ -30,6 +30,7 @@ void AudioPlayer::init (juce::ValueTree rootPropertiesVT)
     {
         juce::Logger::outputDebugString ("AudioPlayer - Source File: " + sourceFile);
         audioFile = juce::File (sourceFile);
+        // TODO - maybe move this into a thread, as long files will block the UI
         prepareSampleForPlayback ();
     };
     audioPlayerProperties.onLoopingChanged = [this] (bool isLooping)

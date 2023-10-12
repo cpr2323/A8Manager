@@ -105,11 +105,13 @@ private:
     bool draggingFiles { false };
     int dropIndex { 0 };
 
-    juce::TextButton toolsButton;
-    juce::TextButton transportButton;
-    juce::ToggleButton loopingCheckBox;
+    juce::Label sourceLabel;
     juce::TextButton sourceSamplePointsButton;
     juce::TextButton sourceLoopPointsButton;
+    juce::Label playModeLabel;
+    juce::TextButton oneShotPlayButton;
+    juce::TextButton loopPlayButton;
+    juce::TextButton toolsButton;
 
     juce::Label levelOffsetLabel;
     juce::TextEditor levelOffsetTextEditor; // double

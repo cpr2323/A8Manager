@@ -23,6 +23,17 @@ ZoneEditor::ZoneEditor ()
         maxZoneProperties.wrap (maxChannelProperties.getZoneVT (0), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
     }
 
+    auto setupLabel = [this] (juce::Label& label, juce::String text, float fontSize, juce::Justification justification)
+    {
+        const auto textColor { juce::Colours::black };
+        label.setBorderSize ({ 0, 0, 0, 0 });
+        label.setJustificationType (justification);
+        label.setColour (juce::Label::ColourIds::textColourId, textColor);
+        label.setFont (label.getFont ().withHeight (fontSize));
+        label.setText (text, juce::NotificationType::dontSendNotification);
+        addAndMakeVisible (label);
+    };
+
     sampleNameSelectLabel.onFilesSelected = [this] (const juce::StringArray& files)
     {
         if (! handleSamplesInternal (files))
@@ -39,6 +50,11 @@ ZoneEditor::ZoneEditor ()
     };
     addAndMakeVisible (toolsButton);
 
+    setupLabel (sourceLabel, "SOURCE", 14.0f, juce::Justification::centred);
+    addAndMakeVisible (sourceLabel);
+    sourceSamplePointsButton.setColour (juce::TextButton::ColourIds::buttonColourId, sourceSamplePointsButton.findColour (juce::TextButton::ColourIds::buttonColourId).brighter (0.3f));
+    sourceSamplePointsButton.setColour (juce::TextButton::ColourIds::textColourOffId, sourceSamplePointsButton.findColour (juce::TextButton::ColourIds::textColourOffId).darker (0.5f));
+    sourceSamplePointsButton.setToggleState (true, juce::NotificationType::dontSendNotification);
     sourceSamplePointsButton.setButtonText ("SMPL");
     sourceSamplePointsButton.onClick = [this] ()
     {
@@ -52,6 +68,9 @@ ZoneEditor::ZoneEditor ()
         }
     };
     addAndMakeVisible (sourceSamplePointsButton);
+
+    sourceLoopPointsButton.setColour (juce::TextButton::ColourIds::buttonColourId, sourceLoopPointsButton.findColour (juce::TextButton::ColourIds::buttonColourId).brighter (0.3f));
+    sourceLoopPointsButton.setColour (juce::TextButton::ColourIds::textColourOffId, sourceLoopPointsButton.findColour (juce::TextButton::ColourIds::textColourOffId).darker (0.5f));
     sourceLoopPointsButton.onClick = [this] ()
     {
         sourceSamplePointsButton.setToggleState (false, juce::NotificationType::dontSendNotification);
@@ -66,17 +85,45 @@ ZoneEditor::ZoneEditor ()
     addAndMakeVisible (sourceLoopPointsButton);
     sourceLoopPointsButton.setButtonText ("LOOP");
 
-    loopingCheckBox.onClick = [this] ()
-    {
-        audioPlayerProperties.setLooping (loopingCheckBox.getToggleState (), false);
-    };
-    addAndMakeVisible (loopingCheckBox);
+    setupLabel (playModeLabel, "PLAY", 14.0f, juce::Justification::centred);
+    addAndMakeVisible (playModeLabel);
+    loopPlayButton.setButtonText ("LOOP");
+    loopPlayButton.setEnabled (false);
+    loopPlayButton.onClick = [this] ()
+        {
+            if (loopPlayButton.getButtonText () == "LOOP")
+            {
+                audioPlayerProperties.setSourceFile (juce::File (appProperties.getMostRecentFolder ()).getChildFile (zoneProperties.getSample ()).getFullPathName (), false);
+                if (sourceSamplePointsButton.getToggleState ())
+                {
+                    const auto sampleStart { static_cast<int>(zoneProperties.getSampleStart ().value_or (0)) };
+                    audioPlayerProperties.setLoopStart (sampleStart, false);
+                    audioPlayerProperties.setLoopLength (static_cast<int>(zoneProperties.getSampleEnd ().value_or (sampleLength) - sampleStart), false);
+                }
+                else
+                {
+                    const auto loopStart { static_cast<int>(zoneProperties.getLoopStart ().value_or (0)) };
+                    audioPlayerProperties.setLoopStart (loopStart, false);
+                    audioPlayerProperties.setLoopLength (static_cast<int>(zoneProperties.getLoopLength ().value_or (sampleLength)), false);
+                }
+                audioPlayerProperties.setLooping (true, false);
+                audioPlayerProperties.setPlayState (AudioPlayerProperties::PlayState::play, false);
+                oneShotPlayButton.setButtonText ("ONCE");
+                loopPlayButton.setButtonText ("STOP");
+            }
+            else
+            {
+                audioPlayerProperties.setPlayState (AudioPlayerProperties::PlayState::stop, false);
+                loopPlayButton.setButtonText ("LOOP");
+            }
+        };
+    addAndMakeVisible (loopPlayButton);
 
-    transportButton.setButtonText ("PLAY");
-    transportButton.setEnabled (false);
-    transportButton.onClick = [this] ()
+    oneShotPlayButton.setButtonText ("ONCE");
+    oneShotPlayButton.setEnabled (false);
+    oneShotPlayButton.onClick = [this] ()
     {
-        if (transportButton.getButtonText () == "PLAY")
+        if (oneShotPlayButton.getButtonText () == "ONCE")
         {
             audioPlayerProperties.setSourceFile (juce::File (appProperties.getMostRecentFolder ()).getChildFile (zoneProperties.getSample ()).getFullPathName (), false);
             if (sourceSamplePointsButton.getToggleState ())
@@ -91,16 +138,18 @@ ZoneEditor::ZoneEditor ()
                 audioPlayerProperties.setLoopStart (loopStart, false);
                 audioPlayerProperties.setLoopLength (static_cast<int>(zoneProperties.getLoopLength ().value_or (sampleLength)), false);
             }
+            audioPlayerProperties.setLooping (false, false);
             audioPlayerProperties.setPlayState (AudioPlayerProperties::PlayState::play, false);
-            transportButton.setButtonText ("STOP");
+            loopPlayButton.setButtonText ("LOOP");
+            oneShotPlayButton.setButtonText ("STOP");
         }
         else
         {
             audioPlayerProperties.setPlayState (AudioPlayerProperties::PlayState::stop, false);
-            transportButton.setButtonText ("PLAY");
+            oneShotPlayButton.setButtonText ("ONCE");
         }
     };
-    addAndMakeVisible (transportButton);
+    addAndMakeVisible (oneShotPlayButton);
     setupZoneComponents ();
 }
 
@@ -215,7 +264,9 @@ void ZoneEditor::loadSample (juce::String sampleFileName)
     {
         jassertfalse;
     }
-    transportButton.setEnabled (!sampleFileName.isEmpty () && juce::File (appProperties.getMostRecentFolder ()).getChildFile (sampleFileName).exists ());
+    const auto sampleCanBePlayed { ! sampleFileName.isEmpty () && juce::File (appProperties.getMostRecentFolder ()).getChildFile (sampleFileName).exists () };
+    oneShotPlayButton.setEnabled (sampleCanBePlayed);
+    loopPlayButton.setEnabled (sampleCanBePlayed);
 
     if (onSampleChange != nullptr)
         onSampleChange (sampleFileName);
@@ -418,7 +469,12 @@ void ZoneEditor::init (juce::ValueTree zonePropertiesVT, juce::ValueTree rootPro
             if (playState == AudioPlayerProperties::PlayState::play)
                 return "STOP";
             else if (playState == AudioPlayerProperties::PlayState::stop)
-                return "PLAY";
+            {
+                if (audioPlayerProperties.getLooping ())
+                    return "LOOP";
+                else
+                    return "ONCE";
+            }
             else
             {
                 return "";
@@ -427,21 +483,19 @@ void ZoneEditor::init (juce::ValueTree zonePropertiesVT, juce::ValueTree rootPro
         };
         juce::MessageManager::callAsync ([this, buttonText = getButtonText ()] ()
         {
-            transportButton.setButtonText (buttonText);
+            oneShotPlayButton.setButtonText (buttonText);
         });
     };
     audioPlayerProperties.onLoopingChanged = [this] (bool isLooping)
     {
         juce::MessageManager::callAsync ([this, isLooping] ()
         {
-            loopingCheckBox.setToggleState (isLooping, juce::NotificationType::dontSendNotification);
+            // TODO
         });
     };
 
     zoneProperties.wrap (zonePropertiesVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::yes);
     setupZonePropertiesCallbacks ();
-
-    loopingCheckBox.setToggleState (audioPlayerProperties.getLooping (), juce::NotificationType::dontSendNotification);
 
     levelOffsetDataChanged (zoneProperties.getLevelOffset ());
     loopLengthDataChanged (zoneProperties.getLoopLength ());
@@ -553,19 +607,22 @@ void ZoneEditor::resized ()
     loopLengthLabel.setBounds (xOffset, loopStartLabel.getBottom () + interParameterYOffset, scaleWidth (samplePointLabelScale), 20);
     loopLengthTextEditor.setBounds (loopLengthLabel.getRight () + spaceBetweenLabelAndInput, loopLengthLabel.getY (), scaleWidth (samplePointInputScale) - spaceBetweenLabelAndInput, 20);
 
-    auto playControlsBounds { juce::Rectangle<int> {0, loopLengthTextEditor.getBottom () + interParameterYOffset, getWidth(), 20} };
+    auto playLabelBounds { juce::Rectangle<int> {0, loopLengthTextEditor.getBottom () + interParameterYOffset, getWidth (), 14} };
+    sourceLabel.setBounds (playLabelBounds.removeFromLeft(playLabelBounds.getWidth () / 2));
+    playModeLabel.setBounds (playLabelBounds);
+    auto playControlsBounds { juce::Rectangle<int> {0, playLabelBounds.getBottom () + interParameterYOffset, getWidth(), 20} };
     playControlsBounds.removeFromLeft (3);
     sourceSamplePointsButton.setBounds (playControlsBounds.removeFromLeft (35));
     playControlsBounds.removeFromLeft (3);
     sourceLoopPointsButton.setBounds (playControlsBounds.removeFromLeft (35));
-    playControlsBounds.removeFromLeft (3);
-    loopingCheckBox.setBounds (playControlsBounds.removeFromLeft (23));
-    playControlsBounds.removeFromLeft (3);
-    transportButton.setBounds (playControlsBounds);
+    playControlsBounds.removeFromRight (3);
+    loopPlayButton.setBounds (playControlsBounds.removeFromRight (35));
+    playControlsBounds.removeFromRight (3);
+    oneShotPlayButton.setBounds (playControlsBounds.removeFromRight (35));
 
     const auto otherLabelScale { 0.66f };
     const auto otherInputScale { 1.f - otherLabelScale };
-    minVoltageLabel.setBounds (xOffset, transportButton.getBottom () + 5, scaleWidth (otherLabelScale), 20);
+    minVoltageLabel.setBounds (xOffset, oneShotPlayButton.getBottom () + 5, scaleWidth (otherLabelScale), 20);
     minVoltageTextEditor.setBounds (minVoltageLabel.getRight () + spaceBetweenLabelAndInput, minVoltageLabel.getY (), scaleWidth (otherInputScale) - spaceBetweenLabelAndInput, 20);
 
     pitchOffsetLabel.setBounds (xOffset, minVoltageTextEditor.getBottom () + 5, scaleWidth (otherLabelScale), 20);
@@ -738,7 +795,9 @@ void ZoneEditor::sampleDataChanged (juce::String sample)
         updateSamplePositionInfo ();
     }
     sampleNameSelectLabel.setText (sample, juce::NotificationType::dontSendNotification);
-    transportButton.setEnabled (! sample.isEmpty () && juce::File (appProperties.getMostRecentFolder ()).getChildFile (sample).exists ());
+    const auto sampleCanBePlayed { ! sample.isEmpty () && juce::File (appProperties.getMostRecentFolder ()).getChildFile (sample).exists () };
+    oneShotPlayButton.setEnabled (sampleCanBePlayed);
+    loopPlayButton.setEnabled (sampleCanBePlayed);
 }
 
 void ZoneEditor::sampleUiChanged (juce::String sample)
