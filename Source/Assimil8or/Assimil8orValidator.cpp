@@ -315,6 +315,11 @@ std::tuple<uint64_t, std::optional<uint64_t>> Assimil8orValidator::validateFile 
         validatorResultProperties.update (ValidatorResultProperties::ResultTypeInfo, "System, Last Preset", false);
         return {};
     }
+    else if (FileTypeHelpers::isMidiSetupFile (file))
+    {
+        validatorResultProperties.update (ValidatorResultProperties::ResultTypeInfo, "System, Midi Setup", false);
+        return {};
+    }
     else if (FileTypeHelpers::isPresetFile (file))
     {
         bool isIgnored { false };
