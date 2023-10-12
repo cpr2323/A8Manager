@@ -1,0 +1,12 @@
+# MIDI Setup
+mode : 1
+assign : 0
+basicchannel : 0
+rcvprogamchange : 1
+xmtprogamchange : 1
+colAcc : -1
+colBcc : -1
+colCcc : -1
+pitchwheelsemi : 12
+velocitydepth : 32
+notifications : 1
