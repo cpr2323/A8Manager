@@ -2,6 +2,11 @@
 #include "../../Utility/PersistentRootProperties.h"
 #include "../../Utility/RuntimeRootProperties.h"
 
+AudioPlayer::AudioPlayer ()
+{
+    audioFormatManager.registerBasicFormats ();
+}
+
 void AudioPlayer::init (juce::ValueTree rootPropertiesVT)
 {
     PersistentRootProperties persistentRootProperties (rootPropertiesVT, PersistentRootProperties::WrapperType::client, PersistentRootProperties::EnableCallbacks::no);
@@ -25,17 +30,7 @@ void AudioPlayer::init (juce::ValueTree rootPropertiesVT)
     {
         juce::Logger::outputDebugString ("AudioPlayer - Source File: " + sourceFile);
         audioFile = juce::File (sourceFile);
-        juce::AudioFormatManager audioFormatManager;
-        audioFormatManager.registerBasicFormats ();
-        std::unique_ptr <juce::AudioFormatReaderSource> readerSource = std::make_unique<juce::AudioFormatReaderSource> (audioFormatManager.createReaderFor (audioFile), true);
-        std::unique_ptr<juce::ResamplingAudioSource> resamplingAudioSource = std::make_unique<juce::ResamplingAudioSource> (readerSource.get (), false, 2);
-        resamplingAudioSource->setResamplingRatio (readerSource->getAudioFormatReader ()->sampleRate / sampleRate);
-        resamplingAudioSource->prepareToPlay (blockSize, sampleRate);
-        sampleBuffer = std::make_unique<juce::AudioBuffer<float>> (readerSource->getAudioFormatReader ()->numChannels,
-                                                                   static_cast<int>(readerSource->getAudioFormatReader ()->lengthInSamples * sampleRate / readerSource->getAudioFormatReader ()->sampleRate));
-        // resample into output buffer
-        resamplingAudioSource->getNextAudioBlock (juce::AudioSourceChannelInfo (*sampleBuffer.get ()));
-        curSampleOffset = 0;
+        prepareSampleForPlayback ();
     };
     audioPlayerProperties.onLoopingChanged = [this] (bool isLooping)
     {
@@ -43,15 +38,14 @@ void AudioPlayer::init (juce::ValueTree rootPropertiesVT)
     };
     audioPlayerProperties.onLoopStartChanged = [this] (int newLoopStart)
     {
-        sampleStart = newLoopStart;
+        sampleStart = newLoopStart * sampleRateRatio;
         if (curSampleOffset > sampleStart || curSampleOffset > sampleStart + sampleLength)
             curSampleOffset = 0;
-
         juce::Logger::outputDebugString ("AudioPlayer - Loop Start: " + juce::String (sampleStart));
     };
     audioPlayerProperties.onLoopLengthChanged = [this] (int newLoopLength)
     {
-        sampleLength = newLoopLength;
+        sampleLength = newLoopLength * sampleRateRatio;
         if (curSampleOffset > sampleStart + sampleLength)
             curSampleOffset = 0;
         juce::Logger::outputDebugString ("AudioPlayer - Loop Length: " + juce::String (sampleLength));
@@ -123,12 +117,27 @@ void AudioPlayer::showConfigDialog ()
     o.launchAsync ();
 }
 
+void AudioPlayer::prepareSampleForPlayback ()
+{
+    if (audioFile.exists ())
+    {
+        std::unique_ptr <juce::AudioFormatReaderSource> readerSource = std::make_unique<juce::AudioFormatReaderSource> (audioFormatManager.createReaderFor (audioFile), true);
+        std::unique_ptr<juce::ResamplingAudioSource> resamplingAudioSource = std::make_unique<juce::ResamplingAudioSource> (readerSource.get (), false, 2);
+        sampleRateRatio = sampleRate / readerSource->getAudioFormatReader ()->sampleRate;
+        resamplingAudioSource->setResamplingRatio (readerSource->getAudioFormatReader ()->sampleRate / sampleRate);
+        resamplingAudioSource->prepareToPlay (blockSize, sampleRate);
+        sampleBuffer = std::make_unique<juce::AudioBuffer<float>> (readerSource->getAudioFormatReader ()->numChannels,
+                                                                   static_cast<int>(readerSource->getAudioFormatReader ()->lengthInSamples * sampleRate / readerSource->getAudioFormatReader ()->sampleRate));
+        resamplingAudioSource->getNextAudioBlock (juce::AudioSourceChannelInfo (*sampleBuffer.get ()));
+        curSampleOffset = 0;
+    }
+
+}
 void AudioPlayer::prepareToPlay (int samplesPerBlockExpected, double newSampleRate)
 {
     sampleRate = newSampleRate;
     blockSize = samplesPerBlockExpected;
-
-    // TODO - need to resample here if sample rate changes
+    prepareSampleForPlayback ();
 }
 
 void AudioPlayer::releaseResources ()

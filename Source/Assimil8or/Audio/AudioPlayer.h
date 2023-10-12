@@ -10,6 +10,8 @@ class AudioPlayer : public juce::AudioSource,
                     public juce::ChangeListener
 {
 public:
+    AudioPlayer ();
+
     void init (juce::ValueTree rootProperties);
     void shutdownAudio ();
 
@@ -18,6 +20,7 @@ private:
     AudioPlayerProperties audioPlayerProperties;
     AppProperties appProperties;
     juce::AudioDeviceManager audioDeviceManager;
+    juce::AudioFormatManager audioFormatManager;
     juce::AudioSourcePlayer audioSourcePlayer;
     std::unique_ptr < juce::AudioBuffer<float>> sampleBuffer;
     juce::AudioDeviceSelectorComponent audioSetupComp { audioDeviceManager, 0, 0, 0, 256, false, false, true, false};
@@ -31,9 +34,11 @@ private:
     juce::File audioFile;
     double sampleRate { 44100.0 };
     int blockSize { 128 };
+    double sampleRateRatio { 1.0 };
 
     void configureAudioDevice (juce::String deviceName);
     void handlePlayState (AudioPlayerProperties::PlayState playState);
+    void prepareSampleForPlayback ();
     void showConfigDialog ();
 
     void prepareToPlay (int samplesPerBlockExpected, double sampleRate) override;
