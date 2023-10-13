@@ -201,7 +201,7 @@ void ZoneEditor::fileDragMove (const juce::StringArray& files, int x, int y)
 
 void ZoneEditor::fileDragExit (const juce::StringArray&)
 {
-    draggingFiles = false;;
+    draggingFiles = false;
     repaint ();
 }
 
@@ -563,22 +563,33 @@ void ZoneEditor::paint ([[maybe_unused]] juce::Graphics& g)
 void ZoneEditor::paintOverChildren (juce::Graphics& g)
 {
     juce::Colour fillColor { juce::Colours::white };
-    float activeAlpha { 0.4f };
+    float activeAlpha { 0.7f };
     float nonActiveAlpha { 0.2f };
     if (draggingFiles)
     {
         auto localBounds { getLocalBounds () };
-        if (dropIndex == -1)
+        if (dropIndex == -1 || zoneProperties.getId () == 1)
         {
             g.setColour (fillColor.withAlpha (activeAlpha));
             g.fillRect (localBounds);
+            g.setFont (20.0f);
+            g.setColour (juce::Colours::black);
+            g.drawText ("Start on Zone " + juce::String (zoneProperties.getId ()), localBounds, juce::Justification::centred, false);
         }
         else
         {
             g.setColour (fillColor.withAlpha (dropIndex == 0 ? activeAlpha : nonActiveAlpha));
-            g.fillRect (localBounds.removeFromTop (localBounds.getHeight () / 2));
+            const auto topHalfBounds { localBounds.removeFromTop (localBounds.getHeight () / 2) };
+            g.fillRect (topHalfBounds);
             g.setColour (fillColor.withAlpha (dropIndex == 1 ? activeAlpha : nonActiveAlpha));
             g.fillRect (localBounds);
+
+            g.setFont (20.0f);
+            g.setColour (juce::Colours::black);
+            if (dropIndex == 0)
+                g.drawText ("Start on Zone 1", topHalfBounds, juce::Justification::centred, false);
+            else
+                g.drawText ("Start on Zone " + juce::String (zoneProperties.getId ()), localBounds, juce::Justification::centred, false);
         }
     }
 }
