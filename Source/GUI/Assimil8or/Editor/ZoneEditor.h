@@ -73,7 +73,7 @@ private:
 };
 
 class ZoneEditor : public juce::Component,
-    public juce::FileDragAndDropTarget
+                   public juce::FileDragAndDropTarget
 {
 public:
     ZoneEditor ();
@@ -112,6 +112,9 @@ private:
     juce::TextButton oneShotPlayButton;
     juce::TextButton loopPlayButton;
     juce::TextButton toolsButton;
+    juce::Rectangle<int> samplePointsBackground;
+    juce::Rectangle<int> loopPointsBackground;
+    juce::Rectangle<int>* activePointBackground { &samplePointsBackground };
 
     juce::Label levelOffsetLabel;
     juce::TextEditor levelOffsetTextEditor; // double

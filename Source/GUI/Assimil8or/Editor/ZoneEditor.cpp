@@ -58,6 +58,8 @@ ZoneEditor::ZoneEditor ()
     sourceSamplePointsButton.setButtonText ("SMPL");
     sourceSamplePointsButton.onClick = [this] ()
     {
+        activePointBackground = &samplePointsBackground;
+        repaint ();
         sourceSamplePointsButton.setToggleState (true, juce::NotificationType::dontSendNotification);
         sourceLoopPointsButton.setToggleState (false, juce::NotificationType::dontSendNotification);
         if (audioPlayerProperties.getPlayState () != AudioPlayerProperties::PlayState::stop)
@@ -73,6 +75,8 @@ ZoneEditor::ZoneEditor ()
     sourceLoopPointsButton.setColour (juce::TextButton::ColourIds::textColourOffId, sourceLoopPointsButton.findColour (juce::TextButton::ColourIds::textColourOffId).darker (0.5f));
     sourceLoopPointsButton.onClick = [this] ()
     {
+        activePointBackground = &loopPointsBackground;
+        repaint ();
         sourceSamplePointsButton.setToggleState (false, juce::NotificationType::dontSendNotification);
         sourceLoopPointsButton.setToggleState (true, juce::NotificationType::dontSendNotification);
         if (audioPlayerProperties.getPlayState () != AudioPlayerProperties::PlayState::stop)
@@ -552,6 +556,8 @@ void ZoneEditor::paint ([[maybe_unused]] juce::Graphics& g)
 {
 //     g.setColour (juce::Colours::magenta);
 //     g.drawRect (getLocalBounds ());
+    g.setColour (juce::Colours::grey.withAlpha (0.3f));
+    g.fillRoundedRectangle (activePointBackground->toFloat (), 0.5f);
 }
 
 void ZoneEditor::paintOverChildren (juce::Graphics& g)
@@ -585,8 +591,6 @@ void ZoneEditor::resized ()
     const auto spaceBetweenLabelAndInput { 3 };
     auto scaleWidth = [width] (float scaleAmount) { return static_cast<int> (width * scaleAmount); };
 
-    //dropTargetOverlay.setBounds (getLocalBounds ());
-
     if (displayToolsMenu != nullptr)
         toolsButton.setBounds (getWidth () - 5 - 40, getHeight () - 5 - 20, 40, 20);
 
@@ -601,10 +605,17 @@ void ZoneEditor::resized ()
     sampleStartTextEditor.setBounds (sampleStartLabel.getRight () + spaceBetweenLabelAndInput, sampleStartLabel.getY (), scaleWidth (samplePointInputScale) - spaceBetweenLabelAndInput, 20);
     sampleEndLabel.setBounds (xOffset, sampleStartLabel.getBottom () + interParameterYOffset, scaleWidth (samplePointLabelScale), 20);
     sampleEndTextEditor.setBounds (sampleEndLabel.getRight () + spaceBetweenLabelAndInput, sampleEndLabel.getY (), scaleWidth (samplePointInputScale) - spaceBetweenLabelAndInput, 20);
+    samplePointsBackground = { sampleStartLabel.getX () - 3, sampleStartLabel.getY () - 3,
+                               (sampleEndTextEditor.getRight () + 3) - (sampleStartLabel.getX () - 3),
+                               (sampleEndTextEditor.getBottom () + 3) - (sampleStartLabel.getY () - 3) };
+
     loopStartLabel.setBounds (xOffset, sampleEndTextEditor.getBottom (), scaleWidth (samplePointLabelScale), 20);
     loopStartTextEditor.setBounds (loopStartLabel.getRight () + spaceBetweenLabelAndInput, loopStartLabel.getY (), scaleWidth (samplePointInputScale) - spaceBetweenLabelAndInput, 20);
     loopLengthLabel.setBounds (xOffset, loopStartLabel.getBottom () + interParameterYOffset, scaleWidth (samplePointLabelScale), 20);
     loopLengthTextEditor.setBounds (loopLengthLabel.getRight () + spaceBetweenLabelAndInput, loopLengthLabel.getY (), scaleWidth (samplePointInputScale) - spaceBetweenLabelAndInput, 20);
+    loopPointsBackground = { loopStartLabel.getX () - 3, loopStartLabel.getY () - 3,
+                             (loopLengthTextEditor.getRight () + 3) - (loopStartLabel.getX () - 3),
+                             (loopLengthTextEditor.getBottom () + 3) - (loopStartLabel.getY () - 3) };
 
     auto playLabelBounds { juce::Rectangle<int> {0, loopLengthTextEditor.getBottom () + interParameterYOffset, getWidth (), 14} };
     sourceLabel.setBounds (playLabelBounds.removeFromLeft (playLabelBounds.getWidth () / 2));
