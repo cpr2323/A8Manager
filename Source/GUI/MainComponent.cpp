@@ -58,10 +58,6 @@ MainComponent::MainComponent (juce::ValueTree rootPropertiesVT)
     topAndBottomSplitter.setComponents (&folderBrowserEditorSplitter, &assimil8orValidatorComponent);
     topAndBottomSplitter.setHorizontalSplit (true);
 
-//     presetListEditorSplitter.setSplitOffset (85);
-//     folderBrowserEditorSplitter.setSplitOffset (100);
-//     topAndBottomSplitter.setSplitOffset (500);
-
     presetListEditorSplitter.onLayoutChange = [this] () { saveLayoutChanges (); };
     folderBrowserEditorSplitter.onLayoutChange = [this] () { saveLayoutChanges (); };
     topAndBottomSplitter.onLayoutChange = [this] () { saveLayoutChanges (); };
@@ -85,9 +81,9 @@ void MainComponent::restoreLayout ()
 
 void MainComponent::saveLayoutChanges ()
 {
-    auto splitter1Size { presetListEditorSplitter.getSplitOffset () };
-    auto splitter2Size { folderBrowserEditorSplitter.getSplitOffset () };
-    auto splitter3Size { topAndBottomSplitter.getSplitOffset () };
+    const auto splitter1Size { presetListEditorSplitter.getSplitOffset () };
+    const auto splitter2Size { folderBrowserEditorSplitter.getSplitOffset () };
+    const auto splitter3Size { topAndBottomSplitter.getSplitOffset () };
     guiProperties.setPaneSizes (splitter1Size, splitter2Size, splitter3Size, false);
 }
 
