@@ -22,12 +22,13 @@ void AudioPlayer::init (juce::ValueTree rootPropertiesVT)
 
     audioPlayerProperties.wrap (runtimeRootProperties.getValueTree (), AudioPlayerProperties::WrapperType::owner, AudioPlayerProperties::EnableCallbacks::yes);
     audioPlayerProperties.onShowConfigDialog = [this] () { showConfigDialog (); };
-    audioPlayerProperties.onPlayStateChange = [this] (AudioPlayerProperties::PlayState playState)
+    audioPlayerProperties.onPlayStateChange = [this] (AudioPlayerProperties::PlayState newPlayState)
     {
-        handlePlayState (playState);
+        handlePlayState (newPlayState);
     };
     audioPlayerProperties.onSourceFileChanged = [this] (juce::String sourceFile)
     {
+        jassert (playState == AudioPlayerProperties::PlayState::stop);
         juce::Logger::outputDebugString ("AudioPlayer - Source File: " + sourceFile);
         audioFile = juce::File (sourceFile);
         // TODO - maybe move this into a thread, as long files will block the UI
@@ -35,16 +36,20 @@ void AudioPlayer::init (juce::ValueTree rootPropertiesVT)
     };
     audioPlayerProperties.onLoopStartChanged = [this] (int newLoopStart)
     {
-        sampleStart = static_cast<int> (newLoopStart * sampleRateRatio);
-        if (curSampleOffset > sampleStart || curSampleOffset > sampleStart + sampleLength)
-            curSampleOffset = 0;
+        {
+            juce::ScopedLock sl (dataCS);
+            sampleStart = static_cast<int> (newLoopStart * sampleRateRatio);
+        }
         juce::Logger::outputDebugString ("AudioPlayer - Loop Start: " + juce::String (sampleStart));
     };
     audioPlayerProperties.onLoopLengthChanged = [this] (int newLoopLength)
     {
-        sampleLength = static_cast<int> (newLoopLength * sampleRateRatio);
-        if (curSampleOffset > sampleStart + sampleLength)
-            curSampleOffset = 0;
+        {
+            juce::ScopedLock sl (dataCS);
+            sampleLength = static_cast<int> (newLoopLength * sampleRateRatio);
+            if (curSampleOffset > sampleLength)
+                curSampleOffset = 0;
+        }
         juce::Logger::outputDebugString ("AudioPlayer - Loop Length: " + juce::String (sampleLength));
     };
     audioDeviceManager.addChangeListener (this);
@@ -88,6 +93,7 @@ void AudioPlayer::configureAudioDevice (juce::String deviceName)
 
 void AudioPlayer::handlePlayState (AudioPlayerProperties::PlayState newPlayState)
 {
+    juce::ScopedLock sl (dataCS);
     if (playState == AudioPlayerProperties::PlayState::stop)
     {
         juce::Logger::outputDebugString ("AudioPlayer::handlePlayState: stop");
@@ -163,13 +169,21 @@ void AudioPlayer::getNextAudioBlock (const juce::AudioSourceChannelInfo& bufferT
     const auto channels { juce::jmin (outputBuffer.getNumChannels (), sampleBuffer->getNumChannels ()) };
 
     const auto originalSampleOffset { curSampleOffset };
-    const auto cachedSampleLength { sampleLength };
-    const auto cachedSampleStart { sampleStart };
-    const auto chachedPlayState { playState };
-    auto cachedSampleOffset { curSampleOffset };
+    auto cachedSampleLength { 0 };
+    auto cachedSampleStart { 0 };
+    auto cachedSampleOffset { 0 };
+    auto chachedPlayState { AudioPlayerProperties::PlayState::stop };
+    {
+        // NOTE: I am using a lock in the audio callback ONLY BECAUSE the audio play back is a simple audition feature, not recording or performance playback
+        juce::ScopedLock sl (dataCS);
+        cachedSampleLength = sampleLength;
+        cachedSampleStart = sampleStart;
+        chachedPlayState = playState;
+        cachedSampleOffset = curSampleOffset;
+    }
     auto numSamplesToCopy { 0 };
     auto outputBufferWritePos { 0 };
-    while (outputBufferWritePos < numOutputSamples)
+    while (cachedSampleLength > 0 && outputBufferWritePos < numOutputSamples)
     {
         numSamplesToCopy = juce::jmin (numOutputSamples - outputBufferWritePos, cachedSampleLength - cachedSampleOffset);
 

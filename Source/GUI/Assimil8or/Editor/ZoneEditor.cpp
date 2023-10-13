@@ -605,17 +605,17 @@ void ZoneEditor::resized ()
     sampleStartTextEditor.setBounds (sampleStartLabel.getRight () + spaceBetweenLabelAndInput, sampleStartLabel.getY (), scaleWidth (samplePointInputScale) - spaceBetweenLabelAndInput, 20);
     sampleEndLabel.setBounds (xOffset, sampleStartLabel.getBottom () + interParameterYOffset, scaleWidth (samplePointLabelScale), 20);
     sampleEndTextEditor.setBounds (sampleEndLabel.getRight () + spaceBetweenLabelAndInput, sampleEndLabel.getY (), scaleWidth (samplePointInputScale) - spaceBetweenLabelAndInput, 20);
-    samplePointsBackground = { sampleStartLabel.getX () - 3, sampleStartLabel.getY () - 3,
-                               (sampleEndTextEditor.getRight () + 3) - (sampleStartLabel.getX () - 3),
-                               (sampleEndTextEditor.getBottom () + 3) - (sampleStartLabel.getY () - 3) };
+    samplePointsBackground = { sampleStartLabel.getX (), sampleStartLabel.getY (),
+                               (sampleEndTextEditor.getRight ()) - (sampleStartLabel.getX ()),
+                               (sampleEndTextEditor.getBottom ()) - (sampleStartLabel.getY ()) };
 
     loopStartLabel.setBounds (xOffset, sampleEndTextEditor.getBottom (), scaleWidth (samplePointLabelScale), 20);
     loopStartTextEditor.setBounds (loopStartLabel.getRight () + spaceBetweenLabelAndInput, loopStartLabel.getY (), scaleWidth (samplePointInputScale) - spaceBetweenLabelAndInput, 20);
     loopLengthLabel.setBounds (xOffset, loopStartLabel.getBottom () + interParameterYOffset, scaleWidth (samplePointLabelScale), 20);
     loopLengthTextEditor.setBounds (loopLengthLabel.getRight () + spaceBetweenLabelAndInput, loopLengthLabel.getY (), scaleWidth (samplePointInputScale) - spaceBetweenLabelAndInput, 20);
-    loopPointsBackground = { loopStartLabel.getX () - 3, loopStartLabel.getY () - 3,
-                             (loopLengthTextEditor.getRight () + 3) - (loopStartLabel.getX () - 3),
-                             (loopLengthTextEditor.getBottom () + 3) - (loopStartLabel.getY () - 3) };
+    loopPointsBackground = { loopStartLabel.getX (), loopStartLabel.getY (),
+                             (loopLengthTextEditor.getRight ()) - (loopStartLabel.getX ()),
+                             (loopLengthTextEditor.getBottom ()) - (loopStartLabel.getY ()) };
 
     auto playLabelBounds { juce::Rectangle<int> {0, loopLengthTextEditor.getBottom () + interParameterYOffset, getWidth (), 14} };
     sourceLabel.setBounds (playLabelBounds.removeFromLeft (playLabelBounds.getWidth () / 2));
