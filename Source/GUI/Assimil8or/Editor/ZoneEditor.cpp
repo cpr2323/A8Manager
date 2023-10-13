@@ -52,106 +52,106 @@ ZoneEditor::ZoneEditor ()
 
     setupLabel (sourceLabel, "SOURCE", 14.0f, juce::Justification::centred);
     addAndMakeVisible (sourceLabel);
-    sourceSamplePointsButton.setColour (juce::TextButton::ColourIds::buttonColourId, sourceSamplePointsButton.findColour (juce::TextButton::ColourIds::buttonColourId).brighter (0.3f));
-    sourceSamplePointsButton.setColour (juce::TextButton::ColourIds::textColourOffId, sourceSamplePointsButton.findColour (juce::TextButton::ColourIds::textColourOffId).darker (0.5f));
-    sourceSamplePointsButton.setToggleState (true, juce::NotificationType::dontSendNotification);
-    sourceSamplePointsButton.setButtonText ("SMPL");
-    sourceSamplePointsButton.onClick = [this] ()
+    auto setupSourceButton = [this] (juce::TextButton& sourceButton, juce::String text, bool initilalState, juce::Rectangle<int>* background,
+                                     std::function<void()> ifStoppedFunc)
     {
-        activePointBackground = &samplePointsBackground;
-        repaint ();
-        sourceSamplePointsButton.setToggleState (true, juce::NotificationType::dontSendNotification);
-        sourceLoopPointsButton.setToggleState (false, juce::NotificationType::dontSendNotification);
-        if (audioPlayerProperties.getPlayState () != AudioPlayerProperties::PlayState::stop)
+        jassert (ifStoppedFunc != nullptr);
+        jassert (background != nullptr);
+        sourceButton.setColour (juce::TextButton::ColourIds::buttonColourId, sourceSamplePointsButton.findColour (juce::TextButton::ColourIds::buttonColourId).brighter (0.3f));
+        sourceButton.setColour (juce::TextButton::ColourIds::textColourOffId, sourceSamplePointsButton.findColour (juce::TextButton::ColourIds::textColourOffId).darker (0.5f));
+        sourceButton.setToggleState (initilalState, juce::NotificationType::dontSendNotification);
+        sourceButton.setButtonText (text);
+        sourceButton.onClick = [this, ifStoppedFunc, background, &sourceButton] ()
         {
-            const auto sampleStart { static_cast<int> (zoneProperties.getSampleStart ().value_or (0)) };
-            audioPlayerProperties.setLoopStart (sampleStart, false);
-            audioPlayerProperties.setLoopLength (static_cast<int> (zoneProperties.getSampleEnd ().value_or (sampleLength) - sampleStart), false);
-        }
+            activePointBackground = background;
+            sourceSamplePointsButton.setToggleState (&sourceButton == &sourceSamplePointsButton, juce::NotificationType::dontSendNotification);
+            sourceLoopPointsButton.setToggleState (&sourceButton == &sourceLoopPointsButton, juce::NotificationType::dontSendNotification);
+            repaint ();
+            if (audioPlayerProperties.getPlayState () != AudioPlayerProperties::PlayState::stop)
+                ifStoppedFunc ();
+        };
+        addAndMakeVisible (sourceButton);
     };
-    addAndMakeVisible (sourceSamplePointsButton);
+    setupSourceButton (sourceSamplePointsButton, "SMPL", true, &samplePointsBackground, [this] ()
+    {
+        const auto sampleStart { static_cast<int> (zoneProperties.getSampleStart ().value_or (0)) };
+        audioPlayerProperties.setLoopStart (sampleStart, false);
+        audioPlayerProperties.setLoopLength (static_cast<int> (zoneProperties.getSampleEnd ().value_or (sampleLength) - sampleStart), false);
+    });
 
-    sourceLoopPointsButton.setColour (juce::TextButton::ColourIds::buttonColourId, sourceLoopPointsButton.findColour (juce::TextButton::ColourIds::buttonColourId).brighter (0.3f));
-    sourceLoopPointsButton.setColour (juce::TextButton::ColourIds::textColourOffId, sourceLoopPointsButton.findColour (juce::TextButton::ColourIds::textColourOffId).darker (0.5f));
-    sourceLoopPointsButton.onClick = [this] ()
+    setupSourceButton (sourceLoopPointsButton, "LOOP", false, &loopPointsBackground, [this] ()
     {
-        activePointBackground = &loopPointsBackground;
-        repaint ();
-        sourceSamplePointsButton.setToggleState (false, juce::NotificationType::dontSendNotification);
-        sourceLoopPointsButton.setToggleState (true, juce::NotificationType::dontSendNotification);
-        if (audioPlayerProperties.getPlayState () != AudioPlayerProperties::PlayState::stop)
-        {
-            const auto loopStart { static_cast<int> (zoneProperties.getLoopStart ().value_or (0)) };
-            audioPlayerProperties.setLoopStart (loopStart, false);
-            audioPlayerProperties.setLoopLength (static_cast<int> (zoneProperties.getLoopLength ().value_or (sampleLength)), false);
-        }
-    };
-    addAndMakeVisible (sourceLoopPointsButton);
-    sourceLoopPointsButton.setButtonText ("LOOP");
+        const auto loopStart { static_cast<int> (zoneProperties.getLoopStart ().value_or (0)) };
+        audioPlayerProperties.setLoopStart (loopStart, false);
+        audioPlayerProperties.setLoopLength (static_cast<int> (zoneProperties.getLoopLength ().value_or (sampleLength)), false);
+    });
 
     setupLabel (playModeLabel, "PLAY", 14.0f, juce::Justification::centred);
     addAndMakeVisible (playModeLabel);
-    loopPlayButton.setButtonText ("LOOP");
-    loopPlayButton.setEnabled (false);
-    loopPlayButton.onClick = [this] ()
+    auto setupPlayButton = [this] (juce::TextButton& playButton, juce::String text, bool initilalEnabledState, juce::String otherButtonText,
+                                   juce::TextButton& sourceButton, AudioPlayerProperties::PlayState playState,
+                                   std::function<void()> startPlayFunction, std::function<void ()> switchPlayFunction)
+    {
+        playButton.setButtonText (text);
+        playButton.setEnabled (initilalEnabledState);
+        playButton.onClick = [this, text, &playButton, &sourceButton, startPlayFunction, switchPlayFunction, playState, otherButtonText] ()
         {
-            if (loopPlayButton.getButtonText () == "LOOP")
+            if (playButton.getButtonText () == "STOP")
+            {
+                // stopping
+                audioPlayerProperties.setPlayState (AudioPlayerProperties::PlayState::stop, false);
+                playButton.setButtonText (text);
+            }
+            else
             {
                 audioPlayerProperties.setSourceFile (juce::File (appProperties.getMostRecentFolder ()).getChildFile (zoneProperties.getSample ()).getFullPathName (), false);
-                if (sourceSamplePointsButton.getToggleState ())
+                if (sourceButton.getToggleState ())
                 {
-                    const auto sampleStart { static_cast<int> (zoneProperties.getSampleStart ().value_or (0)) };
-                    audioPlayerProperties.setLoopStart (sampleStart, false);
-                    audioPlayerProperties.setLoopLength (static_cast<int> (zoneProperties.getSampleEnd ().value_or (sampleLength) - sampleStart), false);
+                    // starting
+                    startPlayFunction ();
                 }
                 else
                 {
-                    const auto loopStart { static_cast<int> (zoneProperties.getLoopStart ().value_or (0)) };
-                    audioPlayerProperties.setLoopStart (loopStart, false);
-                    audioPlayerProperties.setLoopLength (static_cast<int> (zoneProperties.getLoopLength ().value_or (sampleLength)), false);
+                    // switching play states
+                    switchPlayFunction ();
                 }
-                audioPlayerProperties.setPlayState (AudioPlayerProperties::PlayState::loop, false);
-                oneShotPlayButton.setButtonText ("ONCE");
-                loopPlayButton.setButtonText ("STOP");
-            }
-            else
-            {
-                audioPlayerProperties.setPlayState (AudioPlayerProperties::PlayState::stop, false);
-                loopPlayButton.setButtonText ("LOOP");
+                audioPlayerProperties.setPlayState (playState, false);
+                playButton.setButtonText ("STOP");
+                if (&playButton == &oneShotPlayButton)
+                    loopPlayButton.setButtonText (otherButtonText);
+                else
+                    oneShotPlayButton.setButtonText (otherButtonText);
             }
         };
-    addAndMakeVisible (loopPlayButton);
-
-    oneShotPlayButton.setButtonText ("ONCE");
-    oneShotPlayButton.setEnabled (false);
-    oneShotPlayButton.onClick = [this] ()
-    {
-        if (oneShotPlayButton.getButtonText () == "ONCE")
-        {
-            audioPlayerProperties.setSourceFile (juce::File (appProperties.getMostRecentFolder ()).getChildFile (zoneProperties.getSample ()).getFullPathName (), false);
-            if (sourceSamplePointsButton.getToggleState ())
-            {
-                const auto sampleStart { static_cast<int> (zoneProperties.getSampleStart ().value_or (0)) };
-                audioPlayerProperties.setLoopStart (sampleStart, false);
-                audioPlayerProperties.setLoopLength (static_cast<int> (zoneProperties.getSampleEnd ().value_or (sampleLength) - sampleStart), false);
-            }
-            else
-            {
-                const auto loopStart { static_cast<int> (zoneProperties.getLoopStart ().value_or (0)) };
-                audioPlayerProperties.setLoopStart (loopStart, false);
-                audioPlayerProperties.setLoopLength (static_cast<int> (zoneProperties.getLoopLength ().value_or (sampleLength)), false);
-            }
-            audioPlayerProperties.setPlayState (AudioPlayerProperties::PlayState::play, false);
-            loopPlayButton.setButtonText ("LOOP");
-            oneShotPlayButton.setButtonText ("STOP");
-        }
-        else
-        {
-            audioPlayerProperties.setPlayState (AudioPlayerProperties::PlayState::stop, false);
-            oneShotPlayButton.setButtonText ("ONCE");
-        }
+        addAndMakeVisible (playButton);
     };
-    addAndMakeVisible (oneShotPlayButton);
+    setupPlayButton (loopPlayButton, "LOOP", false, "ONCE", sourceLoopPointsButton, AudioPlayerProperties::PlayState::loop,
+    [this] ()
+    {
+        const auto loopStart { static_cast<int> (zoneProperties.getLoopStart ().value_or (0)) };
+        audioPlayerProperties.setLoopStart (loopStart, false);
+        audioPlayerProperties.setLoopLength (static_cast<int> (zoneProperties.getLoopLength ().value_or (sampleLength)), false);
+    },
+    [this] ()
+    {
+        const auto sampleStart { static_cast<int> (zoneProperties.getSampleStart ().value_or (0)) };
+        audioPlayerProperties.setLoopStart (sampleStart, false);
+        audioPlayerProperties.setLoopLength (static_cast<int> (zoneProperties.getSampleEnd ().value_or (sampleLength) - sampleStart), false);
+    });
+
+    setupPlayButton (oneShotPlayButton, "ONCE", false, "LOOP", sourceSamplePointsButton, AudioPlayerProperties::PlayState::play,
+    [this] ()
+    {
+        const auto sampleStart { static_cast<int> (zoneProperties.getSampleStart ().value_or (0)) };
+        audioPlayerProperties.setLoopStart (sampleStart, false);
+        audioPlayerProperties.setLoopLength (static_cast<int> (zoneProperties.getSampleEnd ().value_or (sampleLength) - sampleStart), false);
+    },
+    [this] ()
+    {
+        const auto loopStart { static_cast<int> (zoneProperties.getLoopStart ().value_or (0)) };
+        audioPlayerProperties.setLoopStart (loopStart, false);
+        audioPlayerProperties.setLoopLength (static_cast<int> (zoneProperties.getLoopLength ().value_or (sampleLength)), false);
+    });
     setupZoneComponents ();
 }
 
