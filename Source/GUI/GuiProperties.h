@@ -22,10 +22,6 @@ public:
     std::tuple<int, int> getSize ();
     std::tuple<int, int, int> getPaneSizes ();
 
-    std::function<void (int x, int y)> onPositionChange;
-    std::function<void (int width, int height)> onSizeChange;
-    std::function<void (int, int, int)> onPaneSizeChange;
-
     static inline const juce::Identifier GuiTypeId { "GUI" };
     static inline const juce::Identifier PositionPropertyId  { "position" };
     static inline const juce::Identifier SizePropertyId      { "size" };
@@ -35,5 +31,4 @@ public:
     void processValueTree ();
 
 private:
-    void valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property) override;
 };

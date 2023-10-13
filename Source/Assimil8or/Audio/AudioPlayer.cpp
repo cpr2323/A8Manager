@@ -35,14 +35,14 @@ void AudioPlayer::init (juce::ValueTree rootPropertiesVT)
     };
     audioPlayerProperties.onLoopStartChanged = [this] (int newLoopStart)
     {
-        sampleStart = newLoopStart * sampleRateRatio;
+        sampleStart = static_cast<int>(newLoopStart * sampleRateRatio);
         if (curSampleOffset > sampleStart || curSampleOffset > sampleStart + sampleLength)
             curSampleOffset = 0;
         juce::Logger::outputDebugString ("AudioPlayer - Loop Start: " + juce::String (sampleStart));
     };
     audioPlayerProperties.onLoopLengthChanged = [this] (int newLoopLength)
     {
-        sampleLength = newLoopLength * sampleRateRatio;
+        sampleLength = static_cast<int>(newLoopLength * sampleRateRatio);
         if (curSampleOffset > sampleStart + sampleLength)
             curSampleOffset = 0;
         juce::Logger::outputDebugString ("AudioPlayer - Loop Length: " + juce::String (sampleLength));

@@ -62,8 +62,3 @@ std::tuple<int, int, int> GuiProperties::getPaneSizes ()
     jassert (values.size () == 3);
     return { values [0].getIntValue (), values [1].getIntValue (), values [2].getIntValue () };
 }
-
-void GuiProperties::valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property)
-{
-
-}

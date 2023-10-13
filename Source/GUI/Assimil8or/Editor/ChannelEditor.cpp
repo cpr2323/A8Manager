@@ -65,7 +65,7 @@ ChannelEditor::ChannelEditor ()
     }
     zoneTabs.setTabBarDepth (zoneTabs.getTabBarDepth () + 5);
     zoneTabs.setLookAndFeel (&zonesTabbedLookAndFeel);
-    zoneTabs.onSelectedTabChanged = [this] (int tabIndex)
+    zoneTabs.onSelectedTabChanged = [this] (int)
     {
         configAudioPlayer ();
     };

@@ -162,13 +162,13 @@ bool ZoneEditor::isInterestedInFileDrag (const juce::StringArray& files)
 
 void ZoneEditor::setDropIndex (const juce::StringArray& files, int x, int y)
 {
-       dropIndex = -1;
-//     if (files.size () == 1)
-//         dropIndex = -1;
-//     else if (getLocalBounds ().removeFromTop (getLocalBounds ().getHeight () / 2).contains (x, y))
-//         dropIndex = 0;
-//     else
-//         dropIndex = 1;
+//       dropIndex = -1;
+    if (files.size () == 1)
+        dropIndex = -1;
+    else if (getLocalBounds ().removeFromTop (getLocalBounds ().getHeight () / 2).contains (x, y))
+        dropIndex = 0;
+    else
+        dropIndex = 1;
 }
 
 void ZoneEditor::filesDropped (const juce::StringArray& files, int x, int y)
