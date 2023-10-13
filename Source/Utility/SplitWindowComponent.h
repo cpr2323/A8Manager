@@ -40,7 +40,7 @@ private:
     void mouseExit (const juce::MouseEvent&) override
     {
         if (onMouseExit)
-            onMouseExit();
+            onMouseExit ();
     }
 };
 

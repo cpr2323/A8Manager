@@ -366,9 +366,9 @@ void Assimil8orEditorComponent::resized ()
     nameEditor.setBounds (topRow.removeFromLeft (150));
     topRow.removeFromLeft (10);
     // Midi Setup
-    midiSetupLabel.setBounds(topRow.removeFromLeft(75));
+    midiSetupLabel.setBounds (topRow.removeFromLeft (75));
     topRow.removeFromLeft (3);
-    midiSetupComboBox.setBounds (topRow.removeFromLeft(60));
+    midiSetupComboBox.setBounds (topRow.removeFromLeft (60));
 
 #if ENABLE_IMPORT_EXPORT
     topRow.removeFromRight (3);

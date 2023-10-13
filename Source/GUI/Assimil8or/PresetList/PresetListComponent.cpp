@@ -317,7 +317,7 @@ void PresetListComponent::pastePreset (int presetNumber)
         Assimil8orPreset assimil8orPreset;
         PresetProperties::copyTreeProperties (copyBufferPresetProperties.getValueTree (), assimil8orPreset.getPresetVT ());
         assimil8orPreset.write (getPresetFile (presetNumber));
-        auto [lastSelectedPresetNumber, thisPresetExists, presetName] = presetInfoList [lastSelectedPresetIndex];
+        auto [lastSelectedPresetNumber, thisPresetExists, presetName] { presetInfoList [lastSelectedPresetIndex] };
         if (presetNumber == lastSelectedPresetNumber)
         {
             PresetProperties::copyTreeProperties (copyBufferPresetProperties.getValueTree (), unEditedPresetProperties.getValueTree ());
@@ -325,7 +325,7 @@ void PresetListComponent::pastePreset (int presetNumber)
         }
     };
 
-    auto [thisPresetNumber, thisPresetExists, presetName] = presetInfoList [lastSelectedPresetIndex];
+    auto [thisPresetNumber, thisPresetExists, presetName] { presetInfoList [lastSelectedPresetIndex]};
     if (thisPresetExists)
     {
         juce::AlertWindow::showOkCancelBox (juce::AlertWindow::WarningIcon, "OVERWRITE PRESET", "Are you sure you want to overwrite '" + FileTypeHelpers::getPresetFileName (presetNumber) + "'", "YES", "NO", nullptr,
@@ -351,7 +351,7 @@ void PresetListComponent::deletePreset (int presetNumber)
                 return;
             presetFile.deleteFile ();
             // TODO handle delete error
-            auto [lastSelectedPresetNumber, thisPresetExists, presetName] = presetInfoList [lastSelectedPresetIndex];
+            auto [lastSelectedPresetNumber, thisPresetExists, presetName] { presetInfoList [lastSelectedPresetIndex] };
             if (presetNumber == lastSelectedPresetNumber)
                 PresetProperties::copyTreeProperties (ParameterPresetsSingleton::getInstance ()->getParameterPresetListProperties ().getParameterPreset (ParameterPresetListProperties::DefaultParameterPresetType),
                                                       unEditedPresetProperties.getValueTree ());
@@ -386,7 +386,7 @@ void PresetListComponent::listBoxItemClicked (int row, [[maybe_unused]] const ju
 
         auto completeSelection = [this, row] ()
         {
-            auto [presetNumber, thisPresetExists, presetName] = presetInfoList [row];
+            auto [presetNumber, thisPresetExists, presetName] { presetInfoList [row] };
             auto presetFile { getPresetFile (presetNumber) };
             if (thisPresetExists)
                 loadPreset (presetFile);

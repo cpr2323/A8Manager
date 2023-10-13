@@ -27,7 +27,7 @@ static void dumpValueTreeContentInternal (juce::ValueTree vt, bool displayProper
                 outputLine += " " + propertyOutput;
             }
         }
-        if (outputLine.length() > 0)
+        if (outputLine.length () > 0)
             displayFunction (indentString + "  " + outputLine);
     }
     for (const auto& child : vt)

@@ -9,7 +9,7 @@ void AudioPlayerProperties::initValueTree ()
 
 void AudioPlayerProperties::setPlayState (PlayState playState, bool includeSelfCallback)
 {
-    setValue (static_cast<int>(playState), PlayStatePropertyId, includeSelfCallback);
+    setValue (static_cast<int> (playState), PlayStatePropertyId, includeSelfCallback);
 }
 
 void AudioPlayerProperties::setSourceFile (juce::String sourceFile, bool includeSelfCallback)
@@ -34,7 +34,7 @@ void AudioPlayerProperties::showConfigDialog (bool includeSelfCallback)
 
 AudioPlayerProperties::PlayState AudioPlayerProperties::getPlayState ()
 {
-    return static_cast<PlayState>(getValue<int> (PlayStatePropertyId));
+    return static_cast<PlayState> (getValue<int> (PlayStatePropertyId));
 }
 
 juce::String AudioPlayerProperties::getSourceFile ()

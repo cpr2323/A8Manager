@@ -35,14 +35,14 @@ void AudioPlayer::init (juce::ValueTree rootPropertiesVT)
     };
     audioPlayerProperties.onLoopStartChanged = [this] (int newLoopStart)
     {
-        sampleStart = static_cast<int>(newLoopStart * sampleRateRatio);
+        sampleStart = static_cast<int> (newLoopStart * sampleRateRatio);
         if (curSampleOffset > sampleStart || curSampleOffset > sampleStart + sampleLength)
             curSampleOffset = 0;
         juce::Logger::outputDebugString ("AudioPlayer - Loop Start: " + juce::String (sampleStart));
     };
     audioPlayerProperties.onLoopLengthChanged = [this] (int newLoopLength)
     {
-        sampleLength = static_cast<int>(newLoopLength * sampleRateRatio);
+        sampleLength = static_cast<int> (newLoopLength * sampleRateRatio);
         if (curSampleOffset > sampleStart + sampleLength)
             curSampleOffset = 0;
         juce::Logger::outputDebugString ("AudioPlayer - Loop Length: " + juce::String (sampleLength));
@@ -126,7 +126,7 @@ void AudioPlayer::prepareSampleForPlayback ()
         resamplingAudioSource->setResamplingRatio (readerSource->getAudioFormatReader ()->sampleRate / sampleRate);
         resamplingAudioSource->prepareToPlay (blockSize, sampleRate);
         sampleBuffer = std::make_unique<juce::AudioBuffer<float>> (readerSource->getAudioFormatReader ()->numChannels,
-                                                                   static_cast<int>(readerSource->getAudioFormatReader ()->lengthInSamples * sampleRate / readerSource->getAudioFormatReader ()->sampleRate));
+                                                                   static_cast<int> (readerSource->getAudioFormatReader ()->lengthInSamples * sampleRate / readerSource->getAudioFormatReader ()->sampleRate));
         resamplingAudioSource->getNextAudioBlock (juce::AudioSourceChannelInfo (*sampleBuffer.get ()));
         curSampleOffset = 0;
     }
