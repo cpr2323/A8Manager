@@ -134,7 +134,7 @@ private:
     juce::TextEditor sampleStartTextEditor; // int
 
     juce::String formatLoopLength (double loopLength);
-    bool handleSamplesInternal (const juce::StringArray& files);
+    bool handleSamplesInternal (juce::StringArray files);
     void setupZoneComponents ();
     void setupZonePropertiesCallbacks ();
     double snapLoopLength (double rawValue);

@@ -965,7 +965,8 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
                 auto [topBoundary, bottomBoundary] { getVoltageBoundaries (zoneEditorIndex, 1) };
                 zoneProperties [zoneEditorIndex - 1].setMinVoltage (bottomBoundary + ((topBoundary - bottomBoundary) / 2), false);
             }
-            zoneProperties [zoneEditorIndex].setMinVoltage (-5.0, false);
+            if (zoneEditorIndex == getNumUsedZones() - 1)
+                zoneProperties [zoneEditorIndex].setMinVoltage (-5.0, false);
             ensureProperZoneIsSelected ();
             updateAllZoneTabNames ();
         };
@@ -988,10 +989,14 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
                     file.copyFileTo (juce::File (appProperties.getMostRecentFolder ()).getChildFile (file.getFileName ()));
                     // TODO handle failure
                 }
+                juce::Logger::outputDebugString ("assigning '" + file.getFileName () + "' to Zone " + juce::String (zoneIndex + filesIndex));
                 // assign file to zone
                 zoneEditor.loadSample (file.getFileName ());
             }
 
+            for (auto curZoneIndex { 0 }; curZoneIndex < getNumUsedZones () - 1; ++curZoneIndex)
+                if (zoneProperties [curZoneIndex].getMinVoltage () <= zoneProperties [curZoneIndex + 1].getMinVoltage ())
+                    jassertfalse;
             return true;
         };
 

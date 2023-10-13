@@ -2,6 +2,13 @@
 #include "../../Utility/PersistentRootProperties.h"
 #include "../../Utility/RuntimeRootProperties.h"
 
+#define LOG_AUDIO_PLAYER 0
+#if LOG_AUDIO_PLAYER
+#define LogAudioPlayer(text) juce::Logger::outputDebugString (text);
+#else
+#define LogAudioPlayer(text) ;
+#endif
+
 AudioPlayer::AudioPlayer ()
 {
     audioFormatManager.registerBasicFormats ();
@@ -29,7 +36,7 @@ void AudioPlayer::init (juce::ValueTree rootPropertiesVT)
     audioPlayerProperties.onSourceFileChanged = [this] (juce::String sourceFile)
     {
         jassert (playState == AudioPlayerProperties::PlayState::stop);
-        juce::Logger::outputDebugString ("AudioPlayer - Source File: " + sourceFile);
+        LogAudioPlayer ("AudioPlayer - Source File: " + sourceFile);
         audioFile = juce::File (sourceFile);
         // TODO - maybe move this into a thread, as long files will block the UI
         prepareSampleForPlayback ();
@@ -40,7 +47,7 @@ void AudioPlayer::init (juce::ValueTree rootPropertiesVT)
             juce::ScopedLock sl (dataCS);
             sampleStart = static_cast<int> (newLoopStart * sampleRateRatio);
         }
-        juce::Logger::outputDebugString ("AudioPlayer - Loop Start: " + juce::String (sampleStart));
+        LogAudioPlayer ("AudioPlayer - Loop Start: " + juce::String (sampleStart));
     };
     audioPlayerProperties.onLoopLengthChanged = [this] (int newLoopLength)
     {
@@ -50,7 +57,7 @@ void AudioPlayer::init (juce::ValueTree rootPropertiesVT)
             if (curSampleOffset > sampleLength)
                 curSampleOffset = 0;
         }
-        juce::Logger::outputDebugString ("AudioPlayer - Loop Length: " + juce::String (sampleLength));
+        LogAudioPlayer ("AudioPlayer - Loop Length: " + juce::String (sampleLength));
     };
     audioDeviceManager.addChangeListener (this);
     configureAudioDevice (audioSettingsProperties.getDeviceName ());
@@ -96,16 +103,16 @@ void AudioPlayer::handlePlayState (AudioPlayerProperties::PlayState newPlayState
     juce::ScopedLock sl (dataCS);
     if (playState == AudioPlayerProperties::PlayState::stop)
     {
-        juce::Logger::outputDebugString ("AudioPlayer::handlePlayState: stop");
+        LogAudioPlayer ("AudioPlayer::handlePlayState: stop");
     }
     else if (playState == AudioPlayerProperties::PlayState::loop)
     {
-        juce::Logger::outputDebugString ("AudioPlayer::handlePlayState: play");
+        LogAudioPlayer ("AudioPlayer::handlePlayState: play");
         curSampleOffset = 0;
     }
     else if (playState == AudioPlayerProperties::PlayState::play)
     {
-        juce::Logger::outputDebugString ("AudioPlayer::handlePlayState: play");
+        LogAudioPlayer ("AudioPlayer::handlePlayState: play");
         curSampleOffset = 0;
     }
     playState = newPlayState;
@@ -151,7 +158,7 @@ void AudioPlayer::releaseResources ()
 
 void AudioPlayer::changeListenerCallback (juce::ChangeBroadcaster*)
 {
-    juce::Logger::outputDebugString ("audio device settings changed");
+    LogAudioPlayer ("audio device settings changed");
     auto currentAudioSetup { audioDeviceManager.getAudioDeviceSetup () };
     audioSettingsProperties.setDeviceName (currentAudioSetup.outputDeviceName, false);
 }

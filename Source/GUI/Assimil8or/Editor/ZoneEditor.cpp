@@ -205,10 +205,11 @@ void ZoneEditor::fileDragExit (const juce::StringArray&)
     repaint ();
 }
 
-bool ZoneEditor::handleSamplesInternal (const juce::StringArray& files)
+bool ZoneEditor::handleSamplesInternal (juce::StringArray files)
 {
     jassert (handleSamples != nullptr);
     audioPlayerProperties.setPlayState (AudioPlayerProperties::PlayState::stop, true);
+    files.sort (true);
     return handleSamples (zoneProperties.getId () - 1, files);
 }
 
@@ -743,7 +744,6 @@ void ZoneEditor::loopLengthDataChanged (std::optional<double> loopLength)
 
 void ZoneEditor::loopLengthUiChanged (double loopLength)
 {
-    juce::Logger::outputDebugString ("ZoneEditor::ZoneEditor::loopLengthUiChanged : " + juce::String (loopLength));
     zoneProperties.setLoopLength (loopLength, false);
 }
 
@@ -755,7 +755,6 @@ void ZoneEditor::loopStartDataChanged (std::optional<int64_t> loopStart)
 
 void ZoneEditor::loopStartUiChanged (int64_t  loopStart)
 {
-    juce::Logger::outputDebugString ("ZoneEditor::loopStartUiChanged: " + juce::String (loopStart));
     zoneProperties.setLoopStart (loopStart, false);
 }
 
