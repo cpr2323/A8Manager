@@ -94,22 +94,19 @@ void SplitWindowComponent::paint (juce::Graphics& g)
 
 void SplitWindowComponent::mouseMove (const juce::MouseEvent& me)
 {
-    auto mousePosition { me.getPosition () };
+    if (resizeBarBounds.contains (me.getPosition ()))
     {
-        if (resizeBarBounds.contains (me.getPosition ()))
+        if (mouseOver)
+            return;
+        mouseOver = true;
+        repaint ();
+    }
+    else
+    {
+        if (mouseOver)
         {
-            if (mouseOver)
-                return;
-            mouseOver = true;
+            mouseOver = false;
             repaint ();
-        }
-        else
-        {
-            if (mouseOver)
-            {
-                mouseOver = false;
-                repaint ();
-            }
         }
     }
 };
