@@ -931,6 +931,14 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
                 ensureProperZoneIsSelected ();
                 updateAllZoneTabNames ();
             });
+            pm.addItem ("Clear All", getNumUsedZones () > 0, false, [this] ()
+            {
+                const auto numZones { getNumUsedZones () };
+                for (auto curZoneIndex { 0 }; curZoneIndex < numZones; ++curZoneIndex)
+                    zoneProperties [curZoneIndex].copyFrom (defaultZoneProperties.getValueTree ());
+                ensureProperZoneIsSelected ();
+                updateAllZoneTabNames ();
+            });
             pm.showMenuAsync ({}, [this] (int) {});
         };
         zoneEditor.isMinVoltageInRange = [this, zoneEditorIndex] (double voltage)
@@ -994,9 +1002,12 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
                 zoneEditor.loadSample (file.getFileName ());
             }
 
+#if JUCE_DEBUG
+            // verifying that all minVoltages are valid
             for (auto curZoneIndex { 0 }; curZoneIndex < getNumUsedZones () - 1; ++curZoneIndex)
                 if (zoneProperties [curZoneIndex].getMinVoltage () <= zoneProperties [curZoneIndex + 1].getMinVoltage ())
                     jassertfalse;
+#endif
             return true;
         };
 

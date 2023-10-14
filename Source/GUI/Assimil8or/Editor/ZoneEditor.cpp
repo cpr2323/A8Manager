@@ -36,7 +36,7 @@ ZoneEditor::ZoneEditor ()
 
     sampleNameSelectLabel.onFilesSelected = [this] (const juce::StringArray& files)
     {
-        if (! handleSamplesInternal (files))
+        if (! handleSamplesInternal (zoneProperties.getId () - 1, files))
         {
             // TODO - indicate an error? first thought was a red outline that fades out over a couple of second
         }
@@ -180,7 +180,7 @@ void ZoneEditor::filesDropped (const juce::StringArray& files, int x, int y)
     setDropIndex (files, x, y);
     draggingFiles = false;
     repaint ();
-    if (! handleSamplesInternal (files))
+    if (! handleSamplesInternal (dropIndex == 0 ? 0 : zoneProperties.getId () - 1, files))
     {
         // TODO - indicate an error? first thought was a red outline that fades out over a couple of second
     }
@@ -205,12 +205,12 @@ void ZoneEditor::fileDragExit (const juce::StringArray&)
     repaint ();
 }
 
-bool ZoneEditor::handleSamplesInternal (juce::StringArray files)
+bool ZoneEditor::handleSamplesInternal (int zoneIndex, juce::StringArray files)
 {
     jassert (handleSamples != nullptr);
     audioPlayerProperties.setPlayState (AudioPlayerProperties::PlayState::stop, true);
     files.sort (true);
-    return handleSamples (zoneProperties.getId () - 1, files);
+    return handleSamples (zoneIndex, files);
 }
 
 void ZoneEditor::loadSample (juce::String sampleFileName)
@@ -534,7 +534,7 @@ void ZoneEditor::setLoopLengthIsEnd (bool newLoopLengthIsEnd)
 
 void ZoneEditor::receiveSampleLoadRequest (juce::File sampleFile)
 {
-    if (! handleSamplesInternal ({ sampleFile.getFullPathName () }))
+    if (! handleSamplesInternal (zoneProperties.getId () - 1, { sampleFile.getFullPathName () }))
     {
         // TODO - indicate an error? first thought was a red outline that fades out over a couple of second
     }
