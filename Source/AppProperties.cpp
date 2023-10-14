@@ -95,7 +95,6 @@ int AppProperties::getMaxMruEntries ()
 juce::ValueTree AppProperties::getMRUListChildVT ()
 {
     return data.getChildWithName (FileTypeId).getChildWithName (MRUListTypeId);
-    //return {};
 }
 
 void AppProperties::valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property)
@@ -107,10 +106,14 @@ void AppProperties::valueTreePropertyChanged (juce::ValueTree& vt, const juce::I
             if (onMostRecentFolderChange != nullptr)
                 onMostRecentFolderChange (getMostRecentFolder ());
         }
-//         else if (property == MostRecentFolderPropertyId)
-//         {
-//             if (onMostRecentFolderChange != nullptr)
-//                 onMostRecentFolderChange (getMostRecentFolder ());
-//         }
+    }
+}
+
+void AppProperties::valueTreeChildAdded (juce::ValueTree& parent, juce::ValueTree& child)
+{
+    if (parent.getType () == MRUListTypeId)
+    {
+        if (onMostRecentFileChange != nullptr)
+            onMostRecentFileChange (child.getProperty (MRUEntryNamePropertyId).toString ());
     }
 }

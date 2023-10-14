@@ -2,8 +2,10 @@
 #include "AppProperties.h"
 #include "Assimil8or/Assimil8orValidator.h"
 #include "Assimil8or/PresetManagerProperties.h"
+#include "Assimil8or/Audio/AudioPlayer.h"
 #include "Assimil8or/Preset/ParameterPresetsSingleton.h"
 #include "Assimil8or/Preset/PresetProperties.h"
+#include "GUI/GuiProperties.h"
 #include "GUI/MainComponent.h"
 #include "Utility/DebugLog.h"
 #include "Utility/DirectoryValueTree.h"
@@ -34,136 +36,13 @@ public:
     const juce::String getApplicationVersion () override { return ProjectInfo::versionString; }
     bool moreThanOneInstanceAllowed () override { return true; }
 
-    void valueTreeTest ()
-    {
-        juce::ValueTree root { "Root" };
-        juce::ValueTree rootChild1 { "RootChild1" };
-        juce::ValueTree rootChild2 { "RootChild2" };
-        juce::ValueTree child1Child1 { "Child1Child1" };
-        juce::ValueTree child1Child2 { "Child1Child2" };
-        juce::ValueTree child1Child1Child1 { "Child1Child1Child1" };
-        juce::ValueTree child1Child1Child1Child1 { "Child1Child1Child1Child1" };
-        ValueTreeMonitor rootListenerLogger;
-        rootListenerLogger.assign (root);
-
-        root.addChild (rootChild1, -1, nullptr);
-        root.addChild (rootChild2, -1, nullptr);
-        rootChild1.addChild (child1Child1, -1, nullptr);
-        rootChild1.addChild (child1Child2, -1, nullptr);
-        child1Child1.addChild (child1Child1Child1, -1, nullptr);
-        child1Child1Child1.addChild (child1Child1Child1Child1, -1, nullptr);
-    }
-
-#if 0
-    // TEST CODE
-    // encoded flag - zzzz zxxx | xxxx xxxx | xxxx xxxx | xxxy yyyy
-    //                num index bits
-    //                      whole value
-    //                                                       up to 5 bits of fractional index
-    // uint32_t rawValue
-    // double finalValue
-    // if bits 28-32 are all 0
-    //     finalValue = rawValue
-    // else
-    //  numberOfIndexBits = rawValue >> 27
-    //  mask = (1L << numIndexBits) - 1
-    //  wholeValue = rawValue >> numIndexBits
-    //  fractionalResolution = 1.0 / (1L << numberOfIndexBits)
-    //  fractionalIndex = rawValue & mask
-    //  fractionalValue = fractionalResolution * fractionalIndex
-    //  finalValue = static_cast<double> (wholeValue) + fractionalValue
-    // max 8 digit number - 0101 1111 0101 1110 0000 1111 1111
-    // 2048 = 1000 0000 0000, 11/1
-    // 1024 = 0100 0000 0000, 10/2
-    //  512 = 0010 0000 0000,  9/3
-    //  256 = 0001 0000 0000,  8/4
-    //  128 = 0000 1000 0000,  7/5
-    uint32_t encodeLoopLengthValue (double rawValue)
-    {
-        if (rawValue < 4.0)
-            rawValue = 4.0;
-        else if (rawValue > 99999999.0)
-            rawValue = 99999999.0;
-
-        if (rawValue < 2048)
-        {
-            // encode
-            const auto wholeValue { static_cast<uint32_t> (rawValue) };
-            const auto fractionalValue { rawValue - static_cast<double> (wholeValue) };
-            const auto numIndexBits = [wholeValue] ()
-            {
-                if (wholeValue >= 1024) // 2047 - 1024
-                    return 1;
-                else if (wholeValue >= 512) // 1023 - 512
-                    return 2;
-                else if (wholeValue >= 256) // 511 - 256
-                    return 3;
-                else if (wholeValue >= 128)
-                    return 4;
-                else if (wholeValue >= 4)
-                    return 5;
-                else
-                {
-                    jassertfalse;
-                    return 0;
-                }
-            }();
-            const auto mask { (1L << numIndexBits) - 1};
-            const auto fractionalResolution { 1.0 / (1L << numIndexBits) };
-            const auto numIndexBitsValue { numIndexBits << 27 };
-            const auto shiftedWholeValue { wholeValue << numIndexBits };
-            const auto fractionalIndex { static_cast<int> (fractionalValue / fractionalResolution) };
-            return numIndexBitsValue + shiftedWholeValue + fractionalIndex;
-        }
-        else
-        {
-            return static_cast<uint32_t> (rawValue);
-        }
-    }
-
-    double decodeLoopLengthValue (uint32_t rawValue)
-    {
-        auto newVal { rawValue & 0xF8000000 };
-        if ((rawValue & 0xF8000000) == 0)
-            return rawValue;
-
-        const auto numIndexBits { rawValue >> 27 };
-        const auto mask { (1L << numIndexBits) - 1 };
-        const auto wholeValue { (rawValue & 0x07FFFFFF) >> numIndexBits};
-        const auto fractionalResolution { 1.0 / (1L << numIndexBits) };
-        const auto fractionalIndex { rawValue & mask };
-        const auto fractionalValue { fractionalResolution * fractionalIndex};
-        const auto finalValue { std::round ((static_cast<double> (wholeValue) + fractionalValue) * 1000.0) / 1000.0 }; // add the whole and fractional parts and round to 3 decimal places
-        return finalValue;
-    }
-#endif // 0
-
     void initialise ([[maybe_unused]] const juce::String& commandLine) override
     {
-#if 0
-        auto testAValue = [this] (double valueToTest)
-        {
-            const auto encodedValue { encodeLoopLengthValue (valueToTest) };
-            const auto decodedValue { decodeLoopLengthValue (encodedValue) };
-            jassert (valueToTest == decodedValue);
-        };
-        testAValue (2047.0);
-        testAValue (2047.5);
-        testAValue (1024.0);
-        testAValue (1023.0);
-        testAValue (1023.25);
-        testAValue (500.125);
-        testAValue (400.875);
-        testAValue (212.438);
-        testAValue (93.188);
-        testAValue (86.813);
-
-#endif // 0
-        //valueTreeTest ();
         initAppDirectory ();
         initLogger ();
         initCrashHandler ();
         initPropertyRoots ();
+        initAudio ();
         initAssimil8or ();
         initUi ();
 
@@ -173,6 +52,7 @@ public:
 
     void shutdown () override
     {
+        audioPlayer.shutdownAudio ();
         persitentPropertiesFile.save ();
         mainWindow = nullptr; // (deletes our window)
         juce::Logger::setCurrentLogger (nullptr);
@@ -222,12 +102,14 @@ public:
                                               presetProperties.getValueTree ());
         presetManagerProperties.addPreset ("edit", presetProperties.getValueTree ());
         presetManagerProperties.addPreset ("unedited", presetProperties.getValueTree ().createCopy ());
+
         // add the Preset Manager to the Runtime Root
         runtimeRootProperties.getValueTree ().addChild (presetManagerProperties.getValueTree (), -1, nullptr);
 
         // setup the directory scanner
         directoryValueTree.init (rootProperties.getValueTree ());
         directoryDataProperties.wrap (directoryValueTree.getDirectoryDataPropertiesVT (), DirectoryDataProperties::WrapperType::client, DirectoryDataProperties::EnableCallbacks::no);
+        // debug tool for watching changes on the Directory Data Properties Value Tree
         //directoryDataMonitor.assign (directoryDataProperties.getValueTreeRef ());
 
         // when the folder being viewed changes, signal the directory scanner to rescan
@@ -247,6 +129,7 @@ public:
 
     void initUi ()
     {
+        guiProperties.wrap (persistentRootProperties.getValueTree (), GuiProperties::WrapperType::owner, GuiProperties::EnableCallbacks::no);
         mainWindow.reset (new MainWindow (getApplicationName () + " - v" + getApplicationVersion (), rootProperties.getValueTree ()));
     }
 
@@ -264,6 +147,13 @@ public:
 
         if (appProperties.getMostRecentFolder ().isEmpty ())
             appProperties.setMostRecentFolder (appDirectory.getFullPathName ());
+    }
+
+    void initAudio ()
+    {
+        audioPlayer.init (rootProperties.getValueTree ());
+        //AudioSettingsProperties audioSettingsProperties (persistentRootProperties.getValueTree (), AudioSettingsProperties::WrapperType::client, AudioSettingsProperties::EnableCallbacks::no);
+        //audioConfigPropertiesMonitor.assign (audioSettingsProperties.getValueTreeRef ());
     }
 
     void initAppDirectory ()
@@ -329,20 +219,28 @@ public:
     class MainWindow    : public juce::DocumentWindow
     {
     public:
-        MainWindow (juce::String name, juce::ValueTree rootProperties)
+        MainWindow (juce::String name, juce::ValueTree rootPropertiesVT)
             : DocumentWindow (name,
                               juce::Desktop::getInstance ().getDefaultLookAndFeel ().findColour (juce::ResizableWindow::backgroundColourId),
                               DocumentWindow::allButtons)
         {
             setUsingNativeTitleBar (true);
-            setContentOwned (new MainComponent (rootProperties), true);
+            setContentOwned (new MainComponent (rootPropertiesVT), true);
 
            #if JUCE_IOS || JUCE_ANDROID
             setFullScreen (true);
            #else
             setResizable (true, true);
-            centreWithSize (getWidth (), getHeight ());
            #endif
+
+            PersistentRootProperties prp (rootPropertiesVT, PersistentRootProperties::WrapperType::client, PersistentRootProperties::EnableCallbacks::no);
+            guiProperties.wrap (prp.getValueTree (), GuiProperties::WrapperType::client, GuiProperties::EnableCallbacks::no);
+            auto [width, height] = guiProperties.getSize ();
+            auto [x, y] = guiProperties.getPosition ();
+            if (x == -1 || y == -1)
+                centreWithSize (width, height);
+            else
+                setBounds (x, y, width, height);
 
             setVisible (true);
 
@@ -351,19 +249,27 @@ public:
 #endif
         }
 
+#if (! JUCE_IOS) && (! JUCE_ANDROID)
+        void moved () override
+        {
+            guiProperties.setPosition (getBounds ().getX (), getBounds ().getY (), false);
+            DocumentWindow::moved ();
+        }
+
+        void resized () override
+        {
+            guiProperties.setSize (getBounds ().getWidth (), getBounds ().getHeight (), false);
+            DocumentWindow::resized ();
+        }
+#endif // ! JUCE_IOS && ! JUCE_ANDROID
+
         void closeButtonPressed () override
         {
             JUCEApplication::getInstance ()->systemRequestedQuit ();
         }
 
-        /* Note: Be careful if you override any DocumentWindow methods - the base
-           class uses a lot of them, so by overriding you might break its functionality.
-           It's best to do all your work in your content component instead, but if
-           you really have to override any DocumentWindow methods, make sure your
-           subclass also calls the superclass's method.
-        */
-
     private:
+        GuiProperties guiProperties;
 #if ENABLE_MELATONIN_INSPECTOR
         melatonin::Inspector inspector { *this, false };
 #endif
@@ -376,6 +282,7 @@ private:
     ValueTreeFile persitentPropertiesFile;
     PersistentRootProperties persistentRootProperties;
     AppProperties appProperties;
+    GuiProperties guiProperties;
     RuntimeRootProperties runtimeRootProperties;
     Assimil8orValidator assimil8orValidator;
     PresetProperties presetProperties;
@@ -384,7 +291,9 @@ private:
     std::unique_ptr<juce::FileLogger> fileLogger;
     std::atomic<RuntimeRootProperties::QuitState> localQuitState { RuntimeRootProperties::QuitState::idle };
     std::unique_ptr<MainWindow> mainWindow;
+    AudioPlayer audioPlayer;
 
+    ValueTreeMonitor audioConfigPropertiesMonitor;
     ValueTreeMonitor directoryDataMonitor;
     ValueTreeMonitor presetPropertiesMonitor;
 };

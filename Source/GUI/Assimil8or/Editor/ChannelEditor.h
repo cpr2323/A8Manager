@@ -3,13 +3,30 @@
 #include <JuceHeader.h>
 #include "CvInputComboBox.h"
 #include "ZoneEditor.h"
+#include "../../../AppProperties.h"
+#include "../../../Assimil8or/Audio/AudioPlayerProperties.h"
 #include "../../../Assimil8or/Preset/ChannelProperties.h"
 #include "../../../Utility/NoArrowComboBoxLnF.h"
 
-class TransparantOverly : public juce::Component
+class TabbedComponentWithChangeCallback : public juce::TabbedComponent
 {
 public:
-    TransparantOverly ()
+    TabbedComponentWithChangeCallback (juce::TabbedButtonBar::Orientation orientation) : juce::TabbedComponent (orientation) {}
+
+    std::function<void (int)> onSelectedTabChanged;
+
+private:
+    void currentTabChanged (int newTabIndex, [[maybe_unused]] const juce::String& tabName)
+    {
+        if (onSelectedTabChanged != nullptr)
+            onSelectedTabChanged (newTabIndex);
+    }
+};
+
+class TransparantOverlay : public juce::Component
+{
+public:
+    TransparantOverlay ()
     {
         setInterceptsMouseClicks (false, false);
     }
@@ -156,6 +173,7 @@ private:
         distribute1vPerOct,
         distribute1vPerOctMajor
     };
+    AppProperties appProperties;
     ChannelProperties channelProperties;
     ChannelProperties defaultChannelProperties;
     ChannelProperties minChannelProperties;
@@ -163,10 +181,11 @@ private:
     ZoneProperties defaultZoneProperties;
     ZoneProperties copyBufferZoneProperties;
     bool copyBufferActive { false };
+    AudioPlayerProperties audioPlayerProperties;
 
     juce::Label zonesLabel;
     juce::Label zoneMaxVoltage;
-    juce::TabbedComponent zoneTabs { juce::TabbedButtonBar::Orientation::TabsAtLeft };
+    TabbedComponentWithChangeCallback zoneTabs { juce::TabbedButtonBar::Orientation::TabsAtLeft };
     juce::TextButton toolsButton;
 
     juce::Label aliasingLabel;
@@ -262,7 +281,7 @@ private:
     CvInputChannelComboBox zonesCVComboBox; // 0A - 8C
     juce::Label zonesRTLabel;
     juce::ComboBox zonesRTComboBox; // 0 = Gate Rise, 1 = Continuous, 2 = Advance, 3 = Random
-    TransparantOverly stereoRightTransparantOverly;
+    TransparantOverlay stereoRightTransparantOverly;
 
     NoArrowComboBoxLnF noArrowComboBoxLnF;
     ZonesTabbedLookAndFeel zonesTabbedLookAndFeel;
@@ -272,6 +291,7 @@ private:
 
     void balanceVoltages (VoltageBalanceType balanceType);
     void checkStereoRightOverlay ();
+    void configAudioPlayer ();
     void duplicateZone (int zoneIndex);
     void ensureProperZoneIsSelected ();
     int getEnvelopeValueResolution (double envelopeValue);
@@ -370,6 +390,7 @@ private:
     void zonesRTDataChanged (int zonesRT);
     void zonesRTUiChanged (int zonesRT);
 
+    void visibilityChanged () override;
     void paint (juce::Graphics& g) override;
     void resized () override;
 };

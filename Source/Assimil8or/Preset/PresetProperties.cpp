@@ -80,6 +80,11 @@ void PresetProperties::setData2AsCV (juce::String data2AsCv, bool includeSelfCal
     setValue (data2AsCv, Data2asCVPropertyId, includeSelfCallback);
 }
 
+void PresetProperties::setMidiSetup (int midiSetupId, bool includeSelfCallback)
+{
+    setValue (midiSetupId, MidiSetpPropertyId, includeSelfCallback);
+}
+
 void PresetProperties::setName (juce::String name, bool includeSelfCallback)
 {
     setValue (name, NamePropertyId, includeSelfCallback);
@@ -136,6 +141,11 @@ int PresetProperties::getId ()
 juce::String PresetProperties::getData2AsCV ()
 {
     return getValue<juce::String> (Data2asCVPropertyId);
+}
+
+int PresetProperties::getMidiSetup ()
+{
+    return getValue<int> (MidiSetpPropertyId);
 }
 
 juce::String PresetProperties::getName ()
@@ -196,6 +206,11 @@ void PresetProperties::valueTreePropertyChanged (juce::ValueTree& vt, const juce
         {
             if (onData2AsCVChange != nullptr)
                 onData2AsCVChange (getData2AsCV ());
+        }
+        else if (property == MidiSetpPropertyId)
+        {
+            if (onMidiSetupChange != nullptr)
+                onMidiSetupChange (getMidiSetup ());
         }
         else if (property == NamePropertyId)
         {

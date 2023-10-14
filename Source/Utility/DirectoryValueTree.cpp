@@ -436,7 +436,7 @@ void DirectoryValueTree::sortContentsOfFolder (juce::ValueTree rootFolderVT, std
     jassert (FolderProperties::isFolderVT (rootFolderVT));
 
     // Folders
-    // System files (folderprefs, lastfolder, lastpreset)
+    // System files (folderprefs, lastfolder, lastpreset, midiX)
     // Preset files
     // Audio files
     // unknown files

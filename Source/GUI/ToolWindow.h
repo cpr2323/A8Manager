@@ -2,6 +2,7 @@
 
 #include <JuceHeader.h>
 #include "../AppProperties.h"
+#include "../Assimil8or/Audio/AudioPlayerProperties.h"
 #include "../Assimil8or/Validator/ValidatorProperties.h"
 
 class ToolWindow : public juce::Component
@@ -13,6 +14,10 @@ public:
 private:
     juce::Label progressUpdateLabel;
     ValidatorProperties validatorProperties;
+    AudioPlayerProperties audioPlayerProperties;
+
+    juce::TextButton settingsButton;
+    std::unique_ptr<juce::AlertWindow> settingsAlertWindow;
 
     void updateProgress (juce::String progressUpdate);
 

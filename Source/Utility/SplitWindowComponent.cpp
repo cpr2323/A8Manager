@@ -1,6 +1,6 @@
 #include "SplitWindowComponent.h"
 
-#define kSplitBorderWidth 5
+#define kSplitBarWidth 5
 
 //////////////////////////////////////////////////////////////////////////////////////
 class ResizerLookAndFeel : public juce::LookAndFeel_V2
@@ -36,19 +36,24 @@ class ResizerLookAndFeel : public juce::LookAndFeel_V2
 
 //////////////////////////////////////////////////////////////////////////////////////
 SplitWindowComponent::SplitWindowComponent ()
-    : resizerLookAndFeel (new ResizerLookAndFeel)
 {
 }
 
 SplitWindowComponent::~SplitWindowComponent ()
 {
-    resizerBar->setLookAndFeel (nullptr);
 }
 
 void SplitWindowComponent::setComponents (Component* theFirstComponent, Component* theSecondComponent)
 {
+    if (firstComponent != nullptr)
+        removeChildComponent (firstComponent);
+    if (secondComponent != nullptr)
+        removeChildComponent (secondComponent);
     firstComponent = theFirstComponent;
     secondComponent = theSecondComponent;
+
+    addAndMakeVisible (firstComponent);
+    addAndMakeVisible (secondComponent);
 
     setHorizontalSplit (horizontalSplit);
 }
@@ -58,55 +63,84 @@ bool SplitWindowComponent::getHorizontalSplit ()
     return horizontalSplit;
 }
 
-void SplitWindowComponent:: paint (juce::Graphics& g)
-{
-    g.fillAll (juce::Colours::lightslategrey);
-}
-
 void SplitWindowComponent::setHorizontalSplit (bool theHorizontalSplit)
 {
     horizontalSplit = theHorizontalSplit;
-
-    removeAllChildren ();
-    resizerBar = std::make_unique<juce::StretchableLayoutResizerBar> (&stretchableManager, 1, ! horizontalSplit);
-    resizerBar->setLookAndFeel (resizerLookAndFeel.get ());
-
-    addAndMakeVisible (firstComponent);
-    addAndMakeVisible (resizerBar.get ());
-    addAndMakeVisible (secondComponent);
-
-    stretchableManager.setItemLayout (0,
-                                       -0.001, -0.99,
-                                       -0.5);
-
-    stretchableManager.setItemLayout (1,          // for the resize bar
-                                       kSplitBorderWidth, kSplitBorderWidth, kSplitBorderWidth);   // hard limit to 'kSplitBorderWidth' pixels
-
-    stretchableManager.setItemLayout (2,
-                                       -0.001, -0.99,
-                                       -0.5);
     resized ();
 }
 
-void SplitWindowComponent::setLayout (int componentIndex, double size)
+void SplitWindowComponent::setSplitOffset (int newSplitOffset)
 {
-    if (componentIndex > 2)
-        return;
-
-    stretchableManager.setItemLayout (componentIndex, -0.001, -0.99, size);
+    splitOffset = newSplitOffset;
     resized ();
 }
+
+int SplitWindowComponent::getSplitOffset ()
+{
+    return splitOffset;
+}
+
+void SplitWindowComponent::paint (juce::Graphics& g)
+{
+    g.fillAll (juce::Colours::lightslategrey);
+    g.setColour (juce::Colours::darkgrey);
+    g.fillRect (resizeBarBounds);
+    if (mouseOver)
+    {
+        g.setColour (juce::Colours::white);
+        g.drawRect (resizeBarBounds);
+    }
+}
+
+void SplitWindowComponent::mouseMove (const juce::MouseEvent& me)
+{
+    if (resizeBarBounds.reduced(1).contains (me.getPosition ()))
+    {
+        if (mouseOver)
+            return;
+        //juce::Logger::outputDebugString ("SplitWindowComponent::mouseMove - mouseOver = true");
+        mouseOver = true;
+        repaint ();
+    }
+    else if (mouseOver)
+    {
+        //juce::Logger::outputDebugString ("SplitWindowComponent::mouseMove - mouseOver = false");
+        mouseOver = false;
+        repaint ();
+    }
+};
+
+void SplitWindowComponent::mouseDrag (const juce::MouseEvent& me)
+{
+    if (mouseOver)
+    {
+        auto mousePosition { me.getPosition () };
+        setSplitOffset (horizontalSplit ? mousePosition.getY () : mousePosition.getX ());
+        repaint ();
+        if (onLayoutChange != nullptr)
+            onLayoutChange ();
+    }
+};
 
 void SplitWindowComponent::resized ()
 {
-    const auto r { getLocalBounds ().reduced (4) };
-
-    // make a list of two of our child components that we want to reposition
-    Component* comps[] { firstComponent, resizerBar.get (), secondComponent };
-
-    // this will position the 3 components, one above, or next to, the other, to fit
-    // it into the rectangle provided.
-    stretchableManager.layOutComponents (comps, 3,
-                                         r.getX (), r.getY (), r.getWidth (), r.getHeight (),
-                                         horizontalSplit, true);
+    auto r { getLocalBounds ().reduced (4) };
+    if (horizontalSplit)
+    {
+        auto firstComponentBounds { r.removeFromTop (splitOffset - (kSplitBarWidth / 2)) };
+        if (firstComponent != nullptr)
+            firstComponent->setBounds (firstComponentBounds);
+        resizeBarBounds = r.removeFromTop (kSplitBarWidth);
+        if (secondComponent != nullptr)
+            secondComponent->setBounds (r);
+    }
+    else
+    {
+        auto firstComponentBounds { r.removeFromLeft (splitOffset - (kSplitBarWidth / 2)) };
+        if (firstComponent != nullptr)
+            firstComponent->setBounds (firstComponentBounds);
+        resizeBarBounds = r.removeFromLeft (kSplitBarWidth);
+        if (secondComponent != nullptr)
+            secondComponent->setBounds (r);
+    }
 }

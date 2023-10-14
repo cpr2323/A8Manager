@@ -19,6 +19,7 @@ const double oneGB { oneMB * oneK };
 const auto maxMemory { static_cast<int> (422 * oneMB) };
 const auto maxPresets { 199 };
 const auto bytesPerSampleInAssimMemory { 4 };
+const auto kValidFileSystemCharacters { juce::String (" !#$%&'()+,-.0123456789;=@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]_`{}~abcdefghijklmnopqrstuvwxyz")};
 
 juce::String getMemorySizeString (uint64_t memoryUsage)
 {
@@ -276,6 +277,13 @@ void Assimil8orValidator::validateFolder (juce::File folder, juce::ValueTree val
                                           juce::String (kMaxFolderNameLength) + "(max)]", false);
         validatorResultProperties.addFixerEntry (FixerEntryProperties::FixerTypeRenameFolder, folder.getFullPathName ());
     }
+    else if (const auto invalidCharacters { folder.getFileName ().removeCharacters (kValidFileSystemCharacters) }; invalidCharacters.isNotEmpty ())
+    {
+        LogValidation ("  [ Error : invalid characters in name ]");
+        validatorResultProperties.update (ValidatorResultProperties::ResultTypeError, "[invalid characters in name. '" + invalidCharacters + "']", false);
+        validatorResultProperties.addFixerEntry (FixerEntryProperties::FixerTypeRenameFile, folder.getFullPathName ());
+    }
+
 }
 std::tuple<uint64_t, std::optional<uint64_t>> Assimil8orValidator::validateFile (juce::File file, juce::ValueTree validatorResultsVT)
 {
@@ -305,6 +313,11 @@ std::tuple<uint64_t, std::optional<uint64_t>> Assimil8orValidator::validateFile 
     else if (FileTypeHelpers::isLastPresetFile (file))
     {
         validatorResultProperties.update (ValidatorResultProperties::ResultTypeInfo, "System, Last Preset", false);
+        return {};
+    }
+    else if (FileTypeHelpers::isMidiSetupFile (file))
+    {
+        validatorResultProperties.update (ValidatorResultProperties::ResultTypeInfo, "System, Midi Setup", false);
         return {};
     }
     else if (FileTypeHelpers::isPresetFile (file))
@@ -403,10 +416,17 @@ std::tuple<uint64_t, std::optional<uint64_t>> Assimil8orValidator::validateFile 
         validatorResultProperties.updateType (ValidatorResultProperties::ResultTypeInfo, false);
         if (file.getFileName ().length () > kMaxFileNameLength)
         {
-            LogValidation ("  [ Warning : file name too long ]");
+            LogValidation ("  [ Error : file name too long ]");
             validatorResultProperties.update (ValidatorResultProperties::ResultTypeError,
                 "[name too long. " + juce::String (file.getFileName ().length ()) + "(length) vs " +
                 juce::String (kMaxFileNameLength) + "(max)]", false);
+            validatorResultProperties.addFixerEntry (FixerEntryProperties::FixerTypeRenameFile, file.getFullPathName ());
+        }
+
+        if (const auto invalidCharacters { file.getFileName ().removeCharacters (kValidFileSystemCharacters) }; invalidCharacters.isNotEmpty ())
+        {
+            LogValidation ("  [ Error : invalid characters in name ]");
+            validatorResultProperties.update (ValidatorResultProperties::ResultTypeError, "[invalid characters in name. '" + invalidCharacters + "']", false);
             validatorResultProperties.addFixerEntry (FixerEntryProperties::FixerTypeRenameFile, file.getFullPathName ());
         }
 

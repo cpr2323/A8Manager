@@ -50,6 +50,7 @@ void Assimil8orPreset::write (juce::File presetFile, juce::ValueTree presetPrope
     addLine (true, Section::PresetId + " " + juce::String (presetPropertiesToWrite.getId ()) + " :");
     ++indentAmount;
     addLine (true, Parameter::Preset::NameId + " : " + presetPropertiesToWrite.getName ());
+    addLine (presetPropertiesToWrite.getMidiSetup () != defaultPresetProperties.getMidiSetup (), Parameter::Preset::MidiSetupId + " : " + juce::String (presetPropertiesToWrite.getMidiSetup ()));
     addLine (presetPropertiesToWrite.getData2AsCV () != defaultPresetProperties.getData2AsCV (), Parameter::Preset::Data2asCVId + " : " + presetPropertiesToWrite.getData2AsCV ());
     addLine (presetPropertiesToWrite.getXfadeACV () != defaultPresetProperties.getXfadeACV (), Parameter::Preset::XfadeACVId + " : " + presetPropertiesToWrite.getXfadeACV ());
     addLine (presetPropertiesToWrite.getXfadeAWidth () != defaultPresetProperties.getXfadeAWidth (), Parameter::Preset::XfadeAWidthId + " : " + juce::String (presetPropertiesToWrite.getXfadeAWidth (), 2));
@@ -285,6 +286,9 @@ void Assimil8orPreset::initParser ()
             // validate max length
             // validate characters
             presetProperties.setName (value, false);
+        }},
+        {Parameter::Preset::MidiSetupId, [this] () {
+            presetProperties.setMidiSetup (value.getIntValue (), false);
         }},
         {Parameter::Preset::Data2asCVId, [this] () {
             // validate 0/1

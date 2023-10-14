@@ -2,11 +2,23 @@
 
 <JUCERPROJECT id="wWHbxR" name="A8Manager" projectType="guiapp" useAppConfig="0"
               addUsingNamespaceToJuceHeader="0" displaySplashScreen="0" jucerFormatVersion="1"
-              companyName="OmOhmProductions" cppLanguageStandard="17" version="2.0"
+              companyName="OmOhmProductions" cppLanguageStandard="17" version="2.1"
               companyWebsite="www.omohmproductions.com">
   <MAINGROUP id="JDgvjc" name="A8Manager">
     <GROUP id="{26A00EED-F319-636E-6162-8A113C6EE925}" name="Source">
       <GROUP id="{B33B27D7-84B5-739E-6EF4-3DA0243B11AC}" name="Assimil8or">
+        <GROUP id="{83CA1B10-C350-95FD-802D-488AEB6104FA}" name="Audio">
+          <FILE id="U8EWD4" name="AudioPlayer.cpp" compile="1" resource="0" file="Source/Assimil8or/Audio/AudioPlayer.cpp"/>
+          <FILE id="JIblHe" name="AudioPlayer.h" compile="0" resource="0" file="Source/Assimil8or/Audio/AudioPlayer.h"/>
+          <FILE id="i2OwG7" name="AudioPlayerProperties.cpp" compile="1" resource="0"
+                file="Source/Assimil8or/Audio/AudioPlayerProperties.cpp"/>
+          <FILE id="YR962M" name="AudioPlayerProperties.h" compile="0" resource="0"
+                file="Source/Assimil8or/Audio/AudioPlayerProperties.h"/>
+          <FILE id="PvtHj9" name="AudioSettingsProperties.cpp" compile="1" resource="0"
+                file="Source/Assimil8or/Audio/AudioSettingsProperties.cpp"/>
+          <FILE id="MmgsqA" name="AudioSettingsProperties.h" compile="0" resource="0"
+                file="Source/Assimil8or/Audio/AudioSettingsProperties.h"/>
+        </GROUP>
         <GROUP id="{E4BF0D54-E9DB-96DD-63AF-39AFFF42EEB8}" name="Fixer">
           <FILE id="p6DDYe" name="FixerEntryProperties.cpp" compile="1" resource="0"
                 file="Source/Assimil8or/Fixer/FixerEntryProperties.cpp"/>
@@ -84,10 +96,6 @@
       <GROUP id="{CF0C93A7-2DC9-863C-8999-5F753D262369}" name="GUI">
         <GROUP id="{E38BD768-EC43-B8F0-AB46-78F18BDF75B0}" name="Assimil8or">
           <GROUP id="{A4F77B47-09C1-3696-74AC-1CB15C7BFE75}" name="Data">
-            <FILE id="I9O41r" name="377394491_642048678026747_8154906942119066216_n.png"
-                  compile="0" resource="1" file="Source/GUI/Assimil8or/Data/377394491_642048678026747_8154906942119066216_n.png"/>
-            <FILE id="cDLKk6" name="377406562_23959160547061655_5780406445368602361_n.png"
-                  compile="0" resource="1" file="Source/GUI/Assimil8or/Data/377406562_23959160547061655_5780406445368602361_n.png"/>
             <FILE id="FQ9PfM" name="377906243_984640136172516_2914152204379747274_n.png"
                   compile="0" resource="1" file="Source/GUI/Assimil8or/Data/377906243_984640136172516_2914152204379747274_n.png"/>
             <FILE id="M1fY5n" name="Assimil8orToolTips.xml" compile="0" resource="1"
@@ -142,6 +150,9 @@
               file="Source/GUI/CurrentFolderComponent.cpp"/>
         <FILE id="RdTALO" name="CurrentFolderComponent.h" compile="0" resource="0"
               file="Source/GUI/CurrentFolderComponent.h"/>
+        <FILE id="Ky1FeG" name="GuiProperties.cpp" compile="1" resource="0"
+              file="Source/GUI/GuiProperties.cpp"/>
+        <FILE id="BYrQvg" name="GuiProperties.h" compile="0" resource="0" file="Source/GUI/GuiProperties.h"/>
         <FILE id="Van35d" name="MainComponent.cpp" compile="1" resource="0"
               file="Source/GUI/MainComponent.cpp"/>
         <FILE id="aJmy63" name="MainComponent.h" compile="0" resource="0" file="Source/GUI/MainComponent.h"/>
@@ -208,11 +219,14 @@
     <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_audio_devices" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_audio_formats" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_processors" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_utils" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_core" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_events" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_gui_extra" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
   </MODULES>
   <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1"/>
   <EXPORTFORMATS>
@@ -230,9 +244,13 @@
         <MODULEPATH id="juce_events" path="../JUCE/modules"/>
         <MODULEPATH id="juce_graphics" path="../JUCE/modules"/>
         <MODULEPATH id="juce_gui_basics" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_utils" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_processors" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="../JUCE/modules"/>
       </MODULEPATHS>
     </VS2022>
-    <XCODE_MAC targetFolder="Builds/MacOSX" smallIcon="FQ9PfM" bigIcon="FQ9PfM">
+    <XCODE_MAC targetFolder="Builds/MacOSX" smallIcon="FQ9PfM" bigIcon="FQ9PfM"
+               xcodeValidArchs="arm64,arm64e,x86_64">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug"/>
         <CONFIGURATION isDebug="0" name="Release"/>
@@ -246,6 +264,9 @@
         <MODULEPATH id="juce_events" path="../../juce"/>
         <MODULEPATH id="juce_graphics" path="../../juce"/>
         <MODULEPATH id="juce_gui_basics" path="../../juce"/>
+        <MODULEPATH id="juce_audio_utils" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_processors" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="../JUCE/modules"/>
       </MODULEPATHS>
     </XCODE_MAC>
   </EXPORTFORMATS>

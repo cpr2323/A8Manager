@@ -13,6 +13,9 @@ namespace FileTypeHelpers
     const juce::String kPresetFileNamePrefix { "prst" };
     const auto kPresetFileNameLen { 7 };
     const auto kPresetFileNumberOffset { 4 };
+    const juce::String kMidiSetupFileNamePrefix { "midi" };
+    const auto kMidiSetupFileNameLen { 5 };
+    const auto kMidiSetupNumberOffset { 4 };
 
     const auto kMaxPresets { 199 };
     const auto kBadPresetNumber { 9999 };
@@ -26,4 +29,5 @@ namespace FileTypeHelpers
     bool isLastFolderFile (juce::File file);
     bool isLastPresetFile (juce::File file);
     bool isSystemFile (juce::File file);
+    bool isMidiSetupFile (juce::File file);
 };

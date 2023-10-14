@@ -18,6 +18,7 @@ public:
 
     void setId (int id, bool includeSelfCallback);
     void setData2AsCV (juce::String data2AsCv, bool includeSelfCallback);
+    void setMidiSetup (int id, bool includeSelfCallback);
     void setName (juce::String name, bool includeSelfCallback);
     void setXfadeACV (juce::String cvInput, bool includeSelfCallback);
     void setXfadeAWidth (double width, bool includeSelfCallback);
@@ -30,6 +31,7 @@ public:
 
     int getId ();
     juce::String getData2AsCV ();
+    int getMidiSetup ();
     juce::String getName ();
     juce::String getXfadeACV ();
     double getXfadeAWidth ();
@@ -42,6 +44,7 @@ public:
 
     std::function<void (int id)> onIdChange;
     std::function<void (juce::String data2AsCv)> onData2AsCVChange;
+    std::function<void (int midiSetupId)> onMidiSetupChange;
     std::function<void (juce::String name)> onNameChange;
     std::function<void (juce::String cvInput)> onXfadeACVChange;
     std::function<void (double width)> onXfadeAWidthChange;
@@ -58,6 +61,7 @@ public:
     static inline const juce::Identifier PresetTypeId { "Preset" };
     static inline const juce::Identifier IdPropertyId          { "_id" };
     static inline const juce::Identifier Data2asCVPropertyId   { "data2asCV" };
+    static inline const juce::Identifier MidiSetpPropertyId    { "midiSetup" };
     static inline const juce::Identifier NamePropertyId        { "name" };
     static inline const juce::Identifier XfadeACVPropertyId    { "xfadeACV" };
     static inline const juce::Identifier XfadeAWidthPropertyId { "xfadeAWidth" };

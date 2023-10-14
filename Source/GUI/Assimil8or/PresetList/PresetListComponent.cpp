@@ -189,7 +189,8 @@ void PresetListComponent::loadFirstPreset ()
 {
     LogPresetList ("PresetListComponent::loadFirstPreset");
     bool presetLoaded { false };
-    forEachPresetFile ([this, &presetLoaded] (juce::File presetFile, int presetIndex)
+    juce::File loadedPresetFile;
+    forEachPresetFile ([this, &presetLoaded, &loadedPresetFile] (juce::File presetFile, int presetIndex)
     {
         if (auto [presetNumber, thisPresetExists, presetName] = presetInfoList [presetIndex]; ! thisPresetExists)
             return true;
@@ -197,7 +198,7 @@ void PresetListComponent::loadFirstPreset ()
         presetListBox.selectRow (presetIndex, false, true);
         presetListBox.scrollToEnsureRowIsOnscreen (presetIndex);
         loadPreset (presetFile);
-        appProperties.addRecentlyUsedFile (presetFile.getFullPathName ());
+        loadedPresetFile = presetFile;
         presetLoaded = true;
         return false;
     });
@@ -207,7 +208,9 @@ void PresetListComponent::loadFirstPreset ()
         presetListBox.selectRow (0, false, true);
         presetListBox.scrollToEnsureRowIsOnscreen (0);
         loadDefault (0);
+        loadedPresetFile = getPresetFile (1);
     }
+    appProperties.addRecentlyUsedFile (loadedPresetFile.getFullPathName ());
 }
 
 void PresetListComponent::loadDefault (int row)
@@ -314,7 +317,7 @@ void PresetListComponent::pastePreset (int presetNumber)
         Assimil8orPreset assimil8orPreset;
         PresetProperties::copyTreeProperties (copyBufferPresetProperties.getValueTree (), assimil8orPreset.getPresetVT ());
         assimil8orPreset.write (getPresetFile (presetNumber));
-        auto [lastSelectedPresetNumber, thisPresetExists, presetName] = presetInfoList [lastSelectedPresetIndex];
+        auto [lastSelectedPresetNumber, thisPresetExists, presetName] { presetInfoList [lastSelectedPresetIndex] };
         if (presetNumber == lastSelectedPresetNumber)
         {
             PresetProperties::copyTreeProperties (copyBufferPresetProperties.getValueTree (), unEditedPresetProperties.getValueTree ());
@@ -322,7 +325,7 @@ void PresetListComponent::pastePreset (int presetNumber)
         }
     };
 
-    auto [thisPresetNumber, thisPresetExists, presetName] = presetInfoList [lastSelectedPresetIndex];
+    auto [thisPresetNumber, thisPresetExists, presetName] { presetInfoList [lastSelectedPresetIndex]};
     if (thisPresetExists)
     {
         juce::AlertWindow::showOkCancelBox (juce::AlertWindow::WarningIcon, "OVERWRITE PRESET", "Are you sure you want to overwrite '" + FileTypeHelpers::getPresetFileName (presetNumber) + "'", "YES", "NO", nullptr,
@@ -348,7 +351,7 @@ void PresetListComponent::deletePreset (int presetNumber)
                 return;
             presetFile.deleteFile ();
             // TODO handle delete error
-            auto [lastSelectedPresetNumber, thisPresetExists, presetName] = presetInfoList [lastSelectedPresetIndex];
+            auto [lastSelectedPresetNumber, thisPresetExists, presetName] { presetInfoList [lastSelectedPresetIndex] };
             if (presetNumber == lastSelectedPresetNumber)
                 PresetProperties::copyTreeProperties (ParameterPresetsSingleton::getInstance ()->getParameterPresetListProperties ().getParameterPreset (ParameterPresetListProperties::DefaultParameterPresetType),
                                                       unEditedPresetProperties.getValueTree ());
@@ -383,7 +386,7 @@ void PresetListComponent::listBoxItemClicked (int row, [[maybe_unused]] const ju
 
         auto completeSelection = [this, row] ()
         {
-            auto [presetNumber, thisPresetExists, presetName] = presetInfoList [row];
+            auto [presetNumber, thisPresetExists, presetName] { presetInfoList [row] };
             auto presetFile { getPresetFile (presetNumber) };
             if (thisPresetExists)
                 loadPreset (presetFile);

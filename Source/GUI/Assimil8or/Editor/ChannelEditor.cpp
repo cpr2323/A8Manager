@@ -4,6 +4,7 @@
 #include "../../../Assimil8or/Preset/PresetHelpers.h"
 #include "../../../Assimil8or/Preset/PresetProperties.h"
 #include "../../../Assimil8or/Preset/ParameterPresetsSingleton.h"
+#include "../../../Utility/PersistentRootProperties.h"
 #include "../../../Utility/RuntimeRootProperties.h"
 
 const auto kLargeLabelSize { 20.0f };
@@ -64,6 +65,10 @@ ChannelEditor::ChannelEditor ()
     }
     zoneTabs.setTabBarDepth (zoneTabs.getTabBarDepth () + 5);
     zoneTabs.setLookAndFeel (&zonesTabbedLookAndFeel);
+    zoneTabs.onSelectedTabChanged = [this] (int)
+    {
+        configAudioPlayer ();
+    };
     addAndMakeVisible (zoneTabs);
 
     attackFromCurrentComboBox.setLookAndFeel (&noArrowComboBoxLnF);
@@ -121,6 +126,12 @@ ChannelEditor::~ChannelEditor ()
     pMSourceComboBox.setLookAndFeel (nullptr);
     xfadeGroupComboBox.setLookAndFeel (nullptr);
     zonesRTComboBox.setLookAndFeel (nullptr);
+}
+
+void ChannelEditor::visibilityChanged ()
+{
+    if (isVisible ())
+        configAudioPlayer ();
 }
 
 void ChannelEditor::duplicateZone (int zoneIndex)
@@ -861,7 +872,10 @@ std::tuple<double, double> ChannelEditor::getVoltageBoundaries (int zoneIndex, i
 
 void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree rootPropertiesVT)
 {
+    PersistentRootProperties persistentRootProperties (rootPropertiesVT, PersistentRootProperties::WrapperType::client, PersistentRootProperties::EnableCallbacks::no);
     RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
+    appProperties.wrap (persistentRootProperties.getValueTree (), AppProperties::WrapperType::client, AppProperties::EnableCallbacks::no);
+    audioPlayerProperties.wrap (runtimeRootProperties.getValueTree (), AudioPlayerProperties::WrapperType::client, AudioPlayerProperties::EnableCallbacks::no);
 
     channelProperties.wrap (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::yes);
     setupChannelPropertiesCallbacks ();
@@ -869,8 +883,9 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
     channelProperties.forEachZone ([this, &zoneEditorIndex, rootPropertiesVT] (juce::ValueTree zonePropertiesVT)
     {
         // Zone Editor setup
-        zoneEditors [zoneEditorIndex].init (zonePropertiesVT, rootPropertiesVT);
-        zoneEditors [zoneEditorIndex].displayToolsMenu = [this] (int zoneIndex)
+        auto& zoneEditor { zoneEditors [zoneEditorIndex] };
+        zoneEditor.init (zonePropertiesVT, rootPropertiesVT);
+        zoneEditor.displayToolsMenu = [this] (int zoneIndex)
         {
             juce::PopupMenu pmBalance;
             pmBalance.addItem ("5V", true, false, [this] () { balanceVoltages (VoltageBalanceType::distributeAcross5V); });
@@ -916,10 +931,17 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
                 ensureProperZoneIsSelected ();
                 updateAllZoneTabNames ();
             });
+            pm.addItem ("Clear All", getNumUsedZones () > 0, false, [this] ()
+            {
+                const auto numZones { getNumUsedZones () };
+                for (auto curZoneIndex { 0 }; curZoneIndex < numZones; ++curZoneIndex)
+                    zoneProperties [curZoneIndex].copyFrom (defaultZoneProperties.getValueTree ());
+                ensureProperZoneIsSelected ();
+                updateAllZoneTabNames ();
+            });
             pm.showMenuAsync ({}, [this] (int) {});
-
         };
-        zoneEditors [zoneEditorIndex].isMinVoltageInRange = [this, zoneEditorIndex] (double voltage)
+        zoneEditor.isMinVoltageInRange = [this, zoneEditorIndex] (double voltage)
         {
             const auto numUsedZones { getNumUsedZones () };
             if (zoneEditorIndex + 1 == numUsedZones)
@@ -936,38 +958,68 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
                 return voltage > bottomBoundary && voltage < topBoundary;
             }
         };
-        zoneEditors [zoneEditorIndex].clampMinVoltage = [this, zoneEditorIndex] (double voltage)
+        zoneEditor.clampMinVoltage = [this, zoneEditorIndex] (double voltage)
         {
             auto [topBoundary, bottomBoundary] { getVoltageBoundaries (zoneEditorIndex, 0) };
             return std::clamp (voltage, bottomBoundary + 0.01, topBoundary - 0.01);
         };
-        zoneEditors [zoneEditorIndex].onSampleChange = [this, zoneEditorIndex] (juce::String sampleFileName)
+        zoneEditor.onSampleChange = [this, zoneEditorIndex] (juce::String sampleFileName)
         {
-            if (sampleFileName.isEmpty ())
+            jassert (! sampleFileName.isEmpty ());
+            if (zoneEditorIndex > 0)
             {
+                // if this zone is empty when assigning the sample, we need to initialize the minVoltage value
+                // we also know this is the last zone in the list, as that is the only place one can insert a new sample
+                auto [topBoundary, bottomBoundary] { getVoltageBoundaries (zoneEditorIndex, 1) };
+                zoneProperties [zoneEditorIndex - 1].setMinVoltage (bottomBoundary + ((topBoundary - bottomBoundary) / 2), false);
             }
-            else if (zoneProperties [zoneEditorIndex].getSample ().isEmpty ())
-            {
-                if (zoneEditorIndex > 0)
-                {
-                    // if this zone is empty when assigning the sample, we need to initialize the minVoltage value
-                    // we also know this is the last zone in the list, as that is the only place one can insert a new sample
-                    auto [topBoundary, bottomBoundary] { getVoltageBoundaries (zoneEditorIndex, 1) };
-                    zoneProperties [zoneEditorIndex - 1].setMinVoltage (bottomBoundary + ((topBoundary - bottomBoundary) / 2), false);
-                }
+            if (zoneEditorIndex == getNumUsedZones() - 1)
                 zoneProperties [zoneEditorIndex].setMinVoltage (-5.0, false);
-            }
             ensureProperZoneIsSelected ();
             updateAllZoneTabNames ();
         };
+        zoneEditor.handleSamples = [this] (int zoneIndex, const juce::StringArray& files)
+        {
+            // TODO - should this have been checked prior to this call?
+            for (auto fileName : files)
+                if (! zoneEditors [zoneIndex].isSupportedAudioFile (fileName))
+                    return false;
+
+            for (auto filesIndex { 0 }; filesIndex < files.size () && zoneIndex + filesIndex < 8; ++filesIndex)
+            {
+                auto& zoneEditor { zoneEditors [zoneIndex + filesIndex] };
+                juce::File file (files [filesIndex]);
+                // if file not in preset folder, then copy
+                if (appProperties.getMostRecentFolder () != file.getParentDirectory ().getFullPathName ())
+                {
+                    // TODO handle case where file of same name already exists
+                    // TODO should copy be moved to a thread?
+                    file.copyFileTo (juce::File (appProperties.getMostRecentFolder ()).getChildFile (file.getFileName ()));
+                    // TODO handle failure
+                }
+                //juce::Logger::outputDebugString ("assigning '" + file.getFileName () + "' to Zone " + juce::String (zoneIndex + filesIndex));
+                // assign file to zone
+                zoneEditor.loadSample (file.getFileName ());
+            }
+
+#if JUCE_DEBUG
+            // verifying that all minVoltages are valid
+            for (auto curZoneIndex { 0 }; curZoneIndex < getNumUsedZones () - 1; ++curZoneIndex)
+                if (zoneProperties [curZoneIndex].getMinVoltage () <= zoneProperties [curZoneIndex + 1].getMinVoltage ())
+                    jassertfalse;
+#endif
+            return true;
+        };
+
         // Zone Properties setup
-        zoneProperties [zoneEditorIndex].wrap (zonePropertiesVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::yes);
-        zoneProperties [zoneEditorIndex].onSampleChange = [this, zoneEditorIndex] (juce::String sampleFile)
+        auto& curZoneProperties { zoneProperties [zoneEditorIndex] };
+        curZoneProperties.wrap (zonePropertiesVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::yes);
+        curZoneProperties.onSampleChange = [this, zoneEditorIndex] ([[maybe_unused]] juce::String sampleFile)
         {
             ensureProperZoneIsSelected ();
             updateAllZoneTabNames ();
         };
-        zoneProperties [zoneEditorIndex].onMinVoltageChange = [this, zoneEditorIndex] ([[maybe_unused]] double minVoltage)
+        curZoneProperties.onMinVoltageChange = [this, zoneEditorIndex] ([[maybe_unused]] double minVoltage)
         {
             updateAllZoneTabNames ();
         };
@@ -1018,6 +1070,8 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
 
     ensureProperZoneIsSelected ();
     updateAllZoneTabNames ();
+    if (isVisible ())
+        configAudioPlayer ();
 }
 
 void ChannelEditor::receiveSampleLoadRequest (juce::File sampleFile)
@@ -1075,6 +1129,11 @@ void ChannelEditor::setupChannelPropertiesCallbacks ()
 void ChannelEditor::checkStereoRightOverlay ()
 {
     stereoRightTransparantOverly.setVisible (channelProperties.getChannelMode () == ChannelProperties::ChannelMode::stereoRight);
+}
+
+void ChannelEditor::configAudioPlayer ()
+{
+    audioPlayerProperties.setPlayState (AudioPlayerProperties::PlayState::stop, false);
 }
 
 void ChannelEditor::paint ([[maybe_unused]] juce::Graphics& g)
@@ -1800,4 +1859,3 @@ void ChannelEditor::zonesRTUiChanged (int zonesRT)
 {
     channelProperties.setZonesRT (zonesRT, false);
 }
-

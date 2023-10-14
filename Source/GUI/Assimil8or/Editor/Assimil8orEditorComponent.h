@@ -4,6 +4,7 @@
 #include "ChannelEditor.h"
 #include "CvInputComboBox.h"
 #include "../../../AppProperties.h"
+#include "../../../Assimil8or/Audio/AudioPlayerProperties.h"
 #include "../../../Assimil8or/Preset/PresetProperties.h"
 #include "../../../Utility/RuntimeRootProperties.h"
 
@@ -40,6 +41,7 @@ private:
     ChannelProperties defaultChannelProperties;
     ChannelProperties copyBufferChannelProperties;
     bool copyBufferActive { false };
+    AudioPlayerProperties audioPlayerProperties;
 
     juce::Label titleLabel;
     juce::TextButton saveButton;
@@ -50,6 +52,8 @@ private:
 
     // Preset Parameters
     juce::TextEditor nameEditor;
+    juce::Label midiSetupLabel;
+    juce::ComboBox midiSetupComboBox;
     juce::Label data2AsCvLabel;
     CvInputGlobalComboBox data2AsCvComboBox;
     juce::Label xfadeGroupsLabel;
@@ -83,6 +87,8 @@ private:
 
     // Preset callbacks
     void idDataChanged (int id); // tracks when a new preset has been loaded
+    void midiSetupDataChanged (int midiSetupId);
+    void midiSetupUiChanged (int midiSetupId);
     void nameDataChanged (juce::String name);
     void nameUiChanged (juce::String name);
     void data2AsCvDataChanged (juce::String data2AsCvString);

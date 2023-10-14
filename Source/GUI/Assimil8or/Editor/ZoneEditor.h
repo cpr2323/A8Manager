@@ -1,11 +1,11 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "../../../Assimil8or/Audio/AudioPlayerProperties.h"
 #include "../../../Assimil8or/Preset/ZoneProperties.h"
 #include "../../../AppProperties.h"
 
-class FileSelectLabel : public juce::Label,
-                        public juce::FileDragAndDropTarget
+class FileSelectLabel : public juce::Label
 {
 public:
     FileSelectLabel ()
@@ -17,40 +17,8 @@ public:
     {
         removeMouseListener (&mouseEavesDropper);
     }
-    std::function<bool (const juce::StringArray& files)> onCheckInterest;
     std::function<void (const juce::StringArray& files)> onFilesSelected;
-    std::function<void (const juce::StringArray& files)> onDragEnter;
-    std::function<void (const juce::StringArray& files)> onDragMove;
-    std::function<void (const juce::StringArray& files)> onDragExit;
 
-    bool isInterestedInFileDrag (const juce::StringArray& files) override
-    {
-        if (onCheckInterest != nullptr)
-            return onCheckInterest (files);
-        return false;
-    }
-    void filesDropped (const juce::StringArray& files, int, int) override
-    {
-        if (onFilesSelected!= nullptr)
-            onFilesSelected (files);
-    }
-    void fileDragEnter (const juce::StringArray& files, int, int) override
-    {
-        if (onDragEnter!= nullptr)
-            onDragEnter (files);
-
-    }
-    void fileDragMove (const juce::StringArray& files, int, int) override
-    {
-        if (onDragMove!= nullptr)
-            onDragMove (files);
-
-    }
-    void fileDragExit (const juce::StringArray& files) override
-    {
-        if (onDragExit!= nullptr)
-            onDragExit (files);
-    }
     void setOutline (juce::Colour colour)
     {
         outlineColor = colour;
@@ -75,10 +43,19 @@ private:
     void browseForSample ()
     {
         fileChooser.reset (new juce::FileChooser ("Please select the Assimil8or Preset file you want to load...", {}, "*.wav"));
-        fileChooser->launchAsync (juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles, [this] (const juce::FileChooser& fc) mutable
+        fileChooser->launchAsync (juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles | juce::FileBrowserComponent::canSelectMultipleItems, [this] (const juce::FileChooser& fc) mutable
         {
             if (fc.getURLResults ().size () > 0 && fc.getURLResults () [0].isLocalFile () && onFilesSelected != nullptr)
             {
+                for (auto urlResult : fc.getURLResults ())
+                {
+                    if (! urlResult.isLocalFile ())
+                        return;
+                    juce::File fileToLoad (urlResult.getLocalFile ().getFullPathName ());
+                    if (fileToLoad.isDirectory ())
+                        return;
+                }
+
                 juce::StringArray files;
                 for (auto urlResult : fc.getURLResults ())
                     files.add (urlResult.getLocalFile ().getFullPathName ());
@@ -95,7 +72,8 @@ private:
     }
 };
 
-class ZoneEditor : public juce::Component
+class ZoneEditor : public juce::Component,
+                   public juce::FileDragAndDropTarget
 {
 public:
     ZoneEditor ();
@@ -104,21 +82,39 @@ public:
     void init (juce::ValueTree zonePropertiesVT, juce::ValueTree rootPropertiesVT);
     void setLoopLengthIsEnd (bool loopLengthIsEnd);
     void receiveSampleLoadRequest (juce::File sampleFile);
+    bool isSupportedAudioFile (juce::File file);
+    void loadSample (juce::String sampleFileName);
 
     std::function<void (juce::String)> onSampleChange;
     std::function<bool (double)> isMinVoltageInRange;
     std::function<double (double)> clampMinVoltage;
     std::function<void (int zoneIndex)> displayToolsMenu;
+    std::function<bool (int zoneIndex, const juce::StringArray& files)> handleSamples;
 
 private:
     AppProperties appProperties;
+    AudioPlayerProperties audioPlayerProperties;
     ZoneProperties zoneProperties;
     ZoneProperties minZoneProperties;
     ZoneProperties maxZoneProperties;
     juce::AudioFormatManager audioFormatManager;
+
     bool loopLengthIsEnd { false };
     int64_t sampleLength { 0 };
+
+    bool draggingFiles { false };
+    int dropIndex { 0 };
+
+    juce::Label sourceLabel;
+    juce::TextButton sourceSamplePointsButton;
+    juce::TextButton sourceLoopPointsButton;
+    juce::Label playModeLabel;
+    juce::TextButton oneShotPlayButton;
+    juce::TextButton loopPlayButton;
     juce::TextButton toolsButton;
+    juce::Rectangle<int> samplePointsBackground;
+    juce::Rectangle<int> loopPointsBackground;
+    juce::Rectangle<int>* activePointBackground { &samplePointsBackground };
 
     juce::Label levelOffsetLabel;
     juce::TextEditor levelOffsetTextEditor; // double
@@ -138,9 +134,7 @@ private:
     juce::TextEditor sampleStartTextEditor; // int
 
     juce::String formatLoopLength (double loopLength);
-    bool handleSelectedFile (juce::File fileNameAndPath);
-    bool isSupportedAudioFile (juce::File file);
-    void loadSample (juce::String sampleFileName);
+    bool handleSamplesInternal (int zoneIndex, juce::StringArray files);
     void setupZoneComponents ();
     void setupZonePropertiesCallbacks ();
     double snapLoopLength (double rawValue);
@@ -163,7 +157,15 @@ private:
     void sampleStartUiChanged (int64_t sampleStart);
     void sampleEndDataChanged (std::optional <int64_t> sampleEnd);
     void sampleEndUiChanged (int64_t sampleEnd);
+    void setDropIndex (const juce::StringArray& files, int x, int y);
+
+    bool isInterestedInFileDrag (const juce::StringArray& files) override;
+    void filesDropped (const juce::StringArray& files, int, int) override;
+    void fileDragEnter (const juce::StringArray& files, int, int) override;
+    void fileDragMove (const juce::StringArray& files, int, int) override;
+    void fileDragExit (const juce::StringArray& files) override;
 
     void paint (juce::Graphics& g) override;
+    void paintOverChildren (juce::Graphics& g) override;
     void resized () override;
 };

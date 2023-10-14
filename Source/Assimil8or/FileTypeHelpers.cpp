@@ -16,7 +16,7 @@ namespace FileTypeHelpers
 
     juce::String getPresetFileName (int presetIndex)
     {
-        jassert (presetIndex < kMaxPresets);
+        jassert (presetIndex > 0 && presetIndex <= kMaxPresets);
         const auto rawPresetIndexString { juce::String (presetIndex) };
         const auto presetIndexString { juce::String ("000").substring (0, 3 - rawPresetIndexString.length ()) + rawPresetIndexString };
         return kPresetFileNamePrefix + presetIndexString;
@@ -50,7 +50,7 @@ namespace FileTypeHelpers
 
     bool isSystemFile (juce::File file)
     {
-        return isFolderPrefsFile (file) || isLastFolderFile (file) || isLastPresetFile (file);
+        return isFolderPrefsFile (file) || isLastFolderFile (file) || isLastPresetFile (file) || isMidiSetupFile (file);
     }
 
     bool isPresetFile (juce::File file)
@@ -59,5 +59,13 @@ namespace FileTypeHelpers
                file.getFileNameWithoutExtension ().length () == kPresetFileNameLen &&
                file.getFileNameWithoutExtension ().toLowerCase ().startsWith (kPresetFileNamePrefix) &&
                file.getFileNameWithoutExtension ().substring (kPresetFileNumberOffset).containsOnly ("0123456789");
+    }
+
+    bool isMidiSetupFile (juce::File file)
+    {
+        return file.getFileExtension ().toLowerCase () == kYmlFileExtension &&
+               file.getFileNameWithoutExtension ().length () == kMidiSetupFileNameLen &&
+               file.getFileNameWithoutExtension ().toLowerCase ().startsWith (kMidiSetupFileNamePrefix) &&
+               file.getFileNameWithoutExtension ().substring (kMidiSetupNumberOffset, kMidiSetupNumberOffset + 1).containsOnly ("123456789");
     }
 };

@@ -28,7 +28,10 @@ const auto toolWindowHeight { 30 };
 
 MainComponent::MainComponent (juce::ValueTree rootPropertiesVT)
 {
-    setSize (1085, 585);
+    setSize (1117, 585);
+
+    PersistentRootProperties persistentRootProperties (rootPropertiesVT, PersistentRootProperties::WrapperType::client, PersistentRootProperties::EnableCallbacks::no);
+    guiProperties.wrap (persistentRootProperties.getValueTree (), GuiProperties::WrapperType::client, GuiProperties::EnableCallbacks::no);
 
     fileViewComponent.overwritePresetOrCancel = [this] (std::function<void ()> overwriteFunction, std::function<void ()> cancelFunction)
     {
@@ -48,21 +51,40 @@ MainComponent::MainComponent (juce::ValueTree rootPropertiesVT)
 
     presetListEditorSplitter.setComponents (&presetListComponent, &assimil8orEditorComponent);
     presetListEditorSplitter.setHorizontalSplit (false);
-    presetListEditorSplitter.setLayout (0, -0.06);
 
     folderBrowserEditorSplitter.setComponents (&fileViewComponent, &presetListEditorSplitter);
     folderBrowserEditorSplitter.setHorizontalSplit (false);
-    folderBrowserEditorSplitter.setLayout (0, -0.10);
 
     topAndBottomSplitter.setComponents (&folderBrowserEditorSplitter, &assimil8orValidatorComponent);
     topAndBottomSplitter.setHorizontalSplit (true);
-    topAndBottomSplitter.setLayout (2, -0.032);
+
+    presetListEditorSplitter.onLayoutChange = [this] () { saveLayoutChanges (); };
+    folderBrowserEditorSplitter.onLayoutChange = [this] () { saveLayoutChanges (); };
+    topAndBottomSplitter.onLayoutChange = [this] () { saveLayoutChanges (); };
+
+    restoreLayout ();
 
     addAndMakeVisible (currentFolderComponent);
     addAndMakeVisible (topAndBottomSplitter);
     addAndMakeVisible (toolWindow);
 
     fileViewComponent.onAudioFileSelected = [this] (juce::File audioFile) { assimil8orEditorComponent.receiveSampleLoadRequest (audioFile); };
+}
+
+void MainComponent::restoreLayout ()
+{
+    const auto [pane1Size, pane2Size, pane3Size] {guiProperties.getPaneSizes ()};
+    presetListEditorSplitter.setSplitOffset (pane1Size);
+    folderBrowserEditorSplitter.setSplitOffset (pane2Size);
+    topAndBottomSplitter.setSplitOffset (pane3Size);
+}
+
+void MainComponent::saveLayoutChanges ()
+{
+    const auto splitter1Size { presetListEditorSplitter.getSplitOffset () };
+    const auto splitter2Size { folderBrowserEditorSplitter.getSplitOffset () };
+    const auto splitter3Size { topAndBottomSplitter.getSplitOffset () };
+    guiProperties.setPaneSizes (splitter1Size, splitter2Size, splitter3Size, false);
 }
 
 void MainComponent::paint ([[maybe_unused]] juce::Graphics& g)

@@ -6,7 +6,7 @@
 class AppProperties : public ValueTreeWrapper<AppProperties>
 {
 public:
-    AppProperties () noexcept : ValueTreeWrapper<AppProperties> (AppPropertiesId) {}
+    AppProperties () noexcept : ValueTreeWrapper<AppProperties> (AppTypeId) {}
 
     void setMostRecentFolder (juce::String folderName);
     juce::String getMostRecentFolder ();
@@ -17,9 +17,9 @@ public:
     int getMaxMruEntries ();
 
     std::function<void (juce::String folderName)> onMostRecentFolderChange;
-//    std::function<void (juce::String fileName)> onMostRecentFileChange;
+    std::function<void (juce::String fileName)> onMostRecentFileChange;
 
-    static inline const juce::Identifier AppPropertiesId { "App" };
+    static inline const juce::Identifier AppTypeId { "App" };
 
     static inline const juce::Identifier FileTypeId { "Files" };
     static inline const juce::Identifier MostRecentFolderPropertyId { "mostRecentFolder" };
@@ -34,10 +34,9 @@ public:
     void processValueTree ();
 
 private:
-//    juce::ValueTree mruListChildVT { juce::ValueTree (MRUListTypeId) };
-
     juce::ValueTree getMRUListChildVT ();
     int getNumMRUEntries ();
 
     void valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property) override;
+    void valueTreeChildAdded (juce::ValueTree&, juce::ValueTree&) override;
 };

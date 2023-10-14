@@ -2,6 +2,7 @@
 
 #include <JuceHeader.h>
 #include "CurrentFolderComponent.h"
+#include "GuiProperties.h"
 #include "ToolWindow.h"
 #include "Assimil8or/Editor/Assimil8orEditorComponent.h"
 #include "Assimil8or/FileView/FileViewComponent.h"
@@ -17,17 +18,21 @@ public:
     ~MainComponent () = default;
 
 private:
+    Assimil8orEditorComponent assimil8orEditorComponent;
+    Assimil8orValidatorComponent assimil8orValidatorComponent;
+    GuiProperties guiProperties;
     CurrentFolderComponent currentFolderComponent;
     FileViewComponent fileViewComponent;
     PresetListComponent presetListComponent;
-    Assimil8orEditorComponent assimil8orEditorComponent;
-    Assimil8orValidatorComponent assimil8orValidatorComponent;
     SplitWindowComponent topAndBottomSplitter;
     SplitWindowComponent presetListEditorSplitter;
     SplitWindowComponent folderBrowserEditorSplitter;
     ToolWindow toolWindow;
 
     juce::TooltipWindow tooltipWindow;
+
+    void restoreLayout ();
+    void saveLayoutChanges ();
 
     void resized () override;
     void paint (juce::Graphics& g) override;

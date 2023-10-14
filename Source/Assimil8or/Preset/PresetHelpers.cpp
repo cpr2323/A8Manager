@@ -52,6 +52,7 @@ namespace PresetHelpers
         PresetProperties presetPropertiesOne (presetOneVT, PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
         PresetProperties presetPropertiesTwo (presetTwoVT, PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
         return  presetPropertiesOne.getData2AsCV () == presetPropertiesTwo.getData2AsCV () &&
+                presetPropertiesOne.getMidiSetup () == presetPropertiesTwo.getMidiSetup () &&
                 presetPropertiesOne.getName () == presetPropertiesTwo.getName () &&
                 presetPropertiesOne.getXfadeACV () == presetPropertiesTwo.getXfadeACV () &&
                 presetPropertiesOne.getXfadeAWidth () == presetPropertiesTwo.getXfadeAWidth () &&
