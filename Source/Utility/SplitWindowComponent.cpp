@@ -98,13 +98,13 @@ void SplitWindowComponent::mouseMove (const juce::MouseEvent& me)
     {
         if (mouseOver)
             return;
-        juce::Logger::outputDebugString ("SplitWindowComponent::mouseMove - mouseOver = true");
+        //juce::Logger::outputDebugString ("SplitWindowComponent::mouseMove - mouseOver = true");
         mouseOver = true;
         repaint ();
     }
     else if (mouseOver)
     {
-        juce::Logger::outputDebugString ("SplitWindowComponent::mouseMove - mouseOver = false");
+        //juce::Logger::outputDebugString ("SplitWindowComponent::mouseMove - mouseOver = false");
         mouseOver = false;
         repaint ();
     }

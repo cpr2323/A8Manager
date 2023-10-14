@@ -22,7 +22,7 @@ void AudioPlayer::init (juce::ValueTree rootPropertiesVT)
     appProperties.wrap (persistentRootProperties.getValueTree (), AppProperties::WrapperType::owner, AppProperties::EnableCallbacks::yes);
 
     audioSettingsProperties.wrap (persistentRootProperties.getValueTree (), AudioSettingsProperties::WrapperType::owner, AudioSettingsProperties::EnableCallbacks::yes);
-    audioSettingsProperties.onDeviceNameChange = [this] (juce::String deviceName)
+    audioSettingsProperties.onConfigChange = [this] (juce::String config)
     {
         //configureAudioDevice (deviceName);
     };
@@ -60,7 +60,7 @@ void AudioPlayer::init (juce::ValueTree rootPropertiesVT)
         LogAudioPlayer ("AudioPlayer - Loop Length: " + juce::String (sampleLength));
     };
     audioDeviceManager.addChangeListener (this);
-    configureAudioDevice (audioSettingsProperties.getDeviceName ());
+    configureAudioDevice (audioSettingsProperties.getConfig ());
 }
 
 void AudioPlayer::shutdownAudio ()
@@ -70,29 +70,23 @@ void AudioPlayer::shutdownAudio ()
     audioDeviceManager.closeAudioDevice ();
 }
 
-void AudioPlayer::configureAudioDevice (juce::String deviceName)
+void AudioPlayer::configureAudioDevice (juce::String config)
 {
     juce::String audioConfigError;
-    if (deviceName.isEmpty ())
+    if (config.isEmpty ())
     {
         audioConfigError = audioDeviceManager.initialise (0, 2, nullptr, true);
     }
     else
     {
-        juce::AudioDeviceManager::AudioDeviceSetup audioDeviceSetup;
-        audioDeviceSetup.outputDeviceName = deviceName;
-        audioConfigError = audioDeviceManager.initialise (0, 2, nullptr, true, {}, &audioDeviceSetup);
+        auto audioConfigXml { juce::XmlDocument::parse (config) };
+        audioConfigError = audioDeviceManager.initialise (0, 2, audioConfigXml.get (), true, {}, nullptr);
     }
 
     if (! audioConfigError.isEmpty ())
     {
         jassertfalse;
     }
-
-    // if the configuration device differs from the requested device, update AudioConfig
-    const auto setup = audioDeviceManager.getAudioDeviceSetup ();
-    if (setup.outputDeviceName != deviceName)
-        audioSettingsProperties.setDeviceName (setup.outputDeviceName, false);
 
     audioDeviceManager.addAudioCallback (&audioSourcePlayer);
     audioSourcePlayer.setSource (this);
@@ -159,8 +153,12 @@ void AudioPlayer::releaseResources ()
 void AudioPlayer::changeListenerCallback (juce::ChangeBroadcaster*)
 {
     LogAudioPlayer ("audio device settings changed");
-    auto currentAudioSetup { audioDeviceManager.getAudioDeviceSetup () };
-    audioSettingsProperties.setDeviceName (currentAudioSetup.outputDeviceName, false);
+    auto audioDeviceSettings { audioDeviceManager.createStateXml () };
+    if(audioDeviceSettings != nullptr)
+    {
+        auto xmlString { audioDeviceSettings->toString () };
+        audioSettingsProperties.setConfig (xmlString, false);
+    }
 }
 
 void AudioPlayer::getNextAudioBlock (const juce::AudioSourceChannelInfo& bufferToFill)

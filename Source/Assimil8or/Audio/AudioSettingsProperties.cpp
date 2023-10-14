@@ -2,27 +2,27 @@
 
 void AudioSettingsProperties::initValueTree ()
 {
-    setDeviceName ({}, false);
+    setConfig ({}, false);
 }
 
-void AudioSettingsProperties::setDeviceName (juce::String deviceName, bool includeSelfCallback)
+void AudioSettingsProperties::setConfig (juce::String config, bool includeSelfCallback)
 {
-    setValue (deviceName, DeviceNamePropertyId, includeSelfCallback);
+    setValue (config, AudioDeviceConfigPropertyId, includeSelfCallback);
 }
 
-juce::String AudioSettingsProperties::getDeviceName ()
+juce::String AudioSettingsProperties::getConfig ()
 {
-    return getValue<juce::String> (DeviceNamePropertyId);
+    return getValue<juce::String> (AudioDeviceConfigPropertyId);
 }
 
 void AudioSettingsProperties::valueTreePropertyChanged (juce::ValueTree& treeWhosePropertyHasChanged, const juce::Identifier& property)
 {
     if (treeWhosePropertyHasChanged == data)
     {
-        if (property == DeviceNamePropertyId)
+        if (property == AudioDeviceConfigPropertyId)
         {
-            if (onDeviceNameChange != nullptr)
-                onDeviceNameChange (getDeviceName ());
+            if (onConfigChange!= nullptr)
+                onConfigChange (getConfig ());
         }
     }
 }

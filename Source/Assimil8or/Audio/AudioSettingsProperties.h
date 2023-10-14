@@ -6,17 +6,17 @@
 class AudioSettingsProperties : public ValueTreeWrapper<AudioSettingsProperties>
 {
 public:
-    AudioSettingsProperties () noexcept : ValueTreeWrapper<AudioSettingsProperties> (AudioConfigTypeId) {}
+    AudioSettingsProperties () noexcept : ValueTreeWrapper<AudioSettingsProperties> (AudioSettingsTypeId) {}
     AudioSettingsProperties (juce::ValueTree vt, WrapperType wrapperType, EnableCallbacks shouldEnableCallbacks)
-        : ValueTreeWrapper<AudioSettingsProperties> (AudioConfigTypeId, vt, wrapperType, shouldEnableCallbacks) {}
+        : ValueTreeWrapper<AudioSettingsProperties> (AudioSettingsTypeId, vt, wrapperType, shouldEnableCallbacks) {}
 
-    void setDeviceName (juce::String deviceName, bool includeSelfCallback);
-    juce::String getDeviceName ();
+    void setConfig (juce::String config, bool includeSelfCallback);
+    juce::String getConfig ();
 
-    std::function<void (juce::String deviceName)> onDeviceNameChange;
+    std::function<void (juce::String config)> onConfigChange;
 
-    static inline const juce::Identifier AudioConfigTypeId { "AudioSettings" };
-    static inline const juce::Identifier DeviceNamePropertyId { "deviceName" };
+    static inline const juce::Identifier AudioSettingsTypeId { "AudioSettings" };
+    static inline const juce::Identifier AudioDeviceConfigPropertyId { "audioDeviceConfig" };
 
     void initValueTree ();
     void processValueTree () {}
