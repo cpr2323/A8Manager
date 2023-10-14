@@ -23,10 +23,10 @@ private:
     }
 };
 
-class TransparantOverly : public juce::Component
+class TransparantOverlay : public juce::Component
 {
 public:
-    TransparantOverly ()
+    TransparantOverlay ()
     {
         setInterceptsMouseClicks (false, false);
     }
@@ -281,7 +281,7 @@ private:
     CvInputChannelComboBox zonesCVComboBox; // 0A - 8C
     juce::Label zonesRTLabel;
     juce::ComboBox zonesRTComboBox; // 0 = Gate Rise, 1 = Continuous, 2 = Advance, 3 = Random
-    TransparantOverly stereoRightTransparantOverly;
+    TransparantOverlay stereoRightTransparantOverly;
 
     NoArrowComboBoxLnF noArrowComboBoxLnF;
     ZonesTabbedLookAndFeel zonesTabbedLookAndFeel;

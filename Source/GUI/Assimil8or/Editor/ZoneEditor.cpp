@@ -57,8 +57,8 @@ ZoneEditor::ZoneEditor ()
     {
         jassert (ifStoppedFunc != nullptr);
         jassert (background != nullptr);
-        sourceButton.setColour (juce::TextButton::ColourIds::buttonColourId, sourceSamplePointsButton.findColour (juce::TextButton::ColourIds::buttonColourId).brighter (0.3f));
-        sourceButton.setColour (juce::TextButton::ColourIds::textColourOffId, sourceSamplePointsButton.findColour (juce::TextButton::ColourIds::textColourOffId).darker (0.5f));
+        sourceButton.setColour (juce::TextButton::ColourIds::textColourOnId, juce::Colours::black);
+        sourceButton.setColour (juce::TextButton::ColourIds::buttonOnColourId, sourceSamplePointsButton.findColour (juce::TextButton::ColourIds::buttonColourId).brighter (0.3f));
         sourceButton.setToggleState (initilalState, juce::NotificationType::dontSendNotification);
         sourceButton.setButtonText (text);
         sourceButton.onClick = [this, ifStoppedFunc, background, &sourceButton] ()
