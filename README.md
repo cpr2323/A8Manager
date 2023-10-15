@@ -24,3 +24,8 @@ Since the application is not signed (I don't want to pay the $99/yr) you will ha
 # Linux
 
 There is no Linux version yet, but since we are using JUCE it should be _relative simple_.
+
+# Thanks
+
+Thanks to Jean Obuchowicz for the great icon!
+![](<Source/GUI/Assimil8or/Data/377906243_984640136172516_2914152204379747274_n.png>)
