@@ -27,6 +27,8 @@ There is no Linux version yet, but since we are using JUCE it should be _relativ
 
 # Thanks
 
+Thanks to Shawn Rakestraw for helping out with reverse engineering, some coding, documentation, testing, etc.
+
 Thanks to Jean Obuchowicz for the great icon!
 
 ![](<Source/GUI/Assimil8or/Data/377906243_984640136172516_2914152204379747274_n.png>)
