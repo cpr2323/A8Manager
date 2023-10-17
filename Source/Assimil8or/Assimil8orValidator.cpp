@@ -244,7 +244,7 @@ void Assimil8orValidator::processFolder (juce::ValueTree folderVT)
     auto totalSizeOfRamRequiredPresets = [&allPresetsSampleList] ()
     {
         uint64_t total { 0 };
-        for (const auto pair : allPresetsSampleList)
+        for (const auto& pair : allPresetsSampleList)
             total += pair.second;
         return total;
     } ();
@@ -414,7 +414,7 @@ std::tuple<uint64_t, std::optional<std::map<juce::String, uint64_t>>> Assimil8or
         auto sizeRequiredForSamples = [&sampleSizeList] ()
         {
             uint64_t total { 0 };
-            for (const auto pair : sampleSizeList)
+            for (const auto& pair : sampleSizeList)
                 total += pair.second;
             return total;
         }();
