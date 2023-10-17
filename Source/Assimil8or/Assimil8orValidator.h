@@ -48,7 +48,7 @@ private:
     void processFolder (juce::ValueTree folder);
     bool shouldCancelOperation ();
     void startValidation ();
-    std::tuple<uint64_t, std::optional<uint64_t>> validateFile (juce::File file, juce::ValueTree validatorResultsVT);
+    std::tuple<uint64_t, std::optional<std::map<juce::String, uint64_t>>> validateFile (juce::File file, juce::ValueTree validatorResultsVT);
     void validateFolder (juce::File folder, juce::ValueTree validatorResultsVT);
     void validateRootFolder ();
 

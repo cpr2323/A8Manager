@@ -204,9 +204,9 @@ void Assimil8orValidator::processFolder (juce::ValueTree folderVT)
     //      report if it does not match supported formats
     // report any other files as unused by assimil8or
     jassert (FolderProperties::isFolderVT (folderVT));
-    uint64_t totalSizeOfRamRequiredPresets {};
     uint64_t totalSizeOfRamRequiredAllAudioFiles {};
     int numberOfPresets {};
+    std::map<juce::String, uint64_t> allPresetsSampleList;
     for (auto childIndex { 0 }; childIndex < folderVT.getNumChildren (); ++childIndex)
     {
         auto folderEntryVT { folderVT.getChild (childIndex) };
@@ -235,14 +235,19 @@ void Assimil8orValidator::processFolder (juce::ValueTree folderVT)
             const auto [ramRequired, presetUpdate] { validateFile (curEntry, validatorResultProperties.getValueTree ()) };
             totalSizeOfRamRequiredAllAudioFiles += ramRequired;
             if (presetUpdate.has_value ())
-            {
-                totalSizeOfRamRequiredPresets += presetUpdate.value ();
                 ++numberOfPresets;
-            }
+            allPresetsSampleList.merge (presetUpdate.value_or (std::map<juce::String, uint64_t> ()));
             addResult (validatorResultProperties.getValueTree ());
         }
     }
     const auto folderName { juce::File (folderVT.getProperty ("name")).getFileName () };
+    auto totalSizeOfRamRequiredPresets = [&allPresetsSampleList] ()
+    {
+        uint64_t total { 0 };
+        for (const auto pair : allPresetsSampleList)
+            total += pair.second;
+        return total;
+    } ();
     addResult ("info", "Total RAM Usage for Presets in`" + folderName + "': " + getMemorySizeString (totalSizeOfRamRequiredPresets));
     addResult ("info", "Total RAM Usage for all audio files in `" + folderName + "': " + getMemorySizeString (totalSizeOfRamRequiredAllAudioFiles));
     if (totalSizeOfRamRequiredPresets > maxMemory)
@@ -285,13 +290,12 @@ void Assimil8orValidator::validateFolder (juce::File folder, juce::ValueTree val
     }
 
 }
-std::tuple<uint64_t, std::optional<uint64_t>> Assimil8orValidator::validateFile (juce::File file, juce::ValueTree validatorResultsVT)
+std::tuple<uint64_t, std::optional<std::map<juce::String, uint64_t>>> Assimil8orValidator::validateFile (juce::File file, juce::ValueTree validatorResultsVT)
 {
     const auto kMaxFileNameLength { 47 };
     ValidatorResultProperties validatorResultProperties (validatorResultsVT,
                                                          ValidatorResultProperties::WrapperType::client, ValidatorResultProperties::EnableCallbacks::no);
 
-    std::optional<uint64_t> optionalPresetInfo;
     LogValidation ("File: " + file.getFileName ());
     if (file.getFileName ().startsWithChar ('.'))
     {
@@ -323,14 +327,16 @@ std::tuple<uint64_t, std::optional<uint64_t>> Assimil8orValidator::validateFile 
     else if (FileTypeHelpers::isPresetFile (file))
     {
         bool isIgnored { false };
+        std::optional<std::map<juce::String, uint64_t>> optionalPresetInfo;
+        std::map<juce::String, uint64_t> sampleSizeList;
 
         validatorResultProperties.update (ValidatorResultProperties::ResultTypeInfo, "Preset", false);
 
         const auto presetNumber { FileTypeHelpers::getPresetNumberFromName (file) };
-        if (presetNumber > maxPresets)
+        if (presetNumber < 1 || presetNumber > maxPresets)
         {
             isIgnored = true;
-            validatorResultProperties.update (ValidatorResultProperties::ResultTypeError, "(Preset number (" + juce::String (presetNumber) + ") above max of 199. Preset will be ignored)", false);
+            validatorResultProperties.update (ValidatorResultProperties::ResultTypeError, "(Preset number (" + juce::String (presetNumber) + ") must be between 1 and 199. Preset will be ignored)", false);
             validatorResultProperties.addFixerEntry (FixerEntryProperties::FixerTypeRenameFile, file.getFullPathName ());
         }
 
@@ -358,16 +364,15 @@ std::tuple<uint64_t, std::optional<uint64_t>> Assimil8orValidator::validateFile 
                 return true;
             });
         }
-        uint64_t sizeRequiredForSamples {};
         PresetProperties presetProperties (assimil8orPreset.getPresetVT (), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
         if (presetProperties.isValid ())
         {
-            presetProperties.forEachChannel ([this, &file, &validatorResultProperties, &sizeRequiredForSamples] (juce::ValueTree channelVT)
+            presetProperties.forEachChannel ([this, &file, &validatorResultProperties, &sampleSizeList] (juce::ValueTree channelVT)
             {
                 if (shouldCancelOperation ())
                     return false;
                 ChannelProperties channelProperties (channelVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
-                channelProperties.forEachZone ([this, &file, &validatorResultProperties, &sizeRequiredForSamples] (juce::ValueTree zoneVT)
+                channelProperties.forEachZone ([this, &file, &validatorResultProperties, &sampleSizeList] (juce::ValueTree zoneVT)
                 {
                     if (shouldCancelOperation ())
                         return false;
@@ -388,7 +393,8 @@ std::tuple<uint64_t, std::optional<uint64_t>> Assimil8orValidator::validateFile 
                         // open as audio file, calculate memory requirements
                         if (std::unique_ptr<juce::AudioFormatReader> reader (audioFormatManager.createReaderFor (sampleFile)); reader != nullptr)
                         {
-                            sizeRequiredForSamples += reader->numChannels * reader->lengthInSamples * bytesPerSampleInAssimMemory;
+                            // stereo files are always fully loaded, even if only one channel is used
+                            sampleSizeList [sampleFileName] = reader->lengthInSamples * reader->numChannels * bytesPerSampleInAssimMemory;
                         }
                         else
                         {
@@ -405,9 +411,16 @@ std::tuple<uint64_t, std::optional<uint64_t>> Assimil8orValidator::validateFile 
         {
             validatorResultProperties.update ("error", "[missing Preset section]", false);
         }
+        auto sizeRequiredForSamples = [&sampleSizeList] ()
+        {
+            uint64_t total { 0 };
+            for (const auto pair : sampleSizeList)
+                total += pair.second;
+            return total;
+        }();
         validatorResultProperties.update (ValidatorResultProperties::ResultTypeInfo, "RAM: " + getMemorySizeString (sizeRequiredForSamples), false);
         if (! isIgnored)
-            optionalPresetInfo = sizeRequiredForSamples;
+            optionalPresetInfo = sampleSizeList;
         LogValidation ("  File (preset)");
         return { 0, optionalPresetInfo };
     }
