@@ -97,6 +97,7 @@ void Assimil8orValidatorComponent::setupFilterList ()
     if (errorFilterButton.getToggleState ())
         filterList.add (ValidatorResultProperties::ResultTypeError);
 }
+
 void Assimil8orValidatorComponent::updateHeader ()
 {
     validationResultsListBox.getHeader ().setColumnName (Columns::text, "Message (" + juce::String (validatorResultsQuickLookupList.size ()) + " of " +
@@ -273,6 +274,31 @@ void Assimil8orValidatorComponent::rename (juce::File file, int maxLength)
     renameDialog = options.launchAsync ();
 }
 
+void Assimil8orValidatorComponent::autoRename (juce::File fileToRename)
+{
+    // remove illegal characters
+    // check length
+    // remove vowels
+    // check length
+    // truncate and add integer
+    // check length
+}
+
+void Assimil8orValidatorComponent::autoRenameAll (int rowNumber)
+{
+    ValidatorResultProperties validatorResultProperties (validatorResultsQuickLookupList [rowNumber], ValidatorResultProperties::WrapperType::client, ValidatorResultProperties::EnableCallbacks::no);
+    validatorResultProperties.forEachFixerEntry ([this] (juce::ValueTree fixerEntryVT)
+    {
+        FixerEntryProperties fixerEntryProperties (fixerEntryVT, FixerEntryProperties::WrapperType::client, FixerEntryProperties::EnableCallbacks::no);
+        if (fixerEntryProperties.getType () == FixerEntryProperties::FixerTypeRenameFile || fixerEntryProperties.getType () == FixerEntryProperties::FixerTypeRenameFolder)
+        {
+            auto file { juce::File (fixerEntryProperties.getFileName ()) };
+            autoRename (file);
+        }
+        return true;
+    });
+}
+
 void Assimil8orValidatorComponent::convert (juce::File file)
 {
     auto errorDialog = [this] (juce::String message)
@@ -403,72 +429,108 @@ void Assimil8orValidatorComponent::cellClicked (int rowNumber, int columnId, con
     {
         ValidatorResultProperties validatorResultProperties (validatorResultsQuickLookupList [rowNumber],
                                                              ValidatorResultProperties::WrapperType::client, ValidatorResultProperties::EnableCallbacks::no);
-        if (validatorResultProperties.getNumFixerEntries () > 0)
+        
+        if (validatorResultProperties.getNumFixerEntries () == 1)
         {
-            if (validatorResultProperties.getNumFixerEntries () == 1)
-            {
-                juce::ValueTree fixerEntryVT;
-                validatorResultProperties.forEachFixerEntry ([this, &fixerEntryVT] (juce::ValueTree feVT)
-                {
-                    fixerEntryVT = feVT;
-                    return false; // exit after the first one (since there is only one)
-                });
-                FixerEntryProperties fixerEntryProperties (fixerEntryVT, FixerEntryProperties::WrapperType::client, FixerEntryProperties::EnableCallbacks::no);
+            // Handle one fix
 
-                // just do the fix
+            juce::ValueTree fixerEntryVT;
+            // TODO - add an indexed getter, since using a for loop to get the first item seems like overkill
+            validatorResultProperties.forEachFixerEntry ([this, &fixerEntryVT] (juce::ValueTree feVT)
+            {
+                fixerEntryVT = feVT;
+                return false; // exit after the first one (since that is the one we want)
+            });
+            FixerEntryProperties fixerEntryProperties (fixerEntryVT, FixerEntryProperties::WrapperType::client, FixerEntryProperties::EnableCallbacks::no);
+
+            // just do the fix
+            if (fixerEntryProperties.getType () == FixerEntryProperties::FixerTypeRenameFile)
+            {
+                rename (juce::File (fixerEntryProperties.getFileName ()), kMaxFileNameLength);
+            }
+            else if (fixerEntryProperties.getType () == FixerEntryProperties::FixerTypeRenameFolder)
+            {
+                rename (juce::File (fixerEntryProperties.getFileName ()), kMaxFolderNameLength);
+            }
+            else if (fixerEntryProperties.getType () == FixerEntryProperties::FixerTypeConvert)
+            {
+                convert (juce::File (fixerEntryProperties.getFileName ()));
+            }
+            else if (fixerEntryProperties.getType () == FixerEntryProperties::FixerTypeFileNotFound)
+            {
+                locate (juce::File (fixerEntryProperties.getFileName ()));
+            }
+            else
+            {
+                jassertfalse;
+            }
+        }
+        else if (validatorResultProperties.getNumFixerEntries () > 0)
+        {
+            // Handle multiple fixes
+
+            auto renameFilesCount { 0 };
+            auto renameFoldersCount { 0 };
+            auto convertCount { 0 };
+            auto findCount { 0 };
+          
+            validatorResultProperties.forEachFixerEntry ([this, &renameFilesCount, &renameFoldersCount, &convertCount, &findCount, kMaxFileNameLength, kMaxFolderNameLength] (juce::ValueTree fixerEntryVT)
+            {
+                FixerEntryProperties fixerEntryProperties (fixerEntryVT, FixerEntryProperties::WrapperType::client, FixerEntryProperties::EnableCallbacks::no);
                 if (fixerEntryProperties.getType () == FixerEntryProperties::FixerTypeRenameFile)
                 {
-                    rename (juce::File (fixerEntryProperties.getFileName ()), kMaxFileNameLength);
+                    ++renameFilesCount;
                 }
                 else if (fixerEntryProperties.getType () == FixerEntryProperties::FixerTypeRenameFolder)
                 {
-                    rename (juce::File (fixerEntryProperties.getFileName ()), kMaxFolderNameLength);
+                    ++renameFoldersCount;
                 }
                 else if (fixerEntryProperties.getType () == FixerEntryProperties::FixerTypeConvert)
                 {
-                    convert (juce::File (fixerEntryProperties.getFileName ()));
+                    ++convertCount;
                 }
-                else if (fixerEntryProperties.getType () == FixerEntryProperties::FixerTypeNotFound)
+                else if (fixerEntryProperties.getType () == FixerEntryProperties::FixerTypeFileNotFound)
                 {
-                    locate (juce::File (fixerEntryProperties.getFileName ()));
+                    ++findCount;
                 }
                 else
                 {
                     jassertfalse;
                 }
-            }
-            else
-            {
-                juce::PopupMenu pm;
-                validatorResultProperties.forEachFixerEntry ([this, &pm, kMaxFileNameLength, kMaxFolderNameLength] (juce::ValueTree fixerEntryVT)
-                {
-                    FixerEntryProperties fixerEntryProperties (fixerEntryVT, FixerEntryProperties::WrapperType::client, FixerEntryProperties::EnableCallbacks::no);
-                    auto file {juce::File (fixerEntryProperties.getFileName ())};
-                    if (fixerEntryProperties.getType () == FixerEntryProperties::FixerTypeRenameFile)
-                    {
-                        pm.addItem ("Rename " + file.getFileName (), true, false, [this, kMaxFileNameLength, file] () { rename (file, kMaxFileNameLength); });
-                    }
-                    else if (fixerEntryProperties.getType () == FixerEntryProperties::FixerTypeRenameFolder)
-                    {
-                        pm.addItem ("Rename " + file.getFileName (), true, false, [this, kMaxFolderNameLength, file] () { rename (file, kMaxFolderNameLength); });
-                    }
-                    else if (fixerEntryProperties.getType () == FixerEntryProperties::FixerTypeConvert)
-                    {
-                        pm.addItem ("Convert " + file.getFileName (), true, false, [this, file] () { convert (file); });
-                    }
-                    else if (fixerEntryProperties.getType () == FixerEntryProperties::FixerTypeNotFound)
-                    {
-                        pm.addItem ("Find " + file.getFileName (), true, false, [this, file] () { locate (file); });
-                    }
-                    else
-                    {
-                        jassertfalse;
-                    }
+                return true;
+            });
 
-                    return true;
-                });
-                pm.showMenuAsync ({}, [this] (int) {});
-            }
+            juce::PopupMenu pm;
+            validatorResultProperties.forEachFixerEntry ([this, &pm, kMaxFileNameLength, kMaxFolderNameLength] (juce::ValueTree fixerEntryVT)
+            {
+                FixerEntryProperties fixerEntryProperties (fixerEntryVT, FixerEntryProperties::WrapperType::client, FixerEntryProperties::EnableCallbacks::no);
+                auto file {juce::File (fixerEntryProperties.getFileName ())};
+                if (fixerEntryProperties.getType () == FixerEntryProperties::FixerTypeRenameFile)
+                {
+                    pm.addItem ("Rename " + file.getFileName (), true, false, [this, kMaxFileNameLength, file] () { rename (file, kMaxFileNameLength); });
+                }
+                else if (fixerEntryProperties.getType () == FixerEntryProperties::FixerTypeRenameFolder)
+                {
+                    pm.addItem ("Rename " + file.getFileName (), true, false, [this, kMaxFolderNameLength, file] () { rename (file, kMaxFolderNameLength); });
+                }
+                else if (fixerEntryProperties.getType () == FixerEntryProperties::FixerTypeConvert)
+                {
+                    pm.addItem ("Convert " + file.getFileName (), true, false, [this, file] () { convert (file); });
+                }
+                else if (fixerEntryProperties.getType () == FixerEntryProperties::FixerTypeFileNotFound)
+                {
+                    pm.addItem ("Find " + file.getFileName (), true, false, [this, file] () { locate (file); });
+                }
+                else
+                {
+                    jassertfalse;
+                }
+
+                return true;
+            });
+            if (renameFilesCount > 0 || renameFoldersCount > 0)
+                pm.addItem ("Auto Rename All", true, false, [this, rowNumber] () { autoRenameAll (rowNumber); });
+            pm.showMenuAsync ({}, [this] (int) {});
         }
     }
 }

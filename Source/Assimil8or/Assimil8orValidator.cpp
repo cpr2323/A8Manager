@@ -386,7 +386,7 @@ std::tuple<uint64_t, std::optional<std::map<juce::String, uint64_t>>> Assimil8or
                     {
                         // report error
                         validatorResultProperties.update (ValidatorResultProperties::ResultTypeError, "['" + sampleFileName + "' does not exist]", false);
-                        validatorResultProperties.addFixerEntry (FixerEntryProperties::FixerTypeNotFound, sampleFile.getFullPathName ());
+                        validatorResultProperties.addFixerEntry (FixerEntryProperties::FixerTypeFileNotFound, sampleFile.getFullPathName ());
                     }
                     else
                     {

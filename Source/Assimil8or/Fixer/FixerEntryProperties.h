@@ -23,7 +23,7 @@ public:
     static inline const juce::String FixerTypeRenameFile   { "renameFile" };
     static inline const juce::String FixerTypeRenameFolder { "renameFolder" };
     static inline const juce::String FixerTypeConvert      { "convert" };
-    static inline const juce::String FixerTypeNotFound     { "notFound" };
+    static inline const juce::String FixerTypeFileNotFound { "fileNotFound" };
 
     static inline const juce::Identifier FixerEntryTypeId { "FixerEntry" };
     static inline const juce::Identifier FixTypePropertyId     { "type" };
