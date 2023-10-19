@@ -8,6 +8,8 @@ Assimil8orValidatorComponent::Assimil8orValidatorComponent ()
 {
     setOpaque (true);
 
+    addAndMakeVisible (validatorToolWindow);
+
     validationResultsListBox.setClickingTogglesRowSelection (false);
     validationResultsListBox.setColour (juce::ListBox::outlineColourId, juce::Colours::grey);
     validationResultsListBox.setOutlineThickness (1);
@@ -17,34 +19,6 @@ Assimil8orValidatorComponent::Assimil8orValidatorComponent ()
     validationResultsListBox.getHeader ().setStretchToFitActive (true);
     addAndMakeVisible (validationResultsListBox);
 
-    auto setupFilterButton = [this] (juce::TextButton& button, juce::String text, juce::String tooltip)
-    {
-        button.setColour (juce::TextButton::ColourIds::buttonColourId, juce::Colours::grey);
-        button.setColour (juce::TextButton::ColourIds::buttonOnColourId, juce::Colours::green.darker (0.5f));
-        button.setClickingTogglesState (true);
-        button.setTooltip (tooltip);
-        button.setToggleable (true);
-        button.setButtonText (text);
-        button.setToggleState (true, juce::NotificationType::dontSendNotification);
-        button.onClick = [this] ()
-        {
-            setupFilterList ();
-            validatorResultsQuickLookupList.clear ();
-            buildQuickLookupList ();
-            validationResultsListBox.updateContent ();
-            updateHeader ();
-        };
-        addAndMakeVisible (button);
-    };
-    setupFilterButton (infoFilterButton, "I", "Toggles viewing of Info messages");
-    setupFilterButton (warningFilterButton, "W", "Toggles viewing of Warning messages");
-    setupFilterButton (errorFilterButton, "E", "Toggles viewing of Error messages");
-    testRenameAllButton.setButtonText ("Rename All");
-    testRenameAllButton.onClick = [this] ()
-        {
-            autoRenameAll ();
-        };
-    addAndMakeVisible (testRenameAllButton);
 
     audioFormatManager.registerBasicFormats ();
     setupFilterList ();
@@ -67,6 +41,20 @@ void Assimil8orValidatorComponent::init (juce::ValueTree rootPropertiesVT)
     RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
     directoryDataProperties.wrap (runtimeRootProperties.getValueTree (), DirectoryDataProperties::WrapperType::client, DirectoryDataProperties::EnableCallbacks::yes);
 
+    validatorComponentProperties.wrap (runtimeRootProperties.getValueTree (), ValidatorComponentProperties::WrapperType::owner, ValidatorComponentProperties::EnableCallbacks::yes);
+    validatorComponentProperties.onFilterInfoChange = [this] (bool shouldFilter)
+    {
+            setupFilterList ();
+    };
+    validatorComponentProperties.onFilterWarningChange = [this] (bool shouldFilter)
+    {
+        setupFilterList ();
+    };
+    validatorComponentProperties.onFilterErrorChange = [this] (bool shouldFilter)
+    {
+        setupFilterList ();
+    };
+
     validatorProperties.wrap (runtimeRootProperties.getValueTree (), ValidatorProperties::WrapperType::client, ValidatorProperties::EnableCallbacks::yes);
     validatorProperties.onScanStatusChanged = [this] (juce::String scanStatus)
     {
@@ -78,6 +66,7 @@ void Assimil8orValidatorComponent::init (juce::ValueTree rootPropertiesVT)
     };
     localCopyOfValidatorResultsList = validatorProperties.getValidatorResultListVT ().createCopy ();
     updateListFromScan ("idle");
+
 }
 
 void Assimil8orValidatorComponent::updateListFromScan (juce::String scanStatus)
@@ -166,7 +155,10 @@ juce::String Assimil8orValidatorComponent::getCellTooltip (int rowNumber, int co
 void Assimil8orValidatorComponent::resized ()
 {
     auto localBounds { getLocalBounds () };
+    validatorToolWindow.setBounds (localBounds.removeFromTop (25));
+
     validationResultsListBox.setBounds (localBounds);
+
     auto filterButtonBounds { getLocalBounds ().removeFromBottom (28).withTrimmedBottom (3).withTrimmedRight (3) };
     errorFilterButton.setBounds (filterButtonBounds.removeFromRight (filterButtonBounds.getHeight ()));
     filterButtonBounds.removeFromRight (5);
@@ -305,7 +297,6 @@ void Assimil8orValidatorComponent::autoRename (juce::File fileToRename, bool doR
         while (getNewFile (fileName).exists ())
         {
             const auto suffixString { juce::String (suffixValue) };
-            const auto plength { prefix.length () };
             const auto trimAmount { juce::jmax (0, prefix.length () + suffixString.length () - maxFileNameWithoutExtension) };
             fileName = prefix.substring (0, prefix.length () - trimAmount) + suffixString;
             ++suffixValue;

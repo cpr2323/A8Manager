@@ -1,6 +1,8 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "ValidatorComponentProperties.h"
+#include "ValidatorToolWindow.h"
 #include "../../../Assimil8or/Validator/ValidatorProperties.h"
 #include "../../../Assimil8or/Validator/ValidatorResultProperties.h"
 #include "../../../Utility/DirectoryDataProperties.h"
@@ -22,14 +24,13 @@ private:
         text
     };
     ValidatorProperties validatorProperties;
+    ValidatorComponentProperties validatorComponentProperties;
     DirectoryDataProperties directoryDataProperties;
 
+    ValidatorToolWindow validatorToolWindow;
     juce::TableListBox validationResultsListBox { {}, this };
     std::vector<juce::ValueTree> validatorResultsQuickLookupList;
     juce::StringArray filterList { ValidatorResultProperties::ResultTypeInfo };
-    juce::TextButton infoFilterButton;
-    juce::TextButton warningFilterButton;
-    juce::TextButton errorFilterButton;
     SafePointer<juce::DialogWindow> renameDialog;
     juce::AudioFormatManager audioFormatManager;
     std::unique_ptr<juce::FileChooser> fileChooser;
@@ -37,8 +38,6 @@ private:
     int totalInfoItems { 0 };
     int totalWarningItems { 0 };
     int totalErrorItems { 0 };
-
-    juce::TextButton testRenameAllButton;
 
     void autoRename (juce::File fileToRename, bool doRescan);
     void autoRenameAll ();

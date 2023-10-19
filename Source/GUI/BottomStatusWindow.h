@@ -5,10 +5,10 @@
 #include "../Assimil8or/Audio/AudioPlayerProperties.h"
 #include "../Assimil8or/Validator/ValidatorProperties.h"
 
-class ToolWindow : public juce::Component
+class BottomStatusWindow : public juce::Component
 {
 public:
-    ToolWindow ();
+    BottomStatusWindow ();
     void init (juce::ValueTree rootPropertiesVT);
 
 private:

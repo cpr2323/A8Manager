@@ -46,7 +46,7 @@ MainComponent::MainComponent (juce::ValueTree rootPropertiesVT)
     assimil8orValidatorComponent.init (rootPropertiesVT);
     fileViewComponent.init (rootPropertiesVT);
     presetListComponent.init (rootPropertiesVT);
-    toolWindow.init (rootPropertiesVT);
+    bottomStatusWindow.init (rootPropertiesVT);
     currentFolderComponent.init (rootPropertiesVT);
 
     presetListEditorSplitter.setComponents (&presetListComponent, &assimil8orEditorComponent);
@@ -66,7 +66,7 @@ MainComponent::MainComponent (juce::ValueTree rootPropertiesVT)
 
     addAndMakeVisible (currentFolderComponent);
     addAndMakeVisible (topAndBottomSplitter);
-    addAndMakeVisible (toolWindow);
+    addAndMakeVisible (bottomStatusWindow);
 
     fileViewComponent.onAudioFileSelected = [this] (juce::File audioFile) { assimil8orEditorComponent.receiveSampleLoadRequest (audioFile); };
 }
@@ -96,7 +96,7 @@ void MainComponent::resized ()
 {
     auto localBounds { getLocalBounds () };
     currentFolderComponent.setBounds (localBounds.removeFromTop (30));
-    toolWindow.setBounds (localBounds.removeFromBottom (toolWindowHeight));
+    bottomStatusWindow.setBounds (localBounds.removeFromBottom (toolWindowHeight));
     localBounds.reduce (3, 3);
     topAndBottomSplitter.setBounds (localBounds);
 }
