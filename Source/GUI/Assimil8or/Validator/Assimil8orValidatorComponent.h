@@ -38,8 +38,10 @@ private:
     int totalWarningItems { 0 };
     int totalErrorItems { 0 };
 
-    void autoRename (juce::File fileToRename);
-    void autoRenameAll (int rowNumber);
+    juce::TextButton testRenameAllButton;
+
+    void autoRename (juce::File fileToRename, bool doRescan);
+    void autoRenameAll ();
     void buildQuickLookupList ();
     void convert (juce::File file);
     void locate (juce::File file);

@@ -2,6 +2,7 @@
 #include "RenameDialogComponent.h"
 #include "../../../Assimil8or/Validator/ValidatorResultListProperties.h"
 #include "../../../Utility/RuntimeRootProperties.h"
+const auto kValidFileSystemCharacters { juce::String (" !#$%&'()+,-.0123456789;=@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]_`{}~abcdefghijklmnopqrstuvwxyz") };
 
 Assimil8orValidatorComponent::Assimil8orValidatorComponent ()
 {
@@ -38,6 +39,12 @@ Assimil8orValidatorComponent::Assimil8orValidatorComponent ()
     setupFilterButton (infoFilterButton, "I", "Toggles viewing of Info messages");
     setupFilterButton (warningFilterButton, "W", "Toggles viewing of Warning messages");
     setupFilterButton (errorFilterButton, "E", "Toggles viewing of Error messages");
+    testRenameAllButton.setButtonText ("Rename All");
+    testRenameAllButton.onClick = [this] ()
+        {
+            autoRenameAll ();
+        };
+    addAndMakeVisible (testRenameAllButton);
 
     audioFormatManager.registerBasicFormats ();
     setupFilterList ();
@@ -166,6 +173,7 @@ void Assimil8orValidatorComponent::resized ()
     warningFilterButton.setBounds (filterButtonBounds.removeFromRight (filterButtonBounds.getHeight ()));
     filterButtonBounds.removeFromRight (5);
     infoFilterButton.setBounds (filterButtonBounds.removeFromRight (filterButtonBounds.getHeight ()));
+    testRenameAllButton.setBounds (infoFilterButton.getX () - 60 - 5, infoFilterButton.getY (), 60, 25);
 }
 
 int Assimil8orValidatorComponent::getNumRows ()
@@ -274,29 +282,64 @@ void Assimil8orValidatorComponent::rename (juce::File file, int maxLength)
     renameDialog = options.launchAsync ();
 }
 
-void Assimil8orValidatorComponent::autoRename (juce::File fileToRename)
+void Assimil8orValidatorComponent::autoRename (juce::File fileToRename, bool doRescan)
 {
+    auto getNewFile = [&fileToRename] (juce::String newName)
+    {
+        return fileToRename.getParentDirectory ().getChildFile (newName).withFileExtension (fileToRename.getFileExtension ());
+    };
+    const auto kMaxFileNameLength { 47 };
+
     // remove illegal characters
-    // check length
-    // remove vowels
-    // check length
-    // truncate and add integer
-    // check length
+    auto fileName { fileToRename.getFileNameWithoutExtension ().retainCharacters (kValidFileSystemCharacters) };
+    auto extension { fileToRename.getFileExtension () };
+    
+    if (auto noVowelsFileName { fileToRename.getFileNameWithoutExtension ().retainCharacters (kValidFileSystemCharacters).removeCharacters ("AEIOUaeiou") }; noVowelsFileName.length () != 0)
+        fileName = noVowelsFileName;
+
+    const auto maxFileNameWithoutExtension { kMaxFileNameLength - 4 };
+    auto suffixValue { 1 };
+    if (fileName.length () > maxFileNameWithoutExtension || getNewFile (fileName).exists ())
+    {
+        auto prefix { fileName.substring (0, maxFileNameWithoutExtension) };
+        while (getNewFile (fileName).exists ())
+        {
+            const auto suffixString { juce::String (suffixValue) };
+            const auto plength { prefix.length () };
+            const auto trimAmount { juce::jmax (0, prefix.length () + suffixString.length () - maxFileNameWithoutExtension) };
+            fileName = prefix.substring (0, prefix.length () - trimAmount) + suffixString;
+            ++suffixValue;
+        }
+    }
+
+    if (fileToRename.moveFileTo (getNewFile(fileName)) != true)
+    {
+        // TODO report error
+    }
+
+    if (doRescan)
+        directoryDataProperties.triggerStartScan (false);
 }
 
-void Assimil8orValidatorComponent::autoRenameAll (int rowNumber)
+
+void Assimil8orValidatorComponent::autoRenameAll ()
 {
-    ValidatorResultProperties validatorResultProperties (validatorResultsQuickLookupList [rowNumber], ValidatorResultProperties::WrapperType::client, ValidatorResultProperties::EnableCallbacks::no);
-    validatorResultProperties.forEachFixerEntry ([this] (juce::ValueTree fixerEntryVT)
-    {
-        FixerEntryProperties fixerEntryProperties (fixerEntryVT, FixerEntryProperties::WrapperType::client, FixerEntryProperties::EnableCallbacks::no);
-        if (fixerEntryProperties.getType () == FixerEntryProperties::FixerTypeRenameFile || fixerEntryProperties.getType () == FixerEntryProperties::FixerTypeRenameFolder)
+    ValueTreeHelpers::forEachChildOfType (validatorResultsQuickLookupList [0].getParent (), ValidatorResultProperties::ValidatorResultTypeId, [this] (juce::ValueTree vrpVT)
         {
-            auto file { juce::File (fixerEntryProperties.getFileName ()) };
-            autoRename (file);
-        }
-        return true;
-    });
+            ValidatorResultProperties validatorResultProperties (vrpVT, ValidatorResultProperties::WrapperType::client, ValidatorResultProperties::EnableCallbacks::no);
+            validatorResultProperties.forEachFixerEntry ([this] (juce::ValueTree fixerEntryVT)
+            {
+                FixerEntryProperties fixerEntryProperties (fixerEntryVT, FixerEntryProperties::WrapperType::client, FixerEntryProperties::EnableCallbacks::no);
+                if (fixerEntryProperties.getType () == FixerEntryProperties::FixerTypeRenameFile || fixerEntryProperties.getType () == FixerEntryProperties::FixerTypeRenameFolder)
+                {
+                    auto file { juce::File (fixerEntryProperties.getFileName ()) };
+                    autoRename (file, false);
+                }
+                return true;
+            });
+            return true;
+        });
+    directoryDataProperties.triggerStartScan (false);
 }
 
 void Assimil8orValidatorComponent::convert (juce::File file)
@@ -446,7 +489,12 @@ void Assimil8orValidatorComponent::cellClicked (int rowNumber, int columnId, con
             // just do the fix
             if (fixerEntryProperties.getType () == FixerEntryProperties::FixerTypeRenameFile)
             {
-                rename (juce::File (fixerEntryProperties.getFileName ()), kMaxFileNameLength);
+                juce::PopupMenu pm;
+                auto file { juce::File(fixerEntryProperties.getFileName ()) }; 
+                pm.addItem (file.getParentDirectory ().getFileName () + file.getSeparatorString () + file.getFileName (), false, false, {});
+                pm.addItem ("Rename", true, false, [this, kMaxFileNameLength, file = fixerEntryProperties.getFileName ()] () { rename (file, kMaxFileNameLength); });
+                pm.addItem ("Auto Rename", true, false, [this, kMaxFileNameLength, file = fixerEntryProperties.getFileName ()] () { autoRename (juce::File (file), true); });
+                pm.showMenuAsync ({}, [this] (int) {});
             }
             else if (fixerEntryProperties.getType () == FixerEntryProperties::FixerTypeRenameFolder)
             {
@@ -529,7 +577,7 @@ void Assimil8orValidatorComponent::cellClicked (int rowNumber, int columnId, con
                 return true;
             });
             if (renameFilesCount > 0 || renameFoldersCount > 0)
-                pm.addItem ("Auto Rename All", true, false, [this, rowNumber] () { autoRenameAll (rowNumber); });
+                pm.addItem ("Auto Rename All", true, false, [this, rowNumber] () { autoRenameAll (); });
             pm.showMenuAsync ({}, [this] (int) {});
         }
     }
