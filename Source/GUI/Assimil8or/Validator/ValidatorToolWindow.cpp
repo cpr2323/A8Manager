@@ -35,6 +35,8 @@ void ValidatorToolWindow::init (juce::ValueTree rootPropertiesVT)
 {
     RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
     validatorComponentProperties.wrap (runtimeRootProperties.getValueTree (), ValidatorComponentProperties::WrapperType::client, ValidatorComponentProperties::EnableCallbacks::yes);
+    validatorComponentProperties.onEnableConvertAllChange = [this] (bool enabled) { convertAllButton.setEnabled (enabled); };
+    validatorComponentProperties.onEnableLocateAllChange = [this] (bool enabled) { locateAllButton.setEnabled (enabled); };
     validatorComponentProperties.onEnableRenameAllChange = [this] (bool enabled) { renameAllButton.setEnabled (enabled); };
 
     viewInfoButton.setToggleState (validatorComponentProperties.getViewInfo (), juce::NotificationType::dontSendNotification);

@@ -368,6 +368,31 @@ void Assimil8orValidatorComponent::autoRenameAll ()
     directoryDataProperties.triggerStartScan (false);
 }
 
+void Assimil8orValidatorComponent::autoConvertAll ()
+{
+    ValueTreeHelpers::forEachChildOfType (validatorResultsQuickLookupList [0].getParent (), ValidatorResultProperties::ValidatorResultTypeId, [this] (juce::ValueTree vrpVT)
+    {
+        ValidatorResultProperties validatorResultProperties (vrpVT, ValidatorResultProperties::WrapperType::client, ValidatorResultProperties::EnableCallbacks::no);
+        validatorResultProperties.forEachFixerEntry ([this] (juce::ValueTree fixerEntryVT)
+        {
+            FixerEntryProperties fixerEntryProperties (fixerEntryVT, FixerEntryProperties::WrapperType::client, FixerEntryProperties::EnableCallbacks::no);
+            if (fixerEntryProperties.getType () == FixerEntryProperties::FixerTypeConvert)
+            {
+                auto file { juce::File (fixerEntryProperties.getFileName ()) };
+                convert (file);
+            }
+            return true;
+        });
+        return true;
+    });
+    directoryDataProperties.triggerStartScan (false);
+}
+
+void Assimil8orValidatorComponent::autoLocateAll ()
+{
+    throw std::logic_error ("The method or operation is not implemented.");
+}
+
 void Assimil8orValidatorComponent::convert (juce::File file)
 {
     auto errorDialog = [this] (juce::String message)
@@ -572,14 +597,4 @@ void Assimil8orValidatorComponent::cellClicked (int rowNumber, int columnId, con
             });
         }
     }
-}
-
-void Assimil8orValidatorComponent::autoConvertAll ()
-{
-    throw std::logic_error ("The method or operation is not implemented.");
-}
-
-void Assimil8orValidatorComponent::autoLocateAll ()
-{
-    throw std::logic_error ("The method or operation is not implemented.");
 }
