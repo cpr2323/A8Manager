@@ -1,6 +1,7 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "ValidatorComponentProperties.h"
 
 class ValidatorToolWindow : public juce::Component
 {
@@ -9,10 +10,12 @@ public:
     void init (juce::ValueTree rootPropertiesVT);
 
 private:
+    ValidatorComponentProperties validatorComponentProperties;
+
     juce::TextButton renameAllButton;
-    juce::TextButton infoFilterButton;
-    juce::TextButton warningFilterButton;
-    juce::TextButton errorFilterButton;
+    juce::TextButton viewInfoButton;
+    juce::TextButton viewWarningButton;
+    juce::TextButton viewErrorButton;
 
     void paint (juce::Graphics& g) override;
     void resized () override;

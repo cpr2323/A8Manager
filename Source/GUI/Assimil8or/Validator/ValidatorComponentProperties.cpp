@@ -2,59 +2,70 @@
 
 void ValidatorComponentProperties::initValueTree ()
 {
-    setFilterInfo (false, false);
-    setFilterWarning (false, false);
-    setFilterError (false, false);
+    setViewInfo (true, false);
+    setViewWarning (true, false);
+    setViewError (true, false);
+    triggerRenameAll (false);
 }
 
-void ValidatorComponentProperties::setFilterInfo (bool shouldFilter, bool includeSelfCallback)
+void ValidatorComponentProperties::setViewInfo (bool shouldView, bool includeSelfCallback)
 {
-    setValue (shouldFilter, FilterInfoPropertyId, includeSelfCallback);
+    setValue (shouldView, ViewInfoPropertyId, includeSelfCallback);
 }
 
-void ValidatorComponentProperties::setFilterWarning (bool shouldFilter, bool includeSelfCallback)
+void ValidatorComponentProperties::setViewWarning (bool shouldView, bool includeSelfCallback)
 {
-    setValue (shouldFilter, FilterWarningPropertyId, includeSelfCallback);
+    setValue (shouldView, ViewWarningPropertyId, includeSelfCallback);
 }
 
-void ValidatorComponentProperties::setFilterError (bool shouldFilter, bool includeSelfCallback)
+void ValidatorComponentProperties::setViewError (bool shouldView, bool includeSelfCallback)
 {
-    setValue (shouldFilter, FilterErrorPropertyId, includeSelfCallback);
+    setValue (shouldView, ViewErrorPropertyId, includeSelfCallback);
 }
 
-bool ValidatorComponentProperties::getFilterInfo ()
+void ValidatorComponentProperties::triggerRenameAll (bool includeSelfCallback)
 {
-    return getValue<bool> (FilterInfoPropertyId);
+    toggleValue (RenameAllPropertyId, includeSelfCallback);
 }
 
-bool ValidatorComponentProperties::getFilterWarning ()
+bool ValidatorComponentProperties::getViewInfo ()
 {
-    return getValue<bool> (FilterWarningPropertyId);
+    return getValue<bool> (ViewInfoPropertyId);
 }
 
-bool ValidatorComponentProperties::getFilterError ()
+bool ValidatorComponentProperties::getViewWarning ()
 {
-    return getValue<bool> (FilterErrorPropertyId);
+    return getValue<bool> (ViewWarningPropertyId);
+}
+
+bool ValidatorComponentProperties::getViewError ()
+{
+    return getValue<bool> (ViewErrorPropertyId);
 }
 
 void ValidatorComponentProperties::valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property)
 {
     if (vt == data)
     {
-        if (property == FilterInfoPropertyId)
+        if (property == ViewInfoPropertyId)
         {
-            if (onFilterInfoChange != nullptr)
-                onFilterInfoChange (getFilterInfo ());
+            if (onViewInfoChange != nullptr)
+                onViewInfoChange (getViewInfo ());
         }
-        else if (property == FilterWarningPropertyId)
+        else if (property == ViewWarningPropertyId)
         {
-            if (onFilterWarningChange != nullptr)
-                onFilterWarningChange (getFilterWarning ());
+            if (onViewWarningChange != nullptr)
+                onViewWarningChange (getViewWarning ());
         }
-        else if (property == FilterErrorPropertyId)
+        else if (property == ViewErrorPropertyId)
         {
-            if (onFilterErrorChange != nullptr)
-                onFilterErrorChange (getFilterError ());
+            if (onViewErrorChange != nullptr)
+                onViewErrorChange (getViewError ());
+        }
+        else if (property == RenameAllPropertyId)
+        {
+            if (onRenameAllTrigger != nullptr)
+                onRenameAllTrigger ();
         }
     }
 }

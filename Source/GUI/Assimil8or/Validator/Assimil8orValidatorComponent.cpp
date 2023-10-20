@@ -2,6 +2,7 @@
 #include "RenameDialogComponent.h"
 #include "../../../Assimil8or/Validator/ValidatorResultListProperties.h"
 #include "../../../Utility/RuntimeRootProperties.h"
+
 const auto kValidFileSystemCharacters { juce::String (" !#$%&'()+,-.0123456789;=@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]_`{}~abcdefghijklmnopqrstuvwxyz") };
 
 Assimil8orValidatorComponent::Assimil8orValidatorComponent ()
@@ -19,9 +20,8 @@ Assimil8orValidatorComponent::Assimil8orValidatorComponent ()
     validationResultsListBox.getHeader ().setStretchToFitActive (true);
     addAndMakeVisible (validationResultsListBox);
 
-
     audioFormatManager.registerBasicFormats ();
-    setupFilterList ();
+    setupViewList ();
 }
 
 Assimil8orValidatorComponent::~Assimil8orValidatorComponent ()
@@ -42,17 +42,29 @@ void Assimil8orValidatorComponent::init (juce::ValueTree rootPropertiesVT)
     directoryDataProperties.wrap (runtimeRootProperties.getValueTree (), DirectoryDataProperties::WrapperType::client, DirectoryDataProperties::EnableCallbacks::yes);
 
     validatorComponentProperties.wrap (runtimeRootProperties.getValueTree (), ValidatorComponentProperties::WrapperType::owner, ValidatorComponentProperties::EnableCallbacks::yes);
-    validatorComponentProperties.onFilterInfoChange = [this] (bool shouldFilter)
+    auto updateFromViewChange = [this] ()
     {
-            setupFilterList ();
+        setupViewList ();
+        validatorResultsQuickLookupList.clear ();
+        buildQuickLookupList ();
+        validationResultsListBox.updateContent ();
+        updateHeader ();
     };
-    validatorComponentProperties.onFilterWarningChange = [this] (bool shouldFilter)
+    validatorComponentProperties.onViewInfoChange = [this, updateFromViewChange] (bool)
     {
-        setupFilterList ();
+        updateFromViewChange ();
     };
-    validatorComponentProperties.onFilterErrorChange = [this] (bool shouldFilter)
+    validatorComponentProperties.onViewWarningChange = [this, updateFromViewChange] (bool)
     {
-        setupFilterList ();
+        updateFromViewChange ();
+    };
+    validatorComponentProperties.onViewErrorChange = [this, updateFromViewChange] (bool)
+    {
+        updateFromViewChange ();
+    };
+    validatorComponentProperties.onRenameAllTrigger = [this] ()
+    {
+        autoRenameAll ();
     };
 
     validatorProperties.wrap (runtimeRootProperties.getValueTree (), ValidatorProperties::WrapperType::client, ValidatorProperties::EnableCallbacks::yes);
@@ -67,6 +79,7 @@ void Assimil8orValidatorComponent::init (juce::ValueTree rootPropertiesVT)
     localCopyOfValidatorResultsList = validatorProperties.getValidatorResultListVT ().createCopy ();
     updateListFromScan ("idle");
 
+    validatorToolWindow.init (rootPropertiesVT);
 }
 
 void Assimil8orValidatorComponent::updateListFromScan (juce::String scanStatus)
@@ -83,15 +96,15 @@ void Assimil8orValidatorComponent::updateListFromScan (juce::String scanStatus)
     setSize (getWidth (), getHeight () - 1);
 }
 
-void Assimil8orValidatorComponent::setupFilterList ()
+void Assimil8orValidatorComponent::setupViewList ()
 {
-    filterList.clearQuick ();
-    if (infoFilterButton.getToggleState ())
-        filterList.add (ValidatorResultProperties::ResultTypeInfo);
-    if (warningFilterButton.getToggleState ())
-        filterList.add (ValidatorResultProperties::ResultTypeWarning);
-    if (errorFilterButton.getToggleState ())
-        filterList.add (ValidatorResultProperties::ResultTypeError);
+    viewList.clearQuick ();
+    if (validatorComponentProperties.getViewInfo ())
+        viewList.add (ValidatorResultProperties::ResultTypeInfo);
+    if (validatorComponentProperties.getViewWarning ())
+        viewList.add (ValidatorResultProperties::ResultTypeWarning);
+    if (validatorComponentProperties.getViewError ())
+        viewList.add (ValidatorResultProperties::ResultTypeError);
 }
 
 void Assimil8orValidatorComponent::updateHeader ()
@@ -121,7 +134,7 @@ void Assimil8orValidatorComponent::buildQuickLookupList ()
         totalInfoItems += (validatorResultProperties.getType () == ValidatorResultProperties::ResultTypeInfo ? 1 : 0);
         totalWarningItems += (validatorResultProperties.getType () == ValidatorResultProperties::ResultTypeWarning? 1 : 0);
         totalErrorItems += (validatorResultProperties.getType () == ValidatorResultProperties::ResultTypeError ? 1 : 0);
-        if (filterList.contains (validatorResultProperties.getType ()))
+        if (viewList.contains (validatorResultProperties.getType ()))
             validatorResultsQuickLookupList.emplace_back (validatorResultVT);
         return true;
     });
@@ -156,16 +169,7 @@ void Assimil8orValidatorComponent::resized ()
 {
     auto localBounds { getLocalBounds () };
     validatorToolWindow.setBounds (localBounds.removeFromTop (25));
-
     validationResultsListBox.setBounds (localBounds);
-
-    auto filterButtonBounds { getLocalBounds ().removeFromBottom (28).withTrimmedBottom (3).withTrimmedRight (3) };
-    errorFilterButton.setBounds (filterButtonBounds.removeFromRight (filterButtonBounds.getHeight ()));
-    filterButtonBounds.removeFromRight (5);
-    warningFilterButton.setBounds (filterButtonBounds.removeFromRight (filterButtonBounds.getHeight ()));
-    filterButtonBounds.removeFromRight (5);
-    infoFilterButton.setBounds (filterButtonBounds.removeFromRight (filterButtonBounds.getHeight ()));
-    testRenameAllButton.setBounds (infoFilterButton.getX () - 60 - 5, infoFilterButton.getY (), 60, 25);
 }
 
 int Assimil8orValidatorComponent::getNumRows ()

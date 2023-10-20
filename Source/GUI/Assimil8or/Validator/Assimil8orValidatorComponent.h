@@ -30,7 +30,7 @@ private:
     ValidatorToolWindow validatorToolWindow;
     juce::TableListBox validationResultsListBox { {}, this };
     std::vector<juce::ValueTree> validatorResultsQuickLookupList;
-    juce::StringArray filterList { ValidatorResultProperties::ResultTypeInfo };
+    juce::StringArray viewList { ValidatorResultProperties::ResultTypeInfo };
     SafePointer<juce::DialogWindow> renameDialog;
     juce::AudioFormatManager audioFormatManager;
     std::unique_ptr<juce::FileChooser> fileChooser;
@@ -45,7 +45,7 @@ private:
     void convert (juce::File file);
     void locate (juce::File file);
     void rename (juce::File file, int maxLength);
-    void setupFilterList ();
+    void setupViewList ();
     void updateHeader ();
     void updateListFromScan (juce::String scanStatus);
 

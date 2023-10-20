@@ -14,22 +14,25 @@ public:
     {
     }
 
-    void setFilterInfo (bool shouldFilter, bool includeSelfCallback);
-    void setFilterWarning (bool shouldFilter, bool includeSelfCallback);
-    void setFilterError (bool shouldFilter, bool includeSelfCallback);
+    void setViewInfo (bool shouldView, bool includeSelfCallback);
+    void setViewWarning (bool shouldView, bool includeSelfCallback);
+    void setViewError (bool shouldView, bool includeSelfCallback);
+    void triggerRenameAll (bool includeSelfCallback);
 
-    bool getFilterInfo ();
-    bool getFilterWarning ();
-    bool getFilterError ();
+    bool getViewInfo ();
+    bool getViewWarning ();
+    bool getViewError ();
 
-    std::function<void (bool shouldFilter)> onFilterInfoChange;
-    std::function<void (bool shouldFilter)> onFilterWarningChange;
-    std::function<void (bool shouldFilter)> onFilterErrorChange;
+    std::function<void (bool shouldFilter)> onViewInfoChange;
+    std::function<void (bool shouldFilter)> onViewWarningChange;
+    std::function<void (bool shouldFilter)> onViewErrorChange;
+    std::function<void ()> onRenameAllTrigger;
 
     static inline const juce::Identifier ValidatorComponentTypeId { "ValidatorComponent" };
-    static inline const juce::Identifier FilterInfoPropertyId    { "filterInfo" };
-    static inline const juce::Identifier FilterWarningPropertyId { "filterWarning" };
-    static inline const juce::Identifier FilterErrorPropertyId   { "filterError" };
+    static inline const juce::Identifier ViewInfoPropertyId    { "viewInfo" };
+    static inline const juce::Identifier ViewWarningPropertyId { "viewWarning" };
+    static inline const juce::Identifier ViewErrorPropertyId   { "viewError" };
+    static inline const juce::Identifier RenameAllPropertyId   { "renameAll" };
 
     void initValueTree ();
     void processValueTree () {}
