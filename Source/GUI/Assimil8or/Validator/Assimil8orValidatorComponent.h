@@ -8,7 +8,8 @@
 #include "../../../Utility/DirectoryDataProperties.h"
 
 class Assimil8orValidatorComponent : public juce::Component,
-                                     private juce::TableListBoxModel
+                                     private juce::TableListBoxModel,
+                                     private juce::AsyncUpdater
 {
 public:
     Assimil8orValidatorComponent ();
@@ -35,6 +36,7 @@ private:
     juce::AudioFormatManager audioFormatManager;
     std::unique_ptr<juce::FileChooser> fileChooser;
     juce::ValueTree localCopyOfValidatorResultsList;
+    std::vector<juce::File> filesToLocate;
     int totalInfoItems { 0 };
     int totalWarningItems { 0 };
     int totalErrorItems { 0 };
@@ -44,6 +46,8 @@ private:
     int missingFileCount { 0 };
 
     void autoRename (juce::File fileToRename, bool doRescan);
+    void autoConvertAll ();
+    void autoLocateAll ();
     void autoRenameAll ();
     void buildQuickLookupList ();
     void convert (juce::File file);
@@ -61,6 +65,5 @@ private:
     void paintCell (juce::Graphics&, int rowNumber, int columnId, int width, int height, bool rowIsSelected) override;
     juce::Component* refreshComponentForCell (int rowNumber, int columnId, bool isRowSelected, juce::Component* existingComponentToUpdate) override;
     void cellClicked (int rowNumber, int columnId, const juce::MouseEvent& mouseEvent) override;
-    void autoConvertAll ();
-    void autoLocateAll ();
+    void handleAsyncUpdate () override;
 };

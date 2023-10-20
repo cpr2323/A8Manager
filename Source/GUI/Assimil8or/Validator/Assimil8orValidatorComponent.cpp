@@ -285,6 +285,42 @@ juce::Component* Assimil8orValidatorComponent::refreshComponentForCell (int rowN
     return nullptr;
 }
 
+void Assimil8orValidatorComponent::handleAsyncUpdate ()
+{
+    fileChooser.reset (new juce::FileChooser ("Please locate folder for missing files...", {}, {}));
+    fileChooser->launchAsync (juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectDirectories, [this] (const juce::FileChooser& fc) mutable
+    {
+        if (fc.getURLResults ().size () == 1 && fc.getURLResults () [0].isLocalFile ())
+        {
+            // copy selected file to missing file location
+            auto sourceDirectory { fc.getURLResults () [0].getLocalFile () };
+
+            std::vector<juce::File> locatedFiles;
+            for (const auto fileToLocate : filesToLocate)
+            {
+                if (auto sourceFile { sourceDirectory.getChildFile (fileToLocate.getFileName ()) }; sourceFile.exists ())
+                {
+                    if (sourceFile.copyFileTo (fileToLocate) == true)
+                    {
+                        locatedFiles.emplace_back (fileToLocate);
+                    }
+                    else
+                    {
+                        juce::AlertWindow::showMessageBoxAsync (juce::AlertWindow::WarningIcon, "Copy Failed",
+                            "Unable to rename '" + sourceFile.getFileName () + "' to '" + fileToLocate.getFileName () + "'", {}, nullptr,
+                            juce::ModalCallbackFunction::create ([this] (int) {}));
+                    }
+                }
+            }
+            std::vector<juce::File> newList;
+            std::set_difference (filesToLocate.begin (), filesToLocate.end (), locatedFiles.begin (), locatedFiles.end (), std::back_inserter (newList));
+            filesToLocate = newList;
+            if (filesToLocate.size () > 0)
+                triggerAsyncUpdate ();
+        }
+    }, nullptr);
+}
+
 void Assimil8orValidatorComponent::rename (juce::File file, int maxLength)
 {
     // bring up a dialog showing the old name, a field for typing the new name (length constrained), and an ok/cancel button
@@ -347,7 +383,6 @@ void Assimil8orValidatorComponent::autoRename (juce::File fileToRename, bool doR
         directoryDataProperties.triggerStartScan (false);
 }
 
-
 void Assimil8orValidatorComponent::autoRenameAll ()
 {
     ValueTreeHelpers::forEachChildOfType (validatorResultsQuickLookupList [0].getParent (), ValidatorResultProperties::ValidatorResultTypeId, [this] (juce::ValueTree vrpVT)
@@ -390,7 +425,23 @@ void Assimil8orValidatorComponent::autoConvertAll ()
 
 void Assimil8orValidatorComponent::autoLocateAll ()
 {
-    throw std::logic_error ("The method or operation is not implemented.");
+    filesToLocate.clear ();
+    ValueTreeHelpers::forEachChildOfType (validatorResultsQuickLookupList [0].getParent (), ValidatorResultProperties::ValidatorResultTypeId, [this] (juce::ValueTree vrpVT)
+    {
+        ValidatorResultProperties validatorResultProperties (vrpVT, ValidatorResultProperties::WrapperType::client, ValidatorResultProperties::EnableCallbacks::no);
+        validatorResultProperties.forEachFixerEntry ([this] (juce::ValueTree fixerEntryVT)
+        {
+            FixerEntryProperties fixerEntryProperties (fixerEntryVT, FixerEntryProperties::WrapperType::client, FixerEntryProperties::EnableCallbacks::no);
+            if (fixerEntryProperties.getType () == FixerEntryProperties::FixerTypeFileNotFound)
+            {
+                auto file { juce::File (fixerEntryProperties.getFileName ()) };
+                filesToLocate.emplace_back (file);
+            }
+            return true;
+        });
+        return true;
+    });
+    triggerAsyncUpdate ();
 }
 
 void Assimil8orValidatorComponent::convert (juce::File file)
