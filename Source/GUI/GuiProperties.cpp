@@ -3,7 +3,7 @@
 const auto defaultXPos { -1 };
 const auto defaultYPos { -1 };
 const auto defaultWidth { 1117 };
-const auto defaultHeight { 585 };
+const auto defaultHeight { 609 };
 const auto defaultSplitter1Offset { 140 };
 const auto defaultSplitter2Offset { 170 };
 const auto defaultSplitter3Offset { 480 };

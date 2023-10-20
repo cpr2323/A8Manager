@@ -23,9 +23,29 @@ void ValidatorComponentProperties::setViewError (bool shouldView, bool includeSe
     setValue (shouldView, ViewErrorPropertyId, includeSelfCallback);
 }
 
+void ValidatorComponentProperties::enableConvertAll (bool enabled, bool includeSelfCallback)
+{
+    setValue (enabled, EnableConvertAllPropertyId, includeSelfCallback);
+}
+
+void ValidatorComponentProperties::enableLocateAll (bool enabled, bool includeSelfCallback)
+{
+    setValue (enabled, EnableLocateAllPropertyId, includeSelfCallback);
+}
+
 void ValidatorComponentProperties::enableRenameAll (bool enabled, bool includeSelfCallback)
 {
     setValue (enabled, EnableRenameAllPropertyId, includeSelfCallback);
+}
+
+void ValidatorComponentProperties::triggerConvertAll (bool includeSelfCallback)
+{
+    toggleValue (ConvertAllPropertyId, includeSelfCallback);
+}
+
+void ValidatorComponentProperties::triggerLocateAll (bool includeSelfCallback)
+{
+    toggleValue (LocateAllPropertyId, includeSelfCallback);
 }
 
 void ValidatorComponentProperties::triggerRenameAll (bool includeSelfCallback)
@@ -46,6 +66,16 @@ bool ValidatorComponentProperties::getViewWarning ()
 bool ValidatorComponentProperties::getViewError ()
 {
     return getValue<bool> (ViewErrorPropertyId);
+}
+
+bool ValidatorComponentProperties::getEnabledConvertAll ()
+{
+    return getValue<bool> (EnableConvertAllPropertyId);
+}
+
+bool ValidatorComponentProperties::getEnabledLocateAll ()
+{
+    return getValue<bool> (EnableLocateAllPropertyId);
 }
 
 bool ValidatorComponentProperties::getEnabledRenameAll ()
@@ -72,10 +102,30 @@ void ValidatorComponentProperties::valueTreePropertyChanged (juce::ValueTree& vt
             if (onViewErrorChange != nullptr)
                 onViewErrorChange (getViewError ());
         }
+        else if (property == EnableConvertAllPropertyId)
+        {
+            if (onEnableConvertAllChange != nullptr)
+                onEnableConvertAllChange (getEnabledConvertAll ());
+        }
+        else if (property == EnableLocateAllPropertyId)
+        {
+            if (onEnableLocateAllChange != nullptr)
+                onEnableLocateAllChange (getEnabledLocateAll ());
+        }
         else if (property == EnableRenameAllPropertyId)
         {
             if (onEnableRenameAllChange != nullptr)
                 onEnableRenameAllChange (getEnabledRenameAll ());
+        }
+        else if (property == ConvertAllPropertyId)
+        {
+            if (onConvertAllTrigger != nullptr)
+                onConvertAllTrigger ();
+        }
+        else if (property == LocateAllPropertyId)
+        {
+            if (onLocateAllTrigger != nullptr)
+                onLocateAllTrigger ();
         }
         else if (property == RenameAllPropertyId)
         {

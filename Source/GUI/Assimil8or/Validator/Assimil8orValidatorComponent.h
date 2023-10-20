@@ -38,6 +38,10 @@ private:
     int totalInfoItems { 0 };
     int totalWarningItems { 0 };
     int totalErrorItems { 0 };
+    int renameFilesCount { 0 };
+    int renameFoldersCount { 0 };
+    int convertCount { 0 };
+    int missingFileCount { 0 };
 
     void autoRename (juce::File fileToRename, bool doRescan);
     void autoRenameAll ();
@@ -57,4 +61,6 @@ private:
     void paintCell (juce::Graphics&, int rowNumber, int columnId, int width, int height, bool rowIsSelected) override;
     juce::Component* refreshComponentForCell (int rowNumber, int columnId, bool isRowSelected, juce::Component* existingComponentToUpdate) override;
     void cellClicked (int rowNumber, int columnId, const juce::MouseEvent& mouseEvent) override;
+    void autoConvertAll ();
+    void autoLocateAll ();
 };

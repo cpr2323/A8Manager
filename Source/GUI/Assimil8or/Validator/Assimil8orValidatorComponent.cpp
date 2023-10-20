@@ -62,6 +62,14 @@ void Assimil8orValidatorComponent::init (juce::ValueTree rootPropertiesVT)
     {
         updateFromViewChange ();
     };
+    validatorComponentProperties.onConvertAllTrigger = [this] ()
+    {
+        autoConvertAll ();
+    };
+    validatorComponentProperties.onLocateAllTrigger = [this] ()
+    {
+        autoLocateAll ();
+    };
     validatorComponentProperties.onRenameAllTrigger = [this] ()
     {
         autoRenameAll ();
@@ -122,6 +130,11 @@ void Assimil8orValidatorComponent::buildQuickLookupList ()
     totalInfoItems = 0;
     totalWarningItems = 0;
     totalErrorItems = 0;
+    renameFilesCount = 0;
+    renameFoldersCount = 0;
+    convertCount = 0;
+    missingFileCount = 0;
+
     if (! localCopyOfValidatorResultsList.isValid ())
         return;
 
@@ -134,10 +147,28 @@ void Assimil8orValidatorComponent::buildQuickLookupList ()
         totalInfoItems += (validatorResultProperties.getType () == ValidatorResultProperties::ResultTypeInfo ? 1 : 0);
         totalWarningItems += (validatorResultProperties.getType () == ValidatorResultProperties::ResultTypeWarning? 1 : 0);
         totalErrorItems += (validatorResultProperties.getType () == ValidatorResultProperties::ResultTypeError ? 1 : 0);
+        validatorResultProperties.forEachFixerEntry ([this, &validatorResultVT] (juce::ValueTree fixerEntryVT)
+        {
+            FixerEntryProperties fixerEntryProperties (validatorResultVT, FixerEntryProperties::WrapperType::client, FixerEntryProperties::EnableCallbacks::no);
+            if (fixerEntryProperties.getType () == FixerEntryProperties::FixerTypeRenameFile)
+                ++renameFilesCount;
+            else if (fixerEntryProperties.getType () == FixerEntryProperties::FixerTypeRenameFolder)
+                ++renameFoldersCount;
+            else if (fixerEntryProperties.getType () == FixerEntryProperties::FixerTypeConvert)
+                ++convertCount;
+            else if (fixerEntryProperties.getType () == FixerEntryProperties::FixerTypeFileNotFound)
+                ++missingFileCount;
+            else
+                jassertfalse;
+            return true;
+        });
         if (viewList.contains (validatorResultProperties.getType ()))
             validatorResultsQuickLookupList.emplace_back (validatorResultVT);
         return true;
     });
+    validatorComponentProperties.enableConvertAll (convertCount, false);
+    validatorComponentProperties.enableLocateAll (missingFileCount, false);
+    validatorComponentProperties.enableRenameAll (renameFilesCount > 0 || renameFoldersCount > 0, false);
 }
 
 void Assimil8orValidatorComponent::paint ([[maybe_unused]] juce::Graphics& g)
@@ -511,38 +542,6 @@ void Assimil8orValidatorComponent::cellClicked (int rowNumber, int columnId, con
         else if (validatorResultProperties.getNumFixerEntries () > 0)
         {
             // Handle multiple fixes
-
-            auto renameFilesCount { 0 };
-            auto renameFoldersCount { 0 };
-            auto convertCount { 0 };
-            auto findCount { 0 };
-          
-            validatorResultProperties.forEachFixerEntry ([this, &renameFilesCount, &renameFoldersCount, &convertCount, &findCount, kMaxFileNameLength, kMaxFolderNameLength] (juce::ValueTree fixerEntryVT)
-            {
-                FixerEntryProperties fixerEntryProperties (fixerEntryVT, FixerEntryProperties::WrapperType::client, FixerEntryProperties::EnableCallbacks::no);
-                if (fixerEntryProperties.getType () == FixerEntryProperties::FixerTypeRenameFile)
-                {
-                    ++renameFilesCount;
-                }
-                else if (fixerEntryProperties.getType () == FixerEntryProperties::FixerTypeRenameFolder)
-                {
-                    ++renameFoldersCount;
-                }
-                else if (fixerEntryProperties.getType () == FixerEntryProperties::FixerTypeConvert)
-                {
-                    ++convertCount;
-                }
-                else if (fixerEntryProperties.getType () == FixerEntryProperties::FixerTypeFileNotFound)
-                {
-                    ++findCount;
-                }
-                else
-                {
-                    jassertfalse;
-                }
-                return true;
-            });
-
             juce::PopupMenu pm;
             validatorResultProperties.forEachFixerEntry ([this, &pm, kMaxFileNameLength, kMaxFolderNameLength] (juce::ValueTree fixerEntryVT)
             {
@@ -571,9 +570,16 @@ void Assimil8orValidatorComponent::cellClicked (int rowNumber, int columnId, con
 
                 return true;
             });
-            if (renameFilesCount > 0 || renameFoldersCount > 0)
-                pm.addItem ("Auto Rename All", true, false, [this, rowNumber] () { autoRenameAll (); });
-            pm.showMenuAsync ({}, [this] (int) {});
         }
     }
+}
+
+void Assimil8orValidatorComponent::autoConvertAll ()
+{
+    throw std::logic_error ("The method or operation is not implemented.");
+}
+
+void Assimil8orValidatorComponent::autoLocateAll ()
+{
+    throw std::logic_error ("The method or operation is not implemented.");
 }

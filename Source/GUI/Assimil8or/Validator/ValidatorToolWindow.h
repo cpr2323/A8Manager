@@ -12,6 +12,8 @@ public:
 private:
     ValidatorComponentProperties validatorComponentProperties;
 
+    juce::TextButton convertAllButton;
+    juce::TextButton locateAllButton;
     juce::TextButton renameAllButton;
     juce::TextButton viewInfoButton;
     juce::TextButton viewWarningButton;

@@ -19,20 +19,29 @@ ValidatorToolWindow::ValidatorToolWindow ()
     setupFilterButton (viewInfoButton, "I", "Toggles viewing of Info messages", [this] () { validatorComponentProperties.setViewInfo (viewInfoButton.getToggleState (), false);  });
     setupFilterButton (viewWarningButton, "W", "Toggles viewing of Warning messages", [this] () { validatorComponentProperties.setViewWarning (viewWarningButton.getToggleState (), false);  });
     setupFilterButton (viewErrorButton, "E", "Toggles viewing of Error messages", [this] () { validatorComponentProperties.setViewError (viewErrorButton.getToggleState (), false);  });
-    renameAllButton.setButtonText ("Rename All");
-    renameAllButton.onClick = [this] () { validatorComponentProperties.triggerRenameAll (false); };
-    addAndMakeVisible (renameAllButton);
+    
+    auto setupDoAllButton = [this] (juce::TextButton& button, juce::String text, std::function<void ()> onClickFunc)
+    {
+        button.setButtonText (text);
+        button.onClick = onClickFunc;
+        addAndMakeVisible (button);
+    };
+    setupDoAllButton (convertAllButton, "Convert All", [this] () { validatorComponentProperties.triggerConvertAll (false); } );
+    setupDoAllButton (locateAllButton, "Locate All", [this] () { validatorComponentProperties.triggerLocateAll (false); });
+    setupDoAllButton (renameAllButton, "Rename All", [this] () { validatorComponentProperties.triggerRenameAll (false); });
 }
 
 void ValidatorToolWindow::init (juce::ValueTree rootPropertiesVT)
 {
     RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
-    validatorComponentProperties.wrap (runtimeRootProperties.getValueTree (), ValidatorComponentProperties::WrapperType::client, ValidatorComponentProperties::EnableCallbacks::no);
+    validatorComponentProperties.wrap (runtimeRootProperties.getValueTree (), ValidatorComponentProperties::WrapperType::client, ValidatorComponentProperties::EnableCallbacks::yes);
     validatorComponentProperties.onEnableRenameAllChange = [this] (bool enabled) { renameAllButton.setEnabled (enabled); };
 
     viewInfoButton.setToggleState (validatorComponentProperties.getViewInfo (), juce::NotificationType::dontSendNotification);
     viewWarningButton.setToggleState (validatorComponentProperties.getViewWarning (), juce::NotificationType::dontSendNotification);
     viewErrorButton.setToggleState (validatorComponentProperties.getViewError (), juce::NotificationType::dontSendNotification);
+    convertAllButton.setEnabled (validatorComponentProperties.getEnabledConvertAll ());
+    locateAllButton.setEnabled (validatorComponentProperties.getEnabledLocateAll ());
     renameAllButton.setEnabled (validatorComponentProperties.getEnabledRenameAll ());
 }
 
@@ -50,5 +59,10 @@ void ValidatorToolWindow::resized ()
     viewWarningButton.setBounds (filterButtonBounds.removeFromRight (filterButtonBounds.getHeight ()));
     filterButtonBounds.removeFromRight (5);
     viewInfoButton.setBounds (filterButtonBounds.removeFromRight (filterButtonBounds.getHeight ()));
-    renameAllButton.setBounds (viewInfoButton.getX () - 70 - 5, viewInfoButton.getY (), 70, filterButtonBounds.getHeight ());
+    filterButtonBounds.removeFromRight (5);
+    locateAllButton.setBounds (filterButtonBounds.removeFromRight (70));
+    filterButtonBounds.removeFromRight (5);
+    convertAllButton.setBounds (filterButtonBounds.removeFromRight (70));
+    filterButtonBounds.removeFromRight (5);
+    renameAllButton.setBounds (filterButtonBounds.removeFromRight (70));
 }
