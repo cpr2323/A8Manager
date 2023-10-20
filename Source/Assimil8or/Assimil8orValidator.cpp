@@ -6,7 +6,7 @@
 #include "../Utility/RuntimeRootProperties.h"
 #include "../Utility/WatchDogTimer.h"
 
-#define LOG_VALIDATION 1
+#define LOG_VALIDATION 0
 #if LOG_VALIDATION
 #define LogValidation(text) juce::Logger::outputDebugString (text);
 #else
