@@ -28,10 +28,12 @@ void ValidatorToolWindow::init (juce::ValueTree rootPropertiesVT)
 {
     RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
     validatorComponentProperties.wrap (runtimeRootProperties.getValueTree (), ValidatorComponentProperties::WrapperType::client, ValidatorComponentProperties::EnableCallbacks::no);
+    validatorComponentProperties.onEnableRenameAllChange = [this] (bool enabled) { renameAllButton.setEnabled (enabled); };
 
     viewInfoButton.setToggleState (validatorComponentProperties.getViewInfo (), juce::NotificationType::dontSendNotification);
     viewWarningButton.setToggleState (validatorComponentProperties.getViewWarning (), juce::NotificationType::dontSendNotification);
     viewErrorButton.setToggleState (validatorComponentProperties.getViewError (), juce::NotificationType::dontSendNotification);
+    renameAllButton.setEnabled (validatorComponentProperties.getEnabledRenameAll ());
 }
 
 void ValidatorToolWindow::paint (juce::Graphics& g)
@@ -42,11 +44,11 @@ void ValidatorToolWindow::paint (juce::Graphics& g)
 
 void ValidatorToolWindow::resized ()
 {
-    auto filterButtonBounds { getLocalBounds () };
+    auto filterButtonBounds { getLocalBounds ().reduced(5, 3) };
     viewErrorButton.setBounds (filterButtonBounds.removeFromRight (filterButtonBounds.getHeight ()));
     filterButtonBounds.removeFromRight (5);
     viewWarningButton.setBounds (filterButtonBounds.removeFromRight (filterButtonBounds.getHeight ()));
     filterButtonBounds.removeFromRight (5);
     viewInfoButton.setBounds (filterButtonBounds.removeFromRight (filterButtonBounds.getHeight ()));
-    renameAllButton.setBounds (viewInfoButton.getX () - 70 - 5, viewInfoButton.getY (), 70, 20);
+    renameAllButton.setBounds (viewInfoButton.getX () - 70 - 5, viewInfoButton.getY (), 70, filterButtonBounds.getHeight ());
 }

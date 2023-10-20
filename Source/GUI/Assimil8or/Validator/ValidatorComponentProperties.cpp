@@ -23,6 +23,11 @@ void ValidatorComponentProperties::setViewError (bool shouldView, bool includeSe
     setValue (shouldView, ViewErrorPropertyId, includeSelfCallback);
 }
 
+void ValidatorComponentProperties::enableRenameAll (bool enabled, bool includeSelfCallback)
+{
+    setValue (enabled, EnableRenameAllPropertyId, includeSelfCallback);
+}
+
 void ValidatorComponentProperties::triggerRenameAll (bool includeSelfCallback)
 {
     toggleValue (RenameAllPropertyId, includeSelfCallback);
@@ -43,6 +48,11 @@ bool ValidatorComponentProperties::getViewError ()
     return getValue<bool> (ViewErrorPropertyId);
 }
 
+bool ValidatorComponentProperties::getEnabledRenameAll ()
+{
+    return getValue<bool> (EnableRenameAllPropertyId);
+}
+
 void ValidatorComponentProperties::valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property)
 {
     if (vt == data)
@@ -61,6 +71,11 @@ void ValidatorComponentProperties::valueTreePropertyChanged (juce::ValueTree& vt
         {
             if (onViewErrorChange != nullptr)
                 onViewErrorChange (getViewError ());
+        }
+        else if (property == EnableRenameAllPropertyId)
+        {
+            if (onEnableRenameAllChange != nullptr)
+                onEnableRenameAllChange (getEnabledRenameAll ());
         }
         else if (property == RenameAllPropertyId)
         {
