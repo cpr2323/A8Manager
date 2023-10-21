@@ -288,13 +288,17 @@ juce::Component* Assimil8orValidatorComponent::refreshComponentForCell (int rowN
 void Assimil8orValidatorComponent::handleAsyncUpdate ()
 {
     fileChooser.reset (new juce::FileChooser ("Please locate folder for missing files...", {}, {}));
-    fileChooser->launchAsync (juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectDirectories, [this] (const juce::FileChooser& fc) mutable
+    fileChooser->launchAsync (juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectDirectories /*| juce::FileBrowserComponent::canSelectFiles*/, [this] (const juce::FileChooser& fc) mutable
     {
         if (fc.getURLResults ().size () == 1 && fc.getURLResults () [0].isLocalFile ())
         {
             // copy selected file to missing file location
             auto sourceDirectory { fc.getURLResults () [0].getLocalFile () };
-
+            if (! sourceDirectory.isDirectory ())
+            {
+                triggerAsyncUpdate ();
+                return;
+            }
             std::vector<juce::File> locatedFiles;
             for (const auto fileToLocate : filesToLocate)
             {
@@ -352,27 +356,51 @@ void Assimil8orValidatorComponent::autoRename (juce::File fileToRename, bool doR
         return fileToRename.getParentDirectory ().getChildFile (newName).withFileExtension (fileToRename.getFileExtension ());
     };
     const auto kMaxFileNameLength { 47 };
+    const auto kMaxFileNameWithoutExtension { kMaxFileNameLength - 4 };
 
     // remove illegal characters
     auto fileName { fileToRename.getFileNameWithoutExtension ().retainCharacters (kValidFileSystemCharacters) };
-    auto extension { fileToRename.getFileExtension () };
-    
-    if (auto noVowelsFileName { fileToRename.getFileNameWithoutExtension ().retainCharacters (kValidFileSystemCharacters).removeCharacters ("AEIOUaeiou") }; noVowelsFileName.length () != 0)
-        fileName = noVowelsFileName;
 
-    const auto maxFileNameWithoutExtension { kMaxFileNameLength - 4 };
-    auto suffixValue { 1 };
-    if (fileName.length () > maxFileNameWithoutExtension || getNewFile (fileName).exists ())
+    // if name is still too long, try the 'remove vowels' algorithm
+    if (fileName.length() > kMaxFileNameWithoutExtension)
     {
-        auto prefix { fileName.substring (0, maxFileNameWithoutExtension) };
+        auto removeVowels = [this] (juce::String longString)
+        {
+            const auto lowerCaseVowels { juce::String ("aeiou") };
+            const auto capitolLetter { juce::String ("ABCDEFGHIJKLMNOPQRSTUVWXYZ") };
+            juce::String shortString { longString.substring (0,1) };
+            for (auto stringIndex { 1 }; stringIndex < longString.length() - 2; ++stringIndex)
+            {
+                if (lowerCaseVowels.containsChar (longString [stringIndex]) && ! capitolLetter.containsChar (longString [stringIndex - 1]))
+                    continue;
+                shortString += longString [stringIndex];
+            }
+            shortString += longString.substring (longString.length () - 1, 1);
+            return shortString;
+        };
+        if (auto noVowelsFileName { removeVowels (fileName)}; noVowelsFileName.length () != 0)
+            fileName = noVowelsFileName;
+    }
+
+    // if name is still too long truncate to max length
+    if (fileName.length () > kMaxFileNameWithoutExtension)
+        fileName = fileName.substring (0, kMaxFileNameWithoutExtension);
+
+    // if name is still too long, or new file name already exists, truncate to max length and start appending an integer value to the name
+    auto suffixValue { 1 };
+    if (fileName.length () > kMaxFileNameWithoutExtension || getNewFile (fileName).exists ())
+    {
+        auto prefix { fileName.substring (0, kMaxFileNameWithoutExtension) };
         while (getNewFile (fileName).exists ())
         {
             const auto suffixString { juce::String (suffixValue) };
-            const auto trimAmount { juce::jmax (0, prefix.length () + suffixString.length () - maxFileNameWithoutExtension) };
+            const auto trimAmount { juce::jmax (0, prefix.length () + suffixString.length () - kMaxFileNameWithoutExtension) };
             fileName = prefix.substring (0, prefix.length () - trimAmount) + suffixString;
             ++suffixValue;
         }
     }
+
+    jassert (fileName != fileToRename.getFileNameWithoutExtension ());
 
     if (fileToRename.moveFileTo (getNewFile(fileName)) != true)
     {
