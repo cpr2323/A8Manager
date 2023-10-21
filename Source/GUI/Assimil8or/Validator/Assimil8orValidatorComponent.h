@@ -33,6 +33,7 @@ private:
     std::vector<juce::ValueTree> validatorResultsQuickLookupList;
     juce::StringArray viewList { ValidatorResultProperties::ResultTypeInfo };
     SafePointer<juce::DialogWindow> renameDialog;
+    SafePointer<juce::DialogWindow> locateDialog;
     juce::AudioFormatManager audioFormatManager;
     std::unique_ptr<juce::FileChooser> fileChooser;
     juce::ValueTree localCopyOfValidatorResultsList;

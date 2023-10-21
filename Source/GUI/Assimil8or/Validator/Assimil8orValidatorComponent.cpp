@@ -1,5 +1,6 @@
 #include "Assimil8orValidatorComponent.h"
 #include "RenameDialogComponent.h"
+#include "LocateFileComponent.h"
 #include "../../../Assimil8or/Validator/ValidatorResultListProperties.h"
 #include "../../../Utility/RuntimeRootProperties.h"
 
@@ -33,6 +34,14 @@ Assimil8orValidatorComponent::~Assimil8orValidatorComponent ()
         // we are shutting down: can't wait for the message manager
         // to eventually delete this
         delete renameDialog;
+    }
+    if (locateDialog!= nullptr)
+    {
+        locateDialog->exitModalState (0);
+
+        // we are shutting down: can't wait for the message manager
+        // to eventually delete this
+        delete locateDialog;
     }
 }
 
@@ -288,6 +297,23 @@ juce::Component* Assimil8orValidatorComponent::refreshComponentForCell (int rowN
 // handleAsyncUpdate handles displaying the locate dialog, and copying any missing files it can locate, and then redisplaying the dialog if there are more to be located
 void Assimil8orValidatorComponent::handleAsyncUpdate ()
 {
+#if 1
+    juce::DialogWindow::LaunchOptions options;
+    auto locateComponent { std::make_unique<LocateFileComponent> () };
+    options.content.setOwned (locateComponent.release ());
+
+    juce::Rectangle<int> area (0, 0, 380, 110);
+
+    options.content->setSize (area.getWidth (), area.getHeight ());
+    options.dialogTitle = "Locate Missing Files";
+    options.dialogBackgroundColour = juce::Colour (juce::Colours::lightgrey);
+    options.escapeKeyTriggersCloseButton = true;
+    options.useNativeTitleBar = false;
+    options.resizable = true;
+    options.componentToCentreAround = this;
+
+    locateDialog = options.launchAsync ();
+#else
     fileChooser.reset (new juce::FileChooser ("Please locate folder for missing files...", {}, {}));
     fileChooser->launchAsync (juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectDirectories, [this] (const juce::FileChooser& fc) mutable
     {
@@ -321,6 +347,7 @@ void Assimil8orValidatorComponent::handleAsyncUpdate ()
                 triggerAsyncUpdate ();
         }
     }, nullptr);
+#endif
 }
 
 void Assimil8orValidatorComponent::rename (juce::File file, int maxLength)
