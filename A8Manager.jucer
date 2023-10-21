@@ -140,6 +140,10 @@
                   resource="0" file="Source/GUI/Assimil8or/Validator/Assimil8orValidatorComponent.cpp"/>
             <FILE id="PhfQ11" name="Assimil8orValidatorComponent.h" compile="0"
                   resource="0" file="Source/GUI/Assimil8or/Validator/Assimil8orValidatorComponent.h"/>
+            <FILE id="T4Ozoj" name="LocateFileComponent.cpp" compile="1" resource="0"
+                  file="Source/GUI/Assimil8or/Validator/LocateFileComponent.cpp"/>
+            <FILE id="U7XvxB" name="LocateFileComponent.h" compile="0" resource="0"
+                  file="Source/GUI/Assimil8or/Validator/LocateFileComponent.h"/>
             <FILE id="aVQZjM" name="RenameDialogComponent.cpp" compile="1" resource="0"
                   file="Source/GUI/Assimil8or/Validator/RenameDialogComponent.cpp"/>
             <FILE id="pHRbjm" name="RenameDialogComponent.h" compile="0" resource="0"
