@@ -300,7 +300,7 @@ void Assimil8orValidatorComponent::handleAsyncUpdate ()
                 return;
             }
             std::vector<juce::File> locatedFiles;
-            for (const auto fileToLocate : filesToLocate)
+            for (const auto& fileToLocate : filesToLocate)
             {
                 if (auto sourceFile { sourceDirectory.getChildFile (fileToLocate.getFileName ()) }; sourceFile.exists ())
                 {
