@@ -285,24 +285,22 @@ juce::Component* Assimil8orValidatorComponent::refreshComponentForCell (int rowN
     return nullptr;
 }
 
+// handleAsyncUpdate handles displaying the locate dialog, and copying any missing files it can locate, and then redisplaying the dialog if there are more to be located
 void Assimil8orValidatorComponent::handleAsyncUpdate ()
 {
     fileChooser.reset (new juce::FileChooser ("Please locate folder for missing files...", {}, {}));
-    fileChooser->launchAsync (juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectDirectories /*| juce::FileBrowserComponent::canSelectFiles*/, [this] (const juce::FileChooser& fc) mutable
+    fileChooser->launchAsync (juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectDirectories, [this] (const juce::FileChooser& fc) mutable
     {
         if (fc.getURLResults ().size () == 1 && fc.getURLResults () [0].isLocalFile ())
         {
             // copy selected file to missing file location
-            auto sourceDirectory { fc.getURLResults () [0].getLocalFile () };
-            if (! sourceDirectory.isDirectory ())
-            {
-                triggerAsyncUpdate ();
-                return;
-            }
+            const auto sourceDirectory { fc.getURLResults () [0].getLocalFile () };
+            jassert (sourceDirectory.isDirectory ());
+
             std::vector<juce::File> locatedFiles;
             for (const auto& fileToLocate : filesToLocate)
             {
-                if (auto sourceFile { sourceDirectory.getChildFile (fileToLocate.getFileName ()) }; sourceFile.exists ())
+                if (const auto sourceFile { sourceDirectory.getChildFile (fileToLocate.getFileName ()) }; sourceFile.exists ())
                 {
                     if (sourceFile.copyFileTo (fileToLocate) == true)
                     {
@@ -378,7 +376,7 @@ void Assimil8orValidatorComponent::autoRename (juce::File fileToRename, bool doR
             shortString += longString.substring (longString.length () - 1, 1);
             return shortString;
         };
-        if (auto noVowelsFileName { removeVowels (fileName)}; noVowelsFileName.length () != 0)
+        if (const auto noVowelsFileName { removeVowels (fileName)}; noVowelsFileName.length () != 0)
             fileName = noVowelsFileName;
     }
 
@@ -390,7 +388,7 @@ void Assimil8orValidatorComponent::autoRename (juce::File fileToRename, bool doR
     auto suffixValue { 1 };
     if (fileName.length () > kMaxFileNameWithoutExtension || getNewFile (fileName).exists ())
     {
-        auto prefix { fileName.substring (0, kMaxFileNameWithoutExtension) };
+        const auto prefix { fileName.substring (0, kMaxFileNameWithoutExtension) };
         while (getNewFile (fileName).exists ())
         {
             const auto suffixString { juce::String (suffixValue) };
@@ -414,20 +412,20 @@ void Assimil8orValidatorComponent::autoRename (juce::File fileToRename, bool doR
 void Assimil8orValidatorComponent::autoRenameAll ()
 {
     ValueTreeHelpers::forEachChildOfType (validatorResultsQuickLookupList [0].getParent (), ValidatorResultProperties::ValidatorResultTypeId, [this] (juce::ValueTree vrpVT)
+    {
+        ValidatorResultProperties validatorResultProperties (vrpVT, ValidatorResultProperties::WrapperType::client, ValidatorResultProperties::EnableCallbacks::no);
+        validatorResultProperties.forEachFixerEntry ([this] (juce::ValueTree fixerEntryVT)
         {
-            ValidatorResultProperties validatorResultProperties (vrpVT, ValidatorResultProperties::WrapperType::client, ValidatorResultProperties::EnableCallbacks::no);
-            validatorResultProperties.forEachFixerEntry ([this] (juce::ValueTree fixerEntryVT)
+            FixerEntryProperties fixerEntryProperties (fixerEntryVT, FixerEntryProperties::WrapperType::client, FixerEntryProperties::EnableCallbacks::no);
+            if (fixerEntryProperties.getType () == FixerEntryProperties::FixerTypeRenameFile || fixerEntryProperties.getType () == FixerEntryProperties::FixerTypeRenameFolder)
             {
-                FixerEntryProperties fixerEntryProperties (fixerEntryVT, FixerEntryProperties::WrapperType::client, FixerEntryProperties::EnableCallbacks::no);
-                if (fixerEntryProperties.getType () == FixerEntryProperties::FixerTypeRenameFile || fixerEntryProperties.getType () == FixerEntryProperties::FixerTypeRenameFolder)
-                {
-                    auto file { juce::File (fixerEntryProperties.getFileName ()) };
-                    autoRename (file, false);
-                }
-                return true;
-            });
+                auto file { juce::File (fixerEntryProperties.getFileName ()) };
+                autoRename (file, false);
+            }
             return true;
         });
+        return true;
+    });
     directoryDataProperties.triggerStartScan (false);
 }
 
@@ -453,6 +451,7 @@ void Assimil8orValidatorComponent::autoConvertAll ()
 
 void Assimil8orValidatorComponent::autoLocateAll ()
 {
+    // build list of files that need to be located
     filesToLocate.clear ();
     ValueTreeHelpers::forEachChildOfType (validatorResultsQuickLookupList [0].getParent (), ValidatorResultProperties::ValidatorResultTypeId, [this] (juce::ValueTree vrpVT)
     {
@@ -469,6 +468,7 @@ void Assimil8orValidatorComponent::autoLocateAll ()
         });
         return true;
     });
+    // handleAsyncUpdate handles displaying the locate dialog, and copying any missing files it can locate, and then redisplaying the dialog if there are more to be located
     triggerAsyncUpdate ();
 }
 
@@ -578,7 +578,7 @@ void Assimil8orValidatorComponent::locate (juce::File file)
         if (fc.getURLResults ().size () == 1 && fc.getURLResults () [0].isLocalFile ())
         {
             // copy selected file to missing file location
-            auto sourceFile { fc.getURLResults () [0].getLocalFile () };
+            const auto sourceFile { fc.getURLResults () [0].getLocalFile () };
             // TODO - this should probably be in a thread
             if (sourceFile.copyFileTo (file) == false)
             {
