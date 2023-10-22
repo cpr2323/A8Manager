@@ -26,6 +26,11 @@ LocateFileComponent::LocateFileComponent (std::vector<juce::File> theMissingFile
     directoryViewerComponent.startScan ();
 }
 
+juce::File LocateFileComponent::getCurFolder ()
+{
+    return curFolderLabel.getText ();
+}
+
 void LocateFileComponent::locateFiles ()
 {
     const auto sourceDirectory { directoryViewerComponent.getCurrentFolder () };

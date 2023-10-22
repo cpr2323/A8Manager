@@ -37,6 +37,7 @@ private:
     juce::AudioFormatManager audioFormatManager;
     std::unique_ptr<juce::FileChooser> fileChooser;
     juce::ValueTree localCopyOfValidatorResultsList;
+    juce::File locateFilesInitialDirectory;
     std::vector<juce::File> filesToLocate;
     int totalInfoItems { 0 };
     int totalWarningItems { 0 };

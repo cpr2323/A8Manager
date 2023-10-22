@@ -314,14 +314,17 @@ void Assimil8orValidatorComponent::handleLocatedFiles (std::vector<std::tuple <j
     std::set_difference (filesToLocate.begin (), filesToLocate.end (), copiedFiles.begin (), copiedFiles.end (), std::back_inserter (newList));
     filesToLocate = newList;
     if (filesToLocate.size () > 0)
+    {
+        locateFilesInitialDirectory = dynamic_cast<LocateFileComponent*>(locateDialog->getContentComponent ())->getCurFolder();
         triggerAsyncUpdate ();
+    }
 }
 
 // handleAsyncUpdate handles displaying the locate dialog, and copying any missing files it can locate, and then redisplaying the dialog if there are more to be located
 void Assimil8orValidatorComponent::handleAsyncUpdate ()
 {
     juce::DialogWindow::LaunchOptions options;
-    auto locateComponent { std::make_unique<LocateFileComponent> (filesToLocate, directoryDataProperties.getRootFolder (), [this] (std::vector<std::tuple <juce::File, juce::File>> locatedFiles)
+    auto locateComponent { std::make_unique<LocateFileComponent> (filesToLocate, locateFilesInitialDirectory, [this] (std::vector<std::tuple <juce::File, juce::File>> locatedFiles)
     {
         handleLocatedFiles (locatedFiles);
         locateDialog->exitModalState (0);
@@ -491,6 +494,7 @@ void Assimil8orValidatorComponent::autoLocateAll ()
         return true;
     });
     // handleAsyncUpdate handles displaying the locate dialog, and copying any missing files it can locate, and then redisplaying the dialog if there are more to be located
+    locateFilesInitialDirectory = directoryDataProperties.getRootFolder();
     triggerAsyncUpdate ();
 }
 
