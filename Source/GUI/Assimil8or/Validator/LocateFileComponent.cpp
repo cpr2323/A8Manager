@@ -8,8 +8,9 @@ LocateFileComponent::LocateFileComponent (std::vector<juce::File> theMissingFile
     locatedFilesCallback = theLocatedFilesCallback;
     cancelCallback = theCancelCallback;
 
-    curFolderLabel.setText ("empty", juce::NotificationType::dontSendNotification);
+    curFolderLabel.setText (directoryViewerComponent.getCurrentFolder ().getFullPathName (), juce::NotificationType::dontSendNotification);
     addAndMakeVisible (curFolderLabel);
+    directoryViewerComponent.onFolderChange = [this] (juce::File folder) { curFolderLabel.setText (folder.getFullPathName (), juce::NotificationType::dontSendNotification); };
     addAndMakeVisible (directoryViewerComponent);
     missingFileComponent.assignMissingFileList (theMissingFiles);
     addAndMakeVisible (missingFileComponent);
@@ -37,7 +38,7 @@ void LocateFileComponent::locateFiles ()
     locatedFilesCallback (locatedFiles);
 }
 
-void LocateFileComponent::paint (juce::Graphics& g)
+void LocateFileComponent::paint ([[maybe_unused]] juce::Graphics& g)
 {
 //     g.setColour (juce::Colours::black);
 //     g.drawRect (directoryViewerComponent.getBounds ());

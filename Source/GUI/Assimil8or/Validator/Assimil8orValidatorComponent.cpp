@@ -340,7 +340,7 @@ void Assimil8orValidatorComponent::handleAsyncUpdate ()
     options.escapeKeyTriggersCloseButton = true;
     options.useNativeTitleBar = false;
     options.resizable = true;
-    options.componentToCentreAround = this;
+    options.componentToCentreAround = this->getParentComponent ();
 
     locateDialog = options.launchAsync ();
 }

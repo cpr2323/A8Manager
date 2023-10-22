@@ -139,11 +139,11 @@ private:
 
     int getNumRows () override
     {
-        return directoryListQuickLookupList.size ();
+        return static_cast<int> (directoryListQuickLookupList.size ());
     }
     //juce::String getTooltipForRow (int row) override;
 
-    void listBoxItemClicked (int row, const juce::MouseEvent& me) override
+    void listBoxItemClicked (int row, const juce::MouseEvent&) override
     {
 //         if (! isRootFolder && row == 0)
 //         {
