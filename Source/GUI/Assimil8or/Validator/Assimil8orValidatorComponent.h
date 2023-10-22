@@ -52,19 +52,20 @@ private:
     void autoRenameAll ();
     void buildQuickLookupList ();
     void convert (juce::File file);
+    void handleLocatedFiles (std::vector<std::tuple <juce::File, juce::File>>& locatedFiles);
     void locate (juce::File file);
     void rename (juce::File file, int maxLength);
     void setupViewList ();
     void updateHeader ();
     void updateListFromScan (juce::String scanStatus);
 
-    void resized () override;
-    void paint (juce::Graphics& g) override;
+    void cellClicked (int rowNumber, int columnId, const juce::MouseEvent& mouseEvent) override;
     juce::String getCellTooltip (int rowNumber, int columnId) override;
     int getNumRows () override;
+    void handleAsyncUpdate () override;
     void paintRowBackground (juce::Graphics&, int rowNumber, int width, int height, bool rowIsSelected) override;
     void paintCell (juce::Graphics&, int rowNumber, int columnId, int width, int height, bool rowIsSelected) override;
+    void paint (juce::Graphics& g) override;
     juce::Component* refreshComponentForCell (int rowNumber, int columnId, bool isRowSelected, juce::Component* existingComponentToUpdate) override;
-    void cellClicked (int rowNumber, int columnId, const juce::MouseEvent& mouseEvent) override;
-    void handleAsyncUpdate () override;
+    void resized () override;
 };

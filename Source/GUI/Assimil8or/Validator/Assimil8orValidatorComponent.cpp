@@ -294,12 +294,44 @@ juce::Component* Assimil8orValidatorComponent::refreshComponentForCell (int rowN
     return nullptr;
 }
 
+void Assimil8orValidatorComponent::handleLocatedFiles (std::vector<std::tuple <juce::File, juce::File>>& locatedFiles)
+{
+    std::vector<juce::File> copiedFiles;
+    for (auto [sourceFile, destinationFile] : locatedFiles)
+    {
+        if (sourceFile.copyFileTo (destinationFile) == true)
+        {
+            copiedFiles.emplace_back (destinationFile);
+        }
+        else
+        {
+            juce::AlertWindow::showMessageBoxAsync (juce::AlertWindow::WarningIcon, "Copy Failed",
+                "Unable to rename '" + sourceFile.getFileName () + "' to '" + destinationFile.getFileName () + "'", {}, nullptr,
+                juce::ModalCallbackFunction::create ([this] (int) {}));
+        }
+    }
+    std::vector<juce::File> newList;
+    std::set_difference (filesToLocate.begin (), filesToLocate.end (), copiedFiles.begin (), copiedFiles.end (), std::back_inserter (newList));
+    filesToLocate = newList;
+    if (filesToLocate.size () > 0)
+        triggerAsyncUpdate ();
+}
+
 // handleAsyncUpdate handles displaying the locate dialog, and copying any missing files it can locate, and then redisplaying the dialog if there are more to be located
 void Assimil8orValidatorComponent::handleAsyncUpdate ()
 {
-#if 1
     juce::DialogWindow::LaunchOptions options;
-    auto locateComponent { std::make_unique<LocateFileComponent> () };
+    auto locateComponent { std::make_unique<LocateFileComponent> (filesToLocate, [this] (std::vector<std::tuple <juce::File, juce::File>> locatedFiles)
+    {
+        handleLocatedFiles (locatedFiles);
+        locateDialog->exitModalState (0);
+        delete locateDialog;
+    },
+    [this] ()
+    {
+        locateDialog->exitModalState (0);
+        delete locateDialog;
+    }) };
     options.content.setOwned (locateComponent.release ());
 
     juce::Rectangle<int> area (0, 0, 380, 380);
@@ -313,41 +345,6 @@ void Assimil8orValidatorComponent::handleAsyncUpdate ()
     options.componentToCentreAround = this;
 
     locateDialog = options.launchAsync ();
-#else
-    fileChooser.reset (new juce::FileChooser ("Please locate folder for missing files...", {}, {}));
-    fileChooser->launchAsync (juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectDirectories, [this] (const juce::FileChooser& fc) mutable
-    {
-        if (fc.getURLResults ().size () == 1 && fc.getURLResults () [0].isLocalFile ())
-        {
-            // copy selected file to missing file location
-            const auto sourceDirectory { fc.getURLResults () [0].getLocalFile () };
-            jassert (sourceDirectory.isDirectory ());
-
-            std::vector<juce::File> locatedFiles;
-            for (const auto& fileToLocate : filesToLocate)
-            {
-                if (const auto sourceFile { sourceDirectory.getChildFile (fileToLocate.getFileName ()) }; sourceFile.exists ())
-                {
-                    if (sourceFile.copyFileTo (fileToLocate) == true)
-                    {
-                        locatedFiles.emplace_back (fileToLocate);
-                    }
-                    else
-                    {
-                        juce::AlertWindow::showMessageBoxAsync (juce::AlertWindow::WarningIcon, "Copy Failed",
-                            "Unable to rename '" + sourceFile.getFileName () + "' to '" + fileToLocate.getFileName () + "'", {}, nullptr,
-                            juce::ModalCallbackFunction::create ([this] (int) {}));
-                    }
-                }
-            }
-            std::vector<juce::File> newList;
-            std::set_difference (filesToLocate.begin (), filesToLocate.end (), locatedFiles.begin (), locatedFiles.end (), std::back_inserter (newList));
-            filesToLocate = newList;
-            if (filesToLocate.size () > 0)
-                triggerAsyncUpdate ();
-        }
-    }, nullptr);
-#endif
 }
 
 void Assimil8orValidatorComponent::rename (juce::File file, int maxLength)
