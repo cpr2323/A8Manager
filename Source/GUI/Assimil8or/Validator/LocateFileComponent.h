@@ -77,6 +77,11 @@ class DirectoryViewerComponent : public juce::Component,
                                  private juce::ListBoxModel
 {
 public:
+    DirectoryViewerComponent ()
+    {
+        addAndMakeVisible (directory);
+        directory.updateContent ();
+    }
 
 private:
     juce::ListBox directory { {}, this };
@@ -91,11 +96,13 @@ private:
     {
         if (rowNumber < 2)
         {
-            g.setColour (juce::Colours::grey.brighter(0.3f));
-            g.fillRect (width - 1, 0, 1, height);
-            g.setColour (juce::Colours::black);
-            g.drawText (juce::String (rowNumber + 1), juce::Rectangle<float>{ 0.0f, 0.0f, (float) width, (float) height }, juce::Justification::centredLeft, true);
+            g.setColour (juce::Colours::white);
+            g.drawText (" "  + juce::String (rowNumber + 1), juce::Rectangle<float>{ 0.0f, 0.0f, (float) width, (float) height }, juce::Justification::centredLeft, true);
        }
+    }
+    void resized () override
+    {
+        directory.setBounds (getLocalBounds ());
     }
 };
 
@@ -103,6 +110,11 @@ class MissingFileComponent : public juce::Component,
                              private juce::ListBoxModel
 {
 public:
+    MissingFileComponent()
+    {
+        addAndMakeVisible (missingFiles);
+        missingFiles.updateContent ();
+    }
 
 private:
     juce::ListBox missingFiles { {}, this };
@@ -111,17 +123,19 @@ private:
     {
         return 2;
     }
-    //juce::String getTooltipForRow (int row) override;
-    //void listBoxItemClicked (int row, const juce::MouseEvent& me) override;
     void paintListBoxItem (int rowNumber, juce::Graphics& g, int width, int height, bool rowIsSelected) override
     {
         if (rowNumber < 2)
         {
-            g.setColour (juce::Colours::grey.brighter (0.3f));
-            g.fillRect (width - 1, 0, 1, height);
-            g.setColour (juce::Colours::black);
-            g.drawText (juce::String (rowNumber + 1), juce::Rectangle<float>{ 0.0f, 0.0f, (float) width, (float) height }, juce::Justification::centredLeft, true);
+//             g.setColour (juce::Colours::grey.brighter (0.3f));
+//             g.fillRect (width, 0, 1, height);
+            g.setColour (juce::Colours::white);
+            g.drawText (" " + juce::String (rowNumber + 1), juce::Rectangle<float>{ 0.0f, 0.0f, (float) width, (float) height }, juce::Justification::centredLeft, true);
         }
+    }
+    void resized () override
+    {
+        missingFiles.setBounds (getLocalBounds ());
     }
 };
 
@@ -136,5 +150,6 @@ private:
     juce::TextButton lookHereButton;
     juce::TextButton cancelButton;
 
+    void paint (juce::Graphics& g) override;
     void resized () override;
 };

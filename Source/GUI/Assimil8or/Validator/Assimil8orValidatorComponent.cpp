@@ -302,11 +302,11 @@ void Assimil8orValidatorComponent::handleAsyncUpdate ()
     auto locateComponent { std::make_unique<LocateFileComponent> () };
     options.content.setOwned (locateComponent.release ());
 
-    juce::Rectangle<int> area (0, 0, 380, 110);
+    juce::Rectangle<int> area (0, 0, 380, 380);
 
     options.content->setSize (area.getWidth (), area.getHeight ());
     options.dialogTitle = "Locate Missing Files";
-    options.dialogBackgroundColour = juce::Colour (juce::Colours::lightgrey);
+    options.dialogBackgroundColour = juce::Colour (juce::Colours::grey);
     options.escapeKeyTriggersCloseButton = true;
     options.useNativeTitleBar = false;
     options.resizable = true;

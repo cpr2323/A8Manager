@@ -13,6 +13,13 @@ LocateFileComponent::LocateFileComponent ()
     addAndMakeVisible (cancelButton);
 }
 
+void LocateFileComponent::paint (juce::Graphics& g)
+{
+//     g.setColour (juce::Colours::black);
+//     g.drawRect (directoryViewerComponent.getBounds ());
+//     g.drawRect (missingFileComponent.getBounds ());
+}
+
 void LocateFileComponent::resized ()
 {
     auto localBounds { getLocalBounds () };
