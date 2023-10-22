@@ -20,6 +20,7 @@ LocateFileComponent::LocateFileComponent (std::vector<juce::File> theMissingFile
     cancelButton.onClick = [this] () { cancelCallback (); };
     cancelButton.setButtonText ("Cancel");
     addAndMakeVisible (cancelButton);
+    directoryViewerComponent.startScan ();
 }
 
 void LocateFileComponent::locateFiles ()

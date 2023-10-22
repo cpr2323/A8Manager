@@ -107,7 +107,7 @@ public:
         runtimeRootProperties.getValueTree ().addChild (presetManagerProperties.getValueTree (), -1, nullptr);
 
         // setup the directory scanner
-        directoryValueTree.init (rootProperties.getValueTree ());
+        directoryValueTree.init (runtimeRootProperties.getValueTree ());
         directoryDataProperties.wrap (directoryValueTree.getDirectoryDataPropertiesVT (), DirectoryDataProperties::WrapperType::client, DirectoryDataProperties::EnableCallbacks::no);
         // debug tool for watching changes on the Directory Data Properties Value Tree
         //directoryDataMonitor.assign (directoryDataProperties.getValueTreeRef ());
@@ -159,10 +159,6 @@ public:
     void initAppDirectory ()
     {
         // locate the appProperties file in the User Application Data Directory
-
-        //   On Windows, something like "\Documents and Settings\username\Application Data".
-        //   On the Mac, it is "~/Library/Company".
-        //   On GNU/Linux it is "~/.config".
 
         const juce::String propertiesFilePath { juce::File::getSpecialLocation (juce::File::userApplicationDataDirectory).getFullPathName () };
         appDirectory = juce::File (propertiesFilePath).getChildFile (ProjectInfo::companyName).getChildFile (getApplicationName ());

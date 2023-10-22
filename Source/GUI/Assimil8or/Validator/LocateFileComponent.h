@@ -1,6 +1,7 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "../../../Utility/DirectoryValueTree.h"
 
 // +------------------------------++----------------------+
 // | \folder\being\viewed         || Missing Files        |
@@ -79,32 +80,82 @@ class DirectoryViewerComponent : public juce::Component,
 public:
     DirectoryViewerComponent ()
     {
+        directoryValueTree.init ({});
         addAndMakeVisible (directoryListBox);
-        directoryListBox.updateContent ();
+
+        directoryDataProperties.wrap (directoryValueTree.getDirectoryDataPropertiesVT (), DirectoryDataProperties::WrapperType::client, DirectoryDataProperties::EnableCallbacks::yes);
+        directoryDataProperties.setRootFolder ("C:/", false);
+        directoryDataProperties.onRootScanComplete = [this] ()
+        {
+            buildQuickLookupList ();
+            juce::MessageManager::callAsync ([this] ()
+            {
+                directoryListBox.updateContent ();
+                directoryListBox.repaint ();
+            });
+        };
     }
 
     juce::File getCurrentFolder ()
     {
-        return juce::File("C:/");
+        return directoryDataProperties.getRootFolder ();
+    }
+
+    void startScan ()
+    {
+        directoryDataProperties.triggerStartScan (false);
     }
 
 private:
+    DirectoryValueTree directoryValueTree;
+    DirectoryDataProperties directoryDataProperties;
+    std::vector<juce::ValueTree> directoryListQuickLookupList;
     juce::ListBox directoryListBox { {}, this };
+
+    void buildQuickLookupList ()
+    {
+        directoryListQuickLookupList.clear ();
+        ValueTreeHelpers::forEachChild (directoryDataProperties.getRootFolderVT (), [this] (juce::ValueTree child)
+        {
+            directoryListQuickLookupList.emplace_back (child);
+            return true;
+        });
+    }
 
     int getNumRows () override
     {
-        return 2;
+        return directoryListQuickLookupList.size ();
     }
     //juce::String getTooltipForRow (int row) override;
-    //void listBoxItemClicked (int row, const juce::MouseEvent& me) override;
+
+    void listBoxItemClicked (int row, const juce::MouseEvent& me) override
+    {
+//         if (! isRootFolder && row == 0)
+//         {
+//             directoryDataProperties.setRootFolder (juce::File (directoryDataProperties.getRootFolder ()).getParentDirectory ().getFullPathName (), false);
+//         }
+//         else
+        {
+            const auto directoryEntryVT { directoryListQuickLookupList [row] };
+            auto folder { juce::File (directoryEntryVT.getProperty ("name").toString ()) };
+            directoryDataProperties.setRootFolder (folder.getFullPathName (), false);
+            startScan ();
+        }
+
+    }
+
     void paintListBoxItem (int rowNumber, juce::Graphics& g, int width, int height, bool /*rowIsSelected*/) override
     {
-        if (rowNumber < 2)
+        if (rowNumber < directoryListQuickLookupList.size ())
         {
             //             g.setColour (juce::Colours::grey.brighter (0.3f));
             //             g.fillRect (width, 0, 1, height);
             g.setColour (juce::Colours::white);
-            g.drawText (" " + juce::String (rowNumber + 1), juce::Rectangle<float>{ 0.0f, 0.0f, (float) width, (float) height }, juce::Justification::centredLeft, true);
+            const auto directoryEntry { juce::File (directoryListQuickLookupList [rowNumber].getProperty (FileProperties::NamePropertyId).toString ()) };
+            if (directoryEntry.isDirectory ())
+                g.drawText (" > " + directoryEntry.getFileName (), juce::Rectangle<float>{ 0.0f, 0.0f, (float) width, (float) height }, juce::Justification::centredLeft, true);
+            else
+                g.drawText (" | " + directoryEntry.getFileName (), juce::Rectangle<float>{ 0.0f, 0.0f, (float) width, (float) height }, juce::Justification::centredLeft, true);
         }
     }
     void resized () override

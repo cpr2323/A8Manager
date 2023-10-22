@@ -94,7 +94,6 @@ void FileViewComponent::updateFromNewData ()
 void FileViewComponent::buildQuickLookupList ()
 {
     updateDirectoryListQuickLookupList->clear ();
-    auto rf { directoryDataProperties.getRootFolderVT () };
     ValueTreeHelpers::forEachChild (directoryDataProperties.getRootFolderVT (), [this] (juce::ValueTree child)
     {
         const auto typeIndex { static_cast<int> (child.getProperty ("type")) };

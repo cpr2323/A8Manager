@@ -81,9 +81,7 @@ void DirectoryValueTree::init (juce::ValueTree rootPropertiesVT)
 {
     audioFormatManager.registerBasicFormats ();
 
-    RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
-    directoryDataProperties.wrap (runtimeRootProperties.getValueTree (), DirectoryDataProperties::WrapperType::owner, DirectoryDataProperties::EnableCallbacks::yes);
-
+    directoryDataProperties.wrap (rootPropertiesVT, DirectoryDataProperties::WrapperType::owner, DirectoryDataProperties::EnableCallbacks::yes);
     //ddpMonitor.assign (directoryDataProperties.getValueTreeRef ());
 
     directoryDataProperties.onScanDepthChange = [this] (int scanDepth) { setScanDepth (scanDepth); };
