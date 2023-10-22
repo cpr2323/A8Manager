@@ -332,7 +332,7 @@ void Assimil8orValidatorComponent::handleAsyncUpdate ()
     }) };
     options.content.setOwned (locateComponent.release ());
 
-    juce::Rectangle<int> area (0, 0, 380, 380);
+    juce::Rectangle<int> area (0, 0, 500, 400);
 
     options.content->setSize (area.getWidth (), area.getHeight ());
     options.dialogTitle = "Locate Missing Files";

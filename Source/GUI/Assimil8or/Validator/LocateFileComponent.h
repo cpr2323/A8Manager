@@ -89,6 +89,7 @@ public:
         directoryDataProperties.onRootScanComplete = [this] ()
         {
             juce::Logger::outputDebugString ("DirectoryViewerComponent::DirectoryViewerComponent - row : directoryDataProperties.onRootScanComplete");
+            isRootFolder = juce::File (directoryDataProperties.getRootFolder ()).getParentDirectory () == juce::File (directoryDataProperties.getRootFolder ());
             buildQuickLookupList ();
             juce::MessageManager::callAsync ([this] ()
             {
@@ -115,6 +116,7 @@ private:
     DirectoryDataProperties directoryDataProperties;
     std::vector<juce::ValueTree> directoryListQuickLookupList;
     juce::ListBox directoryListBox { {}, this };
+    bool isRootFolder { false };
 
     void buildQuickLookupList ()
     {
@@ -139,40 +141,50 @@ private:
 
     int getNumRows () override
     {
-        return static_cast<int> (directoryListQuickLookupList.size ());
+        return static_cast<int> (directoryListQuickLookupList.size ()) + (isRootFolder ? 0 : 1);
     }
     //juce::String getTooltipForRow (int row) override;
 
     void listBoxItemClicked (int row, const juce::MouseEvent&) override
     {
-//         if (! isRootFolder && row == 0)
-//         {
-//             directoryDataProperties.setRootFolder (juce::File (directoryDataProperties.getRootFolder ()).getParentDirectory ().getFullPathName (), false);
-//         }
-//         else
+        if (! isRootFolder && row == 0)
         {
-            const auto directoryEntryVT { directoryListQuickLookupList [row] };
+            directoryDataProperties.setRootFolder (juce::File (directoryDataProperties.getRootFolder ()).getParentDirectory ().getFullPathName (), false);
+        }
+        else
+        {
+            const auto directoryEntryVT { directoryListQuickLookupList [row - (isRootFolder ? 0 : 1)] };
             auto folder { juce::File (directoryEntryVT.getProperty ("name").toString ()) };
             directoryDataProperties.setRootFolder (folder.getFullPathName (), false);
-            startScan ();
-            if (onFolderChange != nullptr)
-                onFolderChange (folder);
         }
-
+        startScan ();
+        if (onFolderChange != nullptr)
+            onFolderChange (directoryDataProperties.getRootFolder ());
     }
 
     void paintListBoxItem (int rowNumber, juce::Graphics& g, int width, int height, bool /*rowIsSelected*/) override
     {
-        if (rowNumber < directoryListQuickLookupList.size ())
+        if (rowNumber < getNumRows ())
         {
-            //             g.setColour (juce::Colours::grey.brighter (0.3f));
-            //             g.fillRect (width, 0, 1, height);
-            g.setColour (juce::Colours::white);
-            const auto directoryEntry { juce::File (directoryListQuickLookupList [rowNumber].getProperty (FileProperties::NamePropertyId).toString ()) };
-            if (directoryEntry.isDirectory ())
-                g.drawText (" > " + directoryEntry.getFileName (), juce::Rectangle<float>{ 0.0f, 0.0f, (float) width, (float) height }, juce::Justification::centredLeft, true);
+            if (! isRootFolder && rowNumber == 0)
+            {
+                g.setColour (juce::Colours::white);
+                g.drawText (" > ..", juce::Rectangle<float>{ 0.0f, 0.0f, (float) width, (float) height }, juce::Justification::centredLeft, true);
+            }
             else
-                g.drawText (" - " + directoryEntry.getFileName (), juce::Rectangle<float>{ 0.0f, 0.0f, (float) width, (float) height }, juce::Justification::centredLeft, true);
+            {
+                const auto directoryEntry { juce::File (directoryListQuickLookupList [rowNumber - (isRootFolder ? 0 : 1)].getProperty (FileProperties::NamePropertyId).toString ()) };
+                if (directoryEntry.isDirectory ())
+                {
+                    g.setColour (juce::Colours::white);
+                    g.drawText (" > " + directoryEntry.getFileName (), juce::Rectangle<float>{ 0.0f, 0.0f, (float) width, (float) height }, juce::Justification::centredLeft, true);
+                }
+                else
+                {
+                    g.setColour (juce::Colours::forestgreen);
+                    g.drawText (" - " + directoryEntry.getFileName (), juce::Rectangle<float>{ 0.0f, 0.0f, (float) width, (float) height }, juce::Justification::centredLeft, true);
+                }
+            }
         }
     }
     void resized () override
