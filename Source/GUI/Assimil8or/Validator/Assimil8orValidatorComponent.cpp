@@ -325,12 +325,10 @@ void Assimil8orValidatorComponent::handleAsyncUpdate ()
     {
         handleLocatedFiles (locatedFiles);
         locateDialog->exitModalState (0);
-        delete locateDialog;
     },
     [this] ()
     {
         locateDialog->exitModalState (0);
-        delete locateDialog;
     }) };
     options.content.setOwned (locateComponent.release ());
 

@@ -85,8 +85,10 @@ public:
 
         directoryDataProperties.wrap (directoryValueTree.getDirectoryDataPropertiesVT (), DirectoryDataProperties::WrapperType::client, DirectoryDataProperties::EnableCallbacks::yes);
         directoryDataProperties.setRootFolder ("C:/", false);
+        directoryDataProperties.setScanDepth (0, false);
         directoryDataProperties.onRootScanComplete = [this] ()
         {
+            juce::Logger::outputDebugString ("DirectoryViewerComponent::DirectoryViewerComponent - row : directoryDataProperties.onRootScanComplete");
             buildQuickLookupList ();
             juce::MessageManager::callAsync ([this] ()
             {
@@ -106,6 +108,8 @@ public:
         directoryDataProperties.triggerStartScan (false);
     }
 
+    std::function<void (juce::File)> onFolderChange;
+
 private:
     DirectoryValueTree directoryValueTree;
     DirectoryDataProperties directoryDataProperties;
@@ -117,7 +121,18 @@ private:
         directoryListQuickLookupList.clear ();
         ValueTreeHelpers::forEachChild (directoryDataProperties.getRootFolderVT (), [this] (juce::ValueTree child)
         {
-            directoryListQuickLookupList.emplace_back (child);
+            if (FolderProperties::isFolderVT (child))
+            {
+                directoryListQuickLookupList.emplace_back (child);
+            }
+            else
+            {
+                FileProperties fp (child, FileProperties::WrapperType::client, FileProperties::EnableCallbacks::no);
+                const auto file { juce::File (fp.getName ()) };
+                if (file.getFileExtension ().toLowerCase () == ".wav")
+                    directoryListQuickLookupList.emplace_back (child);
+            }
+
             return true;
         });
     }
@@ -140,6 +155,8 @@ private:
             auto folder { juce::File (directoryEntryVT.getProperty ("name").toString ()) };
             directoryDataProperties.setRootFolder (folder.getFullPathName (), false);
             startScan ();
+            if (onFolderChange != nullptr)
+                onFolderChange (folder);
         }
 
     }
@@ -155,7 +172,7 @@ private:
             if (directoryEntry.isDirectory ())
                 g.drawText (" > " + directoryEntry.getFileName (), juce::Rectangle<float>{ 0.0f, 0.0f, (float) width, (float) height }, juce::Justification::centredLeft, true);
             else
-                g.drawText (" | " + directoryEntry.getFileName (), juce::Rectangle<float>{ 0.0f, 0.0f, (float) width, (float) height }, juce::Justification::centredLeft, true);
+                g.drawText (" - " + directoryEntry.getFileName (), juce::Rectangle<float>{ 0.0f, 0.0f, (float) width, (float) height }, juce::Justification::centredLeft, true);
         }
     }
     void resized () override
