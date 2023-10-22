@@ -84,7 +84,6 @@ public:
         addAndMakeVisible (directoryListBox);
 
         directoryDataProperties.wrap (directoryValueTree.getDirectoryDataPropertiesVT (), DirectoryDataProperties::WrapperType::client, DirectoryDataProperties::EnableCallbacks::yes);
-        directoryDataProperties.setRootFolder ("C:/", false);
         directoryDataProperties.setScanDepth (0, false);
         directoryDataProperties.onRootScanComplete = [this] ()
         {
@@ -97,6 +96,11 @@ public:
                 directoryListBox.repaint ();
             });
         };
+    }
+
+    void setCurrentFolder (juce::File folder)
+    {
+        directoryDataProperties.setRootFolder (folder.getFullPathName (), false);
     }
 
     juce::File getCurrentFolder ()
@@ -226,7 +230,7 @@ private:
     {
         if (rowNumber < missingFilesList.size ())
         {
-            g.setColour (juce::Colours::white);
+            g.setColour (juce::Colours::red.darker (0.2f));
             g.drawText (" " + missingFilesList [rowNumber].getFileName (), juce::Rectangle<float>{ 0.0f, 0.0f, (float) width, (float) height }, juce::Justification::centredLeft, true);
         }
     }
@@ -239,7 +243,8 @@ private:
 class LocateFileComponent : public juce::Component
 {
 public:
-    LocateFileComponent (std::vector<juce::File> theMissingFiles, std::function<void(std::vector<std::tuple <juce::File, juce::File>>)> theLocatedFilesCallback, std::function<void ()> theCancelCallback);
+    LocateFileComponent (std::vector<juce::File> theMissingFiles, juce::File startingFolder,
+                         std::function<void(std::vector<std::tuple <juce::File, juce::File>>)> theLocatedFilesCallback, std::function<void ()> theCancelCallback);
 
 private:
     juce::Label curFolderLabel;

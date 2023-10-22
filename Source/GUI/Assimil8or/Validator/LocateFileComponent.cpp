@@ -1,6 +1,7 @@
 #include "LocateFileComponent.h"
 
-LocateFileComponent::LocateFileComponent (std::vector<juce::File> theMissingFiles, std::function<void (std::vector<std::tuple <juce::File, juce::File>>)> theLocatedFilesCallback, std::function<void ()> theCancelCallback)
+LocateFileComponent::LocateFileComponent (std::vector<juce::File> theMissingFiles, juce::File startingFolder,
+                                          std::function<void (std::vector<std::tuple <juce::File, juce::File>>)> theLocatedFilesCallback, std::function<void ()> theCancelCallback)
 {
     jassert (theLocatedFilesCallback != nullptr);
     jassert (theCancelCallback != nullptr);
@@ -8,8 +9,9 @@ LocateFileComponent::LocateFileComponent (std::vector<juce::File> theMissingFile
     locatedFilesCallback = theLocatedFilesCallback;
     cancelCallback = theCancelCallback;
 
-    curFolderLabel.setText (directoryViewerComponent.getCurrentFolder ().getFullPathName (), juce::NotificationType::dontSendNotification);
+    curFolderLabel.setText (startingFolder.getFullPathName (), juce::NotificationType::dontSendNotification);
     addAndMakeVisible (curFolderLabel);
+    directoryViewerComponent.setCurrentFolder (startingFolder);
     directoryViewerComponent.onFolderChange = [this] (juce::File folder) { curFolderLabel.setText (folder.getFullPathName (), juce::NotificationType::dontSendNotification); };
     addAndMakeVisible (directoryViewerComponent);
     missingFileComponent.assignMissingFileList (theMissingFiles);

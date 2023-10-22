@@ -321,7 +321,7 @@ void Assimil8orValidatorComponent::handleLocatedFiles (std::vector<std::tuple <j
 void Assimil8orValidatorComponent::handleAsyncUpdate ()
 {
     juce::DialogWindow::LaunchOptions options;
-    auto locateComponent { std::make_unique<LocateFileComponent> (filesToLocate, [this] (std::vector<std::tuple <juce::File, juce::File>> locatedFiles)
+    auto locateComponent { std::make_unique<LocateFileComponent> (filesToLocate, directoryDataProperties.getRootFolder (), [this] (std::vector<std::tuple <juce::File, juce::File>> locatedFiles)
     {
         handleLocatedFiles (locatedFiles);
         locateDialog->exitModalState (0);
