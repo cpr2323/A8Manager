@@ -251,6 +251,9 @@ private:
     juce::Label curFolderLabel;
     DirectoryViewerComponent directoryViewerComponent;
     MissingFileComponent missingFileComponent;
+    std::unique_ptr<juce::FileChooser> fileChooser;
+    juce::TextButton openButton;
+    juce::Label missingFilesLabel;
     juce::TextButton lookHereButton;
     juce::TextButton cancelButton;
     std::function<void (std::vector<std::tuple <juce::File, juce::File>>)> locatedFilesCallback;
