@@ -700,6 +700,7 @@ void Assimil8orValidatorComponent::cellClicked (int rowNumber, int columnId, con
 
                 return true;
             });
+            pm.showMenuAsync ({}, [this] (int) {});
         }
     }
 }
