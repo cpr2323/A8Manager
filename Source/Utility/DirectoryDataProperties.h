@@ -101,15 +101,39 @@ public:
         return static_cast<DirectoryDataProperties::TypeIndex> (getValue<int> (TypePropertyId));
     }
 
-    static inline const juce::Identifier FileTypeId { "File" };
-    static inline const juce::Identifier NamePropertyId { "name" };
-    static inline const juce::Identifier TypePropertyId { "type" };
+    void setCreateTime (int64_t time, bool includeSelfCallback)
+    {
+        setValue (time, CreationTimePropertyId, includeSelfCallback);
+    }
 
-    static juce::ValueTree create (juce::String filePath, DirectoryDataProperties::TypeIndex fileType)
+    int64_t getCreateTime ()
+    {
+        return getValue<int64_t> (CreationTimePropertyId);
+    }
+
+    void setModificationTime (int64_t time, bool includeSelfCallback)
+    {
+        setValue (time, ModificationTimePropertyId, includeSelfCallback);
+    }
+
+    int64_t getModificationTime ()
+    {
+        return getValue<int64_t> (ModificationTimePropertyId);
+    }
+
+    static inline const juce::Identifier FileTypeId { "File" };
+    static inline const juce::Identifier NamePropertyId             { "name" };
+    static inline const juce::Identifier TypePropertyId             { "type" };
+    static inline const juce::Identifier CreationTimePropertyId     { "createTime" };
+    static inline const juce::Identifier ModificationTimePropertyId { "modificationTime" };
+
+    static juce::ValueTree create (juce::String filePath, int64_t createTime, int64_t modificationTime, DirectoryDataProperties::TypeIndex fileType)
     {
         juce::ValueTree fileVT { FileTypeId };
         fileVT.setProperty (NamePropertyId, filePath, nullptr);
         fileVT.setProperty (TypePropertyId, static_cast<int> (fileType), nullptr);
+        fileVT.setProperty (CreationTimePropertyId, createTime, nullptr);
+        fileVT.setProperty (ModificationTimePropertyId, modificationTime, nullptr);
         return fileVT;
     }
 
@@ -145,6 +169,26 @@ public:
         return getValue<juce::String> (NamePropertyId);
     }
 
+    void setCreateTime (int64_t time, bool includeSelfCallback)
+    {
+        setValue (time, CreationTimePropertyId, includeSelfCallback);
+    }
+
+    int64_t getCreateTime ()
+    {
+        return getValue<int64_t> (CreationTimePropertyId);
+    }
+
+    void setModificationTime (int64_t time, bool includeSelfCallback)
+    {
+        setValue (time, ModificationTimePropertyId, includeSelfCallback);
+    }
+
+    int64_t getModificationTime ()
+    {
+        return getValue<int64_t> (ModificationTimePropertyId);
+    }
+
     std::function<void (juce::ValueTree folder)> onFolderAdded;
     std::function<void (juce::ValueTree folder)> onFolderRemoved;
     std::function<void (juce::ValueTree folder)> onFolderUpdated;
@@ -153,19 +197,23 @@ public:
     std::function<void (juce::ValueTree file)> onFileUpdated;
 
     static inline const juce::Identifier FolderTypeId { "Folder" };
-    static inline const juce::Identifier NamePropertyId { "name" };
-    static inline const juce::Identifier StatusPropertyId { "status" };
+    static inline const juce::Identifier NamePropertyId             { "name" };
+    static inline const juce::Identifier StatusPropertyId           { "status" };
+    static inline const juce::Identifier CreationTimePropertyId     { "createTime" };
+    static inline const juce::Identifier ModificationTimePropertyId { "modificationTime" };
 
     static bool isFolderVT (juce::ValueTree directoryEntryVT)
     {
         return directoryEntryVT.getType () == FolderTypeId;
     }
 
-    static juce::ValueTree create (juce::String filePath)
+    static juce::ValueTree create (juce::String filePath, int64_t createTime, int64_t modificationTime)
     {
         juce::ValueTree fileVT { FolderTypeId };
         fileVT.setProperty (NamePropertyId, filePath, nullptr);
         fileVT.setProperty (StatusPropertyId, "unscanned", nullptr);
+        fileVT.setProperty (CreationTimePropertyId, createTime, nullptr);
+        fileVT.setProperty (ModificationTimePropertyId, modificationTime, nullptr);
         return fileVT;
     }
 

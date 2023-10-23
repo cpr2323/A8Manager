@@ -283,8 +283,10 @@ void FileViewComponent::listBoxItemClicked (int row, [[maybe_unused]] const juce
             {
                 if (option == 0) // no
                     return;
-                folder.deleteFile ();
-                // TODO handle delete error
+                if (! folder.deleteFile ())
+                {
+                    // TODO handle delete error
+                }
             }));
         });
         pm.showMenuAsync ({}, [this] (int) {});
