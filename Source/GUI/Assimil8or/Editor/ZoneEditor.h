@@ -80,10 +80,11 @@ public:
     ~ZoneEditor () = default;
 
     void init (juce::ValueTree zonePropertiesVT, juce::ValueTree rootPropertiesVT);
-    void setLoopLengthIsEnd (bool loopLengthIsEnd);
-    void receiveSampleLoadRequest (juce::File sampleFile);
+    void checkSampleExistence ();
     bool isSupportedAudioFile (juce::File file);
     void loadSample (juce::String sampleFileName);
+    void receiveSampleLoadRequest (juce::File sampleFile);
+    void setLoopLengthIsEnd (bool loopLengthIsEnd);
 
     std::function<void (juce::String)> onSampleChange;
     std::function<bool (double)> isMinVoltageInRange;

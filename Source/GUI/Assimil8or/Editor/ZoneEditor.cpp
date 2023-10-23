@@ -654,6 +654,11 @@ void ZoneEditor::resized ()
     levelOffsetTextEditor.setBounds (levelOffsetLabel.getRight () + spaceBetweenLabelAndInput, levelOffsetLabel.getY (), scaleWidth (otherInputScale) - spaceBetweenLabelAndInput, 20);
 }
 
+void ZoneEditor::checkSampleExistence ()
+{
+    updateSampleFileInfo (zoneProperties.getSample ());
+}
+
 double ZoneEditor::snapLoopLength (double rawValue)
 {
     if (rawValue < 2048)

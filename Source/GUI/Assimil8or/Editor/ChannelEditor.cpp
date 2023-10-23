@@ -1081,6 +1081,14 @@ void ChannelEditor::receiveSampleLoadRequest (juce::File sampleFile)
     curZoneEditor->receiveSampleLoadRequest (sampleFile);
 }
 
+void ChannelEditor::checkSampleFileExistence ()
+{
+    for (auto& zoneEditor : zoneEditors)
+    {
+        zoneEditor.checkSampleExistence ();
+    }
+}
+
 void ChannelEditor::setupChannelPropertiesCallbacks ()
 {
     channelProperties.onIdChange = [this] ([[maybe_unused]] int id) { jassertfalse; };

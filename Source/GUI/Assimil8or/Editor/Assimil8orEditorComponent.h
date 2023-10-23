@@ -6,6 +6,7 @@
 #include "../../../AppProperties.h"
 #include "../../../Assimil8or/Audio/AudioPlayerProperties.h"
 #include "../../../Assimil8or/Preset/PresetProperties.h"
+#include "../../../Utility/DirectoryDataProperties.h"
 #include "../../../Utility/RuntimeRootProperties.h"
 
 class WindowDecorator : public juce::Component
@@ -34,6 +35,8 @@ public:
 private:
     RuntimeRootProperties runtimeRootProperties;
     AppProperties appProperties;
+    AudioPlayerProperties audioPlayerProperties;
+    DirectoryDataProperties directoryDataProperties;
     PresetProperties presetProperties;
     PresetProperties unEditedPresetProperties;
     PresetProperties minPresetProperties;
@@ -41,7 +44,6 @@ private:
     ChannelProperties defaultChannelProperties;
     ChannelProperties copyBufferChannelProperties;
     bool copyBufferActive { false };
-    AudioPlayerProperties audioPlayerProperties;
 
     juce::Label titleLabel;
     juce::TextButton saveButton;
@@ -77,6 +79,7 @@ private:
     std::array<ChannelEditor, 8> channelEditors;
     std::array<ChannelProperties, 8> channelProperties;
 
+    void checkSampleFilesExistance ();
     void exportPreset ();
     juce::String formatXfadeWidthString (double width);
     void importPreset ();
