@@ -126,6 +126,7 @@ void Assimil8orValidator::startValidation ()
     {
         valdatationState = ValdatationState::restarting;
         cancelCurrentValidation = true;
+        LogValidation ("cancelCurrentValidation = true");
         LogValidation ("Assimil8orValidator::startValidation: wait for restart");
     }
     else
@@ -151,6 +152,7 @@ void Assimil8orValidator::run ()
             case Assimil8orValidator::ValdatationState::validating:
             {
                 LogValidation ("Assimil8orValidator::run: validating");
+                cancelCurrentValidation = false;
                 validateThread.startThread ();
             }
             break;
@@ -161,6 +163,7 @@ void Assimil8orValidator::run ()
                 //        maybe request an exit again here
                 while (validateThread.isThreadRunning ());
                 cancelCurrentValidation = true;
+                LogValidation ("cancelCurrentValidation = true");
                 valdatationState = ValdatationState::validating;
                 validatorProperties.setScanStatus ("scanning", false);
                 LogValidation ("Assimil8orValidator::run - ValdatationState::restarting - notify");
@@ -386,7 +389,7 @@ std::tuple<uint64_t, std::optional<std::map<juce::String, uint64_t>>> Assimil8or
                     {
                         // report error
                         validatorResultProperties.update (ValidatorResultProperties::ResultTypeError, "['" + sampleFileName + "' does not exist]", false);
-                        validatorResultProperties.addFixerEntry (FixerEntryProperties::FixerTypeNotFound, sampleFile.getFullPathName ());
+                        validatorResultProperties.addFixerEntry (FixerEntryProperties::FixerTypeFileNotFound, sampleFile.getFullPathName ());
                     }
                     else
                     {
@@ -417,7 +420,7 @@ std::tuple<uint64_t, std::optional<std::map<juce::String, uint64_t>>> Assimil8or
             for (const auto& pair : sampleSizeList)
                 total += pair.second;
             return total;
-        }();
+        } ();
         validatorResultProperties.update (ValidatorResultProperties::ResultTypeInfo, "RAM: " + getMemorySizeString (sizeRequiredForSamples), false);
         if (! isIgnored)
             optionalPresetInfo = sampleSizeList;

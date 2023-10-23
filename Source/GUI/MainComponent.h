@@ -3,7 +3,7 @@
 #include <JuceHeader.h>
 #include "CurrentFolderComponent.h"
 #include "GuiProperties.h"
-#include "ToolWindow.h"
+#include "BottomStatusWindow.h"
 #include "Assimil8or/Editor/Assimil8orEditorComponent.h"
 #include "Assimil8or/FileView/FileViewComponent.h"
 #include "Assimil8or/FileView/FileViewComponent.h"
@@ -27,7 +27,7 @@ private:
     SplitWindowComponent topAndBottomSplitter;
     SplitWindowComponent presetListEditorSplitter;
     SplitWindowComponent folderBrowserEditorSplitter;
-    ToolWindow toolWindow;
+    BottomStatusWindow bottomStatusWindow;
 
     juce::TooltipWindow tooltipWindow;
 

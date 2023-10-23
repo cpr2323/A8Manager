@@ -154,7 +154,7 @@ void AudioPlayer::changeListenerCallback (juce::ChangeBroadcaster*)
 {
     LogAudioPlayer ("audio device settings changed");
     auto audioDeviceSettings { audioDeviceManager.createStateXml () };
-    if(audioDeviceSettings != nullptr)
+    if (audioDeviceSettings != nullptr)
     {
         auto xmlString { audioDeviceSettings->toString () };
         audioSettingsProperties.setConfig (xmlString, false);

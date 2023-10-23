@@ -1,11 +1,16 @@
 #include "Assimil8orValidatorComponent.h"
 #include "RenameDialogComponent.h"
+#include "LocateFileComponent.h"
 #include "../../../Assimil8or/Validator/ValidatorResultListProperties.h"
 #include "../../../Utility/RuntimeRootProperties.h"
+
+const auto kValidFileSystemCharacters { juce::String (" !#$%&'()+,-.0123456789;=@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]_`{}~abcdefghijklmnopqrstuvwxyz") };
 
 Assimil8orValidatorComponent::Assimil8orValidatorComponent ()
 {
     setOpaque (true);
+
+    addAndMakeVisible (validatorToolWindow);
 
     validationResultsListBox.setClickingTogglesRowSelection (false);
     validationResultsListBox.setColour (juce::ListBox::outlineColourId, juce::Colours::grey);
@@ -16,31 +21,8 @@ Assimil8orValidatorComponent::Assimil8orValidatorComponent ()
     validationResultsListBox.getHeader ().setStretchToFitActive (true);
     addAndMakeVisible (validationResultsListBox);
 
-    auto setupFilterButton = [this] (juce::TextButton& button, juce::String text, juce::String tooltip)
-    {
-        button.setColour (juce::TextButton::ColourIds::buttonColourId, juce::Colours::grey);
-        button.setColour (juce::TextButton::ColourIds::buttonOnColourId, juce::Colours::green.darker (0.5f));
-        button.setClickingTogglesState (true);
-        button.setTooltip (tooltip);
-        button.setToggleable (true);
-        button.setButtonText (text);
-        button.setToggleState (true, juce::NotificationType::dontSendNotification);
-        button.onClick = [this] ()
-        {
-            setupFilterList ();
-            validatorResultsQuickLookupList.clear ();
-            buildQuickLookupList ();
-            validationResultsListBox.updateContent ();
-            updateHeader ();
-        };
-        addAndMakeVisible (button);
-    };
-    setupFilterButton (infoFilterButton, "I", "Toggles viewing of Info messages");
-    setupFilterButton (warningFilterButton, "W", "Toggles viewing of Warning messages");
-    setupFilterButton (errorFilterButton, "E", "Toggles viewing of Error messages");
-
     audioFormatManager.registerBasicFormats ();
-    setupFilterList ();
+    setupViewList ();
 }
 
 Assimil8orValidatorComponent::~Assimil8orValidatorComponent ()
@@ -53,12 +35,54 @@ Assimil8orValidatorComponent::~Assimil8orValidatorComponent ()
         // to eventually delete this
         delete renameDialog;
     }
+    if (locateDialog!= nullptr)
+    {
+        locateDialog->exitModalState (0);
+
+        // we are shutting down: can't wait for the message manager
+        // to eventually delete this
+        delete locateDialog;
+    }
 }
 
 void Assimil8orValidatorComponent::init (juce::ValueTree rootPropertiesVT)
 {
     RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
     directoryDataProperties.wrap (runtimeRootProperties.getValueTree (), DirectoryDataProperties::WrapperType::client, DirectoryDataProperties::EnableCallbacks::yes);
+
+    validatorComponentProperties.wrap (runtimeRootProperties.getValueTree (), ValidatorComponentProperties::WrapperType::owner, ValidatorComponentProperties::EnableCallbacks::yes);
+    auto updateFromViewChange = [this] ()
+    {
+        setupViewList ();
+        validatorResultsQuickLookupList.clear ();
+        buildQuickLookupList ();
+        validationResultsListBox.updateContent ();
+        updateHeader ();
+    };
+    validatorComponentProperties.onViewInfoChange = [this, updateFromViewChange] (bool)
+    {
+        updateFromViewChange ();
+    };
+    validatorComponentProperties.onViewWarningChange = [this, updateFromViewChange] (bool)
+    {
+        updateFromViewChange ();
+    };
+    validatorComponentProperties.onViewErrorChange = [this, updateFromViewChange] (bool)
+    {
+        updateFromViewChange ();
+    };
+    validatorComponentProperties.onConvertAllTrigger = [this] ()
+    {
+        autoConvertAll ();
+    };
+    validatorComponentProperties.onLocateAllTrigger = [this] ()
+    {
+        autoLocateAll ();
+    };
+    validatorComponentProperties.onRenameAllTrigger = [this] ()
+    {
+        autoRenameAll ();
+    };
 
     validatorProperties.wrap (runtimeRootProperties.getValueTree (), ValidatorProperties::WrapperType::client, ValidatorProperties::EnableCallbacks::yes);
     validatorProperties.onScanStatusChanged = [this] (juce::String scanStatus)
@@ -71,6 +95,8 @@ void Assimil8orValidatorComponent::init (juce::ValueTree rootPropertiesVT)
     };
     localCopyOfValidatorResultsList = validatorProperties.getValidatorResultListVT ().createCopy ();
     updateListFromScan ("idle");
+
+    validatorToolWindow.init (rootPropertiesVT);
 }
 
 void Assimil8orValidatorComponent::updateListFromScan (juce::String scanStatus)
@@ -87,16 +113,17 @@ void Assimil8orValidatorComponent::updateListFromScan (juce::String scanStatus)
     setSize (getWidth (), getHeight () - 1);
 }
 
-void Assimil8orValidatorComponent::setupFilterList ()
+void Assimil8orValidatorComponent::setupViewList ()
 {
-    filterList.clearQuick ();
-    if (infoFilterButton.getToggleState ())
-        filterList.add (ValidatorResultProperties::ResultTypeInfo);
-    if (warningFilterButton.getToggleState ())
-        filterList.add (ValidatorResultProperties::ResultTypeWarning);
-    if (errorFilterButton.getToggleState ())
-        filterList.add (ValidatorResultProperties::ResultTypeError);
+    viewList.clearQuick ();
+    if (validatorComponentProperties.getViewInfo ())
+        viewList.add (ValidatorResultProperties::ResultTypeInfo);
+    if (validatorComponentProperties.getViewWarning ())
+        viewList.add (ValidatorResultProperties::ResultTypeWarning);
+    if (validatorComponentProperties.getViewError ())
+        viewList.add (ValidatorResultProperties::ResultTypeError);
 }
+
 void Assimil8orValidatorComponent::updateHeader ()
 {
     validationResultsListBox.getHeader ().setColumnName (Columns::text, "Message (" + juce::String (validatorResultsQuickLookupList.size ()) + " of " +
@@ -112,6 +139,11 @@ void Assimil8orValidatorComponent::buildQuickLookupList ()
     totalInfoItems = 0;
     totalWarningItems = 0;
     totalErrorItems = 0;
+    renameFilesCount = 0;
+    renameFoldersCount = 0;
+    convertCount = 0;
+    missingFileCount = 0;
+
     if (! localCopyOfValidatorResultsList.isValid ())
         return;
 
@@ -124,10 +156,28 @@ void Assimil8orValidatorComponent::buildQuickLookupList ()
         totalInfoItems += (validatorResultProperties.getType () == ValidatorResultProperties::ResultTypeInfo ? 1 : 0);
         totalWarningItems += (validatorResultProperties.getType () == ValidatorResultProperties::ResultTypeWarning? 1 : 0);
         totalErrorItems += (validatorResultProperties.getType () == ValidatorResultProperties::ResultTypeError ? 1 : 0);
-        if (filterList.contains (validatorResultProperties.getType ()))
+        validatorResultProperties.forEachFixerEntry ([this, &validatorResultVT] (juce::ValueTree fixerEntryVT)
+        {
+            FixerEntryProperties fixerEntryProperties (validatorResultVT, FixerEntryProperties::WrapperType::client, FixerEntryProperties::EnableCallbacks::no);
+            if (fixerEntryProperties.getType () == FixerEntryProperties::FixerTypeRenameFile)
+                ++renameFilesCount;
+            else if (fixerEntryProperties.getType () == FixerEntryProperties::FixerTypeRenameFolder)
+                ++renameFoldersCount;
+            else if (fixerEntryProperties.getType () == FixerEntryProperties::FixerTypeConvert)
+                ++convertCount;
+            else if (fixerEntryProperties.getType () == FixerEntryProperties::FixerTypeFileNotFound)
+                ++missingFileCount;
+            else
+                jassertfalse;
+            return true;
+        });
+        if (viewList.contains (validatorResultProperties.getType ()))
             validatorResultsQuickLookupList.emplace_back (validatorResultVT);
         return true;
     });
+    validatorComponentProperties.enableConvertAll (convertCount, false);
+    validatorComponentProperties.enableLocateAll (missingFileCount, false);
+    validatorComponentProperties.enableRenameAll (renameFilesCount > 0 || renameFoldersCount > 0, false);
 }
 
 void Assimil8orValidatorComponent::paint ([[maybe_unused]] juce::Graphics& g)
@@ -158,13 +208,8 @@ juce::String Assimil8orValidatorComponent::getCellTooltip (int rowNumber, int co
 void Assimil8orValidatorComponent::resized ()
 {
     auto localBounds { getLocalBounds () };
+    validatorToolWindow.setBounds (localBounds.removeFromTop (25));
     validationResultsListBox.setBounds (localBounds);
-    auto filterButtonBounds { getLocalBounds ().removeFromBottom (28).withTrimmedBottom (3).withTrimmedRight (3) };
-    errorFilterButton.setBounds (filterButtonBounds.removeFromRight (filterButtonBounds.getHeight ()));
-    filterButtonBounds.removeFromRight (5);
-    warningFilterButton.setBounds (filterButtonBounds.removeFromRight (filterButtonBounds.getHeight ()));
-    filterButtonBounds.removeFromRight (5);
-    infoFilterButton.setBounds (filterButtonBounds.removeFromRight (filterButtonBounds.getHeight ()));
 }
 
 int Assimil8orValidatorComponent::getNumRows ()
@@ -249,6 +294,60 @@ juce::Component* Assimil8orValidatorComponent::refreshComponentForCell (int rowN
     return nullptr;
 }
 
+void Assimil8orValidatorComponent::handleLocatedFiles (std::vector<std::tuple <juce::File, juce::File>>& locatedFiles)
+{
+    std::vector<juce::File> copiedFiles;
+    for (auto [sourceFile, destinationFile] : locatedFiles)
+    {
+        if (sourceFile.copyFileTo (destinationFile) == true)
+        {
+            copiedFiles.emplace_back (destinationFile);
+        }
+        else
+        {
+            juce::AlertWindow::showMessageBoxAsync (juce::AlertWindow::WarningIcon, "Copy Failed",
+                "Unable to rename '" + sourceFile.getFileName () + "' to '" + destinationFile.getFileName () + "'", {}, nullptr,
+                juce::ModalCallbackFunction::create ([this] (int) {}));
+        }
+    }
+    std::vector<juce::File> newList;
+    std::set_difference (filesToLocate.begin (), filesToLocate.end (), copiedFiles.begin (), copiedFiles.end (), std::back_inserter (newList));
+    filesToLocate = newList;
+    if (filesToLocate.size () > 0)
+    {
+        locateFilesInitialDirectory = dynamic_cast<LocateFileComponent*> (locateDialog->getContentComponent ())->getCurFolder ();
+        triggerAsyncUpdate ();
+    }
+}
+
+// handleAsyncUpdate handles displaying the locate dialog, and copying any missing files it can locate, and then redisplaying the dialog if there are more to be located
+void Assimil8orValidatorComponent::handleAsyncUpdate ()
+{
+    juce::DialogWindow::LaunchOptions options;
+    auto locateComponent { std::make_unique<LocateFileComponent> (filesToLocate, locateFilesInitialDirectory, [this] (std::vector<std::tuple <juce::File, juce::File>> locatedFiles)
+    {
+        handleLocatedFiles (locatedFiles);
+        locateDialog->exitModalState (0);
+    },
+    [this] ()
+    {
+        locateDialog->exitModalState (0);
+    }) };
+    options.content.setOwned (locateComponent.release ());
+
+    juce::Rectangle<int> area (0, 0, 500, 400);
+
+    options.content->setSize (area.getWidth (), area.getHeight ());
+    options.dialogTitle = "Locate Missing Files";
+    options.dialogBackgroundColour = juce::Colour (juce::Colours::grey);
+    options.escapeKeyTriggersCloseButton = true;
+    options.useNativeTitleBar = false;
+    options.resizable = true;
+    options.componentToCentreAround = this->getParentComponent ();
+
+    locateDialog = options.launchAsync ();
+}
+
 void Assimil8orValidatorComponent::rename (juce::File file, int maxLength)
 {
     // bring up a dialog showing the old name, a field for typing the new name (length constrained), and an ok/cancel button
@@ -271,6 +370,132 @@ void Assimil8orValidatorComponent::rename (juce::File file, int maxLength)
     options.componentToCentreAround = this;
 
     renameDialog = options.launchAsync ();
+}
+
+void Assimil8orValidatorComponent::autoRename (juce::File fileToRename, bool doRescan)
+{
+    auto getNewFile = [&fileToRename] (juce::String newName)
+    {
+        return fileToRename.getParentDirectory ().getChildFile (newName).withFileExtension (fileToRename.getFileExtension ());
+    };
+    const auto kMaxFileNameLength { 47 };
+    const auto kMaxFileNameWithoutExtension { kMaxFileNameLength - 4 };
+
+    // remove illegal characters
+    auto fileName { fileToRename.getFileNameWithoutExtension ().retainCharacters (kValidFileSystemCharacters) };
+
+    // if name is still too long, try the 'remove vowels' algorithm
+    if (fileName.length () > kMaxFileNameWithoutExtension)
+    {
+        auto removeVowels = [this] (juce::String longString)
+        {
+            const auto lowerCaseVowels { juce::String ("aeiou") };
+            const auto capitolLetter { juce::String ("ABCDEFGHIJKLMNOPQRSTUVWXYZ") };
+            juce::String shortString { longString.substring (0,1) };
+            for (auto stringIndex { 1 }; stringIndex < longString.length () - 2; ++stringIndex)
+            {
+                if (lowerCaseVowels.containsChar (longString [stringIndex]) && ! capitolLetter.containsChar (longString [stringIndex - 1]))
+                    continue;
+                shortString += longString [stringIndex];
+            }
+            shortString += longString.substring (longString.length () - 1, 1);
+            return shortString;
+        };
+        if (const auto noVowelsFileName { removeVowels (fileName)}; noVowelsFileName.length () != 0)
+            fileName = noVowelsFileName;
+    }
+
+    // if name is still too long truncate to max length
+    if (fileName.length () > kMaxFileNameWithoutExtension)
+        fileName = fileName.substring (0, kMaxFileNameWithoutExtension);
+
+    // if name is still too long, or new file name already exists, truncate to max length and start appending an integer value to the name
+    auto suffixValue { 1 };
+    if (fileName.length () > kMaxFileNameWithoutExtension || getNewFile (fileName).exists ())
+    {
+        const auto prefix { fileName.substring (0, kMaxFileNameWithoutExtension) };
+        while (getNewFile (fileName).exists ())
+        {
+            const auto suffixString { juce::String (suffixValue) };
+            const auto trimAmount { juce::jmax (0, prefix.length () + suffixString.length () - kMaxFileNameWithoutExtension) };
+            fileName = prefix.substring (0, prefix.length () - trimAmount) + suffixString;
+            ++suffixValue;
+        }
+    }
+
+    jassert (fileName != fileToRename.getFileNameWithoutExtension ());
+
+    if (fileToRename.moveFileTo (getNewFile (fileName)) != true)
+    {
+        // TODO report error
+    }
+
+    if (doRescan)
+        directoryDataProperties.triggerStartScan (false);
+}
+
+void Assimil8orValidatorComponent::autoRenameAll ()
+{
+    ValueTreeHelpers::forEachChildOfType (validatorResultsQuickLookupList [0].getParent (), ValidatorResultProperties::ValidatorResultTypeId, [this] (juce::ValueTree vrpVT)
+    {
+        ValidatorResultProperties validatorResultProperties (vrpVT, ValidatorResultProperties::WrapperType::client, ValidatorResultProperties::EnableCallbacks::no);
+        validatorResultProperties.forEachFixerEntry ([this] (juce::ValueTree fixerEntryVT)
+        {
+            FixerEntryProperties fixerEntryProperties (fixerEntryVT, FixerEntryProperties::WrapperType::client, FixerEntryProperties::EnableCallbacks::no);
+            if (fixerEntryProperties.getType () == FixerEntryProperties::FixerTypeRenameFile || fixerEntryProperties.getType () == FixerEntryProperties::FixerTypeRenameFolder)
+            {
+                auto file { juce::File (fixerEntryProperties.getFileName ()) };
+                autoRename (file, false);
+            }
+            return true;
+        });
+        return true;
+    });
+    directoryDataProperties.triggerStartScan (false);
+}
+
+void Assimil8orValidatorComponent::autoConvertAll ()
+{
+    ValueTreeHelpers::forEachChildOfType (validatorResultsQuickLookupList [0].getParent (), ValidatorResultProperties::ValidatorResultTypeId, [this] (juce::ValueTree vrpVT)
+    {
+        ValidatorResultProperties validatorResultProperties (vrpVT, ValidatorResultProperties::WrapperType::client, ValidatorResultProperties::EnableCallbacks::no);
+        validatorResultProperties.forEachFixerEntry ([this] (juce::ValueTree fixerEntryVT)
+        {
+            FixerEntryProperties fixerEntryProperties (fixerEntryVT, FixerEntryProperties::WrapperType::client, FixerEntryProperties::EnableCallbacks::no);
+            if (fixerEntryProperties.getType () == FixerEntryProperties::FixerTypeConvert)
+            {
+                auto file { juce::File (fixerEntryProperties.getFileName ()) };
+                convert (file);
+            }
+            return true;
+        });
+        return true;
+    });
+    directoryDataProperties.triggerStartScan (false);
+}
+
+void Assimil8orValidatorComponent::autoLocateAll ()
+{
+    // build list of files that need to be located
+    filesToLocate.clear ();
+    ValueTreeHelpers::forEachChildOfType (validatorResultsQuickLookupList [0].getParent (), ValidatorResultProperties::ValidatorResultTypeId, [this] (juce::ValueTree vrpVT)
+    {
+        ValidatorResultProperties validatorResultProperties (vrpVT, ValidatorResultProperties::WrapperType::client, ValidatorResultProperties::EnableCallbacks::no);
+        validatorResultProperties.forEachFixerEntry ([this] (juce::ValueTree fixerEntryVT)
+        {
+            FixerEntryProperties fixerEntryProperties (fixerEntryVT, FixerEntryProperties::WrapperType::client, FixerEntryProperties::EnableCallbacks::no);
+            if (fixerEntryProperties.getType () == FixerEntryProperties::FixerTypeFileNotFound)
+            {
+                auto file { juce::File (fixerEntryProperties.getFileName ()) };
+                filesToLocate.emplace_back (file);
+            }
+            return true;
+        });
+        return true;
+    });
+    // handleAsyncUpdate handles displaying the locate dialog, and copying any missing files it can locate, and then redisplaying the dialog if there are more to be located
+    locateFilesInitialDirectory = directoryDataProperties.getRootFolder ();
+    triggerAsyncUpdate ();
 }
 
 void Assimil8orValidatorComponent::convert (juce::File file)
@@ -379,7 +604,7 @@ void Assimil8orValidatorComponent::locate (juce::File file)
         if (fc.getURLResults ().size () == 1 && fc.getURLResults () [0].isLocalFile ())
         {
             // copy selected file to missing file location
-            auto sourceFile { fc.getURLResults () [0].getLocalFile () };
+            const auto sourceFile { fc.getURLResults () [0].getLocalFile () };
             // TODO - this should probably be in a thread
             if (sourceFile.copyFileTo (file) == false)
             {
@@ -403,72 +628,78 @@ void Assimil8orValidatorComponent::cellClicked (int rowNumber, int columnId, con
     {
         ValidatorResultProperties validatorResultProperties (validatorResultsQuickLookupList [rowNumber],
                                                              ValidatorResultProperties::WrapperType::client, ValidatorResultProperties::EnableCallbacks::no);
-        if (validatorResultProperties.getNumFixerEntries () > 0)
+        if (validatorResultProperties.getNumFixerEntries () == 1)
         {
-            if (validatorResultProperties.getNumFixerEntries () == 1)
-            {
-                juce::ValueTree fixerEntryVT;
-                validatorResultProperties.forEachFixerEntry ([this, &fixerEntryVT] (juce::ValueTree feVT)
-                {
-                    fixerEntryVT = feVT;
-                    return false; // exit after the first one (since there is only one)
-                });
-                FixerEntryProperties fixerEntryProperties (fixerEntryVT, FixerEntryProperties::WrapperType::client, FixerEntryProperties::EnableCallbacks::no);
+            // Handle one fix
 
-                // just do the fix
+            juce::ValueTree fixerEntryVT;
+            // TODO - add an indexed getter, since using a for loop to get the first item seems like overkill
+            validatorResultProperties.forEachFixerEntry ([this, &fixerEntryVT] (juce::ValueTree feVT)
+            {
+                fixerEntryVT = feVT;
+                return false; // exit after the first one (since that is the one we want)
+            });
+            FixerEntryProperties fixerEntryProperties (fixerEntryVT, FixerEntryProperties::WrapperType::client, FixerEntryProperties::EnableCallbacks::no);
+
+            // just do the fix
+            if (fixerEntryProperties.getType () == FixerEntryProperties::FixerTypeRenameFile)
+            {
+                juce::PopupMenu pm;
+                auto file { juce::File (fixerEntryProperties.getFileName ()) };
+                pm.addItem (file.getParentDirectory ().getFileName () + file.getSeparatorString () + file.getFileName (), false, false, {});
+                pm.addItem ("Rename", true, false, [this, kMaxFileNameLength, file = fixerEntryProperties.getFileName ()] () { rename (file, kMaxFileNameLength); });
+                pm.addItem ("Auto Rename", true, false, [this, kMaxFileNameLength, file = fixerEntryProperties.getFileName ()] () { autoRename (juce::File (file), true); });
+                pm.showMenuAsync ({}, [this] (int) {});
+            }
+            else if (fixerEntryProperties.getType () == FixerEntryProperties::FixerTypeRenameFolder)
+            {
+                rename (juce::File (fixerEntryProperties.getFileName ()), kMaxFolderNameLength);
+            }
+            else if (fixerEntryProperties.getType () == FixerEntryProperties::FixerTypeConvert)
+            {
+                convert (juce::File (fixerEntryProperties.getFileName ()));
+            }
+            else if (fixerEntryProperties.getType () == FixerEntryProperties::FixerTypeFileNotFound)
+            {
+                locate (juce::File (fixerEntryProperties.getFileName ()));
+            }
+            else
+            {
+                jassertfalse;
+            }
+        }
+        else if (validatorResultProperties.getNumFixerEntries () > 0)
+        {
+            // Handle multiple fixes
+            juce::PopupMenu pm;
+            validatorResultProperties.forEachFixerEntry ([this, &pm, kMaxFileNameLength, kMaxFolderNameLength] (juce::ValueTree fixerEntryVT)
+            {
+                FixerEntryProperties fixerEntryProperties (fixerEntryVT, FixerEntryProperties::WrapperType::client, FixerEntryProperties::EnableCallbacks::no);
+                auto file {juce::File (fixerEntryProperties.getFileName ())};
                 if (fixerEntryProperties.getType () == FixerEntryProperties::FixerTypeRenameFile)
                 {
-                    rename (juce::File (fixerEntryProperties.getFileName ()), kMaxFileNameLength);
+                    pm.addItem ("Rename " + file.getFileName (), true, false, [this, kMaxFileNameLength, file] () { rename (file, kMaxFileNameLength); });
                 }
                 else if (fixerEntryProperties.getType () == FixerEntryProperties::FixerTypeRenameFolder)
                 {
-                    rename (juce::File (fixerEntryProperties.getFileName ()), kMaxFolderNameLength);
+                    pm.addItem ("Rename " + file.getFileName (), true, false, [this, kMaxFolderNameLength, file] () { rename (file, kMaxFolderNameLength); });
                 }
                 else if (fixerEntryProperties.getType () == FixerEntryProperties::FixerTypeConvert)
                 {
-                    convert (juce::File (fixerEntryProperties.getFileName ()));
+                    pm.addItem ("Convert " + file.getFileName (), true, false, [this, file] () { convert (file); });
                 }
-                else if (fixerEntryProperties.getType () == FixerEntryProperties::FixerTypeNotFound)
+                else if (fixerEntryProperties.getType () == FixerEntryProperties::FixerTypeFileNotFound)
                 {
-                    locate (juce::File (fixerEntryProperties.getFileName ()));
+                    pm.addItem ("Find " + file.getFileName (), true, false, [this, file] () { locate (file); });
                 }
                 else
                 {
                     jassertfalse;
                 }
-            }
-            else
-            {
-                juce::PopupMenu pm;
-                validatorResultProperties.forEachFixerEntry ([this, &pm, kMaxFileNameLength, kMaxFolderNameLength] (juce::ValueTree fixerEntryVT)
-                {
-                    FixerEntryProperties fixerEntryProperties (fixerEntryVT, FixerEntryProperties::WrapperType::client, FixerEntryProperties::EnableCallbacks::no);
-                    auto file {juce::File (fixerEntryProperties.getFileName ())};
-                    if (fixerEntryProperties.getType () == FixerEntryProperties::FixerTypeRenameFile)
-                    {
-                        pm.addItem ("Rename " + file.getFileName (), true, false, [this, kMaxFileNameLength, file] () { rename (file, kMaxFileNameLength); });
-                    }
-                    else if (fixerEntryProperties.getType () == FixerEntryProperties::FixerTypeRenameFolder)
-                    {
-                        pm.addItem ("Rename " + file.getFileName (), true, false, [this, kMaxFolderNameLength, file] () { rename (file, kMaxFolderNameLength); });
-                    }
-                    else if (fixerEntryProperties.getType () == FixerEntryProperties::FixerTypeConvert)
-                    {
-                        pm.addItem ("Convert " + file.getFileName (), true, false, [this, file] () { convert (file); });
-                    }
-                    else if (fixerEntryProperties.getType () == FixerEntryProperties::FixerTypeNotFound)
-                    {
-                        pm.addItem ("Find " + file.getFileName (), true, false, [this, file] () { locate (file); });
-                    }
-                    else
-                    {
-                        jassertfalse;
-                    }
 
-                    return true;
-                });
-                pm.showMenuAsync ({}, [this] (int) {});
-            }
+                return true;
+            });
+            pm.showMenuAsync ({}, [this] (int) {});
         }
     }
 }

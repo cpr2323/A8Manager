@@ -81,9 +81,7 @@ void DirectoryValueTree::init (juce::ValueTree rootPropertiesVT)
 {
     audioFormatManager.registerBasicFormats ();
 
-    RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
-    directoryDataProperties.wrap (runtimeRootProperties.getValueTree (), DirectoryDataProperties::WrapperType::owner, DirectoryDataProperties::EnableCallbacks::yes);
-
+    directoryDataProperties.wrap (rootPropertiesVT, DirectoryDataProperties::WrapperType::owner, DirectoryDataProperties::EnableCallbacks::yes);
     //ddpMonitor.assign (directoryDataProperties.getValueTreeRef ());
 
     directoryDataProperties.onScanDepthChange = [this] (int scanDepth) { setScanDepth (scanDepth); };
@@ -126,9 +124,9 @@ void DirectoryValueTree::sendStatusUpdate (DirectoryDataProperties::ScanStatus s
     });
 }
 
-juce::ValueTree DirectoryValueTree::makeFileEntry (juce::File file, DirectoryDataProperties::TypeIndex fileType)
+juce::ValueTree DirectoryValueTree::makeFileEntry (juce::File file, int64_t createTime, int64_t modificationTime, DirectoryDataProperties::TypeIndex fileType)
 {
-    auto fileVT { FileProperties::create (file.getFullPathName (), fileType) };
+    auto fileVT { FileProperties::create (file.getFullPathName (), createTime, modificationTime, fileType) };
     if (scanType == ScanType::fullScan)
     {
         switch (fileType)
@@ -377,6 +375,16 @@ bool DirectoryValueTree::hasFolderChanged (juce::ValueTree rootFolderVT)
                     LogDirectoryValueTree (true, "DirectoryValueTree::hasFolderChanged - item #" + juce::String (childIndex) + " names differ - do rescan");
                     return true;
                 }
+                if (curRootFolderChildFolder.getCreateTime () != curNewFolderChildFolder.getCreateTime ())
+                {
+                    LogDirectoryValueTree (true, "DirectoryValueTree::hasFolderChanged - item #" + juce::String (childIndex) + " creation times differ - do rescan");
+                    return true;
+                }
+                if (curRootFolderChildFolder.getModificationTime () != curNewFolderChildFolder.getModificationTime ())
+                {
+                    LogDirectoryValueTree (true, "DirectoryValueTree::hasFolderChanged - item #" + juce::String (childIndex) + " modification times differ - do rescan");
+                    return true;
+                }
             }
         }
         else
@@ -395,6 +403,17 @@ bool DirectoryValueTree::hasFolderChanged (juce::ValueTree rootFolderVT)
                     LogDirectoryValueTree (true, "DirectoryValueTree::hasFolderChanged - item #" + juce::String (childIndex) + " names differ - do rescan");
                     return true;
                 }
+                if (curRootFolderChildFile.getCreateTime () != curNewFolderChildFile.getCreateTime ())
+                {
+                    LogDirectoryValueTree (true, "DirectoryValueTree::hasFolderChanged - item #" + juce::String (childIndex) + " creation times differ - do rescan");
+                    return true;
+                }
+                if (curRootFolderChildFile.getModificationTime () != curNewFolderChildFile.getModificationTime ())
+                {
+                    LogDirectoryValueTree (true, "DirectoryValueTree::hasFolderChanged - item #" + juce::String (childIndex) + " modification times differ - do rescan");
+                    return true;
+                }
+
             }
         }
     }
@@ -411,12 +430,14 @@ void DirectoryValueTree::getContentsOfFolder (juce::ValueTree folderVT, int curD
             if (shouldCancelFunc ())
                 break;
 
+            const auto creationTime { entry.getFile ().getCreationTime ().getMilliseconds () };
+            const auto modificationTime { entry.getFile ().getLastModificationTime ().getMilliseconds () };
             if (scanType == ScanType::fullScan)
                 doIfProgressTimeElapsed ([this, fileName = entry.getFile ().getFileName ()] () { doProgressUpdate ("Reading File System: " + getPathFromCurrentRoot (fileName)); });
             if (const auto& curFile { entry.getFile () }; curFile.isDirectory ())
-                folderVT.addChild (FolderProperties::create (curFile.getFullPathName ()), -1, nullptr);
+                folderVT.addChild (FolderProperties::create (curFile.getFullPathName (), creationTime, modificationTime), -1, nullptr);
             else
-                folderVT.addChild (makeFileEntry (curFile, FileTypeHelpers::getFileType (curFile)), -1, nullptr);
+                folderVT.addChild (makeFileEntry (curFile, creationTime, modificationTime, FileTypeHelpers::getFileType (curFile)), -1, nullptr);
         }
         sortContentsOfFolder (folderVT, shouldCancelFunc);
         if (scanType == ScanType::fullScan && curDepth == 0)

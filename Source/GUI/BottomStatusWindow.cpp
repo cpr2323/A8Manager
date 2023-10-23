@@ -1,7 +1,7 @@
-#include "ToolWindow.h"
+#include "BottomStatusWindow.h"
 #include "../Utility/RuntimeRootProperties.h"
 
-ToolWindow::ToolWindow ()
+BottomStatusWindow::BottomStatusWindow ()
 {
     progressUpdateLabel.setColour (juce::Label::ColourIds::textColourId, juce::Colours::white);
     addAndMakeVisible (progressUpdateLabel);
@@ -14,7 +14,7 @@ ToolWindow::ToolWindow ()
     addAndMakeVisible (settingsButton);
 }
 
-void ToolWindow::init (juce::ValueTree rootPropertiesVT)
+void BottomStatusWindow::init (juce::ValueTree rootPropertiesVT)
 {
     RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
     audioPlayerProperties.wrap (runtimeRootProperties.getValueTree (), AudioPlayerProperties::WrapperType::owner, AudioPlayerProperties::EnableCallbacks::yes);
@@ -29,17 +29,17 @@ void ToolWindow::init (juce::ValueTree rootPropertiesVT)
     };
 }
 
-void ToolWindow::updateProgress (juce::String progressUpdate)
+void BottomStatusWindow::updateProgress (juce::String progressUpdate)
 {
     progressUpdateLabel.setText (progressUpdate, juce::NotificationType::dontSendNotification);
 }
 
-void ToolWindow::paint (juce::Graphics& g)
+void BottomStatusWindow::paint (juce::Graphics& g)
 {
     g.fillAll (progressUpdateLabel.findColour (juce::Label::ColourIds::backgroundColourId).brighter (0.9f));
 }
 
-void ToolWindow::resized ()
+void BottomStatusWindow::resized ()
 {
     auto localBounds { getLocalBounds () };
     localBounds.reduce (5, 3);

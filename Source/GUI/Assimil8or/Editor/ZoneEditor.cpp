@@ -53,7 +53,7 @@ ZoneEditor::ZoneEditor ()
     setupLabel (sourceLabel, "SOURCE", 14.0f, juce::Justification::centred);
     addAndMakeVisible (sourceLabel);
     auto setupSourceButton = [this] (juce::TextButton& sourceButton, juce::String text, bool initilalState, juce::Rectangle<int>* background,
-                                     std::function<void()> ifStoppedFunc)
+                                     std::function<void ()> ifStoppedFunc)
     {
         jassert (ifStoppedFunc != nullptr);
         jassert (background != nullptr);
@@ -90,7 +90,7 @@ ZoneEditor::ZoneEditor ()
     addAndMakeVisible (playModeLabel);
     auto setupPlayButton = [this] (juce::TextButton& playButton, juce::String text, bool initilalEnabledState, juce::String otherButtonText,
                                    juce::TextButton& sourceButton, AudioPlayerProperties::PlayState playState,
-                                   std::function<void()> startPlayFunction, std::function<void ()> switchPlayFunction)
+                                   std::function<void ()> startPlayFunction, std::function<void ()> switchPlayFunction)
     {
         playButton.setButtonText (text);
         playButton.setEnabled (initilalEnabledState);
@@ -652,6 +652,11 @@ void ZoneEditor::resized ()
 
     levelOffsetLabel.setBounds (xOffset, pitchOffsetLabel.getBottom () + 5, scaleWidth (otherLabelScale), 20);
     levelOffsetTextEditor.setBounds (levelOffsetLabel.getRight () + spaceBetweenLabelAndInput, levelOffsetLabel.getY (), scaleWidth (otherInputScale) - spaceBetweenLabelAndInput, 20);
+}
+
+void ZoneEditor::checkSampleExistence ()
+{
+    updateSampleFileInfo (zoneProperties.getSample ());
 }
 
 double ZoneEditor::snapLoopLength (double rawValue)

@@ -2,7 +2,7 @@
 
 <JUCERPROJECT id="wWHbxR" name="A8Manager" projectType="guiapp" useAppConfig="0"
               addUsingNamespaceToJuceHeader="0" displaySplashScreen="0" jucerFormatVersion="1"
-              companyName="OmOhmProductions" cppLanguageStandard="17" version="2.1.1"
+              companyName="OmOhmProductions" cppLanguageStandard="17" version="2.2"
               companyWebsite="www.omohmproductions.com">
   <MAINGROUP id="JDgvjc" name="A8Manager">
     <GROUP id="{26A00EED-F319-636E-6162-8A113C6EE925}" name="Source">
@@ -140,10 +140,22 @@
                   resource="0" file="Source/GUI/Assimil8or/Validator/Assimil8orValidatorComponent.cpp"/>
             <FILE id="PhfQ11" name="Assimil8orValidatorComponent.h" compile="0"
                   resource="0" file="Source/GUI/Assimil8or/Validator/Assimil8orValidatorComponent.h"/>
+            <FILE id="T4Ozoj" name="LocateFileComponent.cpp" compile="1" resource="0"
+                  file="Source/GUI/Assimil8or/Validator/LocateFileComponent.cpp"/>
+            <FILE id="U7XvxB" name="LocateFileComponent.h" compile="0" resource="0"
+                  file="Source/GUI/Assimil8or/Validator/LocateFileComponent.h"/>
             <FILE id="aVQZjM" name="RenameDialogComponent.cpp" compile="1" resource="0"
                   file="Source/GUI/Assimil8or/Validator/RenameDialogComponent.cpp"/>
             <FILE id="pHRbjm" name="RenameDialogComponent.h" compile="0" resource="0"
                   file="Source/GUI/Assimil8or/Validator/RenameDialogComponent.h"/>
+            <FILE id="clozWh" name="ValidatorComponentProperties.cpp" compile="1"
+                  resource="0" file="Source/GUI/Assimil8or/Validator/ValidatorComponentProperties.cpp"/>
+            <FILE id="UDmwNn" name="ValidatorComponentProperties.h" compile="0"
+                  resource="0" file="Source/GUI/Assimil8or/Validator/ValidatorComponentProperties.h"/>
+            <FILE id="Kq1Qvr" name="ValidatorToolWindow.cpp" compile="1" resource="0"
+                  file="Source/GUI/Assimil8or/Validator/ValidatorToolWindow.cpp"/>
+            <FILE id="BHqOqS" name="ValidatorToolWindow.h" compile="0" resource="0"
+                  file="Source/GUI/Assimil8or/Validator/ValidatorToolWindow.h"/>
           </GROUP>
         </GROUP>
         <FILE id="VJPDMS" name="CurrentFolderComponent.cpp" compile="1" resource="0"
@@ -156,8 +168,10 @@
         <FILE id="Van35d" name="MainComponent.cpp" compile="1" resource="0"
               file="Source/GUI/MainComponent.cpp"/>
         <FILE id="aJmy63" name="MainComponent.h" compile="0" resource="0" file="Source/GUI/MainComponent.h"/>
-        <FILE id="UTX5R3" name="ToolWindow.cpp" compile="1" resource="0" file="Source/GUI/ToolWindow.cpp"/>
-        <FILE id="uO9Sb7" name="ToolWindow.h" compile="0" resource="0" file="Source/GUI/ToolWindow.h"/>
+        <FILE id="UTX5R3" name="BottomStatusWindow.cpp" compile="1" resource="0"
+              file="Source/GUI/BottomStatusWindow.cpp"/>
+        <FILE id="uO9Sb7" name="BottomStatusWindow.h" compile="0" resource="0"
+              file="Source/GUI/BottomStatusWindow.h"/>
       </GROUP>
       <GROUP id="{8CE93423-6945-B212-EA23-BC0B9325BBF7}" name="Utility">
         <FILE id="ZzjeA7" name="Crc.h" compile="0" resource="0" file="Source/Utility/Crc.h"/>

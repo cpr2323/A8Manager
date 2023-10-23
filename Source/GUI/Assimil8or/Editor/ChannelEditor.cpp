@@ -973,7 +973,7 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
                 auto [topBoundary, bottomBoundary] { getVoltageBoundaries (zoneEditorIndex, 1) };
                 zoneProperties [zoneEditorIndex - 1].setMinVoltage (bottomBoundary + ((topBoundary - bottomBoundary) / 2), false);
             }
-            if (zoneEditorIndex == getNumUsedZones() - 1)
+            if (zoneEditorIndex == getNumUsedZones () - 1)
                 zoneProperties [zoneEditorIndex].setMinVoltage (-5.0, false);
             ensureProperZoneIsSelected ();
             updateAllZoneTabNames ();
@@ -1079,6 +1079,14 @@ void ChannelEditor::receiveSampleLoadRequest (juce::File sampleFile)
     auto zoneIndex { zoneTabs.getCurrentTabIndex () };
     auto curZoneEditor { dynamic_cast<ZoneEditor*> (zoneTabs.getTabContentComponent (zoneIndex)) };
     curZoneEditor->receiveSampleLoadRequest (sampleFile);
+}
+
+void ChannelEditor::checkSampleFileExistence ()
+{
+    for (auto& zoneEditor : zoneEditors)
+    {
+        zoneEditor.checkSampleExistence ();
+    }
 }
 
 void ChannelEditor::setupChannelPropertiesCallbacks ()

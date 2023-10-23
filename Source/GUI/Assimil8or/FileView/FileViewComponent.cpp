@@ -94,7 +94,6 @@ void FileViewComponent::updateFromNewData ()
 void FileViewComponent::buildQuickLookupList ()
 {
     updateDirectoryListQuickLookupList->clear ();
-    auto rf { directoryDataProperties.getRootFolderVT () };
     ValueTreeHelpers::forEachChild (directoryDataProperties.getRootFolderVT (), [this] (juce::ValueTree child)
     {
         const auto typeIndex { static_cast<int> (child.getProperty ("type")) };
@@ -284,8 +283,10 @@ void FileViewComponent::listBoxItemClicked (int row, [[maybe_unused]] const juce
             {
                 if (option == 0) // no
                     return;
-                folder.deleteFile ();
-                // TODO handle delete error
+                if (! folder.deleteFile ())
+                {
+                    // TODO handle delete error
+                }
             }));
         });
         pm.showMenuAsync ({}, [this] (int) {});

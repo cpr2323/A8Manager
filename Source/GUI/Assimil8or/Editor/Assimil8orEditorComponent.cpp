@@ -201,8 +201,16 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
     {
         audioPlayerProperties.setPlayState (AudioPlayerProperties::PlayState::stop, false);
     };
-    PresetManagerProperties presetManagerProperties (runtimeRootProperties.getValueTree (), PresetManagerProperties::WrapperType::owner, PresetManagerProperties::EnableCallbacks::no);
 
+    directoryDataProperties.wrap (runtimeRootProperties.getValueTree (), DirectoryDataProperties::WrapperType::client, DirectoryDataProperties::EnableCallbacks::yes);
+    directoryDataProperties.onRootScanComplete = [this] ()
+    {
+        juce::MessageManager::callAsync ([this] ()
+        {
+            checkSampleFilesExistance ();
+        });
+    };
+    PresetManagerProperties presetManagerProperties (runtimeRootProperties.getValueTree (), PresetManagerProperties::WrapperType::owner, PresetManagerProperties::EnableCallbacks::no);
     unEditedPresetProperties.wrap (presetManagerProperties.getPreset ("unedited"), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::yes);
     presetProperties.wrap (presetManagerProperties.getPreset ("edit"), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::yes);
     setupPresetPropertiesCallbacks ();
@@ -351,6 +359,12 @@ void Assimil8orEditorComponent::updateChannelTabName (int channelIndex)
     }
 
     channelTabs.setTabName (channelIndex, channelTabTitle);
+}
+
+void Assimil8orEditorComponent::checkSampleFilesExistance ()
+{
+    for (auto& channelEditor : channelEditors)
+        channelEditor.checkSampleFileExistence ();
 }
 
 void Assimil8orEditorComponent::resized ()
