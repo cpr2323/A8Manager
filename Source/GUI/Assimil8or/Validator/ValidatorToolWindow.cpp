@@ -3,7 +3,7 @@
 
 ValidatorToolWindow::ValidatorToolWindow ()
 {
-    auto setupFilterButton = [this] (juce::TextButton& button, juce::String text, juce::String tooltip, std::function<void()> clickFunction)
+    auto setupFilterButton = [this] (juce::TextButton& button, juce::String text, juce::String tooltip, std::function<void ()> clickFunction)
     {
         button.setColour (juce::TextButton::ColourIds::buttonColourId, juce::Colours::grey);
         button.setColour (juce::TextButton::ColourIds::buttonOnColourId, juce::Colours::green.darker (0.5f));
@@ -19,7 +19,7 @@ ValidatorToolWindow::ValidatorToolWindow ()
     setupFilterButton (viewInfoButton, "I", "Toggles viewing of Info messages", [this] () { validatorComponentProperties.setViewInfo (viewInfoButton.getToggleState (), false);  });
     setupFilterButton (viewWarningButton, "W", "Toggles viewing of Warning messages", [this] () { validatorComponentProperties.setViewWarning (viewWarningButton.getToggleState (), false);  });
     setupFilterButton (viewErrorButton, "E", "Toggles viewing of Error messages", [this] () { validatorComponentProperties.setViewError (viewErrorButton.getToggleState (), false);  });
-    
+
     auto setupDoAllButton = [this] (juce::TextButton& button, juce::String text, std::function<void ()> onClickFunc)
     {
         button.setButtonText (text);
@@ -55,7 +55,7 @@ void ValidatorToolWindow::paint (juce::Graphics& g)
 
 void ValidatorToolWindow::resized ()
 {
-    auto filterButtonBounds { getLocalBounds ().reduced(5, 3) };
+    auto filterButtonBounds { getLocalBounds ().reduced (5, 3) };
     viewErrorButton.setBounds (filterButtonBounds.removeFromRight (filterButtonBounds.getHeight ()));
     filterButtonBounds.removeFromRight (5);
     viewWarningButton.setBounds (filterButtonBounds.removeFromRight (filterButtonBounds.getHeight ()));

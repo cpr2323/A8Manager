@@ -315,7 +315,7 @@ void Assimil8orValidatorComponent::handleLocatedFiles (std::vector<std::tuple <j
     filesToLocate = newList;
     if (filesToLocate.size () > 0)
     {
-        locateFilesInitialDirectory = dynamic_cast<LocateFileComponent*>(locateDialog->getContentComponent ())->getCurFolder();
+        locateFilesInitialDirectory = dynamic_cast<LocateFileComponent*> (locateDialog->getContentComponent ())->getCurFolder ();
         triggerAsyncUpdate ();
     }
 }
@@ -385,14 +385,14 @@ void Assimil8orValidatorComponent::autoRename (juce::File fileToRename, bool doR
     auto fileName { fileToRename.getFileNameWithoutExtension ().retainCharacters (kValidFileSystemCharacters) };
 
     // if name is still too long, try the 'remove vowels' algorithm
-    if (fileName.length() > kMaxFileNameWithoutExtension)
+    if (fileName.length () > kMaxFileNameWithoutExtension)
     {
         auto removeVowels = [this] (juce::String longString)
         {
             const auto lowerCaseVowels { juce::String ("aeiou") };
             const auto capitolLetter { juce::String ("ABCDEFGHIJKLMNOPQRSTUVWXYZ") };
             juce::String shortString { longString.substring (0,1) };
-            for (auto stringIndex { 1 }; stringIndex < longString.length() - 2; ++stringIndex)
+            for (auto stringIndex { 1 }; stringIndex < longString.length () - 2; ++stringIndex)
             {
                 if (lowerCaseVowels.containsChar (longString [stringIndex]) && ! capitolLetter.containsChar (longString [stringIndex - 1]))
                     continue;
@@ -425,7 +425,7 @@ void Assimil8orValidatorComponent::autoRename (juce::File fileToRename, bool doR
 
     jassert (fileName != fileToRename.getFileNameWithoutExtension ());
 
-    if (fileToRename.moveFileTo (getNewFile(fileName)) != true)
+    if (fileToRename.moveFileTo (getNewFile (fileName)) != true)
     {
         // TODO report error
     }
@@ -494,7 +494,7 @@ void Assimil8orValidatorComponent::autoLocateAll ()
         return true;
     });
     // handleAsyncUpdate handles displaying the locate dialog, and copying any missing files it can locate, and then redisplaying the dialog if there are more to be located
-    locateFilesInitialDirectory = directoryDataProperties.getRootFolder();
+    locateFilesInitialDirectory = directoryDataProperties.getRootFolder ();
     triggerAsyncUpdate ();
 }
 
@@ -628,7 +628,6 @@ void Assimil8orValidatorComponent::cellClicked (int rowNumber, int columnId, con
     {
         ValidatorResultProperties validatorResultProperties (validatorResultsQuickLookupList [rowNumber],
                                                              ValidatorResultProperties::WrapperType::client, ValidatorResultProperties::EnableCallbacks::no);
-        
         if (validatorResultProperties.getNumFixerEntries () == 1)
         {
             // Handle one fix
@@ -646,7 +645,7 @@ void Assimil8orValidatorComponent::cellClicked (int rowNumber, int columnId, con
             if (fixerEntryProperties.getType () == FixerEntryProperties::FixerTypeRenameFile)
             {
                 juce::PopupMenu pm;
-                auto file { juce::File(fixerEntryProperties.getFileName ()) }; 
+                auto file { juce::File (fixerEntryProperties.getFileName ()) };
                 pm.addItem (file.getParentDirectory ().getFileName () + file.getSeparatorString () + file.getFileName (), false, false, {});
                 pm.addItem ("Rename", true, false, [this, kMaxFileNameLength, file = fixerEntryProperties.getFileName ()] () { rename (file, kMaxFileNameLength); });
                 pm.addItem ("Auto Rename", true, false, [this, kMaxFileNameLength, file = fixerEntryProperties.getFileName ()] () { autoRename (juce::File (file), true); });

@@ -10,12 +10,12 @@ LocateFileComponent::LocateFileComponent (std::vector<juce::File> theMissingFile
     cancelCallback = theCancelCallback;
 
     missingFilesLabel.setColour (juce::Label::ColourIds::textColourId, juce::Colours::black);
-    missingFilesLabel.setText("MISSING FILES", juce::NotificationType::dontSendNotification);
+    missingFilesLabel.setText ("MISSING FILES", juce::NotificationType::dontSendNotification);
     addAndMakeVisible (missingFilesLabel);
     openButton.onClick = [this] ()
     {
         fileChooser.reset (new juce::FileChooser ("Please select the folder to scan as an Assimil8or SD Card...",
-                                                    directoryViewerComponent.getCurrentFolder(), ""));
+                                                    directoryViewerComponent.getCurrentFolder (), ""));
         fileChooser->launchAsync (juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectDirectories, [this] (const juce::FileChooser& fc) mutable
         {
             if (fc.getURLResults ().size () == 1 && fc.getURLResults () [0].isLocalFile ())
@@ -81,19 +81,17 @@ void LocateFileComponent::resized ()
     localBounds.removeFromTop (5);
 
     auto topRow { localBounds.removeFromTop (20) };
-    openButton.setBounds (topRow.removeFromLeft (topRow.getWidth () / 2).removeFromLeft(40));
+    openButton.setBounds (topRow.removeFromLeft (topRow.getWidth () / 2).removeFromLeft (40));
     missingFilesLabel.setBounds (topRow);
     localBounds.removeFromTop (5);
     auto bottomRow { localBounds.removeFromBottom (20) };
     localBounds.removeFromBottom (5);
     bottomRow.removeFromLeft (5);
-    lookHereButton.setBounds (bottomRow.removeFromLeft(60));
+    lookHereButton.setBounds (bottomRow.removeFromLeft (60));
     bottomRow.removeFromLeft (5);
     cancelButton.setBounds (bottomRow.removeFromLeft (60));
     localBounds.removeFromBottom (5);
     curFolderLabel.setBounds (localBounds.removeFromBottom (20));
-
-
     directoryViewerComponent.setBounds (localBounds.removeFromLeft ((localBounds.getWidth () / 2) - 2));
     localBounds.removeFromLeft (4);
     missingFileComponent.setBounds (localBounds);

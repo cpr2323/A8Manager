@@ -15,7 +15,7 @@
 // +------------------------------++----------------------+
 //   [ Look Here ] [ Cancel ]
 //
-//  
+//
 // +------------------------------------------------------------+
 // | \folder\being\viewed                                       |
 // +------------------------------------------------------------+
@@ -201,7 +201,7 @@ class MissingFileComponent : public juce::Component,
                              private juce::ListBoxModel
 {
 public:
-    MissingFileComponent()
+    MissingFileComponent ()
     {
         addAndMakeVisible (missingFilesListBox);
         missingFilesListBox.updateContent ();
@@ -244,7 +244,7 @@ class LocateFileComponent : public juce::Component
 {
 public:
     LocateFileComponent (std::vector<juce::File> theMissingFiles, juce::File startingFolder,
-                         std::function<void(std::vector<std::tuple <juce::File, juce::File>>)> theLocatedFilesCallback, std::function<void ()> theCancelCallback);
+                         std::function<void (std::vector<std::tuple <juce::File, juce::File>>)> theLocatedFilesCallback, std::function<void ()> theCancelCallback);
 
     juce::File getCurFolder ();
 private:

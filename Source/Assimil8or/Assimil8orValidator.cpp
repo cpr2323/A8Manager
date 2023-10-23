@@ -420,7 +420,7 @@ std::tuple<uint64_t, std::optional<std::map<juce::String, uint64_t>>> Assimil8or
             for (const auto& pair : sampleSizeList)
                 total += pair.second;
             return total;
-        }();
+        } ();
         validatorResultProperties.update (ValidatorResultProperties::ResultTypeInfo, "RAM: " + getMemorySizeString (sizeRequiredForSamples), false);
         if (! isIgnored)
             optionalPresetInfo = sampleSizeList;
