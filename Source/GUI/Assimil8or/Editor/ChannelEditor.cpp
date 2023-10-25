@@ -115,13 +115,13 @@ ChannelEditor::ChannelEditor ()
     {
         const auto rawAttackValue { kMaxEnvelopeTime * attackPercent };
         const auto curAttackFractionalValue { channelProperties.getAttack () - static_cast<int>(channelProperties.getAttack ()) };
-        channelProperties.setAttack (static_cast<int>(rawAttackValue) + curAttackFractionalValue, true);
+        channelProperties.setAttack (snapEnvelopeValue (static_cast<int>(rawAttackValue) + curAttackFractionalValue), true);
     };
     arEnvelopeProperties.onReleasePercentChanged = [this] (double releasePercent)
     {
         const auto rawReleaseValue { kMaxEnvelopeTime * releasePercent };
         const auto curReleaseFractionalValue { channelProperties.getRelease () - static_cast<int>(channelProperties.getRelease ()) };
-        channelProperties.setRelease (static_cast<int>(rawReleaseValue) + curReleaseFractionalValue, true);
+        channelProperties.setRelease (snapEnvelopeValue (static_cast<int>(rawReleaseValue) + curReleaseFractionalValue), true);
     };
     addAndMakeVisible (arEnvelopeComponent);
     updateAllZoneTabNames ();
@@ -542,7 +542,7 @@ void ChannelEditor::setupChannelComponents ()
     [this] (juce::String text)
     {
         const auto attackTime { snapEnvelopeValue (std::clamp (text.getDoubleValue (), minChannelProperties.getAttack (), maxChannelProperties.getAttack ())) };
-        arEnvelopeProperties.setAttackPercent (attackTime / kMaxEnvelopeTime, false);
+        arEnvelopeProperties.setAttackPercent (attackTime / static_cast<double>(kMaxEnvelopeTime), false);
         attackUiChanged (attackTime);
         attackTextEditor.setText (FormatHelpers::formatDouble (attackTime, getEnvelopeValueResolution (attackTime), false));
     });
@@ -567,7 +567,7 @@ void ChannelEditor::setupChannelComponents ()
     [this] (juce::String text)
     {
         const auto releaseTime { snapEnvelopeValue (std::clamp (text.getDoubleValue (), minChannelProperties.getRelease (), maxChannelProperties.getRelease ())) };
-        arEnvelopeProperties.setReleasePercent (releaseTime / kMaxEnvelopeTime, false);
+        arEnvelopeProperties.setReleasePercent (releaseTime / static_cast<double>(kMaxEnvelopeTime), false);
         releaseUiChanged (releaseTime);
         releaseTextEditor.setText (FormatHelpers::formatDouble (releaseTime, getEnvelopeValueResolution (releaseTime), false));
     });

@@ -2,6 +2,7 @@
 
 EnvelopeAnchorComponent::EnvelopeAnchorComponent ()
 {
+    updateDisplayState ();
 }
 
 void EnvelopeAnchorComponent::display (juce::Graphics& g, int xOffset, int yOffset)
@@ -37,7 +38,7 @@ void EnvelopeAnchorComponent::updateDisplayState ()
     if (xAxis.locked && yAxis.locked)
         return;
 
-    if (! enabled)
+    if (!enabled)
         color = juce::Colours::darkgrey;
     else if (active)
         if (selected)
@@ -45,7 +46,7 @@ void EnvelopeAnchorComponent::updateDisplayState ()
         else
             color = juce::Colours::white;
     else
-        if ( selected )
+        if (selected)
             color = juce::Colours::greenyellow;
         else
             color = juce::Colours::cyan;
