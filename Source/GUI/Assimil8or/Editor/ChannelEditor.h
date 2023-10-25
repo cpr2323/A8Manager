@@ -3,6 +3,8 @@
 #include <JuceHeader.h>
 #include "CvInputComboBox.h"
 #include "ZoneEditor.h"
+#include "Envelope/AREnvelopeComponent.h"
+#include "Envelope/AREnvelopeProperties.h"
 #include "../../../AppProperties.h"
 #include "../../../Assimil8or/Audio/AudioPlayerProperties.h"
 #include "../../../Assimil8or/Preset/ChannelProperties.h"
@@ -277,6 +279,9 @@ private:
     juce::Label zonesRTLabel;
     juce::ComboBox zonesRTComboBox; // 0 = Gate Rise, 1 = Continuous, 2 = Advance, 3 = Random
     TransparantOverlay stereoRightTransparantOverly;
+
+    AREnvelopeComponent arEnvelopeComponent;
+    AREnvelopeProperties arEnvelopeProperties;
 
     NoArrowComboBoxLnF noArrowComboBoxLnF;
     ZonesTabbedLookAndFeel zonesTabbedLookAndFeel;

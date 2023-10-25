@@ -20,6 +20,8 @@ const auto kInterControlYOffset { 2 };
 const auto kInitialYOffset { 5 };
 const auto kNewSectionOffset { 5 };
 
+const auto kMaxEnvelopeTime { 99.0 };
+
 ChannelEditor::ChannelEditor ()
 {
     // TODO - these are copies of what is in ChannelEditor::setupChannelComponents, need to DRY
@@ -108,8 +110,27 @@ ChannelEditor::ChannelEditor ()
     };
     addAndMakeVisible (toolsButton);
     setupChannelComponents ();
+    arEnvelopeProperties.wrap (arEnvelopeComponent.getPropertiesVT (), AREnvelopeProperties::WrapperType::client, AREnvelopeProperties::EnableCallbacks::yes);
+    arEnvelopeProperties.onAttackPercentChanged= [this] (double attackPercent)
+    {
+        juce::Logger::outputDebugString ("arEnvelopeProperties.onAttackPercentChanged");
+        const auto rawAttackValue { kMaxEnvelopeTime * arEnvelopeProperties.getAttackPercent () };
+        const auto curAttackFractionalValue { channelProperties.getAttack () - static_cast<int>(channelProperties.getAttack ()) };
+        channelProperties.setAttack (static_cast<int>(rawAttackValue) + curAttackFractionalValue, true);
+    };
+    arEnvelopeProperties.onReleasePercentChanged = [this] (double releasePercent)
+    {
+        juce::Logger::outputDebugString ("arEnvelopeProperties.onReleasePercentChanged");
+        const auto rawReleaseValue { kMaxEnvelopeTime * arEnvelopeProperties.getReleasePercent () };
+        const auto curReleaseFractionalValue { channelProperties.getRelease () - static_cast<int>(channelProperties.getRelease ()) };
+        channelProperties.setRelease (static_cast<int>(rawReleaseValue) + curReleaseFractionalValue, true);
+    };
+    addAndMakeVisible (arEnvelopeComponent);
     updateAllZoneTabNames ();
     addChildComponent (stereoRightTransparantOverly);
+
+    channelProperties.setAttack (kMaxEnvelopeTime * arEnvelopeProperties.getAttackPercent (), false);
+    channelProperties.setRelease (kMaxEnvelopeTime * arEnvelopeProperties.getReleasePercent (), false);
 }
 
 ChannelEditor::~ChannelEditor ()
@@ -242,10 +263,8 @@ int ChannelEditor::getEnvelopeValueResolution (double envelopeValue)
         return 4;
     else if (envelopeValue < 0.1)
         return 3;
-    else if (envelopeValue < 1.0)
+    else if (envelopeValue < 100)
         return 2;
-    else if (envelopeValue < 10.0)
-        return 1;
     else
         return 0;
 }
@@ -525,6 +544,7 @@ void ChannelEditor::setupChannelComponents ()
     [this] (juce::String text)
     {
         const auto attackTime { snapEnvelopeValue (std::clamp (text.getDoubleValue (), minChannelProperties.getAttack (), maxChannelProperties.getAttack ())) };
+        arEnvelopeProperties.setAttackPercent (attackTime / kMaxEnvelopeTime, false);
         attackUiChanged (attackTime);
         attackTextEditor.setText (FormatHelpers::formatDouble (attackTime, getEnvelopeValueResolution (attackTime), false));
     });
@@ -549,6 +569,7 @@ void ChannelEditor::setupChannelComponents ()
     [this] (juce::String text)
     {
         const auto releaseTime { snapEnvelopeValue (std::clamp (text.getDoubleValue (), minChannelProperties.getRelease (), maxChannelProperties.getRelease ())) };
+        arEnvelopeProperties.setReleasePercent (releaseTime / kMaxEnvelopeTime, false);
         releaseUiChanged (releaseTime);
         releaseTextEditor.setText (FormatHelpers::formatDouble (releaseTime, getEnvelopeValueResolution (releaseTime), false));
     });
@@ -1094,7 +1115,7 @@ void ChannelEditor::setupChannelPropertiesCallbacks ()
     channelProperties.onIdChange = [this] ([[maybe_unused]] int id) { jassertfalse; };
     channelProperties.onAliasingChange = [this] (int aliasing) { aliasingDataChanged (aliasing);  };
     channelProperties.onAliasingModChange = [this] (CvInputAndAmount amountAndCvInput) { const auto& [cvInput, value] { amountAndCvInput }; aliasingModDataChanged (cvInput, value); };
-    channelProperties.onAttackChange = [this] (double attack) { attackDataChanged (attack);  };
+    channelProperties.onAttackChange = [this] (double attack) { attackDataChanged (attack); juce::Logger::outputDebugString ("channelProperties.onAttackChange"); };
     channelProperties.onAttackFromCurrentChange = [this] (bool attackFromCurrent) { attackFromCurrentDataChanged (attackFromCurrent);  };
     channelProperties.onAttackModChange = [this] (CvInputAndAmount amountAndCvInput) { const auto& [cvInput, value] { amountAndCvInput }; attackModDataChanged (cvInput, value); };
     channelProperties.onAutoTriggerChange = [this] (bool autoTrigger) { autoTriggerDataChanged (autoTrigger);  };
@@ -1123,7 +1144,7 @@ void ChannelEditor::setupChannelPropertiesCallbacks ()
     channelProperties.onPMIndexChange = [this] (double pMIndex) { pMIndexDataChanged (pMIndex);  };
     channelProperties.onPMIndexModChange = [this] (CvInputAndAmount amountAndCvInput) { const auto& [cvInput, value] { amountAndCvInput }; pMIndexModDataChanged (cvInput, value); };
     channelProperties.onPMSourceChange = [this] (int pMSource) { pMSourceDataChanged (pMSource);  };
-    channelProperties.onReleaseChange = [this] (double release) { releaseDataChanged (release);  };
+    channelProperties.onReleaseChange = [this] (double release) { releaseDataChanged (release); juce::Logger::outputDebugString ("channelProperties.onAttackChange"); };
     channelProperties.onReleaseModChange = [this] (CvInputAndAmount amountAndCvInput) { const auto& [cvInput, value] { amountAndCvInput }; releaseModDataChanged (cvInput, value); };
     channelProperties.onReverseChange = [this] (bool reverse) { reverseDataChanged (reverse);  };
     channelProperties.onSampleStartModChange = [this] (CvInputAndAmount amountAndCvInput) { const auto& [cvInput, value] { amountAndCvInput }; sampleStartModDataChanged (cvInput, value); };
@@ -1263,6 +1284,10 @@ void ChannelEditor::positionColumnTwo (int xOffset, int width)
     curYOffset += kInterControlYOffset;
     releaseModComboBox.setBounds (releaseLabel.getX (), curYOffset, scaleWidth (0.5f), kParameterLineHeight);
     releaseModTextEditor.setBounds (releaseModComboBox.getRight () + 3, curYOffset, scaleWidth (0.5f), kParameterLineHeight);
+    curYOffset += kParameterLineHeight;
+
+    curYOffset += kInterControlYOffset;
+    arEnvelopeComponent.setBounds (releaseModComboBox.getX (), curYOffset, width, getHeight () - (curYOffset + kParameterLineHeight + kParameterLineHeight));
 }
 
 void ChannelEditor::positionColumnThree (int xOffset, int width)
@@ -1468,11 +1493,13 @@ void ChannelEditor::aliasingModUiChanged (juce::String cvInput, double aliasingM
 
 void ChannelEditor::attackDataChanged (double attack)
 {
+    juce::Logger::outputDebugString ("ChannelEditor::attackDataChanged");
     attackTextEditor.setText (FormatHelpers::formatDouble (attack, getEnvelopeValueResolution (attack), false));
 }
 
 void ChannelEditor::attackUiChanged (double attack)
 {
+    juce::Logger::outputDebugString ("ChannelEditor::attackUiChanged");
     channelProperties.setAttack (attack, false);
 }
 
@@ -1777,11 +1804,13 @@ void ChannelEditor::pMSourceUiChanged (int pMSource)
 
 void ChannelEditor::releaseDataChanged (double release)
 {
+    juce::Logger::outputDebugString ("ChannelEditor::releaseDataChanged");
     releaseTextEditor.setText (FormatHelpers::formatDouble (release, getEnvelopeValueResolution (release), false));
 }
 
 void ChannelEditor::releaseUiChanged (double release)
 {
+    juce::Logger::outputDebugString ("ChannelEditor::releaseUiChanged");
     channelProperties.setRelease (release, false);
 }
 

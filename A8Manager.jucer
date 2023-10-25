@@ -2,7 +2,7 @@
 
 <JUCERPROJECT id="wWHbxR" name="A8Manager" projectType="guiapp" useAppConfig="0"
               addUsingNamespaceToJuceHeader="0" displaySplashScreen="0" jucerFormatVersion="1"
-              companyName="OmOhmProductions" cppLanguageStandard="17" version="2.2"
+              companyName="OmOhmProductions" cppLanguageStandard="17" version="2.3"
               companyWebsite="www.omohmproductions.com">
   <MAINGROUP id="JDgvjc" name="A8Manager">
     <GROUP id="{26A00EED-F319-636E-6162-8A113C6EE925}" name="Source">
@@ -100,8 +100,19 @@
                   compile="0" resource="1" file="Source/GUI/Assimil8or/Data/377906243_984640136172516_2914152204379747274_n.png"/>
             <FILE id="M1fY5n" name="Assimil8orToolTips.xml" compile="0" resource="1"
                   file="Source/GUI/Assimil8or/Data/Assimil8orToolTips.xml"/>
+            <FILE id="cdANYm" name="background.png" compile="0" resource="1" file="Source/GUI/Assimil8or/Data/background.png"/>
           </GROUP>
           <GROUP id="{E38A382D-990E-A82D-2924-1AE3B97D907B}" name="Editor">
+            <GROUP id="{A434F150-15A5-28AF-5B79-18E4647F5089}" name="Envelope">
+              <FILE id="rklXD7" name="AREnvelopeComponent.cpp" compile="1" resource="0"
+                    file="Source/GUI/Assimil8or/Editor/Envelope/AREnvelopeComponent.cpp"/>
+              <FILE id="XGbsSl" name="AREnvelopeComponent.h" compile="0" resource="0"
+                    file="Source/GUI/Assimil8or/Editor/Envelope/AREnvelopeComponent.h"/>
+              <FILE id="KsgfLU" name="AREnvelopeProperties.cpp" compile="1" resource="0"
+                    file="Source/GUI/Assimil8or/Editor/Envelope/AREnvelopeProperties.cpp"/>
+              <FILE id="d7U3XA" name="AREnvelopeProperties.h" compile="0" resource="0"
+                    file="Source/GUI/Assimil8or/Editor/Envelope/AREnvelopeProperties.h"/>
+            </GROUP>
             <FILE id="liNFVw" name="Assimil8orEditorComponent.cpp" compile="1"
                   resource="0" file="Source/GUI/Assimil8or/Editor/Assimil8orEditorComponent.cpp"/>
             <FILE id="HH5ILq" name="Assimil8orEditorComponent.h" compile="0" resource="0"
@@ -174,6 +185,17 @@
               file="Source/GUI/BottomStatusWindow.h"/>
       </GROUP>
       <GROUP id="{8CE93423-6945-B212-EA23-BC0B9325BBF7}" name="Utility">
+        <GROUP id="{CE7726F0-1037-6B5F-8C8A-30BB9E5E6B21}" name="GUI">
+          <FILE id="LLN2AV" name="EnvelopeAnchorComponent.cpp" compile="1" resource="0"
+                file="Source/Utility/GUI/EnvelopeAnchorComponent.cpp"/>
+          <FILE id="lRIYlk" name="EnvelopeAnchorComponent.h" compile="0" resource="0"
+                file="Source/Utility/GUI/EnvelopeAnchorComponent.h"/>
+          <FILE id="fxQNDS" name="EnvelopeAxis.h" compile="0" resource="0" file="Source/Utility/GUI/EnvelopeAxis.h"/>
+          <FILE id="zJ6Dkf" name="EnvelopeComponent.cpp" compile="1" resource="0"
+                file="Source/Utility/GUI/EnvelopeComponent.cpp"/>
+          <FILE id="X8cRRZ" name="EnvelopeComponent.h" compile="0" resource="0"
+                file="Source/Utility/GUI/EnvelopeComponent.h"/>
+        </GROUP>
         <FILE id="ZzjeA7" name="Crc.h" compile="0" resource="0" file="Source/Utility/Crc.h"/>
         <FILE id="yrhXEY" name="DebugLog.cpp" compile="1" resource="0" file="Source/Utility/DebugLog.cpp"/>
         <FILE id="i75h2A" name="DebugLog.h" compile="0" resource="0" file="Source/Utility/DebugLog.h"/>
