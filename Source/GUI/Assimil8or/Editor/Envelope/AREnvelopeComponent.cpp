@@ -4,7 +4,7 @@ AREnvelopeComponent::AREnvelopeComponent ()
 {
     initAnchors (eAnchorCount);
 
-    // start Anchor is locked at the bottom, can move in the horizontal only
+    // start Anchor is locked at the bottom, cannot move it
     envelopeAnchors [eStartAnchor]->xAxis.locked = true;
     envelopeAnchors [eStartAnchor]->yAxis.locked = true;
     envelopeAnchors [eStartAnchor]->xAxis.percentage = 0.0;
@@ -27,14 +27,8 @@ AREnvelopeComponent::AREnvelopeComponent ()
     recalculateCoordinates ();
 
     arEnvelopeProperties.wrap ({}, AREnvelopeProperties::WrapperType::owner, AREnvelopeProperties::EnableCallbacks::yes);
-    arEnvelopeProperties.onAttackPercentChanged = [this] (double attackPercent)
-    {
-        setAttackTimePercent (attackPercent);
-    };
-    arEnvelopeProperties.onReleasePercentChanged = [this] (double releasePercent)
-    {
-        setReleaseTimePercent (releasePercent);
-    };
+    arEnvelopeProperties.onAttackPercentChanged = [this] (double attackPercent) { setAttackTimePercent (attackPercent); };
+    arEnvelopeProperties.onReleasePercentChanged = [this] (double releasePercent) { setReleaseTimePercent (releasePercent); };
 }
 
 void AREnvelopeComponent::setAttackTimePercent (double attackTimePercent)

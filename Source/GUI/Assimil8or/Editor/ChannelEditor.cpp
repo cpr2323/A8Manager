@@ -113,15 +113,13 @@ ChannelEditor::ChannelEditor ()
     arEnvelopeProperties.wrap (arEnvelopeComponent.getPropertiesVT (), AREnvelopeProperties::WrapperType::client, AREnvelopeProperties::EnableCallbacks::yes);
     arEnvelopeProperties.onAttackPercentChanged= [this] (double attackPercent)
     {
-        juce::Logger::outputDebugString ("arEnvelopeProperties.onAttackPercentChanged");
-        const auto rawAttackValue { kMaxEnvelopeTime * arEnvelopeProperties.getAttackPercent () };
+        const auto rawAttackValue { kMaxEnvelopeTime * attackPercent };
         const auto curAttackFractionalValue { channelProperties.getAttack () - static_cast<int>(channelProperties.getAttack ()) };
         channelProperties.setAttack (static_cast<int>(rawAttackValue) + curAttackFractionalValue, true);
     };
     arEnvelopeProperties.onReleasePercentChanged = [this] (double releasePercent)
     {
-        juce::Logger::outputDebugString ("arEnvelopeProperties.onReleasePercentChanged");
-        const auto rawReleaseValue { kMaxEnvelopeTime * arEnvelopeProperties.getReleasePercent () };
+        const auto rawReleaseValue { kMaxEnvelopeTime * releasePercent };
         const auto curReleaseFractionalValue { channelProperties.getRelease () - static_cast<int>(channelProperties.getRelease ()) };
         channelProperties.setRelease (static_cast<int>(rawReleaseValue) + curReleaseFractionalValue, true);
     };
@@ -1115,7 +1113,7 @@ void ChannelEditor::setupChannelPropertiesCallbacks ()
     channelProperties.onIdChange = [this] ([[maybe_unused]] int id) { jassertfalse; };
     channelProperties.onAliasingChange = [this] (int aliasing) { aliasingDataChanged (aliasing);  };
     channelProperties.onAliasingModChange = [this] (CvInputAndAmount amountAndCvInput) { const auto& [cvInput, value] { amountAndCvInput }; aliasingModDataChanged (cvInput, value); };
-    channelProperties.onAttackChange = [this] (double attack) { attackDataChanged (attack); juce::Logger::outputDebugString ("channelProperties.onAttackChange"); };
+    channelProperties.onAttackChange = [this] (double attack) { attackDataChanged (attack); };
     channelProperties.onAttackFromCurrentChange = [this] (bool attackFromCurrent) { attackFromCurrentDataChanged (attackFromCurrent);  };
     channelProperties.onAttackModChange = [this] (CvInputAndAmount amountAndCvInput) { const auto& [cvInput, value] { amountAndCvInput }; attackModDataChanged (cvInput, value); };
     channelProperties.onAutoTriggerChange = [this] (bool autoTrigger) { autoTriggerDataChanged (autoTrigger);  };
@@ -1144,7 +1142,7 @@ void ChannelEditor::setupChannelPropertiesCallbacks ()
     channelProperties.onPMIndexChange = [this] (double pMIndex) { pMIndexDataChanged (pMIndex);  };
     channelProperties.onPMIndexModChange = [this] (CvInputAndAmount amountAndCvInput) { const auto& [cvInput, value] { amountAndCvInput }; pMIndexModDataChanged (cvInput, value); };
     channelProperties.onPMSourceChange = [this] (int pMSource) { pMSourceDataChanged (pMSource);  };
-    channelProperties.onReleaseChange = [this] (double release) { releaseDataChanged (release); juce::Logger::outputDebugString ("channelProperties.onAttackChange"); };
+    channelProperties.onReleaseChange = [this] (double release) { releaseDataChanged (release); };
     channelProperties.onReleaseModChange = [this] (CvInputAndAmount amountAndCvInput) { const auto& [cvInput, value] { amountAndCvInput }; releaseModDataChanged (cvInput, value); };
     channelProperties.onReverseChange = [this] (bool reverse) { reverseDataChanged (reverse);  };
     channelProperties.onSampleStartModChange = [this] (CvInputAndAmount amountAndCvInput) { const auto& [cvInput, value] { amountAndCvInput }; sampleStartModDataChanged (cvInput, value); };
@@ -1493,13 +1491,11 @@ void ChannelEditor::aliasingModUiChanged (juce::String cvInput, double aliasingM
 
 void ChannelEditor::attackDataChanged (double attack)
 {
-    juce::Logger::outputDebugString ("ChannelEditor::attackDataChanged");
     attackTextEditor.setText (FormatHelpers::formatDouble (attack, getEnvelopeValueResolution (attack), false));
 }
 
 void ChannelEditor::attackUiChanged (double attack)
 {
-    juce::Logger::outputDebugString ("ChannelEditor::attackUiChanged");
     channelProperties.setAttack (attack, false);
 }
 
@@ -1804,13 +1800,11 @@ void ChannelEditor::pMSourceUiChanged (int pMSource)
 
 void ChannelEditor::releaseDataChanged (double release)
 {
-    juce::Logger::outputDebugString ("ChannelEditor::releaseDataChanged");
     releaseTextEditor.setText (FormatHelpers::formatDouble (release, getEnvelopeValueResolution (release), false));
 }
 
 void ChannelEditor::releaseUiChanged (double release)
 {
-    juce::Logger::outputDebugString ("ChannelEditor::releaseUiChanged");
     channelProperties.setRelease (release, false);
 }
 

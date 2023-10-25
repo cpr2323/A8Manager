@@ -8,14 +8,12 @@ void AREnvelopeProperties::initValueTree ()
 
 void AREnvelopeProperties::setAttackPercent (double attackPercent, bool includeSelfCallback)
 {
-    juce::Logger::outputDebugString ("AREnvelopeProperties::setAttackPercent: " + juce::String (attackPercent, 4));
     jassert (attackPercent >= 0.0 && attackPercent <= 1.0);
     setValue (attackPercent, AttackPercentPropertyId, includeSelfCallback);
 }
 
 void AREnvelopeProperties::setReleasePercent (double releasePercent, bool includeSelfCallback)
 {
-    juce::Logger::outputDebugString ("AREnvelopeProperties::setReleasePercent: " + juce::String (releasePercent, 4));
     jassert (releasePercent >= 0.0 && releasePercent <= 1.0);
     setValue (releasePercent, ReleasePercentPropertyId, includeSelfCallback);
 }
