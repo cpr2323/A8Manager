@@ -1491,6 +1491,7 @@ void ChannelEditor::aliasingModUiChanged (juce::String cvInput, double aliasingM
 
 void ChannelEditor::attackDataChanged (double attack)
 {
+    arEnvelopeProperties.setAttackPercent (attack / static_cast<double>(kMaxEnvelopeTime), false);
     attackTextEditor.setText (FormatHelpers::formatDouble (attack, getEnvelopeValueResolution (attack), false));
 }
 
@@ -1800,6 +1801,7 @@ void ChannelEditor::pMSourceUiChanged (int pMSource)
 
 void ChannelEditor::releaseDataChanged (double release)
 {
+    arEnvelopeProperties.setReleasePercent (release / static_cast<double>(kMaxEnvelopeTime), false);
     releaseTextEditor.setText (FormatHelpers::formatDouble (release, getEnvelopeValueResolution (release), false));
 }
 
