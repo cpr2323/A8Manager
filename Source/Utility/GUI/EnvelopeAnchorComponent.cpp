@@ -10,7 +10,7 @@ void EnvelopeAnchorComponent::display (juce::Graphics& g, int xOffset, int yOffs
     // draw an anchor if the anchor can move at least in one direction
     if ((! xAxis.locked) || (! yAxis.locked))
     {
-        drawCircle (g, (float)(curX + xOffset), (float)(curY + yOffset), 1.0, 8.0, color);
+        drawCircle (g, (float)(curTime + xOffset), (float)(curAmplitude + yOffset), 1.0, 8.0, color);
     }
 }
 
@@ -65,19 +65,19 @@ int EnvelopeAnchorComponent::distanceMovedX (int xMove)
         // if this is the furthest left anchor, and the move would be to less than zero, clamp the value to -mCurX
         if (anchorToLeft == nullptr)
         {
-            if (curX + xMove < 0)
-                distanceMoved = -curX;
+            if (curTime + xMove < 0)
+                distanceMoved = -curTime;
         }
         else if (anchorToLeft->xAxis.locked)    // anchor to left is locked, can only go as far as anchor to lefts X
         {
-            distanceMoved = anchorToLeft->curX - curX;
+            distanceMoved = anchorToLeft->curTime - curTime;
         }
         else if (! anchorToLeft->isSelected ())  // anchor to left is NOT selected
         {
             // not selected, can only go as far as anchor to lefts X
             {
-                if (curX + xMove < anchorToLeft->curX)
-                    distanceMoved = anchorToLeft->curX - curX;
+                if (curTime + xMove < anchorToLeft->curTime)
+                    distanceMoved = anchorToLeft->curTime - curTime;
             }
         }
         else    // otherwise, it IS selected, so let's see how far it can move
@@ -90,19 +90,19 @@ int EnvelopeAnchorComponent::distanceMovedX (int xMove)
         // if this is the furthest right anchor, and the move would be to greater than mMaxX, clamp the value to -mCurX
         if (anchorToRight == nullptr)
         {
-            if (curX + xMove > maxX)
-                distanceMoved = maxX - curX;
+            if (curTime + xMove > maxTime)
+                distanceMoved = maxTime - curTime;
         }
         else if (anchorToRight->xAxis.locked)    // anchor to right is locked, can only go as far as anchor to rights X
         {
-            distanceMoved = anchorToRight->curX - curX;
+            distanceMoved = anchorToRight->curTime - curTime;
         }
         else if (! anchorToRight->isSelected ())
         {
             // not selected, can only go as far as anchor to rights X
             {
-                if (curX + xMove > anchorToRight->curX)
-                    distanceMoved = anchorToRight->curX - curX;
+                if (curTime + xMove > anchorToRight->curTime)
+                    distanceMoved = anchorToRight->curTime - curTime;
             }
         }
         else
@@ -124,13 +124,13 @@ int EnvelopeAnchorComponent::distanceMovedY (int yMove)
     }
     if (yMove < 0)      // moving up
     {
-        if ((curY + yMove) < 0)
-            distanceMoved = -curY;
+        if ((curAmplitude + yMove) < 0)
+            distanceMoved = -curAmplitude;
     }
     else if (yMove > 0) // moving down
     {
-        if ((curY + yMove) > maxY)
-            distanceMoved = maxY - curY;
+        if ((curAmplitude + yMove) > maxAmplitude)
+            distanceMoved = maxAmplitude - curAmplitude;
     }
 
     return distanceMoved;

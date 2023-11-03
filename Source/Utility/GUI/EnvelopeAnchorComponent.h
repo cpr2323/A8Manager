@@ -12,8 +12,8 @@ public:
 
     void setActive (bool newActive) { active = newActive; updateDisplayState (); }
     void setEnabled (bool newEnabled) { enabled = newEnabled; updateDisplayState (); }
-    void setMaxX (int newMaxX) { maxX = newMaxX; }
-    void setMaxY (int newMaxY) { maxY = newMaxY; }
+    void setMaxTime (int newMaxTime) { maxTime = newMaxTime; }
+    void setMaxAmplitude (int newMaxAmplitude) { maxAmplitude = newMaxAmplitude; }
     void setSelected (bool newSelected) { selected = newSelected; updateDisplayState (); }
     void setSize (int newSize) { size = newSize; }
 
@@ -24,17 +24,17 @@ public:
 
     int distanceMovedX (int xMove);
     int distanceMovedY (int yMove);
-    void recalculateX (int offset, int displayWidth) { curX = offset + (long)(displayWidth * xAxis.percentage); }
-    void recalculateY (int offset, int displayHeight) { curY = offset + (displayHeight - (long)(displayHeight * yAxis.percentage)); }
-    void recalculateXPercent (int offset, int displayWidth) { xAxis.percentage = ((double) curX - (double) offset) / (double) displayWidth; }
-    void recalculateYPercent (int offset, int displayHeight) { yAxis.percentage = ((double) displayHeight - ((double) curY - (double) offset)) / (double) displayHeight; }
+    void recalculateX (int offset, int displayWidth) { curTime = offset + (long)(displayWidth * xAxis.percentage); }
+    void recalculateY (int offset, int displayHeight) { curAmplitude = offset + (displayHeight - (long)(displayHeight * yAxis.percentage)); }
+    void recalculateXPercent (int offset, int displayWidth) { xAxis.percentage = ((double) curTime - (double) offset) / (double) displayWidth; }
+    void recalculateYPercent (int offset, int displayHeight) { yAxis.percentage = ((double) displayHeight - ((double) curAmplitude - (double) offset)) / (double) displayHeight; }
 
     EnvelopeAxis xAxis;
     EnvelopeAxis yAxis;
-    int curX { 0 };
-    int curY { 0 };
-    int maxX { 0 };
-    int maxY { 0 };
+    int curTime { 0 };
+    int curAmplitude { 0 };
+    int maxTime { 0 };
+    int maxAmplitude { 0 };
     EnvelopeAnchorComponent* anchorToLeft { nullptr };
     EnvelopeAnchorComponent* anchorToRight { nullptr };
     juce::Colour color;

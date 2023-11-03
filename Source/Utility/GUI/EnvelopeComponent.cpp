@@ -47,8 +47,8 @@ void EnvelopeComponent::connectAnchorNeighbors (int index)
 // inserts an anchor at the position indicated by the index, with -1 indicating the end (ie. an append)
 void EnvelopeComponent::addAnchor (EnvelopeAnchorComponent* anchor, int index)
 {
-    anchor->setMaxX (envelopeDisplayAreaWidth);
-    anchor->setMaxY (envelopeDisplayAreaHeight);
+    anchor->setMaxTime (envelopeDisplayAreaWidth);
+    anchor->setMaxAmplitude (envelopeDisplayAreaHeight);
     envelopeAnchors.insert (index, anchor);
     connectAnchorNeighbors (index);
 
@@ -176,16 +176,16 @@ void EnvelopeComponent::rightMouseClickOnBackground (const juce::MouseEvent &e)
         const auto colClicked { e.x };
 
         // verify that the click was after the first anchor, and before the last anchor
-        if ((colClicked > envelopeAnchors[0]->curX) && (colClicked < envelopeAnchors[envelopeAnchors.size () - 1]->curX))
+        if ((colClicked > envelopeAnchors[0]->curTime) && (colClicked < envelopeAnchors[envelopeAnchors.size () - 1]->curTime))
         {
             // find out at which index we should add this new anchor
             for (auto curEnvelopeAnchorIndex { 1 }; curEnvelopeAnchorIndex < envelopeAnchors.size () - 1; ++curEnvelopeAnchorIndex)
             {
-                if (colClicked < envelopeAnchors[curEnvelopeAnchorIndex]->curX )
+                if (colClicked < envelopeAnchors[curEnvelopeAnchorIndex]->curTime )
                 {
                     auto newEnvelopeAnchor { new EnvelopeAnchorComponent };
                     newEnvelopeAnchor->curX = colClicked;
-                    newEnvelopeAnchor->curY = envelopeAnchors[curEnvelopeAnchorIndex]->curY;
+                    newEnvelopeAnchor->curY = envelopeAnchors[curEnvelopeAnchorIndex]->curAmplitude;
                     newEnvelopeAnchor->xAxis.percentage = (float) e.x / (float) envelopeDisplayAreaWidth;
                     newEnvelopeAnchor->recalculateX (borderWidth, envelopeDisplayAreaWidth);
                     newEnvelopeAnchor->yAxis.percentage = envelopeAnchors[curEnvelopeAnchorIndex]->yAxis.percentage;
@@ -255,8 +255,8 @@ void EnvelopeComponent::mouseDownOnAnchor (const juce::MouseEvent &e)
             if (curActiveAnchor->isSelected ())
             {
                 draggingAnchor = curActiveAnchor;
-                startX = draggingAnchor->curX;
-                startY = draggingAnchor->curY;
+                startX = draggingAnchor->curTime;
+                startY = draggingAnchor->curAmplitude;
             }
         }
         repaint ();
@@ -289,7 +289,7 @@ void EnvelopeComponent::mouseUpDraggingAnchor (const juce::MouseEvent &e)
     if (! e.mods.isShiftDown () && ! e.mods.isCtrlDown ())
     {
         // if mouse didn't move, clear all the selected ones
-        if ((startX == curActiveAnchor->curX) && (startY == curActiveAnchor->curY))
+        if ((startX == curActiveAnchor->curTime) && (startY == curActiveAnchor->curAmplitude))
         {
             for (auto& curAnchor : envelopeAnchors)
                 curAnchor->setSelected (false);
@@ -418,9 +418,9 @@ void EnvelopeComponent::mouseDragAnchor (const juce::MouseEvent &e)
 
         const auto newX { std::min (std::max ((long) e.x, minX), maxX) };
 
-        if (newX != draggingAnchor->curX)
+        if (newX != draggingAnchor->curTime)
         {
-            auto xOffset { newX - draggingAnchor->curX };
+            auto xOffset { newX - draggingAnchor->curTime };
 
             for (auto& curAnchor2 : envelopeAnchors)
             {
@@ -463,13 +463,13 @@ void EnvelopeComponent::mouseDragAnchor (const juce::MouseEvent &e)
                 {
                     if (envelopeAnchors[curAnchorIndex]->isSelected ())
                     {
-                        envelopeAnchors[curAnchorIndex]->curX += xOffset;
+                        envelopeAnchors[curAnchorIndex]->curTime += xOffset;
                         envelopeAnchors[curAnchorIndex]->recalculateXPercent (borderWidth, envelopeDisplayAreaWidth);
 
                         auto anchorToRight { envelopeAnchors[curAnchorIndex]->anchorToRight };
-                        while ((anchorToRight != nullptr) && (anchorToRight->curX < envelopeAnchors[curAnchorIndex]->curX))
+                        while ((anchorToRight != nullptr) && (anchorToRight->curX < envelopeAnchors[curAnchorIndex]->curTime))
                         {
-                            anchorToRight->curX = envelopeAnchors[curAnchorIndex]->curX;
+                            anchorToRight->curX = envelopeAnchors[curAnchorIndex]->curTime;
                             anchorToRight->recalculateXPercent (borderWidth, envelopeDisplayAreaWidth);
 
                             anchorToRight = anchorToRight->anchorToRight;
@@ -512,9 +512,9 @@ void EnvelopeComponent::mouseDragAnchor (const juce::MouseEvent &e)
     {
         const auto newY { std::min (std::max ((long) e.y, (long) borderWidth), (long) (getHeight () - borderWidth)) };
 
-        if (newY != draggingAnchor->curY)
+        if (newY != draggingAnchor->curAmplitude)
         {
-            auto yOffset { newY - draggingAnchor->curY };
+            auto yOffset { newY - draggingAnchor->curAmplitude };
 
             for (auto& curAnchor : envelopeAnchors)
             {
@@ -687,7 +687,7 @@ void EnvelopeComponent::paint (juce::Graphics& g)
     // draw envelope line between each two anchors (thus we only iterate thru size - 1)
     for (auto curAnchor { 0 }; curAnchor < envelopeAnchors.size () - 1; ++curAnchor)
     {
-        juce::Line<float> lineSegment ((float)(offset + envelopeAnchors[curAnchor]->curX), (float)(offset + envelopeAnchors[curAnchor]->curY), (float)(offset + envelopeAnchors[curAnchor + 1]->curX), (float)(offset + envelopeAnchors[curAnchor + 1]->curY));
+        juce::Line<float> lineSegment ((float)(offset + envelopeAnchors[curAnchor]->curTime), (float)(offset + envelopeAnchors[curAnchor]->curAmplitude), (float)(offset + envelopeAnchors[curAnchor + 1]->curTime), (float)(offset + envelopeAnchors[curAnchor + 1]->curAmplitude));
 
         // set color for the envelope
         g.setColour (glowColour.brighter (0.8f).withAlpha (0.4f));
