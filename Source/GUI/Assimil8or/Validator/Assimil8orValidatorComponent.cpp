@@ -425,6 +425,20 @@ void Assimil8orValidatorComponent::autoRename (juce::File fileToRename, bool doR
         const auto prefix { fileName.substring (0, kMaxFileNameWithoutExtension) };
         while (getNewFile (fileName).exists ())
         {
+            auto testFileToCheck { getNewFile (fileName + "x")};
+            juce::FileInputStream testInputStream { testFileToCheck };
+            if (! testInputStream.openedOk ())
+                DebugLog ("Assimil8orValidatorComponent::autoRename", "expected - unable to create input stream for test file");
+            else
+                DebugLog ("Assimil8orValidatorComponent::autoRename", "unexpected - able to create input stream for test file");
+
+            auto fileToCheck { getNewFile (fileName) };
+            juce::FileInputStream inputStream { fileToCheck };
+            if (! inputStream.openedOk ())
+                DebugLog ("Assimil8orValidatorComponent::autoRename", "unexpected - unable to create input stream for real file");
+            else
+                DebugLog ("Assimil8orValidatorComponent::autoRename", "expected - able to create input stream for real file");
+
             DebugLog ("Assimil8orValidatorComponent::autoRename", "'" + fileName + "' already exists, appending next integer value");
             const auto suffixString { juce::String (suffixValue) };
             const auto trimAmount { juce::jmax (0, prefix.length () + suffixString.length () - kMaxFileNameWithoutExtension) };
