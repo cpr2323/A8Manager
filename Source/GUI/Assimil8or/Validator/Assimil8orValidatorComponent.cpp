@@ -442,6 +442,10 @@ void Assimil8orValidatorComponent::autoRename (juce::File fileToRename, bool doR
         // TODO report error
         DebugLog ("Assimil8orValidatorComponent::autoRename", "ERROR - unable to rename");
     }
+    else
+    {
+        DebugLog ("Assimil8orValidatorComponent::autoRename", "rename success");
+    }
 
     if (doRescan)
         directoryDataProperties.triggerStartScan (false);
