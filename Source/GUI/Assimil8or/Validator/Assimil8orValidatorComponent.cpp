@@ -2,6 +2,7 @@
 #include "RenameDialogComponent.h"
 #include "LocateFileComponent.h"
 #include "../../../Assimil8or/Validator/ValidatorResultListProperties.h"
+#include "../../../Utility/DebugLog.h"
 #include "../../../Utility/RuntimeRootProperties.h"
 
 const auto kValidFileSystemCharacters { juce::String (" !#$%&'()+,-.0123456789;=@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]_`{}~abcdefghijklmnopqrstuvwxyz") };
@@ -374,6 +375,8 @@ void Assimil8orValidatorComponent::rename (juce::File file, int maxLength)
 
 void Assimil8orValidatorComponent::autoRename (juce::File fileToRename, bool doRescan)
 {
+    DebugLog ("Assimil8orValidatorComponent::autoRename", "processing '" + fileToRename.getFullPathName () + "'");
+
     auto getNewFile = [&fileToRename] (juce::String newName)
     {
         return fileToRename.getParentDirectory ().getChildFile (newName).withFileExtension (fileToRename.getFileExtension ());
@@ -383,6 +386,7 @@ void Assimil8orValidatorComponent::autoRename (juce::File fileToRename, bool doR
 
     // remove illegal characters
     auto fileName { fileToRename.getFileNameWithoutExtension ().retainCharacters (kValidFileSystemCharacters) };
+    DebugLog ("Assimil8orValidatorComponent::autoRename", "after removing illegal characters '" + fileName + "'");
 
     // if name is still too long, try the 'remove vowels' algorithm
     if (fileName.length () > kMaxFileNameWithoutExtension)
@@ -403,12 +407,17 @@ void Assimil8orValidatorComponent::autoRename (juce::File fileToRename, bool doR
         };
         if (const auto noVowelsFileName { removeVowels (fileName)}; noVowelsFileName.length () != 0)
             fileName = noVowelsFileName;
+        DebugLog ("Assimil8orValidatorComponent::autoRename", "after removing vowels '" + fileName + "'");
     }
 
     // if name is still too long truncate to max length
     if (fileName.length () > kMaxFileNameWithoutExtension)
+    {
         fileName = fileName.substring (0, kMaxFileNameWithoutExtension);
+        DebugLog ("Assimil8orValidatorComponent::autoRename", "after truncate '" + fileName + "'");
+    }
 
+    // TODO - why are we checking length here? it is already truncated by the above code
     // if name is still too long, or new file name already exists, truncate to max length and start appending an integer value to the name
     auto suffixValue { 1 };
     if (fileName.length () > kMaxFileNameWithoutExtension || getNewFile (fileName).exists ())
@@ -416,18 +425,22 @@ void Assimil8orValidatorComponent::autoRename (juce::File fileToRename, bool doR
         const auto prefix { fileName.substring (0, kMaxFileNameWithoutExtension) };
         while (getNewFile (fileName).exists ())
         {
+            DebugLog ("Assimil8orValidatorComponent::autoRename", "'" + fileName + "' already exists, appending next integer value");
             const auto suffixString { juce::String (suffixValue) };
             const auto trimAmount { juce::jmax (0, prefix.length () + suffixString.length () - kMaxFileNameWithoutExtension) };
             fileName = prefix.substring (0, prefix.length () - trimAmount) + suffixString;
             ++suffixValue;
         }
+        DebugLog ("Assimil8orValidatorComponent::autoRename", "after append integer '" + fileName + "'");
     }
 
     jassert (fileName != fileToRename.getFileNameWithoutExtension ());
 
+    DebugLog ("Assimil8orValidatorComponent::autoRename", "renaming");
     if (fileToRename.moveFileTo (getNewFile (fileName)) != true)
     {
         // TODO report error
+        DebugLog ("Assimil8orValidatorComponent::autoRename", "ERROR - unable to rename");
     }
 
     if (doRescan)
@@ -436,6 +449,7 @@ void Assimil8orValidatorComponent::autoRename (juce::File fileToRename, bool doR
 
 void Assimil8orValidatorComponent::autoRenameAll ()
 {
+    DebugLog ("Assimil8orValidatorComponent::autoRenameAll", "function entry");
     ValueTreeHelpers::forEachChildOfType (validatorResultsQuickLookupList [0].getParent (), ValidatorResultProperties::ValidatorResultTypeId, [this] (juce::ValueTree vrpVT)
     {
         ValidatorResultProperties validatorResultProperties (vrpVT, ValidatorResultProperties::WrapperType::client, ValidatorResultProperties::EnableCallbacks::no);
