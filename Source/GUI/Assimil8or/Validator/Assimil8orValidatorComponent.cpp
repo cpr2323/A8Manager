@@ -417,48 +417,31 @@ void Assimil8orValidatorComponent::autoRename (juce::File fileToRename, bool doR
         DebugLog ("Assimil8orValidatorComponent::autoRename", "after truncate '" + fileName + "'");
     }
 
-    // TODO - why are we checking length here? it is already truncated by the above code
-    // if name is still too long, or new file name already exists, truncate to max length and start appending an integer value to the name
+    jassert (fileName != fileToRename.getFileNameWithoutExtension ());
+
     auto suffixValue { 1 };
-    if (fileName.length () > kMaxFileNameWithoutExtension || getNewFile (fileName).exists ())
+    auto renameSuccess { false };
+    const auto prefix { fileName.substring (0, kMaxFileNameWithoutExtension) };
+    while (! renameSuccess)
     {
-        const auto prefix { fileName.substring (0, kMaxFileNameWithoutExtension) };
-        while (getNewFile (fileName).exists ())
+        DebugLog ("Assimil8orValidatorComponent::autoRename", "renaming to '" + fileName + "'");
+        if (fileToRename.moveFileTo (getNewFile (fileName)) != true)
         {
-            auto testFileToCheck { getNewFile (fileName + "x")};
-            juce::FileInputStream testInputStream { testFileToCheck };
-            if (! testInputStream.openedOk ())
-                DebugLog ("Assimil8orValidatorComponent::autoRename", "expected - unable to create input stream for test file");
-            else
-                DebugLog ("Assimil8orValidatorComponent::autoRename", "unexpected - able to create input stream for test file");
+            DebugLog ("Assimil8orValidatorComponent::autoRename", "ERROR - unable to rename");
+            // TODO report error
+            if (suffixValue > 999)
+                break;
 
-            auto fileToCheck { getNewFile (fileName) };
-            juce::FileInputStream inputStream { fileToCheck };
-            if (! inputStream.openedOk ())
-                DebugLog ("Assimil8orValidatorComponent::autoRename", "unexpected - unable to create input stream for real file");
-            else
-                DebugLog ("Assimil8orValidatorComponent::autoRename", "expected - able to create input stream for real file");
-
-            DebugLog ("Assimil8orValidatorComponent::autoRename", "'" + fileName + "' already exists, appending next integer value");
             const auto suffixString { juce::String (suffixValue) };
             const auto trimAmount { juce::jmax (0, prefix.length () + suffixString.length () - kMaxFileNameWithoutExtension) };
             fileName = prefix.substring (0, prefix.length () - trimAmount) + suffixString;
             ++suffixValue;
         }
-        DebugLog ("Assimil8orValidatorComponent::autoRename", "after append integer '" + fileName + "'");
-    }
-
-    jassert (fileName != fileToRename.getFileNameWithoutExtension ());
-
-    DebugLog ("Assimil8orValidatorComponent::autoRename", "renaming");
-    if (fileToRename.moveFileTo (getNewFile (fileName)) != true)
-    {
-        // TODO report error
-        DebugLog ("Assimil8orValidatorComponent::autoRename", "ERROR - unable to rename");
-    }
-    else
-    {
-        DebugLog ("Assimil8orValidatorComponent::autoRename", "rename success");
+        else
+        {
+            DebugLog ("Assimil8orValidatorComponent::autoRename", "rename success");
+            renameSuccess = true;
+        }
     }
 
     if (doRescan)
