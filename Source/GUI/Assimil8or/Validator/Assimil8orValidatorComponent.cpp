@@ -417,32 +417,45 @@ void Assimil8orValidatorComponent::autoRename (juce::File fileToRename, bool doR
         DebugLog ("Assimil8orValidatorComponent::autoRename", "after truncate '" + fileName + "'");
     }
 
-    jassert (fileName != fileToRename.getFileNameWithoutExtension ());
-
+    // TODO - why are we checking length here? it is already truncated by the above code
+    // if name is still too long, or new file name already exists, truncate to max length and start appending an integer value to the name
     auto suffixValue { 1 };
-    auto renameSuccess { false };
-    const auto prefix { fileName.substring (0, kMaxFileNameWithoutExtension) };
-    while (! renameSuccess)
+    if (fileName.length () > kMaxFileNameWithoutExtension || getNewFile (fileName).exists ())
     {
-        DebugLog ("Assimil8orValidatorComponent::autoRename", "renaming to '" + fileName + "'");
-        if (fileToRename.moveFileTo (getNewFile (fileName)) != true)
+        const auto prefix { fileName.substring (0, kMaxFileNameWithoutExtension) };
+        while (getNewFile (fileName).exists ())
         {
-            DebugLog ("Assimil8orValidatorComponent::autoRename", "ERROR - unable to rename");
-            // TODO report error
-            if (suffixValue > 999)
-                break;
-
+            DebugLog ("Assimil8orValidatorComponent::autoRename", "'" + fileName + "' already exists, appending next integer value");
             const auto suffixString { juce::String (suffixValue) };
             const auto trimAmount { juce::jmax (0, prefix.length () + suffixString.length () - kMaxFileNameWithoutExtension) };
             fileName = prefix.substring (0, prefix.length () - trimAmount) + suffixString;
             ++suffixValue;
+            if (suffixValue > 999)
+                break;
+        }
+        DebugLog ("Assimil8orValidatorComponent::autoRename", "after append integer '" + fileName + "'");
+    }
+
+    jassert (fileName != fileToRename.getFileNameWithoutExtension ());
+
+    if (! getNewFile (fileName).exists ())
+    {
+        DebugLog ("Assimil8orValidatorComponent::autoRename", "renaming");
+        if (fileToRename.moveFileTo (getNewFile (fileName)) != true)
+        {
+            // TODO report error
+            DebugLog ("Assimil8orValidatorComponent::autoRename", "ERROR - unable to rename");
         }
         else
         {
             DebugLog ("Assimil8orValidatorComponent::autoRename", "rename success");
-            renameSuccess = true;
         }
     }
+    else
+    {
+        DebugLog ("Assimil8orValidatorComponent::autoRename", "ERROR - unable to find available name");
+    }
+
 
     if (doRescan)
         directoryDataProperties.triggerStartScan (false);
