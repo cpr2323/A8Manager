@@ -1,4 +1,5 @@
 #include "EnvelopeComponent.h"
+#include "EnvelopeComponent.h"
 
 #if 0
 EnvelopeComponent::EnvelopeComponent ()

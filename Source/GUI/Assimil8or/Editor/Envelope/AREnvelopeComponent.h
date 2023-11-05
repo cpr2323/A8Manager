@@ -16,7 +16,11 @@ public:
     double getX () { return curX; }
     double getY () { return curY; }
 
+    void setActive (bool isActive) { active = isActive; }
+    bool getActive () { return active; }
+
 private:
+    bool active { false };
     double time { 0.0 };
     double amplitude { 0.0 };
 
@@ -37,10 +41,12 @@ private:
     EnvelopeAnchor startAnchor;
     EnvelopeAnchor attackAnchor;
     EnvelopeAnchor releaseAnchor;
+    EnvelopeAnchor* curActiveAnchor { nullptr };
 
     void attackPercentChanged (double attackPercent);
     void releasePercentChanged (double releasePercent);
 
+    void mouseMove (const juce::MouseEvent& e) override;
     void paint (juce::Graphics& g) override;
     void resized () override;
 };

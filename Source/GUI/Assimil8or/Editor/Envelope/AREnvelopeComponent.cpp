@@ -1,6 +1,7 @@
 #include "AREnvelopeComponent.h"
 
 const auto kAnchorSize { 8.0 };
+const auto kOffset { kAnchorSize / 2.0 };
 
 AREnvelopeComponent::AREnvelopeComponent ()
 {
@@ -29,9 +30,9 @@ void AREnvelopeComponent::releasePercentChanged (double releasePercent)
 
 void AREnvelopeComponent::paint (juce::Graphics& g)
 {
-    auto drawAnchor = [this, &g] (float centerX, float centerY)
+    auto drawAnchor = [this, &g] (EnvelopeAnchor& anchor)
     {
-        juce::Colour color { juce::Colours::grey };
+        juce::Colour color { anchor.getActive () ? juce::Colours::white : juce::Colours::grey };
         const auto startSize { 1.0 };
         const auto totalSize { kAnchorSize };
         const auto lineWidth { 1.0f };
@@ -42,7 +43,7 @@ void AREnvelopeComponent::paint (juce::Graphics& g)
         {
             const auto curRadius { curSize / 2.0f };
             g.setColour (color.withAlpha (alpha));
-            g.drawEllipse (juce::Rectangle<float> (centerX - curRadius, centerY - curRadius, curSize, curSize), lineWidth);
+            g.drawEllipse (juce::Rectangle<float> (anchor.getX () - curRadius, anchor.getY () - curRadius, curSize, curSize), lineWidth);
             alpha -= alphaStep;
         }
     };
@@ -51,26 +52,50 @@ void AREnvelopeComponent::paint (juce::Graphics& g)
     g.drawLine (attackAnchor.getX (), attackAnchor.getY (), releaseAnchor.getX (), releaseAnchor.getY ());
     juce::Colour color { juce::Colours::black};
     g.fillEllipse (juce::Rectangle<float> (startAnchor.getX () - (kAnchorSize / 2.0), startAnchor.getY () - (kAnchorSize / 2.0), kAnchorSize, kAnchorSize));
-    drawAnchor (attackAnchor.getX (), attackAnchor.getY ());
-    drawAnchor (releaseAnchor.getX (), releaseAnchor.getY ());
+    drawAnchor (attackAnchor);
+    drawAnchor (releaseAnchor);
 
-//     g.setColour (juce::Colours::azure);
-//     g.drawRect (editorArea);
     g.setColour (juce::Colours::black);
     g.drawRect (getLocalBounds ());
 }
 
 void AREnvelopeComponent::resized ()
 {
-    const auto offset { kAnchorSize / 2.0 };
-    editorArea = getLocalBounds ().reduced (offset, offset).toFloat ();
+    editorArea = getLocalBounds ().reduced (kOffset, kOffset).toFloat ();
 
-    startAnchor.setX (offset);
-    startAnchor.setY (offset + editorArea.getHeight ());
+    startAnchor.setX (kOffset);
+    startAnchor.setY (kOffset + editorArea.getHeight ());
 
-    attackAnchor.setX (offset + (editorArea.getWidth () * attackAnchor.getTime ()));
-    attackAnchor.setY (offset + (editorArea.getHeight() - (editorArea.getHeight () * attackAnchor.getAmplitude())));
+    attackAnchor.setX (kOffset + (editorArea.getWidth () * attackAnchor.getTime ()));
+    attackAnchor.setY (kOffset + (editorArea.getHeight() - (editorArea.getHeight () * attackAnchor.getAmplitude())));
 
-    releaseAnchor.setX (offset + (attackAnchor.getX () + editorArea.getWidth () * releaseAnchor.getTime ()));
-    releaseAnchor.setY (offset + (editorArea.getHeight () - (editorArea.getHeight () * releaseAnchor.getAmplitude ())));
+    releaseAnchor.setX (kOffset + (attackAnchor.getX () + editorArea.getWidth () * releaseAnchor.getTime ()));
+    releaseAnchor.setY (kOffset + (editorArea.getHeight () - (editorArea.getHeight () * releaseAnchor.getAmplitude ())));
+}
+
+void AREnvelopeComponent::mouseMove (const juce::MouseEvent& e)
+{
+    auto isMouseOverAnchor = [&e] (EnvelopeAnchor& anchor) -> bool
+    {
+        return juce::Rectangle<int> (anchor.getX () - kOffset, anchor.getY () - kOffset, kAnchorSize, kAnchorSize).contains (e.x, e.y);
+    };
+    EnvelopeAnchor* mouseOverAnchor { nullptr };
+    if (isMouseOverAnchor (attackAnchor))
+        mouseOverAnchor = &attackAnchor;
+    else if (isMouseOverAnchor (releaseAnchor))
+        mouseOverAnchor = &releaseAnchor;
+
+    if (mouseOverAnchor != curActiveAnchor)
+    {
+        auto setActive = [this] (bool isActive)
+        {
+            if (curActiveAnchor != nullptr)
+                curActiveAnchor->setActive (isActive);
+        };
+        setActive (false);
+        curActiveAnchor = mouseOverAnchor;
+        setActive (true);
+
+        repaint ();
+    }
 }
