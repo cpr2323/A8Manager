@@ -63,14 +63,14 @@ void AREnvelopeComponent::resized ()
 {
     editorArea = getLocalBounds ().reduced (kOffset, kOffset).toFloat ();
 
-    startAnchor.setX (kOffset);
-    startAnchor.setY (kOffset + editorArea.getHeight ());
+    startAnchor.setX (editorArea.getX ());
+    startAnchor.setY (editorArea.getBottom ());
 
-    attackAnchor.setX (kOffset + (editorArea.getWidth () * attackAnchor.getTime ()));
-    attackAnchor.setY (kOffset + (editorArea.getHeight() - (editorArea.getHeight () * attackAnchor.getAmplitude())));
+    attackAnchor.setX (editorArea.getX () + (editorArea.getWidth () * attackAnchor.getTime ()));
+    attackAnchor.setY (editorArea.getY () + (editorArea.getHeight() - (editorArea.getHeight () * attackAnchor.getAmplitude())));
 
-    releaseAnchor.setX (kOffset + (attackAnchor.getX () + editorArea.getWidth () * releaseAnchor.getTime ()));
-    releaseAnchor.setY (kOffset + (editorArea.getHeight () - (editorArea.getHeight () * releaseAnchor.getAmplitude ())));
+    releaseAnchor.setX (editorArea.getX () + (attackAnchor.getX () + editorArea.getWidth () * releaseAnchor.getTime ()));
+    releaseAnchor.setY (editorArea.getY () + (editorArea.getHeight () - (editorArea.getHeight () * releaseAnchor.getAmplitude ())));
 }
 
 void AREnvelopeComponent::mouseMove (const juce::MouseEvent& e)
@@ -97,5 +97,50 @@ void AREnvelopeComponent::mouseMove (const juce::MouseEvent& e)
         setActive (true);
 
         repaint ();
+    }
+}
+
+void AREnvelopeComponent::mouseDown (const juce::MouseEvent& e)
+{
+    if (curActiveAnchor == nullptr)
+        return;
+
+    if (e.mods.isShiftDown ())
+    {
+        // TODO move both
+    }
+}
+
+void AREnvelopeComponent::mouseDrag (const juce::MouseEvent& e)
+{
+    if (curActiveAnchor == nullptr)
+        return;
+
+    if (curActiveAnchor == &attackAnchor)
+    {
+        auto minX { editorArea.getX () };
+        auto maxX { e.mods.isShiftDown () ? releaseAnchor.getX () : editorArea.getRight () - (editorArea.getWidth () * releaseAnchor.getTime ()) };
+        const auto newX { std::fmin (std::fmax ((float) e.x, minX), maxX) };
+        if (newX != attackAnchor.getX ())
+        {
+            attackAnchor.setX (newX);
+            if (! e.mods.isShiftDown ())
+                releaseAnchor.setX (attackAnchor.getX () + editorArea.getWidth () * releaseAnchor.getTime ());
+            else
+                releaseAnchor.setTime ((releaseAnchor.getX () - attackAnchor.getX ()) / editorArea.getWidth ());
+
+            repaint ();
+        }
+    }
+    else
+    {
+        auto minX { attackAnchor.getX () };
+        auto maxX { editorArea.getRight () };
+        const auto newX { std::fmin (std::fmax ((float) e.x, minX), maxX) };
+        if (newX != releaseAnchor.getX ())
+        {
+            releaseAnchor.setX (newX);
+            repaint ();
+        }
     }
 }
