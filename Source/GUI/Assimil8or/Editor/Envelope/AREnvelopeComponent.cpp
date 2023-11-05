@@ -1,49 +1,76 @@
 #include "AREnvelopeComponent.h"
 
+const auto kAnchorSize { 8.0 };
+
 AREnvelopeComponent::AREnvelopeComponent ()
 {
-    initAnchors (eAnchorCount);
-
-    // start Anchor is locked at the bottom, cannot move it
-    envelopeAnchors [eStartAnchor]->xAxis.locked = true;
-    envelopeAnchors [eStartAnchor]->yAxis.locked = true;
-    envelopeAnchors [eStartAnchor]->xAxis.percentage = 0.0;
-    envelopeAnchors [eStartAnchor]->yAxis.percentage = 0.0;
-    
-    // attack Anchor is locked at the top, can move in the horizontal only
-    envelopeAnchors[eAttackAnchor]->xAxis.locked = false;
-    envelopeAnchors[eAttackAnchor]->yAxis.locked = true;
-    envelopeAnchors[eAttackAnchor]->xAxis.percentage  = 0.0;
-    envelopeAnchors[eAttackAnchor]->yAxis.percentage = 1.0;
-    envelopeAnchors[eAttackAnchor]->yAxis.followRight = true;
-
-	// release Anchor is locked at the bottom, can move the horizontal only
-    envelopeAnchors[eReleaseAnchor]->xAxis.locked = false;
-    envelopeAnchors[eReleaseAnchor]->yAxis.locked = true;
-    envelopeAnchors[eReleaseAnchor]->xAxis.percentage  = 1.0;
-    envelopeAnchors[eReleaseAnchor]->yAxis.percentage = 0.0;
-    envelopeAnchors[eReleaseAnchor]->yAxis.followLeft = true;
-
-    recalculateCoordinates ();
-
     arEnvelopeProperties.wrap ({}, AREnvelopeProperties::WrapperType::owner, AREnvelopeProperties::EnableCallbacks::yes);
-    arEnvelopeProperties.onAttackPercentChanged = [this] (double attackPercent) { setAttackTimePercent (attackPercent); };
-    arEnvelopeProperties.onReleasePercentChanged = [this] (double releasePercent) { setReleaseTimePercent (releasePercent); };
+    arEnvelopeProperties.onAttackPercentChanged = [this] (double attackPercent) { attackPercentChanged (attackPercent); };
+    arEnvelopeProperties.onReleasePercentChanged = [this] (double releasePercent) { releasePercentChanged (releasePercent); };
+
+    attackAnchor.setAmplitude (1.0);
+
 }
 
-void AREnvelopeComponent::setAttackTimePercent (double attackTimePercent)
+void AREnvelopeComponent::attackPercentChanged (double attackPercent)
 {
-    setAnchorXPercent (eAttackAnchor, attackTimePercent);
-    repaint ();
-}
-void AREnvelopeComponent::setReleaseTimePercent (double releaseTimePercent)
-{
-    setAnchorXPercent (eReleaseAnchor, releaseTimePercent);
+    attackAnchor.setTime (attackPercent);
+    attackAnchor.setX (getWidth () * attackAnchor.getTime ());
+    releaseAnchor.setX (attackAnchor.getX () + getWidth () * releaseAnchor.getTime ());
     repaint ();
 }
 
-void AREnvelopeComponent::anchorChanged ()
+void AREnvelopeComponent::releasePercentChanged (double releasePercent)
 {
-    arEnvelopeProperties.setAttackPercent (getAttackTimePercent (), false);
-    arEnvelopeProperties.setReleasePercent (getReleaseTimePercent (), false);
+    releaseAnchor.setTime (releasePercent);
+    releaseAnchor.setX (attackAnchor.getX () + getWidth () * releaseAnchor.getTime ());
+    repaint ();
+}
+
+void AREnvelopeComponent::paint (juce::Graphics& g)
+{
+    auto drawAnchor = [this, &g] (float centerX, float centerY)
+    {
+        juce::Colour color { juce::Colours::grey };
+        const auto startSize { 1.0 };
+        const auto totalSize { kAnchorSize };
+        const auto lineWidth { 1.0f };
+        const auto endSize { startSize + totalSize };
+        const auto alphaStep { 1.0f / (totalSize / lineWidth) };
+        auto alpha { 1.0f };
+        for (auto curSize { startSize }; curSize < endSize; curSize += lineWidth)
+        {
+            const auto curRadius { curSize / 2.0f };
+            g.setColour (color.withAlpha (alpha));
+            g.drawEllipse (juce::Rectangle<float> (centerX - curRadius, centerY - curRadius, curSize, curSize), lineWidth);
+            alpha -= alphaStep;
+        }
+    };
+
+    g.drawLine (startAnchor.getX (), startAnchor.getY (), attackAnchor.getX (), attackAnchor.getY ());
+    g.drawLine (attackAnchor.getX (), attackAnchor.getY (), releaseAnchor.getX (), releaseAnchor.getY ());
+    juce::Colour color { juce::Colours::black};
+    g.fillEllipse (juce::Rectangle<float> (startAnchor.getX () - (kAnchorSize / 2.0), startAnchor.getY () - (kAnchorSize / 2.0), kAnchorSize, kAnchorSize));
+    drawAnchor (attackAnchor.getX (), attackAnchor.getY ());
+    drawAnchor (releaseAnchor.getX (), releaseAnchor.getY ());
+
+//     g.setColour (juce::Colours::azure);
+//     g.drawRect (editorArea);
+    g.setColour (juce::Colours::black);
+    g.drawRect (getLocalBounds ());
+}
+
+void AREnvelopeComponent::resized ()
+{
+    const auto offset { kAnchorSize / 2.0 };
+    editorArea = getLocalBounds ().reduced (offset, offset).toFloat ();
+
+    startAnchor.setX (offset);
+    startAnchor.setY (offset + editorArea.getHeight ());
+
+    attackAnchor.setX (offset + (editorArea.getWidth () * attackAnchor.getTime ()));
+    attackAnchor.setY (offset + (editorArea.getHeight() - (editorArea.getHeight () * attackAnchor.getAmplitude())));
+
+    releaseAnchor.setX (offset + (attackAnchor.getX () + editorArea.getWidth () * releaseAnchor.getTime ()));
+    releaseAnchor.setY (offset + (editorArea.getHeight () - (editorArea.getHeight () * releaseAnchor.getAmplitude ())));
 }

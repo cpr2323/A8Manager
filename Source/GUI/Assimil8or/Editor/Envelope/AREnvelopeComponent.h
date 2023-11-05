@@ -2,33 +2,45 @@
 
 #include <JuceHeader.h>
 #include "AREnvelopeProperties.h"
-#include "../../../../Utility/GUI/EnvelopeComponent.h"
 
-class AREnvelopeComponent : public EnvelopeComponent
+class EnvelopeAnchor
+{
+public:
+    void setTime (double newTime) { time = newTime; }
+    void setAmplitude (double newAmplitude) { amplitude = newAmplitude; }
+    double getTime () { return time; }
+    double getAmplitude () { return amplitude; }
+
+    void setX (double newX) { curX = newX; }
+    void setY (double newY) { curY = newY; }
+    double getX () { return curX; }
+    double getY () { return curY; }
+
+private:
+    double time { 0.0 };
+    double amplitude { 0.0 };
+
+    float curX { 0.0f };
+    float curY { 0.0f };
+};
+
+class AREnvelopeComponent : public juce::Component
 {
 public:
     AREnvelopeComponent ();
-
+ 
     juce::ValueTree getPropertiesVT () { return arEnvelopeProperties.getValueTree (); }
 
 private:
-    enum
-    {
-        eNoAnchor = -1,
-
-        eStartAnchor = 0,
-        eAttackAnchor,
-        eReleaseAnchor,
-
-        eAnchorCount
-    };
     AREnvelopeProperties arEnvelopeProperties;
+    juce::Rectangle<float> editorArea;
+    EnvelopeAnchor startAnchor;
+    EnvelopeAnchor attackAnchor;
+    EnvelopeAnchor releaseAnchor;
 
-    void setAttackTimePercent (double attackTimePercent);
-    void setReleaseTimePercent (double releaseTimePercent);
+    void attackPercentChanged (double attackPercent);
+    void releasePercentChanged (double releasePercent);
 
-    double getAttackTimePercent () { return envelopeAnchors [eAttackAnchor]->xAxis.percentage; }
-    double getReleaseTimePercent () { return envelopeAnchors [eReleaseAnchor]->xAxis.percentage; }
-
-    void anchorChanged () override;
+    void paint (juce::Graphics& g) override;
+    void resized () override;
 };

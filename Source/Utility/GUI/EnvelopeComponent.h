@@ -3,6 +3,7 @@
 #include <JuceHeader.h>
 #include "EnvelopeAnchorComponent.h"
 
+#if 0
 class EnvelopeComponent : public juce::Component
 {
 public:
@@ -78,3 +79,4 @@ private:
     void mouseUp (const juce::MouseEvent& e) override;
     void mouseDrag (const juce::MouseEvent& e) override;
 };
+#endif

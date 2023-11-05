@@ -1,5 +1,6 @@
 #include "EnvelopeComponent.h"
 
+#if 0
 EnvelopeComponent::EnvelopeComponent ()
 {
     backgroundImage = juce::ImageCache::getFromMemory (BinaryData::background_png, BinaryData::background_pngSize);
@@ -723,3 +724,4 @@ void EnvelopeComponent::paint (juce::Graphics& g)
         g.drawRect ((float) startSelectX, (float) startSelectY, (float) width, (float) height, 1.0f);
     }
 }
+#endif
