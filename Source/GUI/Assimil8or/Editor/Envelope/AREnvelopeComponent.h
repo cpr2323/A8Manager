@@ -37,13 +37,15 @@ public:
 
 private:
     AREnvelopeProperties arEnvelopeProperties;
-    juce::Rectangle<float> editorArea;
+    float editorWidth { 0.0f };
+    float editorHeight { 0.0f };
     EnvelopeAnchor startAnchor;
     EnvelopeAnchor attackAnchor;
     EnvelopeAnchor releaseAnchor;
     EnvelopeAnchor* curActiveAnchor { nullptr };
 
     void attackPercentChanged (double attackPercent);
+    void recalcAnchorPositions ();
     void releasePercentChanged (double releasePercent);
 
     void mouseDown (const juce::MouseEvent& e) override;

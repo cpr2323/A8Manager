@@ -43,15 +43,15 @@ void AREnvelopeComponent::paint (juce::Graphics& g)
         {
             const auto curRadius { curSize / 2.0f };
             g.setColour (color.withAlpha (alpha));
-            g.drawEllipse (juce::Rectangle<float> (anchor.getX () - curRadius, anchor.getY () - curRadius, curSize, curSize), lineWidth);
+            g.drawEllipse (juce::Rectangle<float> (kOffset + anchor.getX () - curRadius, kOffset + anchor.getY () - curRadius, curSize, curSize), lineWidth);
             alpha -= alphaStep;
         }
     };
 
-    g.drawLine (startAnchor.getX (), startAnchor.getY (), attackAnchor.getX (), attackAnchor.getY ());
-    g.drawLine (attackAnchor.getX (), attackAnchor.getY (), releaseAnchor.getX (), releaseAnchor.getY ());
+    g.drawLine (kOffset + startAnchor.getX (), kOffset + startAnchor.getY (), kOffset + attackAnchor.getX (), kOffset + attackAnchor.getY ());
+    g.drawLine (kOffset + attackAnchor.getX (), kOffset + attackAnchor.getY (), kOffset + releaseAnchor.getX (), kOffset + releaseAnchor.getY ());
     juce::Colour color { juce::Colours::black};
-    g.fillEllipse (juce::Rectangle<float> (startAnchor.getX () - (kAnchorSize / 2.0), startAnchor.getY () - (kAnchorSize / 2.0), kAnchorSize, kAnchorSize));
+    g.fillEllipse (juce::Rectangle<float> (kOffset + startAnchor.getX () - (kAnchorSize / 2.0), kOffset + startAnchor.getY () - (kAnchorSize / 2.0), kAnchorSize, kAnchorSize));
     drawAnchor (attackAnchor);
     drawAnchor (releaseAnchor);
 
@@ -59,18 +59,23 @@ void AREnvelopeComponent::paint (juce::Graphics& g)
     g.drawRect (getLocalBounds ());
 }
 
+void AREnvelopeComponent::recalcAnchorPositions ()
+{
+    startAnchor.setX (0);
+    startAnchor.setY (editorHeight);
+
+    attackAnchor.setX (editorWidth * attackAnchor.getTime ());
+    attackAnchor.setY (editorHeight - (editorHeight * attackAnchor.getAmplitude ()));
+
+    releaseAnchor.setX (attackAnchor.getX () + editorWidth * releaseAnchor.getTime ());
+    releaseAnchor.setY (editorHeight - (editorHeight * releaseAnchor.getAmplitude ()));
+}
+
 void AREnvelopeComponent::resized ()
 {
-    editorArea = getLocalBounds ().reduced (kOffset, kOffset).toFloat ();
-
-    startAnchor.setX (editorArea.getX ());
-    startAnchor.setY (editorArea.getBottom ());
-
-    attackAnchor.setX (editorArea.getX () + (editorArea.getWidth () * attackAnchor.getTime ()));
-    attackAnchor.setY (editorArea.getY () + (editorArea.getHeight() - (editorArea.getHeight () * attackAnchor.getAmplitude())));
-
-    releaseAnchor.setX (editorArea.getX () + (attackAnchor.getX () + editorArea.getWidth () * releaseAnchor.getTime ()));
-    releaseAnchor.setY (editorArea.getY () + (editorArea.getHeight () - (editorArea.getHeight () * releaseAnchor.getAmplitude ())));
+    editorWidth = getWidth () - kAnchorSize;
+    editorHeight = getHeight () - kAnchorSize;
+    recalcAnchorPositions ();
 }
 
 void AREnvelopeComponent::mouseMove (const juce::MouseEvent& e)
@@ -113,21 +118,33 @@ void AREnvelopeComponent::mouseDown (const juce::MouseEvent& e)
 
 void AREnvelopeComponent::mouseDrag (const juce::MouseEvent& e)
 {
+#if 0
     if (curActiveAnchor == nullptr)
         return;
 
     if (curActiveAnchor == &attackAnchor)
     {
         auto minX { editorArea.getX () };
-        auto maxX { e.mods.isShiftDown () ? releaseAnchor.getX () : editorArea.getRight () - (editorArea.getWidth () * releaseAnchor.getTime ()) };
+        auto maxX { e.mods.isShiftDown () ? releaseAnchor.getX () : editorArea.getRight () - releaseAnchor.getX () };
         const auto newX { std::fmin (std::fmax ((float) e.x, minX), maxX) };
         if (newX != attackAnchor.getX ())
         {
-            attackAnchor.setX (newX);
+            // TODO we should only set Time and Amplitude here, as ::resized is setting the X and Y
+            const auto newAttackTime { (newX - kOffset) / editorArea.getWidth () };
+            attackAnchor.setTime (newAttackTime);
+            arEnvelopeProperties.setAttackPercent (newAttackTime, false);
             if (! e.mods.isShiftDown ())
-                releaseAnchor.setX (attackAnchor.getX () + editorArea.getWidth () * releaseAnchor.getTime ());
+            {
+                //releaseAnchor.setX (attackAnchor.getX () + editorArea.getWidth () * releaseAnchor.getTime ());
+            }
             else
+            {
+                juce::Logger::outputDebugString ("releaseAnchor.getX () - attackAnchor.getX (): " + juce::String (releaseAnchor.getX () - attackAnchor.getX ()));
+                juce::Logger::outputDebugString ("editorArea.getWidth (): " + juce::String (editorArea.getWidth ()));
+                juce::Logger::outputDebugString ("(releaseAnchor.getX () - attackAnchor.getX ()) / editorArea.getWidth (): " + juce::String ((releaseAnchor.getX () - attackAnchor.getX ()) / editorArea.getWidth (), 5));
                 releaseAnchor.setTime ((releaseAnchor.getX () - attackAnchor.getX ()) / editorArea.getWidth ());
+                arEnvelopeProperties.setReleasePercent (releaseAnchor.getTime (), false);
+            }
 
             repaint ();
         }
@@ -140,7 +157,10 @@ void AREnvelopeComponent::mouseDrag (const juce::MouseEvent& e)
         if (newX != releaseAnchor.getX ())
         {
             releaseAnchor.setX (newX);
+            releaseAnchor.setTime ((releaseAnchor.getX () - attackAnchor.getX ()) / editorArea.getWidth ());
+            arEnvelopeProperties.setReleasePercent (releaseAnchor.getTime (), false);
             repaint ();
         }
     }
+#endif
 }

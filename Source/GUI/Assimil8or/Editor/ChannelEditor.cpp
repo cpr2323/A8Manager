@@ -113,22 +113,15 @@ ChannelEditor::ChannelEditor ()
     arEnvelopeProperties.wrap (arEnvelopeComponent.getPropertiesVT (), AREnvelopeProperties::WrapperType::client, AREnvelopeProperties::EnableCallbacks::yes);
     arEnvelopeProperties.onAttackPercentChanged= [this] (double attackPercent)
     {
-        const auto oldAttack { arEnvelopeProperties.getAttackPercent () };
-        const auto oldRelease { arEnvelopeProperties.getReleasePercent () };
-        const auto releaseMin { oldAttack };
-        const auto releaseMax { releaseMin + kMaxEnvelopeTime };
-
         const auto rawAttackValue { kMaxEnvelopeTime * attackPercent };
         const auto curAttackFractionalValue { channelProperties.getAttack () - static_cast<int>(channelProperties.getAttack ()) };
-        channelProperties.setAttack (snapEnvelopeValue (static_cast<int>(rawAttackValue) + curAttackFractionalValue), true);
-        const auto newRelease { (oldRelease - oldAttack) + channelProperties.getAttack () };
-        channelProperties.setRelease (kMaxEnvelopeTime * newRelease, true);
+        attackDataChanged (snapEnvelopeValue (static_cast<int>(rawAttackValue) + curAttackFractionalValue));
     };
     arEnvelopeProperties.onReleasePercentChanged = [this] (double releasePercent)
     {
         const auto rawReleaseValue { kMaxEnvelopeTime * releasePercent };
         const auto curReleaseFractionalValue { channelProperties.getRelease () - static_cast<int>(channelProperties.getRelease ()) };
-        channelProperties.setRelease (snapEnvelopeValue (static_cast<int>(rawReleaseValue) + curReleaseFractionalValue), true);
+        releaseDataChanged (snapEnvelopeValue (static_cast<int>(rawReleaseValue) + curReleaseFractionalValue));
     };
     addAndMakeVisible (arEnvelopeComponent);
     updateAllZoneTabNames ();

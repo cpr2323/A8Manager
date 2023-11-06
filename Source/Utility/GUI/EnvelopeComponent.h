@@ -31,7 +31,7 @@ private:
     const juce::Colour kDefaultBorderColour { juce::Colours::black };
     const juce::Colour kDefaultLineColour { juce::Colours::cyan };
     const juce::Colour kDefaultGlowColour { juce::Colours::cyan };
-    const juce::Colour kDefaultNormalHandleColour { juce::Colours::royalblue };
+    const juce::Colour kDefaultNormalHandleColour { juce::Colours::royalblue }  ;
     const juce::Colour kDefaultActiveHandleColour { juce::Colours::red };
     const juce::Colour kDefaultDisabledHandleColour { juce::Colours::dimgrey };
 
