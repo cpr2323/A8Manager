@@ -1285,7 +1285,7 @@ void ChannelEditor::positionColumnTwo (int xOffset, int width)
     curYOffset += kParameterLineHeight;
 
     curYOffset += kInterControlYOffset;
-    arEnvelopeComponent.setBounds (releaseModComboBox.getX (), curYOffset, width, getHeight () - (curYOffset + kParameterLineHeight + kParameterLineHeight));
+    arEnvelopeComponent.setBounds (releaseModComboBox.getX (), curYOffset, width + 3, getHeight () - (curYOffset + kParameterLineHeight + kParameterLineHeight));
 }
 
 void ChannelEditor::positionColumnThree (int xOffset, int width)

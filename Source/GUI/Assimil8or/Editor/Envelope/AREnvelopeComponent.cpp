@@ -16,15 +16,14 @@ AREnvelopeComponent::AREnvelopeComponent ()
 void AREnvelopeComponent::attackPercentChanged (double attackPercent)
 {
     attackAnchor.setTime (attackPercent);
-    attackAnchor.setX (getWidth () * attackAnchor.getTime ());
-    releaseAnchor.setX (attackAnchor.getX () + getWidth () * releaseAnchor.getTime ());
+    recalcAnchorPositions ();
     repaint ();
 }
 
 void AREnvelopeComponent::releasePercentChanged (double releasePercent)
 {
     releaseAnchor.setTime (releasePercent);
-    releaseAnchor.setX (attackAnchor.getX () + getWidth () * releaseAnchor.getTime ());
+    recalcAnchorPositions ();
     repaint ();
 }
 
@@ -64,6 +63,7 @@ void AREnvelopeComponent::recalcAnchorPositions ()
     startAnchor.setX (0);
     startAnchor.setY (editorHeight);
 
+    juce::Logger::outputDebugString ("editorWidth: " + juce::String (editorWidth, 5) + ", attackTime: " + juce::String (attackAnchor.getTime (), 5) + ", attackX: " + juce::String (editorWidth * attackAnchor.getTime (), 5));
     attackAnchor.setX (editorWidth * attackAnchor.getTime ());
     attackAnchor.setY (editorHeight - (editorHeight * attackAnchor.getAmplitude ()));
 
@@ -82,7 +82,7 @@ void AREnvelopeComponent::mouseMove (const juce::MouseEvent& e)
 {
     auto isMouseOverAnchor = [&e] (EnvelopeAnchor& anchor) -> bool
     {
-        return juce::Rectangle<int> (anchor.getX () - kOffset, anchor.getY () - kOffset, kAnchorSize, kAnchorSize).contains (e.x, e.y);
+        return juce::Rectangle<int> (anchor.getX (), anchor.getY (), kAnchorSize, kAnchorSize).contains (e.x, e.y);
     };
     EnvelopeAnchor* mouseOverAnchor { nullptr };
     if (isMouseOverAnchor (attackAnchor))
@@ -118,19 +118,17 @@ void AREnvelopeComponent::mouseDown (const juce::MouseEvent& e)
 
 void AREnvelopeComponent::mouseDrag (const juce::MouseEvent& e)
 {
-#if 0
     if (curActiveAnchor == nullptr)
         return;
 
     if (curActiveAnchor == &attackAnchor)
     {
-        auto minX { editorArea.getX () };
-        auto maxX { e.mods.isShiftDown () ? releaseAnchor.getX () : editorArea.getRight () - releaseAnchor.getX () };
+        auto minX { 0.0 };
+        auto maxX { e.mods.isShiftDown () ? releaseAnchor.getX () : editorWidth - releaseAnchor.getX () };
         const auto newX { std::fmin (std::fmax ((float) e.x, minX), maxX) };
         if (newX != attackAnchor.getX ())
         {
-            // TODO we should only set Time and Amplitude here, as ::resized is setting the X and Y
-            const auto newAttackTime { (newX - kOffset) / editorArea.getWidth () };
+            const auto newAttackTime { newX / editorWidth };
             attackAnchor.setTime (newAttackTime);
             arEnvelopeProperties.setAttackPercent (newAttackTime, false);
             if (! e.mods.isShiftDown ())
@@ -140,27 +138,28 @@ void AREnvelopeComponent::mouseDrag (const juce::MouseEvent& e)
             else
             {
                 juce::Logger::outputDebugString ("releaseAnchor.getX () - attackAnchor.getX (): " + juce::String (releaseAnchor.getX () - attackAnchor.getX ()));
-                juce::Logger::outputDebugString ("editorArea.getWidth (): " + juce::String (editorArea.getWidth ()));
-                juce::Logger::outputDebugString ("(releaseAnchor.getX () - attackAnchor.getX ()) / editorArea.getWidth (): " + juce::String ((releaseAnchor.getX () - attackAnchor.getX ()) / editorArea.getWidth (), 5));
-                releaseAnchor.setTime ((releaseAnchor.getX () - attackAnchor.getX ()) / editorArea.getWidth ());
-                arEnvelopeProperties.setReleasePercent (releaseAnchor.getTime (), false);
+                juce::Logger::outputDebugString ("editorArea.getWidth (): " + juce::String (editorWidth));
+                const auto newReleaseTime { (releaseAnchor.getX () - newX) / editorWidth };
+                juce::Logger::outputDebugString ("(releaseAnchor.getX () - attackAnchor.getX ()) / editorArea.getWidth (): " + juce::String (newReleaseTime, 5));
+                releaseAnchor.setTime (newReleaseTime);
+                arEnvelopeProperties.setReleasePercent (newReleaseTime, false);
             }
-
+            recalcAnchorPositions ();
             repaint ();
         }
     }
     else
     {
         auto minX { attackAnchor.getX () };
-        auto maxX { editorArea.getRight () };
+        auto maxX { editorWidth };
         const auto newX { std::fmin (std::fmax ((float) e.x, minX), maxX) };
         if (newX != releaseAnchor.getX ())
         {
-            releaseAnchor.setX (newX);
-            releaseAnchor.setTime ((releaseAnchor.getX () - attackAnchor.getX ()) / editorArea.getWidth ());
-            arEnvelopeProperties.setReleasePercent (releaseAnchor.getTime (), false);
+            const auto newReleaseTime { (newX - attackAnchor.getX ()) / editorWidth };
+            releaseAnchor.setTime (newReleaseTime);
+            arEnvelopeProperties.setReleasePercent (newReleaseTime, false);
+            recalcAnchorPositions ();
             repaint ();
         }
     }
-#endif
 }
