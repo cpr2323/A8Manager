@@ -43,6 +43,7 @@ private:
     EnvelopeAnchor attackAnchor;
     EnvelopeAnchor releaseAnchor;
     EnvelopeAnchor* curActiveAnchor { nullptr };
+    int dragStartAnchorX { 0 };
 
     void attackPercentChanged (double attackPercent);
     void recalcAnchorPositions ();

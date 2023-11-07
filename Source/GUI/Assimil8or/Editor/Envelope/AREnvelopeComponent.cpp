@@ -10,7 +10,7 @@ AREnvelopeComponent::AREnvelopeComponent ()
     arEnvelopeProperties.onReleasePercentChanged = [this] (double releasePercent) { releasePercentChanged (releasePercent); };
 
     attackAnchor.setAmplitude (1.0);
-
+    releaseAnchor.setAmplitude (0.0);
 }
 
 void AREnvelopeComponent::attackPercentChanged (double attackPercent)
@@ -63,11 +63,10 @@ void AREnvelopeComponent::recalcAnchorPositions ()
     startAnchor.setX (0);
     startAnchor.setY (editorHeight);
 
-    juce::Logger::outputDebugString ("editorWidth: " + juce::String (editorWidth, 5) + ", attackTime: " + juce::String (attackAnchor.getTime (), 5) + ", attackX: " + juce::String (editorWidth * attackAnchor.getTime (), 5));
     attackAnchor.setX (editorWidth * attackAnchor.getTime ());
     attackAnchor.setY (editorHeight - (editorHeight * attackAnchor.getAmplitude ()));
 
-    releaseAnchor.setX (attackAnchor.getX () + editorWidth * releaseAnchor.getTime ());
+    releaseAnchor.setX (attackAnchor.getX () + (editorWidth * releaseAnchor.getTime ()));
     releaseAnchor.setY (editorHeight - (editorHeight * releaseAnchor.getAmplitude ()));
 }
 
@@ -95,7 +94,13 @@ void AREnvelopeComponent::mouseMove (const juce::MouseEvent& e)
         auto setActive = [this] (bool isActive)
         {
             if (curActiveAnchor != nullptr)
+            {
                 curActiveAnchor->setActive (isActive);
+                if (isActive == false)
+                    dragStartAnchorX = 0;
+                else
+                    dragStartAnchorX = curActiveAnchor->getX ();
+            }
         };
         setActive (false);
         curActiveAnchor = mouseOverAnchor;
@@ -109,11 +114,6 @@ void AREnvelopeComponent::mouseDown (const juce::MouseEvent& e)
 {
     if (curActiveAnchor == nullptr)
         return;
-
-    if (e.mods.isShiftDown ())
-    {
-        // TODO move both
-    }
 }
 
 void AREnvelopeComponent::mouseDrag (const juce::MouseEvent& e)
@@ -121,45 +121,26 @@ void AREnvelopeComponent::mouseDrag (const juce::MouseEvent& e)
     if (curActiveAnchor == nullptr)
         return;
 
+    const auto newX { dragStartAnchorX + e.getDistanceFromDragStartX () };
+    const auto newTime { newX / editorWidth };
     if (curActiveAnchor == &attackAnchor)
     {
-        auto minX { 0.0 };
-        auto maxX { e.mods.isShiftDown () ? releaseAnchor.getX () : editorWidth - releaseAnchor.getX () };
-        const auto newX { std::fmin (std::fmax ((float) e.x, minX), maxX) };
-        if (newX != attackAnchor.getX ())
+        if (newTime != attackAnchor.getTime ())
         {
-            const auto newAttackTime { newX / editorWidth };
+            const auto newAttackTime { std::fmin (std::fmax ((float) newTime, 0.0), 1.0 - releaseAnchor.getTime ()) };
             attackAnchor.setTime (newAttackTime);
             arEnvelopeProperties.setAttackPercent (newAttackTime, false);
-            if (! e.mods.isShiftDown ())
-            {
-                //releaseAnchor.setX (attackAnchor.getX () + editorArea.getWidth () * releaseAnchor.getTime ());
-            }
-            else
-            {
-                juce::Logger::outputDebugString ("releaseAnchor.getX () - attackAnchor.getX (): " + juce::String (releaseAnchor.getX () - attackAnchor.getX ()));
-                juce::Logger::outputDebugString ("editorArea.getWidth (): " + juce::String (editorWidth));
-                const auto newReleaseTime { (releaseAnchor.getX () - newX) / editorWidth };
-                juce::Logger::outputDebugString ("(releaseAnchor.getX () - attackAnchor.getX ()) / editorArea.getWidth (): " + juce::String (newReleaseTime, 5));
-                releaseAnchor.setTime (newReleaseTime);
-                arEnvelopeProperties.setReleasePercent (newReleaseTime, false);
-            }
-            recalcAnchorPositions ();
-            repaint ();
         }
     }
     else
     {
-        auto minX { attackAnchor.getX () };
-        auto maxX { editorWidth };
-        const auto newX { std::fmin (std::fmax ((float) e.x, minX), maxX) };
-        if (newX != releaseAnchor.getX ())
+        if (newTime - attackAnchor.getTime () != releaseAnchor.getTime ())
         {
-            const auto newReleaseTime { (newX - attackAnchor.getX ()) / editorWidth };
+            const auto newReleaseTime { std::fmin (std::fmax ((float) newTime - attackAnchor.getTime (), 0.0), 1.0 - attackAnchor.getTime ()) };
             releaseAnchor.setTime (newReleaseTime);
             arEnvelopeProperties.setReleasePercent (newReleaseTime, false);
-            recalcAnchorPositions ();
-            repaint ();
         }
     }
+    recalcAnchorPositions ();
+    repaint ();
 }
