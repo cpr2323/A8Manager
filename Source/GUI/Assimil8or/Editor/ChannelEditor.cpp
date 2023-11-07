@@ -113,13 +113,13 @@ ChannelEditor::ChannelEditor ()
     arEnvelopeProperties.wrap (arEnvelopeComponent.getPropertiesVT (), AREnvelopeProperties::WrapperType::client, AREnvelopeProperties::EnableCallbacks::yes);
     arEnvelopeProperties.onAttackPercentChanged= [this] (double attackPercent)
     {
-        const auto rawAttackValue { kMaxEnvelopeTime * attackPercent };
+        const auto rawAttackValue { (kMaxEnvelopeTime * 2) * attackPercent };
         const auto curAttackFractionalValue { channelProperties.getAttack () - static_cast<int>(channelProperties.getAttack ()) };
         attackDataChanged (snapEnvelopeValue (static_cast<int>(rawAttackValue) + curAttackFractionalValue));
     };
     arEnvelopeProperties.onReleasePercentChanged = [this] (double releasePercent)
     {
-        const auto rawReleaseValue { kMaxEnvelopeTime * releasePercent };
+        const auto rawReleaseValue { (kMaxEnvelopeTime *2) * releasePercent };
         const auto curReleaseFractionalValue { channelProperties.getRelease () - static_cast<int>(channelProperties.getRelease ()) };
         releaseDataChanged (snapEnvelopeValue (static_cast<int>(rawReleaseValue) + curReleaseFractionalValue));
     };
@@ -127,8 +127,8 @@ ChannelEditor::ChannelEditor ()
     updateAllZoneTabNames ();
     addChildComponent (stereoRightTransparantOverly);
 
-    channelProperties.setAttack (kMaxEnvelopeTime * arEnvelopeProperties.getAttackPercent (), false);
-    channelProperties.setRelease (kMaxEnvelopeTime * arEnvelopeProperties.getReleasePercent (), false);
+    channelProperties.setAttack ((kMaxEnvelopeTime * 2) * arEnvelopeProperties.getAttackPercent (), false);
+    channelProperties.setRelease ((kMaxEnvelopeTime * 2) * arEnvelopeProperties.getReleasePercent (), false);
 }
 
 ChannelEditor::~ChannelEditor ()
@@ -542,7 +542,7 @@ void ChannelEditor::setupChannelComponents ()
     [this] (juce::String text)
     {
         const auto attackTime { snapEnvelopeValue (std::clamp (text.getDoubleValue (), minChannelProperties.getAttack (), maxChannelProperties.getAttack ())) };
-        arEnvelopeProperties.setAttackPercent (attackTime / static_cast<double>(kMaxEnvelopeTime), false);
+        arEnvelopeProperties.setAttackPercent (attackTime / static_cast<double>(kMaxEnvelopeTime * 2), false);
         attackUiChanged (attackTime);
         attackTextEditor.setText (FormatHelpers::formatDouble (attackTime, getEnvelopeValueResolution (attackTime), false));
     });
@@ -567,7 +567,7 @@ void ChannelEditor::setupChannelComponents ()
     [this] (juce::String text)
     {
         const auto releaseTime { snapEnvelopeValue (std::clamp (text.getDoubleValue (), minChannelProperties.getRelease (), maxChannelProperties.getRelease ())) };
-        arEnvelopeProperties.setReleasePercent (releaseTime / static_cast<double>(kMaxEnvelopeTime), false);
+        arEnvelopeProperties.setReleasePercent (releaseTime / static_cast<double>(kMaxEnvelopeTime * 2), false);
         releaseUiChanged (releaseTime);
         releaseTextEditor.setText (FormatHelpers::formatDouble (releaseTime, getEnvelopeValueResolution (releaseTime), false));
     });
@@ -1491,7 +1491,7 @@ void ChannelEditor::aliasingModUiChanged (juce::String cvInput, double aliasingM
 
 void ChannelEditor::attackDataChanged (double attack)
 {
-    arEnvelopeProperties.setAttackPercent (attack / static_cast<double>(kMaxEnvelopeTime), false);
+    arEnvelopeProperties.setAttackPercent (attack / static_cast<double>(kMaxEnvelopeTime * 2), false);
     attackTextEditor.setText (FormatHelpers::formatDouble (attack, getEnvelopeValueResolution (attack), false));
 }
 
@@ -1801,7 +1801,7 @@ void ChannelEditor::pMSourceUiChanged (int pMSource)
 
 void ChannelEditor::releaseDataChanged (double release)
 {
-    arEnvelopeProperties.setReleasePercent (release / static_cast<double>(kMaxEnvelopeTime), false);
+    arEnvelopeProperties.setReleasePercent (release / static_cast<double>(kMaxEnvelopeTime * 2), false);
     releaseTextEditor.setText (FormatHelpers::formatDouble (release, getEnvelopeValueResolution (release), false));
 }
 

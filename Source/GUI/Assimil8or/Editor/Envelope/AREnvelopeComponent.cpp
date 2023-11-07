@@ -10,7 +10,9 @@ AREnvelopeComponent::AREnvelopeComponent ()
     arEnvelopeProperties.onReleasePercentChanged = [this] (double releasePercent) { releasePercentChanged (releasePercent); };
 
     attackAnchor.setAmplitude (1.0);
+    attackAnchor.setMaxTime (0.5);
     releaseAnchor.setAmplitude (0.0);
+    releaseAnchor.setMaxTime (0.5);
 }
 
 void AREnvelopeComponent::attackPercentChanged (double attackPercent)
@@ -125,9 +127,9 @@ void AREnvelopeComponent::mouseDrag (const juce::MouseEvent& e)
     const auto newTime { newX / editorWidth };
     if (curActiveAnchor == &attackAnchor)
     {
-        if (newTime != attackAnchor.getTime ())
+        if (newTime - startAnchor.getTime () != attackAnchor.getTime ())
         {
-            const auto newAttackTime { std::fmin (std::fmax ((float) newTime, 0.0), 1.0 - releaseAnchor.getTime ()) };
+            const auto newAttackTime { std::fmin (std::fmax ((float) newTime - startAnchor.getTime (), 0.0), std::fmin (attackAnchor.getMaxTime (), 1.0 - releaseAnchor.getTime ()))};
             attackAnchor.setTime (newAttackTime);
             arEnvelopeProperties.setAttackPercent (newAttackTime, false);
         }
@@ -136,7 +138,7 @@ void AREnvelopeComponent::mouseDrag (const juce::MouseEvent& e)
     {
         if (newTime - attackAnchor.getTime () != releaseAnchor.getTime ())
         {
-            const auto newReleaseTime { std::fmin (std::fmax ((float) newTime - attackAnchor.getTime (), 0.0), 1.0 - attackAnchor.getTime ()) };
+            const auto newReleaseTime { std::fmin (std::fmax ((float) newTime - attackAnchor.getTime (), 0.0), std::fmin (releaseAnchor.getMaxTime (), 1.0 - attackAnchor.getTime ())) };
             releaseAnchor.setTime (newReleaseTime);
             arEnvelopeProperties.setReleasePercent (newReleaseTime, false);
         }

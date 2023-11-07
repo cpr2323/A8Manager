@@ -16,6 +16,9 @@ public:
     double getX () { return curX; }
     double getY () { return curY; }
 
+    void setMaxTime (double newMaxTime) { maxTime = newMaxTime; }
+    double getMaxTime () { return maxTime; }
+
     void setActive (bool isActive) { active = isActive; }
     bool getActive () { return active; }
 
@@ -23,6 +26,7 @@ private:
     bool active { false };
     double time { 0.0 };
     double amplitude { 0.0 };
+    double maxTime { 1.0 };
 
     float curX { 0.0f };
     float curY { 0.0f };
