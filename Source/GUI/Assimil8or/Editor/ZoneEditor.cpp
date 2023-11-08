@@ -50,6 +50,8 @@ ZoneEditor::ZoneEditor ()
     };
     addAndMakeVisible (toolsButton);
 
+    addAndMakeVisible (loopPointsView);
+
     setupLabel (sourceLabel, "SOURCE", 14.0f, juce::Justification::centred);
     addAndMakeVisible (sourceLabel);
     auto setupSourceButton = [this] (juce::TextButton& sourceButton, juce::String text, bool initilalState, juce::Rectangle<int>* background,
@@ -213,6 +215,28 @@ bool ZoneEditor::handleSamplesInternal (int zoneIndex, juce::StringArray files)
     return handleSamples (zoneIndex, files);
 }
 
+void ZoneEditor::updateLoopPointsView (juce::AudioFormatReader& reader)
+{
+    const auto kReadSize { 4000 };
+    const auto kReadOffset { 8000 };
+    loopPointsView.startSamples.resize (kReadSize);
+    juce::AudioBuffer<float> audioBuffer (1, kReadSize);
+
+    reader.read (&audioBuffer, 0, kReadSize, kReadOffset, true, false);
+    auto readPtr { audioBuffer.getReadPointer (0) };
+    for (auto i { 0 }; i < audioBuffer.getNumSamples (); ++i)
+        loopPointsView.startSamples [i] = *readPtr++;
+
+    loopPointsView.endSamples.resize (kReadSize);
+    audioBuffer.clear ();
+    reader.read (&audioBuffer, 0, kReadSize, reader.lengthInSamples - kReadSize, true, false);
+    auto readPtr2 { audioBuffer.getReadPointer (0) };
+    for (auto i { 0 }; i < audioBuffer.getNumSamples (); ++i)
+        loopPointsView.endSamples [i] = *readPtr2++;
+
+    loopPointsView.repaint ();
+}
+
 void ZoneEditor::loadSample (juce::String sampleFileName)
 {
     // TODO - I don't think we need this anymore, verify and remove
@@ -230,6 +254,8 @@ void ZoneEditor::loadSample (juce::String sampleFileName)
     {
         sampleLength = reader->lengthInSamples;
         sampleFileName = sampleFile.getFileName (); // this copies the added .wav extension if it wasn't in the original name
+
+        updateLoopPointsView (*reader);
 
         zoneProperties.setSampleStart (-1, true);
         zoneProperties.setSampleEnd (-1, true);
@@ -629,18 +655,20 @@ void ZoneEditor::resized ()
                              (loopLengthTextEditor.getRight ()) - (loopStartLabel.getX ()),
                              (loopLengthTextEditor.getBottom ()) - (loopStartLabel.getY ()) };
 
-    auto playLabelBounds { juce::Rectangle<int> {0, loopLengthTextEditor.getBottom () + interParameterYOffset, getWidth (), 14} };
-    sourceLabel.setBounds (playLabelBounds.removeFromLeft (playLabelBounds.getWidth () / 2));
-    playModeLabel.setBounds (playLabelBounds);
-    auto playControlsBounds { juce::Rectangle<int> {0, playLabelBounds.getBottom () + interParameterYOffset, getWidth (), 20} };
-    playControlsBounds.removeFromLeft (3);
-    sourceSamplePointsButton.setBounds (playControlsBounds.removeFromLeft (35));
-    playControlsBounds.removeFromLeft (3);
-    sourceLoopPointsButton.setBounds (playControlsBounds.removeFromLeft (35));
-    playControlsBounds.removeFromRight (3);
-    loopPlayButton.setBounds (playControlsBounds.removeFromRight (35));
-    playControlsBounds.removeFromRight (3);
-    oneShotPlayButton.setBounds (playControlsBounds.removeFromRight (35));
+    auto loopPointsViewBounds { juce::Rectangle<int> {0, loopLengthTextEditor.getBottom () + interParameterYOffset + 1, getWidth (), 40} };
+    loopPointsView.setBounds (loopPointsViewBounds.reduced(3,0));
+    auto labelBounds { juce::Rectangle<int> {0, loopPointsView.getBottom () + interParameterYOffset, getWidth (), 14} };
+    sourceLabel.setBounds (labelBounds.removeFromLeft (labelBounds.getWidth () / 2));
+    playModeLabel.setBounds (labelBounds);
+    auto controlsBounds { juce::Rectangle<int> {0, labelBounds.getBottom () + interParameterYOffset, getWidth (), 20} };
+    controlsBounds.removeFromLeft (3);
+    sourceSamplePointsButton.setBounds (controlsBounds.removeFromLeft (35));
+    controlsBounds.removeFromLeft (3);
+    sourceLoopPointsButton.setBounds (controlsBounds.removeFromLeft (35));
+    controlsBounds.removeFromRight (3);
+    loopPlayButton.setBounds (controlsBounds.removeFromRight (35));
+    controlsBounds.removeFromRight (3);
+    oneShotPlayButton.setBounds (controlsBounds.removeFromRight (35));
 
     const auto otherLabelScale { 0.66f };
     const auto otherInputScale { 1.f - otherLabelScale };

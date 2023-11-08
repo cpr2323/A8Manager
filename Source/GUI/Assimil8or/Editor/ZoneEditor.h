@@ -1,6 +1,7 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "LoopPoints/LoopPointsView.h"
 #include "../../../Assimil8or/Audio/AudioPlayerProperties.h"
 #include "../../../Assimil8or/Preset/ZoneProperties.h"
 #include "../../../AppProperties.h"
@@ -106,6 +107,7 @@ private:
     bool draggingFiles { false };
     int dropIndex { 0 };
 
+    LoopPointsView loopPointsView;
     juce::Label sourceLabel;
     juce::TextButton sourceSamplePointsButton;
     juce::TextButton sourceLoopPointsButton;
@@ -139,6 +141,7 @@ private:
     void setupZoneComponents ();
     void setupZonePropertiesCallbacks ();
     double snapLoopLength (double rawValue);
+    void updateLoopPointsView (juce::AudioFormatReader& reader);
     void updateSampleFileInfo (juce::String sample);
     void updateSamplePositionInfo ();
 
