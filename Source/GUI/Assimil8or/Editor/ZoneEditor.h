@@ -100,6 +100,8 @@ private:
     ZoneProperties minZoneProperties;
     ZoneProperties maxZoneProperties;
     juce::AudioFormatManager audioFormatManager;
+    std::unique_ptr<juce::AudioFormatReader> sampleFileReader;
+    juce::AudioBuffer<float> sampleAudioBuffer;
 
     bool loopLengthIsEnd { false };
     int64_t sampleLength { 0 };
@@ -107,7 +109,7 @@ private:
     bool draggingFiles { false };
     int dropIndex { 0 };
 
-    LoopPointsView loopPointsView;
+    LoopPointsView loopPointsView { sampleAudioBuffer };
     juce::Label sourceLabel;
     juce::TextButton sourceSamplePointsButton;
     juce::TextButton sourceLoopPointsButton;
@@ -141,7 +143,7 @@ private:
     void setupZoneComponents ();
     void setupZonePropertiesCallbacks ();
     double snapLoopLength (double rawValue);
-    void updateLoopPointsView (juce::AudioFormatReader& reader);
+    void updateLoopPointsView ();
     void updateSampleFileInfo (juce::String sample);
     void updateSamplePositionInfo ();
 

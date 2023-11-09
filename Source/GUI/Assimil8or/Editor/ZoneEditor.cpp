@@ -215,25 +215,11 @@ bool ZoneEditor::handleSamplesInternal (int zoneIndex, juce::StringArray files)
     return handleSamples (zoneIndex, files);
 }
 
-void ZoneEditor::updateLoopPointsView (juce::AudioFormatReader& reader)
+void ZoneEditor::updateLoopPointsView ()
 {
-    const auto kReadSize { 4000 };
-    const auto kReadOffset { 8000 };
-    loopPointsView.startSamples.resize (kReadSize);
-    juce::AudioBuffer<float> audioBuffer (1, kReadSize);
-
-    reader.read (&audioBuffer, 0, kReadSize, kReadOffset, true, false);
-    auto readPtr { audioBuffer.getReadPointer (0) };
-    for (auto i { 0 }; i < audioBuffer.getNumSamples (); ++i)
-        loopPointsView.startSamples [i] = *readPtr++;
-
-    loopPointsView.endSamples.resize (kReadSize);
-    audioBuffer.clear ();
-    reader.read (&audioBuffer, 0, kReadSize, reader.lengthInSamples - kReadSize, true, false);
-    auto readPtr2 { audioBuffer.getReadPointer (0) };
-    for (auto i { 0 }; i < audioBuffer.getNumSamples (); ++i)
-        loopPointsView.endSamples [i] = *readPtr2++;
-
+    const auto startSample { zoneProperties.getSampleStart ().value_or (0) };
+    const auto numSamples { zoneProperties.getSampleEnd ().value_or (sampleLength) - startSample };
+    loopPointsView.setLoopInfo (startSample, numSamples);
     loopPointsView.repaint ();
 }
 
@@ -250,12 +236,14 @@ void ZoneEditor::loadSample (juce::String sampleFileName)
 
     sampleLength = 0;
     jassert (sampleFileName.isNotEmpty ());
-    if (std::unique_ptr<juce::AudioFormatReader> reader (audioFormatManager.createReaderFor (sampleFile)); reader != nullptr)
+    if (sampleFileReader.reset (audioFormatManager.createReaderFor (sampleFile)); sampleFileReader != nullptr)
     {
-        sampleLength = reader->lengthInSamples;
+        sampleLength = sampleFileReader->lengthInSamples;
         sampleFileName = sampleFile.getFileName (); // this copies the added .wav extension if it wasn't in the original name
+        sampleAudioBuffer.setSize (1, sampleLength, false, true, false);
+        sampleFileReader->read (&sampleAudioBuffer, 0, sampleLength, 0, true, false);
 
-        updateLoopPointsView (*reader);
+        updateLoopPointsView ();
 
         zoneProperties.setSampleStart (-1, true);
         zoneProperties.setSampleEnd (-1, true);
@@ -266,7 +254,7 @@ void ZoneEditor::loadSample (juce::String sampleFileName)
         sampleNameSelectLabel.setText (sampleFileName, juce::NotificationType::dontSendNotification);
         sampleNameSelectLabel.setColour (juce::Label::ColourIds::textColourId, juce::Colours::white);
 
-        if (reader->numChannels == 2)
+        if (sampleFileReader->numChannels == 2)
         {
             ChannelProperties parentChannelProperties (zoneProperties.getValueTree ().getParent (), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
             // if this zone not the last channel && the parent channel isn't set to Stereo/Right
@@ -647,7 +635,10 @@ void ZoneEditor::resized ()
                                (sampleEndTextEditor.getRight ()) - (sampleStartLabel.getX ()),
                                (sampleEndTextEditor.getBottom ()) - (sampleStartLabel.getY ()) };
 
-    loopStartLabel.setBounds (xOffset, sampleEndTextEditor.getBottom (), scaleWidth (samplePointLabelScale), 20);
+    auto loopPointsViewBounds { juce::Rectangle<int> {0, sampleEndTextEditor.getBottom () + interParameterYOffset, getWidth (), 40} };
+    loopPointsView.setBounds (loopPointsViewBounds.reduced (3, 0));
+
+    loopStartLabel.setBounds (xOffset, loopPointsView.getBottom () + interParameterYOffset, scaleWidth (samplePointLabelScale), 20);
     loopStartTextEditor.setBounds (loopStartLabel.getRight () + spaceBetweenLabelAndInput, loopStartLabel.getY (), scaleWidth (samplePointInputScale) - spaceBetweenLabelAndInput, 20);
     loopLengthLabel.setBounds (xOffset, loopStartLabel.getBottom () + interParameterYOffset, scaleWidth (samplePointLabelScale), 20);
     loopLengthTextEditor.setBounds (loopLengthLabel.getRight () + spaceBetweenLabelAndInput, loopLengthLabel.getY (), scaleWidth (samplePointInputScale) - spaceBetweenLabelAndInput, 20);
@@ -655,9 +646,8 @@ void ZoneEditor::resized ()
                              (loopLengthTextEditor.getRight ()) - (loopStartLabel.getX ()),
                              (loopLengthTextEditor.getBottom ()) - (loopStartLabel.getY ()) };
 
-    auto loopPointsViewBounds { juce::Rectangle<int> {0, loopLengthTextEditor.getBottom () + interParameterYOffset + 1, getWidth (), 40} };
-    loopPointsView.setBounds (loopPointsViewBounds.reduced(3,0));
-    auto labelBounds { juce::Rectangle<int> {0, loopPointsView.getBottom () + interParameterYOffset, getWidth (), 14} };
+
+    auto labelBounds { juce::Rectangle<int> {0, loopLengthTextEditor.getBottom () + interParameterYOffset, getWidth (), 14} };
     sourceLabel.setBounds (labelBounds.removeFromLeft (labelBounds.getWidth () / 2));
     playModeLabel.setBounds (labelBounds);
     auto controlsBounds { juce::Rectangle<int> {0, labelBounds.getBottom () + interParameterYOffset, getWidth (), 20} };
@@ -861,19 +851,23 @@ void ZoneEditor::sampleUiChanged (juce::String sample)
 void ZoneEditor::sampleStartDataChanged (std::optional<int64_t> sampleStart)
 {
     sampleStartTextEditor.setText (juce::String (sampleStart.value_or (0)));
+    updateLoopPointsView ();
 }
 
 void ZoneEditor::sampleStartUiChanged (int64_t  sampleStart)
 {
     zoneProperties.setSampleStart (sampleStart, false);
+    updateLoopPointsView ();
 }
 
 void ZoneEditor::sampleEndDataChanged (std::optional<int64_t> sampleEnd)
 {
     sampleEndTextEditor.setText (juce::String (sampleEnd.value_or (sampleLength)));
+    updateLoopPointsView ();
 }
 
 void ZoneEditor::sampleEndUiChanged (int64_t  sampleEnd)
 {
     zoneProperties.setSampleEnd (sampleEnd, false);
+    updateLoopPointsView ();
 }
