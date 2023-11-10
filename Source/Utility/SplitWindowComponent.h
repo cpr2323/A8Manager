@@ -70,4 +70,5 @@ private:
     void paint (juce::Graphics& g) override;
     void mouseMove (const juce::MouseEvent& me) override;
     void mouseDrag (const juce::MouseEvent& me) override;
+    void mouseExit (const juce::MouseEvent& me) override;
 };
