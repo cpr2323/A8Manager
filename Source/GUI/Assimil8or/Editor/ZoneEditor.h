@@ -2,6 +2,7 @@
 
 #include <JuceHeader.h>
 #include "LoopPoints/LoopPointsView.h"
+#include "SamplePool/SamplePool.h"
 #include "../../../Assimil8or/Audio/AudioPlayerProperties.h"
 #include "../../../Assimil8or/Preset/ZoneProperties.h"
 #include "../../../AppProperties.h"
@@ -80,7 +81,7 @@ public:
     ZoneEditor ();
     ~ZoneEditor () = default;
 
-    void init (juce::ValueTree zonePropertiesVT, juce::ValueTree rootPropertiesVT);
+    void init (juce::ValueTree zonePropertiesVT, juce::ValueTree rootPropertiesVT, SamplePool* theSamplePool);
     void checkSampleExistence ();
     bool isSupportedAudioFile (juce::File file);
     void loadSample (juce::String sampleFileName);
@@ -100,8 +101,8 @@ private:
     ZoneProperties minZoneProperties;
     ZoneProperties maxZoneProperties;
     juce::AudioFormatManager audioFormatManager;
-    std::unique_ptr<juce::AudioFormatReader> sampleFileReader;
     juce::AudioBuffer<float> sampleAudioBuffer;
+    SamplePool* samplePool;
 
     bool loopLengthIsEnd { false };
     int64_t sampleLength { 0 };

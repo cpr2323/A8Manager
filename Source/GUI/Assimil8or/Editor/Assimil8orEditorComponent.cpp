@@ -217,16 +217,16 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
     auto channelEditorIndex { 0 };
     presetProperties.forEachChannel ([this, &channelEditorIndex, rootPropertiesVT] (juce::ValueTree channelPropertiesVT)
     {
-        channelEditors [channelEditorIndex].init (channelPropertiesVT, rootPropertiesVT);
+        channelEditors [channelEditorIndex].init (channelPropertiesVT, rootPropertiesVT, &samplePool);
         channelEditors [channelEditorIndex].displayToolsMenu = [this] (int channelIndex)
         {
             juce::PopupMenu pm;
             pm.addItem ("Copy", true, false, [this, channelIndex] ()
             {
                 copyBufferChannelProperties.copyFrom (channelProperties [channelIndex].getValueTree ());
-                copyBufferActive = true;
+                copyBufferHasData = true;
             });
-            pm.addItem ("Paste", copyBufferActive, false, [this, channelIndex] ()
+            pm.addItem ("Paste", copyBufferHasData, false, [this, channelIndex] ()
             {
                 channelProperties [channelIndex].copyFrom (copyBufferChannelProperties.getValueTree ());
             });

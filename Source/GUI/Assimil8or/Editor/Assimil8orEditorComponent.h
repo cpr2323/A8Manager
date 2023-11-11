@@ -3,6 +3,7 @@
 #include <JuceHeader.h>
 #include "ChannelEditor.h"
 #include "CvInputComboBox.h"
+#include "SamplePool/SamplePool.h"
 #include "../../../AppProperties.h"
 #include "../../../Assimil8or/Audio/AudioPlayerProperties.h"
 #include "../../../Assimil8or/Preset/PresetProperties.h"
@@ -43,7 +44,8 @@ private:
     PresetProperties maxPresetProperties;
     ChannelProperties defaultChannelProperties;
     ChannelProperties copyBufferChannelProperties;
-    bool copyBufferActive { false };
+    bool copyBufferHasData { false };
+    SamplePool samplePool;
 
     juce::Label titleLabel;
     juce::TextButton saveButton;

@@ -889,8 +889,11 @@ std::tuple<double, double> ChannelEditor::getVoltageBoundaries (int zoneIndex, i
         return { topBoundary, bottomBoundary };
     };
 
-void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree rootPropertiesVT)
+void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree rootPropertiesVT, SamplePool* theSamplePool)
 {
+    jassert (theSamplePool != nullptr);
+    samplePool = theSamplePool;
+
     PersistentRootProperties persistentRootProperties (rootPropertiesVT, PersistentRootProperties::WrapperType::client, PersistentRootProperties::EnableCallbacks::no);
     RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
     appProperties.wrap (persistentRootProperties.getValueTree (), AppProperties::WrapperType::client, AppProperties::EnableCallbacks::no);
@@ -903,7 +906,7 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
     {
         // Zone Editor setup
         auto& zoneEditor { zoneEditors [zoneEditorIndex] };
-        zoneEditor.init (zonePropertiesVT, rootPropertiesVT);
+        zoneEditor.init (zonePropertiesVT, rootPropertiesVT, samplePool);
         zoneEditor.displayToolsMenu = [this] (int zoneIndex)
         {
             juce::PopupMenu pmBalance;
@@ -917,9 +920,9 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
             pm.addItem ("Copy", true, false, [this, zoneIndex] ()
             {
                 copyBufferZoneProperties.copyFrom (zoneProperties [zoneIndex].getValueTree ());
-                copyBufferActive = true;
+                copyBufferHasData = true;
             });
-            pm.addItem ("Paste", copyBufferActive, false, [this, zoneIndex] ()
+            pm.addItem ("Paste", copyBufferHasData, false, [this, zoneIndex] ()
             {
                 zoneProperties [zoneIndex].copyFrom (copyBufferZoneProperties.getValueTree ());
                 // if this was on the end of the zone list, make sure it's minVoltage is set to -5

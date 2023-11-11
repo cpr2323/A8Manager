@@ -5,6 +5,7 @@
 #include "ZoneEditor.h"
 #include "Envelope/AREnvelopeComponent.h"
 #include "Envelope/AREnvelopeProperties.h"
+#include "SamplePool/SamplePool.h"
 #include "../../../AppProperties.h"
 #include "../../../Assimil8or/Audio/AudioPlayerProperties.h"
 #include "../../../Assimil8or/Preset/ChannelProperties.h"
@@ -156,7 +157,7 @@ public:
     ChannelEditor ();
     ~ChannelEditor ();
 
-    void init (juce::ValueTree channelPropertiesVT, juce::ValueTree rootPropertiesVT);
+    void init (juce::ValueTree channelPropertiesVT, juce::ValueTree rootPropertiesVT, SamplePool* theSamplePool);
     void receiveSampleLoadRequest (juce::File sampleFile);
     void checkSampleFileExistence ();
 
@@ -177,8 +178,9 @@ private:
     ChannelProperties maxChannelProperties;
     ZoneProperties defaultZoneProperties;
     ZoneProperties copyBufferZoneProperties;
-    bool copyBufferActive { false };
+    bool copyBufferHasData { false };
     AudioPlayerProperties audioPlayerProperties;
+    SamplePool* samplePool { nullptr };
 
     juce::Label zonesLabel;
     juce::Label zoneMaxVoltage;

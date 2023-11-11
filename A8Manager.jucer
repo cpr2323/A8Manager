@@ -119,6 +119,10 @@
               <FILE id="ENQvAV" name="LoopPointsView.h" compile="0" resource="0"
                     file="Source/GUI/Assimil8or/Editor/LoopPoints/LoopPointsView.h"/>
             </GROUP>
+            <GROUP id="{D73921A7-8850-68E4-122F-311FCE12BEE6}" name="SamplePool">
+              <FILE id="yJzkYP" name="SamplePool.cpp" compile="1" resource="0" file="Source/GUI/Assimil8or/Editor/SamplePool/SamplePool.cpp"/>
+              <FILE id="obUalz" name="SamplePool.h" compile="0" resource="0" file="Source/GUI/Assimil8or/Editor/SamplePool/SamplePool.h"/>
+            </GROUP>
             <FILE id="liNFVw" name="Assimil8orEditorComponent.cpp" compile="1"
                   resource="0" file="Source/GUI/Assimil8or/Editor/Assimil8orEditorComponent.cpp"/>
             <FILE id="HH5ILq" name="Assimil8orEditorComponent.h" compile="0" resource="0"

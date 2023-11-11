@@ -68,6 +68,7 @@ ZoneEditor::ZoneEditor ()
             activePointBackground = background;
             sourceSamplePointsButton.setToggleState (&sourceButton == &sourceSamplePointsButton, juce::NotificationType::dontSendNotification);
             sourceLoopPointsButton.setToggleState (&sourceButton == &sourceLoopPointsButton, juce::NotificationType::dontSendNotification);
+            updateLoopPointsView ();
             repaint ();
             if (audioPlayerProperties.getPlayState () != AudioPlayerProperties::PlayState::stop)
                 ifStoppedFunc ();
@@ -217,8 +218,18 @@ bool ZoneEditor::handleSamplesInternal (int zoneIndex, juce::StringArray files)
 
 void ZoneEditor::updateLoopPointsView ()
 {
-    const auto startSample { zoneProperties.getSampleStart ().value_or (0) };
-    const auto numSamples { zoneProperties.getSampleEnd ().value_or (sampleLength) - startSample };
+    auto startSample { 0 };
+    auto numSamples { 0 };
+    if (sourceSamplePointsButton.getToggleState ())
+    {
+        startSample = zoneProperties.getSampleStart ().value_or (0);
+        numSamples = zoneProperties.getSampleEnd ().value_or (sampleLength) - startSample;
+    }
+    else
+    {
+        startSample = zoneProperties.getLoopStart ().value_or (0);
+        numSamples = zoneProperties.getLoopLength().value_or (sampleLength);
+    }
     loopPointsView.setLoopInfo (startSample, numSamples);
     loopPointsView.repaint ();
 }
@@ -236,7 +247,7 @@ void ZoneEditor::loadSample (juce::String sampleFileName)
 
     sampleLength = 0;
     jassert (sampleFileName.isNotEmpty ());
-    if (sampleFileReader.reset (audioFormatManager.createReaderFor (sampleFile)); sampleFileReader != nullptr)
+    if (std::unique_ptr<juce::AudioFormatReader> sampleFileReader { audioFormatManager.createReaderFor (sampleFile) }; sampleFileReader != nullptr)
     {
         sampleLength = sampleFileReader->lengthInSamples;
         sampleFileName = sampleFile.getFileName (); // this copies the added .wav extension if it wasn't in the original name
@@ -473,8 +484,11 @@ void ZoneEditor::setupZoneComponents ()
     });
 }
 
-void ZoneEditor::init (juce::ValueTree zonePropertiesVT, juce::ValueTree rootPropertiesVT)
+void ZoneEditor::init (juce::ValueTree zonePropertiesVT, juce::ValueTree rootPropertiesVT, SamplePool* theSamplePool)
 {
+    jassert (theSamplePool != nullptr);
+    samplePool = theSamplePool;
+
     PersistentRootProperties persistentRootProperties (rootPropertiesVT, PersistentRootProperties::WrapperType::client, PersistentRootProperties::EnableCallbacks::no);
     RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
 
@@ -625,6 +639,7 @@ void ZoneEditor::resized ()
     sampleNameLabel.setBounds (xOffset, 5, scaleWidth (sampleNameLabelScale), 20);
     sampleNameSelectLabel.setBounds (sampleNameLabel.getRight () + spaceBetweenLabelAndInput, 5, scaleWidth (sampleNameInputScale) - spaceBetweenLabelAndInput + 1, 20);
 
+    const auto loopPointsViewHeight { 40 };
     const auto samplePointLabelScale { 0.45f };
     const auto samplePointInputScale { 1.f - samplePointLabelScale };
     sampleStartLabel.setBounds (xOffset, sampleNameSelectLabel.getBottom () + 5, scaleWidth (samplePointLabelScale), 20);
@@ -632,19 +647,19 @@ void ZoneEditor::resized ()
     sampleEndLabel.setBounds (xOffset, sampleStartLabel.getBottom () + interParameterYOffset, scaleWidth (samplePointLabelScale), 20);
     sampleEndTextEditor.setBounds (sampleEndLabel.getRight () + spaceBetweenLabelAndInput, sampleEndLabel.getY (), scaleWidth (samplePointInputScale) - spaceBetweenLabelAndInput, 20);
     samplePointsBackground = { sampleStartLabel.getX (), sampleStartLabel.getY (),
-                               (sampleEndTextEditor.getRight ()) - (sampleStartLabel.getX ()),
-                               (sampleEndTextEditor.getBottom ()) - (sampleStartLabel.getY ()) };
+                               sampleEndTextEditor.getRight () - sampleStartLabel.getX (),
+                               sampleEndTextEditor.getBottom () - sampleStartLabel.getY () + loopPointsViewHeight };
 
-    auto loopPointsViewBounds { juce::Rectangle<int> {0, sampleEndTextEditor.getBottom () + interParameterYOffset, getWidth (), 40} };
+    auto loopPointsViewBounds { juce::Rectangle<int> {0, sampleEndTextEditor.getBottom () + interParameterYOffset, getWidth (), loopPointsViewHeight } };
     loopPointsView.setBounds (loopPointsViewBounds.reduced (3, 0));
 
     loopStartLabel.setBounds (xOffset, loopPointsView.getBottom () + interParameterYOffset, scaleWidth (samplePointLabelScale), 20);
     loopStartTextEditor.setBounds (loopStartLabel.getRight () + spaceBetweenLabelAndInput, loopStartLabel.getY (), scaleWidth (samplePointInputScale) - spaceBetweenLabelAndInput, 20);
     loopLengthLabel.setBounds (xOffset, loopStartLabel.getBottom () + interParameterYOffset, scaleWidth (samplePointLabelScale), 20);
     loopLengthTextEditor.setBounds (loopLengthLabel.getRight () + spaceBetweenLabelAndInput, loopLengthLabel.getY (), scaleWidth (samplePointInputScale) - spaceBetweenLabelAndInput, 20);
-    loopPointsBackground = { loopStartLabel.getX (), loopStartLabel.getY (),
-                             (loopLengthTextEditor.getRight ()) - (loopStartLabel.getX ()),
-                             (loopLengthTextEditor.getBottom ()) - (loopStartLabel.getY ()) };
+    loopPointsBackground = { loopStartLabel.getX (), loopStartLabel.getY () - loopPointsViewHeight,
+                             loopLengthTextEditor.getRight () - loopStartLabel.getX (),
+                             loopLengthTextEditor.getBottom () - loopStartLabel.getY () + loopPointsViewHeight };
 
 
     auto labelBounds { juce::Rectangle<int> {0, loopLengthTextEditor.getBottom () + interParameterYOffset, getWidth (), 14} };
