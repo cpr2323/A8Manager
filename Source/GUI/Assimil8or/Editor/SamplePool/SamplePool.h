@@ -17,6 +17,7 @@ public:
     void setParentFolder (juce::File theParentFolder);
     SamplePool::SampleData useSample (juce::String fileName);
     void unUseSample (juce::String fileName);
+    void clear ();
 
 private:
     juce::AudioFormatManager audioFormatManager;

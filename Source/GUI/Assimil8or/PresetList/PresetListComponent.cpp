@@ -124,7 +124,7 @@ void PresetListComponent::checkPresets ()
 
     // clear preset info list
     for (auto curPresetInfoIndex { 0 }; curPresetInfoIndex < presetInfoList.size (); ++curPresetInfoIndex)
-        presetInfoList[curPresetInfoIndex] = {curPresetInfoIndex + 1, false, ""};
+        presetInfoList[curPresetInfoIndex] = { curPresetInfoIndex + 1, false, "" };
 
     if (showAll)
         numPresets = kMaxPresets;
@@ -162,7 +162,7 @@ void PresetListComponent::checkPresets ()
             }
             else
             {
-                // if the entry is not a preset file, but we were processing preset files, then we are done
+                // if the entry is not a preset file, but we had started processing preset files, then we are done, because the files are sorted by type
                 if (inPresetList)
                     return false;
             }

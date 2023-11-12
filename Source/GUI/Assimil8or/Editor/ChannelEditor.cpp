@@ -1446,6 +1446,12 @@ void ChannelEditor::resized ()
     positionColumnFour (xOffSet, columnWidth);
 }
 
+void ChannelEditor::reset ()
+{
+    for (auto& zoneEditor : zoneEditors)
+        zoneEditor.reset ();
+}
+
 void ChannelEditor::updateAllZoneTabNames ()
 {
     for (auto zoneIndex { 0 }; zoneIndex < zoneTabs.getNumTabs (); ++zoneIndex)

@@ -237,13 +237,15 @@ void ZoneEditor::updateLoopPointsView ()
 void ZoneEditor::loadSample (juce::String sampleFileName)
 {
     // TODO - I don't think we need this anymore, verify and remove
-    if (sampleFileName == zoneProperties.getSample ())
-        return;
+    jassert (sampleFileName != zoneProperties.getSample ());
+//     if (sampleFileName == zoneProperties.getSample ())
+//         return;
 
     // TODO - I don't think we need this anymore, verify and remove
     auto sampleFile { juce::File (appProperties.getMostRecentFolder ()).getChildFile (sampleFileName) };
-    if (sampleFile.getFileName () == zoneProperties.getSample ())
-        return;
+    jassert (sampleFile.getFileName () != zoneProperties.getSample ());
+//     if (sampleFile.getFileName () == zoneProperties.getSample ())
+//         return;
 
     sampleLength = 0;
     jassert (sampleFileName.isNotEmpty ());
@@ -540,7 +542,6 @@ void ZoneEditor::init (juce::ValueTree zonePropertiesVT, juce::ValueTree rootPro
 
     ChannelProperties channelProperties (zoneProperties.getValueTree ().getParent (), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
     setLoopLengthIsEnd (channelProperties.getLoopLengthIsEnd ());
-
 }
 
 void ZoneEditor::setLoopLengthIsEnd (bool newLoopLengthIsEnd)
@@ -566,6 +567,12 @@ void ZoneEditor::receiveSampleLoadRequest (juce::File sampleFile)
     {
         // TODO - indicate an error? first thought was a red outline that fades out over a couple of second
     }
+}
+
+void ZoneEditor::reset ()
+{
+//     if (const auto sampleName { zoneProperties.getSample () }; sampleName.isNotEmpty ())
+//         samplePool->unUseSample (sampleName);
 }
 
 void ZoneEditor::setupZonePropertiesCallbacks ()
@@ -847,15 +854,16 @@ void ZoneEditor::updateSamplePositionInfo ()
 
 void ZoneEditor::sampleDataChanged (juce::String sample)
 {
+    const auto sampleCanBePlayed { !sample.isEmpty () && juce::File (appProperties.getMostRecentFolder ()).getChildFile (sample).exists () };
+    oneShotPlayButton.setEnabled (sampleCanBePlayed);
+    loopPlayButton.setEnabled (sampleCanBePlayed);
+
     if (sample != sampleNameSelectLabel.getText ())
     {
         updateSampleFileInfo (sample);
         updateSamplePositionInfo ();
+        sampleNameSelectLabel.setText (sample, juce::NotificationType::dontSendNotification);
     }
-    sampleNameSelectLabel.setText (sample, juce::NotificationType::dontSendNotification);
-    const auto sampleCanBePlayed { ! sample.isEmpty () && juce::File (appProperties.getMostRecentFolder ()).getChildFile (sample).exists () };
-    oneShotPlayButton.setEnabled (sampleCanBePlayed);
-    loopPlayButton.setEnabled (sampleCanBePlayed);
 }
 
 void ZoneEditor::sampleUiChanged (juce::String sample)

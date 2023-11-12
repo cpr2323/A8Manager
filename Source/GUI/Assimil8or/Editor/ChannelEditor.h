@@ -160,6 +160,7 @@ public:
     void init (juce::ValueTree channelPropertiesVT, juce::ValueTree rootPropertiesVT, SamplePool* theSamplePool);
     void receiveSampleLoadRequest (juce::File sampleFile);
     void checkSampleFileExistence ();
+    void reset ();
 
     std::function<void (int channelIndex)> displayToolsMenu;
 

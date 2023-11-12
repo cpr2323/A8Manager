@@ -199,6 +199,10 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
     appProperties.wrap (persistentRootProperties.getValueTree (), AppProperties::WrapperType::client, AppProperties::EnableCallbacks::yes);
     appProperties.onMostRecentFileChange = [this] (juce::String fileName)
     {
+        for (auto& channelEditor : channelEditors)
+            channelEditor.reset ();
+        samplePool.clear ();
+        samplePool.setParentFolder (juce::File (fileName).getParentDirectory ());
         audioPlayerProperties.setPlayState (AudioPlayerProperties::PlayState::stop, false);
     };
 

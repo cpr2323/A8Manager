@@ -53,6 +53,10 @@ SamplePool::SampleData SamplePool::loadSample (juce::String fileName)
     return {};
 }
 
+void SamplePool::clear ()
+{
+}
+
 void SamplePool::unUseSample (juce::String fileName)
 {
     const auto sampleDataIter { sampleList.find (fileName) };
