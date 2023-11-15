@@ -199,6 +199,7 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
     appProperties.wrap (persistentRootProperties.getValueTree (), AppProperties::WrapperType::client, AppProperties::EnableCallbacks::yes);
     appProperties.onMostRecentFileChange = [this] (juce::String fileName)
     {
+        juce::Logger::outputDebugString ("Assimil8orEditorComponent::init/appProperties.onMostRecentFileChange: " + fileName);
         for (auto& channelEditor : channelEditors)
             channelEditor.reset ();
         samplePool.clear ();

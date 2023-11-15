@@ -11,7 +11,7 @@ void SamplePool::setParentFolder (juce::File theParentFolder)
     parentFolder = theParentFolder;
 }
 
-SamplePool::SampleData SamplePool::useSample (juce::String fileName)
+SampleData SamplePool::useSample (juce::String fileName)
 {
     jassert (parentFolder.exists ());
     const auto sampleDataIter { sampleList.find (fileName) };
@@ -20,11 +20,11 @@ SamplePool::SampleData SamplePool::useSample (juce::String fileName)
         return loadSample (fileName);
     }
     sampleDataIter->second.useCount++;
-    return { sampleDataIter->second.bitsPerSample, sampleDataIter->second.numChannels,
-             sampleDataIter->second.lengthInSamples, sampleDataIter->second.audioBuffer };
+    return { &sampleDataIter->second.exists, &sampleDataIter->second.bitsPerSample, &sampleDataIter->second.numChannels,
+             &sampleDataIter->second.lengthInSamples, &sampleDataIter->second.audioBuffer };
 }
 
-SamplePool::SampleData SamplePool::loadSample (juce::String fileName)
+SampleData SamplePool::loadSample (juce::String fileName)
 {
     juce::File fullPath { parentFolder.getChildFile (fileName) };
     if (std::unique_ptr<juce::AudioFormatReader> sampleFileReader { audioFormatManager.createReaderFor (fullPath) }; sampleFileReader != nullptr)
@@ -41,16 +41,17 @@ SamplePool::SampleData SamplePool::loadSample (juce::String fileName)
 
         sampleList [fileName] = std::move (newSampleDataInternal);
 
-        const auto sdi { sampleList [fileName] };
-        return { sdi.bitsPerSample, sdi.numChannels,
-                 sdi.lengthInSamples, sdi.audioBuffer };
+        auto& sdi { sampleList [fileName] };
+        return { &sdi.exists, &sdi.bitsPerSample, &sdi.numChannels,
+                 &sdi.lengthInSamples, &sdi.audioBuffer };
     }
     else
     {
         // TODO - handle error
         jassertfalse;
     }
-    return {};
+    return { &errorSampleData.exists, &errorSampleData.bitsPerSample, &errorSampleData.numChannels,
+             &errorSampleData.lengthInSamples, &errorSampleData.audioBuffer };
 }
 
 void SamplePool::clear ()

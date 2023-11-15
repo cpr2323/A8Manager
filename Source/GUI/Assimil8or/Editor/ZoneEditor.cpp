@@ -571,8 +571,8 @@ void ZoneEditor::receiveSampleLoadRequest (juce::File sampleFile)
 
 void ZoneEditor::reset ()
 {
-//     if (const auto sampleName { zoneProperties.getSample () }; sampleName.isNotEmpty ())
-//         samplePool->unUseSample (sampleName);
+     if (const auto sampleName { zoneProperties.getSample () }; sampleName.isNotEmpty ())
+         samplePool->unUseSample (sampleName);
 }
 
 void ZoneEditor::setupZonePropertiesCallbacks ()
