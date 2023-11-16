@@ -7,10 +7,12 @@ struct SampleData
 public:
     enum class SampleDataStatus
     {
+        uninitialized,
         wrongFormat,
         doesNotExist,
         exists
     };
+    SampleData () = default;
     SampleData (SampleDataStatus* s, int* bps, int* nc, int64_t* lis, juce::AudioBuffer<float>* ab)
         : status (s),
           bitsPerSample (bps),
@@ -20,11 +22,11 @@ public:
     {
     }
 
-    SampleData::SampleDataStatus getStatus () { jassert (status != nullptr); return *status; }
-    int getBitsPerSample () { jassert (bitsPerSample != nullptr); return *bitsPerSample; }
-    int getNumChannels () { jassert (numChannels!= nullptr); return *numChannels; }
-    int64_t getLengthInSamples() { jassert (lengthInSamples != nullptr); return *lengthInSamples; }
-    juce::AudioBuffer<float>& getAudioBuffer () { jassert (audioBuffer != nullptr); return *audioBuffer; }
+    SampleData::SampleDataStatus getStatus () { return status != nullptr ? *status : SampleData::SampleDataStatus::uninitialized; }
+    int getBitsPerSample () { return bitsPerSample != nullptr ? *bitsPerSample : 0; }
+    int getNumChannels () { return numChannels != nullptr ? *numChannels : 0; }
+    int64_t getLengthInSamples() { return lengthInSamples != nullptr ? *lengthInSamples: 0; }
+    juce::AudioBuffer<float>& getAudioBuffer () { return audioBuffer != nullptr ? *audioBuffer : emptyAudioBuffer; }
 
 private:
     SampleDataStatus* status { nullptr };
@@ -32,6 +34,7 @@ private:
     int* numChannels { nullptr };
     int64_t* lengthInSamples { nullptr };
     juce::AudioBuffer<float>* audioBuffer { nullptr };
+    juce::AudioBuffer<float> emptyAudioBuffer;
 };
 
 class SamplePool
@@ -48,7 +51,7 @@ private:
     juce::File parentFolder;
     struct SampleDataInternal
     {
-        SampleData::SampleDataStatus status { SampleData::SampleDataStatus::doesNotExist };
+        SampleData::SampleDataStatus status { SampleData::SampleDataStatus::uninitialized };
         int useCount { 0 };
         int bitsPerSample { 0 };
         int numChannels { 0 };

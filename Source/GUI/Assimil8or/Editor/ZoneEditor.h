@@ -104,9 +104,9 @@ private:
     juce::AudioFormatManager audioFormatManager;
     juce::AudioBuffer<float> sampleAudioBuffer;
     SamplePool* samplePool;
+    SampleData sampleData;
 
     bool loopLengthIsEnd { false };
-    int64_t sampleLength { 0 };
 
     bool draggingFiles { false };
     int dropIndex { 0 };

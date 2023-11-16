@@ -220,6 +220,7 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
     presetProperties.wrap (presetManagerProperties.getPreset ("edit"), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::yes);
     setupPresetPropertiesCallbacks ();
     auto channelEditorIndex { 0 };
+    samplePool.setParentFolder (appProperties.getMostRecentFolder ());
     presetProperties.forEachChannel ([this, &channelEditorIndex, rootPropertiesVT] (juce::ValueTree channelPropertiesVT)
     {
         channelEditors [channelEditorIndex].init (channelPropertiesVT, rootPropertiesVT, &samplePool);

@@ -79,14 +79,14 @@ ZoneEditor::ZoneEditor ()
     {
         const auto sampleStart { static_cast<int> (zoneProperties.getSampleStart ().value_or (0)) };
         audioPlayerProperties.setLoopStart (sampleStart, false);
-        audioPlayerProperties.setLoopLength (static_cast<int> (zoneProperties.getSampleEnd ().value_or (sampleLength) - sampleStart), false);
+        audioPlayerProperties.setLoopLength (static_cast<int> (zoneProperties.getSampleEnd ().value_or (sampleData.getLengthInSamples ()) - sampleStart), false);
     });
 
     setupSourceButton (sourceLoopPointsButton, "LOOP", false, &loopPointsBackground, [this] ()
     {
         const auto loopStart { static_cast<int> (zoneProperties.getLoopStart ().value_or (0)) };
         audioPlayerProperties.setLoopStart (loopStart, false);
-        audioPlayerProperties.setLoopLength (static_cast<int> (zoneProperties.getLoopLength ().value_or (sampleLength)), false);
+        audioPlayerProperties.setLoopLength (static_cast<int> (zoneProperties.getLoopLength ().value_or (sampleData.getLengthInSamples ())), false);
     });
 
     setupLabel (playModeLabel, "PLAY", 14.0f, juce::Justification::centred);
@@ -133,13 +133,13 @@ ZoneEditor::ZoneEditor ()
     {
         const auto loopStart { static_cast<int> (zoneProperties.getLoopStart ().value_or (0)) };
         audioPlayerProperties.setLoopStart (loopStart, false);
-        audioPlayerProperties.setLoopLength (static_cast<int> (zoneProperties.getLoopLength ().value_or (sampleLength)), false);
+        audioPlayerProperties.setLoopLength (static_cast<int> (zoneProperties.getLoopLength ().value_or (sampleData.getLengthInSamples ())), false);
     },
     [this] ()
     {
         const auto sampleStart { static_cast<int> (zoneProperties.getSampleStart ().value_or (0)) };
         audioPlayerProperties.setLoopStart (sampleStart, false);
-        audioPlayerProperties.setLoopLength (static_cast<int> (zoneProperties.getSampleEnd ().value_or (sampleLength) - sampleStart), false);
+        audioPlayerProperties.setLoopLength (static_cast<int> (zoneProperties.getSampleEnd ().value_or (sampleData.getLengthInSamples ()) - sampleStart), false);
     });
 
     setupPlayButton (oneShotPlayButton, "ONCE", false, "LOOP", sourceSamplePointsButton, AudioPlayerProperties::PlayState::play,
@@ -147,13 +147,13 @@ ZoneEditor::ZoneEditor ()
     {
         const auto sampleStart { static_cast<int> (zoneProperties.getSampleStart ().value_or (0)) };
         audioPlayerProperties.setLoopStart (sampleStart, false);
-        audioPlayerProperties.setLoopLength (static_cast<int> (zoneProperties.getSampleEnd ().value_or (sampleLength) - sampleStart), false);
+        audioPlayerProperties.setLoopLength (static_cast<int> (zoneProperties.getSampleEnd ().value_or (sampleData.getLengthInSamples ()) - sampleStart), false);
     },
     [this] ()
     {
         const auto loopStart { static_cast<int> (zoneProperties.getLoopStart ().value_or (0)) };
         audioPlayerProperties.setLoopStart (loopStart, false);
-        audioPlayerProperties.setLoopLength (static_cast<int> (zoneProperties.getLoopLength ().value_or (sampleLength)), false);
+        audioPlayerProperties.setLoopLength (static_cast<int> (zoneProperties.getLoopLength ().value_or (sampleData.getLengthInSamples ())), false);
     });
     setupZoneComponents ();
 }
@@ -223,12 +223,12 @@ void ZoneEditor::updateLoopPointsView ()
     if (sourceSamplePointsButton.getToggleState ())
     {
         startSample = zoneProperties.getSampleStart ().value_or (0);
-        numSamples = zoneProperties.getSampleEnd ().value_or (sampleLength) - startSample;
+        numSamples = zoneProperties.getSampleEnd ().value_or (sampleData.getLengthInSamples ()) - startSample;
     }
     else
     {
         startSample = zoneProperties.getLoopStart ().value_or (0);
-        numSamples = static_cast<int64_t> (zoneProperties.getLoopLength().value_or (static_cast<double> (sampleLength)));
+        numSamples = static_cast<int64_t> (zoneProperties.getLoopLength().value_or (static_cast<double> (sampleData.getLengthInSamples ())));
     }
     loopPointsView.setLoopInfo (startSample, numSamples);
     loopPointsView.repaint ();
@@ -247,15 +247,13 @@ void ZoneEditor::loadSample (juce::String sampleFileName)
 //     if (sampleFile.getFileName () == zoneProperties.getSample ())
 //         return;
 
-    sampleLength = 0;
     jassert (sampleFileName.isNotEmpty ());
-    if (std::unique_ptr<juce::AudioFormatReader> sampleFileReader { audioFormatManager.createReaderFor (sampleFile) }; sampleFileReader != nullptr)
-    {
-        sampleLength = sampleFileReader->lengthInSamples;
-        sampleFileName = sampleFile.getFileName (); // this copies the added .wav extension if it wasn't in the original name
-        sampleAudioBuffer.setSize (1, static_cast<int> (sampleLength), false, true, false);
-        sampleFileReader->read (&sampleAudioBuffer, 0, static_cast<int> (sampleLength), 0, true, false);
 
+    sampleData = samplePool->useSample (sampleFileName);
+
+    if (sampleData.getStatus() == SampleData::SampleDataStatus::exists)
+    {
+        sampleFileName = sampleFile.getFileName (); // this copies the added .wav extension if it wasn't in the original name
         updateLoopPointsView ();
 
         zoneProperties.setSampleStart (-1, true);
@@ -267,7 +265,7 @@ void ZoneEditor::loadSample (juce::String sampleFileName)
         sampleNameSelectLabel.setText (sampleFileName, juce::NotificationType::dontSendNotification);
         sampleNameSelectLabel.setColour (juce::Label::ColourIds::textColourId, juce::Colours::white);
 
-        if (sampleFileReader->numChannels == 2)
+        if (sampleData.getNumChannels () == 2)
         {
             ChannelProperties parentChannelProperties (zoneProperties.getValueTree ().getParent (), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
             // if this zone not the last channel && the parent channel isn't set to Stereo/Right
@@ -351,11 +349,11 @@ void ZoneEditor::setupZoneComponents ()
     setupLabel (sampleStartLabel, "SMPL START", 12.0, juce::Justification::centredRight);
     setupTextEditor (sampleStartTextEditor, juce::Justification::centred, 0, "0123456789", "SampleStart", [this] ()
     {
-        FormatHelpers::setColorIfError (sampleStartTextEditor, minZoneProperties.getSampleStart ().value_or (0), zoneProperties.getSampleEnd ().value_or (sampleLength));
+        FormatHelpers::setColorIfError (sampleStartTextEditor, minZoneProperties.getSampleStart ().value_or (0), zoneProperties.getSampleEnd ().value_or (sampleData.getLengthInSamples ()));
     },
     [this] (juce::String text)
     {
-        const auto sampleStart { std::clamp (text.getLargeIntValue (), minZoneProperties.getSampleStart ().value_or (0), zoneProperties.getSampleEnd ().value_or (sampleLength)) };
+        const auto sampleStart { std::clamp (text.getLargeIntValue (), minZoneProperties.getSampleStart ().value_or (0), zoneProperties.getSampleEnd ().value_or (sampleData.getLengthInSamples ())) };
         sampleStartUiChanged (sampleStart);
         sampleStartTextEditor.setText (juce::String (sampleStart), false);
         if (sourceSamplePointsButton.getToggleState ())
@@ -365,11 +363,11 @@ void ZoneEditor::setupZoneComponents ()
     setupLabel (sampleEndLabel, "SMPL END", 12.0, juce::Justification::centredRight);
     setupTextEditor (sampleEndTextEditor, juce::Justification::centred, 0, "0123456789", "SampleEnd", [this] ()
     {
-        FormatHelpers::setColorIfError (sampleEndTextEditor, zoneProperties.getSampleStart ().value_or (0), sampleLength);
+        FormatHelpers::setColorIfError (sampleEndTextEditor, zoneProperties.getSampleStart ().value_or (0), sampleData.getLengthInSamples ());
     },
     [this] (juce::String text)
     {
-        const auto sampleEnd { std::clamp (text.getLargeIntValue (), zoneProperties.getSampleStart ().value_or (0), sampleLength)};
+        const auto sampleEnd { std::clamp (text.getLargeIntValue (), zoneProperties.getSampleStart ().value_or (0), sampleData.getLengthInSamples ())};
         sampleEndUiChanged (sampleEnd);
         sampleEndTextEditor.setText (juce::String (sampleEnd), false);
         if (sourceSamplePointsButton.getToggleState ())
@@ -381,10 +379,10 @@ void ZoneEditor::setupZoneComponents ()
     {
         if (! loopLengthIsEnd)
             FormatHelpers::setColorIfError (loopStartTextEditor, minZoneProperties.getLoopStart ().value_or (0),
-                                            sampleLength - static_cast<int64_t> (zoneProperties.getLoopLength ().value_or (static_cast<double> (sampleLength - zoneProperties.getLoopStart ().value_or (0)))));
+                sampleData.getLengthInSamples () - static_cast<int64_t> (zoneProperties.getLoopLength ().value_or (static_cast<double> (sampleData.getLengthInSamples () - zoneProperties.getLoopStart ().value_or (0)))));
         else
             FormatHelpers::setColorIfError (loopStartTextEditor, minZoneProperties.getLoopStart ().value_or (0),
-                                            zoneProperties.getLoopStart ().value_or (0) + static_cast<int64_t> (zoneProperties.getLoopLength ().value_or (static_cast<double> (sampleLength - zoneProperties.getLoopStart ().value_or (0)))));
+                                            zoneProperties.getLoopStart ().value_or (0) + static_cast<int64_t> (zoneProperties.getLoopLength ().value_or (static_cast<double> (sampleData.getLengthInSamples () - zoneProperties.getLoopStart ().value_or (0)))));
     },
     [this] (juce::String text)
     {
@@ -392,10 +390,10 @@ void ZoneEditor::setupZoneComponents ()
         {
             if (! loopLengthIsEnd)
                 return std::clamp (text.getLargeIntValue (), minZoneProperties.getLoopStart ().value_or (0),
-                                   sampleLength - static_cast<int64_t> (zoneProperties.getLoopLength ().value_or (static_cast<double> (sampleLength - zoneProperties.getLoopStart ().value_or (0)))));
+                    sampleData.getLengthInSamples () - static_cast<int64_t> (zoneProperties.getLoopLength ().value_or (static_cast<double> (sampleData.getLengthInSamples () - zoneProperties.getLoopStart ().value_or (0)))));
             else
                 return std::clamp (text.getLargeIntValue (), minZoneProperties.getLoopStart ().value_or (0),
-                                   zoneProperties.getLoopStart ().value_or (0) + static_cast<int64_t> (zoneProperties.getLoopLength ().value_or (static_cast<double> (sampleLength - zoneProperties.getLoopStart ().value_or (0)))));
+                                   zoneProperties.getLoopStart ().value_or (0) + static_cast<int64_t> (zoneProperties.getLoopLength ().value_or (static_cast<double> (sampleData.getLengthInSamples () - zoneProperties.getLoopStart ().value_or (0)))));
         } ();
         loopStartUiChanged (loopStart);
         loopStartTextEditor.setText (juce::String (loopStart), false);
@@ -421,8 +419,8 @@ void ZoneEditor::setupZoneComponents ()
                 return text.getDoubleValue ();
         } ();
         FormatHelpers::setColorIfError (loopLengthTextEditor, loopLengthInput,
-                                        sampleLength == 0 ? 0.0 : minZoneProperties.getLoopLength ().value_or (static_cast<double> (sampleLength - zoneProperties.getLoopStart ().value_or (0))),
-                                        static_cast<double> (sampleLength - zoneProperties.getLoopStart ().value_or (0)));
+                                        sampleData.getLengthInSamples () == 0 ? 0.0 : minZoneProperties.getLoopLength ().value_or (static_cast<double> (sampleData.getLengthInSamples () - zoneProperties.getLoopStart ().value_or (0))),
+                                        static_cast<double> (sampleData.getLengthInSamples () - zoneProperties.getLoopStart ().value_or (0)));
     },
     [this] (juce::String text)
     {
@@ -435,9 +433,9 @@ void ZoneEditor::setupZoneComponents ()
         } ();
         // constrain
         auto loopLength { std::clamp (loopLengthInput,
-                                      minZoneProperties.getLoopLength ().value_or (static_cast<double> (sampleLength - zoneProperties.getLoopStart ().value_or (0))),
-                                      (sampleLength == 0 ? minZoneProperties.getLoopLength ().value_or (static_cast<double> (sampleLength - zoneProperties.getLoopStart ().value_or (0))) :
-                                                           static_cast<double> (sampleLength - zoneProperties.getLoopStart ().value_or (0)))) };
+                                      minZoneProperties.getLoopLength ().value_or (static_cast<double> (sampleData.getLengthInSamples () - zoneProperties.getLoopStart ().value_or (0))),
+                                      (sampleData.getLengthInSamples () == 0 ? minZoneProperties.getLoopLength ().value_or (static_cast<double> (sampleData.getLengthInSamples () - zoneProperties.getLoopStart ().value_or (0))) :
+                                                           static_cast<double> (sampleData.getLengthInSamples () - zoneProperties.getLoopStart ().value_or (0)))) };
         // snap
         loopLength = snapLoopLength (loopLength);
 
@@ -784,7 +782,7 @@ void ZoneEditor::levelOffsetUiChanged (double levelOffset)
 
 void ZoneEditor::loopLengthDataChanged (std::optional<double> loopLength)
 {
-    loopLengthTextEditor.setText (formatLoopLength (loopLength.value_or (static_cast<double> (sampleLength - zoneProperties.getLoopStart ().value_or (0)))));
+    loopLengthTextEditor.setText (formatLoopLength (loopLength.value_or (static_cast<double> (sampleData.getLengthInSamples () - zoneProperties.getLoopStart ().value_or (0)))));
 }
 
 void ZoneEditor::loopLengthUiChanged (double loopLength)
@@ -825,23 +823,22 @@ void ZoneEditor::pitchOffsetUiChanged (double pitchOffset)
 
 void ZoneEditor::updateSampleFileInfo (juce::String sample)
 {
-    sampleLength = 0;
-    auto textColor {juce::Colours::white};
-    auto sampleFile { juce::File (appProperties.getMostRecentFolder ()).getChildFile (sample) };
-    if (sampleFile.exists ())
-    {
-        if (std::unique_ptr<juce::AudioFormatReader> reader (audioFormatManager.createReaderFor (sampleFile)); reader != nullptr)
-            sampleLength = reader->lengthInSamples;
-        if (! zoneProperties.getSampleEnd ().has_value ())
-            sampleEndTextEditor.setText (juce::String (sampleLength));
-        if (! zoneProperties.getLoopLength ().has_value ())
-            loopLengthTextEditor.setText (formatLoopLength (static_cast<double> (sampleLength)));
-    }
-    else
-    {
-        textColor = juce::Colours::red;
-    }
-    sampleNameSelectLabel.setColour (juce::Label::ColourIds::textColourId, textColor);
+//     auto textColor {juce::Colours::white};
+//     auto sampleFile { juce::File (appProperties.getMostRecentFolder ()).getChildFile (sample) };
+//     if (sampleFile.exists ())
+//     {
+//         if (std::unique_ptr<juce::AudioFormatReader> reader (audioFormatManager.createReaderFor (sampleFile)); reader != nullptr)
+//             sampleLength = reader->lengthInSamples;
+//         if (! zoneProperties.getSampleEnd ().has_value ())
+//             sampleEndTextEditor.setText (juce::String (sampleLength));
+//         if (! zoneProperties.getLoopLength ().has_value ())
+//             loopLengthTextEditor.setText (formatLoopLength (static_cast<double> (sampleLength)));
+//     }
+//     else
+//     {
+//         textColor = juce::Colours::red;
+//     }
+//     sampleNameSelectLabel.setColour (juce::Label::ColourIds::textColourId, textColor);
 }
 
 void ZoneEditor::updateSamplePositionInfo ()
@@ -854,7 +851,14 @@ void ZoneEditor::updateSamplePositionInfo ()
 
 void ZoneEditor::sampleDataChanged (juce::String sample)
 {
-    const auto sampleCanBePlayed { !sample.isEmpty () && juce::File (appProperties.getMostRecentFolder ()).getChildFile (sample).exists () };
+    if (sampleNameSelectLabel.getText ().isNotEmpty ())
+        samplePool->unUseSample (sampleNameSelectLabel.getText ());
+    if (sample.isNotEmpty ())
+        sampleData = samplePool->useSample (sample);
+    else
+        sampleData = SampleData ();
+
+    const auto sampleCanBePlayed { sampleData.getStatus () == SampleData::SampleDataStatus::exists };
     oneShotPlayButton.setEnabled (sampleCanBePlayed);
     loopPlayButton.setEnabled (sampleCanBePlayed);
 
@@ -885,7 +889,7 @@ void ZoneEditor::sampleStartUiChanged (int64_t  sampleStart)
 
 void ZoneEditor::sampleEndDataChanged (std::optional<int64_t> sampleEnd)
 {
-    sampleEndTextEditor.setText (juce::String (sampleEnd.value_or (sampleLength)));
+    sampleEndTextEditor.setText (juce::String (sampleEnd.value_or (sampleData.getLengthInSamples ())));
     updateLoopPointsView ();
 }
 

@@ -13,6 +13,8 @@ void SamplePool::setParentFolder (juce::File theParentFolder)
 
 SampleData SamplePool::useSample (juce::String fileName)
 {
+    juce::Logger::outputDebugString ("SamplePool::useSample: " + fileName);
+    jassert (fileName.isNotEmpty ());
     jassert (parentFolder.exists ());
     const auto sampleDataIter { sampleList.find (fileName) };
     if (sampleDataIter == sampleList.end ())
@@ -28,6 +30,7 @@ SampleData SamplePool::loadSample (juce::String fileName)
     SampleDataInternal newSampleDataInternal;
 
     juce::File fullPath { parentFolder.getChildFile (fileName) };
+    newSampleDataInternal.useCount = 1;
     if (fullPath.exists ())
     {
         if (std::unique_ptr<juce::AudioFormatReader> sampleFileReader { audioFormatManager.createReaderFor (fullPath) }; sampleFileReader != nullptr)
@@ -71,6 +74,8 @@ void SamplePool::clear ()
 
 void SamplePool::unUseSample (juce::String fileName)
 {
+    juce::Logger::outputDebugString ("SamplePool::unUseSample: " + fileName);
+    jassert (fileName.isNotEmpty ());
     const auto sampleDataIter { sampleList.find (fileName) };
     jassert (sampleDataIter != sampleList.end ());
     jassert (sampleList [fileName].useCount != 0);
