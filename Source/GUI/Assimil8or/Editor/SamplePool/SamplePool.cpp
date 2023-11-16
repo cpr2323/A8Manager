@@ -16,46 +16,57 @@ SampleData SamplePool::useSample (juce::String fileName)
     jassert (parentFolder.exists ());
     const auto sampleDataIter { sampleList.find (fileName) };
     if (sampleDataIter == sampleList.end ())
-    {
         return loadSample (fileName);
-    }
+
     sampleDataIter->second.useCount++;
-    return { &sampleDataIter->second.exists, &sampleDataIter->second.bitsPerSample, &sampleDataIter->second.numChannels,
+    return { &sampleDataIter->second.status, &sampleDataIter->second.bitsPerSample, &sampleDataIter->second.numChannels,
              &sampleDataIter->second.lengthInSamples, &sampleDataIter->second.audioBuffer };
 }
 
 SampleData SamplePool::loadSample (juce::String fileName)
 {
+    SampleDataInternal newSampleDataInternal;
+
     juce::File fullPath { parentFolder.getChildFile (fileName) };
-    if (std::unique_ptr<juce::AudioFormatReader> sampleFileReader { audioFormatManager.createReaderFor (fullPath) }; sampleFileReader != nullptr)
+    if (fullPath.exists ())
     {
-        SampleDataInternal newSampleDataInternal;
-        // cache sample attributes
-        newSampleDataInternal.bitsPerSample = sampleFileReader->bitsPerSample;
-        newSampleDataInternal.numChannels = sampleFileReader->numChannels;
-        newSampleDataInternal.lengthInSamples = sampleFileReader->lengthInSamples;
+        if (std::unique_ptr<juce::AudioFormatReader> sampleFileReader { audioFormatManager.createReaderFor (fullPath) }; sampleFileReader != nullptr)
+        {
+            // cache sample attributes
+            newSampleDataInternal.status = SampleData::SampleDataStatus::exists;
+            newSampleDataInternal.bitsPerSample = sampleFileReader->bitsPerSample;
+            newSampleDataInternal.numChannels = sampleFileReader->numChannels;
+            newSampleDataInternal.lengthInSamples = sampleFileReader->lengthInSamples;
 
-        // read in audio data
-        newSampleDataInternal.audioBuffer.setSize (newSampleDataInternal.numChannels, static_cast<int> (newSampleDataInternal.lengthInSamples), false, true, false);
-        sampleFileReader->read (&newSampleDataInternal.audioBuffer, 0, static_cast<int> (newSampleDataInternal.lengthInSamples), 0, true, false);
-
-        sampleList [fileName] = std::move (newSampleDataInternal);
-
-        auto& sdi { sampleList [fileName] };
-        return { &sdi.exists, &sdi.bitsPerSample, &sdi.numChannels,
-                 &sdi.lengthInSamples, &sdi.audioBuffer };
+            // read in audio data
+            newSampleDataInternal.audioBuffer.setSize (newSampleDataInternal.numChannels, static_cast<int> (newSampleDataInternal.lengthInSamples), false, true, false);
+            sampleFileReader->read (&newSampleDataInternal.audioBuffer, 0, static_cast<int> (newSampleDataInternal.lengthInSamples), 0, true, false);
+        }
+        else
+        {
+            newSampleDataInternal.status = SampleData::SampleDataStatus::wrongFormat;
+        }
     }
     else
     {
-        // TODO - handle error
-        jassertfalse;
+        newSampleDataInternal.status = SampleData::SampleDataStatus::doesNotExist;
     }
-    return { &errorSampleData.exists, &errorSampleData.bitsPerSample, &errorSampleData.numChannels,
-             &errorSampleData.lengthInSamples, &errorSampleData.audioBuffer };
+
+    sampleList [fileName] = std::move (newSampleDataInternal);
+    auto& sdi { sampleList [fileName] };
+    return { &sdi.status, &sdi.bitsPerSample, &sdi.numChannels,
+             &sdi.lengthInSamples, &sdi.audioBuffer };
+}
+
+void SamplePool::updateSample (juce::String fileName)
+{
+    // TODO - update the information stored for this sample
+    jassertfalse;
 }
 
 void SamplePool::clear ()
 {
+    sampleList.clear ();
 }
 
 void SamplePool::unUseSample (juce::String fileName)

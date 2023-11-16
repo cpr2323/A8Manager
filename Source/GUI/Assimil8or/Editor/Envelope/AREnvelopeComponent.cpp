@@ -44,15 +44,27 @@ void AREnvelopeComponent::paint (juce::Graphics& g)
         {
             const auto curRadius { curSize / 2.0f };
             g.setColour (color.withAlpha (alpha));
-            g.drawEllipse (juce::Rectangle<float> (kOffset + anchor.getX () - curRadius, kOffset + anchor.getY () - curRadius, curSize, curSize), lineWidth);
+            g.drawEllipse (juce::Rectangle<float> (static_cast<float> (kOffset + anchor.getX () - curRadius),
+                                                   static_cast<float> (kOffset + anchor.getY () - curRadius),
+                                                   static_cast<float> (curSize),
+                                                   static_cast<float> (curSize)), lineWidth);
             alpha -= alphaStep;
         }
     };
 
-    g.drawLine (kOffset + startAnchor.getX (), kOffset + startAnchor.getY (), kOffset + attackAnchor.getX (), kOffset + attackAnchor.getY ());
-    g.drawLine (kOffset + attackAnchor.getX (), kOffset + attackAnchor.getY (), kOffset + releaseAnchor.getX (), kOffset + releaseAnchor.getY ());
+    g.drawLine (static_cast<float> (kOffset + startAnchor.getX ()),
+                static_cast<float> (kOffset + startAnchor.getY ()),
+                static_cast<float> (kOffset + attackAnchor.getX ()),
+                static_cast<float> (kOffset + attackAnchor.getY ()));
+    g.drawLine (static_cast<float> (kOffset + attackAnchor.getX ()),
+                static_cast<float> (kOffset + attackAnchor.getY ()),
+                static_cast<float> (kOffset + releaseAnchor.getX ()),
+                static_cast<float> (kOffset + releaseAnchor.getY ()));
     juce::Colour color { juce::Colours::black};
-    g.fillEllipse (juce::Rectangle<float> (kOffset + startAnchor.getX () - (kAnchorSize / 2.0), kOffset + startAnchor.getY () - (kAnchorSize / 2.0), kAnchorSize, kAnchorSize));
+    g.fillEllipse (juce::Rectangle<float> (static_cast<float> (kOffset + startAnchor.getX () - (kAnchorSize / 2.0)),
+                                           static_cast<float> (kOffset + startAnchor.getY () - (kAnchorSize / 2.0)),
+                                           static_cast<float> (kAnchorSize),
+                                           static_cast<float> (kAnchorSize)));
     drawAnchor (attackAnchor);
     drawAnchor (releaseAnchor);
 
@@ -83,7 +95,10 @@ void AREnvelopeComponent::mouseMove (const juce::MouseEvent& e)
 {
     auto isMouseOverAnchor = [&e] (EnvelopeAnchor& anchor) -> bool
     {
-        return juce::Rectangle<int> (anchor.getX (), anchor.getY (), kAnchorSize, kAnchorSize).contains (e.x, e.y);
+        return juce::Rectangle<int> (static_cast<int> (anchor.getX ()),
+                                     static_cast<int> (anchor.getY ()),
+                                     static_cast<int> (kAnchorSize),
+                                     static_cast<int> (kAnchorSize)).contains (e.x, e.y);
     };
     EnvelopeAnchor* mouseOverAnchor { nullptr };
     if (isMouseOverAnchor (attackAnchor))
@@ -101,7 +116,7 @@ void AREnvelopeComponent::mouseMove (const juce::MouseEvent& e)
                 if (isActive == false)
                     dragStartAnchorX = 0;
                 else
-                    dragStartAnchorX = curActiveAnchor->getX ();
+                    dragStartAnchorX = static_cast<int> (curActiveAnchor->getX ());
             }
         };
         setActive (false);
@@ -112,7 +127,7 @@ void AREnvelopeComponent::mouseMove (const juce::MouseEvent& e)
     }
 }
 
-void AREnvelopeComponent::mouseDown (const juce::MouseEvent& e)
+void AREnvelopeComponent::mouseDown ([[maybe_unused]] const juce::MouseEvent& e)
 {
     if (curActiveAnchor == nullptr)
         return;

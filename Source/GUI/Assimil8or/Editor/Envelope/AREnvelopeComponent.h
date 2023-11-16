@@ -28,8 +28,8 @@ private:
     double amplitude { 0.0 };
     double maxTime { 1.0 };
 
-    float curX { 0.0f };
-    float curY { 0.0f };
+    double curX { 0.0f };
+    double curY { 0.0f };
 };
 
 class AREnvelopeComponent : public juce::Component
@@ -41,8 +41,8 @@ public:
 
 private:
     AREnvelopeProperties arEnvelopeProperties;
-    float editorWidth { 0.0f };
-    float editorHeight { 0.0f };
+    double editorWidth { 0.0 };
+    double editorHeight { 0.0 };
     EnvelopeAnchor startAnchor;
     EnvelopeAnchor attackAnchor;
     EnvelopeAnchor releaseAnchor;

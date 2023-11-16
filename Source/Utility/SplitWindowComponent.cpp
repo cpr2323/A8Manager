@@ -122,7 +122,7 @@ void SplitWindowComponent::mouseDrag (const juce::MouseEvent& me)
     }
 };
 
-void SplitWindowComponent::mouseExit (const juce::MouseEvent& me)
+void SplitWindowComponent::mouseExit ([[maybe_unused]] const juce::MouseEvent& me)
 {
     mouseOver = false;
     repaint ();

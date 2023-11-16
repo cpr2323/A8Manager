@@ -218,8 +218,8 @@ bool ZoneEditor::handleSamplesInternal (int zoneIndex, juce::StringArray files)
 
 void ZoneEditor::updateLoopPointsView ()
 {
-    auto startSample { 0 };
-    auto numSamples { 0 };
+    int64_t startSample { 0 };
+    int64_t numSamples { 0 };
     if (sourceSamplePointsButton.getToggleState ())
     {
         startSample = zoneProperties.getSampleStart ().value_or (0);
@@ -228,7 +228,7 @@ void ZoneEditor::updateLoopPointsView ()
     else
     {
         startSample = zoneProperties.getLoopStart ().value_or (0);
-        numSamples = zoneProperties.getLoopLength().value_or (sampleLength);
+        numSamples = static_cast<int64_t> (zoneProperties.getLoopLength().value_or (static_cast<double> (sampleLength)));
     }
     loopPointsView.setLoopInfo (startSample, numSamples);
     loopPointsView.repaint ();
@@ -253,8 +253,8 @@ void ZoneEditor::loadSample (juce::String sampleFileName)
     {
         sampleLength = sampleFileReader->lengthInSamples;
         sampleFileName = sampleFile.getFileName (); // this copies the added .wav extension if it wasn't in the original name
-        sampleAudioBuffer.setSize (1, sampleLength, false, true, false);
-        sampleFileReader->read (&sampleAudioBuffer, 0, sampleLength, 0, true, false);
+        sampleAudioBuffer.setSize (1, static_cast<int> (sampleLength), false, true, false);
+        sampleFileReader->read (&sampleAudioBuffer, 0, static_cast<int> (sampleLength), 0, true, false);
 
         updateLoopPointsView ();
 

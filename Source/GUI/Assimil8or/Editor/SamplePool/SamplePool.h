@@ -5,8 +5,14 @@
 struct SampleData
 {
 public:
-    SampleData (bool* e, int* bps, int* nc, int64_t* lis, juce::AudioBuffer<float>* ab)
-        : exists(e),
+    enum class SampleDataStatus
+    {
+        wrongFormat,
+        doesNotExist,
+        exists
+    };
+    SampleData (SampleDataStatus* s, int* bps, int* nc, int64_t* lis, juce::AudioBuffer<float>* ab)
+        : status (s),
           bitsPerSample (bps),
           numChannels (nc),
           lengthInSamples (lis),
@@ -14,14 +20,14 @@ public:
     {
     }
 
-    bool getExists () { jassert (bitsPerSample != nullptr); return *bitsPerSample; }
+    SampleData::SampleDataStatus getStatus () { jassert (status != nullptr); return *status; }
     int getBitsPerSample () { jassert (bitsPerSample != nullptr); return *bitsPerSample; }
     int getNumChannels () { jassert (numChannels!= nullptr); return *numChannels; }
     int64_t getLengthInSamples() { jassert (lengthInSamples != nullptr); return *lengthInSamples; }
     juce::AudioBuffer<float>& getAudioBuffer () { jassert (audioBuffer != nullptr); return *audioBuffer; }
 
 private:
-    bool* exists { nullptr };
+    SampleDataStatus* status { nullptr };
     int* bitsPerSample { nullptr };
     int* numChannels { nullptr };
     int64_t* lengthInSamples { nullptr };
@@ -42,7 +48,7 @@ private:
     juce::File parentFolder;
     struct SampleDataInternal
     {
-        bool exists { false };
+        SampleData::SampleDataStatus status { SampleData::SampleDataStatus::doesNotExist };
         int useCount { 0 };
         int bitsPerSample { 0 };
         int numChannels { 0 };
@@ -50,6 +56,7 @@ private:
         juce::AudioBuffer<float> audioBuffer;
     };
     std::map <juce::String, SampleDataInternal> sampleList;
-    SampleDataInternal errorSampleData;
+
     SampleData loadSample (juce::String fileName);
+    void updateSample (juce::String fileName);
 };
