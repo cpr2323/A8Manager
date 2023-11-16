@@ -60,7 +60,6 @@ void AREnvelopeComponent::paint (juce::Graphics& g)
                 static_cast<float> (kOffset + attackAnchor.getY ()),
                 static_cast<float> (kOffset + releaseAnchor.getX ()),
                 static_cast<float> (kOffset + releaseAnchor.getY ()));
-    juce::Colour color { juce::Colours::black};
     g.fillEllipse (juce::Rectangle<float> (static_cast<float> (kOffset + startAnchor.getX () - (kAnchorSize / 2.0)),
                                            static_cast<float> (kOffset + startAnchor.getY () - (kAnchorSize / 2.0)),
                                            static_cast<float> (kAnchorSize),

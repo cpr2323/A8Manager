@@ -24,10 +24,10 @@ public:
 
     int distanceMovedX (int xMove);
     int distanceMovedY (int yMove);
-    void recalculateX (int offset, int displayWidth) { curTime = offset + (long)(displayWidth * xAxis.percentage); }
-    void recalculateY (int offset, int displayHeight) { curAmplitude = offset + (displayHeight - (long)(displayHeight * yAxis.percentage)); }
-    void recalculateXPercent (int offset, int displayWidth) { xAxis.percentage = ((double) curTime - (double) offset) / (double) displayWidth; }
-    void recalculateYPercent (int offset, int displayHeight) { yAxis.percentage = ((double) displayHeight - ((double) curAmplitude - (double) offset)) / (double) displayHeight; }
+    void recalculateX (int offset, int displayWidth) { curTime = offset + static_cast<int> (displayWidth * xAxis.percentage); }
+    void recalculateY (int offset, int displayHeight) { curAmplitude = offset + (displayHeight - static_cast<int> (displayHeight * yAxis.percentage)); }
+    void recalculateXPercent (int offset, int displayWidth) { xAxis.percentage = (static_cast<double> (curTime)- static_cast<double> (offset)) / static_cast<double> (displayWidth); }
+    void recalculateYPercent (int offset, int displayHeight) { yAxis.percentage = (static_cast<double> (displayHeight) - (static_cast<double> (curAmplitude) - static_cast<double> (offset))) / static_cast<double> (displayHeight); }
 
     EnvelopeAxis xAxis;
     EnvelopeAxis yAxis;
