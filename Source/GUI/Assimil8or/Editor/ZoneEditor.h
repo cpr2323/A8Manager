@@ -105,6 +105,7 @@ private:
     juce::AudioBuffer<float> sampleAudioBuffer;
     SamplePool* samplePool;
     SampleData sampleData;
+    juce::String currentSampleFileName;
 
     bool loopLengthIsEnd { false };
 

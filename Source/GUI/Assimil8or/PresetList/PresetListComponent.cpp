@@ -8,7 +8,7 @@
 #include "../../../Utility/RuntimeRootProperties.h"
 #include "../../../Utility/WatchDogTimer.h"
 
-#define LOG_PRESET_LIST 0
+#define LOG_PRESET_LIST 1
 #if LOG_PRESET_LIST
 #define LogPresetList(text) DebugLog ("PresetListComponent", text);
 #else
@@ -199,8 +199,9 @@ void PresetListComponent::loadFirstPreset ()
 
         presetListBox.selectRow (presetIndex, false, true);
         presetListBox.scrollToEnsureRowIsOnscreen (presetIndex);
-        loadPreset (presetFile);
         loadedPresetFile = presetFile;
+        appProperties.addRecentlyUsedFile (loadedPresetFile.getFullPathName ());
+        loadPreset (presetFile);
         presetLoaded = true;
         return false;
     });
@@ -209,8 +210,9 @@ void PresetListComponent::loadFirstPreset ()
     {
         presetListBox.selectRow (0, false, true);
         presetListBox.scrollToEnsureRowIsOnscreen (0);
-        loadDefault (0);
         loadedPresetFile = getPresetFile (1);
+        appProperties.addRecentlyUsedFile (loadedPresetFile.getFullPathName ());
+        loadDefault (0);
     }
 }
 

@@ -238,8 +238,10 @@ void ZoneEditor::updateLoopPointsView ()
 
 void ZoneEditor::loadSample (juce::String sampleFileName)
 {
-    if (sampleFileName == zoneProperties.getSample ())
+    if (sampleFileName == currentSampleFileName)
         return;
+
+    currentSampleFileName = sampleFileName;
 
     if (sampleFileName.isNotEmpty ())
         sampleData = samplePool->useSample (sampleFileName);
@@ -858,6 +860,7 @@ void ZoneEditor::sampleDataChanged (juce::String sample)
 
     if (sample != sampleNameSelectLabel.getText ())
     {
+        updateLoopPointsView ();
         updateSampleFileInfo (sample);
         updateSamplePositionInfo ();
         sampleNameSelectLabel.setText (sample, juce::NotificationType::dontSendNotification);
