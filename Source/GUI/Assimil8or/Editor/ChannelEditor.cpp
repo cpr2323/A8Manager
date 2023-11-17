@@ -4,6 +4,7 @@
 #include "../../../Assimil8or/Preset/PresetHelpers.h"
 #include "../../../Assimil8or/Preset/PresetProperties.h"
 #include "../../../Assimil8or/Preset/ParameterPresetsSingleton.h"
+#include "../../../Utility/DebugLog.h"
 #include "../../../Utility/PersistentRootProperties.h"
 #include "../../../Utility/RuntimeRootProperties.h"
 
@@ -891,6 +892,7 @@ std::tuple<double, double> ChannelEditor::getVoltageBoundaries (int zoneIndex, i
 
 void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree rootPropertiesVT, SamplePool* theSamplePool)
 {
+    //DebugLog ("ChannelEditor["+ juce::String (channelProperties.getId ()) + "]", "init");
     jassert (theSamplePool != nullptr);
     samplePool = theSamplePool;
 
@@ -1009,7 +1011,7 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
 
             for (auto filesIndex { 0 }; filesIndex < files.size () && zoneIndex + filesIndex < 8; ++filesIndex)
             {
-                auto& zoneEditor { zoneEditors [zoneIndex + filesIndex] };
+                auto& zoneProperty { zoneProperties [zoneIndex + filesIndex] };
                 juce::File file (files [filesIndex]);
                 // if file not in preset folder, then copy
                 if (appProperties.getMostRecentFolder () != file.getParentDirectory ().getFullPathName ())
@@ -1021,7 +1023,7 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
                 }
                 //juce::Logger::outputDebugString ("assigning '" + file.getFileName () + "' to Zone " + juce::String (zoneIndex + filesIndex));
                 // assign file to zone
-                zoneEditor.loadSample (file.getFileName ());
+                zoneProperty.setSample (file.getFileName (), false);
             }
 
 #if JUCE_DEBUG

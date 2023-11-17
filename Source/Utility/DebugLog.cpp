@@ -48,13 +48,16 @@ void DebugLog (juce::String moduleName, juce::String logLine)
     const auto curThreadName { juce::MessageManager::existsAndIsCurrentThread () ? "MessageManager" : (curThread != nullptr ? juce::Thread::getCurrentThread ()->getThreadName () : "") };
     const auto possibleUnnamedThreadName { DebugLogger::getUnnamedThread (juce::Thread::getCurrentThreadId ())};
     const auto threadIdToDisplay { curThreadName.isNotEmpty () ? curThreadName : (possibleUnnamedThreadName.isNotEmpty () ? possibleUnnamedThreadName : curThreadId) };
+    // HARDCODED log values to skip
+    if (threadIdToDisplay == "ValidateThread" || threadIdToDisplay == "CheckPresetsThread")
+        return;
     const auto timeSinceStart { juce::String (curTime - startTime).paddedLeft ('0', 10) };
     const auto timeSincePreviousLog { juce::String (curTime - lastTime).paddedLeft ('0', 4) };
     const juce::String logMsg { "[" + timeSinceStart + "]+" + timeSincePreviousLog + " [t:" + threadIdToDisplay + "]" + " (" + moduleName + ") -> " + logLine };
 #if USE_DEFERRED_LOGGER
     debugLogger.logMsg (logMsg);
 #else
-    Logger::writeToLog (logMsg);
+    juce::Logger::writeToLog (logMsg);
 #endif
     lastTime = curTime;
 }

@@ -68,7 +68,8 @@ MainComponent::MainComponent (juce::ValueTree rootPropertiesVT)
     addAndMakeVisible (topAndBottomSplitter);
     addAndMakeVisible (bottomStatusWindow);
 
-    fileViewComponent.onAudioFileSelected = [this] (juce::File audioFile) { assimil8orEditorComponent.receiveSampleLoadRequest (audioFile); };
+    fileViewComponent.onAudioFileSelected = [this] (juce::File audioFile) {
+        assimil8orEditorComponent.receiveSampleLoadRequest (audioFile); };
 }
 
 void MainComponent::restoreLayout ()

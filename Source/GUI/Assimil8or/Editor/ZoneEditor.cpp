@@ -4,6 +4,8 @@
 #include "../../../Assimil8or/Preset/ChannelProperties.h"
 #include "../../../Assimil8or/Preset/PresetProperties.h"
 #include "../../../Assimil8or/Preset/ParameterPresetsSingleton.h"
+#include "../../../Utility/DebugLog.h"
+#include "../../../Utility/DumpStack.h"
 #include "../../../Utility/PersistentRootProperties.h"
 #include "../../../Utility/RuntimeRootProperties.h"
 
@@ -230,30 +232,22 @@ void ZoneEditor::updateLoopPointsView ()
         startSample = zoneProperties.getLoopStart ().value_or (0);
         numSamples = static_cast<int64_t> (zoneProperties.getLoopLength().value_or (static_cast<double> (sampleData.getLengthInSamples ())));
     }
-    loopPointsView.setLoopInfo (startSample, numSamples);
+    loopPointsView.setLoopInfo (sampleData.getAudioBuffer (), startSample, numSamples);
     loopPointsView.repaint ();
 }
 
 void ZoneEditor::loadSample (juce::String sampleFileName)
 {
-    // TODO - I don't think we need this anymore, verify and remove
-    jassert (sampleFileName != zoneProperties.getSample ());
-//     if (sampleFileName == zoneProperties.getSample ())
-//         return;
+    if (sampleFileName == zoneProperties.getSample ())
+        return;
 
-    // TODO - I don't think we need this anymore, verify and remove
-    auto sampleFile { juce::File (appProperties.getMostRecentFolder ()).getChildFile (sampleFileName) };
-    jassert (sampleFile.getFileName () != zoneProperties.getSample ());
-//     if (sampleFile.getFileName () == zoneProperties.getSample ())
-//         return;
-
-    jassert (sampleFileName.isNotEmpty ());
-
-    sampleData = samplePool->useSample (sampleFileName);
+    if (sampleFileName.isNotEmpty ())
+        sampleData = samplePool->useSample (sampleFileName);
+    else
+        sampleData = SampleData ();
 
     if (sampleData.getStatus() == SampleData::SampleDataStatus::exists)
     {
-        sampleFileName = sampleFile.getFileName (); // this copies the added .wav extension if it wasn't in the original name
         updateLoopPointsView ();
 
         zoneProperties.setSampleStart (-1, true);
@@ -293,7 +287,7 @@ void ZoneEditor::loadSample (juce::String sampleFileName)
     {
         jassertfalse;
     }
-    const auto sampleCanBePlayed { ! sampleFileName.isEmpty () && juce::File (appProperties.getMostRecentFolder ()).getChildFile (sampleFileName).exists () };
+    const auto sampleCanBePlayed { sampleData.getStatus () == SampleData::SampleDataStatus::exists };
     oneShotPlayButton.setEnabled (sampleCanBePlayed);
     loopPlayButton.setEnabled (sampleCanBePlayed);
 
@@ -486,6 +480,7 @@ void ZoneEditor::setupZoneComponents ()
 
 void ZoneEditor::init (juce::ValueTree zonePropertiesVT, juce::ValueTree rootPropertiesVT, SamplePool* theSamplePool)
 {
+    //DebugLog ("ZoneEditor[" + juce::String (zoneProperties.getId ()) + "]", "init");
     jassert (theSamplePool != nullptr);
     samplePool = theSamplePool;
 
@@ -569,8 +564,8 @@ void ZoneEditor::receiveSampleLoadRequest (juce::File sampleFile)
 
 void ZoneEditor::reset ()
 {
-     if (const auto sampleName { zoneProperties.getSample () }; sampleName.isNotEmpty ())
-         samplePool->unUseSample (sampleName);
+    if (const auto sampleName { zoneProperties.getSample () }; sampleName.isNotEmpty ())
+        samplePool->unUseSample (sampleName);
 }
 
 void ZoneEditor::setupZonePropertiesCallbacks ()
@@ -851,12 +846,11 @@ void ZoneEditor::updateSamplePositionInfo ()
 
 void ZoneEditor::sampleDataChanged (juce::String sample)
 {
+    DebugLog ("ZoneEditor", "ZoneEditor[" + juce::String (zoneProperties.getId ()) + "]::sampleDataChanged: '" + sample + "'");
+
     if (sampleNameSelectLabel.getText ().isNotEmpty ())
         samplePool->unUseSample (sampleNameSelectLabel.getText ());
-    if (sample.isNotEmpty ())
-        sampleData = samplePool->useSample (sample);
-    else
-        sampleData = SampleData ();
+    loadSample (sample);
 
     const auto sampleCanBePlayed { sampleData.getStatus () == SampleData::SampleDataStatus::exists };
     oneShotPlayButton.setEnabled (sampleCanBePlayed);

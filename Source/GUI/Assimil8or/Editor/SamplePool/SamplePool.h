@@ -26,7 +26,7 @@ public:
     int getBitsPerSample () { return bitsPerSample != nullptr ? *bitsPerSample : 0; }
     int getNumChannels () { return numChannels != nullptr ? *numChannels : 0; }
     int64_t getLengthInSamples() { return lengthInSamples != nullptr ? *lengthInSamples: 0; }
-    juce::AudioBuffer<float>& getAudioBuffer () { return audioBuffer != nullptr ? *audioBuffer : emptyAudioBuffer; }
+    juce::AudioBuffer<float>* getAudioBuffer () { return audioBuffer != nullptr ? audioBuffer : &emptyAudioBuffer; }
 
 private:
     SampleDataStatus* status { nullptr };

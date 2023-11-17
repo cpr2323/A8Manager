@@ -111,7 +111,7 @@ private:
     bool draggingFiles { false };
     int dropIndex { 0 };
 
-    LoopPointsView loopPointsView { sampleAudioBuffer };
+    LoopPointsView loopPointsView;
     juce::Label sourceLabel;
     juce::TextButton sourceSamplePointsButton;
     juce::TextButton sourceLoopPointsButton;

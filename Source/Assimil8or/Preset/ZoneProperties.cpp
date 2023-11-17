@@ -1,4 +1,6 @@
 #include "ZoneProperties.h"
+#include "../../Utility/DebugLog.h"
+#include "../../Utility/DumpStack.h"
 
 juce::ValueTree ZoneProperties::create (int id)
 {
@@ -56,7 +58,7 @@ void ZoneProperties::setPitchOffset (double pitchOffset, bool includeSelfCallbac
 
 void ZoneProperties::setSample (juce::String sampleFileName, bool includeSelfCallback)
 {
-    juce::Logger::outputDebugString ("ZoneProperties[" + juce::String (getId()) + "]::setSample: " + sampleFileName);
+    DebugLog ("ZoneProperties", "ZoneProperties[" + juce::String (getId()) + "]::setSample: '" + sampleFileName + "'");
     setValue (sampleFileName, SamplePropertyId, includeSelfCallback);
 }
 

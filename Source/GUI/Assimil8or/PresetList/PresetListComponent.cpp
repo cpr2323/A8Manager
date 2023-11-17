@@ -3,13 +3,14 @@
 #include "../../../Assimil8or/FileTypeHelpers.h"
 #include "../../../Assimil8or/PresetManagerProperties.h"
 #include "../../../Assimil8or/Preset/ParameterPresetsSingleton.h"
+#include "../../../Utility/DebugLog.h"
 #include "../../../Utility/PersistentRootProperties.h"
 #include "../../../Utility/RuntimeRootProperties.h"
 #include "../../../Utility/WatchDogTimer.h"
 
 #define LOG_PRESET_LIST 0
 #if LOG_PRESET_LIST
-#define LogPresetList(text) juce::Logger::outputDebugString (text);
+#define LogPresetList(text) DebugLog ("PresetListComponent", text);
 #else
 #define LogPresetList(text) ;
 #endif
@@ -190,6 +191,7 @@ void PresetListComponent::loadFirstPreset ()
     LogPresetList ("PresetListComponent::loadFirstPreset");
     bool presetLoaded { false };
     juce::File loadedPresetFile;
+    appProperties.addRecentlyUsedFile (loadedPresetFile.getFullPathName ());
     forEachPresetFile ([this, &presetLoaded, &loadedPresetFile] (juce::File presetFile, int presetIndex)
     {
         if (auto [presetNumber, thisPresetExists, presetName] = presetInfoList [presetIndex]; ! thisPresetExists)
@@ -210,7 +212,6 @@ void PresetListComponent::loadFirstPreset ()
         loadDefault (0);
         loadedPresetFile = getPresetFile (1);
     }
-    appProperties.addRecentlyUsedFile (loadedPresetFile.getFullPathName ());
 }
 
 void PresetListComponent::loadDefault (int row)

@@ -1,4 +1,5 @@
 #include "SamplePool.h"
+#include "../../../../Utility/DebugLog.h"
 
 SamplePool::SamplePool ()
 {
@@ -13,7 +14,7 @@ void SamplePool::setParentFolder (juce::File theParentFolder)
 
 SampleData SamplePool::useSample (juce::String fileName)
 {
-    juce::Logger::outputDebugString ("SamplePool::useSample: " + fileName);
+    DebugLog("SamplePool", "SamplePool::useSample: " + fileName);
     jassert (fileName.isNotEmpty ());
     jassert (parentFolder.exists ());
     const auto sampleDataIter { sampleList.find (fileName) };
@@ -74,7 +75,7 @@ void SamplePool::clear ()
 
 void SamplePool::unUseSample (juce::String fileName)
 {
-    juce::Logger::outputDebugString ("SamplePool::unUseSample: " + fileName);
+    DebugLog ("SamplePool", "SamplePool::unUseSample: " + fileName);
     jassert (fileName.isNotEmpty ());
     const auto sampleDataIter { sampleList.find (fileName) };
     jassert (sampleDataIter != sampleList.end ());
