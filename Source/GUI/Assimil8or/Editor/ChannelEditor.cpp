@@ -989,16 +989,21 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
         };
         zoneEditor.onSampleChange = [this, zoneEditorIndex] (juce::String sampleFileName)
         {
-            jassert (! sampleFileName.isEmpty ());
-            if (zoneEditorIndex > 0)
+            if (sampleFileName.isNotEmpty ())
             {
-                // if this zone is empty when assigning the sample, we need to initialize the minVoltage value
-                // we also know this is the last zone in the list, as that is the only place one can insert a new sample
-                auto [topBoundary, bottomBoundary] { getVoltageBoundaries (zoneEditorIndex, 1) };
-                zoneProperties [zoneEditorIndex - 1].setMinVoltage (bottomBoundary + ((topBoundary - bottomBoundary) / 2), false);
+                if (zoneEditorIndex > 0)
+                {
+                    auto [topBoundary, bottomBoundary] { getVoltageBoundaries (zoneEditorIndex, 1) };
+                    zoneProperties [zoneEditorIndex - 1].setMinVoltage (bottomBoundary + ((topBoundary - bottomBoundary) / 2), false);
+                }
+                if (zoneEditorIndex == getNumUsedZones () - 1)
+                    zoneProperties [zoneEditorIndex].setMinVoltage (-5.0, false);
             }
-            if (zoneEditorIndex == getNumUsedZones () - 1)
-                zoneProperties [zoneEditorIndex].setMinVoltage (-5.0, false);
+            else
+            {
+                if (zoneEditorIndex> 0 && zoneEditorIndex == getNumUsedZones ())
+                    zoneProperties [zoneEditorIndex - 1].setMinVoltage (-5.0, false);
+            }
             ensureProperZoneIsSelected ();
             updateAllZoneTabNames ();
         };

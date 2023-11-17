@@ -286,10 +286,7 @@ void ZoneEditor::loadSample (juce::String sampleFileName)
             }
         }
     }
-    else
-    {
-        jassertfalse;
-    }
+
     const auto sampleCanBePlayed { sampleData.getStatus () == SampleData::SampleDataStatus::exists };
     oneShotPlayButton.setEnabled (sampleCanBePlayed);
     loopPlayButton.setEnabled (sampleCanBePlayed);
@@ -849,7 +846,7 @@ void ZoneEditor::updateSamplePositionInfo ()
 
 void ZoneEditor::sampleDataChanged (juce::String sample)
 {
-    DebugLog ("ZoneEditor", "ZoneEditor[" + juce::String (zoneProperties.getId ()) + "]::sampleDataChanged: '" + sample + "'");
+    //DebugLog ("ZoneEditor", "ZoneEditor[" + juce::String (zoneProperties.getId ()) + "]::sampleDataChanged: '" + sample + "'");
 
     if (sampleNameSelectLabel.getText ().isNotEmpty ())
         samplePool->unUseSample (sampleNameSelectLabel.getText ());

@@ -191,7 +191,6 @@ void PresetListComponent::loadFirstPreset ()
     LogPresetList ("PresetListComponent::loadFirstPreset");
     bool presetLoaded { false };
     juce::File loadedPresetFile;
-    appProperties.addRecentlyUsedFile (loadedPresetFile.getFullPathName ());
     forEachPresetFile ([this, &presetLoaded, &loadedPresetFile] (juce::File presetFile, int presetIndex)
     {
         if (auto [presetNumber, thisPresetExists, presetName] = presetInfoList [presetIndex]; ! thisPresetExists)
