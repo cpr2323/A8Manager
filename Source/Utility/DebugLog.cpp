@@ -1,7 +1,7 @@
 #include "DebugLog.h"
 #include "DebugLogImplementation.h"
 
-#define USE_DEFERRED_LOGGER 0
+#define USE_DEFERRED_LOGGER 1
 
 static auto startTime { juce::Time::currentTimeMillis () };
 static auto lastTime { startTime };
