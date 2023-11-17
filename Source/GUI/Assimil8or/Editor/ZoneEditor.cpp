@@ -232,7 +232,8 @@ void ZoneEditor::updateLoopPointsView ()
         startSample = zoneProperties.getLoopStart ().value_or (0);
         numSamples = static_cast<int64_t> (zoneProperties.getLoopLength().value_or (static_cast<double> (sampleData.getLengthInSamples ())));
     }
-    loopPointsView.setLoopInfo (sampleData.getAudioBuffer (), startSample, numSamples);
+    loopPointsView.setAudioBuffer(sampleData.getAudioBuffer ());
+    loopPointsView.setLoopPoints (startSample, numSamples);
     loopPointsView.repaint ();
 }
 

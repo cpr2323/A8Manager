@@ -1,9 +1,12 @@
 #include "LoopPointsView.h"
 
-void LoopPointsView::setLoopInfo (juce::AudioBuffer<float>* theAudioBuffer, int64_t theSampleOffset, int64_t theNumSamples)
+void LoopPointsView::setAudioBuffer (juce::AudioBuffer<float>* theAudioBuffer)
 {
-    //juce::Logger::outputDebugString ("LoopPointsView::setLoopInfo: " + juce::String (theSampleOffset) + ", " + juce::String (theNumSamples));
     audioBuffer = theAudioBuffer;
+}
+
+void LoopPointsView::setLoopPoints (int64_t theSampleOffset, int64_t theNumSamples)
+{
     sampleOffset = theSampleOffset;
     numSamples = theNumSamples;
 }
@@ -13,7 +16,7 @@ void LoopPointsView::paint (juce::Graphics& g)
     const auto halfWidth { getWidth () / 2 };
     const auto halfHeight { getHeight () / 2 };
 
-    if (audioBuffer != nullptr && audioBuffer->getNumSamples () > numSamples && numSamples > 4)
+    if (audioBuffer != nullptr && audioBuffer->getNumSamples () >= numSamples && numSamples > 4)
     {
         juce::dsp::AudioBlock<float> audioBlock { *audioBuffer };
         juce::dsp::AudioBlock<float> loopSamples { audioBlock.getSubBlock (sampleOffset, numSamples) };
