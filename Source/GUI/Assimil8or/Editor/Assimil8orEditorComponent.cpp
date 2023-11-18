@@ -206,7 +206,7 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
 //         for (auto& channelEditor : channelEditors)
 //             channelEditor.reset ();
 //         samplePool.clear ();
-        samplePool.setParentFolder (juce::File (fileName).getParentDirectory ());
+        samplePool.setFolder (juce::File (fileName).getParentDirectory ());
         audioPlayerProperties.setPlayState (AudioPlayerProperties::PlayState::stop, false);
     };
 
@@ -223,7 +223,7 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
     presetProperties.wrap (presetManagerProperties.getPreset ("edit"), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::yes);
     setupPresetPropertiesCallbacks ();
     auto channelEditorIndex { 0 };
-    samplePool.setParentFolder (appProperties.getMostRecentFolder ());
+    samplePool.setFolder (appProperties.getMostRecentFolder ());
     presetProperties.forEachChannel ([this, &channelEditorIndex, rootPropertiesVT] (juce::ValueTree channelPropertiesVT)
     {
         channelEditors [channelEditorIndex].init (channelPropertiesVT, rootPropertiesVT, &samplePool);

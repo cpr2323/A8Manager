@@ -245,7 +245,7 @@ void ZoneEditor::loadSample (juce::String sampleFileName)
     currentSampleFileName = sampleFileName;
 
     if (sampleFileName.isNotEmpty ())
-        sampleData = samplePool->useSample (sampleFileName);
+        sampleData = samplePool->open (sampleFileName);
     else
         sampleData = SampleData ();
 
@@ -565,7 +565,7 @@ void ZoneEditor::receiveSampleLoadRequest (juce::File sampleFile)
 void ZoneEditor::reset ()
 {
     if (const auto sampleName { zoneProperties.getSample () }; sampleName.isNotEmpty ())
-        samplePool->unUseSample (sampleName);
+        samplePool->close (sampleName);
 }
 
 void ZoneEditor::setupZonePropertiesCallbacks ()
@@ -849,7 +849,7 @@ void ZoneEditor::sampleDataChanged (juce::String sample)
     //DebugLog ("ZoneEditor", "ZoneEditor[" + juce::String (zoneProperties.getId ()) + "]::sampleDataChanged: '" + sample + "'");
 
     if (sampleNameSelectLabel.getText ().isNotEmpty ())
-        samplePool->unUseSample (sampleNameSelectLabel.getText ());
+        samplePool->close (sampleNameSelectLabel.getText ());
     loadSample (sample);
 
     const auto sampleCanBePlayed { sampleData.getStatus () == SampleData::SampleDataStatus::exists };

@@ -41,9 +41,9 @@ class SamplePool
 {
 public:
     SamplePool ();
-    void setParentFolder (juce::File theParentFolder);
-    SampleData useSample (juce::String fileName);
-    void unUseSample (juce::String fileName);
+    void setFolder (juce::File theParentFolder);
+    SampleData open (juce::String fileName);
+    void close (juce::String fileName);
     void clear ();
 
 private:
@@ -61,5 +61,5 @@ private:
     std::map <juce::String, SampleDataInternal> sampleList;
 
     SampleData loadSample (juce::String fileName);
-    void updateSample (juce::String fileName);
+    void updateSample (juce::String fileName, SampleDataInternal& sampleData);
 };
