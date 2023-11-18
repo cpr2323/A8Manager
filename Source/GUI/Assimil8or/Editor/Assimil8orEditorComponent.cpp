@@ -203,9 +203,6 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
     {
         DebugLog ("Assimil8orEditorComponent", "Assimil8orEditorComponent::init/appProperties.onMostRecentFileChange: " + fileName);
         //dumpStacktrace (-1, [this] (juce::String logLine) { DebugLog ("Assimil8orEditorComponent", logLine); });
-//         for (auto& channelEditor : channelEditors)
-//             channelEditor.reset ();
-//         samplePool.clear ();
         samplePool.setFolder (juce::File (fileName).getParentDirectory ());
         audioPlayerProperties.setPlayState (AudioPlayerProperties::PlayState::stop, false);
     };
@@ -215,6 +212,7 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
     {
         juce::MessageManager::callAsync ([this] ()
         {
+            samplePool.update ();
             checkSampleFilesExistance ();
         });
     };

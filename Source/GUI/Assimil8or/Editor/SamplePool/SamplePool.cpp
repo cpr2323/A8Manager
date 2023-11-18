@@ -78,6 +78,12 @@ void SamplePool::clear ()
     sampleList.clear ();
 }
 
+void SamplePool::update ()
+{
+    for (auto& [fileName, SampleDataInternal] : sampleList)
+        updateSample (fileName, SampleDataInternal);
+}
+
 void SamplePool::close (juce::String fileName)
 {
     DebugLog ("SamplePool", "close: " + fileName);

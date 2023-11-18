@@ -86,7 +86,6 @@ public:
     bool isSupportedAudioFile (juce::File file);
     void loadSample (juce::String sampleFileName);
     void receiveSampleLoadRequest (juce::File sampleFile);
-    void reset ();
     void setLoopLengthIsEnd (bool loopLengthIsEnd);
 
     std::function<void (juce::String)> onSampleChange;

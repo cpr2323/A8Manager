@@ -562,12 +562,6 @@ void ZoneEditor::receiveSampleLoadRequest (juce::File sampleFile)
     }
 }
 
-void ZoneEditor::reset ()
-{
-    if (const auto sampleName { zoneProperties.getSample () }; sampleName.isNotEmpty ())
-        samplePool->close (sampleName);
-}
-
 void ZoneEditor::setupZonePropertiesCallbacks ()
 {
     zoneProperties.onIdChange = [this] ([[maybe_unused]] int id) { jassertfalse; /* I don't think this should change while we are editing */};
@@ -689,7 +683,8 @@ void ZoneEditor::resized ()
 
 void ZoneEditor::checkSampleExistence ()
 {
-    updateSampleFileInfo (zoneProperties.getSample ());
+    if (zoneProperties.getSample ().isNotEmpty ())
+        updateSampleFileInfo (zoneProperties.getSample ());
 }
 
 double ZoneEditor::snapLoopLength (double rawValue)
@@ -818,22 +813,21 @@ void ZoneEditor::pitchOffsetUiChanged (double pitchOffset)
 
 void ZoneEditor::updateSampleFileInfo (juce::String sample)
 {
-//     auto textColor {juce::Colours::white};
-//     auto sampleFile { juce::File (appProperties.getMostRecentFolder ()).getChildFile (sample) };
-//     if (sampleFile.exists ())
-//     {
-//         if (std::unique_ptr<juce::AudioFormatReader> reader (audioFormatManager.createReaderFor (sampleFile)); reader != nullptr)
-//             sampleLength = reader->lengthInSamples;
-//         if (! zoneProperties.getSampleEnd ().has_value ())
-//             sampleEndTextEditor.setText (juce::String (sampleLength));
-//         if (! zoneProperties.getLoopLength ().has_value ())
-//             loopLengthTextEditor.setText (formatLoopLength (static_cast<double> (sampleLength)));
-//     }
-//     else
-//     {
-//         textColor = juce::Colours::red;
-//     }
-//     sampleNameSelectLabel.setColour (juce::Label::ColourIds::textColourId, textColor);
+    jassert (!sample.isEmpty ());
+    auto textColor {juce::Colours::white};
+    if (sampleData.getStatus() == SampleData::SampleDataStatus::exists)
+    {
+        if (! zoneProperties.getSampleEnd ().has_value ())
+            sampleEndTextEditor.setText (juce::String (sampleData.getLengthInSamples ()));
+        if (! zoneProperties.getLoopLength ().has_value ())
+            loopLengthTextEditor.setText (formatLoopLength (static_cast<double> (sampleData.getLengthInSamples ())));
+    }
+    else
+    {
+        textColor = juce::Colours::red;
+    }
+    loopPointsView.repaint ();
+    sampleNameSelectLabel.setColour (juce::Label::ColourIds::textColourId, textColor);
 }
 
 void ZoneEditor::updateSamplePositionInfo ()

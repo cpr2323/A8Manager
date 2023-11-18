@@ -45,6 +45,7 @@ public:
     SampleData open (juce::String fileName);
     void close (juce::String fileName);
     void clear ();
+    void update ();
 
 private:
     juce::AudioFormatManager audioFormatManager;

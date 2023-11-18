@@ -1113,9 +1113,7 @@ void ChannelEditor::receiveSampleLoadRequest (juce::File sampleFile)
 void ChannelEditor::checkSampleFileExistence ()
 {
     for (auto& zoneEditor : zoneEditors)
-    {
         zoneEditor.checkSampleExistence ();
-    }
 }
 
 void ChannelEditor::setupChannelPropertiesCallbacks ()
@@ -1451,12 +1449,6 @@ void ChannelEditor::resized ()
     positionColumnThree (xOffSet, columnWidth);
     xOffSet += columnWidth + spaceBetweenColumns;
     positionColumnFour (xOffSet, columnWidth);
-}
-
-void ChannelEditor::reset ()
-{
-    for (auto& zoneEditor : zoneEditors)
-        zoneEditor.reset ();
 }
 
 void ChannelEditor::updateAllZoneTabNames ()
