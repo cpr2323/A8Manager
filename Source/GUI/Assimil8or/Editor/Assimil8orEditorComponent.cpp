@@ -44,9 +44,8 @@ Assimil8orEditorComponent::Assimil8orEditorComponent ()
                                               PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
     defaultChannelProperties.wrap (defaultPresetProperties.getChannelVT (0), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
 
-     setupPresetComponents ();
-
-     startTimer (250);
+    setupPresetComponents ();
+    startTimer (250);
 }
 
 void Assimil8orEditorComponent::setupPresetComponents ()
@@ -400,7 +399,7 @@ void Assimil8orEditorComponent::resized ()
     topRow.removeFromRight (3);
     saveButton.setBounds (topRow.removeFromRight (75));
     const auto topRowY { titleLabel.getBottom () + 3 };
-    channelTabs.setBounds (3, topRowY, 765, 400);
+    channelTabs.setBounds (3, topRowY, 765, 406);
     const auto bottomRowY (getLocalBounds ().getBottom () - 26);
     windowDecorator.setBounds (getLocalBounds ().removeFromBottom (26));
 
