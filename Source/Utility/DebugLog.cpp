@@ -54,7 +54,7 @@ void DebugLog (juce::String moduleName, juce::String logLine)
 #if USE_DEFERRED_LOGGER
     debugLogger.logMsg (logMsg);
 #else
-    Logger::writeToLog (logMsg);
+    juce::Logger::writeToLog (logMsg);
 #endif
     lastTime = curTime;
 }

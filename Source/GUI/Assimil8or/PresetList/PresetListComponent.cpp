@@ -3,13 +3,14 @@
 #include "../../../Assimil8or/FileTypeHelpers.h"
 #include "../../../Assimil8or/PresetManagerProperties.h"
 #include "../../../Assimil8or/Preset/ParameterPresetsSingleton.h"
+#include "../../../Utility/DebugLog.h"
 #include "../../../Utility/PersistentRootProperties.h"
 #include "../../../Utility/RuntimeRootProperties.h"
 #include "../../../Utility/WatchDogTimer.h"
 
 #define LOG_PRESET_LIST 0
 #if LOG_PRESET_LIST
-#define LogPresetList(text) juce::Logger::outputDebugString (text);
+#define LogPresetList(text) DebugLog ("PresetListComponent", text);
 #else
 #define LogPresetList(text) ;
 #endif
@@ -124,7 +125,7 @@ void PresetListComponent::checkPresets ()
 
     // clear preset info list
     for (auto curPresetInfoIndex { 0 }; curPresetInfoIndex < presetInfoList.size (); ++curPresetInfoIndex)
-        presetInfoList[curPresetInfoIndex] = {curPresetInfoIndex + 1, false, ""};
+        presetInfoList[curPresetInfoIndex] = { curPresetInfoIndex + 1, false, "" };
 
     if (showAll)
         numPresets = kMaxPresets;
@@ -162,7 +163,7 @@ void PresetListComponent::checkPresets ()
             }
             else
             {
-                // if the entry is not a preset file, but we were processing preset files, then we are done
+                // if the entry is not a preset file, but we had started processing preset files, then we are done, because the files are sorted by type
                 if (inPresetList)
                     return false;
             }
@@ -192,13 +193,14 @@ void PresetListComponent::loadFirstPreset ()
     juce::File loadedPresetFile;
     forEachPresetFile ([this, &presetLoaded, &loadedPresetFile] (juce::File presetFile, int presetIndex)
     {
-        if (auto [presetNumber, thisPresetExists, presetName] = presetInfoList [presetIndex]; ! thisPresetExists)
+            if (auto [presetNumber, thisPresetExists, presetName] { presetInfoList [presetIndex] }; !thisPresetExists)
             return true;
 
         presetListBox.selectRow (presetIndex, false, true);
         presetListBox.scrollToEnsureRowIsOnscreen (presetIndex);
-        loadPreset (presetFile);
         loadedPresetFile = presetFile;
+        appProperties.addRecentlyUsedFile (loadedPresetFile.getFullPathName ());
+        loadPreset (presetFile);
         presetLoaded = true;
         return false;
     });
@@ -207,10 +209,10 @@ void PresetListComponent::loadFirstPreset ()
     {
         presetListBox.selectRow (0, false, true);
         presetListBox.scrollToEnsureRowIsOnscreen (0);
-        loadDefault (0);
         loadedPresetFile = getPresetFile (1);
+        appProperties.addRecentlyUsedFile (loadedPresetFile.getFullPathName ());
+        loadDefault (0);
     }
-    appProperties.addRecentlyUsedFile (loadedPresetFile.getFullPathName ());
 }
 
 void PresetListComponent::loadDefault (int row)

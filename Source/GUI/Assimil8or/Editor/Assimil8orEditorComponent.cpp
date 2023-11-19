@@ -5,6 +5,8 @@
 #include "../../../Assimil8or/PresetManagerProperties.h"
 #include "../../../Assimil8or/Preset/ParameterPresetsSingleton.h"
 #include "../../../Assimil8or/Preset/PresetHelpers.h"
+#include "../../../Utility/DebugLog.h"
+#include "../../../Utility/DumpStack.h"
 #include "../../../Utility/PersistentRootProperties.h"
 #include <algorithm>
 
@@ -42,9 +44,8 @@ Assimil8orEditorComponent::Assimil8orEditorComponent ()
                                               PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
     defaultChannelProperties.wrap (defaultPresetProperties.getChannelVT (0), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
 
-     setupPresetComponents ();
-
-     startTimer (250);
+    setupPresetComponents ();
+    startTimer (250);
 }
 
 void Assimil8orEditorComponent::setupPresetComponents ()
@@ -199,6 +200,9 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
     appProperties.wrap (persistentRootProperties.getValueTree (), AppProperties::WrapperType::client, AppProperties::EnableCallbacks::yes);
     appProperties.onMostRecentFileChange = [this] (juce::String fileName)
     {
+        //DebugLog ("Assimil8orEditorComponent", "Assimil8orEditorComponent::init/appProperties.onMostRecentFileChange: " + fileName);
+        //dumpStacktrace (-1, [this] (juce::String logLine) { DebugLog ("Assimil8orEditorComponent", logLine); });
+        samplePool.setFolder (juce::File (fileName).getParentDirectory ());
         audioPlayerProperties.setPlayState (AudioPlayerProperties::PlayState::stop, false);
     };
 
@@ -207,6 +211,7 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
     {
         juce::MessageManager::callAsync ([this] ()
         {
+            samplePool.update ();
             checkSampleFilesExistance ();
         });
     };
@@ -215,18 +220,19 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
     presetProperties.wrap (presetManagerProperties.getPreset ("edit"), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::yes);
     setupPresetPropertiesCallbacks ();
     auto channelEditorIndex { 0 };
+    samplePool.setFolder (appProperties.getMostRecentFolder ());
     presetProperties.forEachChannel ([this, &channelEditorIndex, rootPropertiesVT] (juce::ValueTree channelPropertiesVT)
     {
-        channelEditors [channelEditorIndex].init (channelPropertiesVT, rootPropertiesVT);
+        channelEditors [channelEditorIndex].init (channelPropertiesVT, rootPropertiesVT, &samplePool);
         channelEditors [channelEditorIndex].displayToolsMenu = [this] (int channelIndex)
         {
             juce::PopupMenu pm;
             pm.addItem ("Copy", true, false, [this, channelIndex] ()
             {
                 copyBufferChannelProperties.copyFrom (channelProperties [channelIndex].getValueTree ());
-                copyBufferActive = true;
+                copyBufferHasData = true;
             });
-            pm.addItem ("Paste", copyBufferActive, false, [this, channelIndex] ()
+            pm.addItem ("Paste", copyBufferHasData, false, [this, channelIndex] ()
             {
                 channelProperties [channelIndex].copyFrom (copyBufferChannelProperties.getValueTree ());
             });
@@ -393,7 +399,7 @@ void Assimil8orEditorComponent::resized ()
     topRow.removeFromRight (3);
     saveButton.setBounds (topRow.removeFromRight (75));
     const auto topRowY { titleLabel.getBottom () + 3 };
-    channelTabs.setBounds (3, topRowY, 765, 400);
+    channelTabs.setBounds (3, topRowY, 765, 406);
     const auto bottomRowY (getLocalBounds ().getBottom () - 26);
     windowDecorator.setBounds (getLocalBounds ().removeFromBottom (26));
 

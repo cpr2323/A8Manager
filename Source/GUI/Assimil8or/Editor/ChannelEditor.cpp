@@ -4,6 +4,7 @@
 #include "../../../Assimil8or/Preset/PresetHelpers.h"
 #include "../../../Assimil8or/Preset/PresetProperties.h"
 #include "../../../Assimil8or/Preset/ParameterPresetsSingleton.h"
+#include "../../../Utility/DebugLog.h"
 #include "../../../Utility/PersistentRootProperties.h"
 #include "../../../Utility/RuntimeRootProperties.h"
 
@@ -19,6 +20,8 @@ const auto kFirstControlSectionYOffset { 1 };
 const auto kInterControlYOffset { 2 };
 const auto kInitialYOffset { 5 };
 const auto kNewSectionOffset { 5 };
+
+const auto kMaxEnvelopeTime { 99.0 };
 
 ChannelEditor::ChannelEditor ()
 {
@@ -108,8 +111,25 @@ ChannelEditor::ChannelEditor ()
     };
     addAndMakeVisible (toolsButton);
     setupChannelComponents ();
+    arEnvelopeProperties.wrap (arEnvelopeComponent.getPropertiesVT (), AREnvelopeProperties::WrapperType::client, AREnvelopeProperties::EnableCallbacks::yes);
+    arEnvelopeProperties.onAttackPercentChanged= [this] (double attackPercent)
+    {
+        const auto rawAttackValue { (kMaxEnvelopeTime * 2) * attackPercent };
+        const auto curAttackFractionalValue { channelProperties.getAttack () - static_cast<int> (channelProperties.getAttack ()) };
+        attackDataChanged (snapEnvelopeValue (static_cast<int> (rawAttackValue) + curAttackFractionalValue));
+    };
+    arEnvelopeProperties.onReleasePercentChanged = [this] (double releasePercent)
+    {
+        const auto rawReleaseValue { (kMaxEnvelopeTime *2) * releasePercent };
+        const auto curReleaseFractionalValue { channelProperties.getRelease () - static_cast<int> (channelProperties.getRelease ()) };
+        releaseDataChanged (snapEnvelopeValue (static_cast<int> (rawReleaseValue) + curReleaseFractionalValue));
+    };
+    addAndMakeVisible (arEnvelopeComponent);
     updateAllZoneTabNames ();
     addChildComponent (stereoRightTransparantOverly);
+
+    channelProperties.setAttack ((kMaxEnvelopeTime * 2) * arEnvelopeProperties.getAttackPercent (), false);
+    channelProperties.setRelease ((kMaxEnvelopeTime * 2) * arEnvelopeProperties.getReleasePercent (), false);
 }
 
 ChannelEditor::~ChannelEditor ()
@@ -242,10 +262,8 @@ int ChannelEditor::getEnvelopeValueResolution (double envelopeValue)
         return 4;
     else if (envelopeValue < 0.1)
         return 3;
-    else if (envelopeValue < 1.0)
+    else if (envelopeValue < 100)
         return 2;
-    else if (envelopeValue < 10.0)
-        return 1;
     else
         return 0;
 }
@@ -525,6 +543,7 @@ void ChannelEditor::setupChannelComponents ()
     [this] (juce::String text)
     {
         const auto attackTime { snapEnvelopeValue (std::clamp (text.getDoubleValue (), minChannelProperties.getAttack (), maxChannelProperties.getAttack ())) };
+        arEnvelopeProperties.setAttackPercent (attackTime / static_cast<double> (kMaxEnvelopeTime * 2), false);
         attackUiChanged (attackTime);
         attackTextEditor.setText (FormatHelpers::formatDouble (attackTime, getEnvelopeValueResolution (attackTime), false));
     });
@@ -549,6 +568,7 @@ void ChannelEditor::setupChannelComponents ()
     [this] (juce::String text)
     {
         const auto releaseTime { snapEnvelopeValue (std::clamp (text.getDoubleValue (), minChannelProperties.getRelease (), maxChannelProperties.getRelease ())) };
+        arEnvelopeProperties.setReleasePercent (releaseTime / static_cast<double> (kMaxEnvelopeTime * 2), false);
         releaseUiChanged (releaseTime);
         releaseTextEditor.setText (FormatHelpers::formatDouble (releaseTime, getEnvelopeValueResolution (releaseTime), false));
     });
@@ -870,8 +890,12 @@ std::tuple<double, double> ChannelEditor::getVoltageBoundaries (int zoneIndex, i
         return { topBoundary, bottomBoundary };
     };
 
-void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree rootPropertiesVT)
+void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree rootPropertiesVT, SamplePool* theSamplePool)
 {
+    //DebugLog ("ChannelEditor["+ juce::String (channelProperties.getId ()) + "]", "init");
+    jassert (theSamplePool != nullptr);
+    samplePool = theSamplePool;
+
     PersistentRootProperties persistentRootProperties (rootPropertiesVT, PersistentRootProperties::WrapperType::client, PersistentRootProperties::EnableCallbacks::no);
     RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
     appProperties.wrap (persistentRootProperties.getValueTree (), AppProperties::WrapperType::client, AppProperties::EnableCallbacks::no);
@@ -884,7 +908,7 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
     {
         // Zone Editor setup
         auto& zoneEditor { zoneEditors [zoneEditorIndex] };
-        zoneEditor.init (zonePropertiesVT, rootPropertiesVT);
+        zoneEditor.init (zonePropertiesVT, rootPropertiesVT, samplePool);
         zoneEditor.displayToolsMenu = [this] (int zoneIndex)
         {
             juce::PopupMenu pmBalance;
@@ -898,9 +922,9 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
             pm.addItem ("Copy", true, false, [this, zoneIndex] ()
             {
                 copyBufferZoneProperties.copyFrom (zoneProperties [zoneIndex].getValueTree ());
-                copyBufferActive = true;
+                copyBufferHasData = true;
             });
-            pm.addItem ("Paste", copyBufferActive, false, [this, zoneIndex] ()
+            pm.addItem ("Paste", copyBufferHasData, false, [this, zoneIndex] ()
             {
                 zoneProperties [zoneIndex].copyFrom (copyBufferZoneProperties.getValueTree ());
                 // if this was on the end of the zone list, make sure it's minVoltage is set to -5
@@ -965,16 +989,21 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
         };
         zoneEditor.onSampleChange = [this, zoneEditorIndex] (juce::String sampleFileName)
         {
-            jassert (! sampleFileName.isEmpty ());
-            if (zoneEditorIndex > 0)
+            if (sampleFileName.isNotEmpty ())
             {
-                // if this zone is empty when assigning the sample, we need to initialize the minVoltage value
-                // we also know this is the last zone in the list, as that is the only place one can insert a new sample
-                auto [topBoundary, bottomBoundary] { getVoltageBoundaries (zoneEditorIndex, 1) };
-                zoneProperties [zoneEditorIndex - 1].setMinVoltage (bottomBoundary + ((topBoundary - bottomBoundary) / 2), false);
+                if (zoneEditorIndex > 0)
+                {
+                    auto [topBoundary, bottomBoundary] { getVoltageBoundaries (zoneEditorIndex, 1) };
+                    zoneProperties [zoneEditorIndex - 1].setMinVoltage (bottomBoundary + ((topBoundary - bottomBoundary) / 2), false);
+                }
+                if (zoneEditorIndex == getNumUsedZones () - 1)
+                    zoneProperties [zoneEditorIndex].setMinVoltage (-5.0, false);
             }
-            if (zoneEditorIndex == getNumUsedZones () - 1)
-                zoneProperties [zoneEditorIndex].setMinVoltage (-5.0, false);
+            else
+            {
+                if (zoneEditorIndex> 0 && zoneEditorIndex == getNumUsedZones ())
+                    zoneProperties [zoneEditorIndex - 1].setMinVoltage (-5.0, false);
+            }
             ensureProperZoneIsSelected ();
             updateAllZoneTabNames ();
         };
@@ -987,7 +1016,7 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
 
             for (auto filesIndex { 0 }; filesIndex < files.size () && zoneIndex + filesIndex < 8; ++filesIndex)
             {
-                auto& zoneEditor { zoneEditors [zoneIndex + filesIndex] };
+                auto& zoneProperty { zoneProperties [zoneIndex + filesIndex] };
                 juce::File file (files [filesIndex]);
                 // if file not in preset folder, then copy
                 if (appProperties.getMostRecentFolder () != file.getParentDirectory ().getFullPathName ())
@@ -999,7 +1028,7 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
                 }
                 //juce::Logger::outputDebugString ("assigning '" + file.getFileName () + "' to Zone " + juce::String (zoneIndex + filesIndex));
                 // assign file to zone
-                zoneEditor.loadSample (file.getFileName ());
+                zoneProperty.setSample (file.getFileName (), false);
             }
 
 #if JUCE_DEBUG
@@ -1084,9 +1113,7 @@ void ChannelEditor::receiveSampleLoadRequest (juce::File sampleFile)
 void ChannelEditor::checkSampleFileExistence ()
 {
     for (auto& zoneEditor : zoneEditors)
-    {
         zoneEditor.checkSampleExistence ();
-    }
 }
 
 void ChannelEditor::setupChannelPropertiesCallbacks ()
@@ -1094,7 +1121,7 @@ void ChannelEditor::setupChannelPropertiesCallbacks ()
     channelProperties.onIdChange = [this] ([[maybe_unused]] int id) { jassertfalse; };
     channelProperties.onAliasingChange = [this] (int aliasing) { aliasingDataChanged (aliasing);  };
     channelProperties.onAliasingModChange = [this] (CvInputAndAmount amountAndCvInput) { const auto& [cvInput, value] { amountAndCvInput }; aliasingModDataChanged (cvInput, value); };
-    channelProperties.onAttackChange = [this] (double attack) { attackDataChanged (attack);  };
+    channelProperties.onAttackChange = [this] (double attack) { attackDataChanged (attack); };
     channelProperties.onAttackFromCurrentChange = [this] (bool attackFromCurrent) { attackFromCurrentDataChanged (attackFromCurrent);  };
     channelProperties.onAttackModChange = [this] (CvInputAndAmount amountAndCvInput) { const auto& [cvInput, value] { amountAndCvInput }; attackModDataChanged (cvInput, value); };
     channelProperties.onAutoTriggerChange = [this] (bool autoTrigger) { autoTriggerDataChanged (autoTrigger);  };
@@ -1123,7 +1150,7 @@ void ChannelEditor::setupChannelPropertiesCallbacks ()
     channelProperties.onPMIndexChange = [this] (double pMIndex) { pMIndexDataChanged (pMIndex);  };
     channelProperties.onPMIndexModChange = [this] (CvInputAndAmount amountAndCvInput) { const auto& [cvInput, value] { amountAndCvInput }; pMIndexModDataChanged (cvInput, value); };
     channelProperties.onPMSourceChange = [this] (int pMSource) { pMSourceDataChanged (pMSource);  };
-    channelProperties.onReleaseChange = [this] (double release) { releaseDataChanged (release);  };
+    channelProperties.onReleaseChange = [this] (double release) { releaseDataChanged (release); };
     channelProperties.onReleaseModChange = [this] (CvInputAndAmount amountAndCvInput) { const auto& [cvInput, value] { amountAndCvInput }; releaseModDataChanged (cvInput, value); };
     channelProperties.onReverseChange = [this] (bool reverse) { reverseDataChanged (reverse);  };
     channelProperties.onSampleStartModChange = [this] (CvInputAndAmount amountAndCvInput) { const auto& [cvInput, value] { amountAndCvInput }; sampleStartModDataChanged (cvInput, value); };
@@ -1263,6 +1290,10 @@ void ChannelEditor::positionColumnTwo (int xOffset, int width)
     curYOffset += kInterControlYOffset;
     releaseModComboBox.setBounds (releaseLabel.getX (), curYOffset, scaleWidth (0.5f), kParameterLineHeight);
     releaseModTextEditor.setBounds (releaseModComboBox.getRight () + 3, curYOffset, scaleWidth (0.5f), kParameterLineHeight);
+    curYOffset += kParameterLineHeight;
+
+    curYOffset += kInterControlYOffset;
+    arEnvelopeComponent.setBounds (releaseModComboBox.getX (), curYOffset, width + 3, getHeight () - (curYOffset + kParameterLineHeight + kParameterLineHeight));
 }
 
 void ChannelEditor::positionColumnThree (int xOffset, int width)
@@ -1468,6 +1499,7 @@ void ChannelEditor::aliasingModUiChanged (juce::String cvInput, double aliasingM
 
 void ChannelEditor::attackDataChanged (double attack)
 {
+    arEnvelopeProperties.setAttackPercent (attack / static_cast<double> (kMaxEnvelopeTime * 2), false);
     attackTextEditor.setText (FormatHelpers::formatDouble (attack, getEnvelopeValueResolution (attack), false));
 }
 
@@ -1777,6 +1809,7 @@ void ChannelEditor::pMSourceUiChanged (int pMSource)
 
 void ChannelEditor::releaseDataChanged (double release)
 {
+    arEnvelopeProperties.setReleasePercent (release / static_cast<double> (kMaxEnvelopeTime * 2), false);
     releaseTextEditor.setText (FormatHelpers::formatDouble (release, getEnvelopeValueResolution (release), false));
 }
 

@@ -2,7 +2,7 @@
 
 <JUCERPROJECT id="wWHbxR" name="A8Manager" projectType="guiapp" useAppConfig="0"
               addUsingNamespaceToJuceHeader="0" displaySplashScreen="0" jucerFormatVersion="1"
-              companyName="OmOhmProductions" cppLanguageStandard="17" version="2.2"
+              companyName="OmOhmProductions" cppLanguageStandard="17" version="2.3"
               companyWebsite="www.omohmproductions.com">
   <MAINGROUP id="JDgvjc" name="A8Manager">
     <GROUP id="{26A00EED-F319-636E-6162-8A113C6EE925}" name="Source">
@@ -100,8 +100,29 @@
                   compile="0" resource="1" file="Source/GUI/Assimil8or/Data/377906243_984640136172516_2914152204379747274_n.png"/>
             <FILE id="M1fY5n" name="Assimil8orToolTips.xml" compile="0" resource="1"
                   file="Source/GUI/Assimil8or/Data/Assimil8orToolTips.xml"/>
+            <FILE id="cdANYm" name="background.png" compile="0" resource="1" file="Source/GUI/Assimil8or/Data/background.png"/>
           </GROUP>
           <GROUP id="{E38A382D-990E-A82D-2924-1AE3B97D907B}" name="Editor">
+            <GROUP id="{A434F150-15A5-28AF-5B79-18E4647F5089}" name="Envelope">
+              <FILE id="rklXD7" name="AREnvelopeComponent.cpp" compile="1" resource="0"
+                    file="Source/GUI/Assimil8or/Editor/Envelope/AREnvelopeComponent.cpp"/>
+              <FILE id="XGbsSl" name="AREnvelopeComponent.h" compile="0" resource="0"
+                    file="Source/GUI/Assimil8or/Editor/Envelope/AREnvelopeComponent.h"/>
+              <FILE id="KsgfLU" name="AREnvelopeProperties.cpp" compile="1" resource="0"
+                    file="Source/GUI/Assimil8or/Editor/Envelope/AREnvelopeProperties.cpp"/>
+              <FILE id="d7U3XA" name="AREnvelopeProperties.h" compile="0" resource="0"
+                    file="Source/GUI/Assimil8or/Editor/Envelope/AREnvelopeProperties.h"/>
+            </GROUP>
+            <GROUP id="{A8C8F745-78AF-23ED-C637-EE04167DB6FC}" name="LoopPoints">
+              <FILE id="s010pD" name="LoopPointsView.cpp" compile="1" resource="0"
+                    file="Source/GUI/Assimil8or/Editor/LoopPoints/LoopPointsView.cpp"/>
+              <FILE id="ENQvAV" name="LoopPointsView.h" compile="0" resource="0"
+                    file="Source/GUI/Assimil8or/Editor/LoopPoints/LoopPointsView.h"/>
+            </GROUP>
+            <GROUP id="{D73921A7-8850-68E4-122F-311FCE12BEE6}" name="SamplePool">
+              <FILE id="yJzkYP" name="SamplePool.cpp" compile="1" resource="0" file="Source/GUI/Assimil8or/Editor/SamplePool/SamplePool.cpp"/>
+              <FILE id="obUalz" name="SamplePool.h" compile="0" resource="0" file="Source/GUI/Assimil8or/Editor/SamplePool/SamplePool.h"/>
+            </GROUP>
             <FILE id="liNFVw" name="Assimil8orEditorComponent.cpp" compile="1"
                   resource="0" file="Source/GUI/Assimil8or/Editor/Assimil8orEditorComponent.cpp"/>
             <FILE id="HH5ILq" name="Assimil8orEditorComponent.h" compile="0" resource="0"
@@ -187,6 +208,8 @@
               file="Source/Utility/DirectoryValueTree.cpp"/>
         <FILE id="eO3HdP" name="DirectoryValueTree.h" compile="0" resource="0"
               file="Source/Utility/DirectoryValueTree.h"/>
+        <FILE id="pP1sFQ" name="DumpStack.cpp" compile="1" resource="0" file="Source/Utility/DumpStack.cpp"/>
+        <FILE id="kz99xu" name="DumpStack.h" compile="0" resource="0" file="Source/Utility/DumpStack.h"/>
         <FILE id="GjhfJa" name="LambdaThread.h" compile="0" resource="0" file="Source/Utility/LambdaThread.h"/>
         <FILE id="ZRKBIm" name="NoArrowComboBoxLnF.h" compile="0" resource="0"
               file="Source/Utility/NoArrowComboBoxLnF.h"/>
@@ -237,6 +260,7 @@
     <MODULE id="juce_audio_utils" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_core" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_dsp" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_events" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
@@ -261,6 +285,7 @@
         <MODULEPATH id="juce_audio_utils" path="../JUCE/modules"/>
         <MODULEPATH id="juce_audio_processors" path="../JUCE/modules"/>
         <MODULEPATH id="juce_gui_extra" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_dsp" path="../JUCE/modules"/>
       </MODULEPATHS>
     </VS2022>
     <XCODE_MAC targetFolder="Builds/MacOSX" smallIcon="FQ9PfM" bigIcon="FQ9PfM"
@@ -281,6 +306,7 @@
         <MODULEPATH id="juce_audio_utils" path="../JUCE/modules"/>
         <MODULEPATH id="juce_audio_processors" path="../JUCE/modules"/>
         <MODULEPATH id="juce_gui_extra" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_dsp" path="../JUCE/modules"/>
       </MODULEPATHS>
     </XCODE_MAC>
   </EXPORTFORMATS>

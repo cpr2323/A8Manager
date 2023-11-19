@@ -3,6 +3,9 @@
 #include <JuceHeader.h>
 #include "CvInputComboBox.h"
 #include "ZoneEditor.h"
+#include "Envelope/AREnvelopeComponent.h"
+#include "Envelope/AREnvelopeProperties.h"
+#include "SamplePool/SamplePool.h"
 #include "../../../AppProperties.h"
 #include "../../../Assimil8or/Audio/AudioPlayerProperties.h"
 #include "../../../Assimil8or/Preset/ChannelProperties.h"
@@ -154,7 +157,7 @@ public:
     ChannelEditor ();
     ~ChannelEditor ();
 
-    void init (juce::ValueTree channelPropertiesVT, juce::ValueTree rootPropertiesVT);
+    void init (juce::ValueTree channelPropertiesVT, juce::ValueTree rootPropertiesVT, SamplePool* theSamplePool);
     void receiveSampleLoadRequest (juce::File sampleFile);
     void checkSampleFileExistence ();
 
@@ -175,8 +178,9 @@ private:
     ChannelProperties maxChannelProperties;
     ZoneProperties defaultZoneProperties;
     ZoneProperties copyBufferZoneProperties;
-    bool copyBufferActive { false };
+    bool copyBufferHasData { false };
     AudioPlayerProperties audioPlayerProperties;
+    SamplePool* samplePool { nullptr };
 
     juce::Label zonesLabel;
     juce::Label zoneMaxVoltage;
@@ -277,6 +281,9 @@ private:
     juce::Label zonesRTLabel;
     juce::ComboBox zonesRTComboBox; // 0 = Gate Rise, 1 = Continuous, 2 = Advance, 3 = Random
     TransparantOverlay stereoRightTransparantOverly;
+
+    AREnvelopeComponent arEnvelopeComponent;
+    AREnvelopeProperties arEnvelopeProperties;
 
     NoArrowComboBoxLnF noArrowComboBoxLnF;
     ZonesTabbedLookAndFeel zonesTabbedLookAndFeel;
