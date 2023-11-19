@@ -14,7 +14,6 @@ void LoopPointsView::setLoopPoints (int64_t theSampleOffset, int64_t theNumSampl
 
 void LoopPointsView::paint (juce::Graphics& g)
 {
-    DebugLog ("LoopPointsView", "---------------------------------------");
     const auto halfWidth { getWidth () / 2 };
     const auto halfHeight { getHeight () / 2 };
 

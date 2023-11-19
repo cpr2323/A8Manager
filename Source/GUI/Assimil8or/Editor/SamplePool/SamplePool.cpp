@@ -2,6 +2,13 @@
 #include "../../../../Utility/DebugLog.h"
 #include "../../../../Utility/DumpStack.h"
 
+#define LOG_SAMPLE_POOL 0
+#if LOG_SAMPLE_POOL
+#define LogSamplePool(text) DebugLog ("SamplePool", text);
+#else
+#define LogSamplePool(text) ;
+#endif
+
 SamplePool::SamplePool ()
 {
     audioFormatManager.registerBasicFormats ();
@@ -15,7 +22,7 @@ void SamplePool::setFolder (juce::File theParentFolder)
 
 SampleData SamplePool::open (juce::String fileName)
 {
-    DebugLog("SamplePool", "open: " + fileName);
+    LogSamplePool ("open: " + fileName);
     jassert (fileName.isNotEmpty ());
     jassert (parentFolder.exists ());
     const auto sampleDataIter { sampleList.find (fileName) };
@@ -23,18 +30,18 @@ SampleData SamplePool::open (juce::String fileName)
         return loadSample (fileName);
 
     sampleDataIter->second.useCount++;
-    DebugLog ("SamplePool", "open: useCount:" + juce::String (sampleList [fileName].useCount));
+    LogSamplePool ("open: useCount:" + juce::String (sampleList [fileName].useCount));
     return { &sampleDataIter->second.status, &sampleDataIter->second.bitsPerSample, &sampleDataIter->second.numChannels,
              &sampleDataIter->second.lengthInSamples, &sampleDataIter->second.audioBuffer };
 }
 
 SampleData SamplePool::loadSample (juce::String fileName)
 {
-    DebugLog ("SamplePool", "loadSample: " + fileName);
+    LogSamplePool ("loadSample: " + fileName);
     SampleDataInternal newSampleDataInternal;
     newSampleDataInternal.useCount = 1;
     updateSample (fileName, newSampleDataInternal);
-    DebugLog ("SamplePool", "loadSample: useCount: 1");
+    LogSamplePool ("loadSample: useCount: 1");
 
     sampleList [fileName] = std::move (newSampleDataInternal);
     auto& sdi { sampleList [fileName] };
@@ -47,7 +54,7 @@ void SamplePool::updateSample (juce::String fileName, SampleDataInternal& sample
     juce::File fullPath { parentFolder.getChildFile (fileName) };
     if (fullPath.exists ())
     {
-        DebugLog ("SamplePool", "updateSample: file exists");
+        LogSamplePool ("updateSample: file exists");
         if (std::unique_ptr<juce::AudioFormatReader> sampleFileReader { audioFormatManager.createReaderFor (fullPath) }; sampleFileReader != nullptr)
         {
             // cache sample attributes
@@ -62,13 +69,13 @@ void SamplePool::updateSample (juce::String fileName, SampleDataInternal& sample
         }
         else
         {
-            DebugLog ("SamplePool", "updateSample: wrong format");
+            LogSamplePool ("updateSample: wrong format");
             sampleData.status = SampleData::SampleDataStatus::wrongFormat;
         }
     }
     else
     {
-        DebugLog ("SamplePool", "updateSample: does not exist");
+        LogSamplePool ("updateSample: does not exist");
         sampleData.status = SampleData::SampleDataStatus::doesNotExist;
     }
 }
@@ -86,17 +93,17 @@ void SamplePool::update ()
 
 void SamplePool::close (juce::String fileName)
 {
-    DebugLog ("SamplePool", "close: " + fileName);
+    LogSamplePool ("close: " + fileName);
     //dumpStacktrace (-1, [this] (juce::String logLine) { DebugLog ("SamplePool", logLine); });
     jassert (fileName.isNotEmpty ());
     const auto sampleDataIter { sampleList.find (fileName) };
     jassert (sampleDataIter != sampleList.end ());
     jassert (sampleList [fileName].useCount != 0);
     --sampleList [fileName].useCount;
-    DebugLog ("SamplePool", "close: useCount:" + juce::String(sampleList [fileName].useCount));
+    LogSamplePool ("close: useCount:" + juce::String(sampleList [fileName].useCount));
     if (sampleList [fileName].useCount == 0)
     {
         sampleList.erase (fileName);
-        DebugLog ("SamplePool", "close: deleting");
+        LogSamplePool ("close: deleting");
     }
 }

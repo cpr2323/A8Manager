@@ -200,7 +200,7 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
     appProperties.wrap (persistentRootProperties.getValueTree (), AppProperties::WrapperType::client, AppProperties::EnableCallbacks::yes);
     appProperties.onMostRecentFileChange = [this] (juce::String fileName)
     {
-        DebugLog ("Assimil8orEditorComponent", "Assimil8orEditorComponent::init/appProperties.onMostRecentFileChange: " + fileName);
+        //DebugLog ("Assimil8orEditorComponent", "Assimil8orEditorComponent::init/appProperties.onMostRecentFileChange: " + fileName);
         //dumpStacktrace (-1, [this] (juce::String logLine) { DebugLog ("Assimil8orEditorComponent", logLine); });
         samplePool.setFolder (juce::File (fileName).getParentDirectory ());
         audioPlayerProperties.setPlayState (AudioPlayerProperties::PlayState::stop, false);
