@@ -100,7 +100,7 @@ void SamplePool::close (juce::String fileName)
     jassert (sampleDataIter != sampleList.end ());
     jassert (sampleList [fileName].useCount != 0);
     --sampleList [fileName].useCount;
-    LogSamplePool ("close: useCount:" + juce::String(sampleList [fileName].useCount));
+    LogSamplePool ("close: useCount:" + juce::String (sampleList [fileName].useCount));
     if (sampleList [fileName].useCount == 0)
     {
         sampleList.erase (fileName);

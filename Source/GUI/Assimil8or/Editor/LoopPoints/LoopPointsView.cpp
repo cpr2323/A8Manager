@@ -21,7 +21,7 @@ void LoopPointsView::paint (juce::Graphics& g)
     {
         juce::dsp::AudioBlock<float> audioBlock { *audioBuffer };
         juce::dsp::AudioBlock<float> loopSamples { audioBlock.getSubBlock (sampleOffset, numSamples) };
-        const auto samplesToDisplay { static_cast<int> (std::min<int64_t>(numSamples, halfWidth)) };
+        const auto samplesToDisplay { static_cast<int> (std::min<int64_t> (numSamples, halfWidth)) };
 
         g.setColour (juce::Colours::black);
         auto readPtr { loopSamples.getChannelPointer (0) };
@@ -31,15 +31,15 @@ void LoopPointsView::paint (juce::Graphics& g)
             const auto xOffset { halfWidth - sampleCount };
             const auto sampleIndex { numSamples - sampleCount };
             g.drawLine (static_cast<float> (xOffset),
-                        static_cast<float> (static_cast<int>(halfHeight + (readPtr [sampleIndex] * halfHeight))),
+                        static_cast<float> (static_cast<int> (halfHeight + (readPtr [sampleIndex] * halfHeight))),
                         static_cast<float> (xOffset + 1),
-                        static_cast<float> (static_cast<int>(halfHeight + (readPtr [sampleIndex + 1] * halfHeight))));
+                        static_cast<float> (static_cast<int> (halfHeight + (readPtr [sampleIndex + 1] * halfHeight))));
 
             // draw one line of sample start going from middle to right
             g.drawLine (static_cast<float> (halfWidth + sampleCount),
-                        static_cast<float> (static_cast<int>(halfHeight + (readPtr [sampleCount] * halfHeight))),
+                        static_cast<float> (static_cast<int> (halfHeight + (readPtr [sampleCount] * halfHeight))),
                         static_cast<float> (halfWidth + sampleCount + 1),
-                        static_cast<float> (static_cast<int>(halfHeight + (readPtr [sampleCount + 1] * halfHeight))));
+                        static_cast<float> (static_cast<int> (halfHeight + (readPtr [sampleCount + 1] * halfHeight))));
         }
     }
 

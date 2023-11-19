@@ -231,8 +231,8 @@ public:
 
             PersistentRootProperties prp (rootPropertiesVT, PersistentRootProperties::WrapperType::client, PersistentRootProperties::EnableCallbacks::no);
             guiProperties.wrap (prp.getValueTree (), GuiProperties::WrapperType::client, GuiProperties::EnableCallbacks::no);
-            auto [width, height] = guiProperties.getSize ();
-            auto [x, y] = guiProperties.getPosition ();
+            auto [width, height] { guiProperties.getSize () };
+            auto [x, y] { guiProperties.getPosition () };
             if (x == -1 || y == -1)
                 centreWithSize (width, height);
             else

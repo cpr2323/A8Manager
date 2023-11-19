@@ -195,17 +195,6 @@
               file="Source/GUI/BottomStatusWindow.h"/>
       </GROUP>
       <GROUP id="{8CE93423-6945-B212-EA23-BC0B9325BBF7}" name="Utility">
-        <GROUP id="{CE7726F0-1037-6B5F-8C8A-30BB9E5E6B21}" name="GUI">
-          <FILE id="LLN2AV" name="EnvelopeAnchorComponent.cpp" compile="1" resource="0"
-                file="Source/Utility/GUI/EnvelopeAnchorComponent.cpp"/>
-          <FILE id="lRIYlk" name="EnvelopeAnchorComponent.h" compile="0" resource="0"
-                file="Source/Utility/GUI/EnvelopeAnchorComponent.h"/>
-          <FILE id="fxQNDS" name="EnvelopeAxis.h" compile="0" resource="0" file="Source/Utility/GUI/EnvelopeAxis.h"/>
-          <FILE id="zJ6Dkf" name="EnvelopeComponent.cpp" compile="1" resource="0"
-                file="Source/Utility/GUI/EnvelopeComponent.cpp"/>
-          <FILE id="X8cRRZ" name="EnvelopeComponent.h" compile="0" resource="0"
-                file="Source/Utility/GUI/EnvelopeComponent.h"/>
-        </GROUP>
         <FILE id="ZzjeA7" name="Crc.h" compile="0" resource="0" file="Source/Utility/Crc.h"/>
         <FILE id="yrhXEY" name="DebugLog.cpp" compile="1" resource="0" file="Source/Utility/DebugLog.cpp"/>
         <FILE id="i75h2A" name="DebugLog.h" compile="0" resource="0" file="Source/Utility/DebugLog.h"/>

@@ -230,9 +230,9 @@ void ZoneEditor::updateLoopPointsView ()
     else
     {
         startSample = zoneProperties.getLoopStart ().value_or (0);
-        numSamples = static_cast<int64_t> (zoneProperties.getLoopLength().value_or (static_cast<double> (sampleData.getLengthInSamples ())));
+        numSamples = static_cast<int64_t> (zoneProperties.getLoopLength ().value_or (static_cast<double> (sampleData.getLengthInSamples ())));
     }
-    loopPointsView.setAudioBuffer(sampleData.getAudioBuffer ());
+    loopPointsView.setAudioBuffer (sampleData.getAudioBuffer ());
     loopPointsView.setLoopPoints (startSample, numSamples);
     loopPointsView.repaint ();
 }
@@ -249,7 +249,7 @@ void ZoneEditor::loadSample (juce::String sampleFileName)
     else
         sampleData = SampleData ();
 
-    if (sampleData.getStatus() == SampleData::SampleDataStatus::exists)
+    if (sampleData.getStatus () == SampleData::SampleDataStatus::exists)
     {
         updateLoopPointsView ();
 
@@ -655,7 +655,6 @@ void ZoneEditor::resized ()
                              loopLengthTextEditor.getRight () - loopStartLabel.getX (),
                              loopLengthTextEditor.getBottom () - loopStartLabel.getY () + loopPointsViewHeight };
 
-
     auto labelBounds { juce::Rectangle<int> {0, loopLengthTextEditor.getBottom () + interParameterYOffset, getWidth (), 14} };
     sourceLabel.setBounds (labelBounds.removeFromLeft (labelBounds.getWidth () / 2));
     playModeLabel.setBounds (labelBounds);
@@ -813,9 +812,9 @@ void ZoneEditor::pitchOffsetUiChanged (double pitchOffset)
 
 void ZoneEditor::updateSampleFileInfo (juce::String sample)
 {
-    jassert (!sample.isEmpty ());
+    jassert (! sample.isEmpty ());
     auto textColor {juce::Colours::white};
-    if (sampleData.getStatus() == SampleData::SampleDataStatus::exists)
+    if (sampleData.getStatus () == SampleData::SampleDataStatus::exists)
     {
         if (! zoneProperties.getSampleEnd ().has_value ())
             sampleEndTextEditor.setText (juce::String (sampleData.getLengthInSamples ()));

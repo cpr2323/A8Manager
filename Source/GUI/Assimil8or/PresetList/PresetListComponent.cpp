@@ -193,7 +193,7 @@ void PresetListComponent::loadFirstPreset ()
     juce::File loadedPresetFile;
     forEachPresetFile ([this, &presetLoaded, &loadedPresetFile] (juce::File presetFile, int presetIndex)
     {
-        if (auto [presetNumber, thisPresetExists, presetName] = presetInfoList [presetIndex]; ! thisPresetExists)
+            if (auto [presetNumber, thisPresetExists, presetName] { presetInfoList [presetIndex] }; !thisPresetExists)
             return true;
 
         presetListBox.selectRow (presetIndex, false, true);

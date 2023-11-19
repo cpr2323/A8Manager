@@ -58,7 +58,7 @@ void ZoneProperties::setPitchOffset (double pitchOffset, bool includeSelfCallbac
 
 void ZoneProperties::setSample (juce::String sampleFileName, bool includeSelfCallback)
 {
-    //DebugLog ("ZoneProperties", "ZoneProperties[" + juce::String (getId()) + "]::setSample: '" + sampleFileName + "'");
+    //DebugLog ("ZoneProperties", "ZoneProperties[" + juce::String (getId ()) + "]::setSample: '" + sampleFileName + "'");
     setValue (sampleFileName, SamplePropertyId, includeSelfCallback);
 }
 

@@ -36,7 +36,7 @@ class AREnvelopeComponent : public juce::Component
 {
 public:
     AREnvelopeComponent ();
- 
+
     juce::ValueTree getPropertiesVT () { return arEnvelopeProperties.getValueTree (); }
 
 private:

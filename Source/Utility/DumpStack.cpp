@@ -1,6 +1,6 @@
 #include "DumpStack.h"
 
-void dumpStacktrace (int depth, std::function<void(juce::String)> logger)
+void dumpStacktrace (int depth, std::function<void (juce::String)> logger)
 {
     jassert (logger != nullptr);
     auto rawStackTrace { juce::SystemStats::getStackBacktrace () };
