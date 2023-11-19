@@ -101,7 +101,6 @@ private:
     ZoneProperties minZoneProperties;
     ZoneProperties maxZoneProperties;
     juce::AudioFormatManager audioFormatManager;
-    juce::AudioBuffer<float> sampleAudioBuffer;
     SamplePool* samplePool;
     SampleData sampleData;
     juce::String currentSampleFileName;
