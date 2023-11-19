@@ -1,4 +1,5 @@
 #include "LoopPointsView.h"
+#include "../../../../Utility/DebugLog.h"
 
 void LoopPointsView::setAudioBuffer (juce::AudioBuffer<float>* theAudioBuffer)
 {
@@ -13,6 +14,7 @@ void LoopPointsView::setLoopPoints (int64_t theSampleOffset, int64_t theNumSampl
 
 void LoopPointsView::paint (juce::Graphics& g)
 {
+    DebugLog ("LoopPointsView", "---------------------------------------");
     const auto halfWidth { getWidth () / 2 };
     const auto halfHeight { getHeight () / 2 };
 
@@ -30,15 +32,15 @@ void LoopPointsView::paint (juce::Graphics& g)
             const auto xOffset { halfWidth - sampleCount };
             const auto sampleIndex { numSamples - sampleCount };
             g.drawLine (static_cast<float> (xOffset),
-                        static_cast<float> (static_cast<int>(halfHeight - (readPtr [sampleIndex] * getHeight ()))),
+                        static_cast<float> (static_cast<int>(halfHeight + (readPtr [sampleIndex] * halfHeight))),
                         static_cast<float> (xOffset + 1),
-                        static_cast<float> (static_cast<int>(halfHeight - (readPtr [sampleIndex + 1] * getHeight ()))));
+                        static_cast<float> (static_cast<int>(halfHeight + (readPtr [sampleIndex + 1] * halfHeight))));
 
             // draw one line of sample start going from middle to right
             g.drawLine (static_cast<float> (halfWidth + sampleCount),
-                        static_cast<float> (static_cast<int>(halfHeight - (readPtr [sampleCount] * getHeight ()))),
+                        static_cast<float> (static_cast<int>(halfHeight + (readPtr [sampleCount] * halfHeight))),
                         static_cast<float> (halfWidth + sampleCount + 1),
-                        static_cast<float> (static_cast<int>(halfHeight - (readPtr [sampleCount + 1] * getHeight ()))));
+                        static_cast<float> (static_cast<int>(halfHeight + (readPtr [sampleCount + 1] * halfHeight))));
         }
     }
 
