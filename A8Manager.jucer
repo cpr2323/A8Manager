@@ -100,7 +100,6 @@
                   compile="0" resource="1" file="Source/GUI/Assimil8or/Data/377906243_984640136172516_2914152204379747274_n.png"/>
             <FILE id="M1fY5n" name="Assimil8orToolTips.xml" compile="0" resource="1"
                   file="Source/GUI/Assimil8or/Data/Assimil8orToolTips.xml"/>
-            <FILE id="cdANYm" name="background.png" compile="0" resource="1" file="Source/GUI/Assimil8or/Data/background.png"/>
           </GROUP>
           <GROUP id="{E38A382D-990E-A82D-2924-1AE3B97D907B}" name="Editor">
             <GROUP id="{A434F150-15A5-28AF-5B79-18E4647F5089}" name="Envelope">
