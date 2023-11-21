@@ -37,7 +37,7 @@ void InputControlComponent::mouseDrag (const juce::MouseEvent& mouseEvent)
         else
             dragSpeed = 10;
         const auto finalDragSpeed { dragSpeed * signage };
-        //DebugLog("InputControlComponent", juce::String (positiveDiff) + ", " + juce::String (finalDragSpeed));
+        // DebugLog("InputControlComponent", juce::String (positiveDiff) + ", " + juce::String (finalDragSpeed));
         if (onDrag != nullptr)
             onDrag (finalDragSpeed);
         lastY = mouseEvent.getPosition ().getY ();

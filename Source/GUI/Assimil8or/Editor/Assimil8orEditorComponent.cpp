@@ -221,8 +221,15 @@ void Assimil8orEditorComponent::setupPresetComponents ()
         xfadeGroup.inputControlComponent.onPopupMenu = [this] ()
         {
             juce::PopupMenu pm;
-            pm.addItem ("Do Something", true, false, [this] () {});
-            pm.addItem ("Do Another Thing", true, false, [this] () {});
+            pm.addItem ("Copy", true, false, [this] () {});
+            pm.addItem ("Paste", true, false, [this] () {});
+            juce::PopupMenu special;
+            special.addItem ("To Group A", true, false, [this] () {});
+            special.addItem ("To Group B", true, false, [this] () {});
+            special.addItem ("To Group C", true, false, [this] () {});
+            special.addItem ("To Group D", true, false, [this] () {});
+            special.addItem ("To All", true, false, [this] () {});
+            pm.addSubMenu ("Special", special, true);
             pm.showMenuAsync ({}, [this] (int) {});
         };
 
