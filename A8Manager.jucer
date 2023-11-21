@@ -209,6 +209,10 @@
               file="Source/Utility/DirectoryValueTree.h"/>
         <FILE id="pP1sFQ" name="DumpStack.cpp" compile="1" resource="0" file="Source/Utility/DumpStack.cpp"/>
         <FILE id="kz99xu" name="DumpStack.h" compile="0" resource="0" file="Source/Utility/DumpStack.h"/>
+        <FILE id="j6Y9Rt" name="InputControlComponent.cpp" compile="1" resource="0"
+              file="Source/Utility/InputControlComponent.cpp"/>
+        <FILE id="luDikc" name="InputControlComponent.h" compile="0" resource="0"
+              file="Source/Utility/InputControlComponent.h"/>
         <FILE id="GjhfJa" name="LambdaThread.h" compile="0" resource="0" file="Source/Utility/LambdaThread.h"/>
         <FILE id="ZRKBIm" name="NoArrowComboBoxLnF.h" compile="0" resource="0"
               file="Source/Utility/NoArrowComboBoxLnF.h"/>

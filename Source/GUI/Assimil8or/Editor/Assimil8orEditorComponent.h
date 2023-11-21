@@ -8,57 +8,8 @@
 #include "../../../Assimil8or/Audio/AudioPlayerProperties.h"
 #include "../../../Assimil8or/Preset/PresetProperties.h"
 #include "../../../Utility/DirectoryDataProperties.h"
+#include "../../../Utility/InputControlComponent.h"
 #include "../../../Utility/RuntimeRootProperties.h"
-
-class DragDataChanger : public juce::Component
-{
-public:
-    std::function<void (int dragSpeed)> onDrag;
-
-private:
-    bool doingDrag { false };
-    int lastY { 0 };
-    void mouseUp (const juce::MouseEvent& mouseEvent) override
-    {
-        doingDrag = false;
-    }
-
-    void mouseDown (const juce::MouseEvent& mouseEvent) override
-    {
-        if (! mouseEvent.mods.isPopupMenu())
-        {
-            lastY = mouseEvent.getPosition ().getY ();
-            doingDrag = true;
-        }
-    }
-    void mouseDrag (const juce::MouseEvent& mouseEvent) override
-    {
-        if (doingDrag)
-        {
-            auto yDiff { (mouseEvent.getPosition ().getY () - lastY) * -1};
-            const auto signage { yDiff >= 0 ? 1 : -1 };
-            auto positiveDiff { std::min (std::abs (yDiff), 20) };
-            auto dragSpeed { 0 };
-            if (positiveDiff < 2)
-                dragSpeed = 1;
-            else if (positiveDiff < 4)
-                dragSpeed = 2;
-            else if (positiveDiff < 6)
-                dragSpeed = 5;
-            else
-                dragSpeed = 10;
-            const auto finalDragSpeed { dragSpeed * signage };
-            juce::Logger::outputDebugString (juce::String(positiveDiff) + ", " + juce::String (finalDragSpeed));
-            if (onDrag != nullptr)
-                onDrag (finalDragSpeed);
-            lastY = mouseEvent.getPosition ().getY ();
-        }
-    }
-    void paint (juce::Graphics& g)
-    {
-        g.fillAll (juce::Colours::white);
-    }
-};
 
 class WindowDecorator : public juce::Component
 {
@@ -117,7 +68,7 @@ private:
         juce::Label xfadeCvLabel;
         CvInputGlobalComboBox xfadeCvComboBox;
         juce::Label xfadeWidthLabel;
-        DragDataChanger dragDataChanger;
+        InputControlComponent inputControlComponent;
         juce::TextEditor xfadeWidthEditor;  // double
     };
     enum XfadeGroupIndex

@@ -169,58 +169,57 @@ void Assimil8orEditorComponent::setupPresetComponents ()
         // add the drag data changer after the editor, so it can be over it
         auto getSetter = [this] (int groupIndex) -> std::function<void (double)>
         {
-            jassert (groupIndex < 4);
+            auto setWidthValue = [this] (double incAmount, std::function<double ()> get, std::function<void (double)> set)
+            {
+                jassert (get != nullptr && set != nullptr);
+                const auto newAmount { get () + incAmount };
+                auto width { std::clamp (newAmount, minPresetProperties.getXfadeAWidth (), maxPresetProperties.getXfadeAWidth ()) };
+                set (width);
+            };
             switch (groupIndex)
             {
-            case 0:
-            {
-                return [this] (double incAmount)
+                case 0:
                 {
-                    const auto newAmount { presetProperties.getXfadeAWidth () + incAmount };
-                    auto width { std::clamp (newAmount, minPresetProperties.getXfadeAWidth (), maxPresetProperties.getXfadeAWidth ()) };
-                    presetProperties.setXfadeAWidth (width, true);
-                };
-            }
-            break;
-            case 1:
-            {
-                return [this] (double incAmount)
+                    return [this, setWidthValue] (double incAmount)
+                    {
+                        setWidthValue (incAmount, [this] () { return presetProperties.getXfadeAWidth (); }, [this] (double width) { presetProperties.setXfadeAWidth (width, true); });
+                    };
+                }
+                break;
+                case 1:
                 {
-                    const auto newAmount { presetProperties.getXfadeBWidth () + incAmount };
-                    auto width { std::clamp (newAmount, minPresetProperties.getXfadeAWidth (), maxPresetProperties.getXfadeAWidth ()) };
-                    presetProperties.setXfadeBWidth (width, true);
-                };
-            }
-            break;
-            case 2:
-            {
-                return [this] (double incAmount)
+                    return [this, setWidthValue] (double incAmount)
+                    {
+                        setWidthValue (incAmount, [this] () { return presetProperties.getXfadeBWidth (); }, [this] (double width) { presetProperties.setXfadeBWidth (width, true); });
+                    };
+                }
+                break;
+                case 2:
                 {
-                    const auto newAmount { presetProperties.getXfadeCWidth () + incAmount };
-                    auto width { std::clamp (newAmount, minPresetProperties.getXfadeAWidth (), maxPresetProperties.getXfadeAWidth ()) };
-                    presetProperties.setXfadeCWidth (width, true);
-                };
-            }
-            break;
-            case 3:
-            {
-                return [this] (double incAmount)
+                    return [this, setWidthValue] (double incAmount)
+                    {
+                        setWidthValue (incAmount, [this] () { return presetProperties.getXfadeCWidth (); }, [this] (double width) { presetProperties.setXfadeCWidth (width, true); });
+                    };
+                }
+                break;
+                case 3:
                 {
-                    const auto newAmount { presetProperties.getXfadeDWidth () + incAmount };
-                    auto width { std::clamp (newAmount, minPresetProperties.getXfadeAWidth (), maxPresetProperties.getXfadeAWidth ()) };
-                    presetProperties.setXfadeDWidth (width, true);
-                };
-            }
-            break;
-            default:
-                return [] (double) { jassertfalse; };
+                    return [this, setWidthValue] (double incAmount)
+                    {
+                        setWidthValue (incAmount, [this] () { return presetProperties.getXfadeDWidth (); }, [this] (double width) { presetProperties.setXfadeDWidth (width, true); });
+                    };
+                }
+                break;
+                default:
+                    return [] (double) { jassertfalse; };
             }
         };
-        xfadeGroup.dragDataChanger.onDrag = [this, setter = getSetter(xfadeGroupIndex)] (int dragSpeed)
+        xfadeGroup.inputControlComponent.onDrag = [this, setter = getSetter(xfadeGroupIndex)] (int dragSpeed)
         {
             setter (0.1 * dragSpeed);
         };
-        addAndMakeVisible (xfadeGroup.dragDataChanger);
+        // add this component after the corresponding xfadeGroup.xfadeWidthEditor, so that this appears over that component
+        addAndMakeVisible (xfadeGroup.inputControlComponent);
     }
 }
 
@@ -477,7 +476,7 @@ void Assimil8orEditorComponent::resized ()
         xfadeGroup.xfadeWidthLabel.setBounds (xfadeGroup.xfadeCvComboBox.getRight () + 3, bottomRowY + 3, 35, 20);
         xfadeGroup.xfadeWidthEditor.setBounds (xfadeGroup.xfadeWidthLabel.getRight () + 1, bottomRowY + 3, 40, 20);
         const auto ddcSize { xfadeGroup.xfadeWidthEditor.getHeight () / 4 };
-        xfadeGroup.dragDataChanger.setBounds (xfadeGroup.xfadeWidthEditor.getRight () - 1 - ddcSize, xfadeGroup.xfadeWidthEditor.getY () + 1, ddcSize, ddcSize);
+        xfadeGroup.inputControlComponent.setBounds (xfadeGroup.xfadeWidthEditor.getRight () - 1 - ddcSize, xfadeGroup.xfadeWidthEditor.getY () + 1, ddcSize, ddcSize);
     }
 }
 
