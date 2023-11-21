@@ -27,7 +27,7 @@
 	<Parameter name="LinAM" tooltip="CV Assignment, 0A - 8C / -1.00 to 1.00, Default Off"/>
 	<Parameter name="LinAMisExtEnv" tooltip="Linear AM is External Envelope, Off / On"/>
 	<Parameter name="LinFM" tooltip="CV Assignment, 0A - 8C / -1.00 to 1.00, Default Off"/>
-	<Parameter name="LoopLengthIsEnd" tooltip="__place holder__"/>  
+	<Parameter name="LoopLengthIsEnd" tooltip="Toggles between Loop Length and Loop End for input value"/>  
 	<Parameter name="LoopLengthMod" tooltip="CV Assignment, 0A - 8C / -1.00 to 1.00, Default Off"/>
 	<Parameter name="LoopMode" tooltip="Loop Mode, No Loop, Loop, Loop and Release"/>
 	<Parameter name="LoopStartMod" tooltip="CV Assignment, 0A - 8C / -1.00 to 1.00, Default Off"/>

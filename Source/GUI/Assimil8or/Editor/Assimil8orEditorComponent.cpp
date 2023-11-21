@@ -218,6 +218,14 @@ void Assimil8orEditorComponent::setupPresetComponents ()
         {
             setter (0.1 * dragSpeed);
         };
+        xfadeGroup.inputControlComponent.onPopupMenu = [this] ()
+        {
+            juce::PopupMenu pm;
+            pm.addItem ("Do Something", true, false, [this] () {});
+            pm.addItem ("Do Another Thing", true, false, [this] () {});
+            pm.showMenuAsync ({}, [this] (int) {});
+        };
+
         // add this component after the corresponding xfadeGroup.xfadeWidthEditor, so that this appears over that component
         addAndMakeVisible (xfadeGroup.inputControlComponent);
     }
