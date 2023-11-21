@@ -139,6 +139,7 @@ void Assimil8orEditorComponent::setupPresetComponents ()
         xfadeGroup.xfadeWidthLabel.setColour (juce::Label::ColourIds::textColourId, juce::Colours::black);
         xfadeGroup.xfadeWidthLabel.setText ("Width", juce::NotificationType::dontSendNotification);
         addAndMakeVisible (xfadeGroup.xfadeWidthLabel);
+
         xfadeGroup.xfadeWidthEditor.setJustification (juce::Justification::centred);
         xfadeGroup.xfadeWidthEditor.setIndents (0, 0);
         xfadeGroup.xfadeWidthEditor.setInputRestrictions (0, "+-.0123456789");
@@ -165,6 +166,61 @@ void Assimil8orEditorComponent::setupPresetComponents ()
         };
         xfadeGroup.xfadeWidthEditor.setTooltip (parameterToolTipData.getToolTip ("Preset", "Xfade" + juce::String::charToString ('A' + xfadeGroupIndex) + "Width"));
         addAndMakeVisible (xfadeGroup.xfadeWidthEditor);
+        // add the drag data changer after the editor, so it can be over it
+        auto getSetter = [this] (int groupIndex) -> std::function<void (double)>
+        {
+            jassert (groupIndex < 4);
+            switch (groupIndex)
+            {
+            case 0:
+            {
+                return [this] (double incAmount)
+                {
+                    const auto newAmount { presetProperties.getXfadeAWidth () + incAmount };
+                    auto width { std::clamp (newAmount, minPresetProperties.getXfadeAWidth (), maxPresetProperties.getXfadeAWidth ()) };
+                    presetProperties.setXfadeAWidth (width, true);
+                };
+            }
+            break;
+            case 1:
+            {
+                return [this] (double incAmount)
+                {
+                    const auto newAmount { presetProperties.getXfadeBWidth () + incAmount };
+                    auto width { std::clamp (newAmount, minPresetProperties.getXfadeAWidth (), maxPresetProperties.getXfadeAWidth ()) };
+                    presetProperties.setXfadeBWidth (width, true);
+                };
+            }
+            break;
+            case 2:
+            {
+                return [this] (double incAmount)
+                {
+                    const auto newAmount { presetProperties.getXfadeCWidth () + incAmount };
+                    auto width { std::clamp (newAmount, minPresetProperties.getXfadeAWidth (), maxPresetProperties.getXfadeAWidth ()) };
+                    presetProperties.setXfadeCWidth (width, true);
+                };
+            }
+            break;
+            case 3:
+            {
+                return [this] (double incAmount)
+                {
+                    const auto newAmount { presetProperties.getXfadeDWidth () + incAmount };
+                    auto width { std::clamp (newAmount, minPresetProperties.getXfadeAWidth (), maxPresetProperties.getXfadeAWidth ()) };
+                    presetProperties.setXfadeDWidth (width, true);
+                };
+            }
+            break;
+            default:
+                return [] (double) { jassertfalse; };
+            }
+        };
+        xfadeGroup.dragDataChanger.onDrag = [this, setter = getSetter(xfadeGroupIndex)] (int dragSpeed)
+        {
+            setter (0.1 * dragSpeed);
+        };
+        addAndMakeVisible (xfadeGroup.dragDataChanger);
     }
 }
 
@@ -420,6 +476,8 @@ void Assimil8orEditorComponent::resized ()
 
         xfadeGroup.xfadeWidthLabel.setBounds (xfadeGroup.xfadeCvComboBox.getRight () + 3, bottomRowY + 3, 35, 20);
         xfadeGroup.xfadeWidthEditor.setBounds (xfadeGroup.xfadeWidthLabel.getRight () + 1, bottomRowY + 3, 40, 20);
+        const auto ddcSize { xfadeGroup.xfadeWidthEditor.getHeight () / 4 };
+        xfadeGroup.dragDataChanger.setBounds (xfadeGroup.xfadeWidthEditor.getRight () - 1 - ddcSize, xfadeGroup.xfadeWidthEditor.getY () + 1, ddcSize, ddcSize);
     }
 }
 
