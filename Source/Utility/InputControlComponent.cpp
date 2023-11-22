@@ -46,5 +46,5 @@ void InputControlComponent::mouseDrag (const juce::MouseEvent& mouseEvent)
 
 void InputControlComponent::paint (juce::Graphics& g)
 {
-    g.fillAll (juce::Colours::white);
+    g.fillAll (juce::Colours::white.withAlpha(0.5f));
 }
