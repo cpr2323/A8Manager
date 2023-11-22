@@ -218,17 +218,63 @@ void Assimil8orEditorComponent::setupPresetComponents ()
         {
             setter (0.1 * dragSpeed);
         };
-        xfadeGroup.inputControlComponent.onPopupMenu = [this] ()
+        xfadeGroup.inputControlComponent.onPopupMenu = [this, xfadeGroupIndex] ()
         {
+            auto getXfadeGroupWidthValue = [this, xfadeGroupIndex] () -> double
+            {
+                if (xfadeGroupIndex == 0)
+                    return presetProperties.getXfadeAWidth ();
+                else if (xfadeGroupIndex == 1)
+                    return presetProperties.getXfadeBWidth ();
+                else if (xfadeGroupIndex == 2)
+                    return presetProperties.getXfadeCWidth ();
+                else if (xfadeGroupIndex == 3)
+                    return presetProperties.getXfadeDWidth ();
+                return 0.0;
+            };
             juce::PopupMenu pm;
             pm.addItem ("Copy", true, false, [this] () {});
             pm.addItem ("Paste", true, false, [this] () {});
+            pm.addItem("Default", true, false, [this, xfadeGroupIndex] ()
+            {
+                const auto defaultValue {1.0};
+                if (xfadeGroupIndex == 0)
+                    presetProperties.setXfadeAWidth (defaultValue, true);
+                else if (xfadeGroupIndex == 1)
+                    presetProperties.setXfadeBWidth (defaultValue, true);
+                else if (xfadeGroupIndex == 2)
+                    presetProperties.setXfadeCWidth (defaultValue, true);
+                else if (xfadeGroupIndex == 3)
+                    presetProperties.setXfadeDWidth (defaultValue, true);
+            });
             juce::PopupMenu special;
-            special.addItem ("To Group A", true, false, [this] () {});
-            special.addItem ("To Group B", true, false, [this] () {});
-            special.addItem ("To Group C", true, false, [this] () {});
-            special.addItem ("To Group D", true, false, [this] () {});
-            special.addItem ("To All", true, false, [this] () {});
+            if (xfadeGroupIndex != 0)
+                special.addItem ("To Group A", true, false, [this, value = getXfadeGroupWidthValue()] ()
+                {
+                    presetProperties.setXfadeAWidth (value, true);
+                });
+            if (xfadeGroupIndex != 1)
+                special.addItem ("To Group B", true, false, [this, value = getXfadeGroupWidthValue ()] ()
+                {
+                    presetProperties.setXfadeBWidth (value, true);
+                });
+            if (xfadeGroupIndex != 2)
+                special.addItem ("To Group C", true, false, [this, value = getXfadeGroupWidthValue ()] ()
+                {
+                    presetProperties.setXfadeCWidth (value, true);
+                });
+            if (xfadeGroupIndex != 3)
+                special.addItem ("To Group D", true, false, [this, value = getXfadeGroupWidthValue ()] ()
+                {
+                    presetProperties.setXfadeDWidth (value, true);
+                });
+            special.addItem ("To All", true, false, [this, value = getXfadeGroupWidthValue ()] ()
+            {
+                presetProperties.setXfadeAWidth (value, true);
+                presetProperties.setXfadeBWidth (value, true);
+                presetProperties.setXfadeCWidth (value, true);
+                presetProperties.setXfadeDWidth (value, true);
+            });
             pm.addSubMenu ("Special", special, true);
             pm.showMenuAsync ({}, [this] (int) {});
         };

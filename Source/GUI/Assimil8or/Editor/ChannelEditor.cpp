@@ -373,6 +373,35 @@ void ChannelEditor::setupChannelComponents ()
         pitchUiChanged (pitch);
         pitchTextEditor.setText (FormatHelpers::formatDouble (pitch, 2, true));
     });
+    pitchInputControl.onDrag = [this] (int dragSpeed)
+    {
+        const auto incAmount { 0.1 * dragSpeed };
+        const auto newAmount { channelProperties.getPitch () + incAmount };
+        auto pitch { std::clamp (newAmount, minChannelProperties.getPitch (), maxChannelProperties.getPitch ()) };
+        channelProperties.setPitch (pitch, true);
+    };
+    pitchInputControl.onPopupMenu = [this] ()
+    {
+        juce::PopupMenu pm;
+        pm.addItem ("Copy", true, false, [this] () {});
+        pm.addItem ("Paste", true, false, [this] () {});
+        pm.addItem ("Default", true, false, [this] ()
+        {
+            channelProperties.setPitch (defaultChannelProperties.getPitch (), true);
+        });
+        juce::PopupMenu special;
+        const auto curChannel { channelProperties.getId () - 1 };
+        for (auto channelIndex { 0 }; channelIndex < 8; ++channelIndex)
+        {
+            if (channelIndex != curChannel)
+                special.addItem ("To Channel " + juce::String (channelIndex + 1), true, false, [this] () {});
+        }
+        special.addItem ("To All", true, false, [this] () {});
+        pm.addSubMenu ("Special", special, true);
+        pm.showMenuAsync ({}, [this] (int) {});
+    };
+
+    addAndMakeVisible (pitchInputControl);
     //
     setupLabel (pitchSemiLabel, "SEMI", kSmallLabelSize, juce::Justification::centredLeft);
     setupCvInputComboBox (pitchCVComboBox, "PitchCV", [this] () { pitchCVUiChanged (pitchCVComboBox.getSelectedItemText (), pitchCVTextEditor.getText ().getDoubleValue ()); });
@@ -1184,6 +1213,9 @@ void ChannelEditor::positionColumnOne (int xOffset, int width)
     curYOffset += kLargeLabelIntSize;
     curYOffset += kFirstControlSectionYOffset;
     pitchTextEditor.setBounds (xOffset, curYOffset, scaleWidth (0.5f), kParameterLineHeight);
+    const auto ddcSize { pitchTextEditor.getHeight () / 4 };
+    pitchInputControl.setBounds (pitchTextEditor.getRight () - 1 - ddcSize, pitchTextEditor.getY () + 1, ddcSize, ddcSize);
+
     pitchSemiLabel.setBounds (pitchTextEditor.getRight () + 3, curYOffset + 4, scaleWidth (0.5f), kSmallLabelIntSize);
     curYOffset += kParameterLineHeight;
     curYOffset += kInterControlYOffset;
