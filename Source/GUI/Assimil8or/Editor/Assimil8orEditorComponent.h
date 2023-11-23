@@ -41,6 +41,7 @@ private:
     DirectoryDataProperties directoryDataProperties;
     PresetProperties presetProperties;
     PresetProperties unEditedPresetProperties;
+    PresetProperties defaultPresetProperties;
     PresetProperties minPresetProperties;
     PresetProperties maxPresetProperties;
     ChannelProperties defaultChannelProperties;

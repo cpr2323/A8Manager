@@ -40,8 +40,8 @@ Assimil8orEditorComponent::Assimil8orEditorComponent ()
                               PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
     maxPresetProperties.wrap (ParameterPresetsSingleton::getInstance ()->getParameterPresetListProperties ().getParameterPreset (ParameterPresetListProperties::MaxParameterPresetType),
                               PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
-    PresetProperties defaultPresetProperties (ParameterPresetsSingleton::getInstance ()->getParameterPresetListProperties ().getParameterPreset (ParameterPresetListProperties::DefaultParameterPresetType),
-                                              PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
+    defaultPresetProperties.wrap (ParameterPresetsSingleton::getInstance ()->getParameterPresetListProperties ().getParameterPreset (ParameterPresetListProperties::DefaultParameterPresetType),
+                                  PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
     defaultChannelProperties.wrap (defaultPresetProperties.getChannelVT (0), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
 
     setupPresetComponents ();
@@ -169,7 +169,8 @@ void Assimil8orEditorComponent::setupPresetComponents ()
         // add the drag data changer after the editor, so it can be over it
         xfadeGroup.inputControlComponent.onDrag = [this, xfadeGroupIndex] (int dragSpeed)
         {
-            const auto newAmount { getXfadeGroupValueByIndex(xfadeGroupIndex) + (0.1 * dragSpeed) };
+            const auto newAmount { getXfadeGroupValueByIndex (xfadeGroupIndex) + (0.1 * dragSpeed) };
+            // the min/max values for all of the XFade Group Widths are the same, so we can just use A
             auto width { std::clamp (newAmount, minPresetProperties.getXfadeAWidth (), maxPresetProperties.getXfadeAWidth ()) };
             setXfadeGroupValueByIndex (xfadeGroupIndex, width, true);
         };
@@ -178,17 +179,16 @@ void Assimil8orEditorComponent::setupPresetComponents ()
             juce::PopupMenu pm;
             pm.addItem ("Copy", true, false, [this] () {});
             pm.addItem ("Paste", true, false, [this] () {});
-            pm.addItem("Default", true, false, [this, xfadeGroupIndex] ()
+            pm.addItem ("Default", true, false, [this, xfadeGroupIndex] ()
             {
-                // TODO - get default from default properties
-                const auto defaultValue {1.0};
-                setXfadeGroupValueByIndex (xfadeGroupIndex, defaultValue, true);
+                // the default values for all of the XFade Group Widths are the same, so we can just use A
+                setXfadeGroupValueByIndex (xfadeGroupIndex, defaultPresetProperties.getXfadeAWidth (), true);
             });
             juce::PopupMenu special;
             for (auto curGroupIndex { 0 }; curGroupIndex < 4; ++curGroupIndex)
             {
                 if (xfadeGroupIndex != curGroupIndex)
-                    special.addItem ("To Group " + juce::String::charToString('A' + curGroupIndex), true, false, [this, curGroupIndex, xfadeGroupIndex] ()
+                    special.addItem ("To Group " + juce::String::charToString ('A' + curGroupIndex), true, false, [this, curGroupIndex, xfadeGroupIndex] ()
                     {
                         setXfadeGroupValueByIndex (curGroupIndex, getXfadeGroupValueByIndex (xfadeGroupIndex), true);
                     });
