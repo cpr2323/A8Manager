@@ -8,6 +8,8 @@
 #include "../../../Utility/PersistentRootProperties.h"
 #include "../../../Utility/RuntimeRootProperties.h"
 
+EditManager editManager;
+
 const auto kLargeLabelSize { 20.0f };
 const auto kMediumLabelSize { 14.0f };
 const auto kSmallLabelSize { 12.0f };
@@ -396,7 +398,19 @@ void ChannelEditor::setupChannelComponents ()
             if (channelIndex != curChannel)
                 special.addItem ("To Channel " + juce::String (channelIndex + 1), true, false, [this] () {});
         }
-        special.addItem ("To All", true, false, [this] () {});
+        special.addItem ("To All", true, false, [this] ()
+        {
+            std::vector<int> channelIndexList;
+            const auto srcChannelIndex { channelProperties.getId () - 1 };
+            for (auto curChannelIndex { 0 }; curChannelIndex < 8; ++curChannelIndex)
+                if (curChannelIndex != srcChannelIndex)
+                    channelIndexList.emplace_back (curChannelIndex);
+            editManager.forChannels (channelIndexList, [this, value = channelProperties.getPitch ()] (juce::ValueTree channelPropertiesVT)
+            {
+                ChannelProperties channelProperties (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
+                channelProperties.setPitch (value, false);
+            });
+        });
         pm.addSubMenu ("Special", special, true);
         pm.showMenuAsync ({}, [this] (int) {});
     };

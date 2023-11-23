@@ -12,6 +12,23 @@
 #include "../../../Utility/InputControlComponent.h"
 #include "../../../Utility/NoArrowComboBoxLnF.h"
 
+class EditManager
+{
+public:
+    void forChannels (std::vector<int> channelIndexList, std::function<void (juce::ValueTree)> channelCallback)
+    {
+        jassert (channelCallback != nullptr);
+        for (const auto channelIndex : channelIndexList)
+        {
+            channelCallback (channelPropertiesList [channelIndex]);
+        }
+    }
+
+private:
+    std::array<juce::ValueTree, 8> channelPropertiesList;
+    std::array<std::array<juce::ValueTree, 8>, 8> zonePropertiesList;
+};
+
 class TabbedComponentWithChangeCallback : public juce::TabbedComponent
 {
 public:
