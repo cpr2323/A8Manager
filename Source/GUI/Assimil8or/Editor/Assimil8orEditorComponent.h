@@ -91,6 +91,8 @@ private:
     void savePreset ();
     void setupPresetComponents ();
     void setupPresetPropertiesCallbacks ();
+    double getXfadeGroupValueByIndex (int xfadeGroupIndex);
+    void setXfadeGroupValueByIndex (int xfadeGroupIndex, double value, bool doSelfCallback);
 
     // Preset callbacks
     void idDataChanged (int id); // tracks when a new preset has been loaded

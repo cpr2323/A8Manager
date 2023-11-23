@@ -167,109 +167,35 @@ void Assimil8orEditorComponent::setupPresetComponents ()
         xfadeGroup.xfadeWidthEditor.setTooltip (parameterToolTipData.getToolTip ("Preset", "Xfade" + juce::String::charToString ('A' + xfadeGroupIndex) + "Width"));
         addAndMakeVisible (xfadeGroup.xfadeWidthEditor);
         // add the drag data changer after the editor, so it can be over it
-        auto getSetter = [this] (int groupIndex) -> std::function<void (double)>
+        xfadeGroup.inputControlComponent.onDrag = [this, xfadeGroupIndex] (int dragSpeed)
         {
-            auto setWidthValue = [this] (double incAmount, std::function<double ()> get, std::function<void (double)> set)
-            {
-                jassert (get != nullptr && set != nullptr);
-                const auto newAmount { get () + incAmount };
-                auto width { std::clamp (newAmount, minPresetProperties.getXfadeAWidth (), maxPresetProperties.getXfadeAWidth ()) };
-                set (width);
-            };
-            switch (groupIndex)
-            {
-                case 0:
-                {
-                    return [this, setWidthValue] (double incAmount)
-                    {
-                        setWidthValue (incAmount, [this] () { return presetProperties.getXfadeAWidth (); }, [this] (double width) { presetProperties.setXfadeAWidth (width, true); });
-                    };
-                }
-                break;
-                case 1:
-                {
-                    return [this, setWidthValue] (double incAmount)
-                    {
-                        setWidthValue (incAmount, [this] () { return presetProperties.getXfadeBWidth (); }, [this] (double width) { presetProperties.setXfadeBWidth (width, true); });
-                    };
-                }
-                break;
-                case 2:
-                {
-                    return [this, setWidthValue] (double incAmount)
-                    {
-                        setWidthValue (incAmount, [this] () { return presetProperties.getXfadeCWidth (); }, [this] (double width) { presetProperties.setXfadeCWidth (width, true); });
-                    };
-                }
-                break;
-                case 3:
-                {
-                    return [this, setWidthValue] (double incAmount)
-                    {
-                        setWidthValue (incAmount, [this] () { return presetProperties.getXfadeDWidth (); }, [this] (double width) { presetProperties.setXfadeDWidth (width, true); });
-                    };
-                }
-                break;
-                default:
-                    return [] (double) { jassertfalse; };
-            }
-        };
-        xfadeGroup.inputControlComponent.onDrag = [this, setter = getSetter(xfadeGroupIndex)] (int dragSpeed)
-        {
-            setter (0.1 * dragSpeed);
+            const auto newAmount { getXfadeGroupValueByIndex(xfadeGroupIndex) + (0.1 * dragSpeed) };
+            auto width { std::clamp (newAmount, minPresetProperties.getXfadeAWidth (), maxPresetProperties.getXfadeAWidth ()) };
+            setXfadeGroupValueByIndex (xfadeGroupIndex, width, true);
         };
         xfadeGroup.inputControlComponent.onPopupMenu = [this, xfadeGroupIndex] ()
         {
-            auto getXfadeGroupWidthValue = [this, xfadeGroupIndex] () -> double
-            {
-                if (xfadeGroupIndex == 0)
-                    return presetProperties.getXfadeAWidth ();
-                else if (xfadeGroupIndex == 1)
-                    return presetProperties.getXfadeBWidth ();
-                else if (xfadeGroupIndex == 2)
-                    return presetProperties.getXfadeCWidth ();
-                else if (xfadeGroupIndex == 3)
-                    return presetProperties.getXfadeDWidth ();
-                return 0.0;
-            };
             juce::PopupMenu pm;
             pm.addItem ("Copy", true, false, [this] () {});
             pm.addItem ("Paste", true, false, [this] () {});
             pm.addItem("Default", true, false, [this, xfadeGroupIndex] ()
             {
+                // TODO - get default from default properties
                 const auto defaultValue {1.0};
-                if (xfadeGroupIndex == 0)
-                    presetProperties.setXfadeAWidth (defaultValue, true);
-                else if (xfadeGroupIndex == 1)
-                    presetProperties.setXfadeBWidth (defaultValue, true);
-                else if (xfadeGroupIndex == 2)
-                    presetProperties.setXfadeCWidth (defaultValue, true);
-                else if (xfadeGroupIndex == 3)
-                    presetProperties.setXfadeDWidth (defaultValue, true);
+                setXfadeGroupValueByIndex (xfadeGroupIndex, defaultValue, true);
             });
             juce::PopupMenu special;
-            if (xfadeGroupIndex != 0)
-                special.addItem ("To Group A", true, false, [this, value = getXfadeGroupWidthValue()] ()
-                {
-                    presetProperties.setXfadeAWidth (value, true);
-                });
-            if (xfadeGroupIndex != 1)
-                special.addItem ("To Group B", true, false, [this, value = getXfadeGroupWidthValue ()] ()
-                {
-                    presetProperties.setXfadeBWidth (value, true);
-                });
-            if (xfadeGroupIndex != 2)
-                special.addItem ("To Group C", true, false, [this, value = getXfadeGroupWidthValue ()] ()
-                {
-                    presetProperties.setXfadeCWidth (value, true);
-                });
-            if (xfadeGroupIndex != 3)
-                special.addItem ("To Group D", true, false, [this, value = getXfadeGroupWidthValue ()] ()
-                {
-                    presetProperties.setXfadeDWidth (value, true);
-                });
-            special.addItem ("To All", true, false, [this, value = getXfadeGroupWidthValue ()] ()
+            for (auto curGroupIndex { 0 }; curGroupIndex < 4; ++curGroupIndex)
             {
+                if (xfadeGroupIndex != curGroupIndex)
+                    special.addItem ("To Group " + juce::String::charToString('A' + curGroupIndex), true, false, [this, curGroupIndex, xfadeGroupIndex] ()
+                    {
+                        setXfadeGroupValueByIndex (curGroupIndex, getXfadeGroupValueByIndex (xfadeGroupIndex), true);
+                    });
+            }
+            special.addItem ("To All", true, false, [this, xfadeGroupIndex] ()
+            {
+                const auto value { getXfadeGroupValueByIndex (xfadeGroupIndex) };
                 presetProperties.setXfadeAWidth (value, true);
                 presetProperties.setXfadeBWidth (value, true);
                 presetProperties.setXfadeCWidth (value, true);
@@ -398,6 +324,35 @@ void Assimil8orEditorComponent::setupPresetPropertiesCallbacks ()
     presetProperties.onXfadeBWidthChange = [this] (double width) { xfadeWidthDataChanged (1, width); };
     presetProperties.onXfadeCWidthChange = [this] (double width) { xfadeWidthDataChanged (2, width); };
     presetProperties.onXfadeDWidthChange = [this] (double width) { xfadeWidthDataChanged (3, width); };
+}
+
+double Assimil8orEditorComponent::getXfadeGroupValueByIndex (int xfadeGroupIndex)
+{
+    if (xfadeGroupIndex == 0)
+        return presetProperties.getXfadeAWidth ();
+    else if (xfadeGroupIndex == 1)
+        return presetProperties.getXfadeBWidth ();
+    else if (xfadeGroupIndex == 2)
+        return presetProperties.getXfadeCWidth ();
+    else if (xfadeGroupIndex == 3)
+        return presetProperties.getXfadeDWidth ();
+
+    jassertfalse;
+    return 0.0;
+}
+
+void Assimil8orEditorComponent::setXfadeGroupValueByIndex (int xfadeGroupIndex, double value, bool doSelfCallback)
+{
+    if (xfadeGroupIndex == 0)
+        presetProperties.setXfadeAWidth (value, doSelfCallback);
+    else if (xfadeGroupIndex == 1)
+        presetProperties.setXfadeBWidth (value, doSelfCallback);
+    else if (xfadeGroupIndex == 2)
+        presetProperties.setXfadeCWidth (value, doSelfCallback);
+    else if (xfadeGroupIndex == 3)
+        presetProperties.setXfadeDWidth (value, doSelfCallback);
+    else
+        jassertfalse;
 }
 
 void Assimil8orEditorComponent::importPreset ()
