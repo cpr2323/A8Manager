@@ -169,10 +169,10 @@ void Assimil8orEditorComponent::setupPresetComponents ()
         // add the drag data changer after the editor, so it can be over it
         xfadeGroup.inputControlComponent.onDrag = [this, xfadeGroupIndex] (int dragSpeed)
         {
-            const auto newAmount { getXfadeGroupValueByIndex (xfadeGroupIndex) + (0.1 * dragSpeed) };
+            const auto newAmount { editManager.getXfadeGroupValueByIndex (xfadeGroupIndex) + (0.1 * dragSpeed) };
             // the min/max values for all of the XFade Group Widths are the same, so we can just use A
             auto width { std::clamp (newAmount, minPresetProperties.getXfadeAWidth (), maxPresetProperties.getXfadeAWidth ()) };
-            setXfadeGroupValueByIndex (xfadeGroupIndex, width, true);
+            editManager.setXfadeGroupValueByIndex (xfadeGroupIndex, width, true);
         };
         xfadeGroup.inputControlComponent.onPopupMenu = [this, xfadeGroupIndex] ()
         {
@@ -182,7 +182,7 @@ void Assimil8orEditorComponent::setupPresetComponents ()
             pm.addItem ("Default", true, false, [this, xfadeGroupIndex] ()
             {
                 // the default values for all of the XFade Group Widths are the same, so we can just use A
-                setXfadeGroupValueByIndex (xfadeGroupIndex, defaultPresetProperties.getXfadeAWidth (), true);
+                    editManager.setXfadeGroupValueByIndex (xfadeGroupIndex, defaultPresetProperties.getXfadeAWidth (), true);
             });
             juce::PopupMenu special;
             for (auto curGroupIndex { 0 }; curGroupIndex < 4; ++curGroupIndex)
@@ -190,12 +190,12 @@ void Assimil8orEditorComponent::setupPresetComponents ()
                 if (xfadeGroupIndex != curGroupIndex)
                     special.addItem ("To Group " + juce::String::charToString ('A' + curGroupIndex), true, false, [this, curGroupIndex, xfadeGroupIndex] ()
                     {
-                        setXfadeGroupValueByIndex (curGroupIndex, getXfadeGroupValueByIndex (xfadeGroupIndex), true);
+                            editManager.setXfadeGroupValueByIndex (curGroupIndex, editManager.getXfadeGroupValueByIndex (xfadeGroupIndex), true);
                     });
             }
             special.addItem ("To All", true, false, [this, xfadeGroupIndex] ()
             {
-                const auto value { getXfadeGroupValueByIndex (xfadeGroupIndex) };
+                const auto value { editManager.getXfadeGroupValueByIndex (xfadeGroupIndex) };
                 presetProperties.setXfadeAWidth (value, true);
                 presetProperties.setXfadeBWidth (value, true);
                 presetProperties.setXfadeCWidth (value, true);
@@ -260,12 +260,13 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
     PresetManagerProperties presetManagerProperties (runtimeRootProperties.getValueTree (), PresetManagerProperties::WrapperType::owner, PresetManagerProperties::EnableCallbacks::no);
     unEditedPresetProperties.wrap (presetManagerProperties.getPreset ("unedited"), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::yes);
     presetProperties.wrap (presetManagerProperties.getPreset ("edit"), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::yes);
+    editManager.init (presetProperties.getValueTree ());
     setupPresetPropertiesCallbacks ();
     auto channelEditorIndex { 0 };
     samplePool.setFolder (appProperties.getMostRecentFolder ());
     presetProperties.forEachChannel ([this, &channelEditorIndex, rootPropertiesVT] (juce::ValueTree channelPropertiesVT)
     {
-        channelEditors [channelEditorIndex].init (channelPropertiesVT, rootPropertiesVT, &samplePool);
+        channelEditors [channelEditorIndex].init (channelPropertiesVT, rootPropertiesVT, &editManager, &samplePool);
         channelEditors [channelEditorIndex].displayToolsMenu = [this] (int channelIndex)
         {
             juce::PopupMenu pm;
@@ -324,35 +325,6 @@ void Assimil8orEditorComponent::setupPresetPropertiesCallbacks ()
     presetProperties.onXfadeBWidthChange = [this] (double width) { xfadeWidthDataChanged (1, width); };
     presetProperties.onXfadeCWidthChange = [this] (double width) { xfadeWidthDataChanged (2, width); };
     presetProperties.onXfadeDWidthChange = [this] (double width) { xfadeWidthDataChanged (3, width); };
-}
-
-double Assimil8orEditorComponent::getXfadeGroupValueByIndex (int xfadeGroupIndex)
-{
-    if (xfadeGroupIndex == 0)
-        return presetProperties.getXfadeAWidth ();
-    else if (xfadeGroupIndex == 1)
-        return presetProperties.getXfadeBWidth ();
-    else if (xfadeGroupIndex == 2)
-        return presetProperties.getXfadeCWidth ();
-    else if (xfadeGroupIndex == 3)
-        return presetProperties.getXfadeDWidth ();
-
-    jassertfalse;
-    return 0.0;
-}
-
-void Assimil8orEditorComponent::setXfadeGroupValueByIndex (int xfadeGroupIndex, double value, bool doSelfCallback)
-{
-    if (xfadeGroupIndex == 0)
-        presetProperties.setXfadeAWidth (value, doSelfCallback);
-    else if (xfadeGroupIndex == 1)
-        presetProperties.setXfadeBWidth (value, doSelfCallback);
-    else if (xfadeGroupIndex == 2)
-        presetProperties.setXfadeCWidth (value, doSelfCallback);
-    else if (xfadeGroupIndex == 3)
-        presetProperties.setXfadeDWidth (value, doSelfCallback);
-    else
-        jassertfalse;
 }
 
 void Assimil8orEditorComponent::importPreset ()

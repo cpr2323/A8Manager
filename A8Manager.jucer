@@ -133,6 +133,8 @@
                   file="Source/GUI/Assimil8or/Editor/CvInputComboBox.cpp"/>
             <FILE id="aw6Hz2" name="CvInputComboBox.h" compile="0" resource="0"
                   file="Source/GUI/Assimil8or/Editor/CvInputComboBox.h"/>
+            <FILE id="n3pnRo" name="EditManager.cpp" compile="1" resource="0" file="Source/GUI/Assimil8or/Editor/EditManager.cpp"/>
+            <FILE id="NdMQT1" name="EditManager.h" compile="0" resource="0" file="Source/GUI/Assimil8or/Editor/EditManager.h"/>
             <FILE id="yhhzYu" name="FormatHelpers.cpp" compile="1" resource="0"
                   file="Source/GUI/Assimil8or/Editor/FormatHelpers.cpp"/>
             <FILE id="QTYi1s" name="FormatHelpers.h" compile="0" resource="0" file="Source/GUI/Assimil8or/Editor/FormatHelpers.h"/>

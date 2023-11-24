@@ -396,7 +396,14 @@ void ChannelEditor::setupChannelComponents ()
         for (auto channelIndex { 0 }; channelIndex < 8; ++channelIndex)
         {
             if (channelIndex != curChannel)
-                special.addItem ("To Channel " + juce::String (channelIndex + 1), true, false, [this] () {});
+                special.addItem ("To Channel " + juce::String (channelIndex + 1), true, false, [this, channelIndex] ()
+                {
+                    editManager->forChannel (channelIndex, [this, value = channelProperties.getPitch ()] (juce::ValueTree channelPropertiesVT)
+                    {
+                        ChannelProperties channelProperties (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
+                        channelProperties.setPitch (value, false);
+                    });
+                });
         }
         special.addItem ("To All", true, false, [this] ()
         {
@@ -405,7 +412,7 @@ void ChannelEditor::setupChannelComponents ()
             for (auto curChannelIndex { 0 }; curChannelIndex < 8; ++curChannelIndex)
                 if (curChannelIndex != srcChannelIndex)
                     channelIndexList.emplace_back (curChannelIndex);
-            editManager.forChannels (channelIndexList, [this, value = channelProperties.getPitch ()] (juce::ValueTree channelPropertiesVT)
+            editManager->forChannels (channelIndexList, [this, value = channelProperties.getPitch ()] (juce::ValueTree channelPropertiesVT)
             {
                 ChannelProperties channelProperties (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
                 channelProperties.setPitch (value, false);
@@ -933,11 +940,14 @@ std::tuple<double, double> ChannelEditor::getVoltageBoundaries (int zoneIndex, i
         return { topBoundary, bottomBoundary };
     };
 
-void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree rootPropertiesVT, SamplePool* theSamplePool)
+void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree rootPropertiesVT, EditManager* theEditManager, SamplePool* theSamplePool)
 {
     //DebugLog ("ChannelEditor["+ juce::String (channelProperties.getId ()) + "]", "init");
     jassert (theSamplePool != nullptr);
     samplePool = theSamplePool;
+
+    jassert (theEditManager != nullptr);
+    editManager = theEditManager;
 
     PersistentRootProperties persistentRootProperties (rootPropertiesVT, PersistentRootProperties::WrapperType::client, PersistentRootProperties::EnableCallbacks::no);
     RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);

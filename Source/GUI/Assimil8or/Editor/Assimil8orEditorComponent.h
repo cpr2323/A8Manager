@@ -3,6 +3,7 @@
 #include <JuceHeader.h>
 #include "ChannelEditor.h"
 #include "CvInputComboBox.h"
+#include "EditManager.h"
 #include "SamplePool/SamplePool.h"
 #include "../../../AppProperties.h"
 #include "../../../Assimil8or/Audio/AudioPlayerProperties.h"
@@ -48,6 +49,7 @@ private:
     ChannelProperties copyBufferChannelProperties;
     bool copyBufferHasData { false };
     SamplePool samplePool;
+    EditManager editManager;
 
     juce::Label titleLabel;
     juce::TextButton saveButton;
@@ -92,8 +94,6 @@ private:
     void savePreset ();
     void setupPresetComponents ();
     void setupPresetPropertiesCallbacks ();
-    double getXfadeGroupValueByIndex (int xfadeGroupIndex);
-    void setXfadeGroupValueByIndex (int xfadeGroupIndex, double value, bool doSelfCallback);
 
     // Preset callbacks
     void idDataChanged (int id); // tracks when a new preset has been loaded

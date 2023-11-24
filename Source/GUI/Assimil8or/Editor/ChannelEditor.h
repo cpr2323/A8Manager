@@ -2,6 +2,7 @@
 
 #include <JuceHeader.h>
 #include "CvInputComboBox.h"
+#include "EditManager.h"
 #include "ZoneEditor.h"
 #include "Envelope/AREnvelopeComponent.h"
 #include "Envelope/AREnvelopeProperties.h"
@@ -11,23 +12,6 @@
 #include "../../../Assimil8or/Preset/ChannelProperties.h"
 #include "../../../Utility/InputControlComponent.h"
 #include "../../../Utility/NoArrowComboBoxLnF.h"
-
-class EditManager
-{
-public:
-    void forChannels (std::vector<int> channelIndexList, std::function<void (juce::ValueTree)> channelCallback)
-    {
-        jassert (channelCallback != nullptr);
-        for (const auto channelIndex : channelIndexList)
-        {
-            channelCallback (channelPropertiesList [channelIndex]);
-        }
-    }
-
-private:
-    std::array<juce::ValueTree, 8> channelPropertiesList;
-    std::array<std::array<juce::ValueTree, 8>, 8> zonePropertiesList;
-};
 
 class TabbedComponentWithChangeCallback : public juce::TabbedComponent
 {
@@ -175,7 +159,7 @@ public:
     ChannelEditor ();
     ~ChannelEditor ();
 
-    void init (juce::ValueTree channelPropertiesVT, juce::ValueTree rootPropertiesVT, SamplePool* theSamplePool);
+    void init (juce::ValueTree channelPropertiesVT, juce::ValueTree rootPropertiesVT, EditManager* theEditManager, SamplePool* theSamplePool);
     void receiveSampleLoadRequest (juce::File sampleFile);
     void checkSampleFileExistence ();
 
@@ -199,6 +183,7 @@ private:
     bool copyBufferHasData { false };
     AudioPlayerProperties audioPlayerProperties;
     SamplePool* samplePool { nullptr };
+    EditManager* editManager;
 
     juce::Label zonesLabel;
     juce::Label zoneMaxVoltage;
