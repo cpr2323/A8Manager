@@ -422,7 +422,6 @@ void ChannelEditor::setupChannelComponents ()
         pm.showMenuAsync ({}, [this] (int) {});
     };
 
-    addAndMakeVisible (pitchInputControl);
     //
     setupLabel (pitchSemiLabel, "SEMI", kSmallLabelSize, juce::Justification::centredLeft);
     setupCvInputComboBox (pitchCVComboBox, "PitchCV", [this] () { pitchCVUiChanged (pitchCVComboBox.getSelectedItemText (), pitchCVTextEditor.getText ().getDoubleValue ()); });
@@ -1238,7 +1237,6 @@ void ChannelEditor::positionColumnOne (int xOffset, int width)
     curYOffset += kFirstControlSectionYOffset;
     pitchTextEditor.setBounds (xOffset, curYOffset, scaleWidth (0.5f), kParameterLineHeight);
     const auto ddcSize { pitchTextEditor.getHeight () / 4 };
-    pitchInputControl.setBounds (pitchTextEditor.getRight () - 1 - ddcSize, pitchTextEditor.getY () + 1, ddcSize, ddcSize);
 
     pitchSemiLabel.setBounds (pitchTextEditor.getRight () + 3, curYOffset + 4, scaleWidth (0.5f), kSmallLabelIntSize);
     curYOffset += kParameterLineHeight;

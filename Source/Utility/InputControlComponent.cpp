@@ -1,17 +1,55 @@
 #include "InputControlComponent.h"
 #include "DebugLog.h"
 
+
+void InputControlComponent::setClientComponent (juce::Component* theClientComponent)
+{
+    jassert (theClientComponent != nullptr);
+    clientComponent = theClientComponent;
+    clientComponent->addMouseListener (this, false);
+}
+
 void InputControlComponent::mouseUp (const juce::MouseEvent& mouseEvent)
 {
+    DebugLog ("InputControlComponent", "mouseUp");
     doingDrag = false;
+}
+
+void InputControlComponent::mouseDoubleClick (const juce::MouseEvent& mouseEvent)
+{
+    DebugLog ("InputControlComponent", "mouseDoubleClick");
+}
+
+void InputControlComponent::mouseWheelMove (const juce::MouseEvent& mouseEvent, const juce::MouseWheelDetails& wheel)
+{
+    DebugLog ("InputControlComponent", "mouseWheelMove");
+}
+
+void InputControlComponent::mouseMove (const juce::MouseEvent& mouseEvent)
+{
+    DebugLog ("InputControlComponent", "mouseMove");
+}
+
+void InputControlComponent::mouseEnter (const juce::MouseEvent& mouseEvent)
+{
+    DebugLog ("InputControlComponent", "mouseEnter");
+}
+
+void InputControlComponent::mouseExit (const juce::MouseEvent& mouseEvent)
+{
+    DebugLog ("InputControlComponent", "mouseExit");
 }
 
 void InputControlComponent::mouseDown (const juce::MouseEvent& mouseEvent)
 {
+    DebugLog ("InputControlComponent", "mouseDown");
     if (! mouseEvent.mods.isPopupMenu ())
     {
-        lastY = mouseEvent.getPosition ().getY ();
-        doingDrag = true;
+        if (mouseEvent.mods.isCtrlDown ())
+        {
+            lastY = mouseEvent.getPosition ().getY ();
+            doingDrag = true;
+        }
     }
     else
     {
@@ -22,6 +60,7 @@ void InputControlComponent::mouseDown (const juce::MouseEvent& mouseEvent)
 
 void InputControlComponent::mouseDrag (const juce::MouseEvent& mouseEvent)
 {
+    DebugLog ("InputControlComponent", "mouseDrag");
     if (doingDrag)
     {
         auto yDiff { (mouseEvent.getPosition ().getY () - lastY) * -1 };
@@ -42,9 +81,4 @@ void InputControlComponent::mouseDrag (const juce::MouseEvent& mouseEvent)
             onDrag (finalDragSpeed);
         lastY = mouseEvent.getPosition ().getY ();
     }
-}
-
-void InputControlComponent::paint (juce::Graphics& g)
-{
-    g.fillAll (juce::Colours::white.withAlpha(0.5f));
 }

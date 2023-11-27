@@ -165,7 +165,9 @@ void Assimil8orEditorComponent::setupPresetComponents ()
             FormatHelpers::setColorIfError (xfadeGroups [xfadeGroupIndex].xfadeWidthEditor, minPresetProperties.getXfadeAWidth (), maxPresetProperties.getXfadeAWidth ());
         };
         xfadeGroup.xfadeWidthEditor.setTooltip (parameterToolTipData.getToolTip ("Preset", "Xfade" + juce::String::charToString ('A' + xfadeGroupIndex) + "Width"));
+        xfadeGroup.xfadeWidthEditor.setPopupMenuEnabled (false);
         addAndMakeVisible (xfadeGroup.xfadeWidthEditor);
+        xfadeGroup.inputControlComponent.setClientComponent (&xfadeGroup.xfadeWidthEditor);
         // add the drag data changer after the editor, so it can be over it
         xfadeGroup.inputControlComponent.onDrag = [this, xfadeGroupIndex] (int dragSpeed)
         {
@@ -204,9 +206,6 @@ void Assimil8orEditorComponent::setupPresetComponents ()
             pm.addSubMenu ("Special", special, true);
             pm.showMenuAsync ({}, [this] (int) {});
         };
-
-        // add this component after the corresponding xfadeGroup.xfadeWidthEditor, so that this appears over that component
-        addAndMakeVisible (xfadeGroup.inputControlComponent);
     }
 }
 
@@ -464,7 +463,7 @@ void Assimil8orEditorComponent::resized ()
         xfadeGroup.xfadeWidthLabel.setBounds (xfadeGroup.xfadeCvComboBox.getRight () + 3, bottomRowY + 3, 35, 20);
         xfadeGroup.xfadeWidthEditor.setBounds (xfadeGroup.xfadeWidthLabel.getRight () + 1, bottomRowY + 3, 40, 20);
         const auto ddcSize { xfadeGroup.xfadeWidthEditor.getHeight () / 4 };
-        xfadeGroup.inputControlComponent.setBounds (xfadeGroup.xfadeWidthEditor.getRight () - 1 - ddcSize, xfadeGroup.xfadeWidthEditor.getY () + 1, ddcSize, ddcSize);
+//        xfadeGroup.inputControlComponent.setBounds (xfadeGroup.xfadeWidthEditor.getRight () - 1 - ddcSize, xfadeGroup.xfadeWidthEditor.getY () + 1, ddcSize, ddcSize);
     }
 }
 

@@ -8,9 +8,43 @@
 #include "../../../AppProperties.h"
 #include "../../../Assimil8or/Audio/AudioPlayerProperties.h"
 #include "../../../Assimil8or/Preset/PresetProperties.h"
+#include "../../../Utility/DebugLog.h"
 #include "../../../Utility/DirectoryDataProperties.h"
 #include "../../../Utility/InputControlComponent.h"
 #include "../../../Utility/RuntimeRootProperties.h"
+
+class CustomTextEditor : public juce::TextEditor
+{
+public:
+    void mouseDown (juce::MouseEvent& mouseEvent)
+    {
+        if (! mouseEvent.mods.isPopupMenu ())
+        {
+            if (mouseEvent.mods.isCtrlDown ())
+            {
+                DebugLog ("CustomTextEditor", "capturing mouse");
+                mouseDownCaptured = true;
+                return;
+            }
+        }
+        juce::TextEditor::mouseDown (mouseEvent);
+    }
+
+    void mouseUp (juce::MouseEvent& mouseEvent)
+    {
+        if (mouseDownCaptured == true)
+        {
+            mouseDownCaptured = false;
+        }
+        else
+        {
+            juce::TextEditor::mouseUp (mouseEvent);
+        }
+    }
+
+private:
+    bool mouseDownCaptured { false };
+};
 
 class WindowDecorator : public juce::Component
 {
@@ -72,6 +106,7 @@ private:
         CvInputGlobalComboBox xfadeCvComboBox;
         juce::Label xfadeWidthLabel;
         InputControlComponent inputControlComponent;
+        //CustomTextEditor xfadeWidthEditor;
         juce::TextEditor xfadeWidthEditor;  // double
     };
     enum XfadeGroupIndex
