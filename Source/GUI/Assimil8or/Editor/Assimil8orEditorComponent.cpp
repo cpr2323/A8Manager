@@ -167,16 +167,14 @@ void Assimil8orEditorComponent::setupPresetComponents ()
         xfadeGroup.xfadeWidthEditor.setTooltip (parameterToolTipData.getToolTip ("Preset", "Xfade" + juce::String::charToString ('A' + xfadeGroupIndex) + "Width"));
         xfadeGroup.xfadeWidthEditor.setPopupMenuEnabled (false);
         addAndMakeVisible (xfadeGroup.xfadeWidthEditor);
-        xfadeGroup.inputControlComponent.setClientComponent (&xfadeGroup.xfadeWidthEditor);
-        // add the drag data changer after the editor, so it can be over it
-        xfadeGroup.inputControlComponent.onDrag = [this, xfadeGroupIndex] (int dragSpeed)
+        xfadeGroup.xfadeWidthEditor.onDrag = [this, xfadeGroupIndex] (int dragSpeed)
         {
             const auto newAmount { editManager.getXfadeGroupValueByIndex (xfadeGroupIndex) + (0.1 * dragSpeed) };
             // the min/max values for all of the XFade Group Widths are the same, so we can just use A
             auto width { std::clamp (newAmount, minPresetProperties.getXfadeAWidth (), maxPresetProperties.getXfadeAWidth ()) };
             editManager.setXfadeGroupValueByIndex (xfadeGroupIndex, width, true);
         };
-        xfadeGroup.inputControlComponent.onPopupMenu = [this, xfadeGroupIndex] ()
+        xfadeGroup.xfadeWidthEditor.onPopupMenu = [this, xfadeGroupIndex] ()
         {
             juce::PopupMenu pm;
             pm.addItem ("Copy", true, false, [this] () {});
@@ -462,8 +460,6 @@ void Assimil8orEditorComponent::resized ()
 
         xfadeGroup.xfadeWidthLabel.setBounds (xfadeGroup.xfadeCvComboBox.getRight () + 3, bottomRowY + 3, 35, 20);
         xfadeGroup.xfadeWidthEditor.setBounds (xfadeGroup.xfadeWidthLabel.getRight () + 1, bottomRowY + 3, 40, 20);
-        const auto ddcSize { xfadeGroup.xfadeWidthEditor.getHeight () / 4 };
-//        xfadeGroup.inputControlComponent.setBounds (xfadeGroup.xfadeWidthEditor.getRight () - 1 - ddcSize, xfadeGroup.xfadeWidthEditor.getY () + 1, ddcSize, ddcSize);
     }
 }
 
