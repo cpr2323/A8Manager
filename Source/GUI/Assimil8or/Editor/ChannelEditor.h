@@ -10,7 +10,7 @@
 #include "../../../AppProperties.h"
 #include "../../../Assimil8or/Audio/AudioPlayerProperties.h"
 #include "../../../Assimil8or/Preset/ChannelProperties.h"
-#include "../../../Utility/InputControlComponent.h"
+#include "../../../Utility/CustomTextEditor.h"
 #include "../../../Utility/NoArrowComboBoxLnF.h"
 
 class TabbedComponentWithChangeCallback : public juce::TabbedComponent
@@ -253,8 +253,7 @@ private:
     juce::TextEditor phaseCVTextEditor; // double
     juce::Label pitchLabel;
     juce::Label pitchSemiLabel;
-    juce::TextEditor pitchTextEditor; // double
-    InputControlComponent pitchInputControl;
+    CustomTextEditor pitchTextEditor; // double
     CvInputChannelComboBox pitchCVComboBox; // 0A - 8C
     juce::TextEditor pitchCVTextEditor; // double
     juce::Label playModeLabel;

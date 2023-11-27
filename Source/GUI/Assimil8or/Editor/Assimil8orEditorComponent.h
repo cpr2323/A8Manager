@@ -8,107 +8,10 @@
 #include "../../../AppProperties.h"
 #include "../../../Assimil8or/Audio/AudioPlayerProperties.h"
 #include "../../../Assimil8or/Preset/PresetProperties.h"
+#include "../../../Utility/CustomTextEditor.h"
 #include "../../../Utility/DebugLog.h"
 #include "../../../Utility/DirectoryDataProperties.h"
 #include "../../../Utility/RuntimeRootProperties.h"
-
-class CustomTextEditor : public juce::TextEditor
-{
-public:
-    std::function<void (int dragSpeed)> onDrag;
-    std::function<void ()> onPopupMenu;
-
-private:
-    bool mouseCaptured { false };
-    int lastY { 0 };
-
-    void mouseDown (const juce::MouseEvent& mouseEvent) override
-    {
-        if (! mouseEvent.mods.isPopupMenu ())
-        {
-            if (mouseEvent.mods.isCtrlDown ())
-            {
-                DebugLog ("CustomTextEditor", "capturing mouse");
-                lastY = mouseEvent.getPosition ().getY ();
-                mouseCaptured = true;
-                return;
-            }
-        }
-        else
-        {
-            if (onPopupMenu != nullptr)
-                onPopupMenu ();
-            return;
-        }
-        juce::TextEditor::mouseDown (mouseEvent);
-    }
-    void mouseUp (const juce::MouseEvent& mouseEvent) override
-    {
-        DebugLog ("CustomTextEditor", "mouseUp");
-        if (mouseCaptured == true)
-        {
-            DebugLog ("CustomTextEditor", "releasing mouse");
-            mouseCaptured = false;
-        }
-        else
-        {
-            juce::TextEditor::mouseUp (mouseEvent);
-        }
-    }
-    void mouseMove (const juce::MouseEvent& mouseEvent) override
-    {
-        if (! mouseCaptured)
-            juce::TextEditor::mouseMove (mouseEvent);
-    }
-    void mouseEnter (const juce::MouseEvent& mouseEvent) override
-    {
-        if (!mouseCaptured)
-            juce::TextEditor::mouseEnter (mouseEvent);
-    }
-    void mouseExit (const juce::MouseEvent& mouseEvent) override
-    {
-        if (!mouseCaptured)
-            juce::TextEditor::mouseExit (mouseEvent);
-    }
-    void mouseDrag (const juce::MouseEvent& mouseEvent) override
-    {
-        if (!mouseCaptured)
-        {
-            juce::TextEditor::mouseDrag (mouseEvent);
-            return;
-        }
-
-        auto yDiff { (mouseEvent.getPosition ().getY () - lastY) * -1 };
-        const auto signage { yDiff >= 0 ? 1 : -1 };
-        auto positiveDiff { std::min (std::abs (yDiff), 20) };
-        auto dragSpeed { 0 };
-        if (positiveDiff < 2)
-            dragSpeed = 1;
-        else if (positiveDiff < 4)
-            dragSpeed = 2;
-        else if (positiveDiff < 6)
-            dragSpeed = 5;
-        else
-            dragSpeed = 10;
-        const auto finalDragSpeed { dragSpeed * signage };
-        DebugLog("CustomTextEditor", juce::String (positiveDiff) + ", " + juce::String (finalDragSpeed));
-        if (onDrag != nullptr)
-            onDrag (finalDragSpeed);
-        lastY = mouseEvent.getPosition ().getY ();
-    }
-    void mouseDoubleClick (const juce::MouseEvent& mouseEvent) override
-    {
-        if (!mouseCaptured)
-            juce::TextEditor::mouseDoubleClick (mouseEvent);
-
-    }
-    void mouseWheelMove (const juce::MouseEvent& mouseEvent, const juce::MouseWheelDetails& wheel) override
-
-    {
-        if (!mouseCaptured)
-            juce::TextEditor::mouseWheelMove (mouseEvent, wheel);
-    }
-};
 
 class WindowDecorator : public juce::Component
 {

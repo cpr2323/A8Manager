@@ -375,14 +375,14 @@ void ChannelEditor::setupChannelComponents ()
         pitchUiChanged (pitch);
         pitchTextEditor.setText (FormatHelpers::formatDouble (pitch, 2, true));
     });
-    pitchInputControl.onDrag = [this] (int dragSpeed)
+    pitchTextEditor.onDrag = [this] (int dragSpeed)
     {
-        const auto incAmount { 0.1 * dragSpeed };
+        const auto incAmount { 0.01 * dragSpeed };
         const auto newAmount { channelProperties.getPitch () + incAmount };
         auto pitch { std::clamp (newAmount, minChannelProperties.getPitch (), maxChannelProperties.getPitch ()) };
         channelProperties.setPitch (pitch, true);
     };
-    pitchInputControl.onPopupMenu = [this] ()
+    pitchTextEditor.onPopupMenu = [this] ()
     {
         juce::PopupMenu pm;
         pm.addItem ("Copy", true, false, [this] () {});

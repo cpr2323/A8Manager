@@ -197,6 +197,10 @@
       </GROUP>
       <GROUP id="{8CE93423-6945-B212-EA23-BC0B9325BBF7}" name="Utility">
         <FILE id="ZzjeA7" name="Crc.h" compile="0" resource="0" file="Source/Utility/Crc.h"/>
+        <FILE id="rPj7Ns" name="CustomTextEditor.cpp" compile="1" resource="0"
+              file="Source/Utility/CustomTextEditor.cpp"/>
+        <FILE id="XOL5i7" name="CustomTextEditor.h" compile="0" resource="0"
+              file="Source/Utility/CustomTextEditor.h"/>
         <FILE id="yrhXEY" name="DebugLog.cpp" compile="1" resource="0" file="Source/Utility/DebugLog.cpp"/>
         <FILE id="i75h2A" name="DebugLog.h" compile="0" resource="0" file="Source/Utility/DebugLog.h"/>
         <FILE id="rv1w6s" name="DebugLogImplementation.h" compile="0" resource="0"
@@ -211,10 +215,6 @@
               file="Source/Utility/DirectoryValueTree.h"/>
         <FILE id="pP1sFQ" name="DumpStack.cpp" compile="1" resource="0" file="Source/Utility/DumpStack.cpp"/>
         <FILE id="kz99xu" name="DumpStack.h" compile="0" resource="0" file="Source/Utility/DumpStack.h"/>
-        <FILE id="j6Y9Rt" name="InputControlComponent.cpp" compile="1" resource="0"
-              file="Source/Utility/InputControlComponent.cpp"/>
-        <FILE id="luDikc" name="InputControlComponent.h" compile="0" resource="0"
-              file="Source/Utility/InputControlComponent.h"/>
         <FILE id="GjhfJa" name="LambdaThread.h" compile="0" resource="0" file="Source/Utility/LambdaThread.h"/>
         <FILE id="ZRKBIm" name="NoArrowComboBoxLnF.h" compile="0" resource="0"
               file="Source/Utility/NoArrowComboBoxLnF.h"/>
