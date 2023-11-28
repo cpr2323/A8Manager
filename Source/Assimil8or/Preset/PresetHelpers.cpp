@@ -9,6 +9,30 @@ namespace PresetHelpers
         setter (cvInput, value);
     };
 
+    juce::StringArray getCvInputList (bool includeZero)
+    {
+        return {};
+    }
+
+    int getCvInputIndex (juce::String cvInput)
+    {
+        if (cvInput == "Off")
+            return 0;
+        jassert (cvInput.length () == 2);
+        jassert (cvInput [0] >= '0' && cvInput [0] <= '8');
+        jassert (cvInput [1] >= 'A' && cvInput [1] <= 'C');
+        return 1 + ((cvInput [0] - '0') * 3) + cvInput [1] - 'A';
+    }
+
+    juce::String getCvInputString (int cvInputIndex)
+    {
+        if (cvInputIndex == 0)
+            return "Off";
+        const auto adjustedIndex {cvInputIndex - 1};
+        jassert (adjustedIndex >= 0 && adjustedIndex <= 27);
+        return juce::String::charToString('0' + adjustedIndex / 3) + juce::String::charToString ('A' + (adjustedIndex % 3));
+    }
+
     // TODO - add options to check Preset Id as well
     bool areEntirePresetsEqual (juce::ValueTree presetOneVT, juce::ValueTree presetTwoVT)
     {

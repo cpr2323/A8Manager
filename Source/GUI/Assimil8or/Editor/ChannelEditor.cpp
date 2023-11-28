@@ -425,6 +425,55 @@ void ChannelEditor::setupChannelComponents ()
     //
     setupLabel (pitchSemiLabel, "SEMI", kSmallLabelSize, juce::Justification::centredLeft);
     setupCvInputComboBox (pitchCVComboBox, "PitchCV", [this] () { pitchCVUiChanged (pitchCVComboBox.getSelectedItemText (), pitchCVTextEditor.getText ().getDoubleValue ()); });
+    pitchCVComboBox.setOnDragFunction ([this] (int dragSpeed)
+    {
+        DebugLog ("ChannelEditor","pitchCVComboBox.onDrag: " + juce::String(dragSpeed));
+        auto [cvInput, amount] { channelProperties.getPitchCV () };
+        const auto newCvInputIndex { PresetHelpers::getCvInputIndex (cvInput) + dragSpeed};
+        // get new cvInput string and combine with current pitchCV value
+        channelProperties.setPitchCV(PresetHelpers::getCvInputString (std::clamp (newCvInputIndex, 0, 27)), amount, true);
+    });
+    pitchCVComboBox.setOnPopupMenuFunction ([this] ()
+    {
+        DebugLog ("ChannelEditor", "pitchCVComboBox.onPopupMenu");
+        juce::PopupMenu pm;
+        pm.addItem ("Copy", true, false, [this] () {});
+        pm.addItem ("Paste", true, false, [this] () {});
+        pm.addItem ("Default", true, false, [this] ()
+        {
+            //channelProperties.setPitchCV (defaultChannelProperties.getPitchCV (), true);
+        });
+        juce::PopupMenu special;
+        const auto curChannel { channelProperties.getId () - 1 };
+        for (auto channelIndex { 0 }; channelIndex < 8; ++channelIndex)
+        {
+            if (channelIndex != curChannel)
+                special.addItem ("To Channel " + juce::String (channelIndex + 1), true, false, [this, channelIndex] ()
+                {
+                    editManager->forChannel (channelIndex, [this, value = channelProperties.getPitch ()] (juce::ValueTree channelPropertiesVT)
+                    {
+                        ChannelProperties channelProperties (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
+                        //channelProperties.setPitch (value, false);
+                    });
+                });
+        }
+        special.addItem ("To All", true, false, [this] ()
+        {
+            std::vector<int> channelIndexList;
+            const auto srcChannelIndex { channelProperties.getId () - 1 };
+            for (auto curChannelIndex { 0 }; curChannelIndex < 8; ++curChannelIndex)
+                if (curChannelIndex != srcChannelIndex)
+                    channelIndexList.emplace_back (curChannelIndex);
+            editManager->forChannels (channelIndexList, [this, value = channelProperties.getPitch ()] (juce::ValueTree channelPropertiesVT)
+            {
+                ChannelProperties channelProperties (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
+                //channelProperties.setPitch (value, false);
+            });
+        });
+        pm.addSubMenu ("Special", special, true);
+        pm.showMenuAsync ({}, [this] (int) {});
+    });
+
     setupTextEditor (pitchCVTextEditor, juce::Justification::centred, 0, "+-.0123456789", "PitchCV", [this] ()
     {
         FormatHelpers::setColorIfError (pitchCVTextEditor, FormatHelpers::getAmount (minChannelProperties.getPitchCV ()), FormatHelpers::getAmount (maxChannelProperties.getPitchCV ()));
@@ -1236,7 +1285,6 @@ void ChannelEditor::positionColumnOne (int xOffset, int width)
     curYOffset += kLargeLabelIntSize;
     curYOffset += kFirstControlSectionYOffset;
     pitchTextEditor.setBounds (xOffset, curYOffset, scaleWidth (0.5f), kParameterLineHeight);
-    const auto ddcSize { pitchTextEditor.getHeight () / 4 };
 
     pitchSemiLabel.setBounds (pitchTextEditor.getRight () + 3, curYOffset + 4, scaleWidth (0.5f), kSmallLabelIntSize);
     curYOffset += kParameterLineHeight;

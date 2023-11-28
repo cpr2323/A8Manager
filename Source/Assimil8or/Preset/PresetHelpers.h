@@ -14,4 +14,7 @@ namespace PresetHelpers
     void displayZoneDifferences (juce::ValueTree zonePropertiesOneVT, juce::ValueTree zonePropertiesTwoVT);
     bool isSupportedAudioFile (juce::File file);
     void setCvInputAndAmount (CvInputAndAmount cvInputAndAmount, std::function<void (juce::String, double)> setter);
+    juce::StringArray getCvInputList (bool includeZero);
+    int getCvInputIndex (juce::String cvInput);
+    juce::String getCvInputString (int cvInputIndex);
 };
