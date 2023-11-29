@@ -10,6 +10,7 @@
 #include "../../../AppProperties.h"
 #include "../../../Assimil8or/Audio/AudioPlayerProperties.h"
 #include "../../../Assimil8or/Preset/ChannelProperties.h"
+#include "../../../Utility/CustomComboBox.h"
 #include "../../../Utility/CustomTextEditor.h"
 #include "../../../Utility/NoArrowComboBoxLnF.h"
 
@@ -264,7 +265,7 @@ private:
     CvInputChannelComboBox pMIndexModComboBox; // 0A - 8C
     juce::TextEditor pMIndexModTextEditor; // double
     juce::Label pMSourceLabel;
-    juce::ComboBox pMSourceComboBox; // Channel 1 is 0, 2 is 1, etc. Left Input is 8, Right Input is 9, and PhaseCV is 10
+    CustomComboBox pMSourceComboBox; // Channel 1 is 0, 2 is 1, etc. Left Input is 8, Right Input is 9, and PhaseCV is 10
     juce::Label releaseLabel;
     juce::TextEditor releaseTextEditor; // double
     CvInputChannelComboBox releaseModComboBox; // 0A - 8C

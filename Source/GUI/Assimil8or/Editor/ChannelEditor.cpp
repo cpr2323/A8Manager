@@ -582,6 +582,13 @@ void ChannelEditor::setupChannelComponents ()
     pMSourceComboBox.addItem ("Left Input", 10);
     pMSourceComboBox.addItem ("Phase CV", 11);
     setupComboBox (pMSourceComboBox, "PMSource", [this] () { pMSourceUiChanged (pMSourceComboBox.getSelectedId () - 1); });
+    pMSourceComboBox.onDrag = [this] (int dragSpeed)
+    {
+        channelProperties.setPMSource (std::clamp (pMSourceComboBox.getSelectedItemIndex () + dragSpeed, 0, pMSourceComboBox.getNumItems () - 1), true);
+    };
+    pMSourceComboBox.onPopupMenu = [this] ()
+    {
+    };
     setupLabel (pMSourceLabel, "SRC", kMediumLabelSize, juce::Justification::centredRight);
     setupCvInputComboBox (phaseCVComboBox, "PhaseCV", [this] () { phaseCVUiChanged (phaseCVComboBox.getSelectedItemText (), phaseCVTextEditor.getText ().getDoubleValue ()); });
     setupTextEditor (phaseCVTextEditor, juce::Justification::centred, 0, "+-.0123456789", "PhaseCV", [this] ()
