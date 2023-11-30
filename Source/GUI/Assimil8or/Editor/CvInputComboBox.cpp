@@ -38,6 +38,21 @@ CvInputComboBox::~CvInputComboBox ()
     cvInputComboBox.setLookAndFeel (nullptr);
 }
 
+int CvInputComboBox::getNumItems ()
+{
+    return cvInputComboBox.getNumItems ();
+}
+
+int CvInputComboBox::getSelectedItemIndex ()
+{
+    return cvInputComboBox.getSelectedItemIndex ();
+}
+
+void CvInputComboBox::setSelectedItemIndex (int itemIndex)
+{
+    cvInputComboBox.setSelectedItemIndex (itemIndex);
+}
+
 void CvInputComboBox::setSelectedItemText (juce::String cvInputString)
 {
     auto itemId { 1 };

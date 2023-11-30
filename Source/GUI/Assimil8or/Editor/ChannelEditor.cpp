@@ -427,11 +427,11 @@ void ChannelEditor::setupChannelComponents ()
     setupCvInputComboBox (pitchCVComboBox, "PitchCV", [this] () { pitchCVUiChanged (pitchCVComboBox.getSelectedItemText (), pitchCVTextEditor.getText ().getDoubleValue ()); });
     pitchCVComboBox.setOnDragFunction ([this] (int dragSpeed)
     {
-        DebugLog ("ChannelEditor","pitchCVComboBox.onDrag: " + juce::String(dragSpeed));
-        auto [cvInput, amount] { channelProperties.getPitchCV () };
-        const auto newCvInputIndex { PresetHelpers::getCvInputIndex (cvInput) + dragSpeed};
-        // get new cvInput string and combine with current pitchCV value
-        channelProperties.setPitchCV(PresetHelpers::getCvInputString (std::clamp (newCvInputIndex, 0, 27)), amount, true);
+        // update UI
+        pitchCVComboBox.setSelectedItemIndex (std::clamp (pitchCVComboBox.getSelectedItemIndex () + dragSpeed, 0, pitchCVComboBox.getNumItems () - 1));
+        // update data
+        auto [_, amount] { channelProperties.getPitchCV () };
+        channelProperties.setPitchCV (pitchCVComboBox.getSelectedItemText (), amount, true);
     });
     pitchCVComboBox.setOnPopupMenuFunction ([this] ()
     {

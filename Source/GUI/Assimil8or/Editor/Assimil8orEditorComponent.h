@@ -62,7 +62,7 @@ private:
     // Preset Parameters
     juce::TextEditor nameEditor;
     juce::Label midiSetupLabel;
-    juce::ComboBox midiSetupComboBox;
+    CustomComboBox midiSetupComboBox;
     juce::Label data2AsCvLabel;
     CvInputGlobalComboBox data2AsCvComboBox;
     juce::Label xfadeGroupsLabel;

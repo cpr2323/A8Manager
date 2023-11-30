@@ -15,6 +15,9 @@ public:
     CvInputComboBox (ListType listType);
     virtual ~CvInputComboBox ();
 
+    int getNumItems ();
+    int getSelectedItemIndex ();
+    void setSelectedItemIndex (int itemIndex);
     void setSelectedItemText (juce::String cvInputString);
     juce::String getSelectedItemText ();
     void setTooltip (juce::String toolTip);
