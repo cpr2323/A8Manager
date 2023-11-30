@@ -5,7 +5,7 @@ void CustomTextEditor::mouseDown (const juce::MouseEvent& mouseEvent)
 {
     if (!mouseEvent.mods.isPopupMenu ())
     {
-        if (mouseEvent.mods.isCtrlDown ())
+        if (mouseEvent.mods.isCommandDown ())
         {
             DebugLog ("CustomTextEditor", "capturing mouse");
             lastY = mouseEvent.getPosition ().getY ();
