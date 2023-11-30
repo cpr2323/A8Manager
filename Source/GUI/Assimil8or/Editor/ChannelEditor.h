@@ -192,98 +192,98 @@ private:
     juce::TextButton toolsButton;
 
     juce::Label aliasingLabel;
-    juce::TextEditor aliasingTextEditor; // integer
+    CustomTextEditor aliasingTextEditor; // integer
     CvInputChannelComboBox aliasingModComboBox; // 0A - 8C
-    juce::TextEditor aliasingModTextEditor; // double
+    CustomTextEditor aliasingModTextEditor; // double
     juce::Label attackLabel;
-    juce::TextEditor attackTextEditor; // double
+    CustomTextEditor attackTextEditor; // double
     juce::Label attackFromCurrentLabel;
-    juce::ComboBox attackFromCurrentComboBox; // false = start from zero, true = start from last value
+    CustomComboBox attackFromCurrentComboBox; // false = start from zero, true = start from last value
     CvInputChannelComboBox attackModComboBox; // 0A - 8C
-    juce::TextEditor attackModTextEditor; // double
+    CustomTextEditor attackModTextEditor; // double
     juce::Label autoTriggerLabel;
-    juce::ComboBox autoTriggerComboBox; //
+    CustomComboBox autoTriggerComboBox; //
     juce::Label bitsLabel;
-    juce::TextEditor bitsTextEditor; // double
+    CustomTextEditor bitsTextEditor; // double
     CvInputChannelComboBox bitsModComboBox; // 0A - 8C
-    juce::TextEditor bitsModTextEditor; // double
+    CustomTextEditor bitsModTextEditor; // double
     juce::Label channelModeLabel;
-    juce::ComboBox channelModeComboBox; // 4 Channel Modes: 0 = Master, 1 = Link, 2 = Stereo/Right, 3 = Cycle
+    CustomComboBox channelModeComboBox; // 4 Channel Modes: 0 = Master, 1 = Link, 2 = Stereo/Right, 3 = Cycle
     juce::Label envelopeLabel;
     juce::Label expAMLabel;
     CvInputChannelComboBox expAMComboBox; // 0A - 8C
-    juce::TextEditor expAMTextEditor; // double
+    CustomTextEditor expAMTextEditor; // double
     juce::Label expFMLabel;
     CvInputChannelComboBox expFMComboBox; // 0A - 8C
-    juce::TextEditor expFMTextEditor; // double
+    CustomTextEditor expFMTextEditor; // double
     juce::Label levelLabel;
     juce::Label levelDbLabel;
-    juce::TextEditor levelTextEditor; // double
+    CustomTextEditor levelTextEditor; // double
     juce::Label linAMLabel;
     CvInputChannelComboBox linAMComboBox; // 0A - 8C
-    juce::TextEditor linAMTextEditor; // double
+    CustomTextEditor linAMTextEditor; // double
     juce::Label linAMisExtEnvLabel; //
-    juce::ComboBox linAMisExtEnvComboBox; //
+    CustomComboBox linAMisExtEnvComboBox; //
     juce::Label linFMLabel;
     CvInputChannelComboBox linFMComboBox; // 0A - 8C
-    juce::TextEditor linFMTextEditor; // double
+    CustomTextEditor linFMTextEditor; // double
     juce::Label loopLengthIsEndLabel;
-    juce::ComboBox loopLengthIsEndComboBox;
+    CustomComboBox loopLengthIsEndComboBox;
     juce::Label loopLengthModLabel;
     CvInputChannelComboBox loopLengthModComboBox; // 0A - 8C
-    juce::TextEditor loopLengthModTextEditor; // double
+    CustomTextEditor loopLengthModTextEditor; // double
     juce::Label loopModeLabel;
-    juce::ComboBox loopModeComboBox; // 0 = No Loop, 1 = Loop, 2 = Loop and Release
+    CustomComboBox loopModeComboBox; // 0 = No Loop, 1 = Loop, 2 = Loop and Release
     juce::Label loopStartModLabel;
     CvInputChannelComboBox loopStartModComboBox; // 0A - 8C
-    juce::TextEditor loopStartModTextEditor; // double
+    CustomTextEditor loopStartModTextEditor; // double
     juce::Label mixLevelLabel;
-    juce::TextEditor mixLevelTextEditor; // double
+    CustomTextEditor mixLevelTextEditor; // double
     CvInputChannelComboBox mixModComboBox; // 0A - 8C
-    juce::TextEditor mixModTextEditor; // double
+    CustomTextEditor mixModTextEditor; // double
     juce::Label mixModIsFaderLabel; //
-    juce::ComboBox mixModIsFaderComboBox; //
+    CustomComboBox mixModIsFaderComboBox; //
     juce::Label mutateLabel;
     juce::Label panMixLabel;
-    juce::TextEditor panTextEditor; // double
+    CustomTextEditor panTextEditor; // double
     juce::Label panLabel;
     CvInputChannelComboBox panModComboBox; // 0A - 8C
-    juce::TextEditor panModTextEditor; // double
+    CustomTextEditor panModTextEditor; // double
     juce::Label phaseSourceSectionLabel;
     CvInputChannelComboBox phaseCVComboBox; // 0A - 8C
-    juce::TextEditor phaseCVTextEditor; // double
+    CustomTextEditor phaseCVTextEditor; // double
     juce::Label pitchLabel;
     juce::Label pitchSemiLabel;
     CustomTextEditor pitchTextEditor; // double
     CvInputChannelComboBox pitchCVComboBox; // 0A - 8C
-    juce::TextEditor pitchCVTextEditor; // double
+    CustomTextEditor pitchCVTextEditor; // double
     juce::Label playModeLabel;
-    juce::ComboBox playModeComboBox; // 2 Play Modes: 0 = Gated, 1 = One Shot, Latch / Latch may not be a saved preset option.
+    CustomComboBox playModeComboBox; // 2 Play Modes: 0 = Gated, 1 = One Shot, Latch / Latch may not be a saved preset option.
     juce::Label phaseModIndexSectionLabel;
-    juce::TextEditor pMIndexTextEditor; // double
+    CustomTextEditor pMIndexTextEditor; // double
     juce::Label pMIndexLabel;
     CvInputChannelComboBox pMIndexModComboBox; // 0A - 8C
-    juce::TextEditor pMIndexModTextEditor; // double
+    CustomTextEditor pMIndexModTextEditor; // double
     juce::Label pMSourceLabel;
     CustomComboBox pMSourceComboBox; // Channel 1 is 0, 2 is 1, etc. Left Input is 8, Right Input is 9, and PhaseCV is 10
     juce::Label releaseLabel;
-    juce::TextEditor releaseTextEditor; // double
+    CustomTextEditor releaseTextEditor; // double
     CvInputChannelComboBox releaseModComboBox; // 0A - 8C
-    juce::TextEditor releaseModTextEditor; // double
+    CustomTextEditor releaseModTextEditor; // double
     juce::TextButton reverseButton; //
     juce::Label sampleEndModLabel;
     CvInputChannelComboBox sampleEndModComboBox; // 0A - 8C
-    juce::TextEditor sampleEndModTextEditor; // double
+    CustomTextEditor sampleEndModTextEditor; // double
     juce::Label sampleStartModLabel;
     CvInputChannelComboBox sampleStartModComboBox; // 0A - 8C
-    juce::TextEditor sampleStartModTextEditor; // double
+    CustomTextEditor sampleStartModTextEditor; // double
     juce::TextButton spliceSmoothingButton; //
     juce::Label xfadeGroupLabel;
-    juce::ComboBox xfadeGroupComboBox; // Off, A, B, C, D
+    CustomComboBox xfadeGroupComboBox; // Off, A, B, C, D
     juce::Label zonesCVLabel;
     CvInputChannelComboBox zonesCVComboBox; // 0A - 8C
     juce::Label zonesRTLabel;
-    juce::ComboBox zonesRTComboBox; // 0 = Gate Rise, 1 = Continuous, 2 = Advance, 3 = Random
+    CustomComboBox zonesRTComboBox; // 0 = Gate Rise, 1 = Continuous, 2 = Advance, 3 = Random
     TransparantOverlay stereoRightTransparantOverly;
 
     AREnvelopeComponent arEnvelopeComponent;

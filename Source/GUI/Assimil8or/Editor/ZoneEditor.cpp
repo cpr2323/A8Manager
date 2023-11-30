@@ -352,7 +352,13 @@ void ZoneEditor::setupZoneComponents ()
         sampleStartTextEditor.setText (juce::String (sampleStart), false);
         if (sourceSamplePointsButton.getToggleState ())
             audioPlayerProperties.setLoopStart (static_cast<int> (sampleStart), false);
-        });
+    });
+    sampleStartTextEditor.onDrag = [this] (int dragSpeed)
+    {
+    };
+    sampleStartTextEditor.onPopupMenu = [this] ()
+    {
+    };
     // SAMPLE END
     setupLabel (sampleEndLabel, "SMPL END", 12.0, juce::Justification::centredRight);
     setupTextEditor (sampleEndTextEditor, juce::Justification::centred, 0, "0123456789", "SampleEnd", [this] ()
@@ -367,6 +373,12 @@ void ZoneEditor::setupZoneComponents ()
         if (sourceSamplePointsButton.getToggleState ())
             audioPlayerProperties.setLoopLength (static_cast<int> (sampleEnd - zoneProperties.getSampleStart ().value_or (0)), false);
     });
+    sampleEndTextEditor.onDrag = [this] (int dragSpeed)
+    {
+    };
+    sampleEndTextEditor.onPopupMenu = [this] ()
+    {
+    };
     // LOOP START
     setupLabel (loopStartLabel, "LOOP START", 12.0, juce::Justification::centredRight);
     setupTextEditor (loopStartTextEditor, juce::Justification::centred, 0, "0123456789", "LoopStart", [this] ()
@@ -401,6 +413,12 @@ void ZoneEditor::setupZoneComponents ()
                 audioPlayerProperties.setLoopLength (static_cast<int> (loopLength), false);
         }
     });
+    loopStartTextEditor.onDrag = [this] (int dragSpeed)
+    {
+    };
+    loopStartTextEditor.onPopupMenu = [this] ()
+    {
+    };
     // LOOP LENGTH
     setupLabel (loopLengthLabel, "LOOP LENGTH", 12.0, juce::Justification::centredRight);
     setupTextEditor (loopLengthTextEditor, juce::Justification::centred, 0, ".0123456789", "LoopLength", [this] ()
@@ -438,6 +456,12 @@ void ZoneEditor::setupZoneComponents ()
         if (sourceLoopPointsButton.getToggleState ())
             audioPlayerProperties.setLoopLength (static_cast<int> (loopLength), false);
     });
+    loopLengthTextEditor.onDrag = [this] (int dragSpeed)
+    {
+    };
+    loopLengthTextEditor.onPopupMenu = [this] ()
+    {
+    };
     setupLabel (minVoltageLabel, "MIN VOLTAGE", 15.0, juce::Justification::centredRight);
     // MIN VOLTAGE
     setupTextEditor (minVoltageTextEditor, juce::Justification::centred, 0, "+-.0123456789", "MinVoltage", [this] ()
@@ -454,6 +478,12 @@ void ZoneEditor::setupZoneComponents ()
         minVoltageUiChanged (minVoltage);
         minVoltageTextEditor.setText (FormatHelpers::formatDouble (minVoltage, 2, true), false);
     });
+    minVoltageTextEditor.onDrag = [this] (int dragSpeed)
+    {
+    };
+    minVoltageTextEditor.onPopupMenu = [this] ()
+    {
+    };
     setupLabel (pitchOffsetLabel, "PITCH OFFSET", 15.0, juce::Justification::centredRight);
     setupTextEditor (pitchOffsetTextEditor, juce::Justification::centred, 0, "+-.0123456789", "PitchOffset", [this] ()
     {
@@ -465,6 +495,12 @@ void ZoneEditor::setupZoneComponents ()
         pitchOffsetUiChanged (pitchOffset);
         pitchOffsetTextEditor.setText (FormatHelpers::formatDouble (pitchOffset, 2, true), false);
     });
+    pitchOffsetTextEditor.onDrag = [this] (int dragSpeed)
+    {
+    };
+    pitchOffsetTextEditor.onPopupMenu = [this] ()
+    {
+    };
     setupLabel (levelOffsetLabel, "LEVEL OFFSET", 15.0, juce::Justification::centredRight);
     setupTextEditor (levelOffsetTextEditor, juce::Justification::centred, 0, "+-.0123456789", "LevelOffset", [this] ()
     {
@@ -476,6 +512,10 @@ void ZoneEditor::setupZoneComponents ()
         levelOffsetUiChanged (levelOffset);
         levelOffsetTextEditor.setText (FormatHelpers::formatDouble (levelOffset, 1, true), false);
     });
+    levelOffsetTextEditor.onDrag = [this] (int dragSpeed)
+    {
+    };
+    levelOffsetTextEditor.onPopupMenu = [this] () {};
 }
 
 void ZoneEditor::init (juce::ValueTree zonePropertiesVT, juce::ValueTree rootPropertiesVT, SamplePool* theSamplePool)

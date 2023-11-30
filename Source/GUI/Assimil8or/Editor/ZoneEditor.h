@@ -3,9 +3,10 @@
 #include <JuceHeader.h>
 #include "LoopPoints/LoopPointsView.h"
 #include "SamplePool/SamplePool.h"
+#include "../../../AppProperties.h"
 #include "../../../Assimil8or/Audio/AudioPlayerProperties.h"
 #include "../../../Assimil8or/Preset/ZoneProperties.h"
-#include "../../../AppProperties.h"
+#include "../../../Utility/CustomTextEditor.h"
 
 class FileSelectLabel : public juce::Label
 {
@@ -123,21 +124,21 @@ private:
     juce::Rectangle<int>* activePointBackground { &samplePointsBackground };
 
     juce::Label levelOffsetLabel;
-    juce::TextEditor levelOffsetTextEditor; // double
+    CustomTextEditor levelOffsetTextEditor; // double
     juce::Label loopLengthLabel;
-    juce::TextEditor loopLengthTextEditor; // double
+    CustomTextEditor loopLengthTextEditor; // double
     juce::Label loopStartLabel;
-    juce::TextEditor loopStartTextEditor; // int
+    CustomTextEditor loopStartTextEditor; // int
     juce::Label minVoltageLabel;
-    juce::TextEditor minVoltageTextEditor; // double
+    CustomTextEditor minVoltageTextEditor; // double
     juce::Label pitchOffsetLabel;
-    juce::TextEditor pitchOffsetTextEditor; // double
+    CustomTextEditor pitchOffsetTextEditor; // double
     juce::Label sampleNameLabel;
     FileSelectLabel sampleNameSelectLabel; // filename
     juce::Label sampleEndLabel;
-    juce::TextEditor sampleEndTextEditor; // int
+    CustomTextEditor sampleEndTextEditor; // int
     juce::Label sampleStartLabel;
-    juce::TextEditor sampleStartTextEditor; // int
+    CustomTextEditor sampleStartTextEditor; // int
 
     juce::String formatLoopLength (double loopLength);
     bool handleSamplesInternal (int zoneIndex, juce::StringArray files);
