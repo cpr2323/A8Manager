@@ -117,7 +117,7 @@ void Assimil8orEditorComponent::setupPresetComponents ()
     {
         const auto newCvInputComboBoxIndex { data2AsCvComboBox.getSelectedItemIndex () + dragSpeed };
         data2AsCvComboBox.setSelectedItemIndex (std::clamp (newCvInputComboBoxIndex, 0, data2AsCvComboBox.getNumItems () - 1));
-        presetProperties.setData2AsCV (data2AsCvComboBox.getSelectedItemText (), true);
+        presetProperties.setData2AsCV (data2AsCvComboBox.getSelectedItemText (), false);
     });
     data2AsCvComboBox.setOnPopupMenuFunction ([this] () {});
     data2AsCvComboBox.setTooltip (parameterToolTipData.getToolTip ("Preset", "Data2asCV"));
@@ -149,10 +149,10 @@ void Assimil8orEditorComponent::setupPresetComponents ()
             xfadeGroup.xfadeCvComboBox.setSelectedItemIndex (std::clamp (newCvInputComboBoxIndex, 0, xfadeGroup.xfadeCvComboBox.getNumItems () - 1));
             switch (xfadeGroupIndex)
             {
-                case 0: presetProperties.setXfadeACV (xfadeGroup.xfadeCvComboBox.getSelectedItemText (), true); break;
-                case 1: presetProperties.setXfadeBCV (xfadeGroup.xfadeCvComboBox.getSelectedItemText (), true); break;
-                case 2: presetProperties.setXfadeCCV (xfadeGroup.xfadeCvComboBox.getSelectedItemText (), true); break;
-                case 3: presetProperties.setXfadeDCV (xfadeGroup.xfadeCvComboBox.getSelectedItemText (), true); break;
+                case 0: presetProperties.setXfadeACV (xfadeGroup.xfadeCvComboBox.getSelectedItemText (), false); break;
+                case 1: presetProperties.setXfadeBCV (xfadeGroup.xfadeCvComboBox.getSelectedItemText (), false); break;
+                case 2: presetProperties.setXfadeCCV (xfadeGroup.xfadeCvComboBox.getSelectedItemText (), false); break;
+                case 3: presetProperties.setXfadeDCV (xfadeGroup.xfadeCvComboBox.getSelectedItemText (), false); break;
                 default: jassertfalse; break;
             }
         });

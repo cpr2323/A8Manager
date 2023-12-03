@@ -434,11 +434,9 @@ void ChannelEditor::setupChannelComponents ()
     setupCvInputComboBox (pitchCVComboBox, "PitchCV", [this] () { pitchCVUiChanged (pitchCVComboBox.getSelectedItemText (), pitchCVTextEditor.getText ().getDoubleValue ()); });
     pitchCVComboBox.setOnDragFunction ([this] (int dragSpeed)
     {
-        // update UI
         pitchCVComboBox.setSelectedItemIndex (std::clamp (pitchCVComboBox.getSelectedItemIndex () + dragSpeed, 0, pitchCVComboBox.getNumItems () - 1));
-        // update data
         auto [_, amount] { channelProperties.getPitchCV () };
-        channelProperties.setPitchCV (pitchCVComboBox.getSelectedItemText (), amount, true);
+        channelProperties.setPitchCV (pitchCVComboBox.getSelectedItemText (), amount, false);
     });
     pitchCVComboBox.setOnPopupMenuFunction ([this] ()
     {
@@ -501,7 +499,12 @@ void ChannelEditor::setupChannelComponents ()
     // LINFM
     setupLabel (linFMLabel, "LIN FM", kLargeLabelSize, juce::Justification::centred);
     setupCvInputComboBox (linFMComboBox, "LinFM", [this] () { linFMUiChanged (linFMComboBox.getSelectedItemText (), linFMTextEditor.getText ().getDoubleValue ()); });
-    linFMComboBox.setOnDragFunction ([this] (int dragSpeed) {});
+    linFMComboBox.setOnDragFunction ([this] (int dragSpeed)
+    {
+        linFMComboBox.setSelectedItemIndex (std::clamp (linFMComboBox.getSelectedItemIndex () + dragSpeed, 0, linFMComboBox.getNumItems () - 1));
+        auto [_, amount] { channelProperties.getLinFM () };
+        channelProperties.setLinFM (linFMComboBox.getSelectedItemText (), amount, false);
+    });
     linFMComboBox.setOnPopupMenuFunction ([this] () {});
 
     setupTextEditor (linFMTextEditor, juce::Justification::centred, 0, "+-.0123456789", "LinFM", [this] ()
@@ -525,7 +528,12 @@ void ChannelEditor::setupChannelComponents ()
     // EXPFM
     setupLabel (expFMLabel, "EXP FM", kLargeLabelSize, juce::Justification::centred);
     setupCvInputComboBox (expFMComboBox, "ExpFM", [this] () { expFMUiChanged (expFMComboBox.getSelectedItemText (), expFMTextEditor.getText ().getDoubleValue ()); });
-    expFMComboBox.setOnDragFunction ([this] (int dragSpeed) {});
+    expFMComboBox.setOnDragFunction ([this] (int dragSpeed)
+    {
+        expFMComboBox.setSelectedItemIndex (std::clamp (expFMComboBox.getSelectedItemIndex () + dragSpeed, 0, expFMComboBox.getNumItems () - 1));
+        auto [_, amount] { channelProperties.getExpFM () };
+        channelProperties.setExpFM (expFMComboBox.getSelectedItemText (), amount, false);
+    });
     expFMComboBox.setOnPopupMenuFunction ([this] () {});
 
     setupTextEditor (expFMTextEditor, juce::Justification::centred, 0, "+-.0123456789", "ExpFM", [this] ()
@@ -585,7 +593,12 @@ void ChannelEditor::setupChannelComponents ()
     };
 
     setupCvInputComboBox (linAMComboBox, "LinAM", [this] () { linAMUiChanged (linAMComboBox.getSelectedItemText (), linAMTextEditor.getText ().getDoubleValue ()); });
-    linAMComboBox.setOnDragFunction ([this] (int dragSpeed) {});
+    linAMComboBox.setOnDragFunction ([this] (int dragSpeed)
+    {
+        linAMComboBox.setSelectedItemIndex (std::clamp (linAMComboBox.getSelectedItemIndex () + dragSpeed, 0, linAMComboBox.getNumItems () - 1));
+        auto [_, amount] { channelProperties.getLinAM () };
+        channelProperties.setLinAM (linAMComboBox.getSelectedItemText (), amount, false);
+    });
     linAMComboBox.setOnPopupMenuFunction ([this] () {});
 
     setupTextEditor (linAMTextEditor, juce::Justification::centred, 0, "+-.0123456789", "LinAM", [this] ()
@@ -609,7 +622,12 @@ void ChannelEditor::setupChannelComponents ()
     // EXPAM
     setupLabel (expAMLabel, "EXP AM", kLargeLabelSize, juce::Justification::centred);
     setupCvInputComboBox (expAMComboBox, "ExpAM", [this] () { expAMUiChanged (expAMComboBox.getSelectedItemText (), expAMTextEditor.getText ().getDoubleValue ()); });
-    expAMComboBox.setOnDragFunction ([this] (int dragSpeed) {});
+    expAMComboBox.setOnDragFunction ([this] (int dragSpeed)
+    {
+        expAMComboBox.setSelectedItemIndex (std::clamp (expAMComboBox.getSelectedItemIndex () + dragSpeed, 0, expAMComboBox.getNumItems () - 1));
+        auto [_, amount] { channelProperties.getExpAM () };
+        channelProperties.setExpAM (expAMComboBox.getSelectedItemText (), amount, false);
+    });
     expAMComboBox.setOnPopupMenuFunction ([this] () {});
 
     setupTextEditor (expAMTextEditor, juce::Justification::centred, 0, "+-.0123456789", "ExpAM", [this] ()
@@ -652,7 +670,12 @@ void ChannelEditor::setupChannelComponents ()
     };
     setupLabel (pMSourceLabel, "SRC", kMediumLabelSize, juce::Justification::centredRight);
     setupCvInputComboBox (phaseCVComboBox, "PhaseCV", [this] () { phaseCVUiChanged (phaseCVComboBox.getSelectedItemText (), phaseCVTextEditor.getText ().getDoubleValue ()); });
-    phaseCVComboBox.setOnDragFunction ([this] (int dragSpeed) {});
+    phaseCVComboBox.setOnDragFunction ([this] (int dragSpeed)
+    {
+        phaseCVComboBox.setSelectedItemIndex (std::clamp (phaseCVComboBox.getSelectedItemIndex () + dragSpeed, 0, phaseCVComboBox.getNumItems () - 1));
+        auto [_, amount] { channelProperties.getPhaseCV () };
+        channelProperties.setPhaseCV (phaseCVComboBox.getSelectedItemText (), amount, false);
+    });
     phaseCVComboBox.setOnPopupMenuFunction ([this] () {});
 
     setupTextEditor (phaseCVTextEditor, juce::Justification::centred, 0, "+-.0123456789", "PhaseCV", [this] ()
@@ -694,7 +717,12 @@ void ChannelEditor::setupChannelComponents ()
 
     setupLabel (pMIndexLabel, "INDEX", kMediumLabelSize, juce::Justification::centredLeft);
     setupCvInputComboBox (pMIndexModComboBox, "PMIndexMod", [this] () { pMIndexModUiChanged (pMIndexModComboBox.getSelectedItemText (), pMIndexModTextEditor.getText ().getDoubleValue ()); });
-    pMIndexModComboBox.setOnDragFunction ([this] (int dragSpeed) {});
+    pMIndexModComboBox.setOnDragFunction ([this] (int dragSpeed)
+    {
+        pMIndexModComboBox.setSelectedItemIndex (std::clamp (pMIndexModComboBox.getSelectedItemIndex () + dragSpeed, 0, pMIndexModComboBox.getNumItems () - 1));
+        auto [_, amount] { channelProperties.getPMIndexMod () };
+        channelProperties.setPMIndexMod (pMIndexModComboBox.getSelectedItemText (), amount, false);
+    });
     pMIndexModComboBox.setOnPopupMenuFunction ([this] () {});
 
     setupTextEditor (pMIndexModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "PMIndexMod", [this] ()
@@ -753,7 +781,12 @@ void ChannelEditor::setupChannelComponents ()
     };
 
     setupCvInputComboBox (attackModComboBox, "AttackMod", [this] () { attackModUiChanged (attackModComboBox.getSelectedItemText (), attackModTextEditor.getText ().getDoubleValue ()); });
-    attackModComboBox.setOnDragFunction ([this] (int dragSpeed) {});
+    attackModComboBox.setOnDragFunction ([this] (int dragSpeed)
+    {
+        attackModComboBox.setSelectedItemIndex (std::clamp (attackModComboBox.getSelectedItemIndex () + dragSpeed, 0, attackModComboBox.getNumItems () - 1));
+        auto [_, amount] { channelProperties.getAttackMod () };
+        channelProperties.setAttackMod (attackModComboBox.getSelectedItemText (), amount, false);
+    });
     attackModComboBox.setOnPopupMenuFunction ([this] () {});
 
     setupTextEditor (attackModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "AttackMod", [this] ()
@@ -795,7 +828,12 @@ void ChannelEditor::setupChannelComponents ()
 
     setupLabel (releaseLabel, "RELEASE", kMediumLabelSize, juce::Justification::centredLeft);
     setupCvInputComboBox (releaseModComboBox, "ReleaseMod", [this] () { releaseModUiChanged (releaseModComboBox.getSelectedItemText (), releaseModTextEditor.getText ().getDoubleValue ()); });
-    releaseModComboBox.setOnDragFunction ([this] (int dragSpeed) {});
+    releaseModComboBox.setOnDragFunction ([this] (int dragSpeed)
+    {
+        releaseModComboBox.setSelectedItemIndex (std::clamp (releaseModComboBox.getSelectedItemIndex () + dragSpeed, 0, releaseModComboBox.getNumItems () - 1));
+        auto [_, amount] { channelProperties.getReleaseMod () };
+        channelProperties.setReleaseMod (releaseModComboBox.getSelectedItemText (), amount, false);
+    });
     releaseModComboBox.setOnPopupMenuFunction ([this] () {});
 
     setupTextEditor (releaseModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "ReleaseMod", [this] ()
@@ -840,7 +878,12 @@ void ChannelEditor::setupChannelComponents ()
 
     setupLabel (bitsLabel, "BITS", kMediumLabelSize, juce::Justification::centredRight);
     setupCvInputComboBox (bitsModComboBox, "BitsMod", [this] () { bitsModUiChanged (bitsModComboBox.getSelectedItemText (), bitsModTextEditor.getText ().getDoubleValue ()); });
-    bitsModComboBox.setOnDragFunction ([this] (int dragSpeed) {});
+    bitsModComboBox.setOnDragFunction ([this] (int dragSpeed)
+    {
+        bitsModComboBox.setSelectedItemIndex (std::clamp (bitsModComboBox.getSelectedItemIndex () + dragSpeed, 0, bitsModComboBox.getNumItems () - 1));
+        auto [_, amount] { channelProperties.getBitsMod () };
+        channelProperties.setBitsMod (bitsModComboBox.getSelectedItemText (), amount, false);
+    });
     bitsModComboBox.setOnPopupMenuFunction ([this] () {});
 
     setupTextEditor (bitsModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "BitsMod", [this] ()
@@ -881,7 +924,12 @@ void ChannelEditor::setupChannelComponents ()
 
     setupLabel (aliasingLabel, "ALIAS", kMediumLabelSize, juce::Justification::centredRight);
     setupCvInputComboBox (aliasingModComboBox, "AliasingMod", [this] () { aliasingModUiChanged (aliasingModComboBox.getSelectedItemText (), aliasingModTextEditor.getText ().getDoubleValue ()); });
-    aliasingModComboBox.setOnDragFunction ([this] (int dragSpeed) {});
+    aliasingModComboBox.setOnDragFunction ([this] (int dragSpeed)
+    {
+        aliasingModComboBox.setSelectedItemIndex (std::clamp (aliasingModComboBox.getSelectedItemIndex () + dragSpeed, 0, aliasingModComboBox.getNumItems () - 1));
+        auto [_, amount] { channelProperties.getAliasingMod () };
+        channelProperties.setAliasingMod (aliasingModComboBox.getSelectedItemText (), amount, false);
+    });
     aliasingModComboBox.setOnPopupMenuFunction([this] () {});
 
     setupTextEditor (aliasingModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "AliasingMod", [this] ()
@@ -926,7 +974,12 @@ void ChannelEditor::setupChannelComponents ()
     };
     setupLabel (panLabel, "PAN", kMediumLabelSize, juce::Justification::centredRight);
     setupCvInputComboBox (panModComboBox, "PanMod", [this] () { panModUiChanged (panModComboBox.getSelectedItemText (), panModTextEditor.getText ().getDoubleValue ()); });
-    panModComboBox.setOnDragFunction ([this] (int dragSpeed) {});
+    panModComboBox.setOnDragFunction ([this] (int dragSpeed)
+    {
+        panModComboBox.setSelectedItemIndex (std::clamp (panModComboBox.getSelectedItemIndex () + dragSpeed, 0, panModComboBox.getNumItems () - 1));
+        auto [_, amount] { channelProperties.getPanMod () };
+        channelProperties.setPanMod (panModComboBox.getSelectedItemText (), amount, false);
+    });
     panModComboBox.setOnPopupMenuFunction ([this] () {});
 
     setupTextEditor (panModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "PanMod", [this] ()
@@ -966,7 +1019,12 @@ void ChannelEditor::setupChannelComponents ()
 
     setupLabel (mixLevelLabel, "MIX", kMediumLabelSize, juce::Justification::centredRight);
     setupCvInputComboBox (mixModComboBox, "MixMod", [this] () { mixModUiChanged (mixModComboBox.getSelectedItemText (), mixModTextEditor.getText ().getDoubleValue ()); });
-    mixModComboBox.setOnDragFunction ([this] (int dragSpeed) {});
+    mixModComboBox.setOnDragFunction ([this] (int dragSpeed)
+    {
+        mixModComboBox.setSelectedItemIndex (std::clamp (mixModComboBox.getSelectedItemIndex () + dragSpeed, 0, mixModComboBox.getNumItems () - 1));
+        auto [_, amount] { channelProperties.getMixMod () };
+        channelProperties.setMixMod (mixModComboBox.getSelectedItemText (), amount, false);
+    });
     mixModComboBox.setOnPopupMenuFunction ([this] () {});
 
     setupTextEditor (mixModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "MixMod", [this] ()
@@ -1067,7 +1125,12 @@ void ChannelEditor::setupChannelComponents ()
 
     setupLabel (sampleStartModLabel, "SAMPLE START", kMediumLabelSize, juce::Justification::centred);
     setupCvInputComboBox (sampleStartModComboBox, "SampleStartMod", [this] () { sampleStartModUiChanged (sampleStartModComboBox.getSelectedItemText (), sampleStartModTextEditor.getText ().getDoubleValue ()); });
-    sampleStartModComboBox.setOnDragFunction ([this] (int dragSpeed) {});
+    sampleStartModComboBox.setOnDragFunction ([this] (int dragSpeed)
+    {
+        sampleStartModComboBox.setSelectedItemIndex (std::clamp (sampleStartModComboBox.getSelectedItemIndex () + dragSpeed, 0, sampleStartModComboBox.getNumItems () - 1));
+        auto [_, amount] { channelProperties.getSampleStartMod () };
+        channelProperties.setSampleStartMod (sampleStartModComboBox.getSelectedItemText (), amount, false);
+    });
     sampleStartModComboBox.setOnPopupMenuFunction ([this] () {});
 
     setupTextEditor (sampleStartModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "SampleStartMod", [this] ()
@@ -1090,7 +1153,12 @@ void ChannelEditor::setupChannelComponents ()
 
     setupLabel (sampleEndModLabel, "SAMPLE END", kMediumLabelSize, juce::Justification::centred);
     setupCvInputComboBox (sampleEndModComboBox, "SampleEndMod", [this] () { sampleEndModUiChanged (sampleEndModComboBox.getSelectedItemText (), sampleEndModTextEditor.getText ().getDoubleValue ()); });
-    sampleEndModComboBox.setOnDragFunction ([this] (int dragSpeed) {});
+    sampleEndModComboBox.setOnDragFunction ([this] (int dragSpeed)
+    {
+        sampleEndModComboBox.setSelectedItemIndex (std::clamp (sampleEndModComboBox.getSelectedItemIndex () + dragSpeed, 0, sampleEndModComboBox.getNumItems () - 1));
+        auto [_, amount] { channelProperties.getSampleEndMod () };
+        channelProperties.setSampleEndMod (sampleEndModComboBox.getSelectedItemText (), amount, false);
+    });
     sampleEndModComboBox.setOnPopupMenuFunction ([this] () {});
 
     setupTextEditor (sampleEndModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "SampleEndMod", [this] ()
@@ -1112,7 +1180,12 @@ void ChannelEditor::setupChannelComponents ()
     };
     setupLabel (loopStartModLabel, "LOOP START", kMediumLabelSize, juce::Justification::centred);
     setupCvInputComboBox (loopStartModComboBox, "LoopStartMod", [this] () { loopStartModUiChanged (loopStartModComboBox.getSelectedItemText (), loopStartModTextEditor.getText ().getDoubleValue ()); });
-    loopStartModComboBox.setOnDragFunction ([this] (int dragSpeed) {});
+    loopStartModComboBox.setOnDragFunction ([this] (int dragSpeed)
+    {
+        loopStartModComboBox.setSelectedItemIndex (std::clamp (loopStartModComboBox.getSelectedItemIndex () + dragSpeed, 0, loopStartModComboBox.getNumItems () - 1));
+        auto [_, amount] { channelProperties.getLoopStartMod () };
+        channelProperties.setLoopStartMod (loopStartModComboBox.getSelectedItemText (), amount, false);
+    });
     loopStartModComboBox.setOnPopupMenuFunction ([this] () {});
 
     setupTextEditor (loopStartModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "LoopStartMod", [this] ()
@@ -1135,7 +1208,12 @@ void ChannelEditor::setupChannelComponents ()
 
     setupLabel (loopLengthModLabel, "LOOP LENGTH", kMediumLabelSize, juce::Justification::centred);
     setupCvInputComboBox (loopLengthModComboBox, "LoopLengthMod", [this] () { loopLengthModUiChanged (loopLengthModComboBox.getSelectedItemText (), loopLengthModTextEditor.getText ().getDoubleValue ()); });
-    loopLengthModComboBox.setOnDragFunction ([this] (int dragSpeed) {});
+    loopLengthModComboBox.setOnDragFunction ([this] (int dragSpeed)
+    {
+        loopLengthModComboBox.setSelectedItemIndex (std::clamp (loopLengthModComboBox.getSelectedItemIndex () + dragSpeed, 0, loopLengthModComboBox.getNumItems () - 1));
+        auto [_, amount] { channelProperties.getLoopLengthMod () };
+        channelProperties.setLoopLengthMod (loopLengthModComboBox.getSelectedItemText (), amount, false);
+    });
     loopLengthModComboBox.setOnPopupMenuFunction ([this] () {});
 
     setupTextEditor (loopLengthModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "LoopLengthMod", [this] ()
@@ -1174,7 +1252,12 @@ void ChannelEditor::setupChannelComponents ()
 
     setupLabel (zonesCVLabel, "CV", kMediumLabelSize, juce::Justification::centredRight);
     setupCvInputComboBox (zonesCVComboBox, "ZonesCV", [this] () { zonesCVUiChanged (zonesCVComboBox.getSelectedItemText ()); });
-    zonesCVComboBox.setOnDragFunction ([this] (int dragSpeed) {});
+    zonesCVComboBox.setOnDragFunction ([this] (int dragSpeed)
+    {
+        const auto newCvInputComboBoxIndex { zonesCVComboBox.getSelectedItemIndex () + dragSpeed };
+        zonesCVComboBox.setSelectedItemIndex (std::clamp (newCvInputComboBoxIndex, 0, zonesCVComboBox.getNumItems () - 1));
+        channelProperties.setZonesCV (zonesCVComboBox.getSelectedItemText (), false);
+    });
     zonesCVComboBox.setOnPopupMenuFunction ([this] () {});
 
     setupLabel (zonesRTLabel, "SELECT", kSmallLabelSize, juce::Justification::centredRight);
