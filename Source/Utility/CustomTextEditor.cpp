@@ -3,7 +3,7 @@
 
 void CustomTextEditor::mouseDown (const juce::MouseEvent& mouseEvent)
 {
-    if (!mouseEvent.mods.isPopupMenu ())
+    if (! mouseEvent.mods.isPopupMenu ())
     {
         if (mouseEvent.mods.isCommandDown ())
         {
@@ -15,16 +15,17 @@ void CustomTextEditor::mouseDown (const juce::MouseEvent& mouseEvent)
     }
     else
     {
+        DebugLog ("CustomTextEditor", "invoking popup menu");
         if (onPopupMenu != nullptr)
             onPopupMenu ();
         return;
     }
+    DebugLog ("CustomTextEditor", "mouseUp");
     juce::TextEditor::mouseDown (mouseEvent);
 }
 
 void CustomTextEditor::mouseUp (const juce::MouseEvent& mouseEvent)
 {
-    DebugLog ("CustomTextEditor", "mouseUp");
     if (mouseCaptured == true)
     {
         DebugLog ("CustomTextEditor", "releasing mouse");
@@ -32,6 +33,7 @@ void CustomTextEditor::mouseUp (const juce::MouseEvent& mouseEvent)
     }
     else
     {
+        DebugLog ("CustomTextEditor", "mouseUp");
         juce::TextEditor::mouseUp (mouseEvent);
     }
 }
@@ -54,6 +56,7 @@ void CustomTextEditor::mouseExit (const juce::MouseEvent& mouseEvent)
         juce::TextEditor::mouseExit (mouseEvent);
 }
 
+
 void CustomTextEditor::mouseDrag (const juce::MouseEvent& mouseEvent)
 {
     if (!mouseCaptured)
@@ -62,22 +65,29 @@ void CustomTextEditor::mouseDrag (const juce::MouseEvent& mouseEvent)
         return;
     }
 
-    auto yDiff { (mouseEvent.getPosition ().getY () - lastY) * -1 };
-    const auto signage { yDiff >= 0 ? 1 : -1 };
-    auto positiveDiff { std::min (std::abs (yDiff), 20) };
-    auto dragSpeed { 0 };
-    if (positiveDiff < 2)
-        dragSpeed = 1;
-    else if (positiveDiff < 4)
-        dragSpeed = 2;
-    else if (positiveDiff < 6)
-        dragSpeed = 5;
-    else
-        dragSpeed = 10;
-    const auto finalDragSpeed { dragSpeed * signage };
-    DebugLog ("CustomTextEditor", juce::String (positiveDiff) + ", " + juce::String (finalDragSpeed));
+    auto finalDragSpeed { 1.0 };
+    const auto moveDiff { mouseEvent.getPosition ().getY () - lastY };
+    const auto absDiff { std::abs (moveDiff) };
+    if (absDiff > maxYMove)
+        maxYMove = absDiff;
+    const auto constrainedAbsDiff { std::max (std::min (absDiff, 50), 1) }; // a number between 1 and 50
+     finalDragSpeed = std::min (0.1, constrainedAbsDiff / 50.0); // a number between 0.1 and 1
+    if (finalDragSpeed > 0.95)
+        finalDragSpeed = 1.0;
+//     if (finalDragSpeed <= lastDragSpeed)
+//         moveFilter.setCurValue (finalDragSpeed);
+//     else
+//         moveFilter.doFilter (finalDragSpeed);
+//     if (finalDragSpeed < 0.0)
+//         finalDragSpeed = 0.1;
+    if (finalDragSpeed < 0.03)
+        finalDragSpeed = 0.01;
+    finalDragSpeed = finalDragSpeed * (moveDiff < 0.0 ? 1.0 : -1.0);
+    lastDragSpeed = finalDragSpeed;
+    DebugLog ("CustomTextEditor", "[moveDiff: " + juce::String(moveDiff) + ", maxYMove: " + juce::String (maxYMove));
+    DebugLog ("CustomTextEditor", "finalDragSpeed: " + juce::String(finalDragSpeed * 100));
     if (onDrag != nullptr)
-        onDrag (finalDragSpeed);
+        onDrag (finalDragSpeed * 100);
     lastY = mouseEvent.getPosition ().getY ();
 }
 

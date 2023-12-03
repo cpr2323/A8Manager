@@ -1,5 +1,4 @@
 #include "CvInputComboBox.h"
-#include "../../../Utility/DebugLog.h"
 
 CvInputComboBox::CvInputComboBox (ListType listType)
 {
@@ -12,7 +11,6 @@ CvInputComboBox::CvInputComboBox (ListType listType)
         startingIndex = 1;
 
     addAndMakeVisible (cvInputComboBox);
-    DebugLog ("CvInputComboBox", "ctor - startingIndex: " + juce::String (startingIndex));
     cvInputComboBox.addItem ("Off", 1);
     for (auto channelIndex { startingIndex }; channelIndex < 9; ++channelIndex)
         for (auto columnIndex { 0 }; columnIndex < 3; ++columnIndex)
@@ -24,7 +22,6 @@ CvInputComboBox::CvInputComboBox (ListType listType)
     {
         const auto id { cvInputComboBox.getItemId (cbIndex) };
         const auto text { cvInputComboBox.getItemText (cbIndex) };
-        DebugLog ("CvInputComboBox", "ctor - id/text: " + juce::String (id) + "/" + text);
     }
     cvInputComboBox.onChange = [this] ()
     {

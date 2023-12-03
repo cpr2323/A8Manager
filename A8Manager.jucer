@@ -234,6 +234,8 @@
               file="Source/Utility/RuntimeRootProperties.cpp"/>
         <FILE id="bVL7gX" name="RuntimeRootProperties.h" compile="0" resource="0"
               file="Source/Utility/RuntimeRootProperties.h"/>
+        <FILE id="vESMQw" name="SinglePoleFilter.h" compile="0" resource="0"
+              file="Source/Utility/SinglePoleFilter.h"/>
         <FILE id="FboCdx" name="SplitWindowComponent.cpp" compile="1" resource="0"
               file="Source/Utility/SplitWindowComponent.cpp"/>
         <FILE id="oat4mf" name="SplitWindowComponent.h" compile="0" resource="0"

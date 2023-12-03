@@ -1,6 +1,7 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "SinglePoleFilter.h"
 
 class CustomTextEditor : public juce::TextEditor
 {
@@ -11,6 +12,10 @@ public:
 private:
     bool mouseCaptured { false };
     int lastY { 0 };
+    int maxYMove { 0 };
+    double lastDragSpeed { 0.0 };
+
+    SinglePoleFilter moveFilter;
 
     void mouseDown (const juce::MouseEvent& mouseEvent) override;
     void mouseUp (const juce::MouseEvent& mouseEvent) override;
