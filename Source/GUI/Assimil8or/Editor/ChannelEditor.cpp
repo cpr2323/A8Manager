@@ -64,6 +64,7 @@ ChannelEditor::ChannelEditor ()
     });
     loopLengthIsEndComboBox.onDrag = [this] (int dragSpeed)
     {
+        channelProperties.setLoopLengthIsEnd (std::clamp (loopLengthIsEndComboBox.getSelectedItemIndex () + dragSpeed, 0, loopLengthIsEndComboBox.getNumItems () - 1), true);
     };
     loopLengthIsEndComboBox.onPopupMenu = [this] ()
     {
@@ -577,6 +578,7 @@ void ChannelEditor::setupChannelComponents ()
     });
     linAMisExtEnvComboBox.onDrag = [this] (int dragSpeed)
     {
+        channelProperties.setLinAMisExtEnv (std::clamp (linAMisExtEnvComboBox.getSelectedItemIndex () + dragSpeed, 0, linAMisExtEnvComboBox.getNumItems () - 1) == 1, true);
     };
     linAMisExtEnvComboBox.onPopupMenu = [this] ()
     {
@@ -726,6 +728,7 @@ void ChannelEditor::setupChannelComponents ()
     });
     attackFromCurrentComboBox.onDrag = [this] (int dragSpeed)
     {
+        channelProperties.setAttackFromCurrent (std::clamp (attackFromCurrentComboBox.getSelectedItemIndex () + dragSpeed, 0, attackFromCurrentComboBox.getNumItems () - 1) == 1, true);
     };
     attackFromCurrentComboBox.onPopupMenu = [this] ()
     {
@@ -993,6 +996,7 @@ void ChannelEditor::setupChannelComponents ()
     });
     mixModIsFaderComboBox.onDrag = [this] (int dragSpeed)
     {
+        channelProperties.setMixModIsFader (std::clamp (mixModIsFaderComboBox.getSelectedItemIndex () + dragSpeed, 0, mixModIsFaderComboBox.getNumItems () - 1) == 1, true);
     };
     mixModIsFaderComboBox.onPopupMenu = [this] ()
     {
@@ -1009,6 +1013,7 @@ void ChannelEditor::setupChannelComponents ()
     });
     autoTriggerComboBox.onDrag = [this] (int dragSpeed)
     {
+        channelProperties.setAutoTrigger (std::clamp (autoTriggerComboBox.getSelectedItemIndex () + dragSpeed, 0, autoTriggerComboBox.getNumItems () - 1) == 1, true);
     };
     autoTriggerComboBox.onPopupMenu = [this] ()
     {
@@ -1021,6 +1026,7 @@ void ChannelEditor::setupChannelComponents ()
     setupComboBox (playModeComboBox, "PlayMode", [this] () { playModeUiChanged (playModeComboBox.getSelectedId () - 1); });
     playModeComboBox.onDrag = [this] (int dragSpeed)
     {
+        channelProperties.setPlayMode (std::clamp (playModeComboBox.getSelectedItemIndex () + dragSpeed, 0, playModeComboBox.getNumItems () - 1), true);
     };
     playModeComboBox.onPopupMenu = [this] ()
     {
@@ -1034,6 +1040,7 @@ void ChannelEditor::setupChannelComponents ()
     setupComboBox (loopModeComboBox, "LoopMode", [this] () { loopModeUiChanged (loopModeComboBox.getSelectedId () - 1); });
     loopModeComboBox.onDrag = [this] (int dragSpeed)
     {
+        channelProperties.setLoopMode (std::clamp (loopModeComboBox.getSelectedItemIndex () + dragSpeed, 0, loopModeComboBox.getNumItems () - 1), true);
     };
     loopModeComboBox.onPopupMenu = [this] ()
     {
@@ -1052,6 +1059,7 @@ void ChannelEditor::setupChannelComponents ()
     });
     channelModeComboBox.onDrag = [this] (int dragSpeed)
     {
+        channelProperties.setChannelMode (std::clamp (channelModeComboBox.getSelectedItemIndex () + dragSpeed, 0, channelModeComboBox.getNumItems () - 1), true);
     };
     channelModeComboBox.onPopupMenu = [this] ()
     {
@@ -1157,6 +1165,8 @@ void ChannelEditor::setupChannelComponents ()
     setupComboBox (xfadeGroupComboBox, "XfadeGroup", [this] () { xfadeGroupUiChanged (xfadeGroupComboBox.getText ()); });
     xfadeGroupComboBox.onDrag = [this] (int dragSpeed)
     {
+        xfadeGroupComboBox.setSelectedItemIndex (std::clamp (xfadeGroupComboBox.getSelectedItemIndex () + dragSpeed, 0, xfadeGroupComboBox.getNumItems () - 1));
+        channelProperties.setXfadeGroup (xfadeGroupComboBox.getText() ,false);
     };
     xfadeGroupComboBox.onPopupMenu = [this] ()
     {
@@ -1175,6 +1185,7 @@ void ChannelEditor::setupChannelComponents ()
     setupComboBox (zonesRTComboBox, "ZonesRT", [this] () { zonesRTUiChanged (zonesRTComboBox.getSelectedId () - 1); });
     zonesRTComboBox.onDrag = [this] (int dragSpeed)
     {
+        channelProperties.setZonesRT (std::clamp (zonesRTComboBox.getSelectedItemIndex () + dragSpeed, 0, zonesRTComboBox.getNumItems () - 1), true);
     };
     zonesRTComboBox.onPopupMenu = [this] ()
     {
@@ -1537,7 +1548,7 @@ void ChannelEditor::setupChannelPropertiesCallbacks ()
     channelProperties.onSpliceSmoothingChange = [this] (bool spliceSmoothing) { spliceSmoothingDataChanged (spliceSmoothing);  };
     channelProperties.onXfadeGroupChange = [this] (juce::String xfadeGroup) { xfadeGroupDataChanged (xfadeGroup);  };
     channelProperties.onZonesCVChange = [this] (juce::String zonesCV) { zonesCVDataChanged (zonesCV);  };
-    channelProperties.onZonesRTChange = [this] (int zonesRT) { loopModeDataChanged (zonesRT);  };
+    channelProperties.onZonesRTChange = [this] (int zonesRT) { zonesRTDataChanged (zonesRT);  };
 }
 
 void ChannelEditor::checkStereoRightOverlay ()

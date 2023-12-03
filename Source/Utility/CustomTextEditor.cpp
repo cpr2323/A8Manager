@@ -56,7 +56,6 @@ void CustomTextEditor::mouseExit (const juce::MouseEvent& mouseEvent)
         juce::TextEditor::mouseExit (mouseEvent);
 }
 
-
 void CustomTextEditor::mouseDrag (const juce::MouseEvent& mouseEvent)
 {
     if (!mouseCaptured)
