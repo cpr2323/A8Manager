@@ -153,18 +153,18 @@ private:
     void levelOffsetUiChanged (double levelOffset);
     void loopLengthDataChanged (std::optional<double> loopLength);
     void loopLengthUiChanged (double loopLength);
-    void loopStartDataChanged (std::optional <int64_t> loopStart);
-    void loopStartUiChanged (int64_t loopStart);
+    void loopStartDataChanged (std::optional <juce::int64> loopStart);
+    void loopStartUiChanged (juce::int64 loopStart);
     void minVoltageDataChanged (double minVoltage);
     void minVoltageUiChanged (double minVoltage);
     void pitchOffsetDataChanged (double pitchOffset);
     void pitchOffsetUiChanged (double pitchOffset);
     void sampleDataChanged (juce::String sample);
     void sampleUiChanged (juce::String sample);
-    void sampleStartDataChanged (std::optional <int64_t> sampleStart);
-    void sampleStartUiChanged (int64_t sampleStart);
-    void sampleEndDataChanged (std::optional <int64_t> sampleEnd);
-    void sampleEndUiChanged (int64_t sampleEnd);
+    void sampleStartDataChanged (std::optional <juce::int64> sampleStart);
+    void sampleStartUiChanged (juce::int64 sampleStart);
+    void sampleEndDataChanged (std::optional <juce::int64> sampleEnd);
+    void sampleEndUiChanged (juce::int64 sampleEnd);
     void setDropIndex (const juce::StringArray& files, int x, int y);
 
     bool isInterestedInFileDrag (const juce::StringArray& files) override;

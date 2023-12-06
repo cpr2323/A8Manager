@@ -36,7 +36,7 @@ private:
     // TODO - my current thought is that the DirectoryValueTree class should perform all of the checks (files types, supported audio, etc), and store into in the valuetree
     juce::AudioFormatManager audioFormatManager;
 
-    int64_t lastScanInProgressUpdate {};
+    juce::int64 lastScanInProgressUpdate {};
     ValdatationState valdatationState { ValdatationState::idle };
     juce::CriticalSection threadManagmentLock;
     std::atomic<bool> cancelCurrentValidation { false };

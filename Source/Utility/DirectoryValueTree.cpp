@@ -109,7 +109,7 @@ void DirectoryValueTree::sendStatusUpdate (DirectoryDataProperties::ScanStatus s
     });
 }
 
-juce::ValueTree DirectoryValueTree::makeFileEntry (juce::File file, int64_t createTime, int64_t modificationTime, DirectoryDataProperties::TypeIndex fileType)
+juce::ValueTree DirectoryValueTree::makeFileEntry (juce::File file, juce::int64 createTime, juce::int64 modificationTime, DirectoryDataProperties::TypeIndex fileType)
 {
     auto fileVT { FileProperties::create (file.getFullPathName (), createTime, modificationTime, fileType) };
     if (scanType == ScanType::fullScan)
@@ -128,7 +128,7 @@ juce::ValueTree DirectoryValueTree::makeFileEntry (juce::File file, int64_t crea
                 fileVT.setProperty ("bitDepth", static_cast<int> (reader->bitsPerSample), nullptr);
                 fileVT.setProperty ("numChannels", static_cast<int> (reader->numChannels), nullptr);
                 fileVT.setProperty ("sampleRate", static_cast<int> (reader->sampleRate), nullptr);
-                fileVT.setProperty ("lengthSamples", static_cast<int64_t> (reader->lengthInSamples), nullptr);
+                fileVT.setProperty ("lengthSamples", static_cast<juce::int64> (reader->lengthInSamples), nullptr);
             }
         }
         break;

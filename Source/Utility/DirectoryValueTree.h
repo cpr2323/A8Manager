@@ -38,7 +38,7 @@ private:
     LambdaThread checkThread { "CheckThread", 1000 };
 
     int scanDepth { -1 };
-    int64_t lastScanInProgressUpdate {};
+    juce::int64 lastScanInProgressUpdate {};
     std::atomic<bool> cancelScan { false };
     std::atomic<bool> cancelCheck { false };
     juce::CriticalSection taskManagementCS;
@@ -54,7 +54,7 @@ private:
     juce::String getTaskManagementStateString (TaskManagementState theThreadState);
     TaskManagementState getRequestedTaskManagementState ();
     bool hasFolderChanged (juce::ValueTree directoryVT);
-    juce::ValueTree makeFileEntry (juce::File file, int64_t createTime, int64_t modificationTime, DirectoryDataProperties::TypeIndex fileType);
+    juce::ValueTree makeFileEntry (juce::File file, juce::int64 createTime, juce::int64 modificationTime, DirectoryDataProperties::TypeIndex fileType);
     void scanDirectory ();
     void sendStatusUpdate (DirectoryDataProperties::ScanStatus scanStatus);
     void setCurrentTaskManagementState (DirectoryValueTree::TaskManagementState newThreadState);

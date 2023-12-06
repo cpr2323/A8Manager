@@ -425,7 +425,7 @@ void ChannelEditor::setupChannelComponents ()
                 channelProperties.setPitch (value, false);
             });
         });
-        pm.addSubMenu ("Special", special, true);
+        pm.addSubMenu ("Clone", special, true);
         pm.showMenuAsync ({}, [this] (int) {});
     };
 
@@ -475,7 +475,7 @@ void ChannelEditor::setupChannelComponents ()
                 //channelProperties.setPitch (value, false);
             });
         });
-        pm.addSubMenu ("Special", special, true);
+        pm.addSubMenu ("Clone", special, true);
         pm.showMenuAsync ({}, [this] (int) {});
     });
 

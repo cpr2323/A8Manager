@@ -231,7 +231,7 @@ juce::String FileViewComponent::getTooltipForRow (int row)
             toolTip += juce::String ("\r") + "BitDepth: " + juce::String (static_cast<int> (directoryEntryVT.getProperty ("bitDepth")));
             toolTip += juce::String ("\r") + "Channels: " + juce::String (static_cast<int> (directoryEntryVT.getProperty ("numChannels")));
             toolTip += juce::String ("\r") + "SampleRate: " + juce::String (sampleRate);
-            toolTip += juce::String ("\r") + "Length: " + juce::String (static_cast<double> (static_cast<int64_t> (directoryEntryVT.getProperty ("lengthSamples"))) / sampleRate, 2);
+            toolTip += juce::String ("\r") + "Length: " + juce::String (static_cast<double> (static_cast<juce::int64> (directoryEntryVT.getProperty ("lengthSamples"))) / sampleRate, 2);
         }
         return toolTip;
     }

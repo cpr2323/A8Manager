@@ -6,7 +6,7 @@ void LoopPointsView::setAudioBuffer (juce::AudioBuffer<float>* theAudioBuffer)
     audioBuffer = theAudioBuffer;
 }
 
-void LoopPointsView::setLoopPoints (int64_t theSampleOffset, int64_t theNumSamples)
+void LoopPointsView::setLoopPoints (juce::int64 theSampleOffset, juce::int64 theNumSamples)
 {
     sampleOffset = theSampleOffset;
     numSamples = theNumSamples;
@@ -21,7 +21,7 @@ void LoopPointsView::paint (juce::Graphics& g)
     {
         juce::dsp::AudioBlock<float> audioBlock { *audioBuffer };
         juce::dsp::AudioBlock<float> loopSamples { audioBlock.getSubBlock (sampleOffset, numSamples) };
-        const auto samplesToDisplay { static_cast<int> (std::min<int64_t> (numSamples, halfWidth)) };
+        const auto samplesToDisplay { static_cast<int> (std::min<juce::int64> (numSamples, halfWidth)) };
 
         g.setColour (juce::Colours::black);
         auto readPtr { loopSamples.getChannelPointer (0) };

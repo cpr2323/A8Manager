@@ -6,12 +6,12 @@ class LoopPointsView : public juce::Component
 {
 public:
     void setAudioBuffer (juce::AudioBuffer<float>* theAudioBuffer);
-    void setLoopPoints (int64_t theSampleOffset, int64_t theNumSamples);
+    void setLoopPoints (juce::int64 theSampleOffset, juce::int64 theNumSamples);
 
 private:
     juce::AudioBuffer<float>* audioBuffer { nullptr };
-    int64_t sampleOffset { 0 };
-    int64_t numSamples { 0 };
+    juce::int64 sampleOffset { 0 };
+    juce::int64 numSamples { 0 };
 
     void paint (juce::Graphics& g);
 };

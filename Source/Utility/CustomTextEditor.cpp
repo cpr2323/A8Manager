@@ -86,7 +86,7 @@ void CustomTextEditor::mouseDrag (const juce::MouseEvent& mouseEvent)
     DebugLog ("CustomTextEditor", "[moveDiff: " + juce::String(moveDiff) + ", maxYMove: " + juce::String (maxYMove));
     DebugLog ("CustomTextEditor", "finalDragSpeed: " + juce::String(finalDragSpeed * 100));
     if (onDrag != nullptr)
-        onDrag (finalDragSpeed * 100);
+        onDrag (static_cast<int> (finalDragSpeed * 100));
     lastY = mouseEvent.getPosition ().getY ();
 }
 

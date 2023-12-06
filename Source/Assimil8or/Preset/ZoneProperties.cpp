@@ -41,7 +41,7 @@ void ZoneProperties::setLoopLength (double loopLength, bool includeSelfCallback)
     setValue (loopLength, LoopLengthPropertyId, includeSelfCallback);
 }
 
-void ZoneProperties::setLoopStart (int64_t loopStart, bool includeSelfCallback)
+void ZoneProperties::setLoopStart (juce::int64 loopStart, bool includeSelfCallback)
 {
     setValue (loopStart, LoopStartPropertyId, includeSelfCallback);
 }
@@ -62,12 +62,12 @@ void ZoneProperties::setSample (juce::String sampleFileName, bool includeSelfCal
     setValue (sampleFileName, SamplePropertyId, includeSelfCallback);
 }
 
-void ZoneProperties::setSampleStart (int64_t sampleStart, bool includeSelfCallback)
+void ZoneProperties::setSampleStart (juce::int64 sampleStart, bool includeSelfCallback)
 {
     setValue (sampleStart, SampleStartPropertyId, includeSelfCallback);
 }
 
-void ZoneProperties::setSampleEnd (int64_t sampleEnd, bool includeSelfCallback)
+void ZoneProperties::setSampleEnd (juce::int64 sampleEnd, bool includeSelfCallback)
 {
     setValue (sampleEnd, SampleEndPropertyId, includeSelfCallback);
 }
@@ -98,9 +98,9 @@ std::optional<double> ZoneProperties::getLoopLength ()
     return loopLength;
 }
 
-std::optional <int64_t> ZoneProperties::getLoopStart ()
+std::optional <juce::int64> ZoneProperties::getLoopStart ()
 {
-    const auto loopStart { getValue<int64_t> (LoopStartPropertyId) };
+    const auto loopStart { getValue<juce::int64> (LoopStartPropertyId) };
     if (loopStart == -1) // -1 indicates uninitialized
         return {};
     return loopStart;
@@ -121,17 +121,17 @@ juce::String ZoneProperties::getSample ()
     return getValue<juce::String> (SamplePropertyId);
 }
 
-std::optional <int64_t> ZoneProperties::getSampleStart ()
+std::optional <juce::int64> ZoneProperties::getSampleStart ()
 {
-    const auto sampleStart { getValue<int64_t> (SampleStartPropertyId) };
+    const auto sampleStart { getValue<juce::int64> (SampleStartPropertyId) };
     if (sampleStart == -1) // -1 indicate uninitialized
         return {};
     return sampleStart;
 }
 
-std::optional <int64_t> ZoneProperties::getSampleEnd ()
+std::optional <juce::int64> ZoneProperties::getSampleEnd ()
 {
-    const auto sampleEnd { getValue<int64_t> (SampleEndPropertyId) };
+    const auto sampleEnd { getValue<juce::int64> (SampleEndPropertyId) };
     if (sampleEnd == -1) // -1 indicate uninitialized
         return {};
     return sampleEnd;
