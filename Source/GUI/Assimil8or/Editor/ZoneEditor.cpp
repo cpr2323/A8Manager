@@ -785,9 +785,10 @@ juce::String ZoneEditor::formatLoopLength (double loopLength)
         return juce::String (static_cast<int> (loopLength));
 }
 
+// TODO - this should be done in the Directory scan, and stored in a property
 bool ZoneEditor::isSupportedAudioFile (juce::File file)
 {
-    if (file.isDirectory () || file.getFileExtension () != ".wav")
+    if (file.isDirectory () || file.getFileExtension ().toLowerCase() != ".wav")
         return false;
     std::unique_ptr<juce::AudioFormatReader> reader (audioFormatManager.createReaderFor (file));
     if (reader == nullptr)

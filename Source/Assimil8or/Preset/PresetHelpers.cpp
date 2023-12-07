@@ -176,7 +176,7 @@ namespace PresetHelpers
         juce::AudioFormatManager audioFormatManager;
         audioFormatManager.registerBasicFormats ();
 
-        if (file.isDirectory () || file.getFileExtension () != ".wav")
+        if (file.isDirectory () || file.getFileExtension ().toLowerCase() != ".wav")
             return false;
         std::unique_ptr<juce::AudioFormatReader> reader (audioFormatManager.createReaderFor (file));
         if (reader == nullptr)

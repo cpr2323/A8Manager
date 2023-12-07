@@ -40,25 +40,25 @@ void CustomTextEditor::mouseUp (const juce::MouseEvent& mouseEvent)
 
 void CustomTextEditor::mouseMove (const juce::MouseEvent& mouseEvent)
 {
-    if (!mouseCaptured)
+    if (! mouseCaptured)
         juce::TextEditor::mouseMove (mouseEvent);
 }
 
 void CustomTextEditor::mouseEnter (const juce::MouseEvent& mouseEvent)
 {
-    if (!mouseCaptured)
+    if (! mouseCaptured)
         juce::TextEditor::mouseEnter (mouseEvent);
 }
 
 void CustomTextEditor::mouseExit (const juce::MouseEvent& mouseEvent)
 {
-    if (!mouseCaptured)
+    if (! mouseCaptured)
         juce::TextEditor::mouseExit (mouseEvent);
 }
 
 void CustomTextEditor::mouseDrag (const juce::MouseEvent& mouseEvent)
 {
-    if (!mouseCaptured)
+    if (! mouseCaptured)
     {
         juce::TextEditor::mouseDrag (mouseEvent);
         return;
@@ -92,12 +92,12 @@ void CustomTextEditor::mouseDrag (const juce::MouseEvent& mouseEvent)
 
 void CustomTextEditor::mouseDoubleClick (const juce::MouseEvent& mouseEvent)
 {
-    if (!mouseCaptured)
+    if (! mouseCaptured)
         juce::TextEditor::mouseDoubleClick (mouseEvent);
 }
 
 void CustomTextEditor::mouseWheelMove (const juce::MouseEvent& mouseEvent, const juce::MouseWheelDetails& wheel)
 {
-    if (!mouseCaptured)
+    if (! mouseCaptured)
         juce::TextEditor::mouseWheelMove (mouseEvent, wheel);
 }
