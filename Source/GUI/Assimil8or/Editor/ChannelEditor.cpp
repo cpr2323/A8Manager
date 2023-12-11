@@ -370,24 +370,28 @@ void ChannelEditor::setupChannelComponents ()
 
     /////////////////////////////////////////
     // column one
-    // PITCH
+    // 
+    // Pitch Editor
+    auto constrainAndSetPitch = [this] (double pitch)
+    {
+        const auto newPitch { std::clamp (pitch, minChannelProperties.getPitch (), maxChannelProperties.getPitch ()) };
+        pitchUiChanged (newPitch);
+        pitchTextEditor.setText (FormatHelpers::formatDouble (newPitch, 2, true));
+    };
     setupLabel (pitchLabel, "PITCH", kLargeLabelSize, juce::Justification::centred);
     setupTextEditor (pitchTextEditor, juce::Justification::centred, 0, "+-.0123456789", "Pitch", [this] ()
     {
         FormatHelpers::setColorIfError (pitchTextEditor, minChannelProperties.getPitch (), maxChannelProperties.getPitch ());
     },
-    [this] (juce::String text)
+    [this, constrainAndSetPitch] (juce::String text)
     {
-        const auto pitch { std::clamp (text.getDoubleValue (), minChannelProperties.getPitch (), maxChannelProperties.getPitch ()) };
-        pitchUiChanged (pitch);
-        pitchTextEditor.setText (FormatHelpers::formatDouble (pitch, 2, true));
+        constrainAndSetPitch (text.getDoubleValue ());
     });
-    pitchTextEditor.onDrag = [this] (int dragSpeed)
+    pitchTextEditor.onDrag = [this, constrainAndSetPitch] (int dragSpeed)
     {
         const auto incAmount { 0.01 * dragSpeed };
         const auto newAmount { channelProperties.getPitch () + incAmount };
-        auto pitch { std::clamp (newAmount, minChannelProperties.getPitch (), maxChannelProperties.getPitch ()) };
-        channelProperties.setPitch (pitch, true);
+        constrainAndSetPitch (newAmount);
     };
     pitchTextEditor.onPopupMenu = [this] ()
     {
@@ -428,8 +432,7 @@ void ChannelEditor::setupChannelComponents ()
         pm.addSubMenu ("Clone", special, true);
         pm.showMenuAsync ({}, [this] (int) {});
     };
-
-    //
+    // Pitch CV Input Selector
     setupLabel (pitchSemiLabel, "SEMI", kSmallLabelSize, juce::Justification::centredLeft);
     setupCvInputComboBox (pitchCVComboBox, "PitchCV", [this] () { pitchCVUiChanged (pitchCVComboBox.getSelectedItemText (), pitchCVTextEditor.getText ().getDoubleValue ()); });
     pitchCVComboBox.setOnDragFunction ([this] (int dragSpeed)
@@ -478,20 +481,27 @@ void ChannelEditor::setupChannelComponents ()
         pm.addSubMenu ("Clone", special, true);
         pm.showMenuAsync ({}, [this] (int) {});
     });
-
+    // Pitch CV Offset Editor
+    auto constrainAndSetPitchCv = [this] (double pitchCV)
+    {
+        const auto newPitchCV { std::clamp (pitchCV, FormatHelpers::getAmount (minChannelProperties.getPitchCV ()),
+                                                     FormatHelpers::getAmount (maxChannelProperties.getPitchCV ())) };
+        pitchCVUiChanged (pitchCVComboBox.getSelectedItemText (), newPitchCV);
+        pitchCVTextEditor.setText (FormatHelpers::formatDouble (newPitchCV, 2, true));
+    };
     setupTextEditor (pitchCVTextEditor, juce::Justification::centred, 0, "+-.0123456789", "PitchCV", [this] ()
     {
         FormatHelpers::setColorIfError (pitchCVTextEditor, FormatHelpers::getAmount (minChannelProperties.getPitchCV ()), FormatHelpers::getAmount (maxChannelProperties.getPitchCV ()));
     },
-    [this] (juce::String text)
+    [this, constrainAndSetPitchCv] (juce::String text)
     {
-        const auto pitchCV { std::clamp (text.getDoubleValue (), FormatHelpers::getAmount (minChannelProperties.getPitchCV ()),
-                                                                 FormatHelpers::getAmount (maxChannelProperties.getPitchCV ())) };
-        pitchCVUiChanged (pitchCVComboBox.getSelectedItemText (), pitchCV);
-        pitchCVTextEditor.setText (FormatHelpers::formatDouble (pitchCV, 2, true));
+        constrainAndSetPitchCv (text.getDoubleValue ());
     });
-    pitchCVTextEditor.onDrag = [this] (int dragSpeed)
+    pitchCVTextEditor.onDrag = [this, constrainAndSetPitchCv] (int dragSpeed)
     {
+        const auto incAmount { 0.01 * dragSpeed };
+        const auto newAmount { FormatHelpers::getAmount (channelProperties.getPitchCV ()) + incAmount };
+        constrainAndSetPitchCv (newAmount);
     };
     pitchCVTextEditor.onPopupMenu = [this] ()
     {
