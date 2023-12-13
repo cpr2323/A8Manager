@@ -7,11 +7,29 @@ static void dumpValueTreeContentInternal (juce::ValueTree vt, bool displayProper
     juce::String indentString { std::string (indentLevel, ' ') };
     displayFunction (indentString + vt.getType ().toString ());
     if (displayProperties)
+    {
+        juce::String outputLine;
         for (auto propIndex { 0 }; propIndex < vt.getNumProperties (); ++propIndex)
         {
             const auto propertyName { vt.getPropertyName (propIndex) };
-            displayFunction (indentString + "  " + propertyName + " = '" + vt.getProperty (propertyName).toString () + "'");
+            const auto propertyOutput { propertyName + " = '" + vt.getProperty (propertyName).toString () + "'" };
+            if (outputLine.length () == 0)
+            {
+                outputLine = propertyOutput;
+            }
+            else if (outputLine.length () + propertyOutput.length () + 1 > 80)
+            {
+                displayFunction (indentString + "  " + outputLine);
+                outputLine = propertyOutput;
+            }
+            else
+            {
+                outputLine += " " + propertyOutput;
+            }
         }
+        if (outputLine.length () > 0)
+            displayFunction (indentString + "  " + outputLine);
+    }
     for (const auto& child : vt)
         dumpValueTreeContentInternal (child, displayProperties, indentLevel + 1, displayFunction);
 }
@@ -30,10 +48,34 @@ namespace ValueTreeHelpers
 
     void forEachChild (juce::ValueTree parent, std::function<bool (juce::ValueTree child)> childCallback)
     {
-        const auto numChildren { parent.getNumChildren () };
-        for (auto childIndex { 0 }; childIndex < numChildren; ++childIndex)
+        for (auto childIndex { 0 }; childIndex < parent.getNumChildren (); ++childIndex)
+        {
             if (! childCallback (parent.getChild (childIndex)))
                 break;
+        }
+    }
+
+    void forEachChildOfType (juce::ValueTree parent, juce::Identifier childType, std::function<bool (juce::ValueTree child)> childCallback)
+    {
+        forEachChild (parent, [childCallback, childType] (juce::ValueTree child)
+        {
+            if (child.getType () != childType)
+                return true;
+
+            return childCallback (child);
+        });
+    }
+
+    void forEachProperty (juce::ValueTree vt, std::function<bool (juce::Identifier property)> propertyCallback)
+    {
+        jassert (propertyCallback != nullptr);
+        const auto numProperties { vt.getNumProperties () };
+        for (auto propertyIndex { 0 }; propertyIndex < numProperties; ++propertyIndex)
+        {
+            if (! propertyCallback (vt.getPropertyName (propertyIndex)))
+                break;
+        }
+
     }
 
     juce::ValueTree findChild (juce::ValueTree parent, std::function<bool (juce::ValueTree child)> findChildCallback)
@@ -79,7 +121,7 @@ namespace ValueTreeHelpers
 
     void overwriteExistingProperties (juce::ValueTree source, juce::ValueTree dest)
     {
-        for (int i = 0; i < source.getNumProperties (); i++)
+        for (int i { 0 }; i < source.getNumProperties (); i++)
             dest.setProperty (source.getPropertyName (i), source.getProperty (source.getPropertyName (i)), nullptr);
     }
 
@@ -132,7 +174,7 @@ namespace ValueTreeHelpers
             const auto propertyName { firstVT.getPropertyName (propertyIndex) };
             if (logCompareFailures == LogCompareFailures::yes)
             {
-                //DebugLog ("checking property("+String(propertyIndex)+"): " + propertyName);
+                //DebugLog ("checking property ("+String (propertyIndex)+"): " + propertyName);
 //                 if (! secondVT.hasProperty (propertyName))
 //                     DebugLog ("comparePropertiesUnOrdered - ! secondVT.hasProperty (" + propertyName + ")");
 //                 if (firstVT.getProperty (propertyName) != secondVT.getProperty (propertyName))
@@ -156,7 +198,7 @@ namespace ValueTreeHelpers
 
         tree.writeToStream (stream);
 
-        for (size_t i = 0; i < stream.getDataSize (); i++)
+        for (size_t i { 0 }; i < stream.getDataSize (); i++)
             crc.update (((uint8_t*) stream.getData ()) [i]);
 
         return crc.getCrc ();

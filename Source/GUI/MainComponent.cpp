@@ -1,34 +1,102 @@
 #include "MainComponent.h"
+#include "../Utility/PersistentRootProperties.h"
+#include "../Utility/RuntimeRootProperties.h"
 
 const auto toolWindowHeight { 30 };
 
-MainComponent::MainComponent (juce::ValueTree persistentRootPropertiesVT, juce::ValueTree runtimeRootPropertiesVT)
+//  +----------------+-------------+-----------------------------------+
+//  |Current Path                                                      |
+//  +----------------+-------------+-----------------------------------+
+//  | ..             | Preset 1    |                                   |
+//  | folderX        | Preset 2    |                                   |
+//  | folder34       | Preset 3    |                                   |
+//  | fileAbc        | Preset 4    |                                   |
+//  | fileElif       | Preset ...  |                                   |
+// ...              ...           ...                                 ...
+//  |                | Preset 199  |                                   |
+//  +----------------+-------------+-----------------------------------+
+//  | Type | Fix | Message (X items)                                   |
+//  +------+-----+-----------------------------------------------------+
+//  |      |     |                                                     |
+//  |      |     |                                                     |
+//  |      |     |                                                     |
+//  |      |     |                                                     |
+//  |      |     |                                                     |
+//  +------+-----+-----------------------------------------------------+
+//  |  Tool Bar                                                        |
+//  +------------------------------------------------------------------+
+
+MainComponent::MainComponent (juce::ValueTree rootPropertiesVT)
 {
-    setSize (800, 600);
+    setSize (1117, 609);
 
-    //toolWindow.setResetFunction ([this] () { currentParticleSystemClient->initParticles (); });
-    //toolWindow.setRunFunction ([this] () { currentParticleSystemClient->setEnabled (! currentParticleSystemClient->isEnabled ());
-    //                                       toolWindow.setRunState (currentParticleSystemClient->isEnabled ()); });
+    PersistentRootProperties persistentRootProperties (rootPropertiesVT, PersistentRootProperties::WrapperType::client, PersistentRootProperties::EnableCallbacks::no);
+    guiProperties.wrap (persistentRootProperties.getValueTree (), GuiProperties::WrapperType::client, GuiProperties::EnableCallbacks::no);
 
-    //toolWindow.setRunState (currentParticleSystemClient->isEnabled ());
+    fileViewComponent.overwritePresetOrCancel = [this] (std::function<void ()> overwriteFunction, std::function<void ()> cancelFunction)
+    {
+        assimil8orEditorComponent.overwritePresetOrCancel (overwriteFunction, cancelFunction);
+    };
+    presetListComponent.overwritePresetOrCancel = [this] (std::function<void ()> overwriteFunction, std::function<void ()> cancelFunction)
+    {
+        assimil8orEditorComponent.overwritePresetOrCancel (overwriteFunction, cancelFunction);
+    };
 
-//    bezierComponent.init (persistentRootPropertiesVT, runtimeRootPropertiesVT);
-//    addAndMakeVisible (bezierComponent);
-    toolWindow.init (persistentRootPropertiesVT, runtimeRootPropertiesVT);
-    addAndMakeVisible (toolWindow);
+    assimil8orEditorComponent.init (rootPropertiesVT);
+    assimil8orValidatorComponent.init (rootPropertiesVT);
+    fileViewComponent.init (rootPropertiesVT);
+    presetListComponent.init (rootPropertiesVT);
+    bottomStatusWindow.init (rootPropertiesVT);
+    currentFolderComponent.init (rootPropertiesVT);
+
+    presetListEditorSplitter.setComponents (&presetListComponent, &assimil8orEditorComponent);
+    presetListEditorSplitter.setHorizontalSplit (false);
+
+    folderBrowserEditorSplitter.setComponents (&fileViewComponent, &presetListEditorSplitter);
+    folderBrowserEditorSplitter.setHorizontalSplit (false);
+
+    topAndBottomSplitter.setComponents (&folderBrowserEditorSplitter, &assimil8orValidatorComponent);
+    topAndBottomSplitter.setHorizontalSplit (true);
+
+    presetListEditorSplitter.onLayoutChange = [this] () { saveLayoutChanges (); };
+    folderBrowserEditorSplitter.onLayoutChange = [this] () { saveLayoutChanges (); };
+    topAndBottomSplitter.onLayoutChange = [this] () { saveLayoutChanges (); };
+
+    restoreLayout ();
+
+    addAndMakeVisible (currentFolderComponent);
+    addAndMakeVisible (topAndBottomSplitter);
+    addAndMakeVisible (bottomStatusWindow);
+
+    fileViewComponent.onAudioFileSelected = [this] (juce::File audioFile) { assimil8orEditorComponent.receiveSampleLoadRequest (audioFile); };
 }
 
-MainComponent::~MainComponent ()
+void MainComponent::restoreLayout ()
 {
+    const auto [pane1Size, pane2Size, pane3Size] {guiProperties.getPaneSizes ()};
+    presetListEditorSplitter.setSplitOffset (pane1Size);
+    folderBrowserEditorSplitter.setSplitOffset (pane2Size);
+    topAndBottomSplitter.setSplitOffset (pane3Size);
+}
+
+void MainComponent::saveLayoutChanges ()
+{
+    const auto splitter1Size { presetListEditorSplitter.getSplitOffset () };
+    const auto splitter2Size { folderBrowserEditorSplitter.getSplitOffset () };
+    const auto splitter3Size { topAndBottomSplitter.getSplitOffset () };
+    guiProperties.setPaneSizes (splitter1Size, splitter2Size, splitter3Size, false);
 }
 
 void MainComponent::paint ([[maybe_unused]] juce::Graphics& g)
 {
+    g.setColour (juce::Colours::red);
 }
 
 void MainComponent::resized ()
 {
     auto localBounds { getLocalBounds () };
-    toolWindow.setBounds (localBounds.removeFromBottom (toolWindowHeight));
-//    bezierComponent.setBounds (localBounds);
+    currentFolderComponent.setBounds (localBounds.removeFromTop (30));
+    bottomStatusWindow.setBounds (localBounds.removeFromBottom (toolWindowHeight));
+    localBounds.reduce (3, 3);
+    topAndBottomSplitter.setBounds (localBounds);
 }

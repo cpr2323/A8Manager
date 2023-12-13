@@ -1,0 +1,677 @@
+Preset 2 :
+  Name : All params
+  XfadeBCV : Off
+  XfadeBWidth : 1.00
+  XfadeCCV : Off
+  XfadeCWidth : 1.00
+  XfadeDCV : Off
+  XfadeDWidth : 1.00
+  Channel 1 :
+    Aliasing : 93
+    AliasingMod : 0B 0.9200
+    Attack : 0.036
+    AttackFromCurrent : 1
+    AttackMod : 0B 0.8200
+    AutoTrigger : 1
+    Bits : 8.4
+    BitsMod : 0A 0.8400
+    ChannelMode : 3
+    ExpFM : 2A 3.0000
+    Level : -3.8
+    LinAMisExtEnv : 1
+    LinFM : 1A 2.0000
+    LoopLengthMod : 0A 0.8000
+    LoopMode : 1
+    LoopStartMod : 0A 0.9300
+    MixLevel : 4
+    MixMod : 0A 0.9300
+    MixModIsFader : 1
+    Pan : -0.77
+    PanMod : 0B 0.8400
+    PhaseCV : 0A 0.6700
+    Pitch : 3.97
+    PitchCV : 0C 0.8400
+    PlayMode : 1
+    PMIndex : 0.93
+    PMIndexMod : 0A 0.7100
+    PMSource : 1
+    Release : 0.22
+    ReleaseMod : 0C 0.6800
+    Reverse : 1
+    SampleStartMod : 0B 0.9700
+    SampleEndMod : 0A 0.6600
+    SpliceSmoothing : 1
+    XfadeGroup : A
+    ZonesCV : 0A
+    ZonesRT : 1
+    Zone 1 :
+      LevelOffset : 0
+      LoopLength : 0
+      LoopStart : 0
+      MinVoltage : 0
+      PitchOffset : 0
+      SampleStart : 0
+      Side : 0
+    Zone 2 :
+      LevelOffset : 0
+      LoopLength : 0
+      LoopStart : 0
+      PitchOffset : 0
+      SampleStart : 0
+      Side : 0
+    Zone 3 :
+      LevelOffset : 0
+      LoopLength : 0
+      LoopStart : 0
+      PitchOffset : 0
+      SampleStart : 0
+      Side : 0
+    Zone 4 :
+      Side : 0
+    Zone 5 :
+      LevelOffset : 0
+      LoopLength : 0
+      LoopStart : 0
+      MinVoltage : 0
+      PitchOffset : 0
+      Sample : 
+      SampleStart : 0
+      SampleEnd : 0
+      Side : 0
+    Zone 6 :
+      LevelOffset : 0
+      LoopLength : 0
+      LoopStart : 0
+      MinVoltage : 0
+      PitchOffset : 0
+      Sample : 
+      SampleStart : 0
+      SampleEnd : 0
+      Side : 0
+    Zone 7 :
+      LevelOffset : 0
+      LoopLength : 0
+      LoopStart : 0
+      MinVoltage : 0
+      PitchOffset : 0
+      Sample : 
+      SampleStart : 0
+      SampleEnd : 0
+      Side : 0
+    Zone 8 :
+      LevelOffset : 0
+      LoopLength : 0
+      LoopStart : 0
+      MinVoltage : 0
+      PitchOffset : 0
+      Sample : 
+      SampleStart : 0
+      SampleEnd : 0
+      Side : 0
+  Channel 2 :
+    Zone 1 :
+      LevelOffset : 0
+      LoopLength : 0
+      LoopStart : 0
+      MinVoltage : 0
+      PitchOffset : 0
+      Sample : 
+      SampleStart : 0
+      SampleEnd : 0
+      Side : 0
+    Zone 2 :
+      LevelOffset : 0
+      LoopLength : 0
+      LoopStart : 0
+      MinVoltage : 0
+      PitchOffset : 0
+      Sample : 
+      SampleStart : 0
+      SampleEnd : 0
+      Side : 0
+    Zone 3 :
+      LevelOffset : 0
+      LoopLength : 0
+      LoopStart : 0
+      MinVoltage : 0
+      PitchOffset : 0
+      Sample : 
+      SampleStart : 0
+      SampleEnd : 0
+      Side : 0
+    Zone 4 :
+      LevelOffset : 0
+      LoopLength : 0
+      LoopStart : 0
+      MinVoltage : 0
+      PitchOffset : 0
+      Sample : 
+      SampleStart : 0
+      SampleEnd : 0
+      Side : 0
+    Zone 5 :
+      LevelOffset : 0
+      LoopLength : 0
+      LoopStart : 0
+      MinVoltage : 0
+      PitchOffset : 0
+      Sample : 
+      SampleStart : 0
+      SampleEnd : 0
+      Side : 0
+    Zone 6 :
+      LevelOffset : 0
+      LoopLength : 0
+      LoopStart : 0
+      MinVoltage : 0
+      PitchOffset : 0
+      Sample : 
+      SampleStart : 0
+      SampleEnd : 0
+      Side : 0
+    Zone 7 :
+      LevelOffset : 0
+      LoopLength : 0
+      LoopStart : 0
+      MinVoltage : 0
+      PitchOffset : 0
+      Sample : 
+      SampleStart : 0
+      SampleEnd : 0
+      Side : 0
+    Zone 8 :
+      LevelOffset : 0
+      LoopLength : 0
+      LoopStart : 0
+      MinVoltage : 0
+      PitchOffset : 0
+      Sample : 
+      SampleStart : 0
+      SampleEnd : 0
+      Side : 0
+  Channel 3 :
+    Zone 1 :
+      LevelOffset : 0
+      LoopLength : 0
+      LoopStart : 0
+      MinVoltage : 0
+      PitchOffset : 0
+      Sample : 
+      SampleStart : 0
+      SampleEnd : 0
+      Side : 0
+    Zone 2 :
+      LevelOffset : 0
+      LoopLength : 0
+      LoopStart : 0
+      MinVoltage : 0
+      PitchOffset : 0
+      Sample : 
+      SampleStart : 0
+      SampleEnd : 0
+      Side : 0
+    Zone 3 :
+      LevelOffset : 0
+      LoopLength : 0
+      LoopStart : 0
+      MinVoltage : 0
+      PitchOffset : 0
+      Sample : 
+      SampleStart : 0
+      SampleEnd : 0
+      Side : 0
+    Zone 4 :
+      LevelOffset : 0
+      LoopLength : 0
+      LoopStart : 0
+      MinVoltage : 0
+      PitchOffset : 0
+      Sample : 
+      SampleStart : 0
+      SampleEnd : 0
+      Side : 0
+    Zone 5 :
+      LevelOffset : 0
+      LoopLength : 0
+      LoopStart : 0
+      MinVoltage : 0
+      PitchOffset : 0
+      Sample : 
+      SampleStart : 0
+      SampleEnd : 0
+      Side : 0
+    Zone 6 :
+      LevelOffset : 0
+      LoopLength : 0
+      LoopStart : 0
+      MinVoltage : 0
+      PitchOffset : 0
+      Sample : 
+      SampleStart : 0
+      SampleEnd : 0
+      Side : 0
+    Zone 7 :
+      LevelOffset : 0
+      LoopLength : 0
+      LoopStart : 0
+      MinVoltage : 0
+      PitchOffset : 0
+      Sample : 
+      SampleStart : 0
+      SampleEnd : 0
+      Side : 0
+    Zone 8 :
+      LevelOffset : 0
+      LoopLength : 0
+      LoopStart : 0
+      MinVoltage : 0
+      PitchOffset : 0
+      Sample : 
+      SampleStart : 0
+      SampleEnd : 0
+      Side : 0
+  Channel 4 :
+    Zone 1 :
+      LevelOffset : 0
+      LoopLength : 0
+      LoopStart : 0
+      MinVoltage : 0
+      PitchOffset : 0
+      Sample : 
+      SampleStart : 0
+      SampleEnd : 0
+      Side : 0
+    Zone 2 :
+      LevelOffset : 0
+      LoopLength : 0
+      LoopStart : 0
+      MinVoltage : 0
+      PitchOffset : 0
+      Sample : 
+      SampleStart : 0
+      SampleEnd : 0
+      Side : 0
+    Zone 3 :
+      LevelOffset : 0
+      LoopLength : 0
+      LoopStart : 0
+      MinVoltage : 0
+      PitchOffset : 0
+      Sample : 
+      SampleStart : 0
+      SampleEnd : 0
+      Side : 0
+    Zone 4 :
+      LevelOffset : 0
+      LoopLength : 0
+      LoopStart : 0
+      MinVoltage : 0
+      PitchOffset : 0
+      Sample : 
+      SampleStart : 0
+      SampleEnd : 0
+      Side : 0
+    Zone 5 :
+      LevelOffset : 0
+      LoopLength : 0
+      LoopStart : 0
+      MinVoltage : 0
+      PitchOffset : 0
+      Sample : 
+      SampleStart : 0
+      SampleEnd : 0
+      Side : 0
+    Zone 6 :
+      LevelOffset : 0
+      LoopLength : 0
+      LoopStart : 0
+      MinVoltage : 0
+      PitchOffset : 0
+      Sample : 
+      SampleStart : 0
+      SampleEnd : 0
+      Side : 0
+    Zone 7 :
+      LevelOffset : 0
+      LoopLength : 0
+      LoopStart : 0
+      MinVoltage : 0
+      PitchOffset : 0
+      Sample : 
+      SampleStart : 0
+      SampleEnd : 0
+      Side : 0
+    Zone 8 :
+      LevelOffset : 0
+      LoopLength : 0
+      LoopStart : 0
+      MinVoltage : 0
+      PitchOffset : 0
+      Sample : 
+      SampleStart : 0
+      SampleEnd : 0
+      Side : 0
+  Channel 5 :
+    Zone 1 :
+      LevelOffset : 0
+      LoopLength : 0
+      LoopStart : 0
+      MinVoltage : 0
+      PitchOffset : 0
+      Sample : 
+      SampleStart : 0
+      SampleEnd : 0
+      Side : 0
+    Zone 2 :
+      LevelOffset : 0
+      LoopLength : 0
+      LoopStart : 0
+      MinVoltage : 0
+      PitchOffset : 0
+      Sample : 
+      SampleStart : 0
+      SampleEnd : 0
+      Side : 0
+    Zone 3 :
+      LevelOffset : 0
+      LoopLength : 0
+      LoopStart : 0
+      MinVoltage : 0
+      PitchOffset : 0
+      Sample : 
+      SampleStart : 0
+      SampleEnd : 0
+      Side : 0
+    Zone 4 :
+      LevelOffset : 0
+      LoopLength : 0
+      LoopStart : 0
+      MinVoltage : 0
+      PitchOffset : 0
+      Sample : 
+      SampleStart : 0
+      SampleEnd : 0
+      Side : 0
+    Zone 5 :
+      LevelOffset : 0
+      LoopLength : 0
+      LoopStart : 0
+      MinVoltage : 0
+      PitchOffset : 0
+      Sample : 
+      SampleStart : 0
+      SampleEnd : 0
+      Side : 0
+    Zone 6 :
+      LevelOffset : 0
+      LoopLength : 0
+      LoopStart : 0
+      MinVoltage : 0
+      PitchOffset : 0
+      Sample : 
+      SampleStart : 0
+      SampleEnd : 0
+      Side : 0
+    Zone 7 :
+      LevelOffset : 0
+      LoopLength : 0
+      LoopStart : 0
+      MinVoltage : 0
+      PitchOffset : 0
+      Sample : 
+      SampleStart : 0
+      SampleEnd : 0
+      Side : 0
+    Zone 8 :
+      LevelOffset : 0
+      LoopLength : 0
+      LoopStart : 0
+      MinVoltage : 0
+      PitchOffset : 0
+      Sample : 
+      SampleStart : 0
+      SampleEnd : 0
+      Side : 0
+  Channel 6 :
+    Zone 1 :
+      LevelOffset : 0
+      LoopLength : 0
+      LoopStart : 0
+      MinVoltage : 0
+      PitchOffset : 0
+      Sample : 
+      SampleStart : 0
+      SampleEnd : 0
+      Side : 0
+    Zone 2 :
+      LevelOffset : 0
+      LoopLength : 0
+      LoopStart : 0
+      MinVoltage : 0
+      PitchOffset : 0
+      Sample : 
+      SampleStart : 0
+      SampleEnd : 0
+      Side : 0
+    Zone 3 :
+      LevelOffset : 0
+      LoopLength : 0
+      LoopStart : 0
+      MinVoltage : 0
+      PitchOffset : 0
+      Sample : 
+      SampleStart : 0
+      SampleEnd : 0
+      Side : 0
+    Zone 4 :
+      LevelOffset : 0
+      LoopLength : 0
+      LoopStart : 0
+      MinVoltage : 0
+      PitchOffset : 0
+      Sample : 
+      SampleStart : 0
+      SampleEnd : 0
+      Side : 0
+    Zone 5 :
+      LevelOffset : 0
+      LoopLength : 0
+      LoopStart : 0
+      MinVoltage : 0
+      PitchOffset : 0
+      Sample : 
+      SampleStart : 0
+      SampleEnd : 0
+      Side : 0
+    Zone 6 :
+      LevelOffset : 0
+      LoopLength : 0
+      LoopStart : 0
+      MinVoltage : 0
+      PitchOffset : 0
+      Sample : 
+      SampleStart : 0
+      SampleEnd : 0
+      Side : 0
+    Zone 7 :
+      LevelOffset : 0
+      LoopLength : 0
+      LoopStart : 0
+      MinVoltage : 0
+      PitchOffset : 0
+      Sample : 
+      SampleStart : 0
+      SampleEnd : 0
+      Side : 0
+    Zone 8 :
+      LevelOffset : 0
+      LoopLength : 0
+      LoopStart : 0
+      MinVoltage : 0
+      PitchOffset : 0
+      Sample : 
+      SampleStart : 0
+      SampleEnd : 0
+      Side : 0
+  Channel 7 :
+    Zone 1 :
+      LevelOffset : 0
+      LoopLength : 0
+      LoopStart : 0
+      MinVoltage : 0
+      PitchOffset : 0
+      Sample : 
+      SampleStart : 0
+      SampleEnd : 0
+      Side : 0
+    Zone 2 :
+      LevelOffset : 0
+      LoopLength : 0
+      LoopStart : 0
+      MinVoltage : 0
+      PitchOffset : 0
+      Sample : 
+      SampleStart : 0
+      SampleEnd : 0
+      Side : 0
+    Zone 3 :
+      LevelOffset : 0
+      LoopLength : 0
+      LoopStart : 0
+      MinVoltage : 0
+      PitchOffset : 0
+      Sample : 
+      SampleStart : 0
+      SampleEnd : 0
+      Side : 0
+    Zone 4 :
+      LevelOffset : 0
+      LoopLength : 0
+      LoopStart : 0
+      MinVoltage : 0
+      PitchOffset : 0
+      Sample : 
+      SampleStart : 0
+      SampleEnd : 0
+      Side : 0
+    Zone 5 :
+      LevelOffset : 0
+      LoopLength : 0
+      LoopStart : 0
+      MinVoltage : 0
+      PitchOffset : 0
+      Sample : 
+      SampleStart : 0
+      SampleEnd : 0
+      Side : 0
+    Zone 6 :
+      LevelOffset : 0
+      LoopLength : 0
+      LoopStart : 0
+      MinVoltage : 0
+      PitchOffset : 0
+      Sample : 
+      SampleStart : 0
+      SampleEnd : 0
+      Side : 0
+    Zone 7 :
+      LevelOffset : 0
+      LoopLength : 0
+      LoopStart : 0
+      MinVoltage : 0
+      PitchOffset : 0
+      Sample : 
+      SampleStart : 0
+      SampleEnd : 0
+      Side : 0
+    Zone 8 :
+      LevelOffset : 0
+      LoopLength : 0
+      LoopStart : 0
+      MinVoltage : 0
+      PitchOffset : 0
+      Sample : 
+      SampleStart : 0
+      SampleEnd : 0
+      Side : 0
+  Channel 8 :
+    Zone 1 :
+      LevelOffset : 0
+      LoopLength : 0
+      LoopStart : 0
+      MinVoltage : 0
+      PitchOffset : 0
+      Sample : 
+      SampleStart : 0
+      SampleEnd : 0
+      Side : 0
+    Zone 2 :
+      LevelOffset : 0
+      LoopLength : 0
+      LoopStart : 0
+      MinVoltage : 0
+      PitchOffset : 0
+      Sample : 
+      SampleStart : 0
+      SampleEnd : 0
+      Side : 0
+    Zone 3 :
+      LevelOffset : 0
+      LoopLength : 0
+      LoopStart : 0
+      MinVoltage : 0
+      PitchOffset : 0
+      Sample : 
+      SampleStart : 0
+      SampleEnd : 0
+      Side : 0
+    Zone 4 :
+      LevelOffset : 0
+      LoopLength : 0
+      LoopStart : 0
+      MinVoltage : 0
+      PitchOffset : 0
+      Sample : 
+      SampleStart : 0
+      SampleEnd : 0
+      Side : 0
+    Zone 5 :
+      LevelOffset : 0
+      LoopLength : 0
+      LoopStart : 0
+      MinVoltage : 0
+      PitchOffset : 0
+      Sample : 
+      SampleStart : 0
+      SampleEnd : 0
+      Side : 0
+    Zone 6 :
+      LevelOffset : 0
+      LoopLength : 0
+      LoopStart : 0
+      MinVoltage : 0
+      PitchOffset : 0
+      Sample : 
+      SampleStart : 0
+      SampleEnd : 0
+      Side : 0
+    Zone 7 :
+      LevelOffset : 0
+      LoopLength : 0
+      LoopStart : 0
+      MinVoltage : 0
+      PitchOffset : 0
+      Sample : 
+      SampleStart : 0
+      SampleEnd : 0
+      Side : 0
+    Zone 8 :
+      LevelOffset : 0
+      LoopLength : 0
+      LoopStart : 0
+      MinVoltage : 0
+      PitchOffset : 0
+      Sample : 
+      SampleStart : 0
+      SampleEnd : 0
+      Side : 0
