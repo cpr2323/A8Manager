@@ -481,36 +481,19 @@ void ChannelEditor::setupChannelComponents ()
         pm.showMenuAsync ({}, [this] (int) {});
     });
     // Pitch CV Offset Editor
-    pitchCVTextEditorController.getMin = [this] () { return minChannelProperties.getPitchCV (); };
-    pitchCVTextEditorController.getMax = [this] () { return maxChannelProperties.getPitchCV ();  };
+    pitchCVTextEditorController.min = FormatHelpers::getAmount (minChannelProperties.getPitchCV ());
+    pitchCVTextEditorController.max = FormatHelpers::getAmount (maxChannelProperties.getPitchCV ());
     pitchCVTextEditorController.getter = [this] () { return channelProperties.getPitchCV ();  };
     pitchCVTextEditorController.setter = [this] (double cv) { channelProperties.setPitchCV (FormatHelpers::getCvInput (channelProperties.getPitchCV ()), cv, false); };
     pitchCVTextEditorController.uiUpdate = [this] (juce::String cvInput, double amount) { pitchCVUiChanged (cvInput, amount); };
-
-    auto constrainAndSetPitchCv = [this] (double pitchCV)
-    {
-        const auto newPitchCV { std::clamp (pitchCV, FormatHelpers::getAmount (minChannelProperties.getPitchCV ()),
-                                                     FormatHelpers::getAmount (maxChannelProperties.getPitchCV ())) };
-        pitchCVUiChanged (FormatHelpers::getCvInput (channelProperties.getPitchCV ()), newPitchCV);
-        pitchCVTextEditor.setText (FormatHelpers::formatDouble (newPitchCV, 2, true));
-    };
     setupTextEditor (pitchCVTextEditor, juce::Justification::centred, 0, "+-.0123456789", "PitchCV", [this] ()
     {
         FormatHelpers::setColorIfError (pitchCVTextEditor, FormatHelpers::getAmount (minChannelProperties.getPitchCV ()), FormatHelpers::getAmount (maxChannelProperties.getPitchCV ()));
     },
-    [this, constrainAndSetPitchCv] (juce::String text)
+    [this] (juce::String text)
     {
-        constrainAndSetPitchCv (text.getDoubleValue ());
+        pitchCVTextEditorController.setValue (text.getDoubleValue ());
     });
-    pitchCVTextEditor.onDrag = [this, constrainAndSetPitchCv] (int dragSpeed)
-    {
-        const auto incAmount { 0.01 * dragSpeed };
-        const auto newAmount { FormatHelpers::getAmount (channelProperties.getPitchCV ()) + incAmount };
-        constrainAndSetPitchCv (newAmount);
-    };
-    pitchCVTextEditor.onPopupMenu = [this] ()
-    {
-    };
     // LINFM
     setupLabel (linFMLabel, "LIN FM", kLargeLabelSize, juce::Justification::centred);
     setupCvInputComboBox (linFMComboBox, "LinFM", [this] () { linFMUiChanged (linFMComboBox.getSelectedItemText (), linFMTextEditor.getText ().getDoubleValue ()); });

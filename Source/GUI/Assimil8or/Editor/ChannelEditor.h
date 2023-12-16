@@ -21,18 +21,31 @@ public:
     CvOffsetTextEditorController (CustomTextEditor& te)
         : textEditor {te}
     {
+        textEditor.onDrag = [this] (int dragSpeed)
+        {
+            const auto incAmount { 0.01 * dragSpeed };
+            const auto newAmount { FormatHelpers::getAmount (getter ()) + incAmount };
+            constrainAndSet (newAmount);
+        };
+        textEditor.onPopupMenu = [this] ()
+        {
+        };
     }
-    std::function<CvInputAndAmount ()> getMin;
-    std::function<CvInputAndAmount ()> getMax;
+    void setValue (double cvAmount)
+    {
+        constrainAndSet (cvAmount);
+    }
+    double min { 0.0 };
+    double max { 0.0 };
     std::function<CvInputAndAmount ()> getter;
     std::function<void (double)> setter;
-
     std::function<void (juce::String, double)> uiUpdate;
+
 private:
     CustomTextEditor& textEditor;
     void constrainAndSet (double cv)
     {
-        const auto constrainedCV { std::clamp (cv, FormatHelpers::getAmount (getMin ()), FormatHelpers::getAmount (getMax ())) };
+        const auto constrainedCV { std::clamp (cv, min, max) };
         uiUpdate (FormatHelpers::getCvInput (getter ()), constrainedCV);
         textEditor.setText (FormatHelpers::formatDouble (constrainedCV, 2, true));
     };
