@@ -3,6 +3,7 @@
 #include <JuceHeader.h>
 #include "CvInputComboBox.h"
 #include "EditManager.h"
+#include "FormatHelpers.h"
 #include "ZoneEditor.h"
 #include "Envelope/AREnvelopeComponent.h"
 #include "Envelope/AREnvelopeProperties.h"
@@ -13,6 +14,29 @@
 #include "../../../Utility/CustomComboBox.h"
 #include "../../../Utility/CustomTextEditor.h"
 #include "../../../Utility/NoArrowComboBoxLnF.h"
+
+class CvOffsetTextEditorController
+{
+public:
+    CvOffsetTextEditorController (CustomTextEditor& te)
+        : textEditor {te}
+    {
+    }
+    std::function<CvInputAndAmount ()> getMin;
+    std::function<CvInputAndAmount ()> getMax;
+    std::function<CvInputAndAmount ()> getter;
+    std::function<void (double)> setter;
+
+    std::function<void (juce::String, double)> uiUpdate;
+private:
+    CustomTextEditor& textEditor;
+    void constrainAndSet (double cv)
+    {
+        const auto constrainedCV { std::clamp (cv, FormatHelpers::getAmount (getMin ()), FormatHelpers::getAmount (getMax ())) };
+        uiUpdate (FormatHelpers::getCvInput (getter ()), constrainedCV);
+        textEditor.setText (FormatHelpers::formatDouble (constrainedCV, 2, true));
+    };
+};
 
 class TabbedComponentWithChangeCallback : public juce::TabbedComponent
 {
@@ -257,6 +281,7 @@ private:
     CustomTextEditor pitchTextEditor; // double
     CvInputChannelComboBox pitchCVComboBox; // 0A - 8C
     CustomTextEditor pitchCVTextEditor; // double
+    CvOffsetTextEditorController pitchCVTextEditorController { pitchCVTextEditor };
     juce::Label playModeLabel;
     CustomComboBox playModeComboBox; // 2 Play Modes: 0 = Gated, 1 = One Shot, Latch / Latch may not be a saved preset option.
     juce::Label phaseModIndexSectionLabel;

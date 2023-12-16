@@ -1,5 +1,4 @@
 #include "ChannelEditor.h"
-#include "FormatHelpers.h"
 #include "ParameterToolTipData.h"
 #include "../../../Assimil8or/Preset/PresetHelpers.h"
 #include "../../../Assimil8or/Preset/PresetProperties.h"
@@ -482,11 +481,17 @@ void ChannelEditor::setupChannelComponents ()
         pm.showMenuAsync ({}, [this] (int) {});
     });
     // Pitch CV Offset Editor
+    pitchCVTextEditorController.getMin = [this] () { return minChannelProperties.getPitchCV (); };
+    pitchCVTextEditorController.getMax = [this] () { return maxChannelProperties.getPitchCV ();  };
+    pitchCVTextEditorController.getter = [this] () { return channelProperties.getPitchCV ();  };
+    pitchCVTextEditorController.setter = [this] (double cv) { channelProperties.setPitchCV (FormatHelpers::getCvInput (channelProperties.getPitchCV ()), cv, false); };
+    pitchCVTextEditorController.uiUpdate = [this] (juce::String cvInput, double amount) { pitchCVUiChanged (cvInput, amount); };
+
     auto constrainAndSetPitchCv = [this] (double pitchCV)
     {
         const auto newPitchCV { std::clamp (pitchCV, FormatHelpers::getAmount (minChannelProperties.getPitchCV ()),
                                                      FormatHelpers::getAmount (maxChannelProperties.getPitchCV ())) };
-        pitchCVUiChanged (pitchCVComboBox.getSelectedItemText (), newPitchCV);
+        pitchCVUiChanged (FormatHelpers::getCvInput (channelProperties.getPitchCV ()), newPitchCV);
         pitchCVTextEditor.setText (FormatHelpers::formatDouble (newPitchCV, 2, true));
     };
     setupTextEditor (pitchCVTextEditor, juce::Justification::centred, 0, "+-.0123456789", "PitchCV", [this] ()
