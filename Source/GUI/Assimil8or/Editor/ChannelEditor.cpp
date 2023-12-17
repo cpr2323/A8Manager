@@ -481,18 +481,18 @@ void ChannelEditor::setupChannelComponents ()
         pm.showMenuAsync ({}, [this] (int) {});
     });
     // Pitch CV Offset Editor
-    pitchCVTextEditorController.min = FormatHelpers::getAmount (minChannelProperties.getPitchCV ());
-    pitchCVTextEditorController.max = FormatHelpers::getAmount (maxChannelProperties.getPitchCV ());
-    pitchCVTextEditorController.getter = [this] () { return channelProperties.getPitchCV ();  };
-    pitchCVTextEditorController.setter = [this] (double cv) { channelProperties.setPitchCV (FormatHelpers::getCvInput (channelProperties.getPitchCV ()), cv, false); };
-    pitchCVTextEditorController.uiUpdate = [this] (juce::String cvInput, double amount) { pitchCVUiChanged (cvInput, amount); };
+    pitchCVTextEditor.min = FormatHelpers::getAmount (minChannelProperties.getPitchCV ());
+    pitchCVTextEditor.max = FormatHelpers::getAmount (maxChannelProperties.getPitchCV ());
+    pitchCVTextEditor.getter = [this] () { return channelProperties.getPitchCV ();  };
+    pitchCVTextEditor.setter = [this] (double cv) { channelProperties.setPitchCV (FormatHelpers::getCvInput (channelProperties.getPitchCV ()), cv, false); };
+    pitchCVTextEditor.uiUpdate = [this] (juce::String cvInput, double amount) { pitchCVUiChanged (cvInput, amount); };
     setupTextEditor (pitchCVTextEditor, juce::Justification::centred, 0, "+-.0123456789", "PitchCV", [this] ()
     {
         FormatHelpers::setColorIfError (pitchCVTextEditor, FormatHelpers::getAmount (minChannelProperties.getPitchCV ()), FormatHelpers::getAmount (maxChannelProperties.getPitchCV ()));
     },
     [this] (juce::String text)
     {
-        pitchCVTextEditorController.setValue (text.getDoubleValue ());
+        pitchCVTextEditor.setValue (text.getDoubleValue ());
     });
     // LINFM
     setupLabel (linFMLabel, "LIN FM", kLargeLabelSize, juce::Justification::centred);

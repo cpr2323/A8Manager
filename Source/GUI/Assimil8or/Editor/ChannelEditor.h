@@ -15,22 +15,25 @@
 #include "../../../Utility/CustomTextEditor.h"
 #include "../../../Utility/NoArrowComboBoxLnF.h"
 
-class CvOffsetTextEditorController
+class CvOffsetTextEditor : public CustomTextEditor
 {
 public:
-    CvOffsetTextEditorController (CustomTextEditor& te)
-        : textEditor {te}
+    CvOffsetTextEditor ()
     {
-        textEditor.onDrag = [this] (int dragSpeed)
+        onDrag = [this] (int dragSpeed)
         {
             const auto incAmount { 0.01 * dragSpeed };
             const auto newAmount { FormatHelpers::getAmount (getter ()) + incAmount };
             constrainAndSet (newAmount);
         };
-        textEditor.onPopupMenu = [this] ()
+        onPopupMenu = [this] ()
         {
         };
     }
+//     CustomTextEditor& getTextEditor()
+//     {
+//         return textEditor;
+//     }
     void setValue (double cvAmount)
     {
         constrainAndSet (cvAmount);
@@ -42,12 +45,12 @@ public:
     std::function<void (juce::String, double)> uiUpdate;
 
 private:
-    CustomTextEditor& textEditor;
+//    CustomTextEditor textEditor;
     void constrainAndSet (double cv)
     {
         const auto constrainedCV { std::clamp (cv, min, max) };
         uiUpdate (FormatHelpers::getCvInput (getter ()), constrainedCV);
-        textEditor.setText (FormatHelpers::formatDouble (constrainedCV, 2, true));
+        setText (FormatHelpers::formatDouble (constrainedCV, 2, true));
     };
 };
 
@@ -293,8 +296,7 @@ private:
     juce::Label pitchSemiLabel;
     CustomTextEditor pitchTextEditor; // double
     CvInputChannelComboBox pitchCVComboBox; // 0A - 8C
-    CustomTextEditor pitchCVTextEditor; // double
-    CvOffsetTextEditorController pitchCVTextEditorController { pitchCVTextEditor };
+    CvOffsetTextEditor pitchCVTextEditor;
     juce::Label playModeLabel;
     CustomComboBox playModeComboBox; // 2 Play Modes: 0 = Gated, 1 = One Shot, Latch / Latch may not be a saved preset option.
     juce::Label phaseModIndexSectionLabel;
