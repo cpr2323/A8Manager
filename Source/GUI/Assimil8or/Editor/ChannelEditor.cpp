@@ -485,10 +485,10 @@ void ChannelEditor::setupChannelComponents ()
     pitchCVTextEditor.max = FormatHelpers::getAmount (maxChannelProperties.getPitchCV ());
     pitchCVTextEditor.getter = [this] () { return channelProperties.getPitchCV ();  };
     pitchCVTextEditor.setter = [this] (double cv) { channelProperties.setPitchCV (FormatHelpers::getCvInput (channelProperties.getPitchCV ()), cv, false); };
-    pitchCVTextEditor.uiUpdate = [this] (juce::String cvInput, double amount) { pitchCVUiChanged (cvInput, amount); };
+    pitchCVTextEditor.uiChanged = [this] (juce::String cvInput, double amount) { pitchCVUiChanged (cvInput, amount); };
     setupTextEditor (pitchCVTextEditor, juce::Justification::centred, 0, "+-.0123456789", "PitchCV", [this] ()
     {
-        FormatHelpers::setColorIfError (pitchCVTextEditor, FormatHelpers::getAmount (minChannelProperties.getPitchCV ()), FormatHelpers::getAmount (maxChannelProperties.getPitchCV ()));
+        pitchCVTextEditor.checkValue ();
     },
     [this] (juce::String text)
     {
@@ -504,24 +504,19 @@ void ChannelEditor::setupChannelComponents ()
         channelProperties.setLinFM (linFMComboBox.getSelectedItemText (), amount, false);
     });
     linFMComboBox.setOnPopupMenuFunction ([this] () {});
-
+    linFMTextEditor.min = FormatHelpers::getAmount (minChannelProperties.getLinFM ());
+    linFMTextEditor.max = FormatHelpers::getAmount (maxChannelProperties.getLinFM ());
+    linFMTextEditor.getter = [this] () { return channelProperties.getLinFM ();  };
+    linFMTextEditor.setter = [this] (double cv) { channelProperties.setLinFM (FormatHelpers::getCvInput (channelProperties.getLinFM ()), cv, false); };
+    linFMTextEditor.uiChanged = [this] (juce::String cvInput, double amount) { linFMUiChanged (cvInput, amount); };
     setupTextEditor (linFMTextEditor, juce::Justification::centred, 0, "+-.0123456789", "LinFM", [this] ()
     {
-        FormatHelpers::setColorIfError (linFMTextEditor, FormatHelpers::getAmount (minChannelProperties.getLinFM ()), FormatHelpers::getAmount (maxChannelProperties.getLinFM ()));
+        linFMTextEditor.checkValue();
     },
     [this] (juce::String text)
     {
-        const auto linFM { std::clamp (text.getDoubleValue (), FormatHelpers::getAmount (minChannelProperties.getLinFM ()),
-                                                               FormatHelpers::getAmount (maxChannelProperties.getLinFM ())) };
-        linFMUiChanged (linFMComboBox.getSelectedItemText (), linFM);
-        linFMTextEditor.setText (FormatHelpers::formatDouble (linFM, 2, true));
+        linFMTextEditor.setValue (text.getDoubleValue ());
     });
-    linFMTextEditor.onDrag = [this] (int dragSpeed)
-    {
-    };
-    linFMTextEditor.onPopupMenu = [this] ()
-    {
-    };
 
     // EXPFM
     setupLabel (expFMLabel, "EXP FM", kLargeLabelSize, juce::Justification::centred);
@@ -533,24 +528,19 @@ void ChannelEditor::setupChannelComponents ()
         channelProperties.setExpFM (expFMComboBox.getSelectedItemText (), amount, false);
     });
     expFMComboBox.setOnPopupMenuFunction ([this] () {});
-
+    expFMTextEditor.min = FormatHelpers::getAmount (minChannelProperties.getExpFM ());
+    expFMTextEditor.max = FormatHelpers::getAmount (maxChannelProperties.getExpFM ());
+    expFMTextEditor.getter = [this] () { return channelProperties.getExpFM ();  };
+    expFMTextEditor.setter = [this] (double cv) { channelProperties.setExpFM (FormatHelpers::getCvInput (channelProperties.getExpFM ()), cv, false); };
+    expFMTextEditor.uiChanged = [this] (juce::String cvInput, double amount) { expFMUiChanged (cvInput, amount); };
     setupTextEditor (expFMTextEditor, juce::Justification::centred, 0, "+-.0123456789", "ExpFM", [this] ()
     {
-        FormatHelpers::setColorIfError (expFMTextEditor, FormatHelpers::getAmount (minChannelProperties.getExpFM ()), FormatHelpers::getAmount (maxChannelProperties.getExpFM ()));
+        expFMTextEditor.checkValue();
     },
     [this] (juce::String text)
     {
-        const auto expFM { std::clamp (text.getDoubleValue (), FormatHelpers::getAmount (minChannelProperties.getExpFM ()),
-                                                               FormatHelpers::getAmount (maxChannelProperties.getExpFM ())) };
-        expFMUiChanged (expFMComboBox.getSelectedItemText (), expFM);
-        expFMTextEditor.setText (FormatHelpers::formatDouble (expFM, 2, true));
+        expFMTextEditor.setValue (text.getDoubleValue ());
     });
-    expFMTextEditor.onDrag = [this] (int dragSpeed)
-    {
-    };
-    expFMTextEditor.onPopupMenu = [this] ()
-    {
-    };
 
     // LEVEL
     setupLabel (levelLabel, "LEVEL", kLargeLabelSize, juce::Justification::centred);
@@ -598,24 +588,19 @@ void ChannelEditor::setupChannelComponents ()
         channelProperties.setLinAM (linAMComboBox.getSelectedItemText (), amount, false);
     });
     linAMComboBox.setOnPopupMenuFunction ([this] () {});
-
+    linAMTextEditor.min = FormatHelpers::getAmount (minChannelProperties.getLinAM ());
+    linAMTextEditor.max = FormatHelpers::getAmount (maxChannelProperties.getLinAM ());
+    linAMTextEditor.getter = [this] () { return channelProperties.getLinAM ();  };
+    linAMTextEditor.setter = [this] (double cv) { channelProperties.setLinAM (FormatHelpers::getCvInput (channelProperties.getLinAM ()), cv, false); };
+    linAMTextEditor.uiChanged = [this] (juce::String cvInput, double amount) { linAMUiChanged (cvInput, amount); };
     setupTextEditor (linAMTextEditor, juce::Justification::centred, 0, "+-.0123456789", "LinAM", [this] ()
     {
-        FormatHelpers::setColorIfError (linAMTextEditor, FormatHelpers::getAmount (minChannelProperties.getLinAM ()), FormatHelpers::getAmount (maxChannelProperties.getLinAM ()));
+        linAMTextEditor.checkValue ();
     },
     [this] (juce::String text)
     {
-        const auto linAM { std::clamp (text.getDoubleValue (), FormatHelpers::getAmount (minChannelProperties.getLinAM ()),
-                                                               FormatHelpers::getAmount (maxChannelProperties.getLinAM ())) };
-        linAMUiChanged (linAMComboBox.getSelectedItemText (), linAM);
-        linAMTextEditor.setText (FormatHelpers::formatDouble (linAM, 2, true));
+        linAMTextEditor.setValue (text.getDoubleValue ());
     });
-    linAMTextEditor.onDrag = [this] (int dragSpeed)
-    {
-    };
-    linAMTextEditor.onPopupMenu = [this] ()
-    {
-    };
 
     // EXPAM
     setupLabel (expAMLabel, "EXP AM", kLargeLabelSize, juce::Justification::centred);
@@ -627,24 +612,19 @@ void ChannelEditor::setupChannelComponents ()
         channelProperties.setExpAM (expAMComboBox.getSelectedItemText (), amount, false);
     });
     expAMComboBox.setOnPopupMenuFunction ([this] () {});
-
+    expAMTextEditor.min = FormatHelpers::getAmount (minChannelProperties.getExpAM ());
+    expAMTextEditor.max = FormatHelpers::getAmount (maxChannelProperties.getExpAM ());
+    expAMTextEditor.getter = [this] () { return channelProperties.getExpAM ();  };
+    expAMTextEditor.setter = [this] (double cv) { channelProperties.setExpAM (FormatHelpers::getCvInput (channelProperties.getExpAM ()), cv, false); };
+    expAMTextEditor.uiChanged = [this] (juce::String cvInput, double amount) { expAMUiChanged (cvInput, amount); };
     setupTextEditor (expAMTextEditor, juce::Justification::centred, 0, "+-.0123456789", "ExpAM", [this] ()
     {
-            FormatHelpers::setColorIfError (expAMTextEditor, FormatHelpers::getAmount (minChannelProperties.getExpAM ()), FormatHelpers::getAmount (maxChannelProperties.getExpAM ()));
+        expAMTextEditor.checkValue();
     },
     [this] (juce::String text)
     {
-        const auto expAM { std::clamp (text.getDoubleValue (), FormatHelpers::getAmount (minChannelProperties.getExpAM ()),
-                                                               FormatHelpers::getAmount (maxChannelProperties.getExpAM ())) };
-        expAMUiChanged (expAMComboBox.getSelectedItemText (), expAM);
-        expAMTextEditor.setText (FormatHelpers::formatDouble (expAM, 2, true));
+        expAMTextEditor.setValue (text.getDoubleValue ());
     });
-    expAMTextEditor.onDrag = [this] (int dragSpeed)
-    {
-    };
-    expAMTextEditor.onPopupMenu = [this] ()
-    {
-    };
 
     /////////////////////////////////////////
     // column two
@@ -675,24 +655,19 @@ void ChannelEditor::setupChannelComponents ()
         channelProperties.setPhaseCV (phaseCVComboBox.getSelectedItemText (), amount, false);
     });
     phaseCVComboBox.setOnPopupMenuFunction ([this] () {});
-
+    phaseCVTextEditor.min = FormatHelpers::getAmount (minChannelProperties.getPhaseCV ());
+    phaseCVTextEditor.max = FormatHelpers::getAmount (maxChannelProperties.getPhaseCV ());
+    phaseCVTextEditor.getter = [this] () { return channelProperties.getPhaseCV ();  };
+    phaseCVTextEditor.setter = [this] (double cv) { channelProperties.setPhaseCV (FormatHelpers::getCvInput (channelProperties.getPhaseCV ()), cv, false); };
+    phaseCVTextEditor.uiChanged = [this] (juce::String cvInput, double amount) { phaseCVUiChanged (cvInput, amount); };
     setupTextEditor (phaseCVTextEditor, juce::Justification::centred, 0, "+-.0123456789", "PhaseCV", [this] ()
     {
-        FormatHelpers::setColorIfError (phaseCVTextEditor, FormatHelpers::getAmount (minChannelProperties.getPhaseCV ()), FormatHelpers::getAmount (maxChannelProperties.getPhaseCV ()));
+        phaseCVTextEditor.checkValue ();
     },
     [this] (juce::String text)
     {
-        const auto phaseCV { std::clamp (text.getDoubleValue (), FormatHelpers::getAmount (minChannelProperties.getPhaseCV ()),
-                                                                 FormatHelpers::getAmount (maxChannelProperties.getPhaseCV ())) };
-        phaseCVUiChanged (phaseCVComboBox.getSelectedItemText (), phaseCV);
-        phaseCVTextEditor.setText (FormatHelpers::formatDouble (phaseCV, 2, true));
+        phaseCVTextEditor.setValue (text.getDoubleValue ());
     });
-    phaseCVTextEditor.onDrag = [this] (int dragSpeed)
-    {
-    };
-    phaseCVTextEditor.onPopupMenu = [this] ()
-    {
-    };
 
     // PHASE MOD INDEX
     setupLabel (phaseModIndexSectionLabel, "PHASE MOD", kLargeLabelSize, juce::Justification::centred);
@@ -722,24 +697,19 @@ void ChannelEditor::setupChannelComponents ()
         channelProperties.setPMIndexMod (pMIndexModComboBox.getSelectedItemText (), amount, false);
     });
     pMIndexModComboBox.setOnPopupMenuFunction ([this] () {});
-
+    pMIndexModTextEditor.min = FormatHelpers::getAmount (minChannelProperties.getPMIndexMod ());
+    pMIndexModTextEditor.max = FormatHelpers::getAmount (maxChannelProperties.getPMIndexMod ());
+    pMIndexModTextEditor.getter = [this] () { return channelProperties.getPMIndexMod ();  };
+    pMIndexModTextEditor.setter = [this] (double cv) { channelProperties.setPMIndexMod (FormatHelpers::getCvInput (channelProperties.getPMIndexMod ()), cv, false); };
+    pMIndexModTextEditor.uiChanged = [this] (juce::String cvInput, double amount) { pMIndexModUiChanged (cvInput, amount); };
     setupTextEditor (pMIndexModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "PMIndexMod", [this] ()
     {
-        FormatHelpers::setColorIfError (pMIndexModTextEditor, FormatHelpers::getAmount (minChannelProperties.getPMIndexMod ()), FormatHelpers::getAmount (maxChannelProperties.getPMIndexMod ()));
+        pMIndexModTextEditor.checkValue ();
     },
     [this] (juce::String text)
     {
-        const auto pmIndexMod { std::clamp (text.getDoubleValue (), FormatHelpers::getAmount (minChannelProperties.getPMIndexMod ()),
-                                                                    FormatHelpers::getAmount (maxChannelProperties.getPMIndexMod ())) };
-        pMIndexModUiChanged (pMIndexModComboBox.getSelectedItemText (), pmIndexMod);
-        pMIndexModTextEditor.setText (FormatHelpers::formatDouble (pmIndexMod, 2, true));
+        pMIndexModTextEditor.setValue (text.getDoubleValue());
     });
-    pMIndexModTextEditor.onDrag = [this] (int dragSpeed)
-    {
-    };
-    pMIndexModTextEditor.onPopupMenu = [this] ()
-    {
-    };
 
     // ENVELOPE
     setupLabel (envelopeLabel, "ENVELOPE", kLargeLabelSize, juce::Justification::centred);
@@ -786,24 +756,19 @@ void ChannelEditor::setupChannelComponents ()
         channelProperties.setAttackMod (attackModComboBox.getSelectedItemText (), amount, false);
     });
     attackModComboBox.setOnPopupMenuFunction ([this] () {});
-
+    attackModTextEditor.min = FormatHelpers::getAmount (minChannelProperties.getAttackMod ());
+    attackModTextEditor.max = FormatHelpers::getAmount (maxChannelProperties.getAttackMod ());
+    attackModTextEditor.getter = [this] () { return channelProperties.getAttackMod ();  };
+    attackModTextEditor.setter = [this] (double cv) { channelProperties.setAttackMod (FormatHelpers::getCvInput (channelProperties.getAttackMod ()), cv, false); };
+    attackModTextEditor.uiChanged = [this] (juce::String cvInput, double amount) { attackModUiChanged (cvInput, amount); };
     setupTextEditor (attackModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "AttackMod", [this] ()
     {
-        FormatHelpers::setColorIfError (attackModTextEditor, FormatHelpers::getAmount (minChannelProperties.getAttackMod ()), FormatHelpers::getAmount (maxChannelProperties.getAttackMod ()));
+        attackModTextEditor.checkValue();
     },
     [this] (juce::String text)
     {
-        const auto attackMod { std::clamp (text.getDoubleValue (), FormatHelpers::getAmount (minChannelProperties.getAttackMod ()),
-                                                                    FormatHelpers::getAmount (maxChannelProperties.getAttackMod ())) };
-        attackModUiChanged (attackModComboBox.getSelectedItemText (), attackMod);
-        attackModTextEditor.setText (FormatHelpers::formatDouble (attackMod, 2, true));
+        attackModTextEditor.setValue (text.getDoubleValue ());
     });
-    attackModTextEditor.onDrag = [this] (int dragSpeed)
-    {
-    };
-    attackModTextEditor.onPopupMenu = [this] ()
-    {
-    };
 
     // RELEASE
     setupTextEditor (releaseTextEditor, juce::Justification::centred, 0, ".0123456789", "Release", [this] ()
@@ -833,24 +798,19 @@ void ChannelEditor::setupChannelComponents ()
         channelProperties.setReleaseMod (releaseModComboBox.getSelectedItemText (), amount, false);
     });
     releaseModComboBox.setOnPopupMenuFunction ([this] () {});
-
+    releaseModTextEditor.min = FormatHelpers::getAmount (minChannelProperties.getReleaseMod ());
+    releaseModTextEditor.max = FormatHelpers::getAmount (maxChannelProperties.getReleaseMod ());
+    releaseModTextEditor.getter = [this] () { return channelProperties.getReleaseMod ();  };
+    releaseModTextEditor.setter = [this] (double cv) { channelProperties.setReleaseMod (FormatHelpers::getCvInput (channelProperties.getReleaseMod ()), cv, false); };
+    releaseModTextEditor.uiChanged = [this] (juce::String cvInput, double amount) { releaseModUiChanged (cvInput, amount); };
     setupTextEditor (releaseModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "ReleaseMod", [this] ()
     {
-        FormatHelpers::setColorIfError (releaseModTextEditor, FormatHelpers::getAmount (minChannelProperties.getReleaseMod ()), FormatHelpers::getAmount (maxChannelProperties.getReleaseMod ()));
+        releaseModTextEditor.checkValue ();
     },
     [this] (juce::String text)
     {
-        const auto releaseMod { std::clamp (text.getDoubleValue (), FormatHelpers::getAmount (minChannelProperties.getReleaseMod ()),
-                                                                    FormatHelpers::getAmount (maxChannelProperties.getReleaseMod ())) };
-        releaseModUiChanged (releaseModComboBox.getSelectedItemText (), releaseMod);
-        releaseModTextEditor.setText (FormatHelpers::formatDouble (releaseMod, 2, true));
+        releaseModTextEditor.setValue (text.getDoubleValue ());
     });
-    releaseModTextEditor.onDrag = [this] (int dragSpeed)
-    {
-    };
-    releaseModTextEditor.onPopupMenu = [this] ()
-    {
-    };
 
     /////////////////////////////////////////
     // column three
@@ -883,24 +843,19 @@ void ChannelEditor::setupChannelComponents ()
         channelProperties.setBitsMod (bitsModComboBox.getSelectedItemText (), amount, false);
     });
     bitsModComboBox.setOnPopupMenuFunction ([this] () {});
-
+    bitsModTextEditor.min = FormatHelpers::getAmount (minChannelProperties.getBitsMod ());
+    bitsModTextEditor.max = FormatHelpers::getAmount (maxChannelProperties.getBitsMod ());
+    bitsModTextEditor.getter = [this] () { return channelProperties.getBitsMod ();  };
+    bitsModTextEditor.setter = [this] (double cv) { channelProperties.setBitsMod (FormatHelpers::getCvInput (channelProperties.getBitsMod ()), cv, false); };
+    bitsModTextEditor.uiChanged = [this] (juce::String cvInput, double amount) { bitsModUiChanged (cvInput, amount); };
     setupTextEditor (bitsModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "BitsMod", [this] ()
     {
-        FormatHelpers::setColorIfError (bitsModTextEditor, FormatHelpers::getAmount (minChannelProperties.getBitsMod ()), FormatHelpers::getAmount (maxChannelProperties.getBitsMod ()));
+        bitsModTextEditor.checkValue();
     },
     [this] (juce::String text)
     {
-        const auto bitsMod { std::clamp (text.getDoubleValue (), FormatHelpers::getAmount (minChannelProperties.getBitsMod ()),
-                                                                 FormatHelpers::getAmount (maxChannelProperties.getBitsMod ())) };
-        bitsModUiChanged (bitsModComboBox.getSelectedItemText (), bitsMod);
-        bitsModTextEditor.setText (FormatHelpers::formatDouble (bitsMod, 2, true));
+        bitsModTextEditor.setValue (text.getDoubleValue ());
     });
-    bitsModTextEditor.onDrag = [this] (int dragSpeed)
-    {
-    };
-    bitsModTextEditor.onPopupMenu = [this] ()
-    {
-    };
 
     // ALIASING
     setupTextEditor (aliasingTextEditor, juce::Justification::centred, 0, "0123456789", "Aliasing", [this] ()
@@ -929,24 +884,19 @@ void ChannelEditor::setupChannelComponents ()
         channelProperties.setAliasingMod (aliasingModComboBox.getSelectedItemText (), amount, false);
     });
     aliasingModComboBox.setOnPopupMenuFunction([this] () {});
-
+    aliasingModTextEditor.min = FormatHelpers::getAmount (minChannelProperties.getAliasingMod ());
+    aliasingModTextEditor.max = FormatHelpers::getAmount (maxChannelProperties.getAliasingMod ());
+    aliasingModTextEditor.getter = [this] () { return channelProperties.getAliasingMod ();  };
+    aliasingModTextEditor.setter = [this] (double cv) { channelProperties.setAliasingMod (FormatHelpers::getCvInput (channelProperties.getAliasingMod ()), cv, false); };
+    aliasingModTextEditor.uiChanged = [this] (juce::String cvInput, double amount) { aliasingModUiChanged (cvInput, amount); };
     setupTextEditor (aliasingModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "AliasingMod", [this] ()
     {
-        FormatHelpers::setColorIfError (aliasingModTextEditor, FormatHelpers::getAmount (minChannelProperties.getAliasingMod ()), FormatHelpers::getAmount (maxChannelProperties.getAliasingMod ()));
+        aliasingModTextEditor.checkValue ();
     },
     [this] (juce::String text)
     {
-        const auto aliasingMod { std::clamp (text.getDoubleValue (), FormatHelpers::getAmount (minChannelProperties.getAliasingMod ()),
-                                                                     FormatHelpers::getAmount (maxChannelProperties.getAliasingMod ())) };
-        aliasingModUiChanged (aliasingModComboBox.getSelectedItemText (), aliasingMod);
-        aliasingModTextEditor.setText (FormatHelpers::formatDouble (aliasingMod, 2, true));
+        aliasingModTextEditor.setValue (text.getDoubleValue ());
     });
-    aliasingModTextEditor.onDrag = [this] (int dragSpeed)
-    {
-    };
-    aliasingModTextEditor.onPopupMenu = [this] ()
-    {
-    };
 
     // REVERSE/SMOOTH
     setupButton (reverseButton, "REV", "Reverse", [this] () { reverseUiChanged (reverseButton.getToggleState ()); });
@@ -979,24 +929,19 @@ void ChannelEditor::setupChannelComponents ()
         channelProperties.setPanMod (panModComboBox.getSelectedItemText (), amount, false);
     });
     panModComboBox.setOnPopupMenuFunction ([this] () {});
-
+    panModTextEditor.min = FormatHelpers::getAmount (minChannelProperties.getPanMod ());
+    panModTextEditor.max = FormatHelpers::getAmount (maxChannelProperties.getPanMod ());
+    panModTextEditor.getter = [this] () { return channelProperties.getPanMod ();  };
+    panModTextEditor.setter = [this] (double cv) { channelProperties.setPanMod (FormatHelpers::getCvInput (channelProperties.getPanMod ()), cv, false); };
+    panModTextEditor.uiChanged = [this] (juce::String cvInput, double amount) { panModUiChanged (cvInput, amount); };
     setupTextEditor (panModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "PanMod", [this] ()
     {
-        FormatHelpers::setColorIfError (panModTextEditor, FormatHelpers::getAmount (minChannelProperties.getPanMod ()), FormatHelpers::getAmount (maxChannelProperties.getPanMod ()));
+        panModTextEditor.checkValue();
     },
     [this] (juce::String text)
     {
-        const auto panMod { std::clamp (text.getDoubleValue (), FormatHelpers::getAmount (minChannelProperties.getPanMod ()),
-                                                                FormatHelpers::getAmount (maxChannelProperties.getPanMod ())) };
-        panModUiChanged (panModComboBox.getSelectedItemText (), panMod);
-        panModTextEditor.setText (FormatHelpers::formatDouble (panMod, 2, true));
+        panModTextEditor.setValue (text.getDoubleValue ());
     });
-    panModTextEditor.onDrag = [this] (int dragSpeed)
-    {
-    };
-    panModTextEditor.onPopupMenu = [this] ()
-    {
-    };
 
     setupTextEditor (mixLevelTextEditor, juce::Justification::centred, 0, "+-.0123456789", "MixLevel", [this] ()
     {
@@ -1024,24 +969,19 @@ void ChannelEditor::setupChannelComponents ()
         channelProperties.setMixMod (mixModComboBox.getSelectedItemText (), amount, false);
     });
     mixModComboBox.setOnPopupMenuFunction ([this] () {});
-
+    mixModTextEditor.min = FormatHelpers::getAmount (minChannelProperties.getMixMod ());
+    mixModTextEditor.max = FormatHelpers::getAmount (maxChannelProperties.getMixMod ());
+    mixModTextEditor.getter = [this] () { return channelProperties.getMixMod ();  };
+    mixModTextEditor.setter = [this] (double cv) { channelProperties.setMixMod (FormatHelpers::getCvInput (channelProperties.getMixMod ()), cv, false); };
+    mixModTextEditor.uiChanged = [this] (juce::String cvInput, double amount) { mixModUiChanged (cvInput, amount); };
     setupTextEditor (mixModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "MixMod", [this] ()
     {
-        FormatHelpers::setColorIfError (mixModTextEditor, FormatHelpers::getAmount (minChannelProperties.getMixMod ()), FormatHelpers::getAmount (maxChannelProperties.getMixMod ()));
+        mixModTextEditor.checkValue();
     },
     [this] (juce::String text)
     {
-        const auto mixMod { std::clamp (text.getDoubleValue (), FormatHelpers::getAmount (minChannelProperties.getMixMod ()),
-                                                                FormatHelpers::getAmount (maxChannelProperties.getMixMod ())) };
-        mixModUiChanged (mixModComboBox.getSelectedItemText (), mixMod);
-        mixModTextEditor.setText (FormatHelpers::formatDouble (mixMod, 2, true));
+        mixModTextEditor.setValue (text.getDoubleValue ());
     });
-    mixModTextEditor.onDrag = [this] (int dragSpeed)
-    {
-    };
-    mixModTextEditor.onPopupMenu = [this] ()
-    {
-    };
     setupLabel (mixModIsFaderLabel, "Mix Mod", kMediumLabelSize, juce::Justification::centredRight);
     mixModIsFaderComboBox.addItem ("Normal", 1);
     mixModIsFaderComboBox.addItem ("Fader", 2);
@@ -1130,24 +1070,19 @@ void ChannelEditor::setupChannelComponents ()
         channelProperties.setSampleStartMod (sampleStartModComboBox.getSelectedItemText (), amount, false);
     });
     sampleStartModComboBox.setOnPopupMenuFunction ([this] () {});
-
+    sampleStartModTextEditor.min = FormatHelpers::getAmount (minChannelProperties.getSampleStartMod ());
+    sampleStartModTextEditor.max = FormatHelpers::getAmount (maxChannelProperties.getSampleStartMod ());
+    sampleStartModTextEditor.getter = [this] () { return channelProperties.getSampleStartMod ();  };
+    sampleStartModTextEditor.setter = [this] (double cv) { channelProperties.setSampleStartMod (FormatHelpers::getCvInput (channelProperties.getSampleStartMod ()), cv, false); };
+    sampleStartModTextEditor.uiChanged = [this] (juce::String cvInput, double amount) { sampleStartModUiChanged (cvInput, amount); };
     setupTextEditor (sampleStartModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "SampleStartMod", [this] ()
     {
-        FormatHelpers::setColorIfError (sampleStartModTextEditor, FormatHelpers::getAmount (minChannelProperties.getSampleStartMod ()), FormatHelpers::getAmount (maxChannelProperties.getSampleStartMod ()));
+        sampleStartModTextEditor.checkValue ();
     },
     [this] (juce::String text)
     {
-        const auto sampleStartMod { std::clamp (text.getDoubleValue (), FormatHelpers::getAmount (minChannelProperties.getSampleStartMod ()),
-                                                                        FormatHelpers::getAmount (maxChannelProperties.getSampleStartMod ())) };
-        sampleStartModUiChanged (sampleStartModComboBox.getSelectedItemText (), sampleStartMod);
-        sampleStartModTextEditor.setText (FormatHelpers::formatDouble (sampleStartMod, 2, true));
+        sampleStartModTextEditor.setValue (text.getDoubleValue ());
     });
-    sampleStartModTextEditor.onDrag = [this] (int dragSpeed)
-    {
-    };
-    sampleStartModTextEditor.onPopupMenu = [this] ()
-    {
-    };
 
     setupLabel (sampleEndModLabel, "SAMPLE END", kMediumLabelSize, juce::Justification::centred);
     setupCvInputComboBox (sampleEndModComboBox, "SampleEndMod", [this] () { sampleEndModUiChanged (sampleEndModComboBox.getSelectedItemText (), sampleEndModTextEditor.getText ().getDoubleValue ()); });
@@ -1158,24 +1093,19 @@ void ChannelEditor::setupChannelComponents ()
         channelProperties.setSampleEndMod (sampleEndModComboBox.getSelectedItemText (), amount, false);
     });
     sampleEndModComboBox.setOnPopupMenuFunction ([this] () {});
-
+    sampleEndModTextEditor.min = FormatHelpers::getAmount (minChannelProperties.getSampleEndMod ());
+    sampleEndModTextEditor.max = FormatHelpers::getAmount (maxChannelProperties.getSampleEndMod ());
+    sampleEndModTextEditor.getter = [this] () { return channelProperties.getSampleEndMod ();  };
+    sampleEndModTextEditor.setter = [this] (double cv) { channelProperties.setSampleEndMod (FormatHelpers::getCvInput (channelProperties.getSampleEndMod ()), cv, false); };
+    sampleEndModTextEditor.uiChanged = [this] (juce::String cvInput, double amount) { sampleEndModUiChanged (cvInput, amount); };
     setupTextEditor (sampleEndModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "SampleEndMod", [this] ()
     {
-        FormatHelpers::setColorIfError (sampleEndModTextEditor, FormatHelpers::getAmount (minChannelProperties.getSampleEndMod ()), FormatHelpers::getAmount (maxChannelProperties.getSampleEndMod ()));
+        sampleEndModTextEditor.checkValue ();
     },
     [this] (juce::String text)
     {
-        const auto sampleEndMod { std::clamp (text.getDoubleValue (), FormatHelpers::getAmount (minChannelProperties.getSampleEndMod ()),
-                                                                      FormatHelpers::getAmount (maxChannelProperties.getSampleEndMod ())) };
-        sampleEndModUiChanged (sampleEndModComboBox.getSelectedItemText (), sampleEndMod);
-        sampleEndModTextEditor.setText (FormatHelpers::formatDouble (sampleEndMod, 2, true));
+        sampleEndModTextEditor.setValue (text.getDoubleValue ());
     });
-    sampleEndModTextEditor.onDrag = [this] (int dragSpeed)
-    {
-    };
-    sampleEndModTextEditor.onPopupMenu = [this] ()
-    {
-    };
     setupLabel (loopStartModLabel, "LOOP START", kMediumLabelSize, juce::Justification::centred);
     setupCvInputComboBox (loopStartModComboBox, "LoopStartMod", [this] () { loopStartModUiChanged (loopStartModComboBox.getSelectedItemText (), loopStartModTextEditor.getText ().getDoubleValue ()); });
     loopStartModComboBox.setOnDragFunction ([this] (int dragSpeed)
@@ -1185,24 +1115,19 @@ void ChannelEditor::setupChannelComponents ()
         channelProperties.setLoopStartMod (loopStartModComboBox.getSelectedItemText (), amount, false);
     });
     loopStartModComboBox.setOnPopupMenuFunction ([this] () {});
-
+    loopStartModTextEditor.min = FormatHelpers::getAmount (minChannelProperties.getLoopStartMod ());
+    loopStartModTextEditor.max = FormatHelpers::getAmount (maxChannelProperties.getLoopStartMod ());
+    loopStartModTextEditor.getter = [this] () { return channelProperties.getLoopStartMod ();  };
+    loopStartModTextEditor.setter = [this] (double cv) { channelProperties.setLoopStartMod (FormatHelpers::getCvInput (channelProperties.getLoopStartMod ()), cv, false); };
+    loopStartModTextEditor.uiChanged = [this] (juce::String cvInput, double amount) { loopStartModUiChanged (cvInput, amount); };
     setupTextEditor (loopStartModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "LoopStartMod", [this] ()
     {
-        FormatHelpers::setColorIfError (loopStartModTextEditor, FormatHelpers::getAmount (minChannelProperties.getLoopStartMod ()), FormatHelpers::getAmount (maxChannelProperties.getLoopStartMod ()));
+        loopStartModTextEditor.checkValue ();
     },
     [this] (juce::String text)
     {
-        const auto loopStartMod { std::clamp (text.getDoubleValue (), FormatHelpers::getAmount (minChannelProperties.getLoopStartMod ()),
-                                                                      FormatHelpers::getAmount (maxChannelProperties.getLoopStartMod ())) };
-        loopStartModUiChanged (loopStartModComboBox.getSelectedItemText (), loopStartMod);
-        loopStartModTextEditor.setText (FormatHelpers::formatDouble (loopStartMod, 2, true));
+        loopStartModTextEditor.setValue (text.getDoubleValue ());
     });
-    loopStartModTextEditor.onDrag = [this] (int dragSpeed)
-    {
-    };
-    loopStartModTextEditor.onPopupMenu = [this] ()
-    {
-    };
 
     setupLabel (loopLengthModLabel, "LOOP LENGTH", kMediumLabelSize, juce::Justification::centred);
     setupCvInputComboBox (loopLengthModComboBox, "LoopLengthMod", [this] () { loopLengthModUiChanged (loopLengthModComboBox.getSelectedItemText (), loopLengthModTextEditor.getText ().getDoubleValue ()); });
@@ -1213,24 +1138,19 @@ void ChannelEditor::setupChannelComponents ()
         channelProperties.setLoopLengthMod (loopLengthModComboBox.getSelectedItemText (), amount, false);
     });
     loopLengthModComboBox.setOnPopupMenuFunction ([this] () {});
-
+    loopLengthModTextEditor.min = FormatHelpers::getAmount (minChannelProperties.getLoopLengthMod ());
+    loopLengthModTextEditor.max = FormatHelpers::getAmount (maxChannelProperties.getLoopLengthMod ());
+    loopLengthModTextEditor.getter = [this] () { return channelProperties.getLoopLengthMod ();  };
+    loopLengthModTextEditor.setter = [this] (double cv) { channelProperties.setLoopLengthMod (FormatHelpers::getCvInput (channelProperties.getLoopLengthMod ()), cv, false); };
+    loopLengthModTextEditor.uiChanged = [this] (juce::String cvInput, double amount) { loopLengthModUiChanged (cvInput, amount); };
     setupTextEditor (loopLengthModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "LoopLengthMod", [this] ()
     {
-        FormatHelpers::setColorIfError (loopLengthModTextEditor, FormatHelpers::getAmount (minChannelProperties.getLoopLengthMod ()), FormatHelpers::getAmount (maxChannelProperties.getLoopLengthMod ()));
+        loopLengthModTextEditor.checkValue();
     },
     [this] (juce::String text)
     {
-        const auto loopLengthMod { std::clamp (text.getDoubleValue (), FormatHelpers::getAmount (minChannelProperties.getLoopLengthMod ()),
-                                                                       FormatHelpers::getAmount (maxChannelProperties.getLoopLengthMod ())) };
-        loopLengthModUiChanged (loopLengthModComboBox.getSelectedItemText (), loopLengthMod);
-        loopLengthModTextEditor.setText (FormatHelpers::formatDouble (loopLengthMod, 2, true));
+        loopLengthModTextEditor.setValue (text.getDoubleValue());
     });
-    loopLengthModTextEditor.onDrag = [this] (int dragSpeed)
-    {
-    };
-    loopLengthModTextEditor.onPopupMenu = [this] ()
-    {
-    };
 
     setupLabel (xfadeGroupLabel, "XFADE GRP", kSmallLabelSize, juce::Justification::centredRight);
     xfadeGroupComboBox.addItem ("None", 1); // Off, A, B, C, D
