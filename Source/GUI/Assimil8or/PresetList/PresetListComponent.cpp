@@ -232,9 +232,14 @@ void PresetListComponent::loadPresetFile (juce::File presetFile, juce::ValueTree
     Assimil8orPreset assimil8orPreset;
     assimil8orPreset.parse (fileContents);
 
+    // TODO - is this redundant, since assimil8orPreset.parse resets it's PresetProperties to defaults already
+    // first set preset to defaults
     PresetProperties::copyTreeProperties (ParameterPresetsSingleton::getInstance ()->getParameterPresetListProperties ().getParameterPreset (ParameterPresetListProperties::DefaultParameterPresetType),
                                           presetPropertiesVT);
+    // then load new preset
     PresetProperties::copyTreeProperties (assimil8orPreset.getPresetVT (), presetPropertiesVT);
+
+    //ValueTreeHelpers::dumpValueTreeContent (presetPropertiesVT, true, [this] (juce::String text) { juce::Logger::outputDebugString (text); });
 }
 
 void PresetListComponent::loadPreset (juce::File presetFile)
@@ -383,6 +388,7 @@ void PresetListComponent::listBoxItemClicked (int row, [[maybe_unused]] const ju
     }
     else
     {
+        // don't reload the currently loaded preset
         if (row == lastSelectedPresetIndex)
             return;
 

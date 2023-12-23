@@ -154,6 +154,30 @@ void ChannelEditor::visibilityChanged ()
         configAudioPlayer ();
 }
 
+void ChannelEditor::clearAllZones ()
+{
+    const auto numZones { getNumUsedZones () };
+    for (auto curZoneIndex { 0 }; curZoneIndex < numZones; ++curZoneIndex)
+        zoneProperties [curZoneIndex].copyFrom (defaultZoneProperties.getValueTree ());
+}
+
+void ChannelEditor::copyZone (int zoneIndex)
+{
+    copyBufferZoneProperties.copyFrom (zoneProperties [zoneIndex].getValueTree ());
+    copyBufferHasData = true;
+}
+
+void ChannelEditor::deleteZone (int zoneIndex)
+{
+    // TODO - this setSample call seems redundant with the follow copyFrom call
+    zoneProperties [zoneIndex].setSample ("", true);
+    zoneProperties [zoneIndex].copyFrom (defaultZoneProperties.getValueTree ());
+    // if this zone was the last in the list, but not also the first, then set the minVoltage for the new last in list to -5
+    if (zoneIndex == getNumUsedZones () && zoneIndex != 0)
+        zoneProperties [zoneIndex - 1].setMinVoltage (-5.0, false);
+    removeEmptyZones ();
+}
+
 void ChannelEditor::duplicateZone (int zoneIndex)
 {
     // if the list is full, we can't copy the end anywhere, so we'll start with the one before the end, otherwise start at the end
@@ -174,6 +198,18 @@ void ChannelEditor::duplicateZone (int zoneIndex)
     const auto indexOfLastZone { getNumUsedZones () - 1 };
     if (zoneProperties[indexOfLastZone].getMinVoltage () != -5.0)
         zoneProperties [indexOfLastZone].setMinVoltage (-5.0, false);
+}
+
+void ChannelEditor::pasteZone (int zoneIndex)
+{
+    zoneProperties [zoneIndex].copyFrom (copyBufferZoneProperties.getValueTree ());
+    // if this was on the end of the zone list, make sure it's minVoltage is set to -5
+    if (zoneIndex == getNumUsedZones ())
+    {
+        auto [topBoundary, bottomBoundary] { getVoltageBoundaries (zoneIndex, 1) };
+        zoneProperties [zoneIndex - 1].setMinVoltage (bottomBoundary + ((topBoundary - bottomBoundary) / 2), false);
+        zoneProperties [zoneIndex].setMinVoltage (-5.0, false);
+    }
 }
 
 // TODO - does this function really need to look for multiple empty zones? assuming it gets called when a zone is deleted, there should only be one
@@ -921,31 +957,17 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
             pm.addSubMenu ("Balance", pmBalance, true);
             pm.addItem ("Copy", true, false, [this, zoneIndex] ()
             {
-                copyBufferZoneProperties.copyFrom (zoneProperties [zoneIndex].getValueTree ());
-                copyBufferHasData = true;
+                copyZone (zoneIndex);
             });
             pm.addItem ("Paste", copyBufferHasData, false, [this, zoneIndex] ()
             {
-                zoneProperties [zoneIndex].copyFrom (copyBufferZoneProperties.getValueTree ());
-                // if this was on the end of the zone list, make sure it's minVoltage is set to -5
-                if (zoneIndex == getNumUsedZones ())
-                {
-                    auto [topBoundary, bottomBoundary] { getVoltageBoundaries (zoneIndex, 1) };
-                    zoneProperties [zoneIndex - 1].setMinVoltage (bottomBoundary + ((topBoundary - bottomBoundary) / 2), false);
-                    zoneProperties [zoneIndex].setMinVoltage (-5.0, false);
-                }
+                pasteZone (zoneIndex);
                 updateAllZoneTabNames ();
                 ensureProperZoneIsSelected ();
             });
             pm.addItem ("Delete", zoneProperties [zoneIndex].getSample ().isNotEmpty (), false, [this, zoneIndex] ()
             {
-                // TODO - this setSample call seems redundant with the follow copyFrom call
-                zoneProperties [zoneIndex].setSample ("", true);
-                zoneProperties [zoneIndex].copyFrom (defaultZoneProperties.getValueTree ());
-                // if this zone was the last in the list, but not also the first, then set the minVoltage for the new last in list to -5
-                if (zoneIndex == getNumUsedZones () && zoneIndex != 0)
-                    zoneProperties [zoneIndex - 1].setMinVoltage (-5.0, false);
-                removeEmptyZones ();
+                deleteZone (zoneIndex);
                 ensureProperZoneIsSelected ();
                 updateAllZoneTabNames ();
             });
@@ -957,9 +979,7 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
             });
             pm.addItem ("Clear All", getNumUsedZones () > 0, false, [this] ()
             {
-                const auto numZones { getNumUsedZones () };
-                for (auto curZoneIndex { 0 }; curZoneIndex < numZones; ++curZoneIndex)
-                    zoneProperties [curZoneIndex].copyFrom (defaultZoneProperties.getValueTree ());
+                clearAllZones ();
                 ensureProperZoneIsSelected ();
                 updateAllZoneTabNames ();
             });
@@ -989,30 +1009,41 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
         };
         zoneEditor.onSampleChange = [this, zoneEditorIndex] (juce::String sampleFileName)
         {
-            if (sampleFileName.isNotEmpty ())
-            {
-                if (zoneEditorIndex > 0)
-                {
-                    auto [topBoundary, bottomBoundary] { getVoltageBoundaries (zoneEditorIndex, 1) };
-                    zoneProperties [zoneEditorIndex - 1].setMinVoltage (bottomBoundary + ((topBoundary - bottomBoundary) / 2), false);
-                }
-                if (zoneEditorIndex == getNumUsedZones () - 1)
-                    zoneProperties [zoneEditorIndex].setMinVoltage (-5.0, false);
-            }
-            else
-            {
-                if (zoneEditorIndex> 0 && zoneEditorIndex == getNumUsedZones ())
-                    zoneProperties [zoneEditorIndex - 1].setMinVoltage (-5.0, false);
-            }
+//             if (sampleFileName.isNotEmpty ()) // add/udpate sample
+//             {
+//                 if (zoneEditorIndex > 0)
+//                 {
+//                     auto [topBoundary, bottomBoundary] { getVoltageBoundaries (zoneEditorIndex, 1) };
+//                     zoneProperties [zoneEditorIndex - 1].setMinVoltage (bottomBoundary + ((topBoundary - bottomBoundary) / 2), false);
+//                 }
+//                 if (zoneEditorIndex == getNumUsedZones () - 1)
+//                     zoneProperties [zoneEditorIndex].setMinVoltage (-5.0, false);
+//             }
+//             else // delete sample
+//             {
+//                 if (zoneEditorIndex> 0 && zoneEditorIndex == getNumUsedZones ())
+//                     zoneProperties [zoneEditorIndex - 1].setMinVoltage (-5.0, false);
+//             }
             ensureProperZoneIsSelected ();
             updateAllZoneTabNames ();
         };
         zoneEditor.handleSamples = [this] (int zoneIndex, const juce::StringArray& files)
         {
+            juce::Logger::outputDebugString("ChannelEditor::init - zoneEditor.handleSamples");
             // TODO - should this have been checked prior to this call?
             for (auto fileName : files)
                 if (! zoneEditors [zoneIndex].isSupportedAudioFile (fileName))
                     return false;
+
+            const auto numZones { getNumUsedZones () };
+            const auto dropZoneStartIndex { zoneIndex };
+            const auto dropZoneEndIndex { zoneIndex + files.size () - 1 };
+            juce::Logger::outputDebugString ("  numZones: " + juce::String (numZones));
+            juce::Logger::outputDebugString ("  numFiles: " + juce::String (files.size ()));
+            juce::Logger::outputDebugString ("  dropZoneStartIndex: " + juce::String (dropZoneStartIndex));
+            juce::Logger::outputDebugString ("  dropZoneEndIndex: " + juce::String (dropZoneEndIndex));
+            // if we create new entries past the last entry, we need to initialize the minVoltages
+            //if (dropZoneEndIndex >)
 
             for (auto filesIndex { 0 }; filesIndex < files.size () && zoneIndex + filesIndex < 8; ++filesIndex)
             {
@@ -1031,7 +1062,7 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
                 zoneProperty.setSample (file.getFileName (), false);
             }
 
-#if JUCE_DEBUG
+#if JUCE_DEBUG && 0
             // verifying that all minVoltages are valid
             for (auto curZoneIndex { 0 }; curZoneIndex < getNumUsedZones () - 1; ++curZoneIndex)
                 if (zoneProperties [curZoneIndex].getMinVoltage () <= zoneProperties [curZoneIndex + 1].getMinVoltage ())

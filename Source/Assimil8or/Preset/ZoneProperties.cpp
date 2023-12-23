@@ -48,6 +48,8 @@ void ZoneProperties::setLoopStart (int64_t loopStart, bool includeSelfCallback)
 
 void ZoneProperties::setMinVoltage (double minVoltage, bool includeSelfCallback)
 {
+    //juce::Logger::outputDebugString ("[" + juce::String (getId ()) + "]: " + juce::String (minVoltage));
+    //dumpStacktrace (30, [this] (juce::String text) { juce::Logger::outputDebugString (text); });
     setValue (minVoltage, MinVoltagePropertyId, includeSelfCallback);
 }
 
