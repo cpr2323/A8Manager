@@ -1027,7 +1027,7 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
             ensureProperZoneIsSelected ();
             updateAllZoneTabNames ();
         };
-        zoneEditor.handleSamples = [this] (int zoneIndex, const juce::StringArray& files)
+        zoneEditor.assignSamples = [this] (int zoneIndex, const juce::StringArray& files)
         {
             juce::Logger::outputDebugString("ChannelEditor::init - zoneEditor.handleSamples");
             // TODO - should this have been checked prior to this call?
@@ -1036,14 +1036,14 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
                     return false;
 
             const auto numZones { getNumUsedZones () };
+            const auto initialEndIndex { numZones - 1 };
             const auto dropZoneStartIndex { zoneIndex };
             const auto dropZoneEndIndex { zoneIndex + files.size () - 1 };
             juce::Logger::outputDebugString ("  numZones: " + juce::String (numZones));
             juce::Logger::outputDebugString ("  numFiles: " + juce::String (files.size ()));
+            juce::Logger::outputDebugString ("  initialEndIndex: " + juce::String (initialEndIndex));
             juce::Logger::outputDebugString ("  dropZoneStartIndex: " + juce::String (dropZoneStartIndex));
             juce::Logger::outputDebugString ("  dropZoneEndIndex: " + juce::String (dropZoneEndIndex));
-            // if we create new entries past the last entry, we need to initialize the minVoltages
-            //if (dropZoneEndIndex >)
 
             for (auto filesIndex { 0 }; filesIndex < files.size () && zoneIndex + filesIndex < 8; ++filesIndex)
             {
@@ -1062,12 +1062,38 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
                 zoneProperty.setSample (file.getFileName (), false);
             }
 
-#if JUCE_DEBUG && 0
+            // if we create new entries past the last entry, we need to initialize the minVoltages
+            if (dropZoneEndIndex > initialEndIndex)
+            {
+                const auto lastItemValue { -5.0 };
+                const auto baseValue { dropZoneStartIndex == 0 ? 5.0 : zoneProperties [dropZoneStartIndex - 1].getMinVoltage () };
+                const double stepSize = (lastItemValue - baseValue) / (dropZoneEndIndex - dropZoneStartIndex + 1);
+                jassert (stepSize != 0.0);
+                juce::Logger::outputDebugString ("stepSize=" + juce::String (stepSize) + ", baseValue=" + juce::String (baseValue));
+                // Update values from the start index to the new end index
+                for (int i = dropZoneStartIndex; i <= dropZoneEndIndex; ++i)
+                {
+                    const auto offset { (i - dropZoneStartIndex + 1) * stepSize };
+                    const auto newValue { baseValue + offset };
+                    juce::Logger::outputDebugString ("[" + juce::String (i) + "]=" + juce::String (newValue));
+                    zoneProperties [i].setMinVoltage (newValue, false);
+                }
+
+                // ensure the last entry is set to -5.0
+                juce::Logger::outputDebugString ("[" + juce::String (getNumUsedZones () - 1) + "]=-5.0");
+                zoneProperties [getNumUsedZones () - 1].setMinVoltage (-5.0, false);
+            }
+#if JUCE_DEBUG
             // verifying that all minVoltages are valid
             for (auto curZoneIndex { 0 }; curZoneIndex < getNumUsedZones () - 1; ++curZoneIndex)
                 if (zoneProperties [curZoneIndex].getMinVoltage () <= zoneProperties [curZoneIndex + 1].getMinVoltage ())
+                {
+                    juce::Logger::outputDebugString("[" +juce::String(curZoneIndex) + "]=" + juce::String (zoneProperties [curZoneIndex].getMinVoltage ()) +
+                                                    " > [" + juce::String(curZoneIndex + 1) + "]=" + juce::String (zoneProperties [curZoneIndex + 1].getMinVoltage ()));
                     jassertfalse;
+                }
 #endif
+            updateAllZoneTabNames ();
             return true;
         };
 

@@ -28,6 +28,92 @@ void crashHandler (void* /*data*/)
     FlushDebugLog ();
 }
 
+void runDistributionTests ()
+{
+    auto generateData = [] (std::vector<float>& inputData, int startIndex, int endIndex) -> std::vector<float>
+    {
+        // The last item is always -5.0
+        float lastItem = -5.0f;
+
+        // If the provided array is smaller than endIndex, resize it
+        std::vector<float> outputData { inputData.begin (), inputData.end () };
+        if (endIndex < inputData.size ())
+            return outputData;
+
+        outputData.resize (endIndex + 1);
+
+        if (endIndex - startIndex > 0)
+        {
+            // Calculate the step size for even distribution
+            float offset { startIndex == 0 ? 5.0f : outputData [inputData.size () - 2]};
+            float stepSize = (lastItem - offset) / (endIndex - startIndex + 1);
+
+
+            // Update values from the start index to the new end index
+            for (int i = startIndex; i < endIndex; ++i)
+            {
+                auto threshold { static_cast<int>(inputData.size ()) - 2 };
+                if (i > threshold)
+                {
+                    const auto newValue { offset + (i - startIndex + 1) * stepSize };
+                    outputData [i] = newValue;
+                }
+            }
+        }
+
+        outputData [outputData.size () - 1] = -5.0f;
+        return outputData;
+    };
+
+    auto runTest = [&generateData] (std::vector<float>& testData, int startIndex, int endIndex, std::vector<float> expectedOutputData)
+    {
+        auto simpleCompare = [] (float firstNumber, float secondNumber)
+        {
+            const auto multiplier { 100 };
+            const auto firstNumberMultiplied { static_cast<int>(firstNumber * multiplier) };
+            const auto secondNumberMultiplied { static_cast<int>(secondNumber * multiplier) };
+            const auto approxEqual { std::abs (firstNumberMultiplied - secondNumberMultiplied) < 2 };
+            jassert (approxEqual);
+            return approxEqual;
+        };
+        auto outputData { generateData (testData, startIndex, endIndex) };
+        
+        jassert (outputData.size() == expectedOutputData.size ());
+        for (auto dataIndex { 0 }; dataIndex < outputData.size (); ++dataIndex)
+        {
+            jassert (simpleCompare (outputData [dataIndex], expectedOutputData [dataIndex]) == true);
+        }
+    };
+
+    std::vector<float> inputData;
+    runTest (inputData, 0, 0, { -5.0f });
+    inputData.clear ();
+    runTest (inputData, 0, 1, { 0.0f, -5.0f });
+    inputData.clear ();
+    runTest (inputData, 0, 2, { 1.67, -1.67, -5.00 });
+    inputData.clear ();
+    runTest (inputData, 0, 3, { 2.50, 0.00, -2.50, -5.0 });
+    inputData.clear ();
+    runTest (inputData, 0, 7, { 3.75, 2.50, 1.25, 0.00, -1.25, -2.50, -3.75, -5.0 });
+    inputData = { -5.0 };
+    runTest (inputData, 0, 0, { -5.0 });
+    inputData = { -5.0 };
+    runTest (inputData, 0, 1, { 0.0, -5.0 });
+    inputData = { 0.0, -5.0 };
+    runTest (inputData, 1, 2, { 0.0, -2.5, -5.0 });
+    inputData = { 0.0, -2.5, -5.0 };
+    runTest (inputData, 2, 3, { 0.0, -2.5, -3.75, -5.0 });
+    inputData = { 0.0, -2.5, -5.0 };
+    runTest (inputData, 2, 4, { 0.0, -2.5, -3.33, -4.16, -5.0 });
+
+    inputData = { 0.0, -2.5, -3.33, -4.16, -5.0 };
+    runTest (inputData, 1, 3, { 0.0, -2.5, -3.33, -4.16, -5.0 });
+
+    inputData = { 0.0, -2.5, -3.33, -4.16, -5.0 };
+    runTest (inputData, 2, 6, { 0.0, -2.5, -3.33, -4.16, -4.66, -4.83, -5.0 });
+
+}
+
 class A8ManagerApplication : public juce::JUCEApplication, public juce::Timer
 {
 public:
@@ -38,6 +124,8 @@ public:
 
     void initialise ([[maybe_unused]] const juce::String& commandLine) override
     {
+        runDistributionTests ();
+
         initAppDirectory ();
         initLogger ();
         initCrashHandler ();
