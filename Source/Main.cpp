@@ -34,6 +34,7 @@ void runDistributionTests ()
     {
         const auto maxValue { 5.0f };
         const auto minValue { -5.0f };
+        const auto initialEndIndex { static_cast<int>(inputData.size ()) - 1 };
 
         // If the provided array is smaller than endIndex, resize it
         std::vector<float> outputData { inputData.begin (), inputData.end () };
@@ -45,15 +46,14 @@ void runDistributionTests ()
         if (endIndex - startIndex > 0)
         {
             // Calculate the step size for even distribution
-            const auto offset { startIndex == 0 ? maxValue : outputData [inputData.size () - 2]};
+            const auto offset { startIndex == 0 ? maxValue : outputData [initialEndIndex - 1]};
             const float stepSize { (minValue - offset) / (endIndex - startIndex + 1) };
-
+            const auto updateThreshold { initialEndIndex - 1 };
 
             // Update values from the start index to the new end index
             for (int i = startIndex; i < endIndex; ++i)
             {
-                const auto threshold { static_cast<int>(inputData.size ()) - 2 };
-                if (i > threshold)
+                if (i > updateThreshold)
                 {
                     const auto newValue { offset + (i - startIndex + 1) * stepSize };
                     outputData [i] = newValue;

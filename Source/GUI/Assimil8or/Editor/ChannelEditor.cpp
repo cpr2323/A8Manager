@@ -240,6 +240,8 @@ void ChannelEditor::removeEmptyZones ()
     }
 }
 
+// TODO - this works well enough, in that I believe it ensures a valid zone is selected
+//        I should add comments describing what problem is solves
 void ChannelEditor::ensureProperZoneIsSelected ()
 {
     auto& tabbedButtonBar { zoneTabs.getTabbedButtonBar () };
