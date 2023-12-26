@@ -32,8 +32,8 @@ void runDistributionTests ()
 {
     auto generateData = [] (std::vector<float>& inputData, int startIndex, int endIndex) -> std::vector<float>
     {
-        // The last item is always -5.0
-        float lastItem = -5.0f;
+        const auto maxValue { 5.0f };
+        const auto minValue { -5.0f };
 
         // If the provided array is smaller than endIndex, resize it
         std::vector<float> outputData { inputData.begin (), inputData.end () };
@@ -45,14 +45,14 @@ void runDistributionTests ()
         if (endIndex - startIndex > 0)
         {
             // Calculate the step size for even distribution
-            float offset { startIndex == 0 ? 5.0f : outputData [inputData.size () - 2]};
-            float stepSize = (lastItem - offset) / (endIndex - startIndex + 1);
+            const auto offset { startIndex == 0 ? maxValue : outputData [inputData.size () - 2]};
+            const float stepSize { (minValue - offset) / (endIndex - startIndex + 1) };
 
 
             // Update values from the start index to the new end index
             for (int i = startIndex; i < endIndex; ++i)
             {
-                auto threshold { static_cast<int>(inputData.size ()) - 2 };
+                const auto threshold { static_cast<int>(inputData.size ()) - 2 };
                 if (i > threshold)
                 {
                     const auto newValue { offset + (i - startIndex + 1) * stepSize };
@@ -61,7 +61,7 @@ void runDistributionTests ()
             }
         }
 
-        outputData [outputData.size () - 1] = -5.0f;
+        outputData [outputData.size () - 1] = minValue;
         return outputData;
     };
 
@@ -90,28 +90,25 @@ void runDistributionTests ()
     inputData.clear ();
     runTest (inputData, 0, 1, { 0.0f, -5.0f });
     inputData.clear ();
-    runTest (inputData, 0, 2, { 1.67, -1.67, -5.00 });
+    runTest (inputData, 0, 2, { 1.67f, -1.67f, -5.0f });
     inputData.clear ();
-    runTest (inputData, 0, 3, { 2.50, 0.00, -2.50, -5.0 });
+    runTest (inputData, 0, 3, { 2.50f, 0.00f, -2.50f, -5.0f });
     inputData.clear ();
-    runTest (inputData, 0, 7, { 3.75, 2.50, 1.25, 0.00, -1.25, -2.50, -3.75, -5.0 });
-    inputData = { -5.0 };
-    runTest (inputData, 0, 0, { -5.0 });
-    inputData = { -5.0 };
-    runTest (inputData, 0, 1, { 0.0, -5.0 });
-    inputData = { 0.0, -5.0 };
-    runTest (inputData, 1, 2, { 0.0, -2.5, -5.0 });
-    inputData = { 0.0, -2.5, -5.0 };
-    runTest (inputData, 2, 3, { 0.0, -2.5, -3.75, -5.0 });
-    inputData = { 0.0, -2.5, -5.0 };
-    runTest (inputData, 2, 4, { 0.0, -2.5, -3.33, -4.16, -5.0 });
-
-    inputData = { 0.0, -2.5, -3.33, -4.16, -5.0 };
-    runTest (inputData, 1, 3, { 0.0, -2.5, -3.33, -4.16, -5.0 });
-
-    inputData = { 0.0, -2.5, -3.33, -4.16, -5.0 };
-    runTest (inputData, 2, 6, { 0.0, -2.5, -3.33, -4.16, -4.66, -4.83, -5.0 });
-
+    runTest (inputData, 0, 7, { 3.75f, 2.50f, 1.25f, 0.00f, -1.25f, -2.50f, -3.75f, -5.0f });
+    inputData = { -5.0f };
+    runTest (inputData, 0, 0, { -5.0f });
+    inputData = { -5.0f };
+    runTest (inputData, 0, 1, { 0.0f, -5.0f });
+    inputData = { 0.0f, -5.0f };
+    runTest (inputData, 1, 2, { 0.0f, -2.5f, -5.0f });
+    inputData = { 0.0, -2.5f, -5.0f };
+    runTest (inputData, 2, 3, { 0.0f, -2.5f, -3.75f, -5.0f });
+    inputData = { 0.0f, -2.5f, -5.0f };
+    runTest (inputData, 2, 4, { 0.0f, -2.5f, -3.33f, -4.16f, -5.0f });
+    inputData = { 0.0f, -2.5f, -3.33f, -4.16f, -5.0f };
+    runTest (inputData, 1, 3, { 0.0f, -2.5f, -3.33f, -4.16f, -5.0f });
+    inputData = { 0.0f, -2.5f, -3.33f, -4.16f, -5.0f };
+    runTest (inputData, 2, 6, { 0.0f, -2.5f, -3.33f, -4.16f, -4.66f, -4.83f, -5.0f });
 }
 
 class A8ManagerApplication : public juce::JUCEApplication, public juce::Timer
