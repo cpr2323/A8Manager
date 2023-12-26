@@ -1029,11 +1029,11 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
             const auto dropZoneEndIndex { zoneIndex + files.size () - 1 };
             const auto maxValue { 5.0 };
             const auto minValue { -5.0 };
-//             juce::Logger::outputDebugString ("  initialNumZones: " + juce::String (initialNumZones));
-//             juce::Logger::outputDebugString ("  initialEndIndex: " + juce::String (initialEndIndex));
-//             juce::Logger::outputDebugString ("  numFiles: " + juce::String (files.size ()));
-//             juce::Logger::outputDebugString ("  dropZoneStartIndex: " + juce::String (dropZoneStartIndex));
-//             juce::Logger::outputDebugString ("  dropZoneEndIndex: " + juce::String (dropZoneEndIndex));
+            juce::Logger::outputDebugString ("  initialNumZones: " + juce::String (initialNumZones));
+            juce::Logger::outputDebugString ("  initialEndIndex: " + juce::String (initialEndIndex));
+            juce::Logger::outputDebugString ("  numFiles: " + juce::String (files.size ()));
+            juce::Logger::outputDebugString ("  dropZoneStartIndex: " + juce::String (dropZoneStartIndex));
+            juce::Logger::outputDebugString ("  dropZoneEndIndex: " + juce::String (dropZoneEndIndex));
 
             // assign the samples
             for (auto filesIndex { 0 }; filesIndex < files.size () && zoneIndex + filesIndex < 8; ++filesIndex)
@@ -1056,16 +1056,17 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
             // updated the minVoltages if needed
             if (dropZoneEndIndex - initialEndIndex > 0)
             {
+                const auto initialValue { dropZoneStartIndex == 0 || (dropZoneStartIndex == 1 && initialNumZones == 1) ? maxValue : zoneProperties [initialEndIndex - 1].getMinVoltage () };
+                const auto initialIndex { dropZoneStartIndex > 0 && dropZoneStartIndex == initialNumZones ? dropZoneStartIndex - 1 : dropZoneStartIndex };
                 // Calculate the step size for even distribution
-                const auto initialIndex { dropZoneStartIndex == 0 ? maxValue : zoneProperties [initialEndIndex - 1].getMinVoltage () }; // 
-                const auto stepSize { (minValue - initialIndex) / (dropZoneEndIndex - dropZoneStartIndex + 1) };
+                const auto stepSize { (minValue - initialValue) / (dropZoneEndIndex - initialIndex + 1) };
                 const auto updateThreshold { initialEndIndex - 1 };
 
                 // Update values for the requested section
-                for (int i = dropZoneStartIndex; i < dropZoneEndIndex; ++i)
+                for (int i = initialIndex; i < dropZoneEndIndex; ++i)
                 {
                     if (i > updateThreshold)
-                        zoneProperties [i].setMinVoltage (initialIndex + (i - dropZoneStartIndex + 1) * stepSize, false);
+                        zoneProperties [i].setMinVoltage (initialValue + (i - initialIndex + 1) * stepSize, false);
                 }
             }
 

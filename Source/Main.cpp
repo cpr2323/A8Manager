@@ -34,7 +34,8 @@ void runDistributionTests ()
     {
         const auto maxValue { 5.0f };
         const auto minValue { -5.0f };
-        const auto initialEndIndex { static_cast<int>(inputData.size ()) - 1 };
+        const auto initialDataSize { static_cast<int>(inputData.size ()) };
+        const auto initialEndIndex { initialDataSize - 1 };
 
         // If the provided array is smaller than endIndex, resize it
         std::vector<float> outputData { inputData.begin (), inputData.end () };
@@ -45,19 +46,17 @@ void runDistributionTests ()
 
         if (endIndex - initialEndIndex > 0)
         {
+            const auto initialValue { startIndex == 0 || (startIndex == 1 && initialDataSize == 1) ? maxValue : outputData [initialEndIndex - 1]};
+            const auto initialIndex { startIndex > 0 && startIndex == initialDataSize ? startIndex  - 1 : startIndex };
             // Calculate the step size for even distribution
-            const auto offset { startIndex == 0 ? maxValue : outputData [initialEndIndex - 1]};
-            const float stepSize { (minValue - offset) / (endIndex - startIndex + 1) };
+            const float stepSize { (minValue - initialValue) / (endIndex - initialIndex + 1) };
             const auto updateThreshold { initialEndIndex - 1 };
 
             // Update values from the start index to the new end index
-            for (int i = startIndex; i < endIndex; ++i)
+            for (int i = initialIndex; i < endIndex; ++i)
             {
                 if (i > updateThreshold)
-                {
-                    const auto newValue { offset + (i - startIndex + 1) * stepSize };
-                    outputData [i] = newValue;
-                }
+                    outputData [i] = initialValue + (i - initialIndex + 1) * stepSize;
             }
         }
 
@@ -99,8 +98,12 @@ void runDistributionTests ()
     runTest (inputData, 0, 0, { -5.0f });
     inputData = { -5.0f };
     runTest (inputData, 0, 1, { 0.0f, -5.0f });
+    inputData = { -5.0f };
+    runTest (inputData, 1, 1, { 0.0f, -5.0f });
     inputData = { 0.0f, -5.0f };
     runTest (inputData, 1, 2, { 0.0f, -2.5f, -5.0f });
+    inputData = { 0.0f, -5.0f };
+    runTest (inputData, 2, 2, { 0.0f, -2.5f, -5.0f });
     inputData = { 0.0, -2.5f, -5.0f };
     runTest (inputData, 2, 3, { 0.0f, -2.5f, -3.75f, -5.0f });
     inputData = { 0.0f, -2.5f, -5.0f };
