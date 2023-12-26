@@ -164,7 +164,7 @@ void ChannelEditor::clearAllZones ()
 void ChannelEditor::copyZone (int zoneIndex)
 {
     copyBufferZoneProperties.copyFrom (zoneProperties [zoneIndex].getValueTree ());
-    copyBufferHasData = true;
+    *zoneCopyBufferHasData = true;
 }
 
 void ChannelEditor::deleteZone (int zoneIndex)
@@ -946,11 +946,17 @@ std::tuple<double, double> ChannelEditor::getVoltageBoundaries (int zoneIndex, i
         return { topBoundary, bottomBoundary };
     };
 
-void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree rootPropertiesVT, SamplePool* theSamplePool)
+void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree rootPropertiesVT, SamplePool* theSamplePool,
+                          juce::ValueTree copyBufferZonePropertiesVT, bool* theZoneCopyBufferHasData)
 {
     //DebugLog ("ChannelEditor["+ juce::String (channelProperties.getId ()) + "]", "init");
     jassert (theSamplePool != nullptr);
     samplePool = theSamplePool;
+
+    jassert (theZoneCopyBufferHasData != nullptr);
+    zoneCopyBufferHasData = theZoneCopyBufferHasData;
+
+    copyBufferZoneProperties.wrap (copyBufferZonePropertiesVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
 
     PersistentRootProperties persistentRootProperties (rootPropertiesVT, PersistentRootProperties::WrapperType::client, PersistentRootProperties::EnableCallbacks::no);
     RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
@@ -979,7 +985,7 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
             {
                 copyZone (zoneIndex);
             });
-            pm.addItem ("Paste", copyBufferHasData, false, [this, zoneIndex] ()
+            pm.addItem ("Paste", *zoneCopyBufferHasData, false, [this, zoneIndex] ()
             {
                 pasteZone (zoneIndex);
                 updateAllZoneTabNames ();

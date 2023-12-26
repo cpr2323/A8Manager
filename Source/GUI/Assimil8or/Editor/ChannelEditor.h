@@ -157,7 +157,7 @@ public:
     ChannelEditor ();
     ~ChannelEditor ();
 
-    void init (juce::ValueTree channelPropertiesVT, juce::ValueTree rootPropertiesVT, SamplePool* theSamplePool);
+    void init (juce::ValueTree channelPropertiesVT, juce::ValueTree rootPropertiesVT, SamplePool* theSamplePool, juce::ValueTree copyBufferZonePropertiesVT, bool* theZoneCopyBufferHasData);
 
     void receiveSampleLoadRequest (juce::File sampleFile);
     void checkSampleFileExistence ();
@@ -179,7 +179,7 @@ private:
     ChannelProperties maxChannelProperties;
     ZoneProperties defaultZoneProperties;
     ZoneProperties copyBufferZoneProperties;
-    bool copyBufferHasData { false };
+    bool* zoneCopyBufferHasData { nullptr };
     AudioPlayerProperties audioPlayerProperties;
     SamplePool* samplePool { nullptr };
 
