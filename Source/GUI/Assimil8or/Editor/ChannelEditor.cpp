@@ -1011,21 +1011,7 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
         };
         zoneEditor.onSampleChange = [this, zoneEditorIndex] (juce::String sampleFileName)
         {
-//             if (sampleFileName.isNotEmpty ()) // add/udpate sample
-//             {
-//                 if (zoneEditorIndex > 0)
-//                 {
-//                     auto [topBoundary, bottomBoundary] { getVoltageBoundaries (zoneEditorIndex, 1) };
-//                     zoneProperties [zoneEditorIndex - 1].setMinVoltage (bottomBoundary + ((topBoundary - bottomBoundary) / 2), false);
-//                 }
-//                 if (zoneEditorIndex == getNumUsedZones () - 1)
-//                     zoneProperties [zoneEditorIndex].setMinVoltage (-5.0, false);
-//             }
-//             else // delete sample
-//             {
-//                 if (zoneEditorIndex> 0 && zoneEditorIndex == getNumUsedZones ())
-//                     zoneProperties [zoneEditorIndex - 1].setMinVoltage (-5.0, false);
-//             }
+            // TODO - is this callback even needed anymore, because assignSamples is doing the same thing this used to?
             ensureProperZoneIsSelected ();
             updateAllZoneTabNames ();
         };
