@@ -1,0 +1,312 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<JUCERPROJECT id="wWHbxR" name="A8Manager" projectType="guiapp" useAppConfig="0"
+              addUsingNamespaceToJuceHeader="0" displaySplashScreen="0" jucerFormatVersion="1"
+              companyName="OmOhmProductions" cppLanguageStandard="17" version="2.3.1"
+              companyWebsite="www.omohmproductions.com">
+  <MAINGROUP id="JDgvjc" name="A8Manager">
+    <GROUP id="{26A00EED-F319-636E-6162-8A113C6EE925}" name="Source">
+      <GROUP id="{B33B27D7-84B5-739E-6EF4-3DA0243B11AC}" name="Assimil8or">
+        <GROUP id="{83CA1B10-C350-95FD-802D-488AEB6104FA}" name="Audio">
+          <FILE id="U8EWD4" name="AudioPlayer.cpp" compile="1" resource="0" file="Source/Assimil8or/Audio/AudioPlayer.cpp"/>
+          <FILE id="JIblHe" name="AudioPlayer.h" compile="0" resource="0" file="Source/Assimil8or/Audio/AudioPlayer.h"/>
+          <FILE id="i2OwG7" name="AudioPlayerProperties.cpp" compile="1" resource="0"
+                file="Source/Assimil8or/Audio/AudioPlayerProperties.cpp"/>
+          <FILE id="YR962M" name="AudioPlayerProperties.h" compile="0" resource="0"
+                file="Source/Assimil8or/Audio/AudioPlayerProperties.h"/>
+          <FILE id="PvtHj9" name="AudioSettingsProperties.cpp" compile="1" resource="0"
+                file="Source/Assimil8or/Audio/AudioSettingsProperties.cpp"/>
+          <FILE id="MmgsqA" name="AudioSettingsProperties.h" compile="0" resource="0"
+                file="Source/Assimil8or/Audio/AudioSettingsProperties.h"/>
+        </GROUP>
+        <GROUP id="{E4BF0D54-E9DB-96DD-63AF-39AFFF42EEB8}" name="Fixer">
+          <FILE id="p6DDYe" name="FixerEntryProperties.cpp" compile="1" resource="0"
+                file="Source/Assimil8or/Fixer/FixerEntryProperties.cpp"/>
+          <FILE id="BEYdfW" name="FixerEntryProperties.h" compile="0" resource="0"
+                file="Source/Assimil8or/Fixer/FixerEntryProperties.h"/>
+        </GROUP>
+        <GROUP id="{F93A3946-B57B-8541-1536-2BE5E57D6EED}" name="Preset">
+          <FILE id="VbC2qz" name="PresetHelpers.cpp" compile="1" resource="0"
+                file="Source/Assimil8or/Preset/PresetHelpers.cpp"/>
+          <FILE id="D1sejr" name="PresetHelpers.h" compile="0" resource="0" file="Source/Assimil8or/Preset/PresetHelpers.h"/>
+          <GROUP id="{0055013E-0772-F469-C083-194778EF0E95}" name="Data">
+            <FILE id="krTGci" name="DefaultPreset.xml" compile="0" resource="1"
+                  file="Source/Assimil8or/Preset/Data/DefaultPreset.xml"/>
+            <FILE id="T5wUel" name="MaxPreset.xml" compile="0" resource="1" file="Source/Assimil8or/Preset/Data/MaxPreset.xml"/>
+            <FILE id="RKoPDF" name="MinPreset.xml" compile="0" resource="1" file="Source/Assimil8or/Preset/Data/MinPreset.xml"/>
+          </GROUP>
+          <FILE id="SOUChx" name="ChannelProperties.cpp" compile="1" resource="0"
+                file="Source/Assimil8or/Preset/ChannelProperties.cpp"/>
+          <FILE id="VYXv3k" name="ChannelProperties.h" compile="0" resource="0"
+                file="Source/Assimil8or/Preset/ChannelProperties.h"/>
+          <FILE id="W3AtE0" name="ParameterHelpers.cpp" compile="1" resource="0"
+                file="Source/Assimil8or/Preset/ParameterHelpers.cpp"/>
+          <FILE id="bcy3lw" name="ParameterHelpers.h" compile="0" resource="0"
+                file="Source/Assimil8or/Preset/ParameterHelpers.h"/>
+          <FILE id="P7REf7" name="ParameterPresetListProperties.cpp" compile="1"
+                resource="0" file="Source/Assimil8or/Preset/ParameterPresetListProperties.cpp"/>
+          <FILE id="IL1WR7" name="ParameterPresetListProperties.h" compile="0"
+                resource="0" file="Source/Assimil8or/Preset/ParameterPresetListProperties.h"/>
+          <FILE id="oIvRwS" name="ParameterPresetsSingleton.cpp" compile="1"
+                resource="0" file="Source/Assimil8or/Preset/ParameterPresetsSingleton.cpp"/>
+          <FILE id="T3P7iJ" name="ParameterPresetsSingleton.h" compile="0" resource="0"
+                file="Source/Assimil8or/Preset/ParameterPresetsSingleton.h"/>
+          <FILE id="UST3sz" name="ParameterNames.h" compile="0" resource="0"
+                file="Source/Assimil8or/Preset/ParameterNames.h"/>
+          <FILE id="UUlAdu" name="PresetProperties.cpp" compile="1" resource="0"
+                file="Source/Assimil8or/Preset/PresetProperties.cpp"/>
+          <FILE id="RT0TrF" name="PresetProperties.h" compile="0" resource="0"
+                file="Source/Assimil8or/Preset/PresetProperties.h"/>
+          <FILE id="Mm3uYy" name="ZoneProperties.cpp" compile="1" resource="0"
+                file="Source/Assimil8or/Preset/ZoneProperties.cpp"/>
+          <FILE id="m51pzF" name="ZoneProperties.h" compile="0" resource="0"
+                file="Source/Assimil8or/Preset/ZoneProperties.h"/>
+        </GROUP>
+        <GROUP id="{FFCC55CE-5847-C60B-915E-27F62A58650C}" name="Validator">
+          <FILE id="hqDHiE" name="ValidatorProperties.cpp" compile="1" resource="0"
+                file="Source/Assimil8or/Validator/ValidatorProperties.cpp"/>
+          <FILE id="E48kqe" name="ValidatorProperties.h" compile="0" resource="0"
+                file="Source/Assimil8or/Validator/ValidatorProperties.h"/>
+          <FILE id="MVgPnR" name="ValidatorResultListProperties.cpp" compile="1"
+                resource="0" file="Source/Assimil8or/Validator/ValidatorResultListProperties.cpp"/>
+          <FILE id="egTQqo" name="ValidatorResultListProperties.h" compile="0"
+                resource="0" file="Source/Assimil8or/Validator/ValidatorResultListProperties.h"/>
+          <FILE id="vv9kY9" name="ValidatorResultProperties.cpp" compile="1"
+                resource="0" file="Source/Assimil8or/Validator/ValidatorResultProperties.cpp"/>
+          <FILE id="FbH6Eo" name="ValidatorResultProperties.h" compile="0" resource="0"
+                file="Source/Assimil8or/Validator/ValidatorResultProperties.h"/>
+        </GROUP>
+        <FILE id="aU5vMV" name="Assimil8orPreset.cpp" compile="1" resource="0"
+              file="Source/Assimil8or/Assimil8orPreset.cpp"/>
+        <FILE id="wYayHF" name="Assimil8orPreset.h" compile="0" resource="0"
+              file="Source/Assimil8or/Assimil8orPreset.h"/>
+        <FILE id="db0Bhn" name="Assimil8orValidator.cpp" compile="1" resource="0"
+              file="Source/Assimil8or/Assimil8orValidator.cpp"/>
+        <FILE id="IxMRZR" name="Assimil8orValidator.h" compile="0" resource="0"
+              file="Source/Assimil8or/Assimil8orValidator.h"/>
+        <FILE id="AZKBbE" name="FileTypeHelpers.cpp" compile="1" resource="0"
+              file="Source/Assimil8or/FileTypeHelpers.cpp"/>
+        <FILE id="tZ8qTH" name="FileTypeHelpers.h" compile="0" resource="0"
+              file="Source/Assimil8or/FileTypeHelpers.h"/>
+        <FILE id="YjzwUd" name="PresetManagerProperties.cpp" compile="1" resource="0"
+              file="Source/Assimil8or/PresetManagerProperties.cpp"/>
+        <FILE id="GYpX7O" name="PresetManagerProperties.h" compile="0" resource="0"
+              file="Source/Assimil8or/PresetManagerProperties.h"/>
+      </GROUP>
+      <GROUP id="{CF0C93A7-2DC9-863C-8999-5F753D262369}" name="GUI">
+        <GROUP id="{E38BD768-EC43-B8F0-AB46-78F18BDF75B0}" name="Assimil8or">
+          <GROUP id="{A4F77B47-09C1-3696-74AC-1CB15C7BFE75}" name="Data">
+            <FILE id="FQ9PfM" name="377906243_984640136172516_2914152204379747274_n.png"
+                  compile="0" resource="1" file="Source/GUI/Assimil8or/Data/377906243_984640136172516_2914152204379747274_n.png"/>
+            <FILE id="M1fY5n" name="Assimil8orToolTips.xml" compile="0" resource="1"
+                  file="Source/GUI/Assimil8or/Data/Assimil8orToolTips.xml"/>
+          </GROUP>
+          <GROUP id="{E38A382D-990E-A82D-2924-1AE3B97D907B}" name="Editor">
+            <GROUP id="{A434F150-15A5-28AF-5B79-18E4647F5089}" name="Envelope">
+              <FILE id="rklXD7" name="AREnvelopeComponent.cpp" compile="1" resource="0"
+                    file="Source/GUI/Assimil8or/Editor/Envelope/AREnvelopeComponent.cpp"/>
+              <FILE id="XGbsSl" name="AREnvelopeComponent.h" compile="0" resource="0"
+                    file="Source/GUI/Assimil8or/Editor/Envelope/AREnvelopeComponent.h"/>
+              <FILE id="KsgfLU" name="AREnvelopeProperties.cpp" compile="1" resource="0"
+                    file="Source/GUI/Assimil8or/Editor/Envelope/AREnvelopeProperties.cpp"/>
+              <FILE id="d7U3XA" name="AREnvelopeProperties.h" compile="0" resource="0"
+                    file="Source/GUI/Assimil8or/Editor/Envelope/AREnvelopeProperties.h"/>
+            </GROUP>
+            <GROUP id="{A8C8F745-78AF-23ED-C637-EE04167DB6FC}" name="LoopPoints">
+              <FILE id="s010pD" name="LoopPointsView.cpp" compile="1" resource="0"
+                    file="Source/GUI/Assimil8or/Editor/LoopPoints/LoopPointsView.cpp"/>
+              <FILE id="ENQvAV" name="LoopPointsView.h" compile="0" resource="0"
+                    file="Source/GUI/Assimil8or/Editor/LoopPoints/LoopPointsView.h"/>
+            </GROUP>
+            <GROUP id="{D73921A7-8850-68E4-122F-311FCE12BEE6}" name="SamplePool">
+              <FILE id="yJzkYP" name="SamplePool.cpp" compile="1" resource="0" file="Source/GUI/Assimil8or/Editor/SamplePool/SamplePool.cpp"/>
+              <FILE id="obUalz" name="SamplePool.h" compile="0" resource="0" file="Source/GUI/Assimil8or/Editor/SamplePool/SamplePool.h"/>
+            </GROUP>
+            <FILE id="liNFVw" name="Assimil8orEditorComponent.cpp" compile="1"
+                  resource="0" file="Source/GUI/Assimil8or/Editor/Assimil8orEditorComponent.cpp"/>
+            <FILE id="HH5ILq" name="Assimil8orEditorComponent.h" compile="0" resource="0"
+                  file="Source/GUI/Assimil8or/Editor/Assimil8orEditorComponent.h"/>
+            <FILE id="WA4kSn" name="ChannelEditor.cpp" compile="1" resource="0"
+                  file="Source/GUI/Assimil8or/Editor/ChannelEditor.cpp"/>
+            <FILE id="z5GOWF" name="ChannelEditor.h" compile="0" resource="0" file="Source/GUI/Assimil8or/Editor/ChannelEditor.h"/>
+            <FILE id="XJF1Zr" name="CvInputComboBox.cpp" compile="1" resource="0"
+                  file="Source/GUI/Assimil8or/Editor/CvInputComboBox.cpp"/>
+            <FILE id="aw6Hz2" name="CvInputComboBox.h" compile="0" resource="0"
+                  file="Source/GUI/Assimil8or/Editor/CvInputComboBox.h"/>
+            <FILE id="yhhzYu" name="FormatHelpers.cpp" compile="1" resource="0"
+                  file="Source/GUI/Assimil8or/Editor/FormatHelpers.cpp"/>
+            <FILE id="QTYi1s" name="FormatHelpers.h" compile="0" resource="0" file="Source/GUI/Assimil8or/Editor/FormatHelpers.h"/>
+            <FILE id="bzgBxN" name="ParameterToolTipData.cpp" compile="1" resource="0"
+                  file="Source/GUI/Assimil8or/Editor/ParameterToolTipData.cpp"/>
+            <FILE id="CnzHHn" name="ParameterToolTipData.h" compile="0" resource="0"
+                  file="Source/GUI/Assimil8or/Editor/ParameterToolTipData.h"/>
+            <FILE id="mgSEy9" name="ZoneEditor.cpp" compile="1" resource="0" file="Source/GUI/Assimil8or/Editor/ZoneEditor.cpp"/>
+            <FILE id="EqszGy" name="ZoneEditor.h" compile="0" resource="0" file="Source/GUI/Assimil8or/Editor/ZoneEditor.h"/>
+          </GROUP>
+          <GROUP id="{91280F2E-C070-E7FC-F150-447ABE395FFD}" name="FileView">
+            <FILE id="ftRIc7" name="FileViewComponent.cpp" compile="1" resource="0"
+                  file="Source/GUI/Assimil8or/FileView/FileViewComponent.cpp"/>
+            <FILE id="zqHPvq" name="FileViewComponent.h" compile="0" resource="0"
+                  file="Source/GUI/Assimil8or/FileView/FileViewComponent.h"/>
+          </GROUP>
+          <GROUP id="{61BC93EF-3ED8-1898-EC8D-0EF6927D16ED}" name="PresetList">
+            <FILE id="NxljVl" name="PresetListComponent.cpp" compile="1" resource="0"
+                  file="Source/GUI/Assimil8or/PresetList/PresetListComponent.cpp"/>
+            <FILE id="L0qrUm" name="PresetListComponent.h" compile="0" resource="0"
+                  file="Source/GUI/Assimil8or/PresetList/PresetListComponent.h"/>
+          </GROUP>
+          <GROUP id="{4795A860-BF58-C090-2CA5-50CBED6DB470}" name="Validator">
+            <FILE id="WyOqUC" name="Assimil8orValidatorComponent.cpp" compile="1"
+                  resource="0" file="Source/GUI/Assimil8or/Validator/Assimil8orValidatorComponent.cpp"/>
+            <FILE id="PhfQ11" name="Assimil8orValidatorComponent.h" compile="0"
+                  resource="0" file="Source/GUI/Assimil8or/Validator/Assimil8orValidatorComponent.h"/>
+            <FILE id="T4Ozoj" name="LocateFileComponent.cpp" compile="1" resource="0"
+                  file="Source/GUI/Assimil8or/Validator/LocateFileComponent.cpp"/>
+            <FILE id="U7XvxB" name="LocateFileComponent.h" compile="0" resource="0"
+                  file="Source/GUI/Assimil8or/Validator/LocateFileComponent.h"/>
+            <FILE id="aVQZjM" name="RenameDialogComponent.cpp" compile="1" resource="0"
+                  file="Source/GUI/Assimil8or/Validator/RenameDialogComponent.cpp"/>
+            <FILE id="pHRbjm" name="RenameDialogComponent.h" compile="0" resource="0"
+                  file="Source/GUI/Assimil8or/Validator/RenameDialogComponent.h"/>
+            <FILE id="clozWh" name="ValidatorComponentProperties.cpp" compile="1"
+                  resource="0" file="Source/GUI/Assimil8or/Validator/ValidatorComponentProperties.cpp"/>
+            <FILE id="UDmwNn" name="ValidatorComponentProperties.h" compile="0"
+                  resource="0" file="Source/GUI/Assimil8or/Validator/ValidatorComponentProperties.h"/>
+            <FILE id="Kq1Qvr" name="ValidatorToolWindow.cpp" compile="1" resource="0"
+                  file="Source/GUI/Assimil8or/Validator/ValidatorToolWindow.cpp"/>
+            <FILE id="BHqOqS" name="ValidatorToolWindow.h" compile="0" resource="0"
+                  file="Source/GUI/Assimil8or/Validator/ValidatorToolWindow.h"/>
+          </GROUP>
+        </GROUP>
+        <FILE id="VJPDMS" name="CurrentFolderComponent.cpp" compile="1" resource="0"
+              file="Source/GUI/CurrentFolderComponent.cpp"/>
+        <FILE id="RdTALO" name="CurrentFolderComponent.h" compile="0" resource="0"
+              file="Source/GUI/CurrentFolderComponent.h"/>
+        <FILE id="Ky1FeG" name="GuiProperties.cpp" compile="1" resource="0"
+              file="Source/GUI/GuiProperties.cpp"/>
+        <FILE id="BYrQvg" name="GuiProperties.h" compile="0" resource="0" file="Source/GUI/GuiProperties.h"/>
+        <FILE id="Van35d" name="MainComponent.cpp" compile="1" resource="0"
+              file="Source/GUI/MainComponent.cpp"/>
+        <FILE id="aJmy63" name="MainComponent.h" compile="0" resource="0" file="Source/GUI/MainComponent.h"/>
+        <FILE id="UTX5R3" name="BottomStatusWindow.cpp" compile="1" resource="0"
+              file="Source/GUI/BottomStatusWindow.cpp"/>
+        <FILE id="uO9Sb7" name="BottomStatusWindow.h" compile="0" resource="0"
+              file="Source/GUI/BottomStatusWindow.h"/>
+      </GROUP>
+      <GROUP id="{8CE93423-6945-B212-EA23-BC0B9325BBF7}" name="Utility">
+        <FILE id="ZzjeA7" name="Crc.h" compile="0" resource="0" file="Source/Utility/Crc.h"/>
+        <FILE id="yrhXEY" name="DebugLog.cpp" compile="1" resource="0" file="Source/Utility/DebugLog.cpp"/>
+        <FILE id="i75h2A" name="DebugLog.h" compile="0" resource="0" file="Source/Utility/DebugLog.h"/>
+        <FILE id="rv1w6s" name="DebugLogImplementation.h" compile="0" resource="0"
+              file="Source/Utility/DebugLogImplementation.h"/>
+        <FILE id="kjhKPa" name="DirectoryDataProperties.cpp" compile="1" resource="0"
+              file="Source/Utility/DirectoryDataProperties.cpp"/>
+        <FILE id="hAtJyN" name="DirectoryDataProperties.h" compile="0" resource="0"
+              file="Source/Utility/DirectoryDataProperties.h"/>
+        <FILE id="GeHdy1" name="DirectoryValueTree.cpp" compile="1" resource="0"
+              file="Source/Utility/DirectoryValueTree.cpp"/>
+        <FILE id="eO3HdP" name="DirectoryValueTree.h" compile="0" resource="0"
+              file="Source/Utility/DirectoryValueTree.h"/>
+        <FILE id="pP1sFQ" name="DumpStack.cpp" compile="1" resource="0" file="Source/Utility/DumpStack.cpp"/>
+        <FILE id="kz99xu" name="DumpStack.h" compile="0" resource="0" file="Source/Utility/DumpStack.h"/>
+        <FILE id="GjhfJa" name="LambdaThread.h" compile="0" resource="0" file="Source/Utility/LambdaThread.h"/>
+        <FILE id="ZRKBIm" name="NoArrowComboBoxLnF.h" compile="0" resource="0"
+              file="Source/Utility/NoArrowComboBoxLnF.h"/>
+        <FILE id="e2rm9l" name="PersistentRootProperties.cpp" compile="1" resource="0"
+              file="Source/Utility/PersistentRootProperties.cpp"/>
+        <FILE id="mF5R47" name="PersistentRootProperties.h" compile="0" resource="0"
+              file="Source/Utility/PersistentRootProperties.h"/>
+        <FILE id="VM3XFk" name="RootProperties.cpp" compile="1" resource="0"
+              file="Source/Utility/RootProperties.cpp"/>
+        <FILE id="bH38Sx" name="RootProperties.h" compile="0" resource="0"
+              file="Source/Utility/RootProperties.h"/>
+        <FILE id="rY0TF1" name="RuntimeRootProperties.cpp" compile="1" resource="0"
+              file="Source/Utility/RuntimeRootProperties.cpp"/>
+        <FILE id="bVL7gX" name="RuntimeRootProperties.h" compile="0" resource="0"
+              file="Source/Utility/RuntimeRootProperties.h"/>
+        <FILE id="FboCdx" name="SplitWindowComponent.cpp" compile="1" resource="0"
+              file="Source/Utility/SplitWindowComponent.cpp"/>
+        <FILE id="oat4mf" name="SplitWindowComponent.h" compile="0" resource="0"
+              file="Source/Utility/SplitWindowComponent.h"/>
+        <FILE id="QZJhHU" name="ValueTreeFile.cpp" compile="1" resource="0"
+              file="Source/Utility/ValueTreeFile.cpp"/>
+        <FILE id="CNxuPk" name="ValueTreeFile.h" compile="0" resource="0" file="Source/Utility/ValueTreeFile.h"/>
+        <FILE id="v9wSHS" name="ValueTreeHelpers.cpp" compile="1" resource="0"
+              file="Source/Utility/ValueTreeHelpers.cpp"/>
+        <FILE id="rXge4w" name="ValueTreeHelpers.h" compile="0" resource="0"
+              file="Source/Utility/ValueTreeHelpers.h"/>
+        <FILE id="tmER0a" name="ValueTreeMonitor.cpp" compile="1" resource="0"
+              file="Source/Utility/ValueTreeMonitor.cpp"/>
+        <FILE id="eTXzQA" name="ValueTreeMonitor.h" compile="0" resource="0"
+              file="Source/Utility/ValueTreeMonitor.h"/>
+        <FILE id="et2qGG" name="ValueTreeWrapper.cpp" compile="1" resource="0"
+              file="Source/Utility/ValueTreeWrapper.cpp"/>
+        <FILE id="gBHKT7" name="ValueTreeWrapper.h" compile="0" resource="0"
+              file="Source/Utility/ValueTreeWrapper.h"/>
+        <FILE id="KZKPft" name="WatchDogTimer.h" compile="0" resource="0" file="Source/Utility/WatchDogTimer.h"/>
+      </GROUP>
+      <FILE id="UhMfE9" name="AppProperties.cpp" compile="1" resource="0"
+            file="Source/AppProperties.cpp"/>
+      <FILE id="FkHRCS" name="AppProperties.h" compile="0" resource="0" file="Source/AppProperties.h"/>
+      <FILE id="RnmsSv" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
+    </GROUP>
+  </MAINGROUP>
+  <MODULES>
+    <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_devices" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_formats" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_processors" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_utils" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_core" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_dsp" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_events" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_gui_extra" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+  </MODULES>
+  <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1"/>
+  <EXPORTFORMATS>
+    <VS2022 targetFolder="Builds/VisualStudio2022" smallIcon="FQ9PfM" bigIcon="FQ9PfM">
+      <CONFIGURATIONS>
+        <CONFIGURATION isDebug="1" name="Debug" targetName="A8Manager"/>
+        <CONFIGURATION isDebug="0" name="Release" targetName="A8Manager"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_audio_basics" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_devices" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_formats" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_core" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_data_structures" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_events" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_graphics" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_gui_basics" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_utils" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_processors" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_dsp" path="../JUCE/modules"/>
+      </MODULEPATHS>
+    </VS2022>
+    <XCODE_MAC targetFolder="Builds/MacOSX" smallIcon="FQ9PfM" bigIcon="FQ9PfM"
+               xcodeValidArchs="arm64,arm64e,x86_64">
+      <CONFIGURATIONS>
+        <CONFIGURATION isDebug="1" name="Debug"/>
+        <CONFIGURATION isDebug="0" name="Release"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_audio_basics" path="../../juce"/>
+        <MODULEPATH id="juce_audio_devices" path="../../juce"/>
+        <MODULEPATH id="juce_audio_formats" path="../../juce"/>
+        <MODULEPATH id="juce_core" path="../../juce"/>
+        <MODULEPATH id="juce_data_structures" path="../../juce"/>
+        <MODULEPATH id="juce_events" path="../../juce"/>
+        <MODULEPATH id="juce_graphics" path="../../juce"/>
+        <MODULEPATH id="juce_gui_basics" path="../../juce"/>
+        <MODULEPATH id="juce_audio_utils" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_processors" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_dsp" path="../JUCE/modules"/>
+      </MODULEPATHS>
+    </XCODE_MAC>
+  </EXPORTFORMATS>
+</JUCERPROJECT>
