@@ -204,11 +204,30 @@ void ChannelEditor::pasteZone (int zoneIndex)
 {
     zoneProperties [zoneIndex].copyFrom (copyBufferZoneProperties.getValueTree ());
     // if this was on the end of the zone list, make sure it's minVoltage is set to -5
-    if (zoneIndex == getNumUsedZones ())
+    const auto numZones { getNumUsedZones () };
+    // ensure last zone has -5
+    if (zoneIndex < getNumUsedZones () - 1)
     {
-        auto [topBoundary, bottomBoundary] { getVoltageBoundaries (zoneIndex, 1) };
-        zoneProperties [zoneIndex - 1].setMinVoltage (bottomBoundary + ((topBoundary - bottomBoundary) / 2), false);
+        // ensure pasted minVoltage is valid
+        auto [topBoundary, bottomBoundary] { getVoltageBoundaries (zoneIndex, 0) };
+        const auto curMinVolatage { zoneProperties [zoneIndex].getMinVoltage () };
+        if (curMinVolatage >= topBoundary || curMinVolatage <= bottomBoundary)
+            zoneProperties [zoneIndex].setMinVoltage (bottomBoundary + ((topBoundary - bottomBoundary) / 2), false);
+    }
+    else
+    {
+        // this handles pasting to the end, and pasting past the end, which cannot discern at this point
+        // so first we ensure that the last zone is -5
         zoneProperties [zoneIndex].setMinVoltage (-5.0, false);
+
+        if (zoneIndex > 0)
+        {
+            const auto minValue { -5.0 };
+            auto [topBoundary, _] { getVoltageBoundaries (zoneIndex, 1) };
+            const auto prevMinVolatage { zoneProperties [zoneIndex - 1].getMinVoltage () };
+            if (prevMinVolatage >= topBoundary || prevMinVolatage <= minValue)
+                zoneProperties [zoneIndex - 1].setMinVoltage (minValue + ((topBoundary - minValue) / 2), false);
+        }
     }
 }
 
