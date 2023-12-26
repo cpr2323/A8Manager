@@ -1053,7 +1053,7 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
                 zoneProperty.setSample (file.getFileName (), false);
             }
 
-            // updated the minVoltages if needed
+            // update the minVoltages if needed
             if (dropZoneEndIndex - initialEndIndex > 0)
             {
                 const auto initialValue { dropZoneStartIndex == 0 || (dropZoneStartIndex == 1 && initialNumZones == 1) ? maxValue : zoneProperties [initialEndIndex - 1].getMinVoltage () };
