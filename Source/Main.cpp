@@ -43,7 +43,7 @@ void runDistributionTests ()
 
         outputData.resize (endIndex + 1);
 
-        if (endIndex - startIndex > 0)
+        if (endIndex - initialEndIndex > 0)
         {
             // Calculate the step size for even distribution
             const auto offset { startIndex == 0 ? maxValue : outputData [initialEndIndex - 1]};
