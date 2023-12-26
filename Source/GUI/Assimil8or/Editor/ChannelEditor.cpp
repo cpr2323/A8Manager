@@ -203,9 +203,7 @@ void ChannelEditor::duplicateZone (int zoneIndex)
 void ChannelEditor::pasteZone (int zoneIndex)
 {
     zoneProperties [zoneIndex].copyFrom (copyBufferZoneProperties.getValueTree ());
-    // if this was on the end of the zone list, make sure it's minVoltage is set to -5
-    const auto numZones { getNumUsedZones () };
-    // ensure last zone has -5
+    // if this is not on the end
     if (zoneIndex < getNumUsedZones () - 1)
     {
         // ensure pasted minVoltage is valid
@@ -220,6 +218,7 @@ void ChannelEditor::pasteZone (int zoneIndex)
         // so first we ensure that the last zone is -5
         zoneProperties [zoneIndex].setMinVoltage (-5.0, false);
 
+        // if this isn't the first item, verify the previous item is valid
         if (zoneIndex > 0)
         {
             const auto minValue { -5.0 };
