@@ -136,6 +136,8 @@
             <FILE id="yhhzYu" name="FormatHelpers.cpp" compile="1" resource="0"
                   file="Source/GUI/Assimil8or/Editor/FormatHelpers.cpp"/>
             <FILE id="QTYi1s" name="FormatHelpers.h" compile="0" resource="0" file="Source/GUI/Assimil8or/Editor/FormatHelpers.h"/>
+            <FILE id="uwfxr8" name="MinVoltageTests.h" compile="0" resource="0"
+                  file="Source/GUI/Assimil8or/Editor/MinVoltageTests.h"/>
             <FILE id="bzgBxN" name="ParameterToolTipData.cpp" compile="1" resource="0"
                   file="Source/GUI/Assimil8or/Editor/ParameterToolTipData.cpp"/>
             <FILE id="CnzHHn" name="ParameterToolTipData.h" compile="0" resource="0"
