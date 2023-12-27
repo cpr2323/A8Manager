@@ -9,7 +9,7 @@
 #include "../../../Utility/PersistentRootProperties.h"
 #include "../../../Utility/RuntimeRootProperties.h"
 
-#define LOG_MIN_VOLTAGE_DISRIBUTION 1
+#define LOG_MIN_VOLTAGE_DISRIBUTION 0
 #if LOG_MIN_VOLTAGE_DISRIBUTION
 #define LogMinVoltageDistribution(text) DebugLog ("MinVoltageDistribution", text);
 #else
@@ -1118,11 +1118,6 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
         // Zone Properties setup
         auto& curZoneProperties { zoneProperties [zoneEditorIndex] };
         curZoneProperties.wrap (zonePropertiesVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::yes);
-        curZoneProperties.onSampleChange = [this, zoneEditorIndex] ([[maybe_unused]] juce::String sampleFile)
-        {
-            ensureProperZoneIsSelected ();
-            updateAllZoneTabNames ();
-        };
         curZoneProperties.onMinVoltageChange = [this, zoneEditorIndex] ([[maybe_unused]] double minVoltage)
         {
             updateAllZoneTabNames ();
