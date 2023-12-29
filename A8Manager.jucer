@@ -2,7 +2,7 @@
 
 <JUCERPROJECT id="wWHbxR" name="A8Manager" projectType="guiapp" useAppConfig="0"
               addUsingNamespaceToJuceHeader="0" displaySplashScreen="0" jucerFormatVersion="1"
-              companyName="OmOhmProductions" cppLanguageStandard="17" version="2.3.1"
+              companyName="OmOhmProductions" cppLanguageStandard="17" version="2.4"
               companyWebsite="www.omohmproductions.com">
   <MAINGROUP id="JDgvjc" name="A8Manager">
     <GROUP id="{26A00EED-F319-636E-6162-8A113C6EE925}" name="Source">
@@ -138,6 +138,8 @@
             <FILE id="yhhzYu" name="FormatHelpers.cpp" compile="1" resource="0"
                   file="Source/GUI/Assimil8or/Editor/FormatHelpers.cpp"/>
             <FILE id="QTYi1s" name="FormatHelpers.h" compile="0" resource="0" file="Source/GUI/Assimil8or/Editor/FormatHelpers.h"/>
+            <FILE id="uwfxr8" name="MinVoltageTests.h" compile="0" resource="0"
+                  file="Source/GUI/Assimil8or/Editor/MinVoltageTests.h"/>
             <FILE id="bzgBxN" name="ParameterToolTipData.cpp" compile="1" resource="0"
                   file="Source/GUI/Assimil8or/Editor/ParameterToolTipData.cpp"/>
             <FILE id="CnzHHn" name="ParameterToolTipData.h" compile="0" resource="0"

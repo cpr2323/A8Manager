@@ -292,9 +292,11 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
     setupPresetPropertiesCallbacks ();
     auto channelEditorIndex { 0 };
     samplePool.setFolder (appProperties.getMostRecentFolder ());
+    copyBufferZoneProperties.wrap ({}, ZoneProperties::WrapperType::owner, ZoneProperties::EnableCallbacks::no);
     presetProperties.forEachChannel ([this, &channelEditorIndex, rootPropertiesVT] (juce::ValueTree channelPropertiesVT)
     {
-        channelEditors [channelEditorIndex].init (channelPropertiesVT, rootPropertiesVT, &editManager, &samplePool);
+        channelEditors [channelEditorIndex].init (channelPropertiesVT, rootPropertiesVT, &editManager, &samplePool,
+                                                  copyBufferZoneProperties.getValueTree (), &copyBufferHasData);
         channelEditors [channelEditorIndex].displayToolsMenu = [this] (int channelIndex)
         {
             juce::PopupMenu pm;

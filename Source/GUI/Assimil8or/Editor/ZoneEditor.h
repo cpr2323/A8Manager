@@ -93,7 +93,7 @@ public:
     std::function<bool (double)> isMinVoltageInRange;
     std::function<double (double)> clampMinVoltage;
     std::function<void (int zoneIndex)> displayToolsMenu;
-    std::function<bool (int zoneIndex, const juce::StringArray& files)> handleSamples;
+    std::function<bool (int zoneIndex, const juce::StringArray& files)> assignSamples;
 
 private:
     AppProperties appProperties;

@@ -199,7 +199,10 @@ public:
     ChannelEditor ();
     ~ChannelEditor ();
 
-    void init (juce::ValueTree channelPropertiesVT, juce::ValueTree rootPropertiesVT, EditManager* theEditManager, SamplePool* theSamplePool);
+    void init (juce::ValueTree channelPropertiesVT, juce::ValueTree rootPropertiesVT,
+               EditManager* theEditManager, SamplePool* theSamplePool, juce::ValueTree copyBufferZonePropertiesVT,
+               bool* theZoneCopyBufferHasData);
+
     void receiveSampleLoadRequest (juce::File sampleFile);
     void checkSampleFileExistence ();
 
@@ -220,7 +223,7 @@ private:
     ChannelProperties maxChannelProperties;
     ZoneProperties defaultZoneProperties;
     ZoneProperties copyBufferZoneProperties;
-    bool copyBufferHasData { false };
+    bool* zoneCopyBufferHasData { nullptr };
     AudioPlayerProperties audioPlayerProperties;
     SamplePool* samplePool { nullptr };
     EditManager* editManager;
@@ -336,12 +339,16 @@ private:
 
     void balanceVoltages (VoltageBalanceType balanceType);
     void checkStereoRightOverlay ();
+    void clearAllZones ();
     void configAudioPlayer ();
+    void copyZone (int zoneIndex);
+    void deleteZone (int zoneIndex);
     void duplicateZone (int zoneIndex);
     void ensureProperZoneIsSelected ();
     int getEnvelopeValueResolution (double envelopeValue);
     int getNumUsedZones ();
     std::tuple<double, double> getVoltageBoundaries (int zoneIndex, int topDepth);
+    void pasteZone (int zoneIndex);
     void positionColumnOne (int xOffset, int width);
     void positionColumnTwo (int xOffset, int width);
     void positionColumnThree (int xOffset, int width);

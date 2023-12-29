@@ -48,6 +48,7 @@ private:
     PresetProperties maxPresetProperties;
     ChannelProperties defaultChannelProperties;
     ChannelProperties copyBufferChannelProperties;
+    ZoneProperties copyBufferZoneProperties;
     bool copyBufferHasData { false };
     SamplePool samplePool;
     EditManager editManager;
