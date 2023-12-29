@@ -1,5 +1,4 @@
 #include "DirectoryValueTree.h"
-#include "DirectoryValueTree.h"
 #include "../Assimil8or/FileTypeHelpers.h"
 #include "../Utility/DebugLog.h"
 #include "../Utility/RuntimeRootProperties.h"

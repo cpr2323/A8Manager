@@ -212,10 +212,10 @@ void ZoneEditor::fileDragExit (const juce::StringArray&)
 
 bool ZoneEditor::handleSamplesInternal (int zoneIndex, juce::StringArray files)
 {
-    jassert (handleSamples != nullptr);
+    jassert (assignSamples != nullptr);
     audioPlayerProperties.setPlayState (AudioPlayerProperties::PlayState::stop, true);
     files.sort (true);
-    return handleSamples (zoneIndex, files);
+    return assignSamples (zoneIndex, files);
 }
 
 void ZoneEditor::updateLoopPointsView ()

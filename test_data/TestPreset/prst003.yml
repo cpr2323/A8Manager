@@ -1,0 +1,70 @@
+Preset 3 :
+  Name : All params 2
+  Channel 1 :
+    Aliasing : 93
+    AliasingMod : 0B 0.9200
+    Attack : 0.036
+    AttackFromCurrent : 1
+    AttackMod : 0B 0.8200
+    AutoTrigger : 1
+    Bits : 8.4
+    BitsMod : 0A 0.8400
+    ChannelMode : 3
+    ExpFM : 2A 1.0000
+    Level : -3.8
+    LinAMisExtEnv : 1
+    LinFM : 1A 1.0000
+    LoopLengthIsEnd : 1
+    LoopLengthMod : 0A 0.8000
+    LoopMode : 1
+    LoopStartMod : 0A 0.9300
+    MixLevel : 4
+    MixMod : 0A 0.9300
+    MixModIsFader : 1
+    Pan : -0.77
+    PanMod : 0B 0.8400
+    PhaseCV : 0A 0.6700
+    Pitch : 3.97
+    PitchCV : 0C 0.8400
+    PlayMode : 1
+    PMIndex : 0.93
+    PMIndexMod : 0A 0.7100
+    PMSource : 1
+    Release : 0.22
+    ReleaseMod : 0C 0.6800
+    Reverse : 1
+    SampleStartMod : 0B 0.9700
+    SampleEndMod : 0A 0.6600
+    SpliceSmoothing : 1
+    XfadeGroup : A
+    ZonesCV : 0A
+    ZonesRT : 1
+    Zone 1 :
+      Sample : 1.wav
+    Zone 2 :
+      MinVoltage : -2.5
+      Sample : 2.wav
+      SampleStart : 0
+    Zone 3 :
+      MinVoltage : -3.75
+      Sample : 3.wav
+      SampleStart : 0
+    Zone 4 :
+      MinVoltage : -4.375
+      Sample : 4.wav
+      SampleStart : 0
+    Zone 5 :
+      MinVoltage : -4.6875
+      Sample : 5.wav
+      SampleStart : 0
+    Zone 6 :
+      MinVoltage : -4.84375
+      Sample : 6.wav
+      SampleStart : 0
+    Zone 7 :
+      MinVoltage : -4.92188
+      Sample : 7.wav
+      SampleStart : 0
+    Zone 8 :
+      MinVoltage : -5
+      Sample : 8.wav

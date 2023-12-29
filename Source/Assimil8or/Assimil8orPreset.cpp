@@ -231,7 +231,7 @@ void Assimil8orPreset::checkCvInputAndAmountFormat (juce::String theKey, juce::S
     if (delimiterLocation == 0)
     {
         const auto parameterFormatError { juce::String ("value '") + theValue + "' for parameter '" + theKey + "' - incorrect format" };
-        LogParsing (unknownParameterError);
+        LogParsing (parameterFormatError);
         juce::ValueTree newParseError ("ParseError");
         newParseError.setProperty ("type", "ParameterFormatError", nullptr);
         newParseError.setProperty ("description", parameterFormatError, nullptr);
