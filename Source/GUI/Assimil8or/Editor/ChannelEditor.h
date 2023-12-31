@@ -88,7 +88,11 @@ private:
 class ZonesTabbedLookAndFeel : public juce::LookAndFeel_V4
 {
 public:
-//     int getTabButtonSpaceAroundImage () override;
+    static inline const juce::Colour kPositiveVoltageColor { juce::Colours::green.darker (0.1f) };
+    static inline const juce::Colour kZeroVoltageColor     { juce::Colours::lightgrey.darker (0.2f) };
+    static inline const juce::Colour kNegativeVoltageColor { juce::Colours::red.darker (0.4f) };
+
+    //     int getTabButtonSpaceAroundImage () override;
 //     int getTabButtonOverlap (int tabDepth) override;
     int getTabButtonBestWidth (juce::TabBarButton& button, [[maybe_unused]] int tabDepth) override
     {
@@ -102,23 +106,9 @@ public:
         const auto o { button.getTabbedButtonBar ().getOrientation () };
         const auto bkg { button.getTabBackgroundColour () };
         if (button.getToggleState ())
-        {
             g.setColour (bkg);
-        }
         else
-        {
-            juce::Point<int> p1, p2;
-
-            switch (o)
-            {
-                case juce::TabbedButtonBar::TabsAtBottom:   p1 = activeArea.getBottomLeft (); p2 = activeArea.getTopLeft ();    break;
-                case juce::TabbedButtonBar::TabsAtTop:      p1 = activeArea.getTopLeft ();    p2 = activeArea.getBottomLeft (); break;
-                case juce::TabbedButtonBar::TabsAtRight:    p1 = activeArea.getTopRight ();   p2 = activeArea.getTopLeft ();    break;
-                case juce::TabbedButtonBar::TabsAtLeft:     p1 = activeArea.getTopLeft ();    p2 = activeArea.getTopRight ();   break;
-                default:                              jassertfalse; break;
-            }
-            g.setGradientFill (juce::ColourGradient (bkg.brighter (0.2f), p1.toFloat (), bkg.darker (0.1f), p2.toFloat (), false));
-        }
+            g.setColour (bkg.darker (0.2f));
 
         g.fillRect (activeArea);
         g.setColour (button.findColour (juce::TabbedButtonBar::tabOutlineColourId));
@@ -152,6 +142,7 @@ public:
         if (button.getTabbedButtonBar ().isVertical ())
             std::swap (length, depth);
 
+        // TODO - improve the layout of this text
         juce::TextLayout textLayout;
         juce::Font indexFont (depth * 0.4f);
         juce::Font voltageFont (depth * 0.35f);
@@ -163,16 +154,16 @@ public:
         s.append ("   " + zoneIndexString, indexFont, col);
         if (minVoltageString.isNotEmpty ())
         {
-#define COLORIZE_VOLTAGE_VALUES 0
+#define COLORIZE_VOLTAGE_VALUES 1
 #if COLORIZE_VOLTAGE_VALUES
             if (auto minVoltage { minVoltageString.getDoubleValue () }; minVoltage > 0.01)
-                col = juce::Colours::green;
+                col = kPositiveVoltageColor;
             else if (minVoltage <= 0.01 && minVoltage >= -0.01)
-                col = juce::Colours::lightgrey.darker (0.2f);
+                col = kZeroVoltageColor;
             else
-                col = juce::Colours::red;
+                col = kNegativeVoltageColor;
 #else
-            col = juce::Colours::lightgrey.darker (0.2f);
+            col = kZeroVoltageColor;
 #endif
             s.setJustification (juce::Justification::centredLeft);
             s.append (minVoltageString, voltageFont, col);

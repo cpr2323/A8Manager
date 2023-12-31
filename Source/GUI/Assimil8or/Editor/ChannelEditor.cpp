@@ -55,7 +55,7 @@ ChannelEditor::ChannelEditor ()
     setupLabel (zonesLabel, "ZONES", kMediumLabelSize, juce::Justification::centredLeft);
     zonesLabel.setColour (juce::Label::ColourIds::textColourId, juce::Colours::white);
     setupLabel (zoneMaxVoltage, "+5.00", 10.0, juce::Justification::centredLeft);
-    zoneMaxVoltage.setColour (juce::Label::ColourIds::textColourId, juce::Colours::lightgrey.darker (0.2f));
+    zoneMaxVoltage.setColour (juce::Label::ColourIds::textColourId, ZonesTabbedLookAndFeel::kPositiveVoltageColor);
 
     setupLabel (loopLengthIsEndLabel, "LENGTH/END", kSmallLabelIntSize, juce::Justification::centredRight);
     loopLengthIsEndComboBox.addItem ("Length", 1); // 0 = Length, 1 = End
@@ -1633,6 +1633,12 @@ void ChannelEditor::configAudioPlayer ()
 
 void ChannelEditor::paint ([[maybe_unused]] juce::Graphics& g)
 {
+    auto zoneMaxVoltageBounds { zoneMaxVoltage.getBounds () };
+    zoneMaxVoltageBounds = zoneMaxVoltageBounds.withX (zoneMaxVoltageBounds.getX () - 1).withY (zoneMaxVoltageBounds.getY () - 2).withHeight (zoneMaxVoltageBounds.getHeight () + 6).withTrimmedRight (5);
+    g.setColour (zoneTabs.getTabBackgroundColour (0).darker (0.2f));
+    g.fillRoundedRectangle (zoneMaxVoltageBounds.toFloat (), 2.0f);
+    g.setColour (juce::Colours::white.darker (0.2f));
+    g.drawRoundedRectangle (zoneMaxVoltageBounds.toFloat (), 1.5f, 0.4f);
 }
 
 void ChannelEditor::positionColumnOne (int xOffset, int width)
@@ -1898,7 +1904,7 @@ void ChannelEditor::resized ()
     zonesRTLabel.setBounds (zonesRTComboBox.getX () - zoneSectionLabelWidth - 3, zonesRTComboBox.getY (), zoneSectionLabelWidth, kParameterLineHeight);
     loopLengthIsEndComboBox.setBounds (zoneTopSection.getRight () - zoneSectionInputWidth, zonesRTComboBox.getBottom () + 3, zoneSectionInputWidth, kParameterLineHeight);
     loopLengthIsEndLabel.setBounds (loopLengthIsEndComboBox.getX () - zoneSectionLabelWidth - 3, loopLengthIsEndComboBox.getY (), zoneSectionLabelWidth, kParameterLineHeight);
-    zoneMaxVoltage.setBounds (zoneColumn.getX (), zoneColumn.getY () - 12, 40, 11);
+    zoneMaxVoltage.setBounds (zoneColumn.getX () + 2, zoneColumn.getY () - 12, 40, 11);
     zoneTabs.setBounds (zoneColumn);
 
     // layout the four columns of controls
