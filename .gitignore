@@ -4,6 +4,7 @@ Builds/**
 build/**
 out/**
 .vs/**
+hide_from_git/**
 cmake_build/**
 *.xcuserdatad
 *.vcxproj.user
