@@ -606,15 +606,20 @@ void ChannelEditor::setupChannelComponents ()
 
     // LEVEL
     setupLabel (levelLabel, "LEVEL", kLargeLabelSize, juce::Justification::centred);
+    levelTextEditor.min = minChannelProperties.getLevel ();
+    levelTextEditor.max = maxChannelProperties.getLevel ();
+    levelTextEditor.highlightErrorCallback = [] (CustomTextEditor&) {};
+    levelTextEditor.snapValueCallback = [] (double value) { return value; };
+    levelTextEditor.toStringCallback = [this] (double value) { return FormatHelpers::formatDouble (value, 1, false); };
+    levelTextEditor.setter = [this] (double value) { channelProperties.setLevel(value, false); };
+    levelTextEditor.updateDataCallback = [this] (double value) { levelUiChanged (value); };
     setupTextEditor (levelTextEditor, juce::Justification::centred, 0, "+-.0123456789", "Level", [this] ()
     {
-        ErrorHelpers::setColorIfError (levelTextEditor, minChannelProperties.getLevel (), maxChannelProperties.getLevel ());
+        levelTextEditor.checkValue ();
     },
     [this] (juce::String text)
     {
-        const auto level { std::clamp (text.getDoubleValue (), minChannelProperties.getLevel (), maxChannelProperties.getLevel ()) };
-        levelUiChanged (level);
-        levelTextEditor.setText (FormatHelpers::formatDouble (level, 1, false));
+        levelTextEditor.setValue (text.getDoubleValue ());
     });
     setupLabel (levelDbLabel, "dB", kSmallLabelSize, juce::Justification::centredLeft);
     levelTextEditor.onDrag = [this] (int dragSpeed)
