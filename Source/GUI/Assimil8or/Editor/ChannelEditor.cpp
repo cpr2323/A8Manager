@@ -546,7 +546,7 @@ void ChannelEditor::setupChannelComponents ()
     pitchCVTextEditor.max = FormatHelpers::getAmount (maxChannelProperties.getPitchCV ());
     pitchCVTextEditor.getter = [this] () { return channelProperties.getPitchCV ();  };
     pitchCVTextEditor.setter = [this] (double cv) { channelProperties.setPitchCV (FormatHelpers::getCvInput (channelProperties.getPitchCV ()), cv, false); };
-    pitchCVTextEditor.uiChanged = [this] (juce::String cvInput, double amount) { pitchCVUiChanged (cvInput, amount); };
+    pitchCVTextEditor.updateDataCallback = [this] (double amount) { pitchCVUiChanged (FormatHelpers::getCvInput (channelProperties.getPitchCV ()), amount); };
     setupTextEditor (pitchCVTextEditor, juce::Justification::centred, 0, "+-.0123456789", "PitchCV", [this] ()
     {
         pitchCVTextEditor.checkValue ();
@@ -569,7 +569,8 @@ void ChannelEditor::setupChannelComponents ()
     linFMTextEditor.max = FormatHelpers::getAmount (maxChannelProperties.getLinFM ());
     linFMTextEditor.getter = [this] () { return channelProperties.getLinFM ();  };
     linFMTextEditor.setter = [this] (double cv) { channelProperties.setLinFM (FormatHelpers::getCvInput (channelProperties.getLinFM ()), cv, false); };
-    linFMTextEditor.uiChanged = [this] (juce::String cvInput, double amount) { linFMUiChanged (cvInput, amount); };
+    linFMTextEditor.updateDataCallback = [this] (double amount) { linFMUiChanged (FormatHelpers::getCvInput (channelProperties.getLinFM ()), amount); };
+
     setupTextEditor (linFMTextEditor, juce::Justification::centred, 0, "+-.0123456789", "LinFM", [this] ()
     {
         linFMTextEditor.checkValue();
@@ -593,7 +594,7 @@ void ChannelEditor::setupChannelComponents ()
     expFMTextEditor.max = FormatHelpers::getAmount (maxChannelProperties.getExpFM ());
     expFMTextEditor.getter = [this] () { return channelProperties.getExpFM ();  };
     expFMTextEditor.setter = [this] (double cv) { channelProperties.setExpFM (FormatHelpers::getCvInput (channelProperties.getExpFM ()), cv, false); };
-    expFMTextEditor.uiChanged = [this] (juce::String cvInput, double amount) { expFMUiChanged (cvInput, amount); };
+    expFMTextEditor.updateDataCallback = [this] (double amount) { expFMUiChanged (FormatHelpers::getCvInput (channelProperties.getExpFM ()), amount); };
     setupTextEditor (expFMTextEditor, juce::Justification::centred, 0, "+-.0123456789", "ExpFM", [this] ()
     {
         expFMTextEditor.checkValue();
@@ -653,7 +654,7 @@ void ChannelEditor::setupChannelComponents ()
     linAMTextEditor.max = FormatHelpers::getAmount (maxChannelProperties.getLinAM ());
     linAMTextEditor.getter = [this] () { return channelProperties.getLinAM ();  };
     linAMTextEditor.setter = [this] (double cv) { channelProperties.setLinAM (FormatHelpers::getCvInput (channelProperties.getLinAM ()), cv, false); };
-    linAMTextEditor.uiChanged = [this] (juce::String cvInput, double amount) { linAMUiChanged (cvInput, amount); };
+    linAMTextEditor.updateDataCallback = [this] (double amount) { linAMUiChanged (FormatHelpers::getCvInput (channelProperties.getLinAM ()), amount); };
     setupTextEditor (linAMTextEditor, juce::Justification::centred, 0, "+-.0123456789", "LinAM", [this] ()
     {
         linAMTextEditor.checkValue ();
@@ -677,7 +678,7 @@ void ChannelEditor::setupChannelComponents ()
     expAMTextEditor.max = FormatHelpers::getAmount (maxChannelProperties.getExpAM ());
     expAMTextEditor.getter = [this] () { return channelProperties.getExpAM ();  };
     expAMTextEditor.setter = [this] (double cv) { channelProperties.setExpAM (FormatHelpers::getCvInput (channelProperties.getExpAM ()), cv, false); };
-    expAMTextEditor.uiChanged = [this] (juce::String cvInput, double amount) { expAMUiChanged (cvInput, amount); };
+    expAMTextEditor.updateDataCallback = [this] (double amount) { expAMUiChanged (FormatHelpers::getCvInput (channelProperties.getExpAM ()), amount); };
     setupTextEditor (expAMTextEditor, juce::Justification::centred, 0, "+-.0123456789", "ExpAM", [this] ()
     {
         expAMTextEditor.checkValue();
@@ -720,7 +721,7 @@ void ChannelEditor::setupChannelComponents ()
     phaseCVTextEditor.max = FormatHelpers::getAmount (maxChannelProperties.getPhaseCV ());
     phaseCVTextEditor.getter = [this] () { return channelProperties.getPhaseCV ();  };
     phaseCVTextEditor.setter = [this] (double cv) { channelProperties.setPhaseCV (FormatHelpers::getCvInput (channelProperties.getPhaseCV ()), cv, false); };
-    phaseCVTextEditor.uiChanged = [this] (juce::String cvInput, double amount) { phaseCVUiChanged (cvInput, amount); };
+    phaseCVTextEditor.updateDataCallback = [this] (double amount) { phaseCVUiChanged (FormatHelpers::getCvInput (channelProperties.getPhaseCV ()), amount); };
     setupTextEditor (phaseCVTextEditor, juce::Justification::centred, 0, "+-.0123456789", "PhaseCV", [this] ()
     {
         phaseCVTextEditor.checkValue ();
@@ -762,7 +763,7 @@ void ChannelEditor::setupChannelComponents ()
     pMIndexModTextEditor.max = FormatHelpers::getAmount (maxChannelProperties.getPMIndexMod ());
     pMIndexModTextEditor.getter = [this] () { return channelProperties.getPMIndexMod ();  };
     pMIndexModTextEditor.setter = [this] (double cv) { channelProperties.setPMIndexMod (FormatHelpers::getCvInput (channelProperties.getPMIndexMod ()), cv, false); };
-    pMIndexModTextEditor.uiChanged = [this] (juce::String cvInput, double amount) { pMIndexModUiChanged (cvInput, amount); };
+    pMIndexModTextEditor.updateDataCallback = [this] (double amount) { pMIndexModUiChanged (FormatHelpers::getCvInput (channelProperties.getPMIndexMod ()), amount); };
     setupTextEditor (pMIndexModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "PMIndexMod", [this] ()
     {
         pMIndexModTextEditor.checkValue ();
@@ -821,7 +822,7 @@ void ChannelEditor::setupChannelComponents ()
     attackModTextEditor.max = FormatHelpers::getAmount (maxChannelProperties.getAttackMod ());
     attackModTextEditor.getter = [this] () { return channelProperties.getAttackMod ();  };
     attackModTextEditor.setter = [this] (double cv) { channelProperties.setAttackMod (FormatHelpers::getCvInput (channelProperties.getAttackMod ()), cv, false); };
-    attackModTextEditor.uiChanged = [this] (juce::String cvInput, double amount) { attackModUiChanged (cvInput, amount); };
+    attackModTextEditor.updateDataCallback = [this] (double amount) { attackModUiChanged (FormatHelpers::getCvInput (channelProperties.getAttackMod ()), amount); };
     setupTextEditor (attackModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "AttackMod", [this] ()
     {
         attackModTextEditor.checkValue();
@@ -863,7 +864,7 @@ void ChannelEditor::setupChannelComponents ()
     releaseModTextEditor.max = FormatHelpers::getAmount (maxChannelProperties.getReleaseMod ());
     releaseModTextEditor.getter = [this] () { return channelProperties.getReleaseMod ();  };
     releaseModTextEditor.setter = [this] (double cv) { channelProperties.setReleaseMod (FormatHelpers::getCvInput (channelProperties.getReleaseMod ()), cv, false); };
-    releaseModTextEditor.uiChanged = [this] (juce::String cvInput, double amount) { releaseModUiChanged (cvInput, amount); };
+    releaseModTextEditor.updateDataCallback = [this] (double amount) { releaseModUiChanged (FormatHelpers::getCvInput (channelProperties.getReleaseMod ()), amount); };
     setupTextEditor (releaseModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "ReleaseMod", [this] ()
     {
         releaseModTextEditor.checkValue ();
@@ -908,7 +909,7 @@ void ChannelEditor::setupChannelComponents ()
     bitsModTextEditor.max = FormatHelpers::getAmount (maxChannelProperties.getBitsMod ());
     bitsModTextEditor.getter = [this] () { return channelProperties.getBitsMod ();  };
     bitsModTextEditor.setter = [this] (double cv) { channelProperties.setBitsMod (FormatHelpers::getCvInput (channelProperties.getBitsMod ()), cv, false); };
-    bitsModTextEditor.uiChanged = [this] (juce::String cvInput, double amount) { bitsModUiChanged (cvInput, amount); };
+    bitsModTextEditor.updateDataCallback = [this] (double amount) { bitsModUiChanged (FormatHelpers::getCvInput (channelProperties.getBitsMod ()), amount); };
     setupTextEditor (bitsModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "BitsMod", [this] ()
     {
         bitsModTextEditor.checkValue();
@@ -949,7 +950,7 @@ void ChannelEditor::setupChannelComponents ()
     aliasingModTextEditor.max = FormatHelpers::getAmount (maxChannelProperties.getAliasingMod ());
     aliasingModTextEditor.getter = [this] () { return channelProperties.getAliasingMod ();  };
     aliasingModTextEditor.setter = [this] (double cv) { channelProperties.setAliasingMod (FormatHelpers::getCvInput (channelProperties.getAliasingMod ()), cv, false); };
-    aliasingModTextEditor.uiChanged = [this] (juce::String cvInput, double amount) { aliasingModUiChanged (cvInput, amount); };
+    aliasingModTextEditor.updateDataCallback = [this] (double amount) { aliasingModUiChanged (FormatHelpers::getCvInput (channelProperties.getAliasingMod ()), amount); };
     setupTextEditor (aliasingModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "AliasingMod", [this] ()
     {
         aliasingModTextEditor.checkValue ();
@@ -994,7 +995,7 @@ void ChannelEditor::setupChannelComponents ()
     panModTextEditor.max = FormatHelpers::getAmount (maxChannelProperties.getPanMod ());
     panModTextEditor.getter = [this] () { return channelProperties.getPanMod ();  };
     panModTextEditor.setter = [this] (double cv) { channelProperties.setPanMod (FormatHelpers::getCvInput (channelProperties.getPanMod ()), cv, false); };
-    panModTextEditor.uiChanged = [this] (juce::String cvInput, double amount) { panModUiChanged (cvInput, amount); };
+    panModTextEditor.updateDataCallback = [this] (double amount) { panModUiChanged (FormatHelpers::getCvInput (channelProperties.getPanMod ()), amount); };
     setupTextEditor (panModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "PanMod", [this] ()
     {
         panModTextEditor.checkValue();
@@ -1034,7 +1035,7 @@ void ChannelEditor::setupChannelComponents ()
     mixModTextEditor.max = FormatHelpers::getAmount (maxChannelProperties.getMixMod ());
     mixModTextEditor.getter = [this] () { return channelProperties.getMixMod ();  };
     mixModTextEditor.setter = [this] (double cv) { channelProperties.setMixMod (FormatHelpers::getCvInput (channelProperties.getMixMod ()), cv, false); };
-    mixModTextEditor.uiChanged = [this] (juce::String cvInput, double amount) { mixModUiChanged (cvInput, amount); };
+    mixModTextEditor.updateDataCallback = [this] (double amount) { mixModUiChanged (FormatHelpers::getCvInput (channelProperties.getMixMod ()), amount); };
     setupTextEditor (mixModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "MixMod", [this] ()
     {
         mixModTextEditor.checkValue();
@@ -1135,7 +1136,7 @@ void ChannelEditor::setupChannelComponents ()
     sampleStartModTextEditor.max = FormatHelpers::getAmount (maxChannelProperties.getSampleStartMod ());
     sampleStartModTextEditor.getter = [this] () { return channelProperties.getSampleStartMod ();  };
     sampleStartModTextEditor.setter = [this] (double cv) { channelProperties.setSampleStartMod (FormatHelpers::getCvInput (channelProperties.getSampleStartMod ()), cv, false); };
-    sampleStartModTextEditor.uiChanged = [this] (juce::String cvInput, double amount) { sampleStartModUiChanged (cvInput, amount); };
+    sampleStartModTextEditor.updateDataCallback = [this] (double amount) { sampleStartModUiChanged (FormatHelpers::getCvInput (channelProperties.getSampleStartMod ()), amount); };
     setupTextEditor (sampleStartModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "SampleStartMod", [this] ()
     {
         sampleStartModTextEditor.checkValue ();
@@ -1158,7 +1159,7 @@ void ChannelEditor::setupChannelComponents ()
     sampleEndModTextEditor.max = FormatHelpers::getAmount (maxChannelProperties.getSampleEndMod ());
     sampleEndModTextEditor.getter = [this] () { return channelProperties.getSampleEndMod ();  };
     sampleEndModTextEditor.setter = [this] (double cv) { channelProperties.setSampleEndMod (FormatHelpers::getCvInput (channelProperties.getSampleEndMod ()), cv, false); };
-    sampleEndModTextEditor.uiChanged = [this] (juce::String cvInput, double amount) { sampleEndModUiChanged (cvInput, amount); };
+    sampleEndModTextEditor.updateDataCallback = [this] (double amount) { sampleEndModUiChanged (FormatHelpers::getCvInput (channelProperties.getSampleEndMod ()), amount); };
     setupTextEditor (sampleEndModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "SampleEndMod", [this] ()
     {
         sampleEndModTextEditor.checkValue ();
@@ -1180,7 +1181,7 @@ void ChannelEditor::setupChannelComponents ()
     loopStartModTextEditor.max = FormatHelpers::getAmount (maxChannelProperties.getLoopStartMod ());
     loopStartModTextEditor.getter = [this] () { return channelProperties.getLoopStartMod ();  };
     loopStartModTextEditor.setter = [this] (double cv) { channelProperties.setLoopStartMod (FormatHelpers::getCvInput (channelProperties.getLoopStartMod ()), cv, false); };
-    loopStartModTextEditor.uiChanged = [this] (juce::String cvInput, double amount) { loopStartModUiChanged (cvInput, amount); };
+    loopStartModTextEditor.updateDataCallback = [this] (double amount) { loopStartModUiChanged (FormatHelpers::getCvInput (channelProperties.getLoopStartMod ()), amount); };
     setupTextEditor (loopStartModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "LoopStartMod", [this] ()
     {
         loopStartModTextEditor.checkValue ();
@@ -1203,7 +1204,7 @@ void ChannelEditor::setupChannelComponents ()
     loopLengthModTextEditor.max = FormatHelpers::getAmount (maxChannelProperties.getLoopLengthMod ());
     loopLengthModTextEditor.getter = [this] () { return channelProperties.getLoopLengthMod ();  };
     loopLengthModTextEditor.setter = [this] (double cv) { channelProperties.setLoopLengthMod (FormatHelpers::getCvInput (channelProperties.getLoopLengthMod ()), cv, false); };
-    loopLengthModTextEditor.uiChanged = [this] (juce::String cvInput, double amount) { loopLengthModUiChanged (cvInput, amount); };
+    loopLengthModTextEditor.updateDataCallback = [this] (double amount) { loopLengthModUiChanged (FormatHelpers::getCvInput (channelProperties.getLoopLengthMod ()), amount); };
     setupTextEditor (loopLengthModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "LoopLengthMod", [this] ()
     {
         loopLengthModTextEditor.checkValue();

@@ -22,37 +22,22 @@ class CvOffsetTextEditor : public CustomTextEditor
 public:
     CvOffsetTextEditor ()
     {
+        highlightErrorCallback = [] (CustomTextEditor&) {};
+        snapValueCallback = [] (double value) { return value; };
+        toStringCallback = [this] (double value) { return FormatHelpers::formatDouble (value, 2, true); };
         onDrag = [this] (int dragSpeed)
         {
+            jassert (getter != nullptr);
             const auto incAmount { 0.01 * dragSpeed };
             const auto newAmount { FormatHelpers::getAmount (getter ()) + incAmount };
-            constrainAndSet (newAmount);
+            setValue (newAmount);
         };
         onPopupMenu = [this] ()
         {
         };
     }
-    void setValue (double cvAmount)
-    {
-        constrainAndSet (cvAmount);
-    }
-    void checkValue ()
-    {
-        ErrorHelpers::setColorIfError (*this, min, max);
-    }
-    double min { 0.0 };
-    double max { 0.0 };
     std::function<CvInputAndAmount ()> getter;
-    std::function<void (double)> setter;
-    std::function<void (juce::String, double)> uiChanged;
-
 private:
-    void constrainAndSet (double cv)
-    {
-        const auto constrainedCV { std::clamp (cv, min, max) };
-        uiChanged (FormatHelpers::getCvInput (getter ()), constrainedCV);
-        setText (FormatHelpers::formatDouble (constrainedCV, 2, true));
-    };
 };
 
 class TabbedComponentWithChangeCallback : public juce::TabbedComponent

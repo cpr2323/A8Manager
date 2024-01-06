@@ -1,5 +1,4 @@
 #include "Assimil8orEditorComponent.h"
-//#include "FormatHelpers.h"
 #include "ParameterToolTipData.h"
 #include "../../../Assimil8or/Assimil8orPreset.h"
 #include "../../../Assimil8or/PresetManagerProperties.h"
