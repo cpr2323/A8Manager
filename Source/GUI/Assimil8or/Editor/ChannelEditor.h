@@ -13,7 +13,9 @@
 #include "../../../Assimil8or/Preset/ChannelProperties.h"
 #include "../../../Utility/CustomComboBox.h"
 #include "../../../Utility/CustomTextEditor.h"
+#include "../../../Utility/ErrorHelpers.h"
 #include "../../../Utility/NoArrowComboBoxLnF.h"
+
 
 class CvOffsetTextEditor : public CustomTextEditor
 {
@@ -36,7 +38,7 @@ public:
     }
     void checkValue ()
     {
-        FormatHelpers::setColorIfError (*this, min, max);
+        ErrorHelpers::setColorIfError (*this, min, max);
     }
     double min { 0.0 };
     double max { 0.0 };

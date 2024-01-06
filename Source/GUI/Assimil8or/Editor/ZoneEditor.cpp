@@ -6,6 +6,7 @@
 #include "../../../Assimil8or/Preset/ParameterPresetsSingleton.h"
 #include "../../../Utility/DebugLog.h"
 #include "../../../Utility/DumpStack.h"
+#include "../../../Utility/ErrorHelpers.h"
 #include "../../../Utility/PersistentRootProperties.h"
 #include "../../../Utility/RuntimeRootProperties.h"
 
@@ -343,7 +344,7 @@ void ZoneEditor::setupZoneComponents ()
     setupLabel (sampleStartLabel, "SMPL START", 12.0, juce::Justification::centredRight);
     setupTextEditor (sampleStartTextEditor, juce::Justification::centred, 0, "0123456789", "SampleStart", [this] ()
     {
-        FormatHelpers::setColorIfError (sampleStartTextEditor, minZoneProperties.getSampleStart ().value_or (0), zoneProperties.getSampleEnd ().value_or (sampleData.getLengthInSamples ()));
+        ErrorHelpers::setColorIfError (sampleStartTextEditor, minZoneProperties.getSampleStart ().value_or (0), zoneProperties.getSampleEnd ().value_or (sampleData.getLengthInSamples ()));
     },
     [this] (juce::String text)
     {
@@ -363,7 +364,7 @@ void ZoneEditor::setupZoneComponents ()
     setupLabel (sampleEndLabel, "SMPL END", 12.0, juce::Justification::centredRight);
     setupTextEditor (sampleEndTextEditor, juce::Justification::centred, 0, "0123456789", "SampleEnd", [this] ()
     {
-        FormatHelpers::setColorIfError (sampleEndTextEditor, zoneProperties.getSampleStart ().value_or (0), sampleData.getLengthInSamples ());
+       ErrorHelpers::setColorIfError (sampleEndTextEditor, zoneProperties.getSampleStart ().value_or (0), sampleData.getLengthInSamples ());
     },
     [this] (juce::String text)
     {
@@ -384,10 +385,10 @@ void ZoneEditor::setupZoneComponents ()
     setupTextEditor (loopStartTextEditor, juce::Justification::centred, 0, "0123456789", "LoopStart", [this] ()
     {
         if (! loopLengthIsEnd)
-            FormatHelpers::setColorIfError (loopStartTextEditor, minZoneProperties.getLoopStart ().value_or (0),
+            ErrorHelpers::setColorIfError (loopStartTextEditor, minZoneProperties.getLoopStart ().value_or (0),
                 sampleData.getLengthInSamples () - static_cast<juce::int64> (zoneProperties.getLoopLength ().value_or (static_cast<double> (sampleData.getLengthInSamples () - zoneProperties.getLoopStart ().value_or (0)))));
         else
-            FormatHelpers::setColorIfError (loopStartTextEditor, minZoneProperties.getLoopStart ().value_or (0),
+            ErrorHelpers::setColorIfError (loopStartTextEditor, minZoneProperties.getLoopStart ().value_or (0),
                                             zoneProperties.getLoopStart ().value_or (0) + static_cast<juce::int64> (zoneProperties.getLoopLength ().value_or (static_cast<double> (sampleData.getLengthInSamples () - zoneProperties.getLoopStart ().value_or (0)))));
     },
     [this] (juce::String text)
@@ -430,7 +431,7 @@ void ZoneEditor::setupZoneComponents ()
             else
                 return text.getDoubleValue ();
         } ();
-        FormatHelpers::setColorIfError (loopLengthTextEditor, loopLengthInput,
+        ErrorHelpers::setColorIfError (loopLengthTextEditor, loopLengthInput,
                                         sampleData.getLengthInSamples () == 0 ? 0.0 : minZoneProperties.getLoopLength ().value_or (static_cast<double> (sampleData.getLengthInSamples () - zoneProperties.getLoopStart ().value_or (0))),
                                         static_cast<double> (sampleData.getLengthInSamples () - zoneProperties.getLoopStart ().value_or (0)));
     },
@@ -466,9 +467,9 @@ void ZoneEditor::setupZoneComponents ()
     // MIN VOLTAGE
     setupTextEditor (minVoltageTextEditor, juce::Justification::centred, 0, "+-.0123456789", "MinVoltage", [this] ()
     {
-        FormatHelpers::setColorIfError (minVoltageTextEditor, minZoneProperties.getMinVoltage (), maxZoneProperties.getMinVoltage ());
+        ErrorHelpers::setColorIfError (minVoltageTextEditor, minZoneProperties.getMinVoltage (), maxZoneProperties.getMinVoltage ());
         if (isMinVoltageInRange != nullptr)
-            FormatHelpers::setColorIfError (minVoltageTextEditor, isMinVoltageInRange (minVoltageTextEditor.getText ().getDoubleValue ()));
+            ErrorHelpers::setColorIfError (minVoltageTextEditor, isMinVoltageInRange (minVoltageTextEditor.getText ().getDoubleValue ()));
     },
     [this] (juce::String text)
     {
@@ -487,7 +488,7 @@ void ZoneEditor::setupZoneComponents ()
     setupLabel (pitchOffsetLabel, "PITCH OFFSET", 15.0, juce::Justification::centredRight);
     setupTextEditor (pitchOffsetTextEditor, juce::Justification::centred, 0, "+-.0123456789", "PitchOffset", [this] ()
     {
-        FormatHelpers::setColorIfError (pitchOffsetTextEditor, minZoneProperties.getPitchOffset (), maxZoneProperties.getPitchOffset ());
+        ErrorHelpers::setColorIfError (pitchOffsetTextEditor, minZoneProperties.getPitchOffset (), maxZoneProperties.getPitchOffset ());
     },
     [this] (juce::String text)
     {
@@ -504,7 +505,7 @@ void ZoneEditor::setupZoneComponents ()
     setupLabel (levelOffsetLabel, "LEVEL OFFSET", 15.0, juce::Justification::centredRight);
     setupTextEditor (levelOffsetTextEditor, juce::Justification::centred, 0, "+-.0123456789", "LevelOffset", [this] ()
     {
-        FormatHelpers::setColorIfError (levelOffsetTextEditor, minZoneProperties.getLevelOffset (), maxZoneProperties.getLevelOffset ());
+        ErrorHelpers::setColorIfError (levelOffsetTextEditor, minZoneProperties.getLevelOffset (), maxZoneProperties.getLevelOffset ());
     },
     [this] (juce::String text)
     {

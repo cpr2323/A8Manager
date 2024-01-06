@@ -1,5 +1,5 @@
 #include "Assimil8orEditorComponent.h"
-#include "FormatHelpers.h"
+//#include "FormatHelpers.h"
 #include "ParameterToolTipData.h"
 #include "../../../Assimil8or/Assimil8orPreset.h"
 #include "../../../Assimil8or/PresetManagerProperties.h"
@@ -7,6 +7,7 @@
 #include "../../../Assimil8or/Preset/PresetHelpers.h"
 #include "../../../Utility/DebugLog.h"
 #include "../../../Utility/DumpStack.h"
+#include "../../../Utility/ErrorHelpers.h"
 #include "../../../Utility/PersistentRootProperties.h"
 #include <algorithm>
 
@@ -192,7 +193,7 @@ void Assimil8orEditorComponent::setupPresetComponents ()
         };
         xfadeGroup.xfadeWidthEditor.onTextChange = [this, xfadeGroupIndex] ()
         {
-            FormatHelpers::setColorIfError (xfadeGroups [xfadeGroupIndex].xfadeWidthEditor, minPresetProperties.getXfadeAWidth (), maxPresetProperties.getXfadeAWidth ());
+            ErrorHelpers::setColorIfError (xfadeGroups [xfadeGroupIndex].xfadeWidthEditor, minPresetProperties.getXfadeAWidth (), maxPresetProperties.getXfadeAWidth ());
         };
         xfadeGroup.xfadeWidthEditor.setTooltip (parameterToolTipData.getToolTip ("Preset", "Xfade" + juce::String::charToString ('A' + xfadeGroupIndex) + "Width"));
         xfadeGroup.xfadeWidthEditor.setPopupMenuEnabled (false);

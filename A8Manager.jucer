@@ -221,6 +221,9 @@
               file="Source/Utility/DirectoryValueTree.h"/>
         <FILE id="pP1sFQ" name="DumpStack.cpp" compile="1" resource="0" file="Source/Utility/DumpStack.cpp"/>
         <FILE id="kz99xu" name="DumpStack.h" compile="0" resource="0" file="Source/Utility/DumpStack.h"/>
+        <FILE id="QJawCv" name="ErrorHelpers.cpp" compile="1" resource="0"
+              file="Source/Utility/ErrorHelpers.cpp"/>
+        <FILE id="CdKTBO" name="ErrorHelpers.h" compile="0" resource="0" file="Source/Utility/ErrorHelpers.h"/>
         <FILE id="GjhfJa" name="LambdaThread.h" compile="0" resource="0" file="Source/Utility/LambdaThread.h"/>
         <FILE id="ZRKBIm" name="NoArrowComboBoxLnF.h" compile="0" resource="0"
               file="Source/Utility/NoArrowComboBoxLnF.h"/>

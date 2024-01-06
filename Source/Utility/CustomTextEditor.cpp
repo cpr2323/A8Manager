@@ -1,5 +1,29 @@
 #include "CustomTextEditor.h"
+#include "ErrorHelpers.h"
 #include "DebugLog.h"
+
+void CustomTextEditor::setValue (double cvAmount)
+{
+    constrainAndSet (cvAmount);
+}
+
+void CustomTextEditor::checkValue ()
+{
+    jassert (highlightErrorCallback != nullptr);
+    // check if this current value is valid, if it is then also call the extended error check
+    if (ErrorHelpers::setColorIfError (*this, min, max))
+        highlightErrorCallback (*this);
+}
+
+void CustomTextEditor::constrainAndSet (double value)
+{
+    jassert (snapValueCallback != nullptr);
+    jassert (updateDataCallback != nullptr);
+    jassert (toStringCallback != nullptr);
+    const auto newValue { snapValueCallback (std::clamp (value, min, max)) };
+    updateDataCallback (newValue);
+    setText (toStringCallback (newValue));
+}
 
 void CustomTextEditor::mouseDown (const juce::MouseEvent& mouseEvent)
 {

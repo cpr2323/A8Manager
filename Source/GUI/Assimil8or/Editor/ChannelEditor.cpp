@@ -127,7 +127,7 @@ ChannelEditor::ChannelEditor ()
     addAndMakeVisible (toolsButton);
     setupChannelComponents ();
     arEnvelopeProperties.wrap (arEnvelopeComponent.getPropertiesVT (), AREnvelopeProperties::WrapperType::client, AREnvelopeProperties::EnableCallbacks::yes);
-    arEnvelopeProperties.onAttackPercentChanged= [this] (double attackPercent)
+    arEnvelopeProperties.onAttackPercentChanged = [this] (double attackPercent)
     {
         const auto rawAttackValue { (kMaxEnvelopeTime * 2) * attackPercent };
         const auto curAttackFractionalValue { channelProperties.getAttack () - static_cast<int> (channelProperties.getAttack ()) };
@@ -441,7 +441,7 @@ void ChannelEditor::setupChannelComponents ()
     setupLabel (pitchLabel, "PITCH", kLargeLabelSize, juce::Justification::centred);
     setupTextEditor (pitchTextEditor, juce::Justification::centred, 0, "+-.0123456789", "Pitch", [this] ()
     {
-        FormatHelpers::setColorIfError (pitchTextEditor, minChannelProperties.getPitch (), maxChannelProperties.getPitch ());
+        ErrorHelpers::setColorIfError (pitchTextEditor, minChannelProperties.getPitch (), maxChannelProperties.getPitch ());
     },
     [this, constrainAndSetPitch] (juce::String text)
     {
@@ -607,7 +607,7 @@ void ChannelEditor::setupChannelComponents ()
     setupLabel (levelLabel, "LEVEL", kLargeLabelSize, juce::Justification::centred);
     setupTextEditor (levelTextEditor, juce::Justification::centred, 0, "+-.0123456789", "Level", [this] ()
     {
-        FormatHelpers::setColorIfError (levelTextEditor, minChannelProperties.getLevel (), maxChannelProperties.getLevel ());
+        ErrorHelpers::setColorIfError (levelTextEditor, minChannelProperties.getLevel (), maxChannelProperties.getLevel ());
     },
     [this] (juce::String text)
     {
@@ -734,7 +734,7 @@ void ChannelEditor::setupChannelComponents ()
     setupLabel (phaseModIndexSectionLabel, "PHASE MOD", kLargeLabelSize, juce::Justification::centred);
     setupTextEditor (pMIndexTextEditor, juce::Justification::centred, 0, "+-.0123456789", "PMIndex", [this] ()
     {
-        FormatHelpers::setColorIfError (pMIndexTextEditor, minChannelProperties.getPMIndex (), maxChannelProperties.getPMIndex ());
+        ErrorHelpers::setColorIfError (pMIndexTextEditor, minChannelProperties.getPMIndex (), maxChannelProperties.getPMIndex ());
     },
     [this] (juce::String text)
     {
@@ -793,7 +793,7 @@ void ChannelEditor::setupChannelComponents ()
     setupLabel (attackLabel, "ATTACK", kMediumLabelSize, juce::Justification::centredRight);
     setupTextEditor (attackTextEditor, juce::Justification::centred, 0, ".0123456789", "Attack", [this] ()
     {
-        FormatHelpers::setColorIfError (attackTextEditor, minChannelProperties.getAttack (), maxChannelProperties.getAttack ());
+        ErrorHelpers::setColorIfError (attackTextEditor, minChannelProperties.getAttack (), maxChannelProperties.getAttack ());
     },
     [this] (juce::String text)
     {
@@ -834,7 +834,7 @@ void ChannelEditor::setupChannelComponents ()
     // RELEASE
     setupTextEditor (releaseTextEditor, juce::Justification::centred, 0, ".0123456789", "Release", [this] ()
     {
-        FormatHelpers::setColorIfError (releaseTextEditor, minChannelProperties.getRelease (), maxChannelProperties.getRelease ());
+        ErrorHelpers::setColorIfError (releaseTextEditor, minChannelProperties.getRelease (), maxChannelProperties.getRelease ());
     },
     [this] (juce::String text)
     {
@@ -880,7 +880,7 @@ void ChannelEditor::setupChannelComponents ()
     // BITS
     setupTextEditor (bitsTextEditor, juce::Justification::centred, 0, "+-.0123456789", "Bits", [this] ()
     {
-        FormatHelpers::setColorIfError (bitsTextEditor, minChannelProperties.getBits (), maxChannelProperties.getBits ());
+        ErrorHelpers::setColorIfError (bitsTextEditor, minChannelProperties.getBits (), maxChannelProperties.getBits ());
     },
     [this] (juce::String text)
     {
@@ -921,7 +921,7 @@ void ChannelEditor::setupChannelComponents ()
     // ALIASING
     setupTextEditor (aliasingTextEditor, juce::Justification::centred, 0, "0123456789", "Aliasing", [this] ()
     {
-        FormatHelpers::setColorIfError (aliasingTextEditor, minChannelProperties.getAliasing (), maxChannelProperties.getAliasing ());
+        ErrorHelpers::setColorIfError (aliasingTextEditor, minChannelProperties.getAliasing (), maxChannelProperties.getAliasing ());
     },
     [this] (juce::String text)
     {
@@ -967,7 +967,7 @@ void ChannelEditor::setupChannelComponents ()
     setupLabel (panMixLabel, "PAN/MIX", kLargeLabelSize, juce::Justification::centred);
     setupTextEditor (panTextEditor, juce::Justification::centred, 0, "+-.0123456789", "Pan", [this] ()
     {
-        FormatHelpers::setColorIfError (panTextEditor, minChannelProperties.getPan (), maxChannelProperties.getPan ());
+        ErrorHelpers::setColorIfError (panTextEditor, minChannelProperties.getPan (), maxChannelProperties.getPan ());
     },
     [this] (juce::String text)
     {
@@ -1006,7 +1006,7 @@ void ChannelEditor::setupChannelComponents ()
 
     setupTextEditor (mixLevelTextEditor, juce::Justification::centred, 0, "+-.0123456789", "MixLevel", [this] ()
     {
-        FormatHelpers::setColorIfError (mixLevelTextEditor, minChannelProperties.getMixLevel (), maxChannelProperties.getMixLevel ());
+        ErrorHelpers::setColorIfError (mixLevelTextEditor, minChannelProperties.getMixLevel (), maxChannelProperties.getMixLevel ());
     },
     [this] (juce::String text)
     {
