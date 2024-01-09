@@ -124,21 +124,21 @@ private:
     juce::Rectangle<int>* activePointBackground { &samplePointsBackground };
 
     juce::Label levelOffsetLabel;
-    CustomTextEditor levelOffsetTextEditor; // double
+    CustomTextEditorDouble levelOffsetTextEditor; // double
     juce::Label loopLengthLabel;
-    CustomTextEditor loopLengthTextEditor; // double
+    CustomTextEditorDouble loopLengthTextEditor; // double
     juce::Label loopStartLabel;
-    CustomTextEditor loopStartTextEditor; // int
+    CustomTextEditorInt loopStartTextEditor; // int
     juce::Label minVoltageLabel;
-    CustomTextEditor minVoltageTextEditor; // double
+    CustomTextEditorDouble minVoltageTextEditor; // double
     juce::Label pitchOffsetLabel;
-    CustomTextEditor pitchOffsetTextEditor; // double
+    CustomTextEditorDouble pitchOffsetTextEditor; // double
     juce::Label sampleNameLabel;
     FileSelectLabel sampleNameSelectLabel; // filename
     juce::Label sampleEndLabel;
-    CustomTextEditor sampleEndTextEditor; // int
+    CustomTextEditorInt sampleEndTextEditor; // int
     juce::Label sampleStartLabel;
-    CustomTextEditor sampleStartTextEditor; // int
+    CustomTextEditorInt sampleStartTextEditor; // int
 
     juce::String formatLoopLength (double loopLength);
     bool handleSamplesInternal (int zoneIndex, juce::StringArray files);

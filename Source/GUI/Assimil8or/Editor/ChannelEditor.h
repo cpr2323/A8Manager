@@ -16,27 +16,24 @@
 #include "../../../Utility/ErrorHelpers.h"
 #include "../../../Utility/NoArrowComboBoxLnF.h"
 
-
-class CvOffsetTextEditor : public CustomTextEditor
+class CvOffsetTextEditor : public CustomTextEditorDouble
 {
 public:
     CvOffsetTextEditor ()
     {
-        highlightErrorCallback = [] (CustomTextEditor&) {};
-        snapValueCallback = [] (double value) { return value; };
         toStringCallback = [this] (double value) { return FormatHelpers::formatDouble (value, 2, true); };
         onDrag = [this] (int dragSpeed)
         {
-            jassert (getter != nullptr);
+            jassert (getCvInputAndAmount != nullptr);
             const auto incAmount { 0.01 * dragSpeed };
-            const auto newAmount { FormatHelpers::getAmount (getter ()) + incAmount };
+            const auto newAmount { FormatHelpers::getAmount (getCvInputAndAmount ()) + incAmount };
             setValue (newAmount);
         };
         onPopupMenu = [this] ()
         {
         };
     }
-    std::function<CvInputAndAmount ()> getter;
+    std::function<CvInputAndAmount ()> getCvInputAndAmount;
 private:
 };
 
@@ -212,11 +209,11 @@ private:
     juce::TextButton toolsButton;
 
     juce::Label aliasingLabel;
-    CustomTextEditor aliasingTextEditor; // integer
+    CustomTextEditorInt aliasingTextEditor; // integer
     CvInputChannelComboBox aliasingModComboBox; // 0A - 8C
     CvOffsetTextEditor aliasingModTextEditor; // double
     juce::Label attackLabel;
-    CustomTextEditor attackTextEditor; // double
+    CustomTextEditorDouble attackTextEditor; // double
     juce::Label attackFromCurrentLabel;
     CustomComboBox attackFromCurrentComboBox; // false = start from zero, true = start from last value
     CvInputChannelComboBox attackModComboBox; // 0A - 8C
@@ -224,7 +221,7 @@ private:
     juce::Label autoTriggerLabel;
     CustomComboBox autoTriggerComboBox; //
     juce::Label bitsLabel;
-    CustomTextEditor bitsTextEditor; // double
+    CustomTextEditorDouble bitsTextEditor; // double
     CvInputChannelComboBox bitsModComboBox; // 0A - 8C
     CvOffsetTextEditor bitsModTextEditor; // double
     juce::Label channelModeLabel;
@@ -238,7 +235,7 @@ private:
     CvOffsetTextEditor expFMTextEditor; // double
     juce::Label levelLabel;
     juce::Label levelDbLabel;
-    CustomTextEditor levelTextEditor; // double
+    CustomTextEditorDouble levelTextEditor; // double
     juce::Label linAMLabel;
     CvInputChannelComboBox linAMComboBox; // 0A - 8C
     CvOffsetTextEditor linAMTextEditor; // double
@@ -258,14 +255,14 @@ private:
     CvInputChannelComboBox loopStartModComboBox; // 0A - 8C
     CvOffsetTextEditor loopStartModTextEditor; // double
     juce::Label mixLevelLabel;
-    CustomTextEditor mixLevelTextEditor; // double
+    CustomTextEditorDouble mixLevelTextEditor; // double
     CvInputChannelComboBox mixModComboBox; // 0A - 8C
     CvOffsetTextEditor mixModTextEditor; // double
     juce::Label mixModIsFaderLabel; //
     CustomComboBox mixModIsFaderComboBox; //
     juce::Label mutateLabel;
     juce::Label panMixLabel;
-    CustomTextEditor panTextEditor; // double
+    CustomTextEditorDouble panTextEditor; // double
     juce::Label panLabel;
     CvInputChannelComboBox panModComboBox; // 0A - 8C
     CvOffsetTextEditor panModTextEditor; // double
@@ -274,20 +271,20 @@ private:
     CvOffsetTextEditor phaseCVTextEditor; // double
     juce::Label pitchLabel;
     juce::Label pitchSemiLabel;
-    CustomTextEditor pitchTextEditor; // double
+    CustomTextEditorDouble pitchTextEditor; // double
     CvInputChannelComboBox pitchCVComboBox; // 0A - 8C
     CvOffsetTextEditor pitchCVTextEditor;
     juce::Label playModeLabel;
     CustomComboBox playModeComboBox; // 2 Play Modes: 0 = Gated, 1 = One Shot, Latch / Latch may not be a saved preset option.
     juce::Label phaseModIndexSectionLabel;
-    CustomTextEditor pMIndexTextEditor; // double
+    CustomTextEditorDouble pMIndexTextEditor; // double
     juce::Label pMIndexLabel;
     CvInputChannelComboBox pMIndexModComboBox; // 0A - 8C
     CvOffsetTextEditor pMIndexModTextEditor; // double
     juce::Label pMSourceLabel;
     CustomComboBox pMSourceComboBox; // Channel 1 is 0, 2 is 1, etc. Left Input is 8, Right Input is 9, and PhaseCV is 10
     juce::Label releaseLabel;
-    CustomTextEditor releaseTextEditor; // double
+    CustomTextEditorDouble releaseTextEditor; // double
     CvInputChannelComboBox releaseModComboBox; // 0A - 8C
     CvOffsetTextEditor releaseModTextEditor; // double
     juce::TextButton reverseButton; //

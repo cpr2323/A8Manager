@@ -73,7 +73,7 @@ private:
         juce::Label xfadeCvLabel;
         CvInputGlobalComboBox xfadeCvComboBox;
         juce::Label xfadeWidthLabel;
-        CustomTextEditor xfadeWidthEditor;
+        CustomTextEditorDouble xfadeWidthEditor;
     };
     enum XfadeGroupIndex
     {
