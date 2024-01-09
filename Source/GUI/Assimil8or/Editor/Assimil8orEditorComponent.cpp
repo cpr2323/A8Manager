@@ -173,29 +173,12 @@ void Assimil8orEditorComponent::setupPresetComponents ()
         xfadeGroup.xfadeWidthEditor.setJustification (juce::Justification::centred);
         xfadeGroup.xfadeWidthEditor.setIndents (0, 0);
         xfadeGroup.xfadeWidthEditor.setInputRestrictions (0, "+-.0123456789");
-        auto xFadeGroupEditDone = [this] (int xfadeGroupIndex)
-        {
-            auto& widthEditor { xfadeGroups [xfadeGroupIndex].xfadeWidthEditor };
-            auto width { std::clamp (widthEditor.getText ().getDoubleValue (), minPresetProperties.getXfadeAWidth (), maxPresetProperties.getXfadeAWidth ()) };
-            xfadeWidthUiChanged (xfadeGroupIndex, width);
-
-            auto text { formatXfadeWidthString (width) };
-            widthEditor.setText (text);
-        };
-        xfadeGroup.xfadeWidthEditor.onFocusLost = [this, xfadeGroupIndex, xFadeGroupEditDone] ()
-        {
-            xFadeGroupEditDone (xfadeGroupIndex);
-        };
-        xfadeGroup.xfadeWidthEditor.onReturnKey = [this, xfadeGroupIndex, xFadeGroupEditDone] ()
-        {
-            xFadeGroupEditDone (xfadeGroupIndex);
-        };
-        xfadeGroup.xfadeWidthEditor.onTextChange = [this, xfadeGroupIndex] ()
-        {
-            ErrorHelpers::setColorIfError (xfadeGroups [xfadeGroupIndex].xfadeWidthEditor, minPresetProperties.getXfadeAWidth (), maxPresetProperties.getXfadeAWidth ());
-        };
         xfadeGroup.xfadeWidthEditor.setTooltip (parameterToolTipData.getToolTip ("Preset", "Xfade" + juce::String::charToString ('A' + xfadeGroupIndex) + "Width"));
         xfadeGroup.xfadeWidthEditor.setPopupMenuEnabled (false);
+        xfadeGroup.xfadeWidthEditor.minValue = minPresetProperties.getXfadeAWidth ();
+        xfadeGroup.xfadeWidthEditor.maxValue = maxPresetProperties.getXfadeAWidth ();
+        xfadeGroup.xfadeWidthEditor.toStringCallback = [this] (double value) { return formatXfadeWidthString (value); };
+        xfadeGroup.xfadeWidthEditor.updateDataCallback = [this, xfadeGroupIndex] (double value) { xfadeWidthUiChanged (xfadeGroupIndex, value); };
         xfadeGroup.xfadeWidthEditor.onDrag = [this, xfadeGroupIndex] (int dragSpeed)
         {
             const auto newAmount { editManager.getXfadeGroupValueByIndex (xfadeGroupIndex) + (0.1 * dragSpeed) };
@@ -235,7 +218,6 @@ void Assimil8orEditorComponent::setupPresetComponents ()
         };
         addAndMakeVisible (xfadeGroup.xfadeWidthEditor);
     }
-
 }
 
 juce::String Assimil8orEditorComponent::formatXfadeWidthString (double width)
