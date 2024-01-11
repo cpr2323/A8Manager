@@ -128,7 +128,7 @@ private:
     juce::Label loopLengthLabel;
     CustomTextEditorDouble loopLengthTextEditor; // double
     juce::Label loopStartLabel;
-    CustomTextEditorInt loopStartTextEditor; // int
+    CustomTextEditorInt64 loopStartTextEditor; // int
     juce::Label minVoltageLabel;
     CustomTextEditorDouble minVoltageTextEditor; // double
     juce::Label pitchOffsetLabel;
@@ -136,9 +136,9 @@ private:
     juce::Label sampleNameLabel;
     FileSelectLabel sampleNameSelectLabel; // filename
     juce::Label sampleEndLabel;
-    CustomTextEditorInt sampleEndTextEditor; // int
+    CustomTextEditorInt64 sampleEndTextEditor; // int
     juce::Label sampleStartLabel;
-    CustomTextEditorInt sampleStartTextEditor; // int
+    CustomTextEditorInt64 sampleStartTextEditor; // int
 
     juce::String formatLoopLength (double loopLength);
     bool handleSamplesInternal (int zoneIndex, juce::StringArray files);

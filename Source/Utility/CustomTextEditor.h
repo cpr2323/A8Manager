@@ -28,18 +28,20 @@ public:
 
     void checkValue ()
     {
+        jassert (getMinValueCallback != nullptr);
+        jassert (getMaxValueCallback != nullptr);
         // check if this current value is valid, if it is then also call the extended error check
-        if (ErrorHelpers::setColorIfError (*this, minValue, maxValue) && highlightErrorCallback != nullptr)
-            highlightErrorCallback (*this);
+        if (ErrorHelpers::setColorIfError (*this, getMinValueCallback (), getMaxValueCallback ()) && highlightErrorCallback != nullptr)
+            highlightErrorCallback ();
     }
 
-    T minValue { static_cast<T>(0) };
-    T maxValue { static_cast<T>(0) };
     // required
+    std::function<T ()> getMinValueCallback;
+    std::function<T ()> getMaxValueCallback;
     std::function<juce::String (T)> toStringCallback;
     std::function<void (T)> updateDataCallback;
     // optional
-    std::function<void (CustomTextEditor&)> highlightErrorCallback;
+    std::function<void ()> highlightErrorCallback;
     std::function<T (T)> snapValueCallback;
     std::function<void (int dragSpeed)> onDrag;
     std::function<void ()> onPopupMenu;
@@ -54,11 +56,13 @@ private:
 
     void constrainAndSet (T value)
     {
+        jassert (getMinValueCallback != nullptr);
+        jassert (getMaxValueCallback != nullptr);
         jassert (updateDataCallback != nullptr);
         jassert (toStringCallback != nullptr);
         const auto newValue = [this, value] ()
         {
-            const auto clampedValue { std::clamp (value, minValue, maxValue) };
+            const auto clampedValue { std::clamp (value, getMinValueCallback (), getMaxValueCallback ())};
             if (snapValueCallback == nullptr)
                 return clampedValue;
             else
@@ -177,6 +181,16 @@ public:
     {
         onFocusLost = [this] () { setValue (getText ().getIntValue ()); };
         onReturnKey = [this] () { setValue (getText ().getIntValue ()); };
+    }
+};
+
+class CustomTextEditorInt64 : public CustomTextEditor<juce::int64>
+{
+public:
+    CustomTextEditorInt64 ()
+    {
+        onFocusLost = [this] () { setValue (getText ().getLargeIntValue ()); };
+        onReturnKey = [this] () { setValue (getText ().getLargeIntValue ()); };
     }
 };
 

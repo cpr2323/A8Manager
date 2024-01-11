@@ -435,8 +435,8 @@ void ChannelEditor::setupChannelComponents ()
     // 
     // Pitch Editor
     setupLabel (pitchLabel, "PITCH", kLargeLabelSize, juce::Justification::centred);
-    pitchTextEditor.minValue = minChannelProperties.getPitch ();
-    pitchTextEditor.maxValue = maxChannelProperties.getPitch ();
+    pitchTextEditor.getMinValueCallback = [this] () { return minChannelProperties.getPitch (); };
+    pitchTextEditor.getMaxValueCallback = [this] () { return maxChannelProperties.getPitch (); };
     pitchTextEditor.toStringCallback = [this] (double value) { return FormatHelpers::formatDouble (value, 2, true); };
     pitchTextEditor.updateDataCallback = [this] (double value) { pitchUiChanged (value); };
     setupTextEditor (pitchTextEditor, juce::Justification::centred, 0, "+-.0123456789", "Pitch");
@@ -535,8 +535,8 @@ void ChannelEditor::setupChannelComponents ()
         pm.showMenuAsync ({}, [this] (int) {});
     });
     // Pitch CV Offset Editor
-    pitchCVTextEditor.minValue = FormatHelpers::getAmount (minChannelProperties.getPitchCV ());
-    pitchCVTextEditor.maxValue = FormatHelpers::getAmount (maxChannelProperties.getPitchCV ());
+    pitchCVTextEditor.getMinValueCallback = [this] () { return FormatHelpers::getAmount (minChannelProperties.getPitchCV ()); };
+    pitchCVTextEditor.getMaxValueCallback = [this] () { return FormatHelpers::getAmount (maxChannelProperties.getPitchCV ()); };
     pitchCVTextEditor.getCvInputAndAmount = [this] () { return channelProperties.getPitchCV ();  };
     pitchCVTextEditor.updateDataCallback = [this] (double amount) { pitchCVUiChanged (FormatHelpers::getCvInput (channelProperties.getPitchCV ()), amount); };
     setupTextEditor (pitchCVTextEditor, juce::Justification::centred, 0, "+-.0123456789", "PitchCV");
@@ -551,8 +551,8 @@ void ChannelEditor::setupChannelComponents ()
         channelProperties.setLinFM (linFMComboBox.getSelectedItemText (), amount, false);
     });
     linFMComboBox.setOnPopupMenuFunction ([this] () {});
-    linFMTextEditor.minValue = FormatHelpers::getAmount (minChannelProperties.getLinFM ());
-    linFMTextEditor.maxValue = FormatHelpers::getAmount (maxChannelProperties.getLinFM ());
+    linFMTextEditor.getMinValueCallback = [this] () { return FormatHelpers::getAmount (minChannelProperties.getLinFM ()); };
+    linFMTextEditor.getMaxValueCallback = [this] () { return FormatHelpers::getAmount (maxChannelProperties.getLinFM ()); };
     linFMTextEditor.getCvInputAndAmount = [this] () { return channelProperties.getLinFM ();  };
     linFMTextEditor.updateDataCallback = [this] (double amount) { linFMUiChanged (FormatHelpers::getCvInput (channelProperties.getLinFM ()), amount); };
     setupTextEditor (linFMTextEditor, juce::Justification::centred, 0, "+-.0123456789", "LinFM");
@@ -567,17 +567,16 @@ void ChannelEditor::setupChannelComponents ()
         channelProperties.setExpFM (expFMComboBox.getSelectedItemText (), amount, false);
     });
     expFMComboBox.setOnPopupMenuFunction ([this] () {});
-    expFMTextEditor.minValue = FormatHelpers::getAmount (minChannelProperties.getExpFM ());
-    expFMTextEditor.maxValue = FormatHelpers::getAmount (maxChannelProperties.getExpFM ());
+    expFMTextEditor.getMinValueCallback = [this] () { return FormatHelpers::getAmount (minChannelProperties.getExpFM ()); };
+    expFMTextEditor.getMaxValueCallback = [this] () { return FormatHelpers::getAmount (maxChannelProperties.getExpFM ()); };
     expFMTextEditor.getCvInputAndAmount = [this] () { return channelProperties.getExpFM ();  };
     expFMTextEditor.updateDataCallback = [this] (double amount) { expFMUiChanged (FormatHelpers::getCvInput (channelProperties.getExpFM ()), amount); };
     setupTextEditor (expFMTextEditor, juce::Justification::centred, 0, "+-.0123456789", "ExpFM");
 
     // LEVEL
     setupLabel (levelLabel, "LEVEL", kLargeLabelSize, juce::Justification::centred);
-    levelTextEditor.minValue = minChannelProperties.getLevel ();
-    levelTextEditor.maxValue = maxChannelProperties.getLevel ();
-    levelTextEditor.toStringCallback = [this] (double value) { return FormatHelpers::formatDouble (value, 1, false); };
+    levelTextEditor.getMinValueCallback = [this] () { return minChannelProperties.getLevel (); };
+    levelTextEditor.getMaxValueCallback = [this] () { return maxChannelProperties.getLevel (); };
     levelTextEditor.updateDataCallback = [this] (double value) { levelUiChanged (value); };
     levelTextEditor.onDrag = [this] (int dragSpeed) {};
     levelTextEditor.onPopupMenu = [this] () {};
@@ -610,8 +609,8 @@ void ChannelEditor::setupChannelComponents ()
         channelProperties.setLinAM (linAMComboBox.getSelectedItemText (), amount, false);
     });
     linAMComboBox.setOnPopupMenuFunction ([this] () {});
-    linAMTextEditor.minValue = FormatHelpers::getAmount (minChannelProperties.getLinAM ());
-    linAMTextEditor.maxValue = FormatHelpers::getAmount (maxChannelProperties.getLinAM ());
+    linAMTextEditor.getMinValueCallback = [this] () { return FormatHelpers::getAmount (minChannelProperties.getLinAM ()); };
+    linAMTextEditor.getMaxValueCallback = [this] () { return FormatHelpers::getAmount (maxChannelProperties.getLinAM ()); };
     linAMTextEditor.getCvInputAndAmount = [this] () { return channelProperties.getLinAM ();  };
     linAMTextEditor.updateDataCallback = [this] (double amount) { linAMUiChanged (FormatHelpers::getCvInput (channelProperties.getLinAM ()), amount); };
     setupTextEditor (linAMTextEditor, juce::Justification::centred, 0, "+-.0123456789", "LinAM");
@@ -626,8 +625,8 @@ void ChannelEditor::setupChannelComponents ()
         channelProperties.setExpAM (expAMComboBox.getSelectedItemText (), amount, false);
     });
     expAMComboBox.setOnPopupMenuFunction ([this] () {});
-    expAMTextEditor.minValue = FormatHelpers::getAmount (minChannelProperties.getExpAM ());
-    expAMTextEditor.maxValue = FormatHelpers::getAmount (maxChannelProperties.getExpAM ());
+    expAMTextEditor.getMinValueCallback = [this] () { return FormatHelpers::getAmount (minChannelProperties.getExpAM ()); };
+    expAMTextEditor.getMaxValueCallback = [this] () { return FormatHelpers::getAmount (maxChannelProperties.getExpAM ()); };
     expAMTextEditor.getCvInputAndAmount = [this] () { return channelProperties.getExpAM ();  };
     expAMTextEditor.updateDataCallback = [this] (double amount) { expAMUiChanged (FormatHelpers::getCvInput (channelProperties.getExpAM ()), amount); };
     setupTextEditor (expAMTextEditor, juce::Justification::centred, 0, "+-.0123456789", "ExpAM");
@@ -661,18 +660,18 @@ void ChannelEditor::setupChannelComponents ()
         channelProperties.setPhaseCV (phaseCVComboBox.getSelectedItemText (), amount, false);
     });
     phaseCVComboBox.setOnPopupMenuFunction ([this] () {});
-    phaseCVTextEditor.minValue = FormatHelpers::getAmount (minChannelProperties.getPhaseCV ());
-    phaseCVTextEditor.maxValue = FormatHelpers::getAmount (maxChannelProperties.getPhaseCV ());
+    phaseCVTextEditor.getMinValueCallback = [this] () { return FormatHelpers::getAmount (minChannelProperties.getPhaseCV ()); };
+    phaseCVTextEditor.getMaxValueCallback = [this] () { return FormatHelpers::getAmount (maxChannelProperties.getPhaseCV ()); };
     phaseCVTextEditor.getCvInputAndAmount = [this] () { return channelProperties.getPhaseCV ();  };
     phaseCVTextEditor.updateDataCallback = [this] (double amount) { phaseCVUiChanged (FormatHelpers::getCvInput (channelProperties.getPhaseCV ()), amount); };
     setupTextEditor (phaseCVTextEditor, juce::Justification::centred, 0, "+-.0123456789", "PhaseCV");
 
     // PHASE MOD INDEX
     setupLabel (phaseModIndexSectionLabel, "PHASE MOD", kLargeLabelSize, juce::Justification::centred);
-    pMIndexTextEditor.minValue = minChannelProperties.getPMIndex ();
-    pMIndexTextEditor.maxValue = maxChannelProperties.getPMIndex ();
-    pMIndexTextEditor.toStringCallback = [this] (double value) { return FormatHelpers::formatDouble (value, 2, true); };
+    pMIndexTextEditor.getMinValueCallback = [this] () { return minChannelProperties.getPMIndex (); };
+    pMIndexTextEditor.getMaxValueCallback = [this] () { return maxChannelProperties.getPMIndex (); };
     pMIndexTextEditor.updateDataCallback = [this] (double value) { pMIndexUiChanged (value); };
+    pMIndexTextEditor.toStringCallback = [this] (double value) { return FormatHelpers::formatDouble (value, 2, true); };
     pMIndexTextEditor.onDrag = [this] (int dragSpeed) {};
     pMIndexTextEditor.onPopupMenu = [this] () {};
     setupTextEditor (pMIndexTextEditor, juce::Justification::centred, 0, "+-.0123456789", "PMIndex");
@@ -686,8 +685,8 @@ void ChannelEditor::setupChannelComponents ()
         channelProperties.setPMIndexMod (pMIndexModComboBox.getSelectedItemText (), amount, false);
     });
     pMIndexModComboBox.setOnPopupMenuFunction ([this] () {});
-    pMIndexModTextEditor.minValue = FormatHelpers::getAmount (minChannelProperties.getPMIndexMod ());
-    pMIndexModTextEditor.maxValue = FormatHelpers::getAmount (maxChannelProperties.getPMIndexMod ());
+    pMIndexModTextEditor.getMinValueCallback = [this] () { return FormatHelpers::getAmount (minChannelProperties.getPMIndexMod ()); };
+    pMIndexModTextEditor.getMaxValueCallback = [this] () { return FormatHelpers::getAmount (maxChannelProperties.getPMIndexMod ()); };
     pMIndexModTextEditor.getCvInputAndAmount = [this] () { return channelProperties.getPMIndexMod ();  };
     pMIndexModTextEditor.updateDataCallback = [this] (double amount) { pMIndexModUiChanged (FormatHelpers::getCvInput (channelProperties.getPMIndexMod ()), amount); };
     setupTextEditor (pMIndexModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "PMIndexMod");
@@ -711,8 +710,8 @@ void ChannelEditor::setupChannelComponents ()
     {
     };
     setupLabel (attackLabel, "ATTACK", kMediumLabelSize, juce::Justification::centredRight);
-    attackTextEditor.minValue = minChannelProperties.getAttack ();
-    attackTextEditor.maxValue = maxChannelProperties.getAttack ();
+    attackTextEditor.getMinValueCallback = [this] () { return minChannelProperties.getAttack (); };
+    attackTextEditor.getMaxValueCallback = [this] () { return maxChannelProperties.getAttack (); };
     attackTextEditor.snapValueCallback = [this] (double value) { return snapEnvelopeValue (value); };
     attackTextEditor.toStringCallback = [this] (double value) { return FormatHelpers::formatDouble (value, getEnvelopeValueResolution (value), false); };
     attackTextEditor.updateDataCallback = [this] (double value)
@@ -732,15 +731,15 @@ void ChannelEditor::setupChannelComponents ()
         channelProperties.setAttackMod (attackModComboBox.getSelectedItemText (), amount, false);
     });
     attackModComboBox.setOnPopupMenuFunction ([this] () {});
-    attackModTextEditor.minValue = FormatHelpers::getAmount (minChannelProperties.getAttackMod ());
-    attackModTextEditor.maxValue = FormatHelpers::getAmount (maxChannelProperties.getAttackMod ());
+    attackModTextEditor.getMinValueCallback = [this] () { return FormatHelpers::getAmount (minChannelProperties.getAttackMod ()); };
+    attackModTextEditor.getMaxValueCallback = [this] () { return FormatHelpers::getAmount (maxChannelProperties.getAttackMod ()); };
     attackModTextEditor.getCvInputAndAmount = [this] () { return channelProperties.getAttackMod ();  };
     attackModTextEditor.updateDataCallback = [this] (double amount) { attackModUiChanged (FormatHelpers::getCvInput (channelProperties.getAttackMod ()), amount); };
     setupTextEditor (attackModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "AttackMod");
 
     // RELEASE
-    releaseTextEditor.minValue = minChannelProperties.getRelease ();
-    releaseTextEditor.maxValue = maxChannelProperties.getRelease ();
+    releaseTextEditor.getMinValueCallback = [this] () { return minChannelProperties.getRelease (); };
+    releaseTextEditor.getMaxValueCallback = [this] () { return maxChannelProperties.getRelease (); };
     releaseTextEditor.snapValueCallback = [this] (double value) { return snapEnvelopeValue (value); };
     releaseTextEditor.toStringCallback = [this] (double value) { return FormatHelpers::formatDouble (value, getEnvelopeValueResolution (value), false); };
     releaseTextEditor.updateDataCallback = [this] (double value)
@@ -761,8 +760,8 @@ void ChannelEditor::setupChannelComponents ()
         channelProperties.setReleaseMod (releaseModComboBox.getSelectedItemText (), amount, false);
     });
     releaseModComboBox.setOnPopupMenuFunction ([this] () {});
-    releaseModTextEditor.minValue = FormatHelpers::getAmount (minChannelProperties.getReleaseMod ());
-    releaseModTextEditor.maxValue = FormatHelpers::getAmount (maxChannelProperties.getReleaseMod ());
+    releaseModTextEditor.getMinValueCallback = [this] () { return FormatHelpers::getAmount (minChannelProperties.getReleaseMod ()); };
+    releaseModTextEditor.getMaxValueCallback = [this] () { return FormatHelpers::getAmount (maxChannelProperties.getReleaseMod ()); };
     releaseModTextEditor.getCvInputAndAmount = [this] () { return channelProperties.getReleaseMod ();  };
     releaseModTextEditor.updateDataCallback = [this] (double amount) { releaseModUiChanged (FormatHelpers::getCvInput (channelProperties.getReleaseMod ()), amount); };
     setupTextEditor (releaseModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "ReleaseMod");
@@ -772,8 +771,8 @@ void ChannelEditor::setupChannelComponents ()
     setupLabel (mutateLabel, "MUTATE", kLargeLabelSize, juce::Justification::centred);
 
     // BITS
-    bitsTextEditor.minValue = minChannelProperties.getBits ();
-    bitsTextEditor.maxValue = maxChannelProperties.getBits ();
+    bitsTextEditor.getMinValueCallback = [this] () { return minChannelProperties.getBits (); };
+    bitsTextEditor.getMaxValueCallback = [this] () { return maxChannelProperties.getBits (); };
     bitsTextEditor.snapValueCallback = [this] (double value) { return snapBitsValue (value); };
     bitsTextEditor.toStringCallback = [this] (double value) { return FormatHelpers::formatDouble (value, 1, false); };
     bitsTextEditor.updateDataCallback = [this] (double value) { bitsUiChanged (value); };
@@ -790,15 +789,15 @@ void ChannelEditor::setupChannelComponents ()
     });
     bitsModComboBox.setOnPopupMenuFunction ([this] () {});
     setupCvInputComboBox (bitsModComboBox, "BitsMod", [this] () { bitsModUiChanged (bitsModComboBox.getSelectedItemText (), bitsModTextEditor.getText ().getDoubleValue ()); });
-    bitsModTextEditor.minValue = FormatHelpers::getAmount (minChannelProperties.getBitsMod ());
-    bitsModTextEditor.maxValue = FormatHelpers::getAmount (maxChannelProperties.getBitsMod ());
+    bitsModTextEditor.getMinValueCallback = [this] () { return FormatHelpers::getAmount (minChannelProperties.getBitsMod ()); };
+    bitsModTextEditor.getMaxValueCallback = [this] () { return FormatHelpers::getAmount (maxChannelProperties.getBitsMod ()); };
     bitsModTextEditor.getCvInputAndAmount = [this] () { return channelProperties.getBitsMod ();  };
     bitsModTextEditor.updateDataCallback = [this] (double amount) { bitsModUiChanged (FormatHelpers::getCvInput (channelProperties.getBitsMod ()), amount); };
     setupTextEditor (bitsModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "BitsMod");
 
     // ALIASING
-    aliasingTextEditor.minValue = minChannelProperties.getAliasing ();
-    aliasingTextEditor.maxValue = maxChannelProperties.getAliasing ();
+    aliasingTextEditor.getMinValueCallback = [this] () { return minChannelProperties.getAliasing (); };
+    aliasingTextEditor.getMaxValueCallback = [this] () { return maxChannelProperties.getAliasing (); };
     aliasingTextEditor.toStringCallback = [this] (int value) { return juce::String (value); };
     aliasingTextEditor.updateDataCallback = [this] (int value) { aliasingUiChanged (value); };
     aliasingTextEditor.onDrag = [this] (int dragSpeed) {};
@@ -814,8 +813,8 @@ void ChannelEditor::setupChannelComponents ()
         channelProperties.setAliasingMod (aliasingModComboBox.getSelectedItemText (), amount, false);
     });
     aliasingModComboBox.setOnPopupMenuFunction([this] () {});
-    aliasingModTextEditor.minValue = FormatHelpers::getAmount (minChannelProperties.getAliasingMod ());
-    aliasingModTextEditor.maxValue = FormatHelpers::getAmount (maxChannelProperties.getAliasingMod ());
+    aliasingModTextEditor.getMinValueCallback = [this] () { return FormatHelpers::getAmount (minChannelProperties.getAliasingMod ()); };
+    aliasingModTextEditor.getMaxValueCallback = [this] () { return FormatHelpers::getAmount (maxChannelProperties.getAliasingMod ()); };
     aliasingModTextEditor.getCvInputAndAmount = [this] () { return channelProperties.getAliasingMod ();  };
     aliasingModTextEditor.updateDataCallback = [this] (double amount) { aliasingModUiChanged (FormatHelpers::getCvInput (channelProperties.getAliasingMod ()), amount); };
     setupTextEditor (aliasingModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "AliasingMod");
@@ -826,8 +825,8 @@ void ChannelEditor::setupChannelComponents ()
 
     // PAN/MIX
     setupLabel (panMixLabel, "PAN/MIX", kLargeLabelSize, juce::Justification::centred);
-    panTextEditor.minValue = minChannelProperties.getPan ();
-    panTextEditor.maxValue = maxChannelProperties.getPan ();
+    panTextEditor.getMinValueCallback = [this] () { return minChannelProperties.getPan (); };
+    panTextEditor.getMaxValueCallback = [this] () { return maxChannelProperties.getPan (); };
     panTextEditor.toStringCallback = [this] (double value) { return FormatHelpers::formatDouble (value, 2, true); };
     panTextEditor.updateDataCallback = [this] (double value) { panUiChanged (value); };
     panTextEditor.onDrag = [this] (int dragSpeed) {};
@@ -842,14 +841,14 @@ void ChannelEditor::setupChannelComponents ()
         channelProperties.setPanMod (panModComboBox.getSelectedItemText (), amount, false);
     });
     panModComboBox.setOnPopupMenuFunction ([this] () {});
-    panModTextEditor.minValue = FormatHelpers::getAmount (minChannelProperties.getPanMod ());
-    panModTextEditor.maxValue = FormatHelpers::getAmount (maxChannelProperties.getPanMod ());
+    panModTextEditor.getMinValueCallback = [this] () { return FormatHelpers::getAmount (minChannelProperties.getPanMod ()); };
+    panModTextEditor.getMaxValueCallback = [this] () { return FormatHelpers::getAmount (maxChannelProperties.getPanMod ()); };
     panModTextEditor.getCvInputAndAmount = [this] () { return channelProperties.getPanMod ();  };
     panModTextEditor.updateDataCallback = [this] (double amount) { panModUiChanged (FormatHelpers::getCvInput (channelProperties.getPanMod ()), amount); };
     setupTextEditor (panModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "PanMod");
 
-    mixLevelTextEditor.minValue = minChannelProperties.getMixLevel ();
-    mixLevelTextEditor.maxValue = maxChannelProperties.getMixLevel ();
+    mixLevelTextEditor.getMinValueCallback = [this] () { return minChannelProperties.getMixLevel (); };
+    mixLevelTextEditor.getMaxValueCallback = [this] () { return maxChannelProperties.getMixLevel (); };
     mixLevelTextEditor.toStringCallback = [this] (double value) { return FormatHelpers::formatDouble (value, 1, false); };
     mixLevelTextEditor.updateDataCallback = [this] (double value) { mixLevelUiChanged (value); };
     mixLevelTextEditor.onDrag = [this] (int dragSpeed) {};
@@ -865,8 +864,8 @@ void ChannelEditor::setupChannelComponents ()
         channelProperties.setMixMod (mixModComboBox.getSelectedItemText (), amount, false);
     });
     mixModComboBox.setOnPopupMenuFunction ([this] () {});
-    mixModTextEditor.minValue = FormatHelpers::getAmount (minChannelProperties.getMixMod ());
-    mixModTextEditor.maxValue = FormatHelpers::getAmount (maxChannelProperties.getMixMod ());
+    mixModTextEditor.getMinValueCallback = [this] () { return FormatHelpers::getAmount (minChannelProperties.getMixMod ()); };
+    mixModTextEditor.getMaxValueCallback = [this] () { return FormatHelpers::getAmount (maxChannelProperties.getMixMod ()); };
     mixModTextEditor.getCvInputAndAmount = [this] () { return channelProperties.getMixMod ();  };
     mixModTextEditor.updateDataCallback = [this] (double amount) { mixModUiChanged (FormatHelpers::getCvInput (channelProperties.getMixMod ()), amount); };
     setupTextEditor (mixModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "MixMod");
@@ -958,8 +957,8 @@ void ChannelEditor::setupChannelComponents ()
         channelProperties.setSampleStartMod (sampleStartModComboBox.getSelectedItemText (), amount, false);
     });
     sampleStartModComboBox.setOnPopupMenuFunction ([this] () {});
-    sampleStartModTextEditor.minValue = FormatHelpers::getAmount (minChannelProperties.getSampleStartMod ());
-    sampleStartModTextEditor.maxValue = FormatHelpers::getAmount (maxChannelProperties.getSampleStartMod ());
+    sampleStartModTextEditor.getMinValueCallback = [this] () { return FormatHelpers::getAmount (minChannelProperties.getSampleStartMod ()); };
+    sampleStartModTextEditor.getMaxValueCallback = [this] () { return FormatHelpers::getAmount (maxChannelProperties.getSampleStartMod ()); };
     sampleStartModTextEditor.getCvInputAndAmount = [this] () { return channelProperties.getSampleStartMod ();  };
     sampleStartModTextEditor.updateDataCallback = [this] (double amount) { sampleStartModUiChanged (FormatHelpers::getCvInput (channelProperties.getSampleStartMod ()), amount); };
     setupTextEditor (sampleStartModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "SampleStartMod");
@@ -973,8 +972,8 @@ void ChannelEditor::setupChannelComponents ()
         channelProperties.setSampleEndMod (sampleEndModComboBox.getSelectedItemText (), amount, false);
     });
     sampleEndModComboBox.setOnPopupMenuFunction ([this] () {});
-    sampleEndModTextEditor.minValue = FormatHelpers::getAmount (minChannelProperties.getSampleEndMod ());
-    sampleEndModTextEditor.maxValue = FormatHelpers::getAmount (maxChannelProperties.getSampleEndMod ());
+    sampleEndModTextEditor.getMinValueCallback = [this] () { return FormatHelpers::getAmount (minChannelProperties.getSampleEndMod ()); };
+    sampleEndModTextEditor.getMaxValueCallback = [this] () { return FormatHelpers::getAmount (maxChannelProperties.getSampleEndMod ()); };
     sampleEndModTextEditor.getCvInputAndAmount = [this] () { return channelProperties.getSampleEndMod ();  };
     sampleEndModTextEditor.updateDataCallback = [this] (double amount) { sampleEndModUiChanged (FormatHelpers::getCvInput (channelProperties.getSampleEndMod ()), amount); };
     setupTextEditor (sampleEndModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "SampleEndMod");
@@ -987,8 +986,8 @@ void ChannelEditor::setupChannelComponents ()
         channelProperties.setLoopStartMod (loopStartModComboBox.getSelectedItemText (), amount, false);
     });
     loopStartModComboBox.setOnPopupMenuFunction ([this] () {});
-    loopStartModTextEditor.minValue = FormatHelpers::getAmount (minChannelProperties.getLoopStartMod ());
-    loopStartModTextEditor.maxValue = FormatHelpers::getAmount (maxChannelProperties.getLoopStartMod ());
+    loopStartModTextEditor.getMinValueCallback = [this] () { return FormatHelpers::getAmount (minChannelProperties.getLoopStartMod ()); };
+    loopStartModTextEditor.getMaxValueCallback = [this] () { return FormatHelpers::getAmount (maxChannelProperties.getLoopStartMod ()); };
     loopStartModTextEditor.getCvInputAndAmount = [this] () { return channelProperties.getLoopStartMod ();  };
     loopStartModTextEditor.updateDataCallback = [this] (double amount) { loopStartModUiChanged (FormatHelpers::getCvInput (channelProperties.getLoopStartMod ()), amount); };
     setupTextEditor (loopStartModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "LoopStartMod");
@@ -1002,8 +1001,8 @@ void ChannelEditor::setupChannelComponents ()
         channelProperties.setLoopLengthMod (loopLengthModComboBox.getSelectedItemText (), amount, false);
     });
     loopLengthModComboBox.setOnPopupMenuFunction ([this] () {});
-    loopLengthModTextEditor.minValue = FormatHelpers::getAmount (minChannelProperties.getLoopLengthMod ());
-    loopLengthModTextEditor.maxValue = FormatHelpers::getAmount (maxChannelProperties.getLoopLengthMod ());
+    loopLengthModTextEditor.getMinValueCallback = [this] () { return FormatHelpers::getAmount (minChannelProperties.getLoopLengthMod ()); };
+    loopLengthModTextEditor.getMaxValueCallback = [this] () { return FormatHelpers::getAmount (maxChannelProperties.getLoopLengthMod ()); };
     loopLengthModTextEditor.getCvInputAndAmount = [this] () { return channelProperties.getLoopLengthMod ();  };
     loopLengthModTextEditor.updateDataCallback = [this] (double amount) { loopLengthModUiChanged (FormatHelpers::getCvInput (channelProperties.getLoopLengthMod ()), amount); };
     setupTextEditor (loopLengthModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "LoopLengthMod");

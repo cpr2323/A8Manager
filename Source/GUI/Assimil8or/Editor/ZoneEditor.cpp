@@ -318,94 +318,77 @@ void ZoneEditor::setupZoneComponents ()
         addAndMakeVisible (label);
     };
     auto setupTextEditor = [this, &parameterToolTipData] (juce::TextEditor& textEditor, juce::Justification justification, int maxLen, juce::String validInputCharacters,
-                                                          juce::String parameterName, std::function<void ()> validateCallback, std::function<void (juce::String)> doneEditingCallback)
+                                                          juce::String parameterName)
     {
-        jassert (doneEditingCallback != nullptr);
         textEditor.setJustification (justification);
         textEditor.setIndents (2, 0);
         textEditor.setInputRestrictions (maxLen, validInputCharacters);
-        textEditor.onFocusLost = [this, &textEditor, doneEditingCallback] () { doneEditingCallback (textEditor.getText ()); };
-        textEditor.onReturnKey = [this, &textEditor, doneEditingCallback] ()
-            {
-                doneEditingCallback (textEditor.getText ());
-            };
         textEditor.setTooltip (parameterToolTipData.getToolTip ("Zone", parameterName));
-        if (validateCallback != nullptr)
-            textEditor.onTextChange = [this, validateCallback] () { validateCallback (); };
         addAndMakeVisible (textEditor);
     };
+
+    // SAMPLE FILE SELECTOR
     setupLabel (sampleNameLabel, "FILE", 15.0, juce::Justification::centredLeft);
     setupLabel (sampleNameSelectLabel, "", 15.0, juce::Justification::centredLeft);
     sampleNameSelectLabel.setColour (juce::Label::ColourIds::textColourId, levelOffsetTextEditor.findColour (juce::TextEditor::ColourIds::textColourId));
     sampleNameSelectLabel.setColour (juce::Label::ColourIds::backgroundColourId, levelOffsetTextEditor.findColour (juce::TextEditor::ColourIds::backgroundColourId));
     sampleNameSelectLabel.setOutline (levelOffsetTextEditor.findColour (juce::TextEditor::ColourIds::outlineColourId));
     sampleNameSelectLabel.setBorderSize ({ 0, 2, 0, 0 });
+
     // SAMPLE START
     setupLabel (sampleStartLabel, "SMPL START", 12.0, juce::Justification::centredRight);
-    setupTextEditor (sampleStartTextEditor, juce::Justification::centred, 0, "0123456789", "SampleStart", [this] ()
+    sampleStartTextEditor.getMinValueCallback = [this] { return minZoneProperties.getSampleStart ().value_or (0); };
+    sampleStartTextEditor.getMaxValueCallback = [this] { return zoneProperties.getSampleEnd ().value_or (sampleData.getLengthInSamples ()); };
+    sampleStartTextEditor.toStringCallback = [this] (double value) { return juce::String (value); };
+    sampleStartTextEditor.updateDataCallback = [this] (double value)
     {
-        ErrorHelpers::setColorIfError (sampleStartTextEditor, minZoneProperties.getSampleStart ().value_or (0), zoneProperties.getSampleEnd ().value_or (sampleData.getLengthInSamples ()));
-    },
-    [this] (juce::String text)
-    {
-        const auto sampleStart { std::clamp (text.getLargeIntValue (), minZoneProperties.getSampleStart ().value_or (0), zoneProperties.getSampleEnd ().value_or (sampleData.getLengthInSamples ())) };
-        sampleStartUiChanged (sampleStart);
-        sampleStartTextEditor.setText (juce::String (sampleStart), false);
+        sampleStartUiChanged (value);
         if (sourceSamplePointsButton.getToggleState ())
-            audioPlayerProperties.setLoopStart (static_cast<int> (sampleStart), false);
-    });
-    sampleStartTextEditor.onDrag = [this] (int dragSpeed)
-    {
+            audioPlayerProperties.setLoopStart (static_cast<int> (value), false);
     };
-    sampleStartTextEditor.onPopupMenu = [this] ()
-    {
-    };
+    sampleStartTextEditor.onDrag = [this] (int dragSpeed) {};
+    sampleStartTextEditor.onPopupMenu = [this] () {};
+    setupTextEditor (sampleStartTextEditor, juce::Justification::centred, 0, "0123456789", "SampleStart");
+
     // SAMPLE END
     setupLabel (sampleEndLabel, "SMPL END", 12.0, juce::Justification::centredRight);
-    setupTextEditor (sampleEndTextEditor, juce::Justification::centred, 0, "0123456789", "SampleEnd", [this] ()
+    sampleEndTextEditor.getMinValueCallback = [this] { return zoneProperties.getSampleStart ().value_or (0); };
+    sampleEndTextEditor.getMaxValueCallback = [this] { return sampleData.getLengthInSamples (); };
+    sampleEndTextEditor.toStringCallback = [this] (double value) { return juce::String (value); };
+    sampleEndTextEditor.updateDataCallback = [this] (double value)
     {
-       ErrorHelpers::setColorIfError (sampleEndTextEditor, zoneProperties.getSampleStart ().value_or (0), sampleData.getLengthInSamples ());
-    },
-    [this] (juce::String text)
-    {
-        const auto sampleEnd { std::clamp (text.getLargeIntValue (), zoneProperties.getSampleStart ().value_or (0), sampleData.getLengthInSamples ())};
-        sampleEndUiChanged (sampleEnd);
-        sampleEndTextEditor.setText (juce::String (sampleEnd), false);
+        sampleEndUiChanged (value);
         if (sourceSamplePointsButton.getToggleState ())
-            audioPlayerProperties.setLoopLength (static_cast<int> (sampleEnd - zoneProperties.getSampleStart ().value_or (0)), false);
-    });
-    sampleEndTextEditor.onDrag = [this] (int dragSpeed)
-    {
+            audioPlayerProperties.setLoopLength (static_cast<int> (value - zoneProperties.getSampleStart ().value_or (0)), false);
     };
-    sampleEndTextEditor.onPopupMenu = [this] ()
-    {
-    };
+    sampleEndTextEditor.onDrag = [this] (int dragSpeed) {};
+    sampleEndTextEditor.onPopupMenu = [this] () {};
+    setupTextEditor (sampleEndTextEditor, juce::Justification::centred, 0, "0123456789", "SampleEnd");
+
     // LOOP START
     setupLabel (loopStartLabel, "LOOP START", 12.0, juce::Justification::centredRight);
-    setupTextEditor (loopStartTextEditor, juce::Justification::centred, 0, "0123456789", "LoopStart", [this] ()
+    loopStartTextEditor.getMinValueCallback = [this] { return minZoneProperties.getLoopStart ().value_or (0); };
+    loopStartTextEditor.getMaxValueCallback = [this]
     {
         if (! loopLengthIsEnd)
-            ErrorHelpers::setColorIfError (loopStartTextEditor, minZoneProperties.getLoopStart ().value_or (0),
-                sampleData.getLengthInSamples () - static_cast<juce::int64> (zoneProperties.getLoopLength ().value_or (static_cast<double> (sampleData.getLengthInSamples () - zoneProperties.getLoopStart ().value_or (0)))));
-        else
-            ErrorHelpers::setColorIfError (loopStartTextEditor, minZoneProperties.getLoopStart ().value_or (0),
-                                            zoneProperties.getLoopStart ().value_or (0) + static_cast<juce::int64> (zoneProperties.getLoopLength ().value_or (static_cast<double> (sampleData.getLengthInSamples () - zoneProperties.getLoopStart ().value_or (0)))));
-    },
-    [this] (juce::String text)
-    {
-        const auto loopStart = [this, text] ()
         {
-            if (! loopLengthIsEnd)
-                return std::clamp (text.getLargeIntValue (), minZoneProperties.getLoopStart ().value_or (0),
-                    sampleData.getLengthInSamples () - static_cast<juce::int64> (zoneProperties.getLoopLength ().value_or (static_cast<double> (sampleData.getLengthInSamples () - zoneProperties.getLoopStart ().value_or (0)))));
-            else
-                return std::clamp (text.getLargeIntValue (), minZoneProperties.getLoopStart ().value_or (0),
-                                   zoneProperties.getLoopStart ().value_or (0) + static_cast<juce::int64> (zoneProperties.getLoopLength ().value_or (static_cast<double> (sampleData.getLengthInSamples () - zoneProperties.getLoopStart ().value_or (0)))));
-        } ();
-        loopStartUiChanged (loopStart);
-        loopStartTextEditor.setText (juce::String (loopStart), false);
+            return sampleData.getLengthInSamples () -
+                   static_cast<juce::int64> (zoneProperties.getLoopLength ().value_or (static_cast<double> (sampleData.getLengthInSamples () -
+                                                                                                            zoneProperties.getLoopStart ().value_or (0))));
+        }
+        else
+        {
+            return zoneProperties.getLoopStart ().value_or (0) +
+                   static_cast<juce::int64> (zoneProperties.getLoopLength ().value_or (static_cast<double> (sampleData.getLengthInSamples () -
+                                                                                                            zoneProperties.getLoopStart ().value_or (0))));
+        }
+    };
+    loopStartTextEditor.toStringCallback = [this] (juce::int64 value) { return juce::String (value); };
+    loopStartTextEditor.updateDataCallback = [this] (juce::int64 value)
+    {
+        loopStartUiChanged (value);
         if (sourceLoopPointsButton.getToggleState ())
-            audioPlayerProperties.setLoopStart (static_cast<int> (loopStart), false);
+            audioPlayerProperties.setLoopStart (static_cast<int> (value), false);
         if (loopLengthIsEnd)
         {
             const auto loopLength { loopLengthTextEditor.getText ().getDoubleValue () - static_cast<double> (zoneProperties.getLoopStart ().value_or (0)) };
@@ -413,15 +396,36 @@ void ZoneEditor::setupZoneComponents ()
             if (sourceLoopPointsButton.getToggleState ())
                 audioPlayerProperties.setLoopLength (static_cast<int> (loopLength), false);
         }
-    });
-    loopStartTextEditor.onDrag = [this] (int dragSpeed)
-    {
     };
-    loopStartTextEditor.onPopupMenu = [this] ()
-    {
-    };
-    // LOOP LENGTH
+    loopStartTextEditor.onDrag = [this] (int dragSpeed) {};
+    loopStartTextEditor.onPopupMenu = [this] () {};
+    setupTextEditor (loopStartTextEditor, juce::Justification::centred, 0, "0123456789", "LoopStart");
+
+    // LOOP LENGTH/END
     setupLabel (loopLengthLabel, "LOOP LENGTH", 12.0, juce::Justification::centredRight);
+// TODO - NEED TO FINISH THIS ONE. DOES IT REQUIRE MORE CHANGES TO THE CustomTextEditor base class?
+#if 0
+    loopLengthTextEditor.getMinValueCallback = [this]
+    {
+        auto loopLengthInput = [this, currentLoopLengthTextEditorValue { loopLengthTextEditor.getText ().getDoubleValue () }] ()
+        {
+            if (loopLengthIsEnd)
+                return  currentLoopLengthTextEditorValue - zoneProperties.getLoopStart ().value_or (0);
+            else
+                return currentLoopLengthTextEditorValue;
+        } ();
+        return sampleData.getLengthInSamples () == 0 ? 0.0 :
+                 minZoneProperties.getLoopLength ().value_or (static_cast<double> (sampleData.getLengthInSamples () - zoneProperties.getLoopStart ().value_or (0)));
+
+    };
+    loopLengthTextEditor.getMaxValueCallback = [this] { return sampleData.getLengthInSamples (); };
+    loopLengthTextEditor.toStringCallback = [this] (double value) { return juce::String (value); };
+    loopLengthTextEditor.updateDataCallback = [this] (double value)
+        {
+            sampleEndUiChanged (value);
+            if (sourceSamplePointsButton.getToggleState ())
+                audioPlayerProperties.setLoopLength (static_cast<int> (value - zoneProperties.getSampleStart ().value_or (0)), false);
+        };
     setupTextEditor (loopLengthTextEditor, juce::Justification::centred, 0, ".0123456789", "LoopLength", [this] ()
     {
         auto loopLengthInput = [this, text = loopLengthTextEditor.getText ()] ()
@@ -463,60 +467,46 @@ void ZoneEditor::setupZoneComponents ()
     loopLengthTextEditor.onPopupMenu = [this] ()
     {
     };
-    setupLabel (minVoltageLabel, "MIN VOLTAGE", 15.0, juce::Justification::centredRight);
+#endif // 0
     // MIN VOLTAGE
-    setupTextEditor (minVoltageTextEditor, juce::Justification::centred, 0, "+-.0123456789", "MinVoltage", [this] ()
+    setupLabel (minVoltageLabel, "MIN VOLTAGE", 15.0, juce::Justification::centredRight);
+    minVoltageTextEditor.getMinValueCallback = [this] { return minZoneProperties.getMinVoltage (); };
+    minVoltageTextEditor.getMaxValueCallback = [this] { return maxZoneProperties.getMinVoltage (); };
+    minVoltageTextEditor.highlightErrorCallback = [this] ()
     {
-        ErrorHelpers::setColorIfError (minVoltageTextEditor, minZoneProperties.getMinVoltage (), maxZoneProperties.getMinVoltage ());
-        if (isMinVoltageInRange != nullptr)
-            ErrorHelpers::setColorIfError (minVoltageTextEditor, isMinVoltageInRange (minVoltageTextEditor.getText ().getDoubleValue ()));
-    },
-    [this] (juce::String text)
-    {
-        auto minVoltage { std::clamp (text.getDoubleValue (), minZoneProperties.getMinVoltage (), maxZoneProperties.getMinVoltage ()) };
-        if (clampMinVoltage != nullptr)
-            minVoltage = clampMinVoltage (text.getDoubleValue ());
-        minVoltageUiChanged (minVoltage);
-        minVoltageTextEditor.setText (FormatHelpers::formatDouble (minVoltage, 2, true), false);
-    });
-    minVoltageTextEditor.onDrag = [this] (int dragSpeed)
-    {
+        jassert (isMinVoltageInRange != nullptr);
+        ErrorHelpers::setColorIfError (minVoltageTextEditor, isMinVoltageInRange (minVoltageTextEditor.getText ().getDoubleValue ()));
     };
-    minVoltageTextEditor.onPopupMenu = [this] ()
+    minVoltageTextEditor.toStringCallback = [this] (double value) { return FormatHelpers::formatDouble (value, 2, true); };
+    minVoltageTextEditor.updateDataCallback = [this] (double value)
     {
+        // TODO can this extra call to clampMinVoltage somehow be covered by the snapValueCallback in CustomTextEditor
+        jassert (clampMinVoltage != nullptr);
+        minVoltageUiChanged (clampMinVoltage (value));
     };
+    minVoltageTextEditor.onDrag = [this] (int dragSpeed) {};
+    minVoltageTextEditor.onPopupMenu = [this] () {};
+    setupTextEditor (minVoltageTextEditor, juce::Justification::centred, 0, "+-.0123456789", "MinVoltage");
+
+    // PITCH OFFSET
+    pitchOffsetTextEditor.getMinValueCallback = [this] { return minZoneProperties.getPitchOffset (); };
+    pitchOffsetTextEditor.getMaxValueCallback = [this] { return maxZoneProperties.getPitchOffset (); };
+    pitchOffsetTextEditor.toStringCallback = [this] (double value) { return FormatHelpers::formatDouble (value, 2, true); };
+    pitchOffsetTextEditor.updateDataCallback = [this] (double value) { pitchOffsetUiChanged (value); };
+    pitchOffsetTextEditor.onDrag = [this] (int dragSpeed) {};
+    pitchOffsetTextEditor.onPopupMenu = [this] () {};
     setupLabel (pitchOffsetLabel, "PITCH OFFSET", 15.0, juce::Justification::centredRight);
-    setupTextEditor (pitchOffsetTextEditor, juce::Justification::centred, 0, "+-.0123456789", "PitchOffset", [this] ()
-    {
-        ErrorHelpers::setColorIfError (pitchOffsetTextEditor, minZoneProperties.getPitchOffset (), maxZoneProperties.getPitchOffset ());
-    },
-    [this] (juce::String text)
-    {
-        const auto pitchOffset { std::clamp (text.getDoubleValue (), minZoneProperties.getPitchOffset (), maxZoneProperties.getPitchOffset ()) };
-        pitchOffsetUiChanged (pitchOffset);
-        pitchOffsetTextEditor.setText (FormatHelpers::formatDouble (pitchOffset, 2, true), false);
-    });
-    pitchOffsetTextEditor.onDrag = [this] (int dragSpeed)
-    {
-    };
-    pitchOffsetTextEditor.onPopupMenu = [this] ()
-    {
-    };
+    setupTextEditor (pitchOffsetTextEditor, juce::Justification::centred, 0, "+-.0123456789", "PitchOffset");
+
+    // LEVEL OFFSET
     setupLabel (levelOffsetLabel, "LEVEL OFFSET", 15.0, juce::Justification::centredRight);
-    setupTextEditor (levelOffsetTextEditor, juce::Justification::centred, 0, "+-.0123456789", "LevelOffset", [this] ()
-    {
-        ErrorHelpers::setColorIfError (levelOffsetTextEditor, minZoneProperties.getLevelOffset (), maxZoneProperties.getLevelOffset ());
-    },
-    [this] (juce::String text)
-    {
-        const auto levelOffset { std::clamp (text.getDoubleValue (), minZoneProperties.getLevelOffset (), maxZoneProperties.getLevelOffset ()) };
-        levelOffsetUiChanged (levelOffset);
-        levelOffsetTextEditor.setText (FormatHelpers::formatDouble (levelOffset, 1, true), false);
-    });
-    levelOffsetTextEditor.onDrag = [this] (int dragSpeed)
-    {
-    };
+    levelOffsetTextEditor.getMinValueCallback = [this] { return minZoneProperties.getLevelOffset (); };
+    levelOffsetTextEditor.getMaxValueCallback = [this] { return maxZoneProperties.getLevelOffset (); };
+    levelOffsetTextEditor.toStringCallback = [this] (double value) { return FormatHelpers::formatDouble (value, 1, true); };
+    levelOffsetTextEditor.updateDataCallback = [this] (double value) { levelOffsetUiChanged (value); };
+    levelOffsetTextEditor.onDrag = [this] (int dragSpeed) {};
     levelOffsetTextEditor.onPopupMenu = [this] () {};
+    setupTextEditor (levelOffsetTextEditor, juce::Justification::centred, 0, "+-.0123456789", "LevelOffset");
 }
 
 void ZoneEditor::init (juce::ValueTree zonePropertiesVT, juce::ValueTree rootPropertiesVT, SamplePool* theSamplePool)
@@ -581,15 +571,15 @@ void ZoneEditor::init (juce::ValueTree zonePropertiesVT, juce::ValueTree rootPro
 void ZoneEditor::setLoopLengthIsEnd (bool newLoopLengthIsEnd)
 {
     loopLengthIsEnd = newLoopLengthIsEnd;
-    if (! loopLengthIsEnd)
-    {
-        loopLengthLabel.setText ("LOOP LENGTH", juce::NotificationType::dontSendNotification);
-        loopLengthTextEditor.setInputRestrictions (0, ".0123456789");
-    }
-    else
+    if (loopLengthIsEnd)
     {
         loopLengthLabel.setText ("LOOP END", juce::NotificationType::dontSendNotification);
         loopLengthTextEditor.setInputRestrictions (0, "0123456789");
+    }
+    else
+    {
+        loopLengthLabel.setText ("LOOP LENGTH", juce::NotificationType::dontSendNotification);
+        loopLengthTextEditor.setInputRestrictions (0, ".0123456789");
     }
     // reformat the UI string
     loopLengthDataChanged (zoneProperties.getLoopLength ());

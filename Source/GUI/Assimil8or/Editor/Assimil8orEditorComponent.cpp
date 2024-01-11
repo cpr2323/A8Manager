@@ -175,8 +175,8 @@ void Assimil8orEditorComponent::setupPresetComponents ()
         xfadeGroup.xfadeWidthEditor.setInputRestrictions (0, "+-.0123456789");
         xfadeGroup.xfadeWidthEditor.setTooltip (parameterToolTipData.getToolTip ("Preset", "Xfade" + juce::String::charToString ('A' + xfadeGroupIndex) + "Width"));
         xfadeGroup.xfadeWidthEditor.setPopupMenuEnabled (false);
-        xfadeGroup.xfadeWidthEditor.minValue = minPresetProperties.getXfadeAWidth ();
-        xfadeGroup.xfadeWidthEditor.maxValue = maxPresetProperties.getXfadeAWidth ();
+        xfadeGroup.xfadeWidthEditor.getMinValueCallback = [this] () { return minPresetProperties.getXfadeAWidth (); };
+        xfadeGroup.xfadeWidthEditor.getMaxValueCallback = [this] () { return maxPresetProperties.getXfadeAWidth (); };
         xfadeGroup.xfadeWidthEditor.toStringCallback = [this] (double value) { return formatXfadeWidthString (value); };
         xfadeGroup.xfadeWidthEditor.updateDataCallback = [this, xfadeGroupIndex] (double value) { xfadeWidthUiChanged (xfadeGroupIndex, value); };
         xfadeGroup.xfadeWidthEditor.onDrag = [this, xfadeGroupIndex] (int dragSpeed)
