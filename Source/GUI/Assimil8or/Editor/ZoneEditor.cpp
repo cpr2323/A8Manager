@@ -372,15 +372,21 @@ void ZoneEditor::setupZoneComponents ()
     {
         if (! loopLengthIsEnd)
         {
-            return sampleData.getLengthInSamples () -
-                   static_cast<juce::int64> (zoneProperties.getLoopLength ().value_or (static_cast<double> (sampleData.getLengthInSamples () -
-                                                                                                            zoneProperties.getLoopStart ().value_or (0))));
+            const auto sampleLength { sampleData.getLengthInSamples () };
+            const auto loopLength { zoneProperties.getLoopLength ().value_or (sampleLength)};
+            DebugLog ("loopStartTextEditor.getMaxValueCallback (loopLength)", "sampleLength: " + juce::String(sampleLength) + ", loopLength: " + juce::String (loopLength));
+            return sampleData.getLengthInSamples () < 4 ? 0 : static_cast<juce::int64> (static_cast<double> (sampleData.getLengthInSamples ()) -
+                                                                  zoneProperties.getLoopLength ().value_or (static_cast<double>(sampleData.getLengthInSamples ())));
         }
         else
         {
-            return zoneProperties.getLoopStart ().value_or (0) +
-                   static_cast<juce::int64> (zoneProperties.getLoopLength ().value_or (static_cast<double> (sampleData.getLengthInSamples () -
-                                                                                                            zoneProperties.getLoopStart ().value_or (0))));
+            const auto sampleLength { sampleData.getLengthInSamples () };
+            const auto loopStart { loopStartTextEditor.getText().getLargeIntValue () };
+            const auto loopLength { static_cast<juce::int64> (zoneProperties.getLoopLength ().value_or (4.0)) };
+            const auto loopEnd { std::min (loopStart + loopLength, sampleData.getLengthInSamples () - 4) };
+            DebugLog ("loopStartTextEditor.getMaxValueCallback (loopEnd)", "sampleLength: " + juce::String (sampleLength) + ", loopStart: " + juce::String (loopStart) +
+                      ", loopLength: " + juce::String (loopLength) + ", loopEnd: " + juce::String (loopEnd));
+            return loopEnd;
         }
     };
     loopStartTextEditor.toStringCallback = [this] (juce::int64 value) { return juce::String (value); };
@@ -404,30 +410,34 @@ void ZoneEditor::setupZoneComponents ()
     // LOOP LENGTH/END
     setupLabel (loopLengthLabel, "LOOP LENGTH", 12.0, juce::Justification::centredRight);
 // TODO - NEED TO FINISH THIS ONE. DOES IT REQUIRE MORE CHANGES TO THE CustomTextEditor base class?
-#if 0
     loopLengthTextEditor.getMinValueCallback = [this]
     {
-        auto loopLengthInput = [this, currentLoopLengthTextEditorValue { loopLengthTextEditor.getText ().getDoubleValue () }] ()
-        {
-            if (loopLengthIsEnd)
-                return  currentLoopLengthTextEditorValue - zoneProperties.getLoopStart ().value_or (0);
-            else
-                return currentLoopLengthTextEditorValue;
-        } ();
-        return sampleData.getLengthInSamples () == 0 ? 0.0 :
-                 minZoneProperties.getLoopLength ().value_or (static_cast<double> (sampleData.getLengthInSamples () - zoneProperties.getLoopStart ().value_or (0)));
+//         // Loop Length is always stored as loop length, but the UI can display and take input as if it is Loop End
+//         auto loopLengthInput = [this, currentLoopLengthTextEditorValue { loopLengthTextEditor.getText ().getDoubleValue () }] ()
+//         {
+//             // if the 'Loop Length Is End' is enabled, then we want to convert the input from Loop End to Loop Length
+//             if (loopLengthIsEnd)
+//                 return  currentLoopLengthTextEditorValue - zoneProperties.getLoopStart ().value_or (0);
+//             else
+//                 return currentLoopLengthTextEditorValue;
+//         } ();
+        // if there is no sample data, return 0.0
+        // else if there is a Loop Length set, return that
+        // else return the number of sample from the Loop Start to the end of the sample data
+        return sampleData.getLengthInSamples () == 0 ? 0.0 : minZoneProperties.getLoopLength ().value_or (4.0);
 
     };
-    loopLengthTextEditor.getMaxValueCallback = [this] { return sampleData.getLengthInSamples (); };
-    loopLengthTextEditor.toStringCallback = [this] (double value) { return juce::String (value); };
+    loopLengthTextEditor.getMaxValueCallback = [this] { return static_cast<double> (sampleData.getLengthInSamples () - zoneProperties.getLoopStart ().value_or (0)); };
+    loopLengthTextEditor.toStringCallback = [this] (double value) { return formatLoopLength (value); };
     loopLengthTextEditor.updateDataCallback = [this] (double value)
-        {
-            sampleEndUiChanged (value);
-            if (sourceSamplePointsButton.getToggleState ())
-                audioPlayerProperties.setLoopLength (static_cast<int> (value - zoneProperties.getSampleStart ().value_or (0)), false);
-        };
-    setupTextEditor (loopLengthTextEditor, juce::Justification::centred, 0, ".0123456789", "LoopLength", [this] ()
     {
+        loopLengthUiChanged (value);
+        if (sourceLoopPointsButton.getToggleState ())
+            audioPlayerProperties.setLoopLength (static_cast<int> (value), false);
+    };
+    setupTextEditor (loopLengthTextEditor, juce::Justification::centred, 0, ".0123456789", "LoopLength");
+#if 0
+        {
         auto loopLengthInput = [this, text = loopLengthTextEditor.getText ()] ()
         {
             if (loopLengthIsEnd)

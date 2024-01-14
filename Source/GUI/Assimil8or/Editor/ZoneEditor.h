@@ -106,6 +106,7 @@ private:
     SampleData sampleData;
     juce::String currentSampleFileName;
 
+    // Loop Length is always stored as loop length, but the UI can be toggled to display it, and take input for it, as if it is Loop End
     bool loopLengthIsEnd { false };
 
     bool draggingFiles { false };

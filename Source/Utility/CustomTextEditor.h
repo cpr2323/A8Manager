@@ -30,6 +30,7 @@ public:
     {
         jassert (getMinValueCallback != nullptr);
         jassert (getMaxValueCallback != nullptr);
+        DebugLog ("CustomTextEditor", "minValue: " + juce::String(getMinValueCallback ()) + ", maxValue: " + juce::String (getMaxValueCallback ()));
         // check if this current value is valid, if it is then also call the extended error check
         if (ErrorHelpers::setColorIfError (*this, getMinValueCallback (), getMaxValueCallback ()) && highlightErrorCallback != nullptr)
             highlightErrorCallback ();
