@@ -370,7 +370,7 @@ void ZoneEditor::setupZoneComponents ()
     loopStartTextEditor.getMinValueCallback = [this] { return minZoneProperties.getLoopStart ().value_or (0); };
     loopStartTextEditor.getMaxValueCallback = [this]
     {
-        if (! loopLengthIsEnd)
+        if (! treatLoopLengthAsEndInUi)
         {
             const auto sampleLength { sampleData.getLengthInSamples () };
             const auto loopLength { zoneProperties.getLoopLength ().value_or (sampleLength)};
@@ -395,8 +395,9 @@ void ZoneEditor::setupZoneComponents ()
         loopStartUiChanged (value);
         if (sourceLoopPointsButton.getToggleState ())
             audioPlayerProperties.setLoopStart (static_cast<int> (value), false);
-        if (loopLengthIsEnd)
+        if (treatLoopLengthAsEndInUi)
         {
+            // Calculate Loop Length value and store it
             const auto loopLength { loopLengthTextEditor.getText ().getDoubleValue () - static_cast<double> (zoneProperties.getLoopStart ().value_or (0)) };
             loopLengthUiChanged (loopLength);
             if (sourceLoopPointsButton.getToggleState ())
@@ -580,8 +581,8 @@ void ZoneEditor::init (juce::ValueTree zonePropertiesVT, juce::ValueTree rootPro
 
 void ZoneEditor::setLoopLengthIsEnd (bool newLoopLengthIsEnd)
 {
-    loopLengthIsEnd = newLoopLengthIsEnd;
-    if (loopLengthIsEnd)
+    treatLoopLengthAsEndInUi = newLoopLengthIsEnd;
+    if (treatLoopLengthAsEndInUi)
     {
         loopLengthLabel.setText ("LOOP END", juce::NotificationType::dontSendNotification);
         loopLengthTextEditor.setInputRestrictions (0, "0123456789");
@@ -768,7 +769,7 @@ double ZoneEditor::snapLoopLength (double rawValue)
 
 juce::String ZoneEditor::formatLoopLength (double loopLength)
 {
-    if (loopLengthIsEnd)
+    if (treatLoopLengthAsEndInUi)
         loopLength = static_cast<int> (static_cast<double> (zoneProperties.getLoopStart ().value_or (0)) + loopLength);
 
     // value >= 2048 - no decimals
