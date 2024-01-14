@@ -18,11 +18,6 @@ CvInputComboBox::CvInputComboBox (ListType listType)
             const auto menuId { 2 + (channelIndex * 3) + columnIndex };
             cvInputComboBox.addItem (juce::String::charToString ('0' + channelIndex) + juce::String::charToString ('A' + columnIndex), menuId);
         }
-    for (auto cbIndex {0}; cbIndex < cvInputComboBox.getNumItems(); ++cbIndex)
-    {
-        const auto id { cvInputComboBox.getItemId (cbIndex) };
-        const auto text { cvInputComboBox.getItemText (cbIndex) };
-    }
     cvInputComboBox.onChange = [this] ()
     {
         if (onChange != nullptr)
