@@ -42,7 +42,7 @@ namespace MinVoltageTests
 
         auto runTest = [&generateData] (std::vector<float>& testData, int startIndex, int endIndex, std::vector<float> expectedOutputData)
             {
-                auto simpleCompare = [] (float firstNumber, float secondNumber)
+                [[maybe_unused]] auto simpleCompare = [] (float firstNumber, float secondNumber)
                     {
                         const auto multiplier { 100 };
                         const auto firstNumberMultiplied { static_cast<int>(firstNumber * multiplier) };

@@ -96,7 +96,7 @@ void SamplePool::close (juce::String fileName)
     LogSamplePool ("close: " + fileName);
     //dumpStacktrace (-1, [this] (juce::String logLine) { DebugLog ("SamplePool", logLine); });
     jassert (fileName.isNotEmpty ());
-    const auto sampleDataIter { sampleList.find (fileName) };
+    [[maybe_unused]] const auto sampleDataIter { sampleList.find (fileName) };
     jassert (sampleDataIter != sampleList.end ());
     jassert (sampleList [fileName].useCount != 0);
     --sampleList [fileName].useCount;
