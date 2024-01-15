@@ -9,11 +9,6 @@ namespace PresetHelpers
         setter (cvInput, value);
     };
 
-//     juce::StringArray getCvInputList (bool includeZero)
-//     {
-//         return {};
-//     }
-
     int getCvInputIndex (juce::String cvInput)
     {
         if (cvInput == "Off")

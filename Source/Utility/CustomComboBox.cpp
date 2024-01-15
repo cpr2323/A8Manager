@@ -15,8 +15,8 @@ void CustomComboBox::mouseDown (const juce::MouseEvent& mouseEvent)
     }
     else
     {
-        if (onPopupMenu != nullptr)
-            onPopupMenu ();
+        if (onPopupMenuCallback != nullptr)
+            onPopupMenuCallback ();
         return;
     }
     juce::ComboBox::mouseDown (mouseEvent);
@@ -76,8 +76,8 @@ void CustomComboBox::mouseDrag (const juce::MouseEvent& mouseEvent)
         dragSpeed = 10;
     const auto finalDragSpeed { dragSpeed * signage };
     DebugLog ("CustomComboBox", juce::String (positiveDiff) + ", " + juce::String (finalDragSpeed));
-    if (onDrag != nullptr)
-        onDrag (finalDragSpeed);
+    if (onDragCallback != nullptr)
+        onDragCallback (finalDragSpeed);
     lastY = mouseEvent.getPosition ().getY ();
 }
 

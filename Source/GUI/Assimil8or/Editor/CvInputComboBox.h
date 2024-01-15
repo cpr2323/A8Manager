@@ -22,14 +22,8 @@ public:
     juce::String getSelectedItemText ();
     void setTooltip (juce::String toolTip);
     std::function<void ()> onChange;
-    void setOnDragFunction (std::function<void (int dragSpeed)> onDragFunction)
-    {
-        cvInputComboBox.onDrag = onDragFunction;
-    }
-    void setOnPopupMenuFunction (std::function<void ()> onPopupMenuFunction)
-    {
-        cvInputComboBox.onPopupMenu = onPopupMenuFunction;
-    }
+    std::function<void (int dragSpeed)> onDragCallback;
+    std::function<void ()> onPopupMenuCallback;
 
 private:
     CustomComboBox cvInputComboBox;

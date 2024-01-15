@@ -95,11 +95,11 @@ void Assimil8orEditorComponent::setupPresetComponents ()
     {
         midiSetupUiChanged (midiSetupComboBox.getSelectedItemIndex ());
     };
-    midiSetupComboBox.onDrag = [this] (int dragSpeed)
+    midiSetupComboBox.onDragCallback = [this] (int dragSpeed)
     {
         presetProperties.setMidiSetup (std::clamp (midiSetupComboBox.getSelectedItemIndex () + dragSpeed, 0, midiSetupComboBox.getNumItems () - 1), true);
     };
-    midiSetupComboBox.onPopupMenu = [this] ()
+    midiSetupComboBox.onPopupMenuCallback = [this] ()
     {
     };
     addAndMakeVisible (midiSetupComboBox);
@@ -113,13 +113,13 @@ void Assimil8orEditorComponent::setupPresetComponents ()
     {
         data2AsCvUiChanged (data2AsCvComboBox.getSelectedItemText ());
     };
-    data2AsCvComboBox.setOnDragFunction ([this] (int dragSpeed)
+    data2AsCvComboBox.onDragCallback = [this] (int dragSpeed)
     {
         const auto newCvInputComboBoxIndex { data2AsCvComboBox.getSelectedItemIndex () + dragSpeed };
         data2AsCvComboBox.setSelectedItemIndex (std::clamp (newCvInputComboBoxIndex, 0, data2AsCvComboBox.getNumItems () - 1));
         presetProperties.setData2AsCV (data2AsCvComboBox.getSelectedItemText (), false);
-    });
-    data2AsCvComboBox.setOnPopupMenuFunction ([this] () {});
+    };
+    data2AsCvComboBox.onPopupMenuCallback = [this] () {};
     data2AsCvComboBox.setTooltip (parameterToolTipData.getToolTip ("Preset", "Data2asCV"));
     addAndMakeVisible (data2AsCvComboBox);
 
@@ -145,16 +145,14 @@ void Assimil8orEditorComponent::setupPresetComponents ()
         {
             xfadeCvUiChanged (xfadeGroupIndex, xfadeGroups [xfadeGroupIndex].xfadeCvComboBox.getSelectedItemText ());
         };
-        xfadeGroup.xfadeCvComboBox.setOnDragFunction ( [this, xfadeGroupIndex] (int dragSpeed)
+        xfadeGroup.xfadeCvComboBox.onDragCallback = [this, xfadeGroupIndex] (int dragSpeed)
         {
             auto& xfadeGroup { xfadeGroups [xfadeGroupIndex] };
             const auto newCvInputComboBoxIndex { xfadeGroup.xfadeCvComboBox.getSelectedItemIndex () + dragSpeed };
             xfadeGroup.xfadeCvComboBox.setSelectedItemIndex (std::clamp (newCvInputComboBoxIndex, 0, xfadeGroup.xfadeCvComboBox.getNumItems () - 1));
             xfadeCvUiChanged (xfadeGroupIndex, xfadeGroups [xfadeGroupIndex].xfadeCvComboBox.getSelectedItemText ());
-        });
-        xfadeGroup.xfadeCvComboBox.setOnPopupMenuFunction ([this, xfadeGroupIndex] ()
-        {
-        });
+        };
+        xfadeGroup.xfadeCvComboBox.onPopupMenuCallback = [this, xfadeGroupIndex] () {};
         xfadeGroup.xfadeCvComboBox.setTooltip (parameterToolTipData.getToolTip ("Preset", "Xfade" + juce::String::charToString ('A' + xfadeGroupIndex) + "CV"));
         addAndMakeVisible (xfadeGroup.xfadeCvComboBox);
 

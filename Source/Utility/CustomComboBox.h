@@ -5,8 +5,8 @@
 class CustomComboBox : public juce::ComboBox
 {
 public:
-    std::function<void (int dragSpeed)> onDrag;
-    std::function<void ()> onPopupMenu;
+    std::function<void (int dragSpeed)> onDragCallback;
+    std::function<void ()> onPopupMenuCallback;
 
 private:
     bool mouseCaptured { false };
