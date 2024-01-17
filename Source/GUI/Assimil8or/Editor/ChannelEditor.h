@@ -22,14 +22,14 @@ public:
     CvOffsetTextEditor ()
     {
         toStringCallback = [this] (double value) { return FormatHelpers::formatDouble (value, 2, true); };
-        onDrag = [this] (int dragSpeed)
+        onDragCallback = [this] (int dragSpeed)
         {
             jassert (getCvInputAndAmount != nullptr);
             const auto incAmount { 0.01 * dragSpeed };
             const auto newAmount { FormatHelpers::getAmount (getCvInputAndAmount ()) + incAmount };
             setValue (newAmount);
         };
-        onPopupMenu = [this] ()
+        onPopupMenuCallback = [this] ()
         {
         };
     }
@@ -333,6 +333,8 @@ private:
     void setupChannelPropertiesCallbacks ();
     double snapBitsValue (double rawValue);
     double snapEnvelopeValue (double rawValue);
+    double truncateToDecimalPlaces (double rawValue, int decimalPlaces);
+    double snapValue (double rawValue, double snapAmount);
     void updateAllZoneTabNames ();
     void updateZoneTabName (int zoneIndex);
 

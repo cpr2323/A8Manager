@@ -359,7 +359,7 @@ double ChannelEditor::snapEnvelopeValue (double rawValue)
         else
             return 1.0;
     } ();
-    return static_cast<double> (static_cast<uint32_t> (rawValue * scalerValue)) / scalerValue;
+    return snapValue (rawValue, scalerValue);
 }
 
 double ChannelEditor::snapBitsValue (double rawValue)
@@ -371,7 +371,21 @@ double ChannelEditor::snapBitsValue (double rawValue)
         else
             return 1.0;
     } ();
-    return static_cast<double> (static_cast<uint32_t> (rawValue * scalerValue)) / scalerValue;
+    return snapValue (rawValue, scalerValue);
+}
+
+double ChannelEditor::truncateToDecimalPlaces (double rawValue, int decimalPlaces)
+{
+    return snapValue (rawValue, decimalPlaces == 0 ? 1.0 : std::pow (10, static_cast<double> (decimalPlaces)));
+}
+
+double ChannelEditor::snapValue (double rawValue, double snapAmount)
+{
+//     DebugLog ("ChannelEditor::snapValue", "rawValue: " + juce::String (rawValue));
+//     DebugLog ("ChannelEditor::snapValue", "snapAmount: " + juce::String (snapAmount));
+//     DebugLog ("ChannelEditor::snapValue", "static_cast<int64_t> (rawValue * snapAmount): " + juce::String (static_cast<int64_t> (rawValue * snapAmount)));
+//     DebugLog ("ChannelEditor::snapValue", "static_cast<int64_t> (rawValue * snapAmount) / snapAmount: " + juce::String (static_cast<int64_t> (rawValue * snapAmount) / snapAmount));
+    return static_cast<double> (static_cast<int64_t> (rawValue * snapAmount)) / snapAmount;
 }
 
 void ChannelEditor::setupChannelComponents ()
@@ -440,13 +454,13 @@ void ChannelEditor::setupChannelComponents ()
     pitchTextEditor.toStringCallback = [this] (double value) { return FormatHelpers::formatDouble (value, 2, true); };
     pitchTextEditor.updateDataCallback = [this] (double value) { pitchUiChanged (value); };
     setupTextEditor (pitchTextEditor, juce::Justification::centred, 0, "+-.0123456789", "Pitch");
-    pitchTextEditor.onDrag = [this] (int dragSpeed)
+    pitchTextEditor.onDragCallback = [this] (int dragSpeed)
     {
         const auto incAmount { 0.01 * dragSpeed };
         const auto newAmount { channelProperties.getPitch () + incAmount };
         pitchTextEditor.setValue (newAmount);
     };
-    pitchTextEditor.onPopupMenu = [this] ()
+    pitchTextEditor.onPopupMenuCallback = [this] ()
     {
         juce::PopupMenu pm;
         pm.addItem ("Copy", true, false, [this] () {});
@@ -577,9 +591,31 @@ void ChannelEditor::setupChannelComponents ()
     setupLabel (levelLabel, "LEVEL", kLargeLabelSize, juce::Justification::centred);
     levelTextEditor.getMinValueCallback = [this] () { return minChannelProperties.getLevel (); };
     levelTextEditor.getMaxValueCallback = [this] () { return maxChannelProperties.getLevel (); };
+    levelTextEditor.snapValueCallback = [this] (double value) { return truncateToDecimalPlaces (value, 1);  };
+    levelTextEditor.toStringCallback = [this] (double value) { return FormatHelpers::formatDouble (value, 1, false); };
     levelTextEditor.updateDataCallback = [this] (double value) { levelUiChanged (value); };
-    levelTextEditor.onDrag = [this] (int dragSpeed) {};
-    levelTextEditor.onPopupMenu = [this] () {};
+    levelTextEditor.onDragCallback = [this] (int dragSpeed)
+    {
+        auto newValue { 0.0 };
+        if (std::abs (dragSpeed) < 5)
+        {
+            DebugLog ("ChannelEditor/levelTextEditor.onDragCallback", "small move");
+            newValue = channelProperties.getLevel () + (dragSpeed < 0.0 ? -0.1 : 0.1);
+
+        }
+        else if (std::abs (dragSpeed) < 8)
+        {
+            DebugLog ("ChannelEditor/levelTextEditor.onDragCallback", "medium move");
+            newValue = channelProperties.getLevel () + (dragSpeed < 0.0 ? -1.0 : 1.0);
+        }
+        else
+        {
+            DebugLog ("ChannelEditor/levelTextEditor.onDragCallback", "big move");
+            newValue = channelProperties.getLevel () + (dragSpeed < 0.0 ? -5.0 : 5.0);
+        }
+        levelTextEditor.setValue (newValue);
+    };
+    levelTextEditor.onPopupMenuCallback = [this] () {};
     setupTextEditor (levelTextEditor, juce::Justification::centred, 0, "+-.0123456789", "Level");
     setupLabel (levelDbLabel, "dB", kSmallLabelSize, juce::Justification::centredLeft);
 
@@ -672,8 +708,8 @@ void ChannelEditor::setupChannelComponents ()
     pMIndexTextEditor.getMaxValueCallback = [this] () { return maxChannelProperties.getPMIndex (); };
     pMIndexTextEditor.updateDataCallback = [this] (double value) { pMIndexUiChanged (value); };
     pMIndexTextEditor.toStringCallback = [this] (double value) { return FormatHelpers::formatDouble (value, 2, true); };
-    pMIndexTextEditor.onDrag = [this] (int dragSpeed) {};
-    pMIndexTextEditor.onPopupMenu = [this] () {};
+    pMIndexTextEditor.onDragCallback = [this] (int dragSpeed) {};
+    pMIndexTextEditor.onPopupMenuCallback = [this] () {};
     setupTextEditor (pMIndexTextEditor, juce::Justification::centred, 0, "+-.0123456789", "PMIndex");
 
     setupLabel (pMIndexLabel, "INDEX", kMediumLabelSize, juce::Justification::centredLeft);
@@ -719,8 +755,8 @@ void ChannelEditor::setupChannelComponents ()
         arEnvelopeProperties.setAttackPercent (value / static_cast<double> (kMaxEnvelopeTime * 2), false);
         attackUiChanged (value);
     };
-    attackTextEditor.onDrag = [this] (int dragSpeed) {};
-    attackTextEditor.onPopupMenu = [this] () {};
+    attackTextEditor.onDragCallback = [this] (int dragSpeed) {};
+    attackTextEditor.onPopupMenuCallback = [this] () {};
     setupTextEditor (attackTextEditor, juce::Justification::centred, 0, ".0123456789", "Attack");
 
     setupCvInputComboBox (attackModComboBox, "AttackMod", [this] () { attackModUiChanged (attackModComboBox.getSelectedItemText (), attackModTextEditor.getText ().getDoubleValue ()); });
@@ -747,8 +783,8 @@ void ChannelEditor::setupChannelComponents ()
         arEnvelopeProperties.setReleasePercent (value / static_cast<double> (kMaxEnvelopeTime * 2), false);
         releaseUiChanged (value);
     };
-    releaseTextEditor.onDrag = [this] (int dragSpeed) {};
-    releaseTextEditor.onPopupMenu = [this] () {};
+    releaseTextEditor.onDragCallback = [this] (int dragSpeed) {};
+    releaseTextEditor.onPopupMenuCallback = [this] () {};
     setupTextEditor (releaseTextEditor, juce::Justification::centred, 0, ".0123456789", "Release");
 
     setupLabel (releaseLabel, "RELEASE", kMediumLabelSize, juce::Justification::centredLeft);
@@ -776,8 +812,8 @@ void ChannelEditor::setupChannelComponents ()
     bitsTextEditor.snapValueCallback = [this] (double value) { return snapBitsValue (value); };
     bitsTextEditor.toStringCallback = [this] (double value) { return FormatHelpers::formatDouble (value, 1, false); };
     bitsTextEditor.updateDataCallback = [this] (double value) { bitsUiChanged (value); };
-    bitsTextEditor.onDrag = [this] (int dragSpeed) {};
-    bitsTextEditor.onPopupMenu = [this] () {};
+    bitsTextEditor.onDragCallback = [this] (int dragSpeed) {};
+    bitsTextEditor.onPopupMenuCallback = [this] () {};
     setupTextEditor (bitsTextEditor, juce::Justification::centred, 0, "+-.0123456789", "Bits");
 
     setupLabel (bitsLabel, "BITS", kMediumLabelSize, juce::Justification::centredRight);
@@ -800,8 +836,8 @@ void ChannelEditor::setupChannelComponents ()
     aliasingTextEditor.getMaxValueCallback = [this] () { return maxChannelProperties.getAliasing (); };
     aliasingTextEditor.toStringCallback = [this] (int value) { return juce::String (value); };
     aliasingTextEditor.updateDataCallback = [this] (int value) { aliasingUiChanged (value); };
-    aliasingTextEditor.onDrag = [this] (int dragSpeed) {};
-    aliasingTextEditor.onPopupMenu = [this] () {};
+    aliasingTextEditor.onDragCallback = [this] (int dragSpeed) {};
+    aliasingTextEditor.onPopupMenuCallback = [this] () {};
     setupTextEditor (aliasingTextEditor, juce::Justification::centred, 0, "0123456789", "Aliasing");
 
     setupLabel (aliasingLabel, "ALIAS", kMediumLabelSize, juce::Justification::centredRight);
@@ -829,8 +865,8 @@ void ChannelEditor::setupChannelComponents ()
     panTextEditor.getMaxValueCallback = [this] () { return maxChannelProperties.getPan (); };
     panTextEditor.toStringCallback = [this] (double value) { return FormatHelpers::formatDouble (value, 2, true); };
     panTextEditor.updateDataCallback = [this] (double value) { panUiChanged (value); };
-    panTextEditor.onDrag = [this] (int dragSpeed) {};
-    panTextEditor.onPopupMenu = [this] () {};
+    panTextEditor.onDragCallback = [this] (int dragSpeed) {};
+    panTextEditor.onPopupMenuCallback = [this] () {};
     setupTextEditor (panTextEditor, juce::Justification::centred, 0, "+-.0123456789", "Pan");
     setupLabel (panLabel, "PAN", kMediumLabelSize, juce::Justification::centredRight);
     setupCvInputComboBox (panModComboBox, "PanMod", [this] () { panModUiChanged (panModComboBox.getSelectedItemText (), panModTextEditor.getText ().getDoubleValue ()); });
@@ -851,8 +887,8 @@ void ChannelEditor::setupChannelComponents ()
     mixLevelTextEditor.getMaxValueCallback = [this] () { return maxChannelProperties.getMixLevel (); };
     mixLevelTextEditor.toStringCallback = [this] (double value) { return FormatHelpers::formatDouble (value, 1, false); };
     mixLevelTextEditor.updateDataCallback = [this] (double value) { mixLevelUiChanged (value); };
-    mixLevelTextEditor.onDrag = [this] (int dragSpeed) {};
-    mixLevelTextEditor.onPopupMenu = [this] () {};
+    mixLevelTextEditor.onDragCallback = [this] (int dragSpeed) {};
+    mixLevelTextEditor.onPopupMenuCallback = [this] () {};
     setupTextEditor (mixLevelTextEditor, juce::Justification::centred, 0, "+-.0123456789", "MixLevel");
 
     setupLabel (mixLevelLabel, "MIX", kMediumLabelSize, juce::Justification::centredRight);
@@ -925,12 +961,12 @@ void ChannelEditor::setupChannelComponents ()
     {
         channelProperties.setLoopMode (std::clamp (loopModeComboBox.getSelectedItemIndex () + dragSpeed, 0, loopModeComboBox.getNumItems () - 1), true);
     };
-    loopModeComboBox.onPopupMenuCallback = [this] ()
-    {
-    };
+    loopModeComboBox.onPopupMenuCallback = [this] () {};
 
     /////////////////////////////////////////
     // column four
+
+    // CHANNEL MODE
     setupLabel (channelModeLabel, "MODE", kMediumLabelSize, juce::Justification::centred);
     channelModeComboBox.addItem ("Master", ChannelProperties::ChannelMode::master + 1); // 0 = Master, 1 = Link, 2 = Stereo/Right, 3 = Cycle
     channelModeComboBox.addItem ("Link", ChannelProperties::ChannelMode::link + 1);
@@ -948,6 +984,7 @@ void ChannelEditor::setupChannelComponents ()
     {
     };
 
+    // SAMPLE START MOD
     setupLabel (sampleStartModLabel, "SAMPLE START", kMediumLabelSize, juce::Justification::centred);
     setupCvInputComboBox (sampleStartModComboBox, "SampleStartMod", [this] () { sampleStartModUiChanged (sampleStartModComboBox.getSelectedItemText (), sampleStartModTextEditor.getText ().getDoubleValue ()); });
     sampleStartModComboBox.onDragCallback = [this] (int dragSpeed)
@@ -963,6 +1000,7 @@ void ChannelEditor::setupChannelComponents ()
     sampleStartModTextEditor.updateDataCallback = [this] (double amount) { sampleStartModUiChanged (FormatHelpers::getCvInput (channelProperties.getSampleStartMod ()), amount); };
     setupTextEditor (sampleStartModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "SampleStartMod");
 
+    // SAMPLE END MOD
     setupLabel (sampleEndModLabel, "SAMPLE END", kMediumLabelSize, juce::Justification::centred);
     setupCvInputComboBox (sampleEndModComboBox, "SampleEndMod", [this] () { sampleEndModUiChanged (sampleEndModComboBox.getSelectedItemText (), sampleEndModTextEditor.getText ().getDoubleValue ()); });
     sampleEndModComboBox.onDragCallback = [this] (int dragSpeed)
@@ -977,6 +1015,8 @@ void ChannelEditor::setupChannelComponents ()
     sampleEndModTextEditor.getCvInputAndAmount = [this] () { return channelProperties.getSampleEndMod ();  };
     sampleEndModTextEditor.updateDataCallback = [this] (double amount) { sampleEndModUiChanged (FormatHelpers::getCvInput (channelProperties.getSampleEndMod ()), amount); };
     setupTextEditor (sampleEndModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "SampleEndMod");
+
+    // LOOP START MOD
     setupLabel (loopStartModLabel, "LOOP START", kMediumLabelSize, juce::Justification::centred);
     setupCvInputComboBox (loopStartModComboBox, "LoopStartMod", [this] () { loopStartModUiChanged (loopStartModComboBox.getSelectedItemText (), loopStartModTextEditor.getText ().getDoubleValue ()); });
     loopStartModComboBox.onDragCallback = [this] (int dragSpeed)
@@ -992,6 +1032,7 @@ void ChannelEditor::setupChannelComponents ()
     loopStartModTextEditor.updateDataCallback = [this] (double amount) { loopStartModUiChanged (FormatHelpers::getCvInput (channelProperties.getLoopStartMod ()), amount); };
     setupTextEditor (loopStartModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "LoopStartMod");
 
+    // LOOP END MOD
     setupLabel (loopLengthModLabel, "LOOP LENGTH", kMediumLabelSize, juce::Justification::centred);
     setupCvInputComboBox (loopLengthModComboBox, "LoopLengthMod", [this] () { loopLengthModUiChanged (loopLengthModComboBox.getSelectedItemText (), loopLengthModTextEditor.getText ().getDoubleValue ()); });
     loopLengthModComboBox.onDragCallback = [this] (int dragSpeed)
@@ -1007,22 +1048,22 @@ void ChannelEditor::setupChannelComponents ()
     loopLengthModTextEditor.updateDataCallback = [this] (double amount) { loopLengthModUiChanged (FormatHelpers::getCvInput (channelProperties.getLoopLengthMod ()), amount); };
     setupTextEditor (loopLengthModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "LoopLengthMod");
 
+    // CROSSFADE GROUP
     setupLabel (xfadeGroupLabel, "XFADE GRP", kSmallLabelSize, juce::Justification::centredRight);
     xfadeGroupComboBox.addItem ("None", 1); // Off, A, B, C, D
     xfadeGroupComboBox.addItem ("A", 2);
     xfadeGroupComboBox.addItem ("B", 3);
     xfadeGroupComboBox.addItem ("C", 4);
     xfadeGroupComboBox.addItem ("D", 5);
-    setupComboBox (xfadeGroupComboBox, "XfadeGroup", [this] () { xfadeGroupUiChanged (xfadeGroupComboBox.getText ()); });
     xfadeGroupComboBox.onDragCallback = [this] (int dragSpeed)
     {
         xfadeGroupComboBox.setSelectedItemIndex (std::clamp (xfadeGroupComboBox.getSelectedItemIndex () + dragSpeed, 0, xfadeGroupComboBox.getNumItems () - 1));
         channelProperties.setXfadeGroup (xfadeGroupComboBox.getText() ,false);
     };
-    xfadeGroupComboBox.onPopupMenuCallback = [this] ()
-    {
-    };
+    xfadeGroupComboBox.onPopupMenuCallback = [this] () {};
+    setupComboBox (xfadeGroupComboBox, "XfadeGroup", [this] () { xfadeGroupUiChanged (xfadeGroupComboBox.getText ()); });
 
+    // CV ZONE SELECT
     setupLabel (zonesCVLabel, "CV", kMediumLabelSize, juce::Justification::centredRight);
     setupCvInputComboBox (zonesCVComboBox, "ZonesCV", [this] () { zonesCVUiChanged (zonesCVComboBox.getSelectedItemText ()); });
     zonesCVComboBox.onDragCallback = [this] (int dragSpeed)
@@ -1033,6 +1074,7 @@ void ChannelEditor::setupChannelComponents ()
     };
     zonesCVComboBox.onPopupMenuCallback = [this] () {};
 
+    // ZONE SELECT MODE
     setupLabel (zonesRTLabel, "SELECT", kSmallLabelSize, juce::Justification::centredRight);
     zonesRTComboBox.addItem ("Gate Rise", 1); // 0 = Gate Rise, 1 = Continuous, 2 = Advance, 3 = Random
     zonesRTComboBox.addItem ("Continuous", 2);
@@ -1043,9 +1085,7 @@ void ChannelEditor::setupChannelComponents ()
     {
         channelProperties.setZonesRT (std::clamp (zonesRTComboBox.getSelectedItemIndex () + dragSpeed, 0, zonesRTComboBox.getNumItems () - 1), true);
     };
-    zonesRTComboBox.onPopupMenuCallback = [this] ()
-    {
-    };
+    zonesRTComboBox.onPopupMenuCallback = [this] () {};
 }
 
 void ChannelEditor::balanceVoltages (VoltageBalanceType balanceType)

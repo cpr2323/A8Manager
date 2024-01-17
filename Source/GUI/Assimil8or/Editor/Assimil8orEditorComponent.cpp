@@ -177,14 +177,14 @@ void Assimil8orEditorComponent::setupPresetComponents ()
         xfadeGroup.xfadeWidthEditor.getMaxValueCallback = [this] () { return maxPresetProperties.getXfadeAWidth (); };
         xfadeGroup.xfadeWidthEditor.toStringCallback = [this] (double value) { return formatXfadeWidthString (value); };
         xfadeGroup.xfadeWidthEditor.updateDataCallback = [this, xfadeGroupIndex] (double value) { xfadeWidthUiChanged (xfadeGroupIndex, value); };
-        xfadeGroup.xfadeWidthEditor.onDrag = [this, xfadeGroupIndex] (int dragSpeed)
+        xfadeGroup.xfadeWidthEditor.onDragCallback = [this, xfadeGroupIndex] (int dragSpeed)
         {
             const auto newAmount { editManager.getXfadeGroupValueByIndex (xfadeGroupIndex) + (0.1 * dragSpeed) };
             // the min/max values for all of the XFade Group Widths are the same, so we can just use A
             auto width { std::clamp (newAmount, minPresetProperties.getXfadeAWidth (), maxPresetProperties.getXfadeAWidth ()) };
             editManager.setXfadeGroupValueByIndex (xfadeGroupIndex, width, true);
         };
-        xfadeGroup.xfadeWidthEditor.onPopupMenu = [this, xfadeGroupIndex] ()
+        xfadeGroup.xfadeWidthEditor.onPopupMenuCallback = [this, xfadeGroupIndex] ()
         {
             juce::PopupMenu pm;
             pm.addItem ("Copy", true, false, [this] () {});

@@ -5,7 +5,7 @@
 #include "ErrorHelpers.h"
 #include "SinglePoleFilter.h"
 
-#define LOG_MOUSE_DRAG_INFO 1
+#define LOG_MOUSE_DRAG_INFO 0
 #if LOG_MOUSE_DRAG_INFO
 #define LogMouseDragInfo(text) DebugLog ("CustomTextEditor", text);
 #else
@@ -30,7 +30,7 @@ public:
     {
         jassert (getMinValueCallback != nullptr);
         jassert (getMaxValueCallback != nullptr);
-        DebugLog ("CustomTextEditor", "minValue: " + juce::String(getMinValueCallback ()) + ", maxValue: " + juce::String (getMaxValueCallback ()));
+        //DebugLog ("CustomTextEditor", "minValue: " + juce::String(getMinValueCallback ()) + ", maxValue: " + juce::String (getMaxValueCallback ()));
         // check if this current value is valid, if it is then also call the extended error check
         if (ErrorHelpers::setColorIfError (*this, getMinValueCallback (), getMaxValueCallback ()) && highlightErrorCallback != nullptr)
             highlightErrorCallback ();
@@ -44,8 +44,8 @@ public:
     // optional
     std::function<void ()> highlightErrorCallback;
     std::function<T (T)> snapValueCallback;
-    std::function<void (int dragSpeed)> onDrag;
-    std::function<void ()> onPopupMenu;
+    std::function<void (int dragSpeed)> onDragCallback;
+    std::function<void ()> onPopupMenuCallback;
 
 private:
     bool mouseCaptured { false };
@@ -63,12 +63,15 @@ private:
         jassert (toStringCallback != nullptr);
         const auto newValue = [this, value] ()
         {
-            const auto clampedValue { std::clamp (value, getMinValueCallback (), getMaxValueCallback ())};
+            //DebugLog ("CustomTextEditor", "input value: " + juce::String (value));
+            const auto clampedValue { std::clamp (value, getMinValueCallback (), getMaxValueCallback ()) };
+            //DebugLog ("CustomTextEditor", "clamped value: " + juce::String(clampedValue));
             if (snapValueCallback == nullptr)
                 return clampedValue;
             else
                 return  snapValueCallback (clampedValue);
         } ();
+        //DebugLog ("CustomTextEditor", "final value: " + juce::String (newValue));
         updateDataCallback (newValue);
         setText (toStringCallback (newValue));
     }
@@ -88,8 +91,8 @@ private:
         else
         {
             LogMouseDragInfo ("invoking popup menu");
-            if (onPopupMenu != nullptr)
-                onPopupMenu ();
+            if (onPopupMenuCallback != nullptr)
+                onPopupMenuCallback ();
             return;
         }
         LogMouseDragInfo ("mouseUp");
@@ -157,8 +160,8 @@ private:
         lastDragSpeed = finalDragSpeed;
         LogMouseDragInfo ("[moveDiff: " + juce::String (moveDiff) + ", maxYMove: " + juce::String (maxYMove));
         LogMouseDragInfo ("finalDragSpeed: " + juce::String (finalDragSpeed * 100));
-        if (onDrag != nullptr)
-            onDrag (static_cast<int> (finalDragSpeed * 100));
+        if (onDragCallback != nullptr)
+            onDragCallback (static_cast<int> (finalDragSpeed * 100));
         lastY = mouseEvent.getPosition ().getY ();
     }
 
