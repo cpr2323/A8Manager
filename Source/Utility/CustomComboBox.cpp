@@ -8,7 +8,7 @@ void CustomComboBox::mouseDown (const juce::MouseEvent& mouseEvent)
         if (mouseEvent.mods.isCommandDown ())
         {
             DebugLog ("CustomComboBox", "capturing mouse");
-            lastY = mouseEvent.getPosition ().getY ();
+            lastMouseY = mouseEvent.getPosition ().getY ();
             mouseCaptured = true;
             return;
         }
@@ -62,23 +62,23 @@ void CustomComboBox::mouseDrag (const juce::MouseEvent& mouseEvent)
         return;
     }
 
-    auto yDiff { (mouseEvent.getPosition ().getY () - lastY) * -1 };
-    const auto signage { yDiff >= 0 ? 1 : -1 };
-    auto positiveDiff { std::min (std::abs (yDiff), 20) };
-    auto dragSpeed { 0 };
-    if (positiveDiff < 2)
-        dragSpeed = 1;
-    else if (positiveDiff < 4)
-        dragSpeed = 2;
-    else if (positiveDiff < 6)
-        dragSpeed = 5;
-    else
-        dragSpeed = 10;
-    const auto finalDragSpeed { dragSpeed * signage };
-    DebugLog ("CustomComboBox", juce::String (positiveDiff) + ", " + juce::String (finalDragSpeed));
+    const auto distanceY { mouseEvent.getPosition ().getY () - lastMouseY };
+    const auto dragSpeed = [this, distanceY] ()
+    {
+        const auto kSlowThreshold { 10.0f };
+        const auto kMediumThreshold { 50.0f };
+
+            if (distanceY < kSlowThreshold)
+                return DragSpeed::slow;
+            else if (distanceY < kMediumThreshold)
+                return DragSpeed::medium;
+            else
+                return DragSpeed::fast;
+    } ();
+    const auto dragDirection { (distanceY >= 0) ? -1 : 1 };
     if (onDragCallback != nullptr)
-        onDragCallback (finalDragSpeed);
-    lastY = mouseEvent.getPosition ().getY ();
+        onDragCallback (dragSpeed, dragDirection);
+    lastMouseY = mouseEvent.getPosition ().getY ();
 }
 
 void CustomComboBox::mouseDoubleClick (const juce::MouseEvent& mouseEvent)

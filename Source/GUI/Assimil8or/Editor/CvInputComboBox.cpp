@@ -24,10 +24,10 @@ CvInputComboBox::CvInputComboBox (ListType listType)
             onChange ();
     };
 
-    cvInputComboBox.onDragCallback = [this] (int dragSpeed)
+    cvInputComboBox.onDragCallback = [this] (DragSpeed dragSpeed, int direction)
     {
         if (onDragCallback != nullptr)
-            onDragCallback (dragSpeed);
+            onDragCallback (dragSpeed, direction);
     };
     cvInputComboBox.onPopupMenuCallback = [this] ()
     {

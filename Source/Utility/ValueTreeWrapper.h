@@ -195,10 +195,7 @@ private:
     bool dataWasRestored { false };
 
     void init (juce::ValueTree vt, bool createIfNotFound);
-
     void createValueTree ();
-    //void initValueTree () = 0; // called when wrapping an empty ValueTree
-    //void processValueTree () {} // called after wrapping an initialized ValueTree
 
     void valueTreePropertyChanged (juce::ValueTree&, const juce::Identifier&) override {};
     void valueTreeChildAdded (juce::ValueTree&, juce::ValueTree&) override {}
@@ -216,7 +213,7 @@ template <class derived> ValueTreeWrapper<derived>::ValueTreeWrapper (juce::Iden
 }
 
 template <class derived> ValueTreeWrapper<derived>::ValueTreeWrapper (juce::Identifier newType, juce::ValueTree vt,
-                                                          ValueTreeWrapper::WrapperType wrapperType, ValueTreeWrapper::EnableCallbacks shouldEnableCallbacks) noexcept
+                                                                      ValueTreeWrapper::WrapperType wrapperType, ValueTreeWrapper::EnableCallbacks shouldEnableCallbacks) noexcept
 {
     type = newType;
     wrap (vt, wrapperType, shouldEnableCallbacks);
@@ -228,7 +225,7 @@ template <class derived> void ValueTreeWrapper<derived>::wrap (juce::ValueTree v
     enableCallbacks (ValueTreeWrapper::EnableCallbacks::yes == shouldEnableCallbacks);
 }
 
-template <class derived>void ValueTreeWrapper<derived>::init (juce::ValueTree vt, bool createIfNotFound)
+template <class derived> void ValueTreeWrapper<derived>::init (juce::ValueTree vt, bool createIfNotFound)
 {
     const auto derviedClass { static_cast<derived*> (this) };
     dataWasRestored = false;

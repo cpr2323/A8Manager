@@ -346,7 +346,7 @@ void ZoneEditor::setupZoneComponents ()
         if (sourceSamplePointsButton.getToggleState ())
             audioPlayerProperties.setLoopStart (static_cast<int> (value), false);
     };
-    sampleStartTextEditor.onDragCallback = [this] (int dragSpeed) {};
+    sampleStartTextEditor.onDragCallback = [this] (DragSpeed dragSpeed, int direction) {};
     sampleStartTextEditor.onPopupMenuCallback = [this] () {};
     setupTextEditor (sampleStartTextEditor, juce::Justification::centred, 0, "0123456789", "SampleStart");
 
@@ -361,7 +361,7 @@ void ZoneEditor::setupZoneComponents ()
         if (sourceSamplePointsButton.getToggleState ())
             audioPlayerProperties.setLoopLength (static_cast<int> (value - zoneProperties.getSampleStart ().value_or (0)), false);
     };
-    sampleEndTextEditor.onDragCallback = [this] (int dragSpeed) {};
+    sampleEndTextEditor.onDragCallback = [this] (DragSpeed dragSpeed, int direction) {};
     sampleEndTextEditor.onPopupMenuCallback = [this] () {};
     setupTextEditor (sampleEndTextEditor, juce::Justification::centred, 0, "0123456789", "SampleEnd");
 
@@ -404,7 +404,7 @@ void ZoneEditor::setupZoneComponents ()
                 audioPlayerProperties.setLoopLength (static_cast<int> (loopLength), false);
         }
     };
-    loopStartTextEditor.onDragCallback = [this] (int dragSpeed) {};
+    loopStartTextEditor.onDragCallback = [this] (DragSpeed dragSpeed, int direction) {};
     loopStartTextEditor.onPopupMenuCallback = [this] () {};
     setupTextEditor (loopStartTextEditor, juce::Justification::centred, 0, "0123456789", "LoopStart");
 
@@ -450,7 +450,7 @@ void ZoneEditor::setupZoneComponents ()
         if (sourceLoopPointsButton.getToggleState ())
             audioPlayerProperties.setLoopLength (static_cast<int> (loopLengthInputValue), false);
     };
-    loopLengthTextEditor.onDragCallback = [this] (int dragSpeed) {};
+    loopLengthTextEditor.onDragCallback = [this] (DragSpeed dragSpeed, int direction) {};
     loopLengthTextEditor.onPopupMenuCallback = [this] () {};
     setupTextEditor (loopLengthTextEditor, juce::Justification::centred, 0, ".0123456789", "LoopLength");
 
@@ -470,7 +470,7 @@ void ZoneEditor::setupZoneComponents ()
         jassert (clampMinVoltage != nullptr);
         minVoltageUiChanged (clampMinVoltage (value));
     };
-    minVoltageTextEditor.onDragCallback = [this] (int dragSpeed) {};
+    minVoltageTextEditor.onDragCallback = [this] (DragSpeed dragSpeed, int direction) {};
     minVoltageTextEditor.onPopupMenuCallback = [this] () {};
     setupTextEditor (minVoltageTextEditor, juce::Justification::centred, 0, "+-.0123456789", "MinVoltage");
 
@@ -479,7 +479,7 @@ void ZoneEditor::setupZoneComponents ()
     pitchOffsetTextEditor.getMaxValueCallback = [this] { return maxZoneProperties.getPitchOffset (); };
     pitchOffsetTextEditor.toStringCallback = [this] (double value) { return FormatHelpers::formatDouble (value, 2, true); };
     pitchOffsetTextEditor.updateDataCallback = [this] (double value) { pitchOffsetUiChanged (value); };
-    pitchOffsetTextEditor.onDragCallback = [this] (int dragSpeed) {};
+    pitchOffsetTextEditor.onDragCallback = [this] (DragSpeed dragSpeed, int direction) {};
     pitchOffsetTextEditor.onPopupMenuCallback = [this] () {};
     setupLabel (pitchOffsetLabel, "PITCH OFFSET", 15.0, juce::Justification::centredRight);
     setupTextEditor (pitchOffsetTextEditor, juce::Justification::centred, 0, "+-.0123456789", "PitchOffset");
@@ -490,7 +490,7 @@ void ZoneEditor::setupZoneComponents ()
     levelOffsetTextEditor.getMaxValueCallback = [this] { return maxZoneProperties.getLevelOffset (); };
     levelOffsetTextEditor.toStringCallback = [this] (double value) { return FormatHelpers::formatDouble (value, 1, true); };
     levelOffsetTextEditor.updateDataCallback = [this] (double value) { levelOffsetUiChanged (value); };
-    levelOffsetTextEditor.onDragCallback = [this] (int dragSpeed) {};
+    levelOffsetTextEditor.onDragCallback = [this] (DragSpeed dragSpeed, int direction) {};
     levelOffsetTextEditor.onPopupMenuCallback = [this] () {};
     setupTextEditor (levelOffsetTextEditor, juce::Justification::centred, 0, "+-.0123456789", "LevelOffset");
 }

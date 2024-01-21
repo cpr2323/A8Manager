@@ -95,9 +95,10 @@ void Assimil8orEditorComponent::setupPresetComponents ()
     {
         midiSetupUiChanged (midiSetupComboBox.getSelectedItemIndex ());
     };
-    midiSetupComboBox.onDragCallback = [this] (int dragSpeed)
+    midiSetupComboBox.onDragCallback = [this] (DragSpeed dragSpeed, int direction)
     {
-        presetProperties.setMidiSetup (std::clamp (midiSetupComboBox.getSelectedItemIndex () + dragSpeed, 0, midiSetupComboBox.getNumItems () - 1), true);
+        const auto scrollAmount { (dragSpeed == DragSpeed::fast ? 2 : 1) * direction };
+        presetProperties.setMidiSetup (std::clamp (midiSetupComboBox.getSelectedItemIndex () + scrollAmount, 0, midiSetupComboBox.getNumItems () - 1), true);
     };
     midiSetupComboBox.onPopupMenuCallback = [this] ()
     {
@@ -113,9 +114,10 @@ void Assimil8orEditorComponent::setupPresetComponents ()
     {
         data2AsCvUiChanged (data2AsCvComboBox.getSelectedItemText ());
     };
-    data2AsCvComboBox.onDragCallback = [this] (int dragSpeed)
+    data2AsCvComboBox.onDragCallback = [this] (DragSpeed dragSpeed, int direction)
     {
-        const auto newCvInputComboBoxIndex { data2AsCvComboBox.getSelectedItemIndex () + dragSpeed };
+        const auto scrollAmount { (dragSpeed == DragSpeed::fast ? 2 : 1) * direction };
+        const auto newCvInputComboBoxIndex { data2AsCvComboBox.getSelectedItemIndex () + scrollAmount };
         data2AsCvComboBox.setSelectedItemIndex (std::clamp (newCvInputComboBoxIndex, 0, data2AsCvComboBox.getNumItems () - 1));
         presetProperties.setData2AsCV (data2AsCvComboBox.getSelectedItemText (), false);
     };
@@ -145,10 +147,11 @@ void Assimil8orEditorComponent::setupPresetComponents ()
         {
             xfadeCvUiChanged (xfadeGroupIndex, xfadeGroups [xfadeGroupIndex].xfadeCvComboBox.getSelectedItemText ());
         };
-        xfadeGroup.xfadeCvComboBox.onDragCallback = [this, xfadeGroupIndex] (int dragSpeed)
+        xfadeGroup.xfadeCvComboBox.onDragCallback = [this, xfadeGroupIndex] (DragSpeed dragSpeed, int direction)
         {
+            const auto scrollAmount { (dragSpeed == DragSpeed::fast ? 2 : 1) * direction };
             auto& xfadeGroup { xfadeGroups [xfadeGroupIndex] };
-            const auto newCvInputComboBoxIndex { xfadeGroup.xfadeCvComboBox.getSelectedItemIndex () + dragSpeed };
+            const auto newCvInputComboBoxIndex { xfadeGroup.xfadeCvComboBox.getSelectedItemIndex () + scrollAmount };
             xfadeGroup.xfadeCvComboBox.setSelectedItemIndex (std::clamp (newCvInputComboBoxIndex, 0, xfadeGroup.xfadeCvComboBox.getNumItems () - 1));
             xfadeCvUiChanged (xfadeGroupIndex, xfadeGroups [xfadeGroupIndex].xfadeCvComboBox.getSelectedItemText ());
         };
@@ -177,9 +180,10 @@ void Assimil8orEditorComponent::setupPresetComponents ()
         xfadeGroup.xfadeWidthEditor.getMaxValueCallback = [this] () { return maxPresetProperties.getXfadeAWidth (); };
         xfadeGroup.xfadeWidthEditor.toStringCallback = [this] (double value) { return formatXfadeWidthString (value); };
         xfadeGroup.xfadeWidthEditor.updateDataCallback = [this, xfadeGroupIndex] (double value) { xfadeWidthUiChanged (xfadeGroupIndex, value); };
-        xfadeGroup.xfadeWidthEditor.onDragCallback = [this, xfadeGroupIndex] (int dragSpeed)
+        xfadeGroup.xfadeWidthEditor.onDragCallback = [this, xfadeGroupIndex] (DragSpeed dragSpeed, int direction)
         {
-            const auto newAmount { editManager.getXfadeGroupValueByIndex (xfadeGroupIndex) + (0.1 * dragSpeed) };
+            const auto scrollAmount { (dragSpeed == DragSpeed::fast ? 1.0 : 0.1) * static_cast<float> (direction) };
+            const auto newAmount { editManager.getXfadeGroupValueByIndex (xfadeGroupIndex) + (0.1 * scrollAmount) };
             // the min/max values for all of the XFade Group Widths are the same, so we can just use A
             auto width { std::clamp (newAmount, minPresetProperties.getXfadeAWidth (), maxPresetProperties.getXfadeAWidth ()) };
             editManager.setXfadeGroupValueByIndex (xfadeGroupIndex, width, true);

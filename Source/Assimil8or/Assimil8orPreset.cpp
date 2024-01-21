@@ -80,7 +80,7 @@ void Assimil8orPreset::write (juce::File presetFile, juce::ValueTree presetPrope
             addLine (channelProperties.getChannelMode () != defaultChannelProperties.getChannelMode (), Parameter::Channel::ChannelModeId + " : " + juce::String (channelProperties.getChannelMode ()));
             addLine (channelProperties.getExpAM () != defaultChannelProperties.getExpAM (), Parameter::Channel::ExpAMId + " : " + ChannelProperties::getCvInputAndValueString (channelProperties.getExpAM (), 4));
             addLine (channelProperties.getExpFM () != defaultChannelProperties.getExpFM (), Parameter::Channel::ExpFMId + " : " + ChannelProperties::getCvInputAndValueString (channelProperties.getExpFM (), 4));
-            addLine (channelProperties.getLevel () != defaultChannelProperties.getLevel (), Parameter::Channel::LevelId + " : " + juce::String (channelProperties.getLevel ()));
+            addLine (channelProperties.getLevel () != defaultChannelProperties.getLevel (), Parameter::Channel::LevelId + " : " + juce::String (channelProperties.getLevel (), 1));
             addLine (channelProperties.getLinAM () != defaultChannelProperties.getLinAM (), Parameter::Channel::LinAMId + " : " + ChannelProperties::getCvInputAndValueString (channelProperties.getLinAM (), 4));
             addLine (channelProperties.getLinAMisExtEnv () != defaultChannelProperties.getLinAMisExtEnv (), Parameter::Channel::LinAMisExtEnvId + " : " + (channelProperties.getLinAMisExtEnv () ? "1" : "0"));
             addLine (channelProperties.getLinFM () != defaultChannelProperties.getLinFM (), Parameter::Channel::LinFMId + " : " + ChannelProperties::getCvInputAndValueString (channelProperties.getLinFM (), 4));

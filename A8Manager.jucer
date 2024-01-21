@@ -217,6 +217,7 @@
               file="Source/Utility/DirectoryValueTree.cpp"/>
         <FILE id="eO3HdP" name="DirectoryValueTree.h" compile="0" resource="0"
               file="Source/Utility/DirectoryValueTree.h"/>
+        <FILE id="vNZeE3" name="DragSpeed.h" compile="0" resource="0" file="Source/Utility/DragSpeed.h"/>
         <FILE id="pP1sFQ" name="DumpStack.cpp" compile="1" resource="0" file="Source/Utility/DumpStack.cpp"/>
         <FILE id="kz99xu" name="DumpStack.h" compile="0" resource="0" file="Source/Utility/DumpStack.h"/>
         <FILE id="QJawCv" name="ErrorHelpers.cpp" compile="1" resource="0"

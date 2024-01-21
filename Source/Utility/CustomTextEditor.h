@@ -2,6 +2,7 @@
 
 #include <JuceHeader.h>
 #include "DebugLog.h"
+#include "DragSpeed.h"
 #include "ErrorHelpers.h"
 #include "SinglePoleFilter.h"
 
@@ -44,16 +45,12 @@ public:
     // optional
     std::function<void ()> highlightErrorCallback;
     std::function<T (T)> snapValueCallback;
-    std::function<void (int dragSpeed)> onDragCallback;
+    std::function<void (DragSpeed dragSpeed, int direction)> onDragCallback;
     std::function<void ()> onPopupMenuCallback;
 
 private:
     bool mouseCaptured { false };
-    int lastY { 0 };
-    int maxYMove { 0 };
-    double lastDragSpeed { 0.0 };
-
-    SinglePoleFilter moveFilter;
+    int lastMouseY { 0 };
 
     void constrainAndSet (T value)
     {
@@ -83,7 +80,7 @@ private:
             if (mouseEvent.mods.isCommandDown ())
             {
                 LogMouseDragInfo ("capturing mouse");
-                lastY = mouseEvent.getPosition ().getY ();
+                lastMouseY = mouseEvent.getPosition ().getY ();
                 mouseCaptured = true;
                 return;
             }
@@ -138,31 +135,23 @@ private:
             juce::TextEditor::mouseDrag (mouseEvent);
             return;
         }
+        const auto distanceY { mouseEvent.getPosition ().getY () - lastMouseY };
+        const auto dragSpeed = [this, distanceY] ()
+        {
+            const auto kSlowThreshold { 10.0f };
+            const auto kMediumThreshold { 50.0f };
 
-        auto finalDragSpeed { 1.0 };
-        const auto moveDiff { mouseEvent.getPosition ().getY () - lastY };
-        const auto absDiff { std::abs (moveDiff) };
-        if (absDiff > maxYMove)
-            maxYMove = absDiff;
-        const auto constrainedAbsDiff { std::max (std::min (absDiff, 50), 1) }; // a number between 1 and 50
-        finalDragSpeed = std::min (0.1, constrainedAbsDiff / 50.0); // a number between 0.1 and 1
-        if (finalDragSpeed > 0.95)
-            finalDragSpeed = 1.0;
-        //     if (finalDragSpeed <= lastDragSpeed)
-        //         moveFilter.setCurValue (finalDragSpeed);
-        //     else
-        //         moveFilter.doFilter (finalDragSpeed);
-        //     if (finalDragSpeed < 0.0)
-        //         finalDragSpeed = 0.1;
-        if (finalDragSpeed < 0.03)
-            finalDragSpeed = 0.01;
-        finalDragSpeed = finalDragSpeed * (moveDiff < 0.0 ? 1.0 : -1.0);
-        lastDragSpeed = finalDragSpeed;
-        LogMouseDragInfo ("[moveDiff: " + juce::String (moveDiff) + ", maxYMove: " + juce::String (maxYMove));
-        LogMouseDragInfo ("finalDragSpeed: " + juce::String (finalDragSpeed * 100));
+            if (distanceY < kSlowThreshold)
+                return DragSpeed::slow;
+            else if (distanceY < kMediumThreshold)
+                return DragSpeed::medium;
+            else
+                return DragSpeed::fast;
+        } ();
+        const auto dragDirection { (distanceY >= 0) ? -1 : 1 };
         if (onDragCallback != nullptr)
-            onDragCallback (static_cast<int> (finalDragSpeed * 100));
-        lastY = mouseEvent.getPosition ().getY ();
+            onDragCallback (dragSpeed, dragDirection);
+        lastMouseY = mouseEvent.getPosition ().getY ();
     }
 
     void mouseDoubleClick (const juce::MouseEvent& mouseEvent) override
@@ -203,7 +192,11 @@ class CustomTextEditorDouble : public CustomTextEditor<double>
 public:
     CustomTextEditorDouble ()
     {
-        onFocusLost = [this] () { setValue (getText ().getDoubleValue ()); };
+        onFocusLost = [this] ()
+            {
+                DebugLog ("CustomTextEditorDouble::onFocusLost", juce::SystemStats::getStackBacktrace());
+                setValue (getText ().getDoubleValue ());
+            };
         onReturnKey = [this] () { setValue (getText ().getDoubleValue ()); };
     }
 };
