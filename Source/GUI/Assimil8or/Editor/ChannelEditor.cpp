@@ -382,14 +382,9 @@ double ChannelEditor::truncateToDecimalPlaces (double rawValue, int decimalPlace
 
 double ChannelEditor::snapValue (double rawValue, double snapAmount)
 {
-    DebugLog ("ChannelEditor::snapValue", "rawValue: " + juce::String (rawValue,20));
-    DebugLog ("ChannelEditor::snapValue", "snapAmount: " + juce::String (snapAmount,20));
     const double multipliedAmount { rawValue * snapAmount };
-    DebugLog ("ChannelEditor::snapValue", "multipliedAmount: " + juce::String (multipliedAmount,20));
     const double truncatedAmount { std::trunc (multipliedAmount) };
-    DebugLog ("ChannelEditor::snapValue", "truncatedAmount: " + juce::String (truncatedAmount,20));
     const auto snappedAmount { truncatedAmount / snapAmount };
-    DebugLog ("ChannelEditor::snapValue", "snappedAmount : " + juce::String (snappedAmount,20));
     return snappedAmount;
 }
 
@@ -516,7 +511,6 @@ void ChannelEditor::setupChannelComponents ()
     };
     pitchCVComboBox.onPopupMenuCallback = [this] ()
     {
-        DebugLog ("ChannelEditor", "pitchCVComboBox.onPopupMenu");
         juce::PopupMenu pm;
         pm.addItem ("Copy", true, false, [this] () {});
         pm.addItem ("Paste", true, false, [this] () {});
@@ -603,24 +597,16 @@ void ChannelEditor::setupChannelComponents ()
     levelTextEditor.updateDataCallback = [this] (double value) { levelUiChanged (value); };
     levelTextEditor.onDragCallback = [this] (DragSpeed dragSpeed, int direction)
     {
-        auto newValue { 0.0 };
-        if (dragSpeed == DragSpeed::slow)
+        auto multiplier = [this, dragSpeed] ()
         {
-            DebugLog ("ChannelEditor/levelTextEditor.onDragCallback", "small move");
-            newValue = channelProperties.getLevel () + (0.1 * static_cast<double> (direction));
-
-        }
-        else if (dragSpeed == DragSpeed::medium)
-        {
-            DebugLog ("ChannelEditor/levelTextEditor.onDragCallback", "medium move");
-            newValue = channelProperties.getLevel () + (1.0 * static_cast<double> (direction));
-        }
-        else
-        {
-            DebugLog ("ChannelEditor/levelTextEditor.onDragCallback", "big move");
-            newValue = channelProperties.getLevel () + (5.0 * static_cast<double> (direction));
-        }
-        DebugLog ("ChannelEditor/levelTextEditor.onDragCallback", "oldValue: " + juce::String(channelProperties.getLevel (),20) + ", newValue: " + juce::String(newValue,20));
+            if (dragSpeed == DragSpeed::slow)
+                return 0.1;
+            else if (dragSpeed == DragSpeed::medium)
+                return 1.0;
+            else
+                return (maxChannelProperties.getLevel () - minChannelProperties.getLevel ()) / 10.0;
+        } ();
+        const auto newValue { channelProperties.getLevel () + (multiplier * static_cast<double> (direction)) };
         levelTextEditor.setValue (newValue);
     };
     levelTextEditor.onPopupMenuCallback = [this] () {};

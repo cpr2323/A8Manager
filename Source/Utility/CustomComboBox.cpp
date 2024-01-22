@@ -65,9 +65,6 @@ void CustomComboBox::mouseDrag (const juce::MouseEvent& mouseEvent)
     const auto distanceY { mouseEvent.getPosition ().getY () - lastMouseY };
     const auto dragSpeed = [this, distanceY] ()
     {
-        const auto kSlowThreshold { 10.0f };
-        const auto kMediumThreshold { 50.0f };
-
             if (distanceY < kSlowThreshold)
                 return DragSpeed::slow;
             else if (distanceY < kMediumThreshold)

@@ -136,22 +136,20 @@ private:
             return;
         }
         const auto distanceY { mouseEvent.getPosition ().getY () - lastMouseY };
-        const auto dragSpeed = [this, distanceY] ()
+        lastMouseY = mouseEvent.getPosition ().getY ();
+        //DebugLog ("CustomTextEditor::mouseDrag - ", "distanceY: " + juce::String (distanceY));
+        const auto dragSpeed = [this, dragDistance = std::abs (distanceY)] ()
         {
-            const auto kSlowThreshold { 10.0f };
-            const auto kMediumThreshold { 50.0f };
-
-            if (distanceY < kSlowThreshold)
+            if (dragDistance < kSlowThreshold)
                 return DragSpeed::slow;
-            else if (distanceY < kMediumThreshold)
+            else if (dragDistance < kMediumThreshold)
                 return DragSpeed::medium;
             else
                 return DragSpeed::fast;
         } ();
-        const auto dragDirection { (distanceY >= 0) ? -1 : 1 };
+        const auto dragDirection { (distanceY >= 0) ? -1 : 1 }; // 1 indicates dragging upwards (increment value), -1 indicates dragging downwards (decrement value)
         if (onDragCallback != nullptr)
             onDragCallback (dragSpeed, dragDirection);
-        lastMouseY = mouseEvent.getPosition ().getY ();
     }
 
     void mouseDoubleClick (const juce::MouseEvent& mouseEvent) override
@@ -192,11 +190,7 @@ class CustomTextEditorDouble : public CustomTextEditor<double>
 public:
     CustomTextEditorDouble ()
     {
-        onFocusLost = [this] ()
-            {
-                DebugLog ("CustomTextEditorDouble::onFocusLost", juce::SystemStats::getStackBacktrace());
-                setValue (getText ().getDoubleValue ());
-            };
+        onFocusLost = [this] () { setValue (getText ().getDoubleValue ()); };
         onReturnKey = [this] () { setValue (getText ().getDoubleValue ()); };
     }
 };
