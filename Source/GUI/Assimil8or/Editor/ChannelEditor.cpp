@@ -459,9 +459,9 @@ void ChannelEditor::setupChannelComponents ()
         const auto multiplier = [this, dragSpeed] ()
         {
             if (dragSpeed == DragSpeed::slow)
-                return 0.1;
+                return 0.01;
             else if (dragSpeed == DragSpeed::medium)
-                return 1.0;
+                return 0.1;
             else
                 return (maxChannelProperties.getPitch () - minChannelProperties.getPitch ()) / 10.0;
         } ();
@@ -1411,6 +1411,12 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
         zoneEditor.clampMinVoltage = [this, zoneEditorIndex] (double voltage)
         {
             const auto [topBoundary, bottomBoundary] { getVoltageBoundaries (zoneEditorIndex, 0) };
+            DebugLog ("ChannelEditor/zoneEditor.clampMinVoltage ","bottomBoundary: " + juce::String(bottomBoundary));
+            DebugLog ("ChannelEditor/zoneEditor.clampMinVoltage ", "topBoundary: " + juce::String (topBoundary));
+            DebugLog ("ChannelEditor/zoneEditor.clampMinVoltage ", "bottomBoundary + 0.01: " + juce::String (bottomBoundary + 0.01));
+            DebugLog ("ChannelEditor/zoneEditor.clampMinVoltage ", "topBoundary - 0.01: " + juce::String (topBoundary - 0.01));
+            DebugLog ("ChannelEditor/zoneEditor.clampMinVoltage ", "voltage: " + juce::String (voltage));
+            DebugLog ("ChannelEditor/zoneEditor.clampMinVoltage ", "clamped voltage: " + juce::String (std::clamp (voltage, bottomBoundary + 0.01, topBoundary - 0.01)));
             return std::clamp (voltage, bottomBoundary + 0.01, topBoundary - 0.01);
         };
         zoneEditor.onSampleChange = [this, zoneEditorIndex] (juce::String sampleFileName)

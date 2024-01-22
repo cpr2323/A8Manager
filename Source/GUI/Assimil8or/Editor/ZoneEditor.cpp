@@ -346,7 +346,20 @@ void ZoneEditor::setupZoneComponents ()
         if (sourceSamplePointsButton.getToggleState ())
             audioPlayerProperties.setLoopStart (static_cast<int> (value), false);
     };
-    sampleStartTextEditor.onDragCallback = [this] (DragSpeed dragSpeed, int direction) {};
+    sampleStartTextEditor.onDragCallback = [this] (DragSpeed dragSpeed, int direction)
+    {
+        const auto multiplier = [this, dragSpeed] ()
+        {
+            if (dragSpeed == DragSpeed::slow)
+                return static_cast<juce::int64> (1);
+            else if (dragSpeed == DragSpeed::medium)
+                return std::max (sampleData.getLengthInSamples () / static_cast<juce::int64> (100), static_cast<juce::int64> (1));
+            else
+                return std::max (sampleData.getLengthInSamples () / static_cast<juce::int64> (10), static_cast<juce::int64> (1));
+        } ();
+        const auto newValue { zoneProperties.getSampleStart ().value_or (0) + (multiplier * direction)};
+        sampleStartTextEditor.setValue (newValue);
+    };
     sampleStartTextEditor.onPopupMenuCallback = [this] () {};
     setupTextEditor (sampleStartTextEditor, juce::Justification::centred, 0, "0123456789", "SampleStart");
 
@@ -361,7 +374,20 @@ void ZoneEditor::setupZoneComponents ()
         if (sourceSamplePointsButton.getToggleState ())
             audioPlayerProperties.setLoopLength (static_cast<int> (value - zoneProperties.getSampleStart ().value_or (0)), false);
     };
-    sampleEndTextEditor.onDragCallback = [this] (DragSpeed dragSpeed, int direction) {};
+    sampleEndTextEditor.onDragCallback = [this] (DragSpeed dragSpeed, int direction)
+    {
+        const auto multiplier = [this, dragSpeed] ()
+        {
+            if (dragSpeed == DragSpeed::slow)
+                return static_cast<juce::int64> (1);
+            else if (dragSpeed == DragSpeed::medium)
+                return std::max (sampleData.getLengthInSamples () / static_cast<juce::int64> (100), static_cast<juce::int64> (1));
+            else
+                return std::max (sampleData.getLengthInSamples () / static_cast<juce::int64> (10), static_cast<juce::int64> (1));
+        } ();
+        const auto newValue { zoneProperties.getSampleEnd ().value_or (sampleData.getLengthInSamples ()) + (multiplier * direction) };
+        sampleEndTextEditor.setValue (newValue);
+    };
     sampleEndTextEditor.onPopupMenuCallback = [this] () {};
     setupTextEditor (sampleEndTextEditor, juce::Justification::centred, 0, "0123456789", "SampleEnd");
 
@@ -404,13 +430,25 @@ void ZoneEditor::setupZoneComponents ()
                 audioPlayerProperties.setLoopLength (static_cast<int> (loopLength), false);
         }
     };
-    loopStartTextEditor.onDragCallback = [this] (DragSpeed dragSpeed, int direction) {};
+    loopStartTextEditor.onDragCallback = [this] (DragSpeed dragSpeed, int direction)
+    {
+        const auto multiplier = [this, dragSpeed] ()
+        {
+            if (dragSpeed == DragSpeed::slow)
+                return static_cast<juce::int64> (1);
+            else if (dragSpeed == DragSpeed::medium)
+                return std::max (sampleData.getLengthInSamples () / static_cast<juce::int64> (100), static_cast<juce::int64> (1));
+            else
+                return std::max (sampleData.getLengthInSamples () / static_cast<juce::int64> (10), static_cast<juce::int64> (1));
+        } ();
+        const auto newValue { zoneProperties.getLoopStart ().value_or (0) + (multiplier * direction) };
+        loopStartTextEditor.setValue (newValue);
+    };
     loopStartTextEditor.onPopupMenuCallback = [this] () {};
     setupTextEditor (loopStartTextEditor, juce::Justification::centred, 0, "0123456789", "LoopStart");
 
     // LOOP LENGTH/END
     setupLabel (loopLengthLabel, "LOOP LENGTH", 12.0, juce::Justification::centredRight);
-// TODO - NEED TO FINISH THIS ONE. DOES IT REQUIRE MORE CHANGES TO THE CustomTextEditor base class?
     loopLengthTextEditor.getMinValueCallback = [this]
     {
         if (treatLoopLengthAsEndInUi)
@@ -450,7 +488,21 @@ void ZoneEditor::setupZoneComponents ()
         if (sourceLoopPointsButton.getToggleState ())
             audioPlayerProperties.setLoopLength (static_cast<int> (loopLengthInputValue), false);
     };
-    loopLengthTextEditor.onDragCallback = [this] (DragSpeed dragSpeed, int direction) {};
+    loopLengthTextEditor.onDragCallback = [this] (DragSpeed dragSpeed, int direction)
+    {
+        const auto multiplier = [this, dragSpeed] ()
+        {
+            if (dragSpeed == DragSpeed::slow)
+                return static_cast<juce::int64> (1);
+            else if (dragSpeed == DragSpeed::medium)
+                return std::max (sampleData.getLengthInSamples () / static_cast<juce::int64> (100), static_cast<juce::int64> (1));
+            else
+                return std::max (sampleData.getLengthInSamples () / static_cast<juce::int64> (10), static_cast<juce::int64> (1));
+        } ();
+        const auto newValue { zoneProperties.getLoopLength ().value_or (sampleData.getLengthInSamples ()) + (multiplier * direction) };
+        DebugLog ("ZoneEditor/loopLengthTextEditor.onDragCallback", "newValue: " + juce::String (newValue));
+        loopLengthTextEditor.setValue (newValue);
+    };
     loopLengthTextEditor.onPopupMenuCallback = [this] () {};
     setupTextEditor (loopLengthTextEditor, juce::Justification::centred, 0, ".0123456789", "LoopLength");
 
@@ -463,14 +515,23 @@ void ZoneEditor::setupZoneComponents ()
         jassert (isMinVoltageInRange != nullptr);
         ErrorHelpers::setColorIfError (minVoltageTextEditor, isMinVoltageInRange (minVoltageTextEditor.getText ().getDoubleValue ()));
     };
+    minVoltageTextEditor.snapValueCallback = [this] (double value) { jassert (clampMinVoltage != nullptr); return clampMinVoltage (value); };
     minVoltageTextEditor.toStringCallback = [this] (double value) { return FormatHelpers::formatDouble (value, 2, true); };
-    minVoltageTextEditor.updateDataCallback = [this] (double value)
+    minVoltageTextEditor.updateDataCallback = [this] (double value) { minVoltageUiChanged (value); };
+    minVoltageTextEditor.onDragCallback = [this] (DragSpeed dragSpeed, int direction)
     {
-        // TODO can this extra call to clampMinVoltage somehow be covered by the snapValueCallback in CustomTextEditor
-        jassert (clampMinVoltage != nullptr);
-        minVoltageUiChanged (clampMinVoltage (value));
+        const auto multiplier = [this, dragSpeed] ()
+        {
+            if (dragSpeed == DragSpeed::slow)
+                return 0.01;
+            else if (dragSpeed == DragSpeed::medium)
+                return 0.1;
+            else
+                return 1.0;
+        } ();
+        const auto newValue { zoneProperties.getMinVoltage () + (multiplier * static_cast<double> (direction)) };
+        minVoltageTextEditor.setValue (newValue);
     };
-    minVoltageTextEditor.onDragCallback = [this] (DragSpeed dragSpeed, int direction) {};
     minVoltageTextEditor.onPopupMenuCallback = [this] () {};
     setupTextEditor (minVoltageTextEditor, juce::Justification::centred, 0, "+-.0123456789", "MinVoltage");
 
@@ -479,7 +540,20 @@ void ZoneEditor::setupZoneComponents ()
     pitchOffsetTextEditor.getMaxValueCallback = [this] { return maxZoneProperties.getPitchOffset (); };
     pitchOffsetTextEditor.toStringCallback = [this] (double value) { return FormatHelpers::formatDouble (value, 2, true); };
     pitchOffsetTextEditor.updateDataCallback = [this] (double value) { pitchOffsetUiChanged (value); };
-    pitchOffsetTextEditor.onDragCallback = [this] (DragSpeed dragSpeed, int direction) {};
+    pitchOffsetTextEditor.onDragCallback = [this] (DragSpeed dragSpeed, int direction)
+    {
+        const auto multiplier = [this, dragSpeed] ()
+        {
+            if (dragSpeed == DragSpeed::slow)
+                return 0.01;
+            else if (dragSpeed == DragSpeed::medium)
+                return 0.1;
+            else
+                return (maxZoneProperties.getPitchOffset () - minZoneProperties.getPitchOffset ()) / 10.0;
+        } ();
+        const auto newValue { zoneProperties.getPitchOffset () + (multiplier * static_cast<double> (direction)) };
+        pitchOffsetTextEditor.setValue (newValue);
+    };
     pitchOffsetTextEditor.onPopupMenuCallback = [this] () {};
     setupLabel (pitchOffsetLabel, "PITCH OFFSET", 15.0, juce::Justification::centredRight);
     setupTextEditor (pitchOffsetTextEditor, juce::Justification::centred, 0, "+-.0123456789", "PitchOffset");
@@ -490,7 +564,20 @@ void ZoneEditor::setupZoneComponents ()
     levelOffsetTextEditor.getMaxValueCallback = [this] { return maxZoneProperties.getLevelOffset (); };
     levelOffsetTextEditor.toStringCallback = [this] (double value) { return FormatHelpers::formatDouble (value, 1, true); };
     levelOffsetTextEditor.updateDataCallback = [this] (double value) { levelOffsetUiChanged (value); };
-    levelOffsetTextEditor.onDragCallback = [this] (DragSpeed dragSpeed, int direction) {};
+    levelOffsetTextEditor.onDragCallback = [this] (DragSpeed dragSpeed, int direction)
+    {
+        const auto multiplier = [this, dragSpeed] ()
+        {
+            if (dragSpeed == DragSpeed::slow)
+                return 0.1;
+            else if (dragSpeed == DragSpeed::medium)
+                return 1.0;
+            else
+                return (maxZoneProperties.getLevelOffset () - minZoneProperties.getLevelOffset ()) / 10.0;
+        } ();
+        const auto newValue { zoneProperties.getLevelOffset () + (multiplier * static_cast<double> (direction)) };
+        levelOffsetTextEditor.setValue (newValue);
+    };
     levelOffsetTextEditor.onPopupMenuCallback = [this] () {};
     setupTextEditor (levelOffsetTextEditor, juce::Justification::centred, 0, "+-.0123456789", "LevelOffset");
 }
@@ -790,11 +877,13 @@ void ZoneEditor::levelOffsetUiChanged (double levelOffset)
 void ZoneEditor::loopLengthDataChanged (std::optional<double> loopLength)
 {
     loopLengthTextEditor.setText (formatLoopLength (loopLength.value_or (static_cast<double> (sampleData.getLengthInSamples () - zoneProperties.getLoopStart ().value_or (0)))));
+    updateLoopPointsView ();
 }
 
 void ZoneEditor::loopLengthUiChanged (double loopLength)
 {
     zoneProperties.setLoopLength (loopLength, false);
+    updateLoopPointsView ();
 }
 
 void ZoneEditor::loopStartDataChanged (std::optional<juce::int64> loopStart)
@@ -806,6 +895,7 @@ void ZoneEditor::loopStartDataChanged (std::optional<juce::int64> loopStart)
 void ZoneEditor::loopStartUiChanged (juce::int64 loopStart)
 {
     zoneProperties.setLoopStart (loopStart, false);
+    updateLoopPointsView ();
 }
 
 void ZoneEditor::minVoltageDataChanged (double minVoltage)
