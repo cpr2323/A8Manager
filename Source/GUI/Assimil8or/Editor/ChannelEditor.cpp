@@ -456,9 +456,17 @@ void ChannelEditor::setupChannelComponents ()
     setupTextEditor (pitchTextEditor, juce::Justification::centred, 0, "+-.0123456789", "Pitch");
     pitchTextEditor.onDragCallback = [this] (DragSpeed dragSpeed, int direction)
     {
-        const auto scrollAmount { (dragSpeed == DragSpeed::fast ? 1.0 : 0.1) * static_cast<float> (direction) };
-        const auto newAmount { channelProperties.getPitch () + scrollAmount };
-        pitchTextEditor.setValue (newAmount);
+        const auto multiplier = [this, dragSpeed] ()
+        {
+            if (dragSpeed == DragSpeed::slow)
+                return 0.1;
+            else if (dragSpeed == DragSpeed::medium)
+                return 1.0;
+            else
+                return (maxChannelProperties.getPitch () - minChannelProperties.getPitch ()) / 10.0;
+        } ();
+        const auto newValue { channelProperties.getPitch () + (multiplier * static_cast<double> (direction)) };
+        pitchTextEditor.setValue (newValue);
     };
     pitchTextEditor.onPopupMenuCallback = [this] ()
     {
@@ -597,7 +605,7 @@ void ChannelEditor::setupChannelComponents ()
     levelTextEditor.updateDataCallback = [this] (double value) { levelUiChanged (value); };
     levelTextEditor.onDragCallback = [this] (DragSpeed dragSpeed, int direction)
     {
-        auto multiplier = [this, dragSpeed] ()
+        const auto multiplier = [this, dragSpeed] ()
         {
             if (dragSpeed == DragSpeed::slow)
                 return 0.1;
@@ -707,7 +715,20 @@ void ChannelEditor::setupChannelComponents ()
     pMIndexTextEditor.getMaxValueCallback = [this] () { return maxChannelProperties.getPMIndex (); };
     pMIndexTextEditor.updateDataCallback = [this] (double value) { pMIndexUiChanged (value); };
     pMIndexTextEditor.toStringCallback = [this] (double value) { return FormatHelpers::formatDouble (value, 2, true); };
-    pMIndexTextEditor.onDragCallback = [this] (DragSpeed dragSpeed, int direction) {};
+    pMIndexTextEditor.onDragCallback = [this] (DragSpeed dragSpeed, int direction)
+    {
+        const auto multiplier = [this, dragSpeed] ()
+        {
+            if (dragSpeed == DragSpeed::slow)
+                return 0.01;
+            else if (dragSpeed == DragSpeed::medium)
+                return 0.1;
+            else
+                return 1.0;
+        } ();
+        const auto newValue { channelProperties.getPMIndex () + (multiplier * static_cast<double> (direction)) };
+        pMIndexTextEditor.setValue (newValue);
+    };
     pMIndexTextEditor.onPopupMenuCallback = [this] () {};
     setupTextEditor (pMIndexTextEditor, juce::Justification::centred, 0, "+-.0123456789", "PMIndex");
 
@@ -749,14 +770,39 @@ void ChannelEditor::setupChannelComponents ()
     setupLabel (attackLabel, "ATTACK", kMediumLabelSize, juce::Justification::centredRight);
     attackTextEditor.getMinValueCallback = [this] () { return minChannelProperties.getAttack (); };
     attackTextEditor.getMaxValueCallback = [this] () { return maxChannelProperties.getAttack (); };
-    attackTextEditor.snapValueCallback = [this] (double value) { return snapEnvelopeValue (value); };
+    //attackTextEditor.snapValueCallback = [this] (double value) { return snapEnvelopeValue (value); };
     attackTextEditor.toStringCallback = [this] (double value) { return FormatHelpers::formatDouble (value, getEnvelopeValueResolution (value), false); };
     attackTextEditor.updateDataCallback = [this] (double value)
     {
         arEnvelopeProperties.setAttackPercent (value / static_cast<double> (kMaxEnvelopeTime * 2), false);
         attackUiChanged (value);
     };
-    attackTextEditor.onDragCallback = [this] (DragSpeed dragSpeed, int direction) {};
+    attackTextEditor.onDragCallback = [this] (DragSpeed dragSpeed, int direction)
+    {
+        const auto multiplier = [this, dragSpeed] ()
+        {
+            const auto scalerValue = [rawValue = channelProperties.getAttack ()] ()
+            {
+                if (rawValue < 0.01)
+                    return 0.0001;
+                else if (rawValue < 0.1)
+                    return 0.001;
+                else if (rawValue < 1.0)
+                    return 0.1;
+                else
+                    return 1.0;
+            } ();
+
+            if (dragSpeed == DragSpeed::slow)
+                return scalerValue;
+            else if (dragSpeed == DragSpeed::medium)
+                return scalerValue * 5.0;
+            else
+                return (maxChannelProperties.getAttack () - minChannelProperties.getAttack ()) / 10.0;
+        } ();
+        const auto newValue { channelProperties.getAttack () + (multiplier * static_cast<double> (direction)) };
+        attackTextEditor.setValue (newValue);
+    };
     attackTextEditor.onPopupMenuCallback = [this] () {};
     setupTextEditor (attackTextEditor, juce::Justification::centred, 0, ".0123456789", "Attack");
 
@@ -778,14 +824,39 @@ void ChannelEditor::setupChannelComponents ()
     // RELEASE
     releaseTextEditor.getMinValueCallback = [this] () { return minChannelProperties.getRelease (); };
     releaseTextEditor.getMaxValueCallback = [this] () { return maxChannelProperties.getRelease (); };
-    releaseTextEditor.snapValueCallback = [this] (double value) { return snapEnvelopeValue (value); };
+    //releaseTextEditor.snapValueCallback = [this] (double value) { return snapEnvelopeValue (value); };
     releaseTextEditor.toStringCallback = [this] (double value) { return FormatHelpers::formatDouble (value, getEnvelopeValueResolution (value), false); };
     releaseTextEditor.updateDataCallback = [this] (double value)
     {
         arEnvelopeProperties.setReleasePercent (value / static_cast<double> (kMaxEnvelopeTime * 2), false);
         releaseUiChanged (value);
     };
-    releaseTextEditor.onDragCallback = [this] (DragSpeed dragSpeed, int direction) {};
+    releaseTextEditor.onDragCallback = [this] (DragSpeed dragSpeed, int direction)
+    {
+        const auto multiplier = [this, dragSpeed] ()
+        {
+            const auto scalerValue = [rawValue = channelProperties.getRelease ()] ()
+            {
+                if (rawValue < 0.01)
+                    return 0.0001;
+                else if (rawValue < 0.1)
+                    return 0.001;
+                else if (rawValue < 1.0)
+                    return 0.1;
+                else
+                    return 1.0;
+            } ();
+
+                if (dragSpeed == DragSpeed::slow)
+                    return scalerValue;
+                else if (dragSpeed == DragSpeed::medium)
+                    return scalerValue * 5.0;
+                else
+                    return (maxChannelProperties.getRelease () - minChannelProperties.getRelease ()) / 10.0;
+        } ();
+        const auto newValue { channelProperties.getRelease () + (multiplier * static_cast<double> (direction)) };
+        releaseTextEditor.setValue (newValue);
+    };
     releaseTextEditor.onPopupMenuCallback = [this] () {};
     setupTextEditor (releaseTextEditor, juce::Justification::centred, 0, ".0123456789", "Release");
 
@@ -812,10 +883,31 @@ void ChannelEditor::setupChannelComponents ()
     // BITS
     bitsTextEditor.getMinValueCallback = [this] () { return minChannelProperties.getBits (); };
     bitsTextEditor.getMaxValueCallback = [this] () { return maxChannelProperties.getBits (); };
-    bitsTextEditor.snapValueCallback = [this] (double value) { return snapBitsValue (value); };
+    //bitsTextEditor.snapValueCallback = [this] (double value) { return snapBitsValue (value); };
     bitsTextEditor.toStringCallback = [this] (double value) { return FormatHelpers::formatDouble (value, 1, false); };
     bitsTextEditor.updateDataCallback = [this] (double value) { bitsUiChanged (value); };
-    bitsTextEditor.onDragCallback = [this] (DragSpeed dragSpeed, int direction) {};
+    bitsTextEditor.onDragCallback = [this] (DragSpeed dragSpeed, int direction)
+    {
+        const auto multiplier = [this, dragSpeed] ()
+        {
+            const auto scalerValue = [rawValue = channelProperties.getBits ()] ()
+            {
+                if (rawValue < 10.0)
+                    return 0.1;
+                else
+                    return 1.0;
+            } ();
+
+            if (dragSpeed == DragSpeed::slow)
+                return scalerValue;
+            else if (dragSpeed == DragSpeed::medium)
+                return scalerValue * 5.0;
+            else
+                return (maxChannelProperties.getBits () - minChannelProperties.getBits ()) / 10.0;
+        } ();
+        const auto newValue { channelProperties.getBits () + (multiplier * static_cast<double> (direction)) };
+        bitsTextEditor.setValue (newValue);
+    };
     bitsTextEditor.onPopupMenuCallback = [this] () {};
     setupTextEditor (bitsTextEditor, juce::Justification::centred, 0, "+-.0123456789", "Bits");
 
@@ -840,7 +932,20 @@ void ChannelEditor::setupChannelComponents ()
     aliasingTextEditor.getMaxValueCallback = [this] () { return maxChannelProperties.getAliasing (); };
     aliasingTextEditor.toStringCallback = [this] (int value) { return juce::String (value); };
     aliasingTextEditor.updateDataCallback = [this] (int value) { aliasingUiChanged (value); };
-    aliasingTextEditor.onDragCallback = [this] (DragSpeed dragSpeed, int direction) {};
+    aliasingTextEditor.onDragCallback = [this] (DragSpeed dragSpeed, int direction)
+    {
+        const auto multiplier = [this, dragSpeed] ()
+        {
+            if (dragSpeed == DragSpeed::slow)
+                return 1;
+            else if (dragSpeed == DragSpeed::medium)
+                return 5;
+            else
+                return 10;
+        } ();
+        const auto newValue { channelProperties.getAliasing () + (multiplier * direction) };
+        aliasingTextEditor.setValue (newValue);
+    };
     aliasingTextEditor.onPopupMenuCallback = [this] () {};
     setupTextEditor (aliasingTextEditor, juce::Justification::centred, 0, "0123456789", "Aliasing");
 
@@ -870,7 +975,20 @@ void ChannelEditor::setupChannelComponents ()
     panTextEditor.getMaxValueCallback = [this] () { return maxChannelProperties.getPan (); };
     panTextEditor.toStringCallback = [this] (double value) { return FormatHelpers::formatDouble (value, 2, true); };
     panTextEditor.updateDataCallback = [this] (double value) { panUiChanged (value); };
-    panTextEditor.onDragCallback = [this] (DragSpeed dragSpeed, int direction) {};
+    panTextEditor.onDragCallback = [this] (DragSpeed dragSpeed, int direction)
+    {
+        const auto multiplier = [this, dragSpeed] ()
+        {
+            if (dragSpeed == DragSpeed::slow)
+                return 0.01;
+            else if (dragSpeed == DragSpeed::medium)
+                return 0.1;
+            else
+                return 0.5;
+        } ();
+        const auto newValue { channelProperties.getPan () + (multiplier * static_cast<double> (direction)) };
+        panTextEditor.setValue (newValue);
+    };
     panTextEditor.onPopupMenuCallback = [this] () {};
     setupTextEditor (panTextEditor, juce::Justification::centred, 0, "+-.0123456789", "Pan");
     setupLabel (panLabel, "PAN", kMediumLabelSize, juce::Justification::centredRight);
@@ -893,7 +1011,20 @@ void ChannelEditor::setupChannelComponents ()
     mixLevelTextEditor.getMaxValueCallback = [this] () { return maxChannelProperties.getMixLevel (); };
     mixLevelTextEditor.toStringCallback = [this] (double value) { return FormatHelpers::formatDouble (value, 1, false); };
     mixLevelTextEditor.updateDataCallback = [this] (double value) { mixLevelUiChanged (value); };
-    mixLevelTextEditor.onDragCallback = [this] (DragSpeed dragSpeed, int direction) {};
+    mixLevelTextEditor.onDragCallback = [this] (DragSpeed dragSpeed, int direction)
+    {
+        const auto multiplier = [this, dragSpeed] ()
+        {
+            if (dragSpeed == DragSpeed::slow)
+                return 0.1;
+            else if (dragSpeed == DragSpeed::medium)
+                return 1.0;
+            else
+                return (maxChannelProperties.getMixLevel () - minChannelProperties.getMixLevel ()) / 10.0;
+        } ();
+        const auto newValue { channelProperties.getMixLevel () + (multiplier * static_cast<double> (direction)) };
+        mixLevelTextEditor.setValue (newValue);
+    };
     mixLevelTextEditor.onPopupMenuCallback = [this] () {};
     setupTextEditor (mixLevelTextEditor, juce::Justification::centred, 0, "+-.0123456789", "MixLevel");
 
