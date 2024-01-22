@@ -2,7 +2,7 @@
 
 #include <JuceHeader.h>
 #include "DebugLog.h"
-#include "DragSpeed.h"
+#include "CustomComponentMouseHandler.h"
 #include "ErrorHelpers.h"
 #include "SinglePoleFilter.h"
 
@@ -45,12 +45,11 @@ public:
     // optional
     std::function<void ()> highlightErrorCallback;
     std::function<T (T)> snapValueCallback;
-    std::function<void (DragSpeed dragSpeed, int direction)> onDragCallback;
-    std::function<void ()> onPopupMenuCallback;
+    OnDragCallback onDragCallback;
+    OnPopupMenuCallback onPopupMenuCallback;
 
 private:
-    bool mouseCaptured { false };
-    int lastMouseY { 0 };
+    CustomComponentMouseHandler customComponentMouseHandler;
 
     void constrainAndSet (T value)
     {
@@ -63,6 +62,7 @@ private:
             //DebugLog ("CustomTextEditor", "input value: " + juce::String (value));
             const auto clampedValue { std::clamp (value, getMinValueCallback (), getMaxValueCallback ()) };
             //DebugLog ("CustomTextEditor", "clamped value: " + juce::String(clampedValue));
+            // TODO - I think this should be handled by the toStringCallback AND in the Preset Writer
             if (snapValueCallback == nullptr)
                 return clampedValue;
             else
@@ -75,92 +75,49 @@ private:
 
     void mouseDown (const juce::MouseEvent& mouseEvent) override
     {
-        if (!mouseEvent.mods.isPopupMenu ())
-        {
-            if (mouseEvent.mods.isCommandDown ())
-            {
-                LogMouseDragInfo ("capturing mouse");
-                lastMouseY = mouseEvent.getPosition ().getY ();
-                mouseCaptured = true;
-                return;
-            }
-        }
-        else
-        {
-            LogMouseDragInfo ("invoking popup menu");
-            if (onPopupMenuCallback != nullptr)
-                onPopupMenuCallback ();
-            return;
-        }
-        LogMouseDragInfo ("mouseUp");
-        juce::TextEditor::mouseDown (mouseEvent);
+        if (! customComponentMouseHandler.mouseDown (mouseEvent, onPopupMenuCallback))
+            juce::TextEditor::mouseDown (mouseEvent);
     }
 
     void mouseUp (const juce::MouseEvent& mouseEvent) override
     {
-        if (mouseCaptured == true)
-        {
-            LogMouseDragInfo ("releasing mouse");
-            mouseCaptured = false;
-        }
-        else
-        {
-            LogMouseDragInfo ("mouseUp");
+        if (! customComponentMouseHandler.mouseUp (mouseEvent))
             juce::TextEditor::mouseUp (mouseEvent);
-        }
     }
 
     void mouseMove (const juce::MouseEvent& mouseEvent) override
     {
-        if (! mouseCaptured)
+        if (! customComponentMouseHandler.mouseMove (mouseEvent))
             juce::TextEditor::mouseMove (mouseEvent);
     }
 
     void mouseEnter (const juce::MouseEvent& mouseEvent) override
     {
-        if (! mouseCaptured)
+        if (! customComponentMouseHandler.mouseEnter (mouseEvent))
             juce::TextEditor::mouseEnter (mouseEvent);
     }
 
     void mouseExit (const juce::MouseEvent& mouseEvent) override
     {
-        if (! mouseCaptured)
+        if (! customComponentMouseHandler.mouseExit (mouseEvent))
             juce::TextEditor::mouseExit (mouseEvent);
     }
 
     void mouseDrag (const juce::MouseEvent& mouseEvent) override
     {
-        if (! mouseCaptured)
-        {
+        if (! customComponentMouseHandler.mouseDrag (mouseEvent, onDragCallback))
             juce::TextEditor::mouseDrag (mouseEvent);
-            return;
-        }
-        const auto distanceY { mouseEvent.getPosition ().getY () - lastMouseY };
-        lastMouseY = mouseEvent.getPosition ().getY ();
-        //DebugLog ("CustomTextEditor::mouseDrag - ", "distanceY: " + juce::String (distanceY));
-        const auto dragSpeed = [this, dragDistance = std::abs (distanceY)] ()
-        {
-            if (dragDistance < kSlowThreshold)
-                return DragSpeed::slow;
-            else if (dragDistance < kMediumThreshold)
-                return DragSpeed::medium;
-            else
-                return DragSpeed::fast;
-        } ();
-        const auto dragDirection { (distanceY >= 0) ? -1 : 1 }; // 1 indicates dragging upwards (increment value), -1 indicates dragging downwards (decrement value)
-        if (onDragCallback != nullptr)
-            onDragCallback (dragSpeed, dragDirection);
     }
 
     void mouseDoubleClick (const juce::MouseEvent& mouseEvent) override
     {
-        if (! mouseCaptured)
+        if (! customComponentMouseHandler.mouseDoubleClick (mouseEvent))
             juce::TextEditor::mouseDoubleClick (mouseEvent);
     }
 
     void mouseWheelMove (const juce::MouseEvent& mouseEvent, const juce::MouseWheelDetails& wheel) override
     {
-        if (! mouseCaptured)
+        if (! customComponentMouseHandler.mouseWheelMove (mouseEvent, wheel))
             juce::TextEditor::mouseWheelMove (mouseEvent, wheel);
     }
 };

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include "DragSpeed.h"
+#include "CustomComponentMouseHandler.h"
 
 class CustomComboBox : public juce::ComboBox
 {
@@ -10,8 +10,7 @@ public:
     std::function<void ()> onPopupMenuCallback;
 
 private:
-    bool mouseCaptured { false };
-    int lastMouseY { 0 };
+    CustomComponentMouseHandler customComponentMouseHandler;
 
     void mouseDown (const juce::MouseEvent& mouseEvent) override;
     void mouseUp (const juce::MouseEvent& mouseEvent) override;
