@@ -388,6 +388,44 @@ double ChannelEditor::snapValue (double rawValue, double snapAmount)
     return snappedAmount;
 }
 
+juce::PopupMenu ChannelEditor::createChannelEditMenu (std::function <void (ChannelProperties&)> setter, std::function <void ()> resetter)
+{
+    jassert (setter != nullptr);
+    const auto srcChannelIndex { channelProperties.getId () - 1 };
+    juce::PopupMenu cloneMenu;
+    for (auto destChannelIndex { 0 }; destChannelIndex < 8; ++destChannelIndex)
+    {
+        if (destChannelIndex != srcChannelIndex)
+            cloneMenu.addItem ("To Channel " + juce::String (destChannelIndex + 1), true, false, [this, destChannelIndex, setter] ()
+            {
+                editManager->forChannel (destChannelIndex, [this, setter] (juce::ValueTree channelPropertiesVT)
+                {
+                    ChannelProperties destChannelProperties (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
+                    setter (destChannelProperties);
+                });
+            });
+    }
+    cloneMenu.addItem ("To All", true, false, [this, srcChannelIndex, setter] ()
+    {
+        std::vector<int> channelIndexList;
+        // build list of other channels
+        for (auto destChannelIndex { 0 }; destChannelIndex < 8; ++destChannelIndex)
+            if (destChannelIndex != srcChannelIndex)
+                channelIndexList.emplace_back (destChannelIndex);
+        // clone to other channels
+        editManager->forChannels (channelIndexList, [this, setter] (juce::ValueTree channelPropertiesVT)
+        {
+            ChannelProperties destChannelProperties (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
+            setter (destChannelProperties);
+        });
+    });
+    juce::PopupMenu editMenu;
+    editMenu.addSubMenu ("Clone", cloneMenu, true);
+    editMenu.addItem ("Reset", true, false, [this, resetter] () { resetter (); });
+
+    return editMenu;
+};
+
 void ChannelEditor::setupChannelComponents ()
 {
     juce::XmlDocument xmlDoc { BinaryData::Assimil8orToolTips_xml };
@@ -470,39 +508,8 @@ void ChannelEditor::setupChannelComponents ()
     };
     pitchTextEditor.onPopupMenuCallback = [this] ()
     {
-        juce::PopupMenu cloneMenu;
-        const auto srcChannelIndex { channelProperties.getId () - 1 };
-        for (auto destChannelIndex { 0 }; destChannelIndex < 8; ++destChannelIndex)
-        {
-            if (destChannelIndex != srcChannelIndex)
-                cloneMenu.addItem ("To Channel " + juce::String (destChannelIndex + 1), true, false, [this, destChannelIndex] ()
-                {
-                    editManager->forChannel (destChannelIndex, [this, srcValue = channelProperties.getPitch ()] (juce::ValueTree channelPropertiesVT)
-                    {
-                        ChannelProperties destChannelProperties (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
-                        destChannelProperties.setPitch (srcValue, false);
-                    });
-                });
-        }
-        cloneMenu.addItem ("To All", true, false, [this] ()
-        {
-            std::vector<int> channelIndexList;
-            const auto srcChannelIndex { channelProperties.getId () - 1 };
-            for (auto destChannelIndex { 0 }; destChannelIndex < 8; ++destChannelIndex)
-                if (destChannelIndex != srcChannelIndex)
-                    channelIndexList.emplace_back (destChannelIndex);
-            editManager->forChannels (channelIndexList, [this, srcValue = channelProperties.getPitch ()] (juce::ValueTree channelPropertiesVT)
-            {
-                ChannelProperties destChannelProperties (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
-                destChannelProperties.setPitch (srcValue, false);
-            });
-        });
-        juce::PopupMenu editMenu;
-        editMenu.addSubMenu ("Clone", cloneMenu, true);
-        editMenu.addItem ("Reset", true, false, [this] ()
-        {
-            channelProperties.setPitch (defaultChannelProperties.getPitch (), true);
-        });
+        auto editMenu { createChannelEditMenu ([this] (ChannelProperties& destChannelProperties) { destChannelProperties.setPitch (channelProperties.getPitch (), false); },
+                                               [this] () { channelProperties.setPitch (defaultChannelProperties.getPitch (), true); }) };
         editMenu.showMenuAsync ({}, [this] (int) {});
     };
     // Pitch CV Input Selector
@@ -517,40 +524,16 @@ void ChannelEditor::setupChannelComponents ()
     };
     pitchCVComboBox.onPopupMenuCallback = [this] ()
     {
-        juce::PopupMenu cloneMenu;
-        const auto srcChannelIndex { channelProperties.getId () - 1 };
-        for (auto destChannelIndex { 0 }; destChannelIndex < 8; ++destChannelIndex)
+        auto pitchCVInputSetter = [this] (ChannelProperties& destChannelProperties)
         {
-            if (destChannelIndex != srcChannelIndex)
-                cloneMenu.addItem ("To Channel " + juce::String (destChannelIndex + 1), true, false, [this, destChannelIndex] ()
-                {
-                    editManager->forChannel (destChannelIndex, [this, srcValue = FormatHelpers::getCvInput (channelProperties.getPitchCV ())] (juce::ValueTree channelPropertiesVT)
-                    {
-                        ChannelProperties destChannelProperties (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
-                        destChannelProperties.setPitchCV (srcValue, FormatHelpers::getAmount (destChannelProperties.getPitchCV ()), false);
-                    });
-                });
-        }
-        cloneMenu.addItem ("To All", true, false, [this] ()
-        {
-            std::vector<int> channelIndexList;
-            const auto srcChannelIndex { channelProperties.getId () - 1 };
-            for (auto destChannelIndex { 0 }; destChannelIndex < 8; ++destChannelIndex)
-                if (destChannelIndex != srcChannelIndex)
-                    channelIndexList.emplace_back (destChannelIndex);
-            editManager->forChannels (channelIndexList, [this, srcValue = FormatHelpers::getCvInput (channelProperties.getPitchCV ())] (juce::ValueTree channelPropertiesVT)
-            {
-                ChannelProperties destChannelProperties (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
-                destChannelProperties.setPitchCV (srcValue, FormatHelpers::getAmount (destChannelProperties.getPitchCV ()), false);
-            });
-        });
-        juce::PopupMenu editMenu;
-        editMenu.addSubMenu ("Clone", cloneMenu, true);
-        editMenu.addItem ("Reset", true, false, [this] ()
+            destChannelProperties.setPitchCV (FormatHelpers::getCvInput (channelProperties.getPitchCV ()), FormatHelpers::getAmount (destChannelProperties.getPitchCV ()), false);
+        };
+        auto pitchCVInputResetter = [this] ()
         {
             const auto [defaultCvInput, _] { defaultChannelProperties.getPitchCV ()};
             channelProperties.setPitchCV (defaultCvInput, FormatHelpers::getAmount (channelProperties.getPitchCV ()), true);
-        });
+        };
+        auto editMenu { createChannelEditMenu (pitchCVInputSetter, pitchCVInputResetter) };
         editMenu.showMenuAsync ({}, [this] (int) {});
     };
     // Pitch CV Offset Editor
