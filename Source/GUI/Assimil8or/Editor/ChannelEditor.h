@@ -30,6 +30,7 @@ public:
             {
                 switch (dragSpeed)
                 {
+                    default:
                     case DragSpeed::slow: return 0.01; break;
                     case DragSpeed::medium: return 0.25; break;
                     case DragSpeed::fast: return 0.5; break;
