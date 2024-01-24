@@ -12,6 +12,7 @@
 #include "../../../Assimil8or/Audio/AudioPlayerProperties.h"
 #include "../../../Assimil8or/Preset/ChannelProperties.h"
 #include "../../../Utility/CustomComboBox.h"
+#include "../../../Utility/CustomTextButton.h"
 #include "../../../Utility/CustomTextEditor.h"
 #include "../../../Utility/ErrorHelpers.h"
 #include "../../../Utility/NoArrowComboBoxLnF.h"
@@ -297,14 +298,14 @@ private:
     CustomTextEditorDouble releaseTextEditor; // double
     CvInputChannelComboBox releaseModComboBox; // 0A - 8C
     CvOffsetTextEditor releaseModTextEditor; // double
-    juce::TextButton reverseButton; //
+    CustomTextButton reverseButton; //
     juce::Label sampleEndModLabel;
     CvInputChannelComboBox sampleEndModComboBox; // 0A - 8C
     CvOffsetTextEditor sampleEndModTextEditor; // double
     juce::Label sampleStartModLabel;
     CvInputChannelComboBox sampleStartModComboBox; // 0A - 8C
     CvOffsetTextEditor sampleStartModTextEditor; // double
-    juce::TextButton spliceSmoothingButton; //
+    CustomTextButton spliceSmoothingButton; //
     juce::Label xfadeGroupLabel;
     CustomComboBox xfadeGroupComboBox; // Off, A, B, C, D
     juce::Label zonesCVLabel;

@@ -52,12 +52,6 @@ ChannelEditor::ChannelEditor ()
         label.setText (text, juce::NotificationType::dontSendNotification);
         addAndMakeVisible (label);
     };
-    auto setupComboBox = [this] (juce::ComboBox& comboBox, std::function<void ()> onChangeCallback)
-    {
-        jassert (onChangeCallback != nullptr);
-        comboBox.onChange = onChangeCallback;
-        addAndMakeVisible (comboBox);
-    };
 
     setupLabel (zonesLabel, "ZONES", kMediumLabelSize, juce::Justification::centredLeft);
     zonesLabel.setColour (juce::Label::ColourIds::textColourId, juce::Colours::white);
@@ -1315,10 +1309,22 @@ void ChannelEditor::setupChannelComponents ()
     setupTextEditor (aliasingModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "AliasingMod");
 
     // REVERSE BUTTON
+    reverseButton.onPopupMenuCallback = [this] ()
+    {
+        auto editMenu { createChannelEditMenu ([this] (ChannelProperties& destChannelProperties) { destChannelProperties.setReverse (channelProperties.getReverse (), false); },
+                                                [this] () { channelProperties.setReverse (defaultChannelProperties.getReverse (), true); }) };
+        editMenu.showMenuAsync ({}, [this] (int) {});
+    };
     setupButton (reverseButton, "REV", "Reverse", [this] () { reverseUiChanged (reverseButton.getToggleState ()); });
 
     // SMOOTH BUTTON
-    setupButton (spliceSmoothingButton, "SMOOTH", "SpliceSmoothing", [this] () { reverseUiChanged (spliceSmoothingButton.getToggleState ()); });
+    spliceSmoothingButton.onPopupMenuCallback = [this] ()
+    {
+        auto editMenu { createChannelEditMenu ([this] (ChannelProperties& destChannelProperties) { destChannelProperties.setSpliceSmoothing (channelProperties.getSpliceSmoothing (), false); },
+                                                [this] () { channelProperties.setSpliceSmoothing (defaultChannelProperties.getSpliceSmoothing (), true); }) };
+        editMenu.showMenuAsync ({}, [this] (int) {});
+    };
+    setupButton (spliceSmoothingButton, "SMOOTH", "SpliceSmoothing", [this] () { spliceSmoothingUiChanged (spliceSmoothingButton.getToggleState ()); });
 
     // PAN/MIX SECTION LABEL
     setupLabel (panMixLabel, "PAN/MIX", kLargeLabelSize, juce::Justification::centred);
