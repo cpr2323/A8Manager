@@ -1532,14 +1532,14 @@ void ChannelEditor::setupChannelComponents ()
     };
     autoTriggerComboBox.onPopupMenuCallback = [this] ()
     {
-        auto editMenu { createChannelEditMenu ([this] (ChannelProperties& destChannelProperties) { destChannelProperties.setAutoTrigger (channelProperties.getAutoTrigger (), false); },
+        auto editMenu { createChannelEditMenu ([this] (ChannelProperties& destChannelProperties) { destChannelProperties.setAutoTrigger (channelProperties.getAutoTrigger (), true); },
                                                [this] () { channelProperties.setAutoTrigger (defaultChannelProperties.getAutoTrigger (), true); }) };
         editMenu.showMenuAsync ({}, [this] (int) {});
     };
     setupComboBox (autoTriggerComboBox, "AutoTrigger", [this] ()
     {
         const auto autoTrigger { autoTriggerComboBox.getSelectedId () == 2 };
-        attackFromCurrentUiChanged (autoTrigger);
+        autoTriggerUiChanged (autoTrigger);
     });
 
     // PLAY MODE LABEL
@@ -2620,6 +2620,7 @@ void ChannelEditor::attackModUiChanged (juce::String cvInput, double attackMod)
 
 void ChannelEditor::autoTriggerDataChanged (bool autoTrigger)
 {
+    LogDataAndUiChanges (juce::String (channelProperties.getId ()));
     LogDataAndUiChanges ("autoTriggerDataChanged");
     autoTriggerComboBox.setSelectedId (autoTrigger ? 2 : 1, juce::NotificationType::dontSendNotification);
 }
