@@ -212,7 +212,7 @@ private:
     bool* zoneCopyBufferHasData { nullptr };
     AudioPlayerProperties audioPlayerProperties;
     SamplePool* samplePool { nullptr };
-    EditManager* editManager;
+    EditManager* editManager { nullptr };
 
     juce::Label zonesLabel;
     juce::Label zoneMaxVoltage;

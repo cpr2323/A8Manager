@@ -365,6 +365,7 @@ double ChannelEditor::snapValue (double rawValue, double snapAmount)
 juce::PopupMenu ChannelEditor::createChannelEditMenu (std::function <void (ChannelProperties&)> setter, std::function <void ()> resetter)
 {
     jassert (setter != nullptr);
+    jassert (resetter != nullptr);
     const auto srcChannelIndex { channelProperties.getId () - 1 };
     juce::PopupMenu cloneMenu;
     for (auto destChannelIndex { 0 }; destChannelIndex < 8; ++destChannelIndex)
@@ -1984,7 +1985,7 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
     {
         // Zone Editor setup
         auto& zoneEditor { zoneEditors [zoneEditorIndex] };
-        zoneEditor.init (zonePropertiesVT, rootPropertiesVT, samplePool);
+        zoneEditor.init (zonePropertiesVT, rootPropertiesVT, editManager, samplePool);
         zoneEditor.displayToolsMenu = [this] (int zoneIndex)
         {
             juce::PopupMenu pmBalance;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "EditManager.h"
 #include "LoopPoints/LoopPointsView.h"
 #include "SamplePool/SamplePool.h"
 #include "../../../AppProperties.h"
@@ -82,7 +83,7 @@ public:
     ZoneEditor ();
     ~ZoneEditor () = default;
 
-    void init (juce::ValueTree zonePropertiesVT, juce::ValueTree rootPropertiesVT, SamplePool* theSamplePool);
+    void init (juce::ValueTree zonePropertiesVT, juce::ValueTree rootPropertiesVT, EditManager* theEditManager, SamplePool* theSamplePool);
     void checkSampleExistence ();
     bool isSupportedAudioFile (juce::File file);
     void loadSample (juce::String sampleFileName);
@@ -101,10 +102,12 @@ private:
     ZoneProperties zoneProperties;
     ZoneProperties minZoneProperties;
     ZoneProperties maxZoneProperties;
+    ChannelProperties parentChannelProperties;
     juce::AudioFormatManager audioFormatManager;
     SamplePool* samplePool;
     SampleData sampleData;
     juce::String currentSampleFileName;
+    EditManager* editManager { nullptr };
 
     // Loop Length is always stored as loop length, but the UI can be toggled to display it, and take input for it, as if it is Loop End
     bool treatLoopLengthAsEndInUi { false };
@@ -141,6 +144,7 @@ private:
     juce::Label sampleStartLabel;
     CustomTextEditorInt64 sampleStartTextEditor; // int
 
+    juce::PopupMenu createZoneEditMenu (std::function <void (ZoneProperties&)> setter, std::function <void ()> resetter);
     juce::String formatLoopLength (double loopLength);
     bool handleSamplesInternal (int zoneIndex, juce::StringArray files);
     void setupZoneComponents ();

@@ -265,7 +265,6 @@ void ZoneEditor::loadSample (juce::String sampleFileName)
 
         if (sampleData.getNumChannels () == 2)
         {
-            ChannelProperties parentChannelProperties (zoneProperties.getValueTree ().getParent (), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
             // if this zone not the last channel && the parent channel isn't set to Stereo/Right
             if (auto parentChannelId { parentChannelProperties.getId () }; parentChannelId < 8 && parentChannelProperties.getChannelMode () != ChannelProperties::ChannelMode::stereoRight)
             {
@@ -582,11 +581,14 @@ void ZoneEditor::setupZoneComponents ()
     setupTextEditor (levelOffsetTextEditor, juce::Justification::centred, 0, "+-.0123456789", "LevelOffset");
 }
 
-void ZoneEditor::init (juce::ValueTree zonePropertiesVT, juce::ValueTree rootPropertiesVT, SamplePool* theSamplePool)
+void ZoneEditor::init (juce::ValueTree zonePropertiesVT, juce::ValueTree rootPropertiesVT, EditManager* theEditManager, SamplePool* theSamplePool)
 {
     //DebugLog ("ZoneEditor[" + juce::String (zoneProperties.getId ()) + "]", "init");
     jassert (theSamplePool != nullptr);
     samplePool = theSamplePool;
+
+    jassert (theEditManager != nullptr);
+    editManager = theEditManager;
 
     PersistentRootProperties persistentRootProperties (rootPropertiesVT, PersistentRootProperties::WrapperType::client, PersistentRootProperties::EnableCallbacks::no);
     RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
@@ -637,8 +639,9 @@ void ZoneEditor::init (juce::ValueTree zonePropertiesVT, juce::ValueTree rootPro
     sampleStartDataChanged (zoneProperties.getSampleStart ());
     sampleEndDataChanged (zoneProperties.getSampleEnd ());
 
-    ChannelProperties channelProperties (zoneProperties.getValueTree ().getParent (), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
-    setLoopLengthIsEnd (channelProperties.getLoopLengthIsEnd ());
+    jassert (ChannelProperties::isChannelPropertiesVT (zoneProperties.getValueTree ().getParent ()));
+    parentChannelProperties.wrap (zoneProperties.getValueTree ().getParent (), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
+    setLoopLengthIsEnd (parentChannelProperties.getLoopLengthIsEnd ());
 }
 
 void ZoneEditor::setLoopLengthIsEnd (bool newLoopLengthIsEnd)
@@ -827,6 +830,45 @@ double ZoneEditor::snapLoopLength (double rawValue)
     {
         return static_cast<uint32_t> (rawValue);
     }
+}
+
+juce::PopupMenu ZoneEditor::createZoneEditMenu (std::function <void (ZoneProperties&)> setter, std::function <void ()> resetter)
+{
+    jassert (setter != nullptr);
+    jassert (resetter != nullptr);
+    const auto srcZoneIndex { zoneProperties.getId () - 1 };
+    juce::PopupMenu cloneMenu;
+    for (auto destZoneIndex { 0 }; destZoneIndex < 8; ++destZoneIndex)
+    {
+        if (destZoneIndex != srcZoneIndex)
+            cloneMenu.addItem ("To Zone " + juce::String (destZoneIndex + 1), true, false, [this, destZoneIndex, setter] ()
+            {
+                editManager->forZone (parentChannelProperties.getId () - 1, destZoneIndex, [this, setter] (juce::ValueTree zonePropertiesVT)
+                {
+                    ZoneProperties destZoneProperties (zonePropertiesVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
+                    setter (destZoneProperties);
+                });
+            });
+    }
+    cloneMenu.addItem ("To All", true, false, [this, srcZoneIndex, setter] ()
+    {
+        std::vector<int> zoneIndexList;
+        // build list of other zones
+        for (auto destZoneIndex { 0 }; destZoneIndex < 8; ++destZoneIndex)
+            if (destZoneIndex != srcZoneIndex)
+                zoneIndexList.emplace_back (destZoneIndex);
+        // clone to other zones
+        editManager->forZones (parentChannelProperties.getId () - 1, zoneIndexList, [this, setter] (juce::ValueTree zonePropertiesVT)
+        {
+            ZoneProperties destZoneProperties (zonePropertiesVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
+            setter (destZoneProperties);
+        });
+    });
+    juce::PopupMenu editMenu;
+    editMenu.addSubMenu ("Clone", cloneMenu, true);
+    editMenu.addItem ("Reset", true, false, [this, resetter] () { resetter (); });
+
+    return editMenu;
 }
 
 juce::String ZoneEditor::formatLoopLength (double loopLength)

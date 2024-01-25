@@ -14,6 +14,9 @@ public:
     void forChannels (std::vector<int> channelIndexList, std::function<void (juce::ValueTree)> channelCallback);
     void forChannel (int channelIndex, std::function<void (juce::ValueTree)> channelCallback);
 
+    void forZones (int channelIndex, std::vector<int> zoneIndexList, std::function<void (juce::ValueTree)> zoneCallback);
+    void forZone (int channelIndex, int zoneIndex, std::function<void (juce::ValueTree)> zoneCallback);
+
 private:
     PresetProperties presetProperties;
     std::array<juce::ValueTree, 8> channelPropertiesList;

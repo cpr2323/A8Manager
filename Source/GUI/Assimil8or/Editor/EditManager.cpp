@@ -48,11 +48,34 @@ void EditManager::forChannels (std::vector<int> channelIndexList, std::function<
 {
     jassert (channelCallback != nullptr);
     for (const auto channelIndex : channelIndexList)
+    {
+        jassert (channelIndex >= 0 && channelIndex < 8);
         channelCallback (channelPropertiesList [channelIndex]);
+    }
 }
 
 void EditManager::forChannel (int channelIndex, std::function<void (juce::ValueTree)> channelCallback)
 {
+    jassert (channelIndex >= 0 && channelIndex < 8);
     jassert (channelCallback != nullptr);
     channelCallback (channelPropertiesList [channelIndex]);
+}
+
+void EditManager::forZones (int channelIndex, std::vector<int> zoneIndexList, std::function<void (juce::ValueTree)> zoneCallback)
+{
+    jassert (channelIndex >= 0 && channelIndex < 8);
+    jassert (zoneCallback != nullptr);
+    for (const auto zoneIndex : zoneIndexList)
+    {
+        jassert (zoneIndex >= 0 && zoneIndex < 8);
+        zoneCallback (zonePropertiesList [channelIndex][zoneIndex]);
+    }
+}
+
+void EditManager::forZone (int channelIndex, int zoneIndex, std::function<void (juce::ValueTree)> zoneCallback)
+{
+    jassert (channelIndex >= 0 && channelIndex < 8);
+    jassert (zoneIndex >= 0 && zoneIndex < 8);
+    jassert (zoneCallback != nullptr);
+    zoneCallback (zonePropertiesList [channelIndex][zoneIndex]);
 }

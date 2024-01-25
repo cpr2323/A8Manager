@@ -106,6 +106,11 @@ CvInputAndAmount ChannelProperties::getCvInputAndValueFromString (juce::String c
     return { cvInputAndValueString.substring (0, delimiterLocation), cvInputAndValueString.substring (delimiterLocation + 1).getFloatValue () };
 }
 
+bool ChannelProperties::isChannelPropertiesVT (juce::ValueTree valueTree)
+{
+    return valueTree.isValid () && valueTree.getType () == ChannelTypeId;
+}
+
 ////////////////////////////////////////////////////////////////////
 // set___
 ////////////////////////////////////////////////////////////////////
