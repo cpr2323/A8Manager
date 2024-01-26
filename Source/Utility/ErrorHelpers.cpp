@@ -4,10 +4,18 @@ namespace ErrorHelpers
 {
     bool setColorIfError (juce::TextEditor& textEditor, bool success)
     {
+        auto getNewTextColour = [&textEditor] (juce::Colour color)
+        {
+            if (textEditor.isEnabled ())
+                return color;
+            else
+                return color.withAlpha (0.5f);
+        };
+
         if (success)
-            textEditor.applyColourToAllText (juce::Colours::white, true);
+            textEditor.applyColourToAllText (getNewTextColour (juce::Colours::white), true);
         else
-            textEditor.applyColourToAllText (juce::Colours::red, true);
+            textEditor.applyColourToAllText (getNewTextColour(juce::Colours::red), true);
 
         return success;
     }

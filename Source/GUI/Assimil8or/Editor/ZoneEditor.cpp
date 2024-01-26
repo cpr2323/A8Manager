@@ -529,7 +529,7 @@ void ZoneEditor::setupZoneComponents ()
     loopLengthTextEditor.onPopupMenuCallback = [this] ()
     {
         auto editMenu { createZoneEditMenu ([this] (ZoneProperties& destZoneProperties) { destZoneProperties.setLoopLength (zoneProperties.getLoopLength().value_or (sampleData.getLengthInSamples ()), false); },
-                                            [this] () { zoneProperties.setLoopLength (sampleData.getLengthInSamples () - zoneProperties.getLoopStart().value_or (0), true); }) };
+                                            [this] () { zoneProperties.setLoopLength (sampleData.getLengthInSamples () - static_cast<double> (zoneProperties.getLoopStart().value_or (0)), true); }) };
         editMenu.showMenuAsync ({}, [this] (int) {});
     };
     setupTextEditor (loopLengthTextEditor, juce::Justification::centred, 0, ".0123456789", "LoopLength");

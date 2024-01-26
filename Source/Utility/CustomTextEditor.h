@@ -20,6 +20,9 @@ public:
     CustomTextEditor ()
     {
         onTextChange = [this] () { checkValue (); };
+        textColor = juce::Colours::white;
+        applyColourToAllText (textColor, true);
+
     }
     virtual ~CustomTextEditor () = default;
     void setValue (T value)
@@ -50,6 +53,7 @@ public:
 
 private:
     CustomComponentMouseHandler customComponentMouseHandler;
+    juce::Colour textColor;
 
     void constrainAndSet (T value)
     {
@@ -71,6 +75,19 @@ private:
         //DebugLog ("CustomTextEditor", "final value: " + juce::String (newValue));
         updateDataCallback (newValue);
         setText (toStringCallback (newValue));
+    }
+
+    void enablementChanged () override
+    {
+        auto getNewTextColour = [this] ()
+        {
+            if (isEnabled ())
+                return textColor;
+            else
+                return textColor.withAlpha (0.5f);
+        };
+        applyColourToAllText (getNewTextColour (), true);
+        juce::TextEditor::enablementChanged ();
     }
 
     void mouseDown (const juce::MouseEvent& mouseEvent) override
