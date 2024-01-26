@@ -205,6 +205,10 @@
               file="Source/Utility/CustomComboBox.h"/>
         <FILE id="XOL5i7" name="CustomTextEditor.h" compile="0" resource="0"
               file="Source/Utility/CustomTextEditor.h"/>
+        <FILE id="rRGd5q" name="CustomTextButton.cpp" compile="1" resource="0"
+              file="Source/Utility/CustomTextButton.cpp"/>
+        <FILE id="OwWd7j" name="CustomTextButton.h" compile="0" resource="0"
+              file="Source/Utility/CustomTextButton.h"/>
         <FILE id="yrhXEY" name="DebugLog.cpp" compile="1" resource="0" file="Source/Utility/DebugLog.cpp"/>
         <FILE id="i75h2A" name="DebugLog.h" compile="0" resource="0" file="Source/Utility/DebugLog.h"/>
         <FILE id="rv1w6s" name="DebugLogImplementation.h" compile="0" resource="0"

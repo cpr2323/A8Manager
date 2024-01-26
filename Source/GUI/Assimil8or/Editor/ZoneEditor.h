@@ -14,7 +14,18 @@ class FileSelectLabel : public juce::Label
 public:
     FileSelectLabel ()
     {
-        mouseEavesDropper.onMouseDown = [this] (const juce::MouseEvent&) { browseForSample (); };
+        mouseEavesDropper.onMouseDown = [this] (const juce::MouseEvent& mouseEvent)
+        {
+            if (mouseEvent.mods.isPopupMenu ())
+            {
+                if (onPopupMenuCallback != nullptr)
+                    onPopupMenuCallback ();
+            }
+            else
+            {
+                browseForSample ();
+            }
+        };
         addMouseListener (&mouseEavesDropper, true);
     }
     ~FileSelectLabel ()
@@ -22,6 +33,7 @@ public:
         removeMouseListener (&mouseEavesDropper);
     }
     std::function<void (const juce::StringArray& files)> onFilesSelected;
+    std::function<void ()> onPopupMenuCallback;
 
     void setOutline (juce::Colour colour)
     {
@@ -144,6 +156,7 @@ private:
     juce::Label sampleStartLabel;
     CustomTextEditorInt64 sampleStartTextEditor; // int
 
+    void setEditComponentsEnabled (bool enabled);
     juce::PopupMenu createZoneEditMenu (std::function <void (ZoneProperties&)> setter, std::function <void ()> resetter);
     juce::String formatLoopLength (double loopLength);
     bool handleSamplesInternal (int zoneIndex, juce::StringArray files);

@@ -1,4 +1,5 @@
 #include "ChannelEditor.h"
+#include "ChannelEditor.h"
 #include "FormatHelpers.h"
 #include "MinVoltageTests.h"
 #include "ParameterToolTipData.h"

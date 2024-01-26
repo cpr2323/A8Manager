@@ -87,7 +87,7 @@ public:
     static inline const juce::Colour kZeroVoltageColor     { juce::Colours::lightgrey.darker (0.2f) };
     static inline const juce::Colour kNegativeVoltageColor { juce::Colours::red.darker (0.4f) };
 
-    //     int getTabButtonSpaceAroundImage () override;
+//     int getTabButtonSpaceAroundImage () override;
 //     int getTabButtonOverlap (int tabDepth) override;
     int getTabButtonBestWidth (juce::TabBarButton& button, [[maybe_unused]] int tabDepth) override
     {
