@@ -1996,8 +1996,8 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
             pmBalance.addItem ("Maj", true, false, [this] () { balanceVoltages (VoltageBalanceType::distribute1vPerOctMajor); });
 
             juce::PopupMenu pm;
-            pm.addSubMenu ("Balance", pmBalance, true);
-            pm.addItem ("Copy", true, false, [this, zoneIndex] ()
+            pm.addSubMenu ("Balance", pmBalance, zoneProperties [zoneIndex].getSample ().isNotEmpty ());
+            pm.addItem ("Copy", zoneProperties [zoneIndex].getSample ().isNotEmpty (), false, [this, zoneIndex] ()
             {
                 copyZone (zoneIndex);
             });
