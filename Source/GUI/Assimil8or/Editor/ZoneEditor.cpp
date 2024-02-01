@@ -772,22 +772,25 @@ void ZoneEditor::levelOffsetUiChanged (double levelOffset)
 void ZoneEditor::loopLengthDataChanged (std::optional<double> loopLength)
 {
     loopLengthTextEditor.setText (formatLoopLength (loopLength.value_or (static_cast<double> (sampleData.getLengthInSamples () - zoneProperties.getLoopStart ().value_or (0)))));
+    updateLoopPointsView ();
 }
 
 void ZoneEditor::loopLengthUiChanged (double loopLength)
 {
     zoneProperties.setLoopLength (loopLength, false);
+    updateLoopPointsView ();
 }
 
 void ZoneEditor::loopStartDataChanged (std::optional<int64_t> loopStart)
 {
     loopStartTextEditor.setText (juce::String (loopStart.value_or (0)));
-    loopLengthDataChanged (zoneProperties.getLoopLength ());
+    updateLoopPointsView ();
 }
 
 void ZoneEditor::loopStartUiChanged (int64_t  loopStart)
 {
     zoneProperties.setLoopStart (loopStart, false);
+    updateLoopPointsView ();
 }
 
 void ZoneEditor::minVoltageDataChanged (double minVoltage)
