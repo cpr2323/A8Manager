@@ -981,7 +981,7 @@ void ZoneEditor::loopLengthUiChanged (double loopLength)
 void ZoneEditor::loopStartDataChanged (std::optional<juce::int64> loopStart)
 {
     loopStartTextEditor.setText (juce::String (loopStart.value_or (0)));
-    loopLengthDataChanged (zoneProperties.getLoopLength ());
+    updateLoopPointsView ();
 }
 
 void ZoneEditor::loopStartUiChanged (juce::int64 loopStart)
