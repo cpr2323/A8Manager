@@ -704,7 +704,7 @@ void ChannelEditor::setupChannelComponents ()
 
     // REVERSE/SMOOTH
     setupButton (reverseButton, "REV", "Reverse", [this] () { reverseUiChanged (reverseButton.getToggleState ()); });
-    setupButton (spliceSmoothingButton, "SMOOTH", "SpliceSmoothing", [this] () { reverseUiChanged (spliceSmoothingButton.getToggleState ()); });
+    setupButton (spliceSmoothingButton, "SMOOTH", "SpliceSmoothing", [this] () { spliceSmoothingUiChanged (spliceSmoothingButton.getToggleState ()); });
 
     // PAN/MIX
     setupLabel (panMixLabel, "PAN/MIX", kLargeLabelSize, juce::Justification::centred);
@@ -770,7 +770,7 @@ void ChannelEditor::setupChannelComponents ()
     setupComboBox (autoTriggerComboBox, "AutoTrigger", [this] ()
     {
         const auto autoTrigger { autoTriggerComboBox.getSelectedId () == 2 };
-        attackFromCurrentUiChanged (autoTrigger);
+        autoTriggerUiChanged (autoTrigger);
     });
 
     // PLAY MODE
