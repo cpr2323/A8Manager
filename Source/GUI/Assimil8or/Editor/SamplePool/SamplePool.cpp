@@ -35,6 +35,19 @@ SampleData SamplePool::open (juce::String fileName)
              &sampleDataIter->second.lengthInSamples, &sampleDataIter->second.audioBuffer };
 }
 
+SampleData SamplePool::getSampleData (juce::String fileName)
+{
+    jassert (fileName.isNotEmpty ());
+    const auto sampleDataIter { sampleList.find (fileName) };
+    if (sampleDataIter == sampleList.end ())
+        return {};
+
+    sampleDataIter->second.useCount++;
+    return { &sampleDataIter->second.status, &sampleDataIter->second.bitsPerSample, &sampleDataIter->second.numChannels,
+             &sampleDataIter->second.lengthInSamples, &sampleDataIter->second.audioBuffer };
+}
+
+
 SampleData SamplePool::loadSample (juce::String fileName)
 {
     LogSamplePool ("loadSample: " + fileName);

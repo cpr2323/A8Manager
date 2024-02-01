@@ -213,6 +213,7 @@ private:
     AudioPlayerProperties audioPlayerProperties;
     SamplePool* samplePool { nullptr };
     EditManager* editManager { nullptr };
+    int channelIndex { -1 };
 
     juce::Label zonesLabel;
     juce::Label zoneMaxVoltage;
@@ -332,8 +333,6 @@ private:
     void duplicateZone (int zoneIndex);
     void ensureProperZoneIsSelected ();
     int getEnvelopeValueResolution (double envelopeValue);
-    int getNumUsedZones ();
-    std::tuple<double, double> getVoltageBoundaries (int zoneIndex, int topDepth);
     void pasteZone (int zoneIndex);
     void positionColumnOne (int xOffset, int width);
     void positionColumnTwo (int xOffset, int width);

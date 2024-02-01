@@ -272,7 +272,7 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
     PresetManagerProperties presetManagerProperties (runtimeRootProperties.getValueTree (), PresetManagerProperties::WrapperType::owner, PresetManagerProperties::EnableCallbacks::no);
     unEditedPresetProperties.wrap (presetManagerProperties.getPreset ("unedited"), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::yes);
     presetProperties.wrap (presetManagerProperties.getPreset ("edit"), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::yes);
-    editManager.init (presetProperties.getValueTree ());
+    editManager.init (rootPropertiesVT, presetProperties.getValueTree (), &samplePool);
     setupPresetPropertiesCallbacks ();
     auto channelEditorIndex { 0 };
     samplePool.setFolder (appProperties.getMostRecentFolder ());

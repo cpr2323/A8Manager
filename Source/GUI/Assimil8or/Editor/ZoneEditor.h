@@ -8,85 +8,7 @@
 #include "../../../Assimil8or/Audio/AudioPlayerProperties.h"
 #include "../../../Assimil8or/Preset/ZoneProperties.h"
 #include "../../../Utility/CustomTextEditor.h"
-
-class FileSelectLabel : public juce::Label
-{
-public:
-    FileSelectLabel ()
-    {
-        mouseEavesDropper.onMouseDown = [this] (const juce::MouseEvent& mouseEvent)
-        {
-            if (mouseEvent.mods.isPopupMenu ())
-            {
-                if (onPopupMenuCallback != nullptr)
-                    onPopupMenuCallback ();
-            }
-            else
-            {
-                browseForSample ();
-            }
-        };
-        addMouseListener (&mouseEavesDropper, true);
-    }
-    ~FileSelectLabel ()
-    {
-        removeMouseListener (&mouseEavesDropper);
-    }
-    std::function<void (const juce::StringArray& files)> onFilesSelected;
-    std::function<void ()> onPopupMenuCallback;
-
-    void setOutline (juce::Colour colour)
-    {
-        outlineColor = colour;
-    }
-private:
-    juce::Colour outlineColor { juce::Colours::transparentWhite };
-    std::unique_ptr<juce::FileChooser> fileChooser;
-
-    class MouseEavesDropper : public juce::MouseListener
-    {
-    public:
-        std::function<void (const juce::MouseEvent& event)> onMouseDown;
-    private:
-        void mouseDown (const juce::MouseEvent& event)
-        {
-            if (onMouseDown != nullptr)
-                onMouseDown (event);
-        }
-    };
-    MouseEavesDropper mouseEavesDropper;
-
-    void browseForSample ()
-    {
-        fileChooser.reset (new juce::FileChooser ("Please select the Assimil8or Preset file you want to load...", {}, "*.wav"));
-        fileChooser->launchAsync (juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles | juce::FileBrowserComponent::canSelectMultipleItems, [this] (const juce::FileChooser& fc) mutable
-        {
-            if (fc.getURLResults ().size () > 0 && fc.getURLResults () [0].isLocalFile () && onFilesSelected != nullptr)
-            {
-                for (auto urlResult : fc.getURLResults ())
-                {
-                    if (! urlResult.isLocalFile ())
-                        return;
-                    juce::File fileToLoad (urlResult.getLocalFile ().getFullPathName ());
-                    if (fileToLoad.isDirectory ())
-                        return;
-                }
-
-                juce::StringArray files;
-                for (auto urlResult : fc.getURLResults ())
-                    files.add (urlResult.getLocalFile ().getFullPathName ());
-                onFilesSelected (files);
-            }
-        }, nullptr);
-    }
-
-    void paintOverChildren (juce::Graphics& g) override
-    {
-        juce::Label::paintOverChildren (g);
-        g.setColour (outlineColor);
-        g.drawRect (getLocalBounds ());
-    }
-};
+#include "../../../Utility/FileSelectLabel.h"
 
 class ZoneEditor : public juce::Component,
                    public juce::FileDragAndDropTarget
@@ -97,16 +19,13 @@ public:
 
     void init (juce::ValueTree zonePropertiesVT, juce::ValueTree rootPropertiesVT, EditManager* theEditManager, SamplePool* theSamplePool);
     void checkSampleExistence ();
-    bool isSupportedAudioFile (juce::File file);
     void loadSample (juce::String sampleFileName);
     void receiveSampleLoadRequest (juce::File sampleFile);
     void setLoopLengthIsEnd (bool loopLengthIsEnd);
 
+    // TODO - move all of these to EditManager?
     std::function<void (juce::String)> onSampleChange;
-    std::function<bool (double)> isMinVoltageInRange;
-    std::function<double (double)> clampMinVoltage;
     std::function<void (int zoneIndex)> displayToolsMenu;
-    std::function<bool (int zoneIndex, const juce::StringArray& files)> assignSamples;
 
 private:
     AppProperties appProperties;
@@ -115,11 +34,12 @@ private:
     ZoneProperties minZoneProperties;
     ZoneProperties maxZoneProperties;
     ChannelProperties parentChannelProperties;
-    juce::AudioFormatManager audioFormatManager;
-    SamplePool* samplePool;
+    SamplePool* samplePool { nullptr };
     SampleData sampleData;
     juce::String currentSampleFileName;
     EditManager* editManager { nullptr };
+    int zoneIndex { -1 };
+    int parentChannelIndex { -1 };
 
     // Loop Length is always stored as loop length, but the UI can be toggled to display it, and take input for it, as if it is Loop End
     bool treatLoopLengthAsEndInUi { false };

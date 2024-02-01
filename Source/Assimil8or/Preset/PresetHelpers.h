@@ -12,7 +12,7 @@ namespace PresetHelpers
     bool areChannelsEqual (juce::ValueTree channelOneVT, juce::ValueTree channelTwoVT);
     bool areZonesEqual (juce::ValueTree zoneOneVT, juce::ValueTree zoneTwoVT);
     void displayZoneDifferences (juce::ValueTree zonePropertiesOneVT, juce::ValueTree zonePropertiesTwoVT);
-    bool isSupportedAudioFile (juce::File file);
+//    bool isSupportedAudioFile (juce::File file);
     void setCvInputAndAmount (CvInputAndAmount cvInputAndAmount, std::function<void (juce::String, double)> setter);
     juce::StringArray getCvInputList (bool includeZero);
     int getCvInputIndex (juce::String cvInput);

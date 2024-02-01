@@ -12,7 +12,6 @@
 
 ZoneEditor::ZoneEditor ()
 {
-    audioFormatManager.registerBasicFormats ();
     {
         PresetProperties minPresetProperties (ParameterPresetsSingleton::getInstance ()->getParameterPresetListProperties ().getParameterPreset (ParameterPresetListProperties::MinParameterPresetType),
                                               PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
@@ -35,22 +34,6 @@ ZoneEditor::ZoneEditor ()
         label.setFont (label.getFont ().withHeight (fontSize));
         label.setText (text, juce::NotificationType::dontSendNotification);
         addAndMakeVisible (label);
-    };
-
-    sampleNameSelectLabel.onFilesSelected = [this] (const juce::StringArray& files)
-    {
-        if (! handleSamplesInternal (zoneProperties.getId () - 1, files))
-        {
-            // TODO - indicate an error? first thought was a red outline that fades out over a couple of second
-        }
-    };
-    sampleNameSelectLabel.onPopupMenuCallback = [this] ()
-    {
-        if (zoneProperties.getSample ().isEmpty ())
-            return;
-        auto editMenu { createZoneEditMenu ([this] (ZoneProperties& destZoneProperties) { destZoneProperties.setSample (zoneProperties.getSample (), false); },
-                                            nullptr /* reset is not possible for the sample file parameter, since it zones have to have contiguous samples assigned, and resetting one in the middle would break that */)};
-        editMenu.showMenuAsync ({}, [this] (int) {});
     };
 
     toolsButton.setButtonText ("TOOLS");
@@ -173,7 +156,7 @@ ZoneEditor::ZoneEditor ()
 bool ZoneEditor::isInterestedInFileDrag (const juce::StringArray& files)
 {
     for (auto file : files)
-        if (! isSupportedAudioFile (file))
+        if (! editManager->isSupportedAudioFile (file))
             return false;
 
     return true;
@@ -220,12 +203,11 @@ void ZoneEditor::fileDragExit (const juce::StringArray&)
     repaint ();
 }
 
-bool ZoneEditor::handleSamplesInternal (int zoneIndex, juce::StringArray files)
+bool ZoneEditor::handleSamplesInternal (int startingZoneIndex, juce::StringArray files)
 {
-    jassert (assignSamples != nullptr);
     audioPlayerProperties.setPlayState (AudioPlayerProperties::PlayState::stop, true);
     files.sort (true);
-    return assignSamples (zoneIndex, files);
+    return editManager->assignSamples (parentChannelIndex, startingZoneIndex, files);
 }
 
 void ZoneEditor::updateLoopPointsView ()
@@ -335,13 +317,30 @@ void ZoneEditor::setupZoneComponents ()
         addAndMakeVisible (textEditor);
     };
 
-    // SAMPLE FILE SELECTOR
+    // SAMPLE FILE SELECTOR LABEL
     setupLabel (sampleNameLabel, "FILE", 15.0, juce::Justification::centredLeft);
-    setupLabel (sampleNameSelectLabel, "", 15.0, juce::Justification::centredLeft);
+
+    // SAMPLE FILE SELECTOR
     sampleNameSelectLabel.setColour (juce::Label::ColourIds::textColourId, levelOffsetTextEditor.findColour (juce::TextEditor::ColourIds::textColourId));
     sampleNameSelectLabel.setColour (juce::Label::ColourIds::backgroundColourId, levelOffsetTextEditor.findColour (juce::TextEditor::ColourIds::backgroundColourId));
     sampleNameSelectLabel.setOutline (levelOffsetTextEditor.findColour (juce::TextEditor::ColourIds::outlineColourId));
     sampleNameSelectLabel.setBorderSize ({ 0, 2, 0, 0 });
+    sampleNameSelectLabel.onFilesSelected = [this] (const juce::StringArray& files)
+    {
+        if (! handleSamplesInternal (zoneProperties.getId () - 1, files))
+        {
+            // TODO - indicate an error? first thought was a red outline that fades out over a couple of second
+        }
+    };
+    sampleNameSelectLabel.onPopupMenuCallback = [this] ()
+    {
+        if (zoneProperties.getSample ().isEmpty ())
+            return;
+        auto editMenu { createZoneEditMenu ([this] (ZoneProperties& destZoneProperties) { destZoneProperties.setSample (zoneProperties.getSample (), false); },
+                                            nullptr /* reset is not possible for the sample file parameter, since zones have to have contiguous samples assigned, and resetting one in the middle would break that */) };
+        editMenu.showMenuAsync ({}, [this] (int) {});
+    };
+    setupLabel (sampleNameSelectLabel, "", 15.0, juce::Justification::centredLeft);
 
     // SAMPLE START
     setupLabel (sampleStartLabel, "SMPL START", 12.0, juce::Justification::centredRight);
@@ -540,10 +539,9 @@ void ZoneEditor::setupZoneComponents ()
     minVoltageTextEditor.getMaxValueCallback = [this] { return maxZoneProperties.getMinVoltage (); };
     minVoltageTextEditor.highlightErrorCallback = [this] ()
     {
-        jassert (isMinVoltageInRange != nullptr);
-        ErrorHelpers::setColorIfError (minVoltageTextEditor, isMinVoltageInRange (minVoltageTextEditor.getText ().getDoubleValue ()));
+        ErrorHelpers::setColorIfError (minVoltageTextEditor, editManager->isMinVoltageInRange (parentChannelIndex, zoneIndex, minVoltageTextEditor.getText ().getDoubleValue ()));
     };
-    minVoltageTextEditor.snapValueCallback = [this] (double value) { jassert (clampMinVoltage != nullptr); return clampMinVoltage (value); };
+    minVoltageTextEditor.snapValueCallback = [this] (double value) { return editManager->clampMinVoltage (parentChannelIndex, zoneIndex, value); };
     minVoltageTextEditor.toStringCallback = [this] (double value) { return FormatHelpers::formatDouble (value, 2, true); };
     minVoltageTextEditor.updateDataCallback = [this] (double value) { minVoltageUiChanged (value); };
     minVoltageTextEditor.onDragCallback = [this] (DragSpeed dragSpeed, int direction)
@@ -675,6 +673,7 @@ void ZoneEditor::init (juce::ValueTree zonePropertiesVT, juce::ValueTree rootPro
     };
 
     zoneProperties.wrap (zonePropertiesVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::yes);
+    zoneIndex = zoneProperties.getId () - 1;
     setupZonePropertiesCallbacks ();
 
     levelOffsetDataChanged (zoneProperties.getLevelOffset ());
@@ -688,6 +687,7 @@ void ZoneEditor::init (juce::ValueTree zonePropertiesVT, juce::ValueTree rootPro
 
     jassert (ChannelProperties::isChannelPropertiesVT (zoneProperties.getValueTree ().getParent ()));
     parentChannelProperties.wrap (zoneProperties.getValueTree ().getParent (), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
+    parentChannelIndex = parentChannelProperties.getId () - 1;
     setLoopLengthIsEnd (parentChannelProperties.getLoopLengthIsEnd ());
 
     setEditComponentsEnabled (zoneProperties.getSample().isNotEmpty ());
@@ -906,12 +906,12 @@ juce::PopupMenu ZoneEditor::createZoneEditMenu (std::function <void (ZonePropert
             if (destZoneIndex != srcZoneIndex)
                 cloneMenu.addItem ("To Zone " + juce::String (destZoneIndex + 1), true, false, [this, destZoneIndex, setter] ()
                 {
-                    editManager->forZone (parentChannelProperties.getId () - 1, destZoneIndex, [this, setter] (juce::ValueTree zonePropertiesVT)
+                    editManager->forZones (parentChannelProperties.getId () - 1, {destZoneIndex}, [this, setter] (juce::ValueTree zonePropertiesVT)
                     {
                         ZoneProperties destZoneProperties (zonePropertiesVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
                         setter (destZoneProperties);
                     });
-                    });
+                });
         }
         cloneMenu.addItem ("To All", true, false, [this, srcZoneIndex, setter] ()
         {
@@ -954,21 +954,6 @@ juce::String ZoneEditor::formatLoopLength (double loopLength)
         return FormatHelpers::formatDouble (loopLength, 3, false);
     else
         return juce::String (static_cast<int> (loopLength));
-}
-
-// TODO - this should be done in the Directory scan, and stored in a property
-bool ZoneEditor::isSupportedAudioFile (juce::File file)
-{
-    if (file.isDirectory () || file.getFileExtension ().toLowerCase() != ".wav")
-        return false;
-    std::unique_ptr<juce::AudioFormatReader> reader (audioFormatManager.createReaderFor (file));
-    if (reader == nullptr)
-        return false;
-    // check for any format settings that are unsupported
-    if ((reader->usesFloatingPointData == true) || (reader->bitsPerSample < 8 || reader->bitsPerSample > 32) || (reader->numChannels == 0 || reader->numChannels > 2) || (reader->sampleRate > 192000))
-        return false;
-
-    return true;
 }
 
 void ZoneEditor::levelOffsetDataChanged (double levelOffset)

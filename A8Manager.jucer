@@ -198,6 +198,10 @@
               file="Source/GUI/BottomStatusWindow.h"/>
       </GROUP>
       <GROUP id="{8CE93423-6945-B212-EA23-BC0B9325BBF7}" name="Utility">
+        <FILE id="GLIkpL" name="FileSelectLabel.cpp" compile="1" resource="0"
+              file="Source/Utility/FileSelectLabel.cpp"/>
+        <FILE id="qew1vj" name="FileSelectLabel.h" compile="0" resource="0"
+              file="Source/Utility/FileSelectLabel.h"/>
         <FILE id="ZzjeA7" name="Crc.h" compile="0" resource="0" file="Source/Utility/Crc.h"/>
         <FILE id="GzE9WB" name="CustomComboBox.cpp" compile="1" resource="0"
               file="Source/Utility/CustomComboBox.cpp"/>
