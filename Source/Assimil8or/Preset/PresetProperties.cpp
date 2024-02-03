@@ -17,7 +17,7 @@ void PresetProperties::initValueTree ()
 int PresetProperties::getNumChannels ()
 {
     auto numChannels { 0 };
-    forEachChannel ([&numChannels] (juce::ValueTree) { ++numChannels; return true; });
+    forEachChannel ([&numChannels] (juce::ValueTree, int) { ++numChannels; return true; });
     return numChannels;
 }
 
@@ -38,12 +38,15 @@ void PresetProperties::copyTreeProperties (juce::ValueTree sourcePresetPropertie
     }
 }
 
-void PresetProperties::forEachChannel (std::function<bool (juce::ValueTree channelVT)> channelVTCallback)
+void PresetProperties::forEachChannel (std::function<bool (juce::ValueTree channelVT, int channelIndex)> channelVTCallback)
 {
     jassert (channelVTCallback != nullptr);
-    ValueTreeHelpers::forEachChildOfType (data, ChannelProperties::ChannelTypeId, [this, channelVTCallback] (juce::ValueTree channelVT)
+    auto curChannelIndex { 0 };
+    ValueTreeHelpers::forEachChildOfType (data, ChannelProperties::ChannelTypeId, [this, &curChannelIndex, channelVTCallback] (juce::ValueTree channelVT)
     {
-        return channelVTCallback (channelVT);
+        auto keepIterating { channelVTCallback (channelVT, curChannelIndex) };
+        ++curChannelIndex;
+        return keepIterating;
     });
 }
 
@@ -51,15 +54,13 @@ juce::ValueTree PresetProperties::getChannelVT (int channelIndex)
 {
     jassert (channelIndex < getNumChannels ());
     juce::ValueTree requestedChannelVT;
-    auto curChannelIndex { 0 };
-    forEachChannel ([this, &requestedChannelVT, &curChannelIndex, channelIndex] (juce::ValueTree channelVT)
+    forEachChannel ([this, &requestedChannelVT, channelIndex] (juce::ValueTree channelVT, int curChannelIndex)
     {
         if (curChannelIndex == channelIndex)
         {
             requestedChannelVT = channelVT;
             return false;
         }
-        ++curChannelIndex;
         return true;
     });
     jassert (requestedChannelVT.isValid ());

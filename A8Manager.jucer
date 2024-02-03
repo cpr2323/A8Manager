@@ -118,9 +118,16 @@
               <FILE id="ENQvAV" name="LoopPointsView.h" compile="0" resource="0"
                     file="Source/GUI/Assimil8or/Editor/LoopPoints/LoopPointsView.h"/>
             </GROUP>
-            <GROUP id="{D73921A7-8850-68E4-122F-311FCE12BEE6}" name="SamplePool">
-              <FILE id="yJzkYP" name="SamplePool.cpp" compile="1" resource="0" file="Source/GUI/Assimil8or/Editor/SamplePool/SamplePool.cpp"/>
-              <FILE id="obUalz" name="SamplePool.h" compile="0" resource="0" file="Source/GUI/Assimil8or/Editor/SamplePool/SamplePool.h"/>
+            <GROUP id="{D73921A7-8850-68E4-122F-311FCE12BEE6}" name="SampleManager">
+              <FILE id="Z4XDJQ" name="SampleManager.cpp" compile="1" resource="0"
+                    file="Source/GUI/Assimil8or/Editor/SampleManager/SampleManager.cpp"/>
+              <FILE id="Vxlh4B" name="SampleManager.h" compile="0" resource="0" file="Source/GUI/Assimil8or/Editor/SampleManager/SampleManager.h"/>
+              <FILE id="yJzkYP" name="SamplePool.cpp" compile="1" resource="0" file="Source/GUI/Assimil8or/Editor/SampleManager/SamplePool.cpp"/>
+              <FILE id="obUalz" name="SamplePool.h" compile="0" resource="0" file="Source/GUI/Assimil8or/Editor/SampleManager/SamplePool.h"/>
+              <FILE id="MMEiyT" name="SampleProperties.cpp" compile="1" resource="0"
+                    file="Source/GUI/Assimil8or/Editor/SampleManager/SampleProperties.cpp"/>
+              <FILE id="pChDcz" name="SampleProperties.h" compile="0" resource="0"
+                    file="Source/GUI/Assimil8or/Editor/SampleManager/SampleProperties.h"/>
             </GROUP>
             <FILE id="liNFVw" name="Assimil8orEditorComponent.cpp" compile="1"
                   resource="0" file="Source/GUI/Assimil8or/Editor/Assimil8orEditorComponent.cpp"/>

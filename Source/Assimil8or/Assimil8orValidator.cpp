@@ -370,12 +370,12 @@ std::tuple<uint64_t, std::optional<std::map<juce::String, uint64_t>>> Assimil8or
         PresetProperties presetProperties (assimil8orPreset.getPresetVT (), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
         if (presetProperties.isValid ())
         {
-            presetProperties.forEachChannel ([this, &file, &validatorResultProperties, &sampleSizeList] (juce::ValueTree channelVT)
+            presetProperties.forEachChannel ([this, &file, &validatorResultProperties, &sampleSizeList] (juce::ValueTree channelVT, int)
             {
                 if (shouldCancelOperation ())
                     return false;
                 ChannelProperties channelProperties (channelVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
-                channelProperties.forEachZone ([this, &file, &validatorResultProperties, &sampleSizeList] (juce::ValueTree zoneVT)
+                channelProperties.forEachZone ([this, &file, &validatorResultProperties, &sampleSizeList] (juce::ValueTree zoneVT, int)
                 {
                     if (shouldCancelOperation ())
                         return false;

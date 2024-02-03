@@ -1961,11 +1961,10 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
     channelProperties.wrap (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::yes);
     channelIndex = channelProperties.getId () - 1;
     setupChannelPropertiesCallbacks ();
-    auto zoneEditorIndex { 0 };
-    channelProperties.forEachZone ([this, &zoneEditorIndex, rootPropertiesVT] (juce::ValueTree zonePropertiesVT)
+    channelProperties.forEachZone ([this, rootPropertiesVT] (juce::ValueTree zonePropertiesVT, int zoneIndex)
     {
         // Zone Editor setup
-        auto& zoneEditor { zoneEditors [zoneEditorIndex] };
+        auto& zoneEditor { zoneEditors [zoneIndex] };
         zoneEditor.init (zonePropertiesVT, rootPropertiesVT, editManager, samplePool);
         zoneEditor.displayToolsMenu = [this] (int zoneIndex)
         {
@@ -2007,7 +2006,7 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
             });
             pm.showMenuAsync ({}, [this] (int) {});
         };
-        zoneEditor.onSampleChange = [this, zoneEditorIndex] (juce::String sampleFileName)
+        zoneEditor.onSampleChange = [this] (juce::String sampleFileName)
         {
             // TODO - is this callback even needed anymore, because assignSamples is doing the same thing this used to?
             ensureProperZoneIsSelected ();
@@ -2015,13 +2014,12 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
         };
 
         // Zone Properties setup
-        auto& curZoneProperties { zoneProperties [zoneEditorIndex] };
+        auto& curZoneProperties { zoneProperties [zoneIndex] };
         curZoneProperties.wrap (zonePropertiesVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::yes);
-        curZoneProperties.onMinVoltageChange = [this, zoneEditorIndex] ([[maybe_unused]] double minVoltage)
+        curZoneProperties.onMinVoltageChange = [this] ([[maybe_unused]] double minVoltage)
         {
             updateAllZoneTabNames ();
         };
-        ++zoneEditorIndex;
         return true;
     });
 

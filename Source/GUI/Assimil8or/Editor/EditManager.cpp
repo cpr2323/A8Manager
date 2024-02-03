@@ -15,18 +15,15 @@ void EditManager::init (juce::ValueTree rootPropertiesVT, juce::ValueTree preset
     appProperties.wrap (persistentRootProperties.getValueTree (), AppProperties::WrapperType::client, AppProperties::EnableCallbacks::yes);
 
     presetProperties.wrap (presetPropertiesVT, PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
-    auto channelIndex { 0 };
-    presetProperties.forEachChannel ([this, &channelIndex] (juce::ValueTree channelVT)
+    presetProperties.forEachChannel ([this] (juce::ValueTree channelVT, int channelIndex)
     {
         channelPropertiesList [channelIndex].wrap (channelVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
-        auto zoneIndex { 0 };
-        channelPropertiesList [channelIndex].forEachZone ([this, channelIndex, &zoneIndex] (juce::ValueTree zoneVT)
+        channelPropertiesList [channelIndex].forEachZone ([this, channelIndex] (juce::ValueTree zoneVT, int zoneIndex)
         {
             zonePropertiesList [channelIndex][zoneIndex].wrap (zoneVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
             ++zoneIndex;
             return true;
         });
-        ++channelIndex;
         return true;
     });
 }
@@ -173,6 +170,7 @@ bool EditManager::assignSamples (int channelIndex, int zoneIndex, const juce::St
         }
         //juce::Logger::outputDebugString ("assigning '" + file.getFileName () + "' to Zone " + juce::String (zoneIndex + filesIndex));
         // assign file to zone
+        // TODO - this should be a call to loadZone, which will call zoneProperty.setSample 
         zoneProperty.setSample (file.getFileName (), false);
     }
 
@@ -228,16 +226,12 @@ void EditManager::loadSample (int channelIndex, int zoneIndex, juce::String samp
 
     if (sampleData.getStatus () == SampleData::SampleDataStatus::exists)
     {
-//        updateLoopPointsView ();
 
         zoneProperties.setSampleStart (-1, true);
         zoneProperties.setSampleEnd (-1, true);
         zoneProperties.setLoopStart (-1, true);
         zoneProperties.setLoopLength (-1, true);
-//        updateSamplePositionInfo ();
-//        sampleUiChanged (sampleFileName);
-//        sampleNameSelectLabel.setText (sampleFileName, juce::NotificationType::dontSendNotification);
-//        sampleNameSelectLabel.setColour (juce::Label::ColourIds::textColourId, juce::Colours::white);
+        zoneProperties.setSample (sampleFileName, false);
 
         if (sampleData.getNumChannels () == 2)
         {
@@ -262,6 +256,11 @@ void EditManager::loadSample (int channelIndex, int zoneIndex, juce::String samp
         }
     }
 
+//     updateLoopPointsView ();
+//     updateSamplePositionInfo ();
+//     sampleUiChanged (sampleFileName);
+//     sampleNameSelectLabel.setText (sampleFileName, juce::NotificationType::dontSendNotification);
+//     sampleNameSelectLabel.setColour (juce::Label::ColourIds::textColourId, juce::Colours::white);
 //     const auto sampleCanBePlayed { sampleData.getStatus () == SampleData::SampleDataStatus::exists };
 //     oneShotPlayButton.setEnabled (sampleCanBePlayed);
 //     loopPlayButton.setEnabled (sampleCanBePlayed);

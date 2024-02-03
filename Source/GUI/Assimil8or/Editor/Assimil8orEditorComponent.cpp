@@ -274,14 +274,13 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
     presetProperties.wrap (presetManagerProperties.getPreset ("edit"), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::yes);
     editManager.init (rootPropertiesVT, presetProperties.getValueTree (), &samplePool);
     setupPresetPropertiesCallbacks ();
-    auto channelEditorIndex { 0 };
     samplePool.setFolder (appProperties.getMostRecentFolder ());
     copyBufferZoneProperties.wrap ({}, ZoneProperties::WrapperType::owner, ZoneProperties::EnableCallbacks::no);
-    presetProperties.forEachChannel ([this, &channelEditorIndex, rootPropertiesVT] (juce::ValueTree channelPropertiesVT)
+    presetProperties.forEachChannel ([this, rootPropertiesVT] (juce::ValueTree channelPropertiesVT, int channelIndex)
     {
-        channelEditors [channelEditorIndex].init (channelPropertiesVT, rootPropertiesVT, &editManager, &samplePool,
+        channelEditors [channelIndex].init (channelPropertiesVT, rootPropertiesVT, &editManager, &samplePool,
                                                   copyBufferZoneProperties.getValueTree (), &copyBufferHasData);
-        channelEditors [channelEditorIndex].displayToolsMenu = [this] (int channelIndex)
+        channelEditors [channelIndex].displayToolsMenu = [this] (int channelIndex)
         {
             juce::PopupMenu pm;
             pm.addItem ("Copy", true, false, [this, channelIndex] ()
@@ -300,12 +299,11 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
             pm.showMenuAsync ({}, [this] (int) {});
         };
 
-        channelProperties [channelEditorIndex].wrap (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::yes);
-        channelProperties [channelEditorIndex].onChannelModeChange = [this, channelEditorIndex] (int)
+        channelProperties [channelIndex].wrap (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::yes);
+        channelProperties [channelIndex].onChannelModeChange = [this] (int)
         {
             updateAllChannelTabNames ();
         };
-        ++channelEditorIndex;
         return true;
     });
 

@@ -2,7 +2,7 @@
 #include "../../../../Utility/DebugLog.h"
 #include "../../../../Utility/DumpStack.h"
 
-#define LOG_SAMPLE_POOL 0
+#define LOG_SAMPLE_POOL 1
 #if LOG_SAMPLE_POOL
 #define LogSamplePool(text) DebugLog ("SamplePool", text);
 #else
@@ -16,7 +16,7 @@ SamplePool::SamplePool ()
 
 void SamplePool::setFolder (juce::File theParentFolder)
 {
-    //jassert (sampleList.empty ());
+    jassert (sampleList.empty ());
     parentFolder = theParentFolder;
 }
 

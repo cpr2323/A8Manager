@@ -4,7 +4,7 @@
 int ChannelProperties::getNumZones ()
 {
     auto numZones { 0 };
-    forEachZone ([&numZones] (juce::ValueTree) { ++numZones; return true; });
+    forEachZone ([&numZones] (juce::ValueTree, int) { ++numZones; return true; });
     return numZones;
 }
 
@@ -15,12 +15,15 @@ juce::ValueTree ChannelProperties::create (int id)
     return channelProperties.getValueTree ();
 }
 
-void ChannelProperties::forEachZone (std::function<bool (juce::ValueTree zoneVT)> zoneVTCallback)
+void ChannelProperties::forEachZone (std::function<bool (juce::ValueTree zoneVT, int zoneIndex)> zoneVTCallback)
 {
     jassert (zoneVTCallback != nullptr);
-    ValueTreeHelpers::forEachChildOfType (data, ZoneProperties::ZoneTypeId, [this, zoneVTCallback] (juce::ValueTree zoneVT)
+    auto curZoneIndex { 0 };
+    ValueTreeHelpers::forEachChildOfType (data, ZoneProperties::ZoneTypeId, [this, &curZoneIndex, zoneVTCallback] (juce::ValueTree zoneVT)
     {
-        return zoneVTCallback (zoneVT);
+        auto keepIterating { zoneVTCallback (zoneVT, curZoneIndex) };
+        ++curZoneIndex;
+        return keepIterating;
     });
 }
 
@@ -28,15 +31,13 @@ juce::ValueTree ChannelProperties::getZoneVT (int zoneIndex)
 {
     jassert (zoneIndex < getNumZones ());
     juce::ValueTree requestedChannelVT;
-    auto curZoneIndex { 0 };
-    forEachZone ([this, &requestedChannelVT, &curZoneIndex, zoneIndex] (juce::ValueTree channelVT)
+    forEachZone ([this, &requestedChannelVT, zoneIndex] (juce::ValueTree channelVT, int curZoneIndex)
     {
         if (curZoneIndex == zoneIndex)
         {
             requestedChannelVT = channelVT;
             return false;
         }
-        ++curZoneIndex;
         return true;
     });
     jassert (requestedChannelVT.isValid ());

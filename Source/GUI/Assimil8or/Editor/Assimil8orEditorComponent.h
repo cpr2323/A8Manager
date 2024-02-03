@@ -4,7 +4,7 @@
 #include "ChannelEditor.h"
 #include "CvInputComboBox.h"
 #include "EditManager.h"
-#include "SamplePool/SamplePool.h"
+#include "SampleManager/SamplePool.h"
 #include "../../../AppProperties.h"
 #include "../../../Assimil8or/Audio/AudioPlayerProperties.h"
 #include "../../../Assimil8or/Preset/PresetProperties.h"

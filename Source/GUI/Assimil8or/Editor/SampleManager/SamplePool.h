@@ -2,6 +2,9 @@
 
 #include <JuceHeader.h>
 
+using AudioBufferType = juce::AudioBuffer<float>;
+
+// TODO - I think SampleProperties replaces SampleData
 struct SampleData
 {
 public:
@@ -12,8 +15,9 @@ public:
         doesNotExist,
         exists
     };
+
     SampleData () = default;
-    SampleData (SampleDataStatus* s, int* bps, int* nc, juce::int64* lis, juce::AudioBuffer<float>* ab)
+    SampleData (SampleDataStatus* s, int* bps, int* nc, juce::int64* lis, AudioBufferType* ab)
         : status (s),
           bitsPerSample (bps),
           numChannels (nc),
@@ -26,15 +30,15 @@ public:
     int getBitsPerSample () { return bitsPerSample != nullptr ? *bitsPerSample : 0; }
     int getNumChannels () { return numChannels != nullptr ? *numChannels : 0; }
     juce::int64 getLengthInSamples () { return lengthInSamples != nullptr ? *lengthInSamples: 0; }
-    juce::AudioBuffer<float>* getAudioBuffer () { return audioBuffer != nullptr ? audioBuffer : &emptyAudioBuffer; }
+    AudioBufferType* getAudioBuffer () { return audioBuffer != nullptr ? audioBuffer : &emptyAudioBuffer; }
 
 private:
     SampleDataStatus* status { nullptr };
     int* bitsPerSample { nullptr };
     int* numChannels { nullptr };
     juce::int64* lengthInSamples { nullptr };
-    juce::AudioBuffer<float>* audioBuffer { nullptr };
-    juce::AudioBuffer<float> emptyAudioBuffer;
+    AudioBufferType* audioBuffer { nullptr };
+    AudioBufferType  emptyAudioBuffer;
 };
 
 class SamplePool

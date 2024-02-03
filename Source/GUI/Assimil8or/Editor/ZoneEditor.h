@@ -3,7 +3,7 @@
 #include <JuceHeader.h>
 #include "EditManager.h"
 #include "LoopPoints/LoopPointsView.h"
-#include "SamplePool/SamplePool.h"
+#include "SampleManager/SamplePool.h"
 #include "../../../AppProperties.h"
 #include "../../../Assimil8or/Audio/AudioPlayerProperties.h"
 #include "../../../Assimil8or/Preset/ZoneProperties.h"
