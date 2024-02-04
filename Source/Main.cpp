@@ -7,6 +7,7 @@
 #include "Assimil8or/Preset/PresetProperties.h"
 #include "GUI/GuiProperties.h"
 #include "GUI/MainComponent.h"
+#include "GUI/Assimil8or/Editor/SampleManager/SampleManager.h"
 #include "Utility/DebugLog.h"
 #include "Utility/DirectoryValueTree.h"
 #include "Utility/PersistentRootProperties.h"
@@ -105,6 +106,9 @@ public:
 
         // add the Preset Manager to the Runtime Root
         runtimeRootProperties.getValueTree ().addChild (presetManagerProperties.getValueTree (), -1, nullptr);
+
+        // SampleManager requires that the PresetManagerProperties are initialized
+        sampleManager.init (rootProperties.getValueTree ());
 
         // setup the directory scanner
         directoryValueTree.init (runtimeRootProperties.getValueTree ());
@@ -280,6 +284,7 @@ private:
     AppProperties appProperties;
     GuiProperties guiProperties;
     RuntimeRootProperties runtimeRootProperties;
+    SampleManager sampleManager;
     Assimil8orValidator assimil8orValidator;
     PresetProperties presetProperties;
     DirectoryValueTree directoryValueTree;

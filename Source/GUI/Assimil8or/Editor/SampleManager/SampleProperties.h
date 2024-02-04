@@ -7,11 +7,11 @@
 class SampleProperties : public ValueTreeWrapper<SampleProperties>
 {
 public:
-    SampleProperties () noexcept : ValueTreeWrapper<SampleProperties> (SampleTypeId)
+    SampleProperties () noexcept : ValueTreeWrapper<SampleProperties> (SamplePropertiesTypeId)
     {
     }
     SampleProperties (juce::ValueTree vt, WrapperType wrapperType, EnableCallbacks shouldEnableCallbacks) noexcept
-        : ValueTreeWrapper<SampleProperties> (SampleTypeId, vt, wrapperType, shouldEnableCallbacks)
+        : ValueTreeWrapper<SampleProperties> (SamplePropertiesTypeId, vt, wrapperType, shouldEnableCallbacks)
     {
     }
 
@@ -36,7 +36,7 @@ public:
     std::function<void (AudioBufferType* audioBufferPtr)> onAudioBufferPtrChange;
     std::function<void (SampleData::SampleDataStatus status)> onStatusChange;
 
-    static inline const juce::Identifier SampleTypeId { "Sample" };
+    static inline const juce::Identifier SamplePropertiesTypeId { "Sample" };
     static inline const juce::Identifier NamePropertyId            { "name" };
     static inline const juce::Identifier BitsPerSamplePropertyId   { "bitsPerSample"};
     static inline const juce::Identifier NumChannelsPropertyId     { "numChannels" };

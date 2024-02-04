@@ -30,7 +30,7 @@ void SampleManager::init (juce::ValueTree rootPropertiesVT)
             {
                 handleSampleChange (channelIndex, zoneIndex, sampleName);
             };
-            samplePropertiesList [channelIndex][zoneIndex].wrap (sampleManagerProperties.getSamplePropertiesVT (channelIndex,zoneIndex), SampleProperties::WrapperType::client, SampleProperties::EnableCallbacks::yes);
+            samplePropertiesList [channelIndex][zoneIndex].wrap (sampleManagerProperties.getSamplePropertiesVT (channelIndex, zoneIndex), SampleProperties::WrapperType::client, SampleProperties::EnableCallbacks::yes);
             return true;
         });
         return true;
