@@ -1,5 +1,15 @@
 #include "SampleProperties.h"
 
+void SampleProperties::initValueTree ()
+{
+    setAudioBufferPtr (nullptr, false);
+    setBitsPerSample (0, false);
+    setLengthInSamples (0, false);
+    setName ("", false);
+    setNumChannels (0, false);
+    setStatus (SampleData::SampleDataStatus::uninitialized, false);
+}
+
 void SampleProperties::setName (juce::String name, bool includeSelfCallback)
 {
     setValue (name, NamePropertyId, includeSelfCallback);

@@ -10,9 +10,11 @@ void SampleManager::init (juce::ValueTree rootPropertiesVT)
     appProperties.wrap (persistentRootProperties.getValueTree (), AppProperties::WrapperType::client, AppProperties::EnableCallbacks::yes);
     appProperties.onMostRecentFileChange = [this] (juce::String fileName)
     {
-            // TODO - if we are changing folders, we need to also clear the current samples, and inform our clients of that
+        // TODO - if we are changing folders, we need to also clear the current samples, and inform our clients of that
         samplePool.setFolder (juce::File (fileName).getParentDirectory ());
     };
+
+    sampleManagerProperties.wrap (runtimeRootProperties.getValueTree (), SampleManagerProperties::WrapperType::owner, SampleManagerProperties::EnableCallbacks::no);
 
     PresetManagerProperties presetManagerProperties (runtimeRootProperties.getValueTree (), PresetManagerProperties::WrapperType::owner, PresetManagerProperties::EnableCallbacks::no);
     presetProperties.wrap (presetManagerProperties.getPreset ("edit"), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::yes);
@@ -22,11 +24,54 @@ void SampleManager::init (juce::ValueTree rootPropertiesVT)
         channelProperties.wrap (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::yes);
         channelProperties.forEachZone ([this, channelIndex] (juce::ValueTree zonePropertiesVT, int zoneIndex)
         {
-            auto& sampleProperties { zonePropertiesList [channelIndex][zoneIndex] };
-            sampleProperties.wrap (zonePropertiesVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::yes);
-
+            auto& zoneProperties { zonePropertiesList [channelIndex][zoneIndex] };
+            zoneProperties.wrap (zonePropertiesVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::yes);
+            zoneProperties.onSampleChange = [this, channelIndex, zoneIndex] (juce::String sampleName)
+            {
+                handleSampleChange (channelIndex, zoneIndex, sampleName);
+            };
+            samplePropertiesList [channelIndex][zoneIndex].wrap (sampleManagerProperties.getSamplePropertiesVT (channelIndex,zoneIndex), SampleProperties::WrapperType::client, SampleProperties::EnableCallbacks::yes);
             return true;
         });
         return true;
     });
+}
+
+juce::ValueTree SampleManager::getSampleProperties (int channelIndex, int zoneIndex)
+{
+    return samplePropertiesList [channelIndex][zoneIndex].getValueTree ();
+}
+
+void SampleManager::handleSampleChange (int channelIndex, int zoneIndex, juce::String sampleName)
+{
+    // NOTE: at first I was going to have and assert if the sampleName was the same as the currently loaded sample, but then I realized that one could load a new version of a sample (from an external folder)
+    //       and we would need to re-open it to get all of the pertinent data.
+    // TODO: Does this also means we need to make sure, when loading a sample that we bypass the ValueTree feature of not executing callbacks for same data, or do we set the name to empty before loading, which
+    //       would enable the callbacks to happen correctly?
+    //       ** Currently I think we need to reset the sampleName to "" before setting it to a new value, so it will force a reloading of the sample data
+    auto& sampleProperties { samplePropertiesList [channelIndex][zoneIndex] };
+
+    // if there is an already open sample, we want to close it
+    if (sampleProperties.getName ().isNotEmpty ())
+    {
+        sampleProperties.setStatus (SampleData::SampleDataStatus::uninitialized, false); // this should inform clients to stop using the sample, before we reset everything else
+        samplePool.close (sampleName);
+        sampleProperties.setAudioBufferPtr (nullptr, false);
+        sampleProperties.setBitsPerSample (0, false);
+        sampleProperties.setLengthInSamples (0, false);
+        sampleProperties.setName ("", false);
+        sampleProperties.setNumChannels (0, false);
+    }
+
+    // if there is a new sample coming in (vs sample being reset) we want to open it
+    if (sampleName.isNotEmpty ())
+    {
+        auto sampleData { samplePool.open (sampleName) };
+        sampleProperties.setStatus (sampleData.getStatus (), false);
+        sampleProperties.setName (sampleName, false);
+        sampleProperties.setBitsPerSample (sampleData.getBitsPerSample (), false);
+        sampleProperties.setLengthInSamples (sampleData.getLengthInSamples (), false);
+        sampleProperties.setNumChannels (sampleData.getNumChannels (), false);
+        sampleProperties.setAudioBufferPtr (sampleData.getAudioBuffer (), false);
+    }
 }

@@ -44,7 +44,7 @@ public:
     static inline const juce::Identifier AudioBufferPtrPropertyId  { "audioBufferPtr" };
     static inline const juce::Identifier StatusPropertyId          { "status" };
 
-    void initValueTree () {}
+    void initValueTree ();
     void processValueTree () {}
 
 private:

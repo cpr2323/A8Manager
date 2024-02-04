@@ -122,6 +122,10 @@
               <FILE id="Z4XDJQ" name="SampleManager.cpp" compile="1" resource="0"
                     file="Source/GUI/Assimil8or/Editor/SampleManager/SampleManager.cpp"/>
               <FILE id="Vxlh4B" name="SampleManager.h" compile="0" resource="0" file="Source/GUI/Assimil8or/Editor/SampleManager/SampleManager.h"/>
+              <FILE id="iug7D5" name="SampleManagerProperties.cpp" compile="1" resource="0"
+                    file="Source/GUI/Assimil8or/Editor/SampleManager/SampleManagerProperties.cpp"/>
+              <FILE id="TTq8z2" name="SampleManagerProperties.h" compile="0" resource="0"
+                    file="Source/GUI/Assimil8or/Editor/SampleManager/SampleManagerProperties.h"/>
               <FILE id="yJzkYP" name="SamplePool.cpp" compile="1" resource="0" file="Source/GUI/Assimil8or/Editor/SampleManager/SamplePool.cpp"/>
               <FILE id="obUalz" name="SamplePool.h" compile="0" resource="0" file="Source/GUI/Assimil8or/Editor/SampleManager/SamplePool.h"/>
               <FILE id="MMEiyT" name="SampleProperties.cpp" compile="1" resource="0"
