@@ -5,7 +5,7 @@
 
 #define LOG_SAMPLE_POOL 1
 #if LOG_SAMPLE_POOL
-#define LogSamplePool(text) DebugLog ("SamplePool", text);
+#define LogSamplePool(text) DebugLog ("SampleManager", text);
 #else
 #define LogSamplePool(text) ;
 #endif
@@ -98,7 +98,7 @@ void SampleManager::handleSampleChange (int channelIndex, int zoneIndex, juce::S
     if (sampleName.isNotEmpty ())
     {
         DebugLog ("SampleManager::handleSampleChange", "opening sample '" + sampleName + " 'for c" + juce::String (channelIndex) + "/z" + juce::String (zoneIndex));
-        auto sampleData { open (sampleName) };
+        auto& sampleData { open (sampleName) };
         sampleProperties.setName (sampleName, false);
         sampleProperties.setBitsPerSample (sampleData.bitsPerSample, false);
         sampleProperties.setLengthInSamples (sampleData.lengthInSamples, false);
@@ -134,6 +134,23 @@ SampleManager::SampleData& SampleManager::loadSample (juce::String fileName)
     return sampleList [fileName];
 }
 
+void SampleManager::updateSampleProperties (juce::String fileName, SampleData& sampleData)
+{
+    for (auto channelIndex { 0 }; channelIndex < 8; ++channelIndex)
+        for (auto zoneIndex { 0 }; zoneIndex < 8; ++zoneIndex)
+        {
+            auto& sampleProperties { samplePropertiesList [channelIndex][zoneIndex] };
+            if (sampleProperties.getName () == fileName)
+            {
+                sampleProperties.setBitsPerSample (sampleData.bitsPerSample, false);
+                sampleProperties.setLengthInSamples (sampleData.lengthInSamples, false);
+                sampleProperties.setNumChannels (sampleData.numChannels, false);
+                sampleProperties.setAudioBufferPtr (&sampleData.audioBuffer, false);
+                sampleProperties.setStatus (sampleData.status, false);
+            }
+        }
+
+}
 void SampleManager::updateSample (juce::String fileName, SampleData& sampleData)
 {
     juce::File fullPath { currentFolder.getChildFile (fileName) };
@@ -151,6 +168,7 @@ void SampleManager::updateSample (juce::String fileName, SampleData& sampleData)
             // read in audio data
             sampleData.audioBuffer.setSize (sampleData.numChannels, static_cast<int> (sampleData.lengthInSamples), false, true, false);
             sampleFileReader->read (&sampleData.audioBuffer, 0, static_cast<int> (sampleData.lengthInSamples), 0, true, false);
+            updateSampleProperties (fileName, sampleData);
         }
         else
         {

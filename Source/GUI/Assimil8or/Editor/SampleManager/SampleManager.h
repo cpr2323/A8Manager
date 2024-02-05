@@ -46,6 +46,7 @@ private:
     void clear ();
     void update ();
     SampleData& loadSample (juce::String fileName);
+    void updateSampleProperties (juce::String fileName, SampleData& sampleData);
     void updateSample (juce::String fileName, SampleData& sampleData);
 
 };

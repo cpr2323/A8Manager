@@ -213,19 +213,27 @@ bool ZoneEditor::handleSamplesInternal (int startingZoneIndex, juce::StringArray
 
 void ZoneEditor::updateLoopPointsView ()
 {
+    DebugLog ("ZoneEditor","updateLoopPointsView ()");
     juce::int64 startSample { 0 };
     juce::int64 numSamples { 0 };
-    if (sourceSamplePointsButton.getToggleState ())
+    if (sampleProperties.getStatus() == SampleStatus::exists)
     {
-        startSample = zoneProperties.getSampleStart ().value_or (0);
-        numSamples = zoneProperties.getSampleEnd ().value_or (sampleProperties.getLengthInSamples ()) - startSample;
+        if (sourceSamplePointsButton.getToggleState ())
+        {
+            startSample = zoneProperties.getSampleStart ().value_or (0);
+            numSamples = zoneProperties.getSampleEnd ().value_or (sampleProperties.getLengthInSamples ()) - startSample;
+        }
+        else
+        {
+            startSample = zoneProperties.getLoopStart ().value_or (0);
+            numSamples = static_cast<juce::int64> (zoneProperties.getLoopLength ().value_or (static_cast<double> (sampleProperties.getLengthInSamples ())));
+        }
+        loopPointsView.setAudioBuffer (sampleProperties.getAudioBufferPtr ());
     }
     else
     {
-        startSample = zoneProperties.getLoopStart ().value_or (0);
-        numSamples = static_cast<juce::int64> (zoneProperties.getLoopLength ().value_or (static_cast<double> (sampleProperties.getLengthInSamples ())));
+        loopPointsView.setAudioBuffer (nullptr);
     }
-    loopPointsView.setAudioBuffer (sampleProperties.getAudioBufferPtr ());
     loopPointsView.setLoopPoints (startSample, numSamples);
     loopPointsView.repaint ();
 }
@@ -706,6 +714,7 @@ void ZoneEditor::init (juce::ValueTree zonePropertiesVT, juce::ValueTree rootPro
 #endif
         if (status == SampleStatus::exists)
         {
+            DebugLog ("ZoneEditor", "sample Status exists");
             // when we receive this callback, it means all of the other sample data is updated too
             setEditComponentsEnabled (true);
             oneShotPlayButton.setEnabled (true);
@@ -716,6 +725,7 @@ void ZoneEditor::init (juce::ValueTree zonePropertiesVT, juce::ValueTree rootPro
         }
         else if (status == SampleStatus::uninitialized)
         {
+            DebugLog ("ZoneEditor", "sample Status uninitialized");
             // this means the sample has been unloaded
             setEditComponentsEnabled (false);
             oneShotPlayButton.setEnabled (false);
@@ -725,6 +735,7 @@ void ZoneEditor::init (juce::ValueTree zonePropertiesVT, juce::ValueTree rootPro
         }
         else if (status == SampleStatus::doesNotExist)
         {
+            DebugLog ("ZoneEditor", "sample Status doesNotExist");
             // obviously none of the sample data can be used
             setEditComponentsEnabled (false);
             oneShotPlayButton.setEnabled (false);
@@ -735,6 +746,7 @@ void ZoneEditor::init (juce::ValueTree zonePropertiesVT, juce::ValueTree rootPro
         }
         else if (status == SampleStatus::wrongFormat)
         {
+            DebugLog ("ZoneEditor", "sample Status wrongFormat");
             // we should not be able to load a sample of the wrong format, but if an already loaded sample is changed outside of the app, this could happen
             setEditComponentsEnabled (false);
             oneShotPlayButton.setEnabled (false);
