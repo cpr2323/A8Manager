@@ -629,12 +629,9 @@ void ZoneEditor::setupZoneComponents ()
     setupTextEditor (levelOffsetTextEditor, juce::Justification::centred, 0, "+-.0123456789", "LevelOffset");
 }
 
-void ZoneEditor::init (juce::ValueTree zonePropertiesVT, juce::ValueTree rootPropertiesVT, EditManager* theEditManager, SamplePool* theSamplePool)
+void ZoneEditor::init (juce::ValueTree zonePropertiesVT, juce::ValueTree rootPropertiesVT, EditManager* theEditManager)
 {
     //DebugLog ("ZoneEditor[" + juce::String (zoneProperties.getId ()) + "]", "init");
-//     jassert (theSamplePool != nullptr);
-//     samplePool = theSamplePool;
-
     jassert (theEditManager != nullptr);
     editManager = theEditManager;
 
@@ -691,7 +688,7 @@ void ZoneEditor::init (juce::ValueTree zonePropertiesVT, juce::ValueTree rootPro
     //sampleProperties.onNumChannelsChange = [this] (int numChannels) {};
     //sampleProperties.onLengthInSamplesChange = [this] (juce::int64 lentgthInSamples) {};
     //sampleProperties.onAudioBufferPtrChange = [this] (AudioBufferType* audioBufferPtr) {};
-    sampleProperties.onStatusChange = [this] (SampleData::SampleDataStatus status)
+    sampleProperties.onStatusChange = [this] (SampleStatus status)
     {
 #if 0
             const auto sampleCanBePlayed { sampleProperties.getStatus () == SampleData::SampleDataStatus::exists };
@@ -707,7 +704,7 @@ void ZoneEditor::init (juce::ValueTree zonePropertiesVT, juce::ValueTree rootPro
                 sampleNameSelectLabel.setText (sample, juce::NotificationType::dontSendNotification);
             }
 #endif
-        if (status == SampleData::SampleDataStatus::exists)
+        if (status == SampleStatus::exists)
         {
             // when we receive this callback, it means all of the other sample data is updated too
             setEditComponentsEnabled (true);
@@ -717,7 +714,7 @@ void ZoneEditor::init (juce::ValueTree zonePropertiesVT, juce::ValueTree rootPro
             updateSamplePositionInfo ();
             updateSampleFileInfo (zoneProperties.getSample ());
         }
-        else if (status == SampleData::SampleDataStatus::uninitialized)
+        else if (status == SampleStatus::uninitialized)
         {
             // this means the sample has been unloaded
             setEditComponentsEnabled (false);
@@ -726,7 +723,7 @@ void ZoneEditor::init (juce::ValueTree zonePropertiesVT, juce::ValueTree rootPro
             updateLoopPointsView ();
             updateSamplePositionInfo ();
         }
-        else if (status == SampleData::SampleDataStatus::doesNotExist)
+        else if (status == SampleStatus::doesNotExist)
         {
             // obviously none of the sample data can be used
             setEditComponentsEnabled (false);
@@ -736,7 +733,7 @@ void ZoneEditor::init (juce::ValueTree zonePropertiesVT, juce::ValueTree rootPro
             updateSamplePositionInfo ();
             updateSampleFileInfo (zoneProperties.getSample ());
         }
-        else if (status == SampleData::SampleDataStatus::wrongFormat)
+        else if (status == SampleStatus::wrongFormat)
         {
             // we should not be able to load a sample of the wrong format, but if an already loaded sample is changed outside of the app, this could happen
             setEditComponentsEnabled (false);
@@ -1086,7 +1083,7 @@ void ZoneEditor::updateSampleFileInfo (juce::String sample)
 {
     jassert (! sample.isEmpty ());
     auto textColor {juce::Colours::white};
-    if (sampleProperties.getStatus () == SampleData::SampleDataStatus::exists)
+    if (sampleProperties.getStatus () == SampleStatus::exists)
     {
         if (! zoneProperties.getSampleEnd ().has_value ())
             sampleEndTextEditor.setText (juce::String (sampleProperties.getLengthInSamples ()));

@@ -7,7 +7,7 @@ void SampleProperties::initValueTree ()
     setLengthInSamples (0, false);
     setName ("", false);
     setNumChannels (0, false);
-    setStatus (SampleData::SampleDataStatus::uninitialized, false);
+    setStatus (SampleStatus::uninitialized, false);
 }
 
 void SampleProperties::setName (juce::String name, bool includeSelfCallback)
@@ -30,7 +30,7 @@ void SampleProperties::setLengthInSamples (juce::int64 lengthInSamples, bool inc
     setValue (lengthInSamples, LengthInSamplesPropertyId, includeSelfCallback);
 }
 
-void SampleProperties::setStatus (SampleData::SampleDataStatus status, bool includeSelfCallback)
+void SampleProperties::setStatus (SampleStatus status, bool includeSelfCallback)
 {
     setValue (static_cast<int> (status), StatusPropertyId, includeSelfCallback);
 }
@@ -40,9 +40,9 @@ void SampleProperties::setAudioBufferPtr (AudioBufferType* audioBufferPtr, bool 
     setValue (audioBufferPtr, AudioBufferPtrPropertyId, includeSelfCallback);
 }
 
-SampleData::SampleDataStatus SampleProperties::getStatus ()
+SampleStatus SampleProperties::getStatus ()
 {
-    return static_cast<SampleData::SampleDataStatus>(getValue<int> (StatusPropertyId));
+    return static_cast<SampleStatus>(getValue<int> (StatusPropertyId));
 }
 
 juce::String SampleProperties::getName ()

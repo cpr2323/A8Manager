@@ -4,7 +4,6 @@
 #include "ChannelEditor.h"
 #include "CvInputComboBox.h"
 #include "EditManager.h"
-#include "SampleManager/SamplePool.h"
 #include "../../../AppProperties.h"
 #include "../../../Assimil8or/Audio/AudioPlayerProperties.h"
 #include "../../../Assimil8or/Preset/PresetProperties.h"
@@ -50,7 +49,6 @@ private:
     ChannelProperties copyBufferChannelProperties;
     ZoneProperties copyBufferZoneProperties;
     bool copyBufferHasData { false };
-    SamplePool samplePool;
     EditManager editManager;
 
     juce::Label titleLabel;

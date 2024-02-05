@@ -3,6 +3,18 @@
 #include "../../../../Utility/DebugLog.h"
 #include "../../../../Utility/PersistentRootProperties.h"
 
+#define LOG_SAMPLE_POOL 1
+#if LOG_SAMPLE_POOL
+#define LogSamplePool(text) DebugLog ("SamplePool", text);
+#else
+#define LogSamplePool(text) ;
+#endif
+
+SampleManager::SampleManager ()
+{
+    audioFormatManager.registerBasicFormats ();
+}
+
 void SampleManager::init (juce::ValueTree rootPropertiesVT)
 {
     PersistentRootProperties persistentRootProperties (rootPropertiesVT, PersistentRootProperties::WrapperType::client, PersistentRootProperties::EnableCallbacks::no);
@@ -16,15 +28,20 @@ void SampleManager::init (juce::ValueTree rootPropertiesVT)
                 handleSampleChange (channelIndex, zoneIndex, "");
     };
     appProperties.wrap (persistentRootProperties.getValueTree (), AppProperties::WrapperType::client, AppProperties::EnableCallbacks::yes);
-    samplePool.setFolder (juce::File (appProperties.getMostRecentFolder()));
+    currentFolder = { juce::File (appProperties.getMostRecentFolder ()) };
     appProperties.onMostRecentFolderChange = [this, closeAllOpenSamples] (juce::String folderName)
     {
         closeAllOpenSamples ();
-        samplePool.setFolder (juce::File (folderName));
+        currentFolder = { juce::File (folderName) };
     };
     appProperties.onMostRecentFileChange = [this, closeAllOpenSamples] (juce::String fileName)
     {
         closeAllOpenSamples ();
+    };
+    directoryDataProperties.wrap (runtimeRootProperties.getValueTree (), DirectoryDataProperties::WrapperType::client, DirectoryDataProperties::EnableCallbacks::yes);
+    directoryDataProperties.onRootScanComplete = [this] ()
+    {
+        juce::MessageManager::callAsync ([this] () { update (); });
     };
 
     sampleManagerProperties.wrap (runtimeRootProperties.getValueTree (), SampleManagerProperties::WrapperType::owner, SampleManagerProperties::EnableCallbacks::no);
@@ -68,8 +85,8 @@ void SampleManager::handleSampleChange (int channelIndex, int zoneIndex, juce::S
     if (sampleProperties.getName ().isNotEmpty ())
     {
         DebugLog ("SampleManager::handleSampleChange", "closing sample '" + sampleProperties.getName () + " 'for c" + juce::String(channelIndex) + "/z" + juce::String (zoneIndex));
-        sampleProperties.setStatus (SampleData::SampleDataStatus::uninitialized, false); // this should inform clients to stop using the sample, before we reset everything else
-        samplePool.close (sampleProperties.getName ());
+        sampleProperties.setStatus (SampleStatus::uninitialized, false); // this should inform clients to stop using the sample, before we reset everything else
+        close (sampleProperties.getName ());
         sampleProperties.setAudioBufferPtr (nullptr, false);
         sampleProperties.setBitsPerSample (0, false);
         sampleProperties.setLengthInSamples (0, false);
@@ -81,12 +98,97 @@ void SampleManager::handleSampleChange (int channelIndex, int zoneIndex, juce::S
     if (sampleName.isNotEmpty ())
     {
         DebugLog ("SampleManager::handleSampleChange", "opening sample '" + sampleName + " 'for c" + juce::String (channelIndex) + "/z" + juce::String (zoneIndex));
-        auto sampleData { samplePool.open (sampleName) };
+        auto sampleData { open (sampleName) };
         sampleProperties.setName (sampleName, false);
-        sampleProperties.setBitsPerSample (sampleData.getBitsPerSample (), false);
-        sampleProperties.setLengthInSamples (sampleData.getLengthInSamples (), false);
-        sampleProperties.setNumChannels (sampleData.getNumChannels (), false);
-        sampleProperties.setAudioBufferPtr (sampleData.getAudioBuffer (), false);
-        sampleProperties.setStatus (sampleData.getStatus (), false);
+        sampleProperties.setBitsPerSample (sampleData.bitsPerSample, false);
+        sampleProperties.setLengthInSamples (sampleData.lengthInSamples, false);
+        sampleProperties.setNumChannels (sampleData.numChannels, false);
+        sampleProperties.setAudioBufferPtr (&sampleData.audioBuffer, false);
+        sampleProperties.setStatus (sampleData.status, false);
+    }
+}
+
+SampleManager::SampleData& SampleManager::open (juce::String fileName)
+{
+    LogSamplePool ("open: " + fileName);
+    jassert (fileName.isNotEmpty ());
+    jassert (currentFolder.exists ());
+    const auto sampleDataIter { sampleList.find (fileName) };
+    if (sampleDataIter == sampleList.end ())
+        return loadSample (fileName);
+
+    sampleDataIter->second.useCount++;
+    LogSamplePool ("open: useCount:" + juce::String (sampleList [fileName].useCount));
+    return (*sampleDataIter).second;
+}
+
+SampleManager::SampleData& SampleManager::loadSample (juce::String fileName)
+{
+    LogSamplePool ("loadSample: " + fileName);
+    SampleData newSampleData;
+    newSampleData.useCount = 1;
+    updateSample (fileName, newSampleData);
+    LogSamplePool ("loadSample: useCount: 1");
+
+    sampleList [fileName] = std::move (newSampleData);
+    return sampleList [fileName];
+}
+
+void SampleManager::updateSample (juce::String fileName, SampleData& sampleData)
+{
+    juce::File fullPath { currentFolder.getChildFile (fileName) };
+    if (fullPath.exists ())
+    {
+        LogSamplePool ("updateSample: file exists");
+        if (std::unique_ptr<juce::AudioFormatReader> sampleFileReader { audioFormatManager.createReaderFor (fullPath) }; sampleFileReader != nullptr)
+        {
+            // cache sample attributes
+            sampleData.status = SampleStatus::exists;
+            sampleData.bitsPerSample = sampleFileReader->bitsPerSample;
+            sampleData.numChannels = sampleFileReader->numChannels;
+            sampleData.lengthInSamples = sampleFileReader->lengthInSamples;
+
+            // read in audio data
+            sampleData.audioBuffer.setSize (sampleData.numChannels, static_cast<int> (sampleData.lengthInSamples), false, true, false);
+            sampleFileReader->read (&sampleData.audioBuffer, 0, static_cast<int> (sampleData.lengthInSamples), 0, true, false);
+        }
+        else
+        {
+            LogSamplePool ("updateSample: wrong format");
+            sampleData.status = SampleStatus::wrongFormat;
+        }
+    }
+    else
+    {
+        LogSamplePool ("updateSample: does not exist");
+        sampleData.status = SampleStatus::doesNotExist;
+    }
+}
+
+void SampleManager::clear ()
+{
+    sampleList.clear ();
+}
+
+void SampleManager::update ()
+{
+    for (auto& [fileName, SampleDataInternal] : sampleList)
+        updateSample (fileName, SampleDataInternal);
+}
+
+void SampleManager::close (juce::String fileName)
+{
+    LogSamplePool ("close: " + fileName);
+    //dumpStacktrace (-1, [this] (juce::String logLine) { DebugLog ("SamplePool", logLine); });
+    jassert (fileName.isNotEmpty ());
+    [[maybe_unused]] const auto sampleDataIter { sampleList.find (fileName) };
+    jassert (sampleDataIter != sampleList.end ());
+    jassert (sampleList [fileName].useCount != 0);
+    --sampleList [fileName].useCount;
+    LogSamplePool ("close: useCount:" + juce::String (sampleList [fileName].useCount));
+    if (sampleList [fileName].useCount == 0)
+    {
+        sampleList.erase (fileName);
+        LogSamplePool ("close: deleting");
     }
 }

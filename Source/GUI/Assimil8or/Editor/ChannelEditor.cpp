@@ -1939,12 +1939,9 @@ void ChannelEditor::balanceVoltages (VoltageBalanceType balanceType)
 }
 
 void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree rootPropertiesVT, EditManager* theEditManager,
-                          SamplePool* theSamplePool, juce::ValueTree copyBufferZonePropertiesVT, bool* theZoneCopyBufferHasData)
+                          juce::ValueTree copyBufferZonePropertiesVT, bool* theZoneCopyBufferHasData)
 {
     //DebugLog ("ChannelEditor["+ juce::String (channelProperties.getId ()) + "]", "init");
-    jassert (theSamplePool != nullptr);
-    samplePool = theSamplePool;
-
     jassert (theEditManager != nullptr);
     editManager = theEditManager;
 
@@ -1965,7 +1962,7 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
     {
         // Zone Editor setup
         auto& zoneEditor { zoneEditors [zoneIndex] };
-        zoneEditor.init (zonePropertiesVT, rootPropertiesVT, editManager, samplePool);
+        zoneEditor.init (zonePropertiesVT, rootPropertiesVT, editManager);
         zoneEditor.displayToolsMenu = [this] (int zoneIndex)
         {
             juce::PopupMenu pmBalance;

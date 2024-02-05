@@ -7,7 +7,6 @@
 #include "ZoneEditor.h"
 #include "Envelope/AREnvelopeComponent.h"
 #include "Envelope/AREnvelopeProperties.h"
-#include "SampleManager/SamplePool.h"
 #include "../../../AppProperties.h"
 #include "../../../Assimil8or/Audio/AudioPlayerProperties.h"
 #include "../../../Assimil8or/Preset/ChannelProperties.h"
@@ -186,7 +185,7 @@ public:
     ~ChannelEditor ();
 
     void init (juce::ValueTree channelPropertiesVT, juce::ValueTree rootPropertiesVT,
-               EditManager* theEditManager, SamplePool* theSamplePool, juce::ValueTree copyBufferZonePropertiesVT,
+               EditManager* theEditManager, juce::ValueTree copyBufferZonePropertiesVT,
                bool* theZoneCopyBufferHasData);
 
     void receiveSampleLoadRequest (juce::File sampleFile);
@@ -211,7 +210,6 @@ private:
     ZoneProperties copyBufferZoneProperties;
     bool* zoneCopyBufferHasData { nullptr };
     AudioPlayerProperties audioPlayerProperties;
-    SamplePool* samplePool { nullptr };
     EditManager* editManager { nullptr };
     int channelIndex { -1 };
 

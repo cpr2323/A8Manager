@@ -256,7 +256,6 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
     {
         //DebugLog ("Assimil8orEditorComponent", "Assimil8orEditorComponent::init/appProperties.onMostRecentFileChange: " + fileName);
         //dumpStacktrace (-1, [this] (juce::String logLine) { DebugLog ("Assimil8orEditorComponent", logLine); });
-        samplePool.setFolder (juce::File (fileName).getParentDirectory ());
         audioPlayerProperties.setPlayState (AudioPlayerProperties::PlayState::stop, false);
     };
 
@@ -265,21 +264,18 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
     {
         juce::MessageManager::callAsync ([this] ()
         {
-            samplePool.update ();
             checkSampleFilesExistance ();
         });
     };
     PresetManagerProperties presetManagerProperties (runtimeRootProperties.getValueTree (), PresetManagerProperties::WrapperType::owner, PresetManagerProperties::EnableCallbacks::no);
     unEditedPresetProperties.wrap (presetManagerProperties.getPreset ("unedited"), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::yes);
     presetProperties.wrap (presetManagerProperties.getPreset ("edit"), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::yes);
-    editManager.init (rootPropertiesVT, presetProperties.getValueTree (), &samplePool);
+    editManager.init (rootPropertiesVT, presetProperties.getValueTree ());
     setupPresetPropertiesCallbacks ();
-    samplePool.setFolder (appProperties.getMostRecentFolder ());
     copyBufferZoneProperties.wrap ({}, ZoneProperties::WrapperType::owner, ZoneProperties::EnableCallbacks::no);
     presetProperties.forEachChannel ([this, rootPropertiesVT] (juce::ValueTree channelPropertiesVT, int channelIndex)
     {
-        channelEditors [channelIndex].init (channelPropertiesVT, rootPropertiesVT, &editManager, &samplePool,
-                                                  copyBufferZoneProperties.getValueTree (), &copyBufferHasData);
+        channelEditors [channelIndex].init (channelPropertiesVT, rootPropertiesVT, &editManager, copyBufferZoneProperties.getValueTree (), &copyBufferHasData);
         channelEditors [channelIndex].displayToolsMenu = [this] (int channelIndex)
         {
             juce::PopupMenu pm;

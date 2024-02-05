@@ -107,14 +107,15 @@ public:
         // add the Preset Manager to the Runtime Root
         runtimeRootProperties.getValueTree ().addChild (presetManagerProperties.getValueTree (), -1, nullptr);
 
-        // SampleManager requires that the PresetManagerProperties are initialized
-        sampleManager.init (rootProperties.getValueTree ());
-
         // setup the directory scanner
         directoryValueTree.init (runtimeRootProperties.getValueTree ());
         directoryDataProperties.wrap (directoryValueTree.getDirectoryDataPropertiesVT (), DirectoryDataProperties::WrapperType::client, DirectoryDataProperties::EnableCallbacks::no);
         // debug tool for watching changes on the Directory Data Properties Value Tree
         //directoryDataMonitor.assign (directoryDataProperties.getValueTreeRef ());
+
+        // SampleManager requires that the PresetManagerProperties and DirectoryDataProperties are initialized
+        sampleManager.init (rootProperties.getValueTree ());
+
 
         // when the folder being viewed changes, signal the directory scanner to rescan
         appProperties.onMostRecentFolderChange = [this] (juce::String folderName)

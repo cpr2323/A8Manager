@@ -6,11 +6,8 @@ EditManager::EditManager ()
     audioFormatManager.registerBasicFormats ();
 }
 
-void EditManager::init (juce::ValueTree rootPropertiesVT, juce::ValueTree presetPropertiesVT, SamplePool* theSamplePool)
+void EditManager::init (juce::ValueTree rootPropertiesVT, juce::ValueTree presetPropertiesVT)
 {
-    jassert (theSamplePool != nullptr);
-    samplePool = theSamplePool;
-
     PersistentRootProperties persistentRootProperties (rootPropertiesVT, PersistentRootProperties::WrapperType::client, PersistentRootProperties::EnableCallbacks::no);
     appProperties.wrap (persistentRootProperties.getValueTree (), AppProperties::WrapperType::client, AppProperties::EnableCallbacks::yes);
 
@@ -207,6 +204,8 @@ bool EditManager::assignSamples (int channelIndex, int zoneIndex, const juce::St
     return true;
 }
 
+// TODO - the functionallity of assigning the second channel of a stereo wave file to the next channel needs to be moved elsewhere
+#if 0
 void EditManager::loadSample (int channelIndex, int zoneIndex, juce::String sampleFileName)
 {
     jassert (channelIndex >= 0 && channelIndex < 8);
@@ -268,3 +267,4 @@ void EditManager::loadSample (int channelIndex, int zoneIndex, juce::String samp
 //     if (onSampleChange != nullptr)
 //         onSampleChange (sampleFileName);
 }
+#endif

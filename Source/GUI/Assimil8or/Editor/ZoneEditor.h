@@ -4,7 +4,6 @@
 #include "EditManager.h"
 #include "LoopPoints/LoopPointsView.h"
 #include "SampleManager/SampleProperties.h"
-#include "SampleManager/SamplePool.h"
 #include "../../../AppProperties.h"
 #include "../../../Assimil8or/Audio/AudioPlayerProperties.h"
 #include "../../../Assimil8or/Preset/ZoneProperties.h"
@@ -18,14 +17,12 @@ public:
     ZoneEditor ();
     ~ZoneEditor () = default;
 
-    void init (juce::ValueTree zonePropertiesVT, juce::ValueTree rootPropertiesVT, EditManager* theEditManager, SamplePool* theSamplePool);
+    void init (juce::ValueTree zonePropertiesVT, juce::ValueTree rootPropertiesVT, EditManager* theEditManager);
     void checkSampleExistence ();
-    //void loadSample (juce::String sampleFileName);
     void receiveSampleLoadRequest (juce::File sampleFile);
     void setLoopLengthIsEnd (bool loopLengthIsEnd);
 
-    // TODO - move all of these to EditManager?
-//    std::function<void (juce::String)> onSampleChange;
+    // TODO - can we make this local, since we should be able to access the edits through the EditManager
     std::function<void (int zoneIndex)> displayToolsMenu;
 
 private:
@@ -37,9 +34,6 @@ private:
     SampleProperties sampleProperties;
     // TODO - I want to remove ChannelProperties!
     ChannelProperties parentChannelProperties;
-    // TODO - using SampleProperties should replace requiring access to SamplePool and SampleData
-//    SamplePool* samplePool { nullptr };
-//    SampleData sampleData;
     // TODO - I think we might be able to get rid of currentSampleFileName too, but I am not sure yet
     juce::String currentSampleFileName;
     EditManager* editManager { nullptr };

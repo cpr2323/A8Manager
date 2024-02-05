@@ -1,7 +1,6 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include "SampleManager/SamplePool.h"
 #include "../../../AppProperties.h"
 #include "../../../Assimil8or/Preset/PresetProperties.h"
 
@@ -10,7 +9,7 @@ class EditManager
 public:
     EditManager ();
 
-    void init (juce::ValueTree rootPropertiesVT, juce::ValueTree presetPropertiesVT, SamplePool* theSamplePool);
+    void init (juce::ValueTree rootPropertiesVT, juce::ValueTree presetPropertiesVT);
 
     double getXfadeGroupValueByIndex (int xfadeGroupIndex);
     void setXfadeGroupValueByIndex (int xfadeGroupIndex, double value, bool doSelfCallback);
@@ -24,7 +23,7 @@ public:
     std::tuple<double, double> getVoltageBoundaries (int channelIndex, int zoneIndex, int topDepth);
     bool isMinVoltageInRange (int channelIndex, int zoneIndex, double voltage);
     bool isSupportedAudioFile (juce::File file);
-    void loadSample (int channelIndex, int zoneIndex, juce::String sampleFileName);
+//    void loadSample (int channelIndex, int zoneIndex, juce::String sampleFileName);
 
 private:
     PresetProperties presetProperties;
@@ -32,6 +31,5 @@ private:
     std::array<ChannelProperties, 8> channelPropertiesList;
     std::array<std::array<ZoneProperties, 8>, 8> zonePropertiesList;
     juce::AudioFormatManager audioFormatManager;
-    SamplePool* samplePool { nullptr };
 };
 

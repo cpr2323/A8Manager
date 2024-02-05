@@ -1,8 +1,10 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include "SamplePool.h"
+#include "SampleStatus.h"
 #include "../../../../Utility/ValueTreeWrapper.h"
+
+using AudioBufferType = juce::AudioBuffer<float>;
 
 class SampleProperties : public ValueTreeWrapper<SampleProperties>
 {
@@ -20,21 +22,21 @@ public:
     void setNumChannels (int numChannels, bool includeSelfCallback);
     void setLengthInSamples (juce::int64, bool includeSelfCallback);
     void setAudioBufferPtr (AudioBufferType* audioBufferPtr, bool includeSelfCallback);
-    void setStatus (SampleData::SampleDataStatus status, bool includeSelfCallback);
+    void setStatus (SampleStatus status, bool includeSelfCallback);
 
     juce::String getName ();
     int getBitsPerSample ();
     int getNumChannels ();
     juce::int64 getLengthInSamples ();
     AudioBufferType* getAudioBufferPtr ();
-    SampleData::SampleDataStatus getStatus ();
+    SampleStatus getStatus ();
 
     std::function<void (juce::String name)> onNameChange;
     std::function<void (int bitsPerSample)> onBitsPerSampleChange;
     std::function<void (int numChannels)> onNumChannelsChange;
     std::function<void (juce::int64 lengthInSamples)> onLengthInSamplesChange;
     std::function<void (AudioBufferType* audioBufferPtr)> onAudioBufferPtrChange;
-    std::function<void (SampleData::SampleDataStatus status)> onStatusChange;
+    std::function<void (SampleStatus status)> onStatusChange;
 
     static inline const juce::Identifier SamplePropertiesTypeId { "Sample" };
     static inline const juce::Identifier NamePropertyId            { "name" };
