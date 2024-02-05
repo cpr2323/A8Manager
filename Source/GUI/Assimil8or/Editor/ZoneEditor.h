@@ -25,7 +25,7 @@ public:
     void setLoopLengthIsEnd (bool loopLengthIsEnd);
 
     // TODO - move all of these to EditManager?
-    std::function<void (juce::String)> onSampleChange;
+//    std::function<void (juce::String)> onSampleChange;
     std::function<void (int zoneIndex)> displayToolsMenu;
 
 private:

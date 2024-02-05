@@ -2006,16 +2006,16 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
             });
             pm.showMenuAsync ({}, [this] (int) {});
         };
-        zoneEditor.onSampleChange = [this] (juce::String sampleFileName)
-        {
-            // TODO - is this callback even needed anymore, because assignSamples is doing the same thing this used to?
-            ensureProperZoneIsSelected ();
-            updateAllZoneTabNames ();
-        };
 
         // Zone Properties setup
         auto& curZoneProperties { zoneProperties [zoneIndex] };
         curZoneProperties.wrap (zonePropertiesVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::yes);
+        curZoneProperties.onSampleChange = [this] (juce::String sample)
+        {
+            // TODO - optimize so we only update the zone that is changing
+            ensureProperZoneIsSelected ();
+            updateAllZoneTabNames ();
+        };
         curZoneProperties.onMinVoltageChange = [this] ([[maybe_unused]] double minVoltage)
         {
             updateAllZoneTabNames ();
