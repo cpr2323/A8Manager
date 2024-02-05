@@ -3,6 +3,7 @@
 #include <JuceHeader.h>
 #include "EditManager.h"
 #include "LoopPoints/LoopPointsView.h"
+#include "SampleManager/SampleProperties.h"
 #include "SampleManager/SamplePool.h"
 #include "../../../AppProperties.h"
 #include "../../../Assimil8or/Audio/AudioPlayerProperties.h"
@@ -19,7 +20,7 @@ public:
 
     void init (juce::ValueTree zonePropertiesVT, juce::ValueTree rootPropertiesVT, EditManager* theEditManager, SamplePool* theSamplePool);
     void checkSampleExistence ();
-    void loadSample (juce::String sampleFileName);
+    //void loadSample (juce::String sampleFileName);
     void receiveSampleLoadRequest (juce::File sampleFile);
     void setLoopLengthIsEnd (bool loopLengthIsEnd);
 
@@ -33,9 +34,13 @@ private:
     ZoneProperties zoneProperties;
     ZoneProperties minZoneProperties;
     ZoneProperties maxZoneProperties;
+    SampleProperties sampleProperties;
+    // TODO - I want to remove ChannelProperties!
     ChannelProperties parentChannelProperties;
-    SamplePool* samplePool { nullptr };
-    SampleData sampleData;
+    // TODO - using SampleProperties should replace requiring access to SamplePool and SampleData
+//    SamplePool* samplePool { nullptr };
+//    SampleData sampleData;
+    // TODO - I think we might be able to get rid of currentSampleFileName too, but I am not sure yet
     juce::String currentSampleFileName;
     EditManager* editManager { nullptr };
     int zoneIndex { -1 };

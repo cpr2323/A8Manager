@@ -1,5 +1,6 @@
 #include "SampleManager.h"
 #include "../../../../Assimil8or/PresetManagerProperties.h"
+#include "../../../../Utility/DebugLog.h"
 #include "../../../../Utility/PersistentRootProperties.h"
 
 void SampleManager::init (juce::ValueTree rootPropertiesVT)
@@ -10,7 +11,10 @@ void SampleManager::init (juce::ValueTree rootPropertiesVT)
     appProperties.wrap (persistentRootProperties.getValueTree (), AppProperties::WrapperType::client, AppProperties::EnableCallbacks::yes);
     appProperties.onMostRecentFileChange = [this] (juce::String fileName)
     {
-        // TODO - if we are changing folders, we need to also clear the current samples, and inform our clients of that
+        // reset all samples being used
+        for (auto channelIndex { 0 }; channelIndex < 8; ++channelIndex)
+            for (auto zoneIndex { 0 }; zoneIndex < 8; ++zoneIndex)
+                handleSampleChange (channelIndex, zoneIndex, "");
         samplePool.setFolder (juce::File (fileName).getParentDirectory ());
     };
 
@@ -54,8 +58,9 @@ void SampleManager::handleSampleChange (int channelIndex, int zoneIndex, juce::S
     // if there is an already open sample, we want to close it
     if (sampleProperties.getName ().isNotEmpty ())
     {
+        DebugLog ("SampleManager::handleSampleChange", "closing sample '" + sampleProperties.getName () + " 'for c" + juce::String(channelIndex) + "/z" + juce::String (zoneIndex));
         sampleProperties.setStatus (SampleData::SampleDataStatus::uninitialized, false); // this should inform clients to stop using the sample, before we reset everything else
-        samplePool.close (sampleName);
+        samplePool.close (sampleProperties.getName ());
         sampleProperties.setAudioBufferPtr (nullptr, false);
         sampleProperties.setBitsPerSample (0, false);
         sampleProperties.setLengthInSamples (0, false);
@@ -66,12 +71,13 @@ void SampleManager::handleSampleChange (int channelIndex, int zoneIndex, juce::S
     // if there is a new sample coming in (vs sample being reset) we want to open it
     if (sampleName.isNotEmpty ())
     {
+        DebugLog ("SampleManager::handleSampleChange", "opening sample '" + sampleName + " 'for c" + juce::String (channelIndex) + "/z" + juce::String (zoneIndex));
         auto sampleData { samplePool.open (sampleName) };
-        sampleProperties.setStatus (sampleData.getStatus (), false);
         sampleProperties.setName (sampleName, false);
         sampleProperties.setBitsPerSample (sampleData.getBitsPerSample (), false);
         sampleProperties.setLengthInSamples (sampleData.getLengthInSamples (), false);
         sampleProperties.setNumChannels (sampleData.getNumChannels (), false);
         sampleProperties.setAudioBufferPtr (sampleData.getAudioBuffer (), false);
+        sampleProperties.setStatus (sampleData.getStatus (), false);
     }
 }
