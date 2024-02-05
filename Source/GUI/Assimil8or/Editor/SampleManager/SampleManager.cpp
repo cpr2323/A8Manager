@@ -8,14 +8,23 @@ void SampleManager::init (juce::ValueTree rootPropertiesVT)
     PersistentRootProperties persistentRootProperties (rootPropertiesVT, PersistentRootProperties::WrapperType::client, PersistentRootProperties::EnableCallbacks::no);
     runtimeRootProperties.wrap (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::yes);
 
-    appProperties.wrap (persistentRootProperties.getValueTree (), AppProperties::WrapperType::client, AppProperties::EnableCallbacks::yes);
-    appProperties.onMostRecentFileChange = [this] (juce::String fileName)
+    auto closeAllOpenSamples = [this] ()
     {
         // reset all samples being used
         for (auto channelIndex { 0 }; channelIndex < 8; ++channelIndex)
-            for (auto zoneIndex { 0 }; zoneIndex < 8; ++zoneIndex)
+            for (auto zoneIndex { 7 }; zoneIndex >= 0; --zoneIndex)
                 handleSampleChange (channelIndex, zoneIndex, "");
-        samplePool.setFolder (juce::File (fileName).getParentDirectory ());
+    };
+    appProperties.wrap (persistentRootProperties.getValueTree (), AppProperties::WrapperType::client, AppProperties::EnableCallbacks::yes);
+    samplePool.setFolder (juce::File (appProperties.getMostRecentFolder()));
+    appProperties.onMostRecentFolderChange = [this, closeAllOpenSamples] (juce::String folderName)
+    {
+        closeAllOpenSamples ();
+        samplePool.setFolder (juce::File (folderName));
+    };
+    appProperties.onMostRecentFileChange = [this, closeAllOpenSamples] (juce::String fileName)
+    {
+        closeAllOpenSamples ();
     };
 
     sampleManagerProperties.wrap (runtimeRootProperties.getValueTree (), SampleManagerProperties::WrapperType::owner, SampleManagerProperties::EnableCallbacks::no);
