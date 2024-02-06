@@ -179,7 +179,7 @@ void ZoneEditor::filesDropped (const juce::StringArray& files, int x, int y)
     setDropIndex (files, x, y);
     draggingFiles = false;
     repaint ();
-    if (! handleSamplesInternal (dropIndex == 0 ? 0 : zoneProperties.getId () - 1, files))
+    if (! handleSamplesInternal (dropIndex == 0 ? 0 : zoneIndex, files))
     {
         // TODO - indicate an error? first thought was a red outline that fades out over a couple of second
     }
@@ -204,6 +204,7 @@ void ZoneEditor::fileDragExit (const juce::StringArray&)
     repaint ();
 }
 
+// TODO - can we move this to the EditManager, as it just calls editManager->assignSamples (parentChannelIndex, startingZoneIndex, files); in the ZoneEditor
 bool ZoneEditor::handleSamplesInternal (int startingZoneIndex, juce::StringArray files)
 {
     audioPlayerProperties.setPlayState (AudioPlayerProperties::PlayState::stop, true);
@@ -237,65 +238,6 @@ void ZoneEditor::updateLoopPointsView ()
     loopPointsView.setLoopPoints (startSample, numSamples);
     loopPointsView.repaint ();
 }
-
-#if 0
-void ZoneEditor::loadSample (juce::String sampleFileName)
-{
-    if (sampleFileName == currentSampleFileName)
-        return;
-
-    currentSampleFileName = sampleFileName;
-
-    if (sampleFileName.isNotEmpty ())
-        sampleData = samplePool->open (sampleFileName);
-    else
-        sampleData = SampleData ();
-
-    if (sampleData.getStatus () == SampleData::SampleDataStatus::exists)
-    {
-        updateLoopPointsView ();
-
-        zoneProperties.setSampleStart (-1, true);
-        zoneProperties.setSampleEnd (-1, true);
-        zoneProperties.setLoopStart (-1, true);
-        zoneProperties.setLoopLength (-1, true);
-        updateSamplePositionInfo ();
-        sampleUiChanged (sampleFileName);
-        sampleNameSelectLabel.setText (sampleFileName, juce::NotificationType::dontSendNotification);
-        sampleNameSelectLabel.setColour (juce::Label::ColourIds::textColourId, juce::Colours::white);
-
-        if (sampleData.getNumChannels () == 2)
-        {
-            // if this zone not the last channel && the parent channel isn't set to Stereo/Right
-            if (auto parentChannelId { parentChannelProperties.getId () }; parentChannelId < 8 && parentChannelProperties.getChannelMode () != ChannelProperties::ChannelMode::stereoRight)
-            {
-                PresetProperties presetProperties (parentChannelProperties.getValueTree ().getParent (), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
-                // NOTE PresetProperties.getChannelVT takes a 0 based index, but Id's are 1 based. and since we want the NEXT channel, we can use the Id, because it is already +1 to the index
-                ChannelProperties nextChannelProperties (presetProperties.getChannelVT (parentChannelId), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
-                ZoneProperties nextChannelZone1Properties (nextChannelProperties.getZoneVT (zoneProperties.getId () - 1), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
-                // if next Channel does not have a sample
-                if (nextChannelZone1Properties.getSample ().isEmpty ())
-                {
-                    nextChannelProperties.setChannelMode (ChannelProperties::ChannelMode::stereoRight, false);
-                    nextChannelZone1Properties.setSide (1, false);
-                    nextChannelZone1Properties.setSampleStart (-1, true);
-                    nextChannelZone1Properties.setSampleEnd (-1, true);
-                    nextChannelZone1Properties.setLoopStart (-1, true);
-                    nextChannelZone1Properties.setLoopLength (-1, true);
-                    nextChannelZone1Properties.setSample (sampleFileName, false); // when the other editor receives this update, it will also update the sample positions, so do it after setting them
-                }
-            }
-        }
-    }
-
-    const auto sampleCanBePlayed { sampleData.getStatus () == SampleData::SampleDataStatus::exists };
-    oneShotPlayButton.setEnabled (sampleCanBePlayed);
-    loopPlayButton.setEnabled (sampleCanBePlayed);
-
-    if (onSampleChange != nullptr)
-        onSampleChange (sampleFileName);
-}
-#endif
 
 void ZoneEditor::setupZoneComponents ()
 {
@@ -347,7 +289,12 @@ void ZoneEditor::setupZoneComponents ()
     {
         if (zoneProperties.getSample ().isEmpty ())
             return;
-        auto editMenu { createZoneEditMenu ([this] (ZoneProperties& destZoneProperties) { destZoneProperties.setSample (zoneProperties.getSample (), false); },
+        auto editMenu { createZoneEditMenu ([this] (ZoneProperties& destZoneProperties)
+                                            {
+                                                const auto destZoneIndex { destZoneProperties.getId () - 1 };
+                                                const auto fileName { juce::File (appProperties.getMostRecentFolder ()).getChildFile (zoneProperties.getSample ()).getFullPathName () };
+                                                handleSamplesInternal (destZoneIndex, { fileName });
+                                            },
                                             nullptr /* reset is not possible for the sample file parameter, since zones have to have contiguous samples assigned, and resetting one in the middle would break that */) };
         editMenu.showMenuAsync ({}, [this] (int) {});
     };
@@ -689,29 +636,8 @@ void ZoneEditor::init (juce::ValueTree zonePropertiesVT, juce::ValueTree rootPro
 
     SampleManagerProperties sampleManagerProperties (runtimeRootProperties.getValueTree (), SampleManagerProperties::WrapperType::client, SampleManagerProperties::EnableCallbacks::no);
     sampleProperties.wrap (sampleManagerProperties.getSamplePropertiesVT (parentChannelIndex, zoneIndex), SampleProperties::WrapperType::client, SampleProperties::EnableCallbacks::yes);
-    // TODO - I don't think we need to track the name, as that is more of an internal things to the SampleManager
-    //sampleProperties.onNameChange = [this] (juce::String name) {};
-    // TODO - I don't think we need to track these individual settings, as they are either valid after a SampleData::SampleDataStatus::exists onStatusChange callback, or otherwise invalid
-    //sampleProperties.onBitsPerSampleChange = [this] (int bitsPerSample) {};
-    //sampleProperties.onNumChannelsChange = [this] (int numChannels) {};
-    //sampleProperties.onLengthInSamplesChange = [this] (juce::int64 lentgthInSamples) {};
-    //sampleProperties.onAudioBufferPtrChange = [this] (AudioBufferType* audioBufferPtr) {};
     sampleProperties.onStatusChange = [this] (SampleStatus status)
     {
-#if 0
-            const auto sampleCanBePlayed { sampleProperties.getStatus () == SampleData::SampleDataStatus::exists };
-            oneShotPlayButton.setEnabled (sampleCanBePlayed);
-            loopPlayButton.setEnabled (sampleCanBePlayed);
-
-            if (sample != sampleNameSelectLabel.getText ())
-            {
-                updateLoopPointsView ();
-                updateSamplePositionInfo ();
-                if (sample.isNotEmpty ())
-                    updateSampleFileInfo (sample);
-                sampleNameSelectLabel.setText (sample, juce::NotificationType::dontSendNotification);
-            }
-#endif
         if (status == SampleStatus::exists)
         {
             DebugLog ("ZoneEditor", "sample Status exists");
@@ -769,9 +695,6 @@ void ZoneEditor::init (juce::ValueTree zonePropertiesVT, juce::ValueTree rootPro
     sampleEndDataChanged (zoneProperties.getSampleEnd ());
 
     setLoopLengthIsEnd (parentChannelProperties.getLoopLengthIsEnd ());
-
-    // TODO - this gets set from a SampleProperties callback
-    //setEditComponentsEnabled (zoneProperties.getSample().isNotEmpty ());
 }
 
 void ZoneEditor::setLoopLengthIsEnd (bool newLoopLengthIsEnd)
@@ -926,12 +849,6 @@ void ZoneEditor::setEditComponentsEnabled (bool enabled)
     minVoltageTextEditor.setEnabled (enabled);
     pitchOffsetTextEditor.setEnabled (enabled);
     levelOffsetTextEditor.setEnabled (enabled);
-}
-
-void ZoneEditor::checkSampleExistence ()
-{
-    if (zoneProperties.getSample ().isNotEmpty ())
-        updateSampleFileInfo (zoneProperties.getSample ());
 }
 
 double ZoneEditor::snapLoopLength (double rawValue)

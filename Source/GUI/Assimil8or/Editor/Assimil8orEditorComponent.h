@@ -9,7 +9,6 @@
 #include "../../../Assimil8or/Preset/PresetProperties.h"
 #include "../../../Utility/CustomTextEditor.h"
 #include "../../../Utility/DebugLog.h"
-#include "../../../Utility/DirectoryDataProperties.h"
 #include "../../../Utility/RuntimeRootProperties.h"
 
 class WindowDecorator : public juce::Component
@@ -39,7 +38,6 @@ private:
     RuntimeRootProperties runtimeRootProperties;
     AppProperties appProperties;
     AudioPlayerProperties audioPlayerProperties;
-    DirectoryDataProperties directoryDataProperties;
     PresetProperties presetProperties;
     PresetProperties unEditedPresetProperties;
     PresetProperties defaultPresetProperties;
@@ -85,7 +83,6 @@ private:
     std::array<ChannelEditor, 8> channelEditors;
     std::array<ChannelProperties, 8> channelProperties;
 
-    void checkSampleFilesExistance ();
     void exportPreset ();
     juce::String formatXfadeWidthString (double width);
     void importPreset ();

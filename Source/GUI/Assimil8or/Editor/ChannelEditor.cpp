@@ -152,6 +152,7 @@ void ChannelEditor::visibilityChanged ()
         configAudioPlayer ();
 }
 
+// TODO - move this to the EditManger
 void ChannelEditor::clearAllZones ()
 {
     const auto numZones { editManager->getNumUsedZones (channelIndex) };
@@ -159,12 +160,14 @@ void ChannelEditor::clearAllZones ()
         zoneProperties [curZoneIndex].copyFrom (defaultZoneProperties.getValueTree ());
 }
 
+// TODO - move this to the EditManger
 void ChannelEditor::copyZone (int zoneIndex)
 {
     copyBufferZoneProperties.copyFrom (zoneProperties [zoneIndex].getValueTree ());
     *zoneCopyBufferHasData = true;
 }
 
+// TODO - move this to the EditManger
 void ChannelEditor::deleteZone (int zoneIndex)
 {
     zoneProperties [zoneIndex].copyFrom (defaultZoneProperties.getValueTree ());
@@ -174,6 +177,7 @@ void ChannelEditor::deleteZone (int zoneIndex)
     removeEmptyZones ();
 }
 
+// TODO - move this to the EditManger
 void ChannelEditor::duplicateZone (int zoneIndex)
 {
     // if the list is full, we can't copy the end anywhere, so we'll start with the one before the end, otherwise start at the end
@@ -197,6 +201,7 @@ void ChannelEditor::duplicateZone (int zoneIndex)
         zoneProperties [indexOfLastZone].setMinVoltage (-5.0, false);
 }
 
+// TODO - move this to the EditManger
 void ChannelEditor::pasteZone (int zoneIndex)
 {
     zoneProperties [zoneIndex].copyFrom (copyBufferZoneProperties.getValueTree ());
@@ -227,6 +232,7 @@ void ChannelEditor::pasteZone (int zoneIndex)
     }
 }
 
+// TODO - move this to the EditManger
 // TODO - does this function really need to look for multiple empty zones? assuming it gets called when a zone is deleted, there should only be one
 void ChannelEditor::removeEmptyZones ()
 {
@@ -1874,6 +1880,7 @@ void ChannelEditor::setupChannelComponents ()
     });
 }
 
+// TODO - move this to the EditManger
 void ChannelEditor::balanceVoltages (VoltageBalanceType balanceType)
 {
     const auto numUsedZones { editManager->getNumUsedZones (channelIndex) };
@@ -2067,17 +2074,12 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
         configAudioPlayer ();
 }
 
+// TODO - can we move this to the EditManager, as it eventually just calls editManager->assignSamples (parentChannelIndex, startingZoneIndex, files); in the ZoneEditor
 void ChannelEditor::receiveSampleLoadRequest (juce::File sampleFile)
 {
     const auto zoneIndex { zoneTabs.getCurrentTabIndex () };
     auto curZoneEditor { dynamic_cast<ZoneEditor*> (zoneTabs.getTabContentComponent (zoneIndex)) };
     curZoneEditor->receiveSampleLoadRequest (sampleFile);
-}
-
-void ChannelEditor::checkSampleFileExistence ()
-{
-    for (auto& zoneEditor : zoneEditors)
-        zoneEditor.checkSampleExistence ();
 }
 
 void ChannelEditor::setupChannelPropertiesCallbacks ()

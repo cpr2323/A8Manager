@@ -188,9 +188,10 @@ public:
                EditManager* theEditManager, juce::ValueTree copyBufferZonePropertiesVT,
                bool* theZoneCopyBufferHasData);
 
+    // TODO - can we move this to the EditManager, as it eventually just calls editManager->assignSamples (parentChannelIndex, startingZoneIndex, files); in the ZoneEditor
     void receiveSampleLoadRequest (juce::File sampleFile);
-    void checkSampleFileExistence ();
 
+    // TODO - can we make this local, since we should be able to access the edits through the EditManager
     std::function<void (int channelIndex)> displayToolsMenu;
 
 private:
