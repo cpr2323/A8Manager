@@ -1,5 +1,7 @@
 #include "EditManager.h"
+#include "SampleManager/SampleManagerProperties.h"
 #include "../../../Utility/PersistentRootProperties.h"
+#include "../../../Utility/RuntimeRootProperties.h"
 
 EditManager::EditManager ()
 {
@@ -11,13 +13,17 @@ void EditManager::init (juce::ValueTree rootPropertiesVT, juce::ValueTree preset
     PersistentRootProperties persistentRootProperties (rootPropertiesVT, PersistentRootProperties::WrapperType::client, PersistentRootProperties::EnableCallbacks::no);
     appProperties.wrap (persistentRootProperties.getValueTree (), AppProperties::WrapperType::client, AppProperties::EnableCallbacks::yes);
 
+    RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::yes);
+    SampleManagerProperties sampleManagerProperties (runtimeRootProperties.getValueTree (), SampleManagerProperties::WrapperType::owner, SampleManagerProperties::EnableCallbacks::no);
+
     presetProperties.wrap (presetPropertiesVT, PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
-    presetProperties.forEachChannel ([this] (juce::ValueTree channelVT, int channelIndex)
+    presetProperties.forEachChannel ([this, &sampleManagerProperties] (juce::ValueTree channelVT, int channelIndex)
     {
         channelPropertiesList [channelIndex].wrap (channelVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
-        channelPropertiesList [channelIndex].forEachZone ([this, channelIndex] (juce::ValueTree zoneVT, int zoneIndex)
+        channelPropertiesList [channelIndex].forEachZone ([this, &sampleManagerProperties, channelIndex] (juce::ValueTree zoneVT, int zoneIndex)
         {
             zonePropertiesList [channelIndex][zoneIndex].wrap (zoneVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
+            samplePropertiesList [channelIndex][zoneIndex].wrap (sampleManagerProperties.getSamplePropertiesVT (channelIndex, zoneIndex), SampleProperties::WrapperType::client, SampleProperties::EnableCallbacks::yes);
             ++zoneIndex;
             return true;
         });
@@ -59,14 +65,14 @@ void EditManager::forChannels (std::vector<int> channelIndexList, std::function<
     }
 }
 
-void EditManager::forZones (int channelIndex, std::vector<int> zoneIndexList, std::function<void (juce::ValueTree)> zoneCallback)
+void EditManager::forZones (int channelIndex, std::vector<int> zoneIndexList, std::function<void (juce::ValueTree, juce::ValueTree)> zoneCallback)
 {
     jassert (channelIndex >= 0 && channelIndex < 8);
     jassert (zoneCallback != nullptr);
     for (const auto zoneIndex : zoneIndexList)
     {
         jassert (zoneIndex >= 0 && zoneIndex < 8);
-        zoneCallback (zonePropertiesList [channelIndex][zoneIndex].getValueTree ());
+        zoneCallback (zonePropertiesList [channelIndex][zoneIndex].getValueTree (), samplePropertiesList [channelIndex][zoneIndex].getValueTree ());
     }
 }
 

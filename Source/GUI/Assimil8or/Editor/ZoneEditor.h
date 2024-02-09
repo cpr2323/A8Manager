@@ -77,7 +77,7 @@ private:
     CustomTextEditorInt64 sampleStartTextEditor; // int
 
     void setEditComponentsEnabled (bool enabled);
-    juce::PopupMenu createZoneEditMenu (std::function <void (ZoneProperties&)> setter, std::function <void ()> resetter);
+    juce::PopupMenu createZoneEditMenu (std::function <void (ZoneProperties&, SampleProperties&)> setter, std::function <void ()> resetter, std::function<bool (ZoneProperties&)> canCloneCallback);
     juce::String formatLoopLength (double loopLength);
     bool handleSamplesInternal (int zoneIndex, juce::StringArray files);
     void setupZoneComponents ();

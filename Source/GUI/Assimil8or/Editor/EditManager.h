@@ -1,6 +1,7 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "SampleManager/SampleProperties.h"
 #include "../../../AppProperties.h"
 #include "../../../Assimil8or/Preset/PresetProperties.h"
 
@@ -15,7 +16,7 @@ public:
     void setXfadeGroupValueByIndex (int xfadeGroupIndex, double value, bool doSelfCallback);
 
     void forChannels (std::vector<int> channelIndexList, std::function<void (juce::ValueTree)> channelCallback);
-    void forZones (int channelIndex, std::vector<int> zoneIndexList, std::function<void (juce::ValueTree)> zoneCallback);
+    void forZones (int channelIndex, std::vector<int> zoneIndexList, std::function<void (juce::ValueTree, juce::ValueTree)> zoneCallback);
 
     bool assignSamples (int channelIndex, int zoneIndex, const juce::StringArray& files);
     double clampMinVoltage (int channelIndex, int zoneIndex, double voltage);
@@ -29,6 +30,7 @@ private:
     AppProperties appProperties;
     std::array<ChannelProperties, 8> channelPropertiesList;
     std::array<std::array<ZoneProperties, 8>, 8> zonePropertiesList;
+    std::array<std::array<SampleProperties, 8>, 8> samplePropertiesList;
     juce::AudioFormatManager audioFormatManager;
 };
 
