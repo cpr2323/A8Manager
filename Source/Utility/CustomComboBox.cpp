@@ -3,7 +3,7 @@
 
 void CustomComboBox::mouseDown (const juce::MouseEvent& mouseEvent)
 {
-    if (! customComponentMouseHandler.mouseDown (mouseEvent, onPopupMenuCallback))
+    if (! customComponentMouseHandler.mouseDown (mouseEvent, onPopupMenuCallback, nullptr))
         juce::ComboBox::mouseDown (mouseEvent);
 }
 

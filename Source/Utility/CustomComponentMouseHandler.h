@@ -9,11 +9,12 @@ enum class DragSpeed { slow, medium, fast };
 
 using OnDragCallback = std::function<void (DragSpeed, int)>;
 using OnPopupMenuCallback = std::function<void ()>;
+using CompleteEditCallback = std::function<void ()>;
 
 class CustomComponentMouseHandler
 {
 public:
-    bool mouseDown (const juce::MouseEvent& mouseEvent, OnPopupMenuCallback onPopupMenuCallback);
+    bool mouseDown (const juce::MouseEvent& mouseEvent, OnPopupMenuCallback onPopupMenuCallback, CompleteEditCallback completeEditCallback);
     bool mouseUp (const juce::MouseEvent&);
     bool mouseMove (const juce::MouseEvent&);
     bool mouseEnter (const juce::MouseEvent&);

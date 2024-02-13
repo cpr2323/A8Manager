@@ -11,7 +11,7 @@
 const bool kEventHandled { true };
 const bool kEventNotHandled { false };
 
-bool CustomComponentMouseHandler::mouseDown (const juce::MouseEvent& mouseEvent, OnPopupMenuCallback onPopupMenuCallback)
+bool CustomComponentMouseHandler::mouseDown (const juce::MouseEvent& mouseEvent, OnPopupMenuCallback onPopupMenuCallback, CompleteEditCallback completeEditCallback)
 {
     if (! mouseEvent.mods.isPopupMenu ())
     {
@@ -27,7 +27,11 @@ bool CustomComponentMouseHandler::mouseDown (const juce::MouseEvent& mouseEvent,
     {
         LogMouseDragInfo ("invoking popup menu");
         if (onPopupMenuCallback != nullptr)
+        {
+            if (completeEditCallback != nullptr)
+                completeEditCallback ();
             onPopupMenuCallback ();
+        }
         return kEventHandled;
     }
 
