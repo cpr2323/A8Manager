@@ -553,7 +553,7 @@ void ZoneEditor::setupZoneComponents ()
         if (zoneProperties.getSample ().isEmpty ())
             return;
         auto editMenu { createZoneEditMenu (nullptr /* cloning across zones does not makes sense, as they have to be unique values */,
-                                            [] () { /* calculate halfway point between boundaries */ },
+                                            [this] () { editManager->resetMinVoltage (parentChannelIndex, zoneIndex); },
                                             [] (ZoneProperties& destZoneProperties) { return false; },
                                             [] (ZoneProperties& destZoneProperties) { return false; }) };
         editMenu.showMenuAsync ({}, [this] (int) {});

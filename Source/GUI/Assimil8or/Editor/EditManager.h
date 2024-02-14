@@ -24,6 +24,7 @@ public:
     std::tuple<double, double> getVoltageBoundaries (int channelIndex, int zoneIndex, int topDepth);
     bool isMinVoltageInRange (int channelIndex, int zoneIndex, double voltage);
     bool isSupportedAudioFile (juce::File file);
+    void resetMinVoltage (int channelIndex, int zoneIndex);
 
 private:
     PresetProperties presetProperties;

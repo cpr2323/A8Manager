@@ -98,6 +98,19 @@ std::tuple<double, double> EditManager::getVoltageBoundaries (int channelIndex, 
     return { topBoundary, bottomBoundary };
 };
 
+void EditManager::resetMinVoltage (int channelIndex, int zoneIndex)
+{
+    if (zoneIndex != getNumUsedZones (channelIndex) - 1)
+    {
+        const auto [topBoundary, bottomBoundary] { getVoltageBoundaries (channelIndex, zoneIndex, 0) };
+        zonePropertiesList [channelIndex][zoneIndex].setMinVoltage (bottomBoundary + ((topBoundary - bottomBoundary) / 2), false);
+    }
+    else
+    {
+        zonePropertiesList [channelIndex][zoneIndex].setMinVoltage (-5.0, false);
+    }
+
+}
 
 bool EditManager::isMinVoltageInRange (int channelIndex, int zoneIndex, double voltage)
 {
