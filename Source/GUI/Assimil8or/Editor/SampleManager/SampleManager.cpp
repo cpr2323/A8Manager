@@ -50,17 +50,16 @@ void SampleManager::init (juce::ValueTree rootPropertiesVT)
     presetProperties.wrap (presetManagerProperties.getPreset ("edit"), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::yes);
     presetProperties.forEachChannel ([this] (juce::ValueTree channelPropertiesVT, int channelIndex)
     {
-        auto& channelProperties { channelPropertiesList [channelIndex] };
-        channelProperties.wrap (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::yes);
+        ChannelProperties channelProperties (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::yes);
         channelProperties.forEachZone ([this, channelIndex] (juce::ValueTree zonePropertiesVT, int zoneIndex)
         {
-            auto& zoneProperties { zonePropertiesList [channelIndex][zoneIndex] };
+            auto& zoneProperties { zoneAndSamplePropertiesList [channelIndex][zoneIndex].zoneProperties };
             zoneProperties.wrap (zonePropertiesVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::yes);
             zoneProperties.onSampleChange = [this, channelIndex, zoneIndex] (juce::String sampleName)
             {
                 handleSampleChange (channelIndex, zoneIndex, sampleName);
             };
-            samplePropertiesList [channelIndex][zoneIndex].wrap (sampleManagerProperties.getSamplePropertiesVT (channelIndex, zoneIndex), SampleProperties::WrapperType::client, SampleProperties::EnableCallbacks::yes);
+            zoneAndSamplePropertiesList [channelIndex][zoneIndex].sampleProperties.wrap (sampleManagerProperties.getSamplePropertiesVT (channelIndex, zoneIndex), SampleProperties::WrapperType::client, SampleProperties::EnableCallbacks::yes);
             return true;
         });
         return true;
@@ -69,7 +68,7 @@ void SampleManager::init (juce::ValueTree rootPropertiesVT)
 
 juce::ValueTree SampleManager::getSampleProperties (int channelIndex, int zoneIndex)
 {
-    return samplePropertiesList [channelIndex][zoneIndex].getValueTree ();
+    return zoneAndSamplePropertiesList [channelIndex][zoneIndex].sampleProperties.getValueTree ();
 }
 
 void SampleManager::handleSampleChange (int channelIndex, int zoneIndex, juce::String sampleName)
@@ -79,7 +78,7 @@ void SampleManager::handleSampleChange (int channelIndex, int zoneIndex, juce::S
     // TODO: Does this also means we need to make sure, when loading a sample that we bypass the ValueTree feature of not executing callbacks for same data, or do we set the name to empty before loading, which
     //       would enable the callbacks to happen correctly?
     //       ** Currently I think we need to reset the sampleName to "" before setting it to a new value, so it will force a reloading of the sample data
-    auto& sampleProperties { samplePropertiesList [channelIndex][zoneIndex] };
+    auto& sampleProperties { zoneAndSamplePropertiesList [channelIndex][zoneIndex].sampleProperties };
 
     // if there is an already open sample, we want to close it
     if (sampleProperties.getName ().isNotEmpty ())
@@ -139,7 +138,7 @@ void SampleManager::updateSampleProperties (juce::String fileName, SampleData& s
     for (auto channelIndex { 0 }; channelIndex < 8; ++channelIndex)
         for (auto zoneIndex { 0 }; zoneIndex < 8; ++zoneIndex)
         {
-            auto& sampleProperties { samplePropertiesList [channelIndex][zoneIndex] };
+            auto& sampleProperties { zoneAndSamplePropertiesList [channelIndex][zoneIndex].sampleProperties };
             if (sampleProperties.getName () == fileName)
             {
                 sampleProperties.setBitsPerSample (sampleData.bitsPerSample, false);
@@ -149,8 +148,8 @@ void SampleManager::updateSampleProperties (juce::String fileName, SampleData& s
                 sampleProperties.setStatus (sampleData.status, false);
             }
         }
-
 }
+
 void SampleManager::updateSample (juce::String fileName, SampleData& sampleData)
 {
     juce::File fullPath { currentFolder.getChildFile (fileName) };

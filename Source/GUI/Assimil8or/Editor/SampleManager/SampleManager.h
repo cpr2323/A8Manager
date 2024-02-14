@@ -23,9 +23,12 @@ private:
     DirectoryDataProperties directoryDataProperties;
     PresetProperties presetProperties;
     SampleManagerProperties sampleManagerProperties;
-    std::array<ChannelProperties, 8> channelPropertiesList;
-    std::array<std::array<ZoneProperties, 8>, 8> zonePropertiesList;
-    std::array<std::array<SampleProperties, 8>, 8> samplePropertiesList;
+    struct ZoneAndSampleProperties
+    {
+        ZoneProperties zoneProperties;
+        SampleProperties sampleProperties;
+    };
+    std::array<std::array<ZoneAndSampleProperties, 8>, 8> zoneAndSamplePropertiesList;
 
     juce::AudioFormatManager audioFormatManager;
     juce::File currentFolder;
