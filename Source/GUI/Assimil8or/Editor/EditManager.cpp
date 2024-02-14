@@ -109,7 +109,6 @@ void EditManager::resetMinVoltage (int channelIndex, int zoneIndex)
     {
         zonePropertiesList [channelIndex][zoneIndex].setMinVoltage (-5.0, false);
     }
-
 }
 
 bool EditManager::isMinVoltageInRange (int channelIndex, int zoneIndex, double voltage)
@@ -134,8 +133,15 @@ bool EditManager::isMinVoltageInRange (int channelIndex, int zoneIndex, double v
 
 double EditManager::clampMinVoltage (int channelIndex, int zoneIndex, double voltage)
 {
-    const auto [topBoundary, bottomBoundary] { getVoltageBoundaries (channelIndex, zoneIndex, 0) };
-    return std::clamp (voltage, bottomBoundary + 0.01, topBoundary - 0.01);
+    if (zoneIndex != getNumUsedZones(channelIndex) - 1)
+    {
+        const auto [topBoundary, bottomBoundary] { getVoltageBoundaries (channelIndex, zoneIndex, 0) };
+        return std::clamp (voltage, bottomBoundary + 0.01, topBoundary - 0.01);
+    }
+    else
+    {
+        return -5.0;
+    }
 };
 
 bool EditManager::isSupportedAudioFile (juce::File file)
