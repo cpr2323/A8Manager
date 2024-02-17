@@ -144,6 +144,47 @@ double EditManager::clampMinVoltage (int channelIndex, int zoneIndex, double vol
     }
 };
 
+juce::int64 EditManager::getMaxLoopStart (int channelIndex, int zoneIndex, juce::int64 curLoopStart)
+{
+#if 0
+    jassert (channelIndex < 8);
+    jassert (zoneIndex < 8);
+    auto& sampleProperties { samplePropertiesList [channelIndex][zoneIndex] };
+    auto& zoneProperties { zonePropertiesList [channelIndex][zoneIndex] };
+    if (channelPropertiesList [channelIndex].getLoopLengthIsEnd ())
+    {
+        // if normal Loop Length behavior is used, then Loop Start cannot push Loop Length past the end of the sample
+        //const auto sampleLength { sampleData.getLengthInSamples () };
+        //const auto loopLength { zoneProperties.getLoopLength ().value_or (sampleLength)};
+        //DebugLog ("loopStartTextEditor.getMaxValueCallback (loopLength)", "sampleLength: " + juce::String(sampleLength) + ", loopLength: " + juce::String (loopLength));
+        return sampleProperties.getLengthInSamples () < 4 ? 0 : static_cast<juce::int64> (static_cast<double> (sampleProperties.getLengthInSamples ()) -
+            zoneProperties.getLoopLength ().value_or (static_cast<double>(sampleProperties.getLengthInSamples ())));
+    }
+    else
+    {
+        // if Loop Length is being viewed as Loop End, then Loop Length will be changed by the location of Loop Start, down to a End Of Sample - 4
+        const auto loopLength { static_cast<juce::int64> (zoneProperties.getLoopLength ().value_or (minZoneProperties.getLoopLength ().value ())) };
+        const auto loopEnd { std::min (curLoopStart + loopLength, sampleProperties.getLengthInSamples () - static_cast<juce::int64> (minZoneProperties.getLoopLength ().value ())) };
+        //const auto sampleLength { sampleData.getLengthInSamples () };
+//             DebugLog ("loopStartTextEditor.getMaxValueCallback (loopEnd)", "sampleLength: " + juce::String (sampleLength) + ", loopStart: " + juce::String (loopStart) +
+//                       ", loopLength: " + juce::String (loopLength) + ", loopEnd: " + juce::String (loopEnd));
+        return loopEnd;
+    }
+#else
+    return 0;
+#endif
+}
+
+double EditManager::getMinLoopLength (int channelIndex, int zoneIndex)
+{
+    return 0.0;
+}
+
+double EditManager::getMaxLoopLength (int channelIndex, int zoneIndex)
+{
+    return 0.0;
+}
+
 bool EditManager::isSupportedAudioFile (juce::File file)
 {
     if (file.isDirectory () || file.getFileExtension ().toLowerCase () != ".wav")
