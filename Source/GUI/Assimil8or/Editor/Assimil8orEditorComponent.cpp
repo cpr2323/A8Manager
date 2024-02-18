@@ -204,6 +204,7 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
         //dumpStacktrace (-1, [this] (juce::String logLine) { DebugLog ("Assimil8orEditorComponent", logLine); });
         samplePool.setFolder (juce::File (fileName).getParentDirectory ());
         audioPlayerProperties.setPlayState (AudioPlayerProperties::PlayState::stop, false);
+        channelTabs.setCurrentTabIndex (0);
     };
 
     directoryDataProperties.wrap (runtimeRootProperties.getValueTree (), DirectoryDataProperties::WrapperType::client, DirectoryDataProperties::EnableCallbacks::yes);

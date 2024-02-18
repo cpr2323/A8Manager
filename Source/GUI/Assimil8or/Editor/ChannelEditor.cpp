@@ -1228,7 +1228,7 @@ void ChannelEditor::setupChannelPropertiesCallbacks ()
     channelProperties.onSpliceSmoothingChange = [this] (bool spliceSmoothing) { spliceSmoothingDataChanged (spliceSmoothing);  };
     channelProperties.onXfadeGroupChange = [this] (juce::String xfadeGroup) { xfadeGroupDataChanged (xfadeGroup);  };
     channelProperties.onZonesCVChange = [this] (juce::String zonesCV) { zonesCVDataChanged (zonesCV);  };
-    channelProperties.onZonesRTChange = [this] (int zonesRT) { loopModeDataChanged (zonesRT);  };
+    channelProperties.onZonesRTChange = [this] (int zonesRT) { zonesRTDataChanged (zonesRT);  };
 }
 
 void ChannelEditor::checkStereoRightOverlay ()
