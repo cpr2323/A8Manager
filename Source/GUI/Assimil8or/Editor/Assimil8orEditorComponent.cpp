@@ -257,6 +257,7 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
         //DebugLog ("Assimil8orEditorComponent", "Assimil8orEditorComponent::init/appProperties.onMostRecentFileChange: " + fileName);
         //dumpStacktrace (-1, [this] (juce::String logLine) { DebugLog ("Assimil8orEditorComponent", logLine); });
         audioPlayerProperties.setPlayState (AudioPlayerProperties::PlayState::stop, false);
+        channelTabs.setCurrentTabIndex (0);
     };
 
     PresetManagerProperties presetManagerProperties (runtimeRootProperties.getValueTree (), PresetManagerProperties::WrapperType::owner, PresetManagerProperties::EnableCallbacks::no);

@@ -1,5 +1,6 @@
 #include "EditManager.h"
 #include "SampleManager/SampleManagerProperties.h"
+#include "../../../Assimil8or/Preset/ParameterPresetsSingleton.h"
 #include "../../../Utility/PersistentRootProperties.h"
 #include "../../../Utility/RuntimeRootProperties.h"
 
@@ -13,6 +14,25 @@ void EditManager::init (juce::ValueTree rootPropertiesVT, juce::ValueTree preset
     PersistentRootProperties persistentRootProperties (rootPropertiesVT, PersistentRootProperties::WrapperType::client, PersistentRootProperties::EnableCallbacks::no);
     appProperties.wrap (persistentRootProperties.getValueTree (), AppProperties::WrapperType::client, AppProperties::EnableCallbacks::yes);
 
+    {
+        PresetProperties minPresetProperties (ParameterPresetsSingleton::getInstance ()->getParameterPresetListProperties ().getParameterPreset (ParameterPresetListProperties::MinParameterPresetType),
+                                              PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
+        minChannelProperties.wrap (minPresetProperties.getChannelVT (0), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
+        minZoneProperties.wrap (minChannelProperties.getZoneVT (0), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
+    }
+    {
+        PresetProperties maxPresetProperties (ParameterPresetsSingleton::getInstance ()->getParameterPresetListProperties ().getParameterPreset (ParameterPresetListProperties::MaxParameterPresetType),
+                                              PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
+        maxChannelProperties.wrap (maxPresetProperties.getChannelVT (0), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
+        maxZoneProperties.wrap (maxChannelProperties.getZoneVT (0), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
+    }
+    {
+        PresetProperties defaultPresetProperties (ParameterPresetsSingleton::getInstance ()->getParameterPresetListProperties ().getParameterPreset (ParameterPresetListProperties::DefaultParameterPresetType),
+                                                  PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
+        defaultChannelProperties.wrap (defaultPresetProperties.getChannelVT (0), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
+        defaultZoneProperties.wrap (defaultChannelProperties.getZoneVT (0), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
+    }
+
     RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::yes);
     SampleManagerProperties sampleManagerProperties (runtimeRootProperties.getValueTree (), SampleManagerProperties::WrapperType::owner, SampleManagerProperties::EnableCallbacks::no);
 
@@ -22,8 +42,8 @@ void EditManager::init (juce::ValueTree rootPropertiesVT, juce::ValueTree preset
         channelPropertiesList [channelIndex].wrap (channelVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
         channelPropertiesList [channelIndex].forEachZone ([this, &sampleManagerProperties, channelIndex] (juce::ValueTree zoneVT, int zoneIndex)
         {
-            zonePropertiesList [channelIndex][zoneIndex].wrap (zoneVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
-            samplePropertiesList [channelIndex][zoneIndex].wrap (sampleManagerProperties.getSamplePropertiesVT (channelIndex, zoneIndex), SampleProperties::WrapperType::client, SampleProperties::EnableCallbacks::yes);
+            zoneAndSamplePropertiesList [channelIndex][zoneIndex].zoneProperties.wrap (zoneVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
+            zoneAndSamplePropertiesList [channelIndex][zoneIndex].sampleProperties.wrap (sampleManagerProperties.getSamplePropertiesVT (channelIndex, zoneIndex), SampleProperties::WrapperType::client, SampleProperties::EnableCallbacks::yes);
             ++zoneIndex;
             return true;
         });
@@ -72,7 +92,7 @@ void EditManager::forZones (int channelIndex, std::vector<int> zoneIndexList, st
     for (const auto zoneIndex : zoneIndexList)
     {
         jassert (zoneIndex >= 0 && zoneIndex < 8);
-        zoneCallback (zonePropertiesList [channelIndex][zoneIndex].getValueTree (), samplePropertiesList [channelIndex][zoneIndex].getValueTree ());
+        zoneCallback (zoneAndSamplePropertiesList [channelIndex][zoneIndex].zoneProperties.getValueTree (), zoneAndSamplePropertiesList [channelIndex][zoneIndex].sampleProperties.getValueTree ());
     }
 }
 
@@ -80,8 +100,8 @@ int EditManager::getNumUsedZones (int channelIndex)
 {
     jassert (channelIndex < 8);
     auto numUsedZones { 0 };
-    for (auto curZoneIndex { 0 }; curZoneIndex < zonePropertiesList [channelIndex].size (); ++curZoneIndex)
-        numUsedZones += zonePropertiesList [channelIndex][curZoneIndex].getSample ().isNotEmpty () ? 1 : 0;
+    for (auto curZoneIndex { 0 }; curZoneIndex < zoneAndSamplePropertiesList [channelIndex].size (); ++curZoneIndex)
+        numUsedZones += zoneAndSamplePropertiesList [channelIndex][curZoneIndex].zoneProperties.getSample ().isNotEmpty () ? 1 : 0;
     return numUsedZones;
 };
 
@@ -92,9 +112,9 @@ std::tuple<double, double> EditManager::getVoltageBoundaries (int channelIndex, 
 
     // neither index 0 or 1 can look at the 'top boundary' index (ie. index - 2, the previous previous one)
     if (zoneIndex > topDepth)
-        topBoundary = zonePropertiesList [channelIndex][zoneIndex - topDepth - 1].getMinVoltage ();
+        topBoundary = zoneAndSamplePropertiesList [channelIndex][zoneIndex - topDepth - 1].zoneProperties.getMinVoltage ();
     if (zoneIndex < getNumUsedZones (channelIndex) - 1)
-        bottomBoundary = zonePropertiesList [channelIndex][zoneIndex + 1].getMinVoltage ();
+        bottomBoundary = zoneAndSamplePropertiesList [channelIndex][zoneIndex + 1].zoneProperties.getMinVoltage ();
     return { topBoundary, bottomBoundary };
 };
 
@@ -103,11 +123,11 @@ void EditManager::resetMinVoltage (int channelIndex, int zoneIndex)
     if (zoneIndex != getNumUsedZones (channelIndex) - 1)
     {
         const auto [topBoundary, bottomBoundary] { getVoltageBoundaries (channelIndex, zoneIndex, 0) };
-        zonePropertiesList [channelIndex][zoneIndex].setMinVoltage (bottomBoundary + ((topBoundary - bottomBoundary) / 2), false);
+        zoneAndSamplePropertiesList [channelIndex][zoneIndex].zoneProperties.setMinVoltage (bottomBoundary + ((topBoundary - bottomBoundary) / 2), false);
     }
     else
     {
-        zonePropertiesList [channelIndex][zoneIndex].setMinVoltage (-5.0, false);
+        zoneAndSamplePropertiesList [channelIndex][zoneIndex].zoneProperties.setMinVoltage (-5.0, false);
     }
 }
 
@@ -146,11 +166,10 @@ double EditManager::clampMinVoltage (int channelIndex, int zoneIndex, double vol
 
 juce::int64 EditManager::getMaxLoopStart (int channelIndex, int zoneIndex, juce::int64 curLoopStart)
 {
-#if 0
     jassert (channelIndex < 8);
     jassert (zoneIndex < 8);
-    auto& sampleProperties { samplePropertiesList [channelIndex][zoneIndex] };
-    auto& zoneProperties { zonePropertiesList [channelIndex][zoneIndex] };
+    auto& sampleProperties { zoneAndSamplePropertiesList [channelIndex][zoneIndex].sampleProperties };
+    auto& zoneProperties { zoneAndSamplePropertiesList [channelIndex][zoneIndex].zoneProperties };
     if (channelPropertiesList [channelIndex].getLoopLengthIsEnd ())
     {
         // if normal Loop Length behavior is used, then Loop Start cannot push Loop Length past the end of the sample
@@ -158,7 +177,7 @@ juce::int64 EditManager::getMaxLoopStart (int channelIndex, int zoneIndex, juce:
         //const auto loopLength { zoneProperties.getLoopLength ().value_or (sampleLength)};
         //DebugLog ("loopStartTextEditor.getMaxValueCallback (loopLength)", "sampleLength: " + juce::String(sampleLength) + ", loopLength: " + juce::String (loopLength));
         return sampleProperties.getLengthInSamples () < 4 ? 0 : static_cast<juce::int64> (static_cast<double> (sampleProperties.getLengthInSamples ()) -
-            zoneProperties.getLoopLength ().value_or (static_cast<double>(sampleProperties.getLengthInSamples ())));
+                                                                                          zoneProperties.getLoopLength ().value_or (static_cast<double>(sampleProperties.getLengthInSamples ())));
     }
     else
     {
@@ -170,9 +189,6 @@ juce::int64 EditManager::getMaxLoopStart (int channelIndex, int zoneIndex, juce:
 //                       ", loopLength: " + juce::String (loopLength) + ", loopEnd: " + juce::String (loopEnd));
         return loopEnd;
     }
-#else
-    return 0;
-#endif
 }
 
 double EditManager::getMinLoopLength (int channelIndex, int zoneIndex)
@@ -221,7 +237,7 @@ bool EditManager::assignSamples (int channelIndex, int zoneIndex, const juce::St
     // assign the samples
     for (auto filesIndex { 0 }; filesIndex < files.size () && zoneIndex + filesIndex < 8; ++filesIndex)
     {
-        auto& zoneProperty { zonePropertiesList [channelIndex][zoneIndex + filesIndex] };
+        auto& zoneProperty { zoneAndSamplePropertiesList [channelIndex][zoneIndex + filesIndex].zoneProperties };
         juce::File file (files [filesIndex]);
         // if file not in preset folder, then copy
         if (appProperties.getMostRecentFolder () != file.getParentDirectory ().getFullPathName ())
@@ -240,7 +256,7 @@ bool EditManager::assignSamples (int channelIndex, int zoneIndex, const juce::St
     // update the minVoltages if needed
     if (dropZoneEndIndex - initialEndIndex > 0)
     {
-        const auto initialValue { dropZoneStartIndex == 0 || (dropZoneStartIndex == 1 && initialNumZones == 1) ? maxValue : zonePropertiesList [channelIndex][initialEndIndex - 1].getMinVoltage () };
+        const auto initialValue { dropZoneStartIndex == 0 || (dropZoneStartIndex == 1 && initialNumZones == 1) ? maxValue : zoneAndSamplePropertiesList [channelIndex][initialEndIndex - 1].zoneProperties.getMinVoltage () };
         const auto initialIndex { dropZoneStartIndex > 0 && dropZoneStartIndex == initialNumZones ? dropZoneStartIndex - 1 : dropZoneStartIndex };
         // Calculate the step size for even distribution
         const auto stepSize { (minValue - initialValue) / (dropZoneEndIndex - initialIndex + 1) };
@@ -250,19 +266,19 @@ bool EditManager::assignSamples (int channelIndex, int zoneIndex, const juce::St
         for (int curZoneIndex = initialIndex; curZoneIndex < dropZoneEndIndex; ++curZoneIndex)
         {
             if (curZoneIndex > updateIndexThreshold)
-                zonePropertiesList [channelIndex][curZoneIndex].setMinVoltage (initialValue + (curZoneIndex - initialIndex + 1) * stepSize, false);
+                zoneAndSamplePropertiesList [channelIndex][curZoneIndex].zoneProperties.setMinVoltage (initialValue + (curZoneIndex - initialIndex + 1) * stepSize, false);
         }
     }
 
     // ensure the last zone is always -5.0
-    zonePropertiesList [channelIndex][getNumUsedZones (channelIndex) - 1].setMinVoltage (minValue, false);
+    zoneAndSamplePropertiesList [channelIndex][getNumUsedZones (channelIndex) - 1].zoneProperties.setMinVoltage (minValue, false);
 #if JUCE_DEBUG
     // verifying that all minVoltages are valid
     for (auto curZoneIndex { 0 }; curZoneIndex < getNumUsedZones (channelIndex) - 1; ++curZoneIndex)
-        if (zonePropertiesList [channelIndex][curZoneIndex].getMinVoltage () <= zonePropertiesList [channelIndex][curZoneIndex + 1].getMinVoltage ())
+        if (zoneAndSamplePropertiesList [channelIndex][curZoneIndex].zoneProperties.getMinVoltage () <= zoneAndSamplePropertiesList [channelIndex][curZoneIndex + 1].zoneProperties.getMinVoltage ())
         {
-            juce::Logger::outputDebugString ("[" + juce::String (curZoneIndex) + "]=" + juce::String (zonePropertiesList [channelIndex][curZoneIndex].getMinVoltage ()) +
-                " > [" + juce::String (curZoneIndex + 1) + "]=" + juce::String (zonePropertiesList [channelIndex][curZoneIndex + 1].getMinVoltage ()));
+            juce::Logger::outputDebugString ("[" + juce::String (curZoneIndex) + "]=" + juce::String (zoneAndSamplePropertiesList [channelIndex][curZoneIndex].zoneProperties.getMinVoltage ()) +
+                " > [" + juce::String (curZoneIndex + 1) + "]=" + juce::String (zoneAndSamplePropertiesList [channelIndex][curZoneIndex + 1].zoneProperties.getMinVoltage ()));
             jassertfalse;
         }
 #endif
@@ -270,7 +286,7 @@ bool EditManager::assignSamples (int channelIndex, int zoneIndex, const juce::St
     return true;
 }
 
-// TODO - the functionallity of assigning the second channel of a stereo wave file to the next channel needs to be moved elsewhere
+// TODO - the functionality of assigning the second channel of a stereo wave file to the next channel needs to be moved elsewhere
 #if 0
 void EditManager::loadSample (int channelIndex, int zoneIndex, juce::String sampleFileName)
 {

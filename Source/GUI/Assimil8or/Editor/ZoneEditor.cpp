@@ -299,7 +299,7 @@ void ZoneEditor::setupZoneComponents ()
                                             },
                                             nullptr /* reset is not possible for the sample file parameter, since zones have to have contiguous samples assigned, and resetting one in the middle would break that */,
                                             [this] (ZoneProperties& destZoneProperties) { return destZoneProperties.getId () - 1 <= editManager->getNumUsedZones (parentChannelIndex); },
-                                            [] (ZoneProperties& destZoneProperties) { return true; }) };
+                                            [] (ZoneProperties&) { return true; }) };
         editMenu.showMenuAsync ({}, [this] (int) {});
     };
     setupLabel (sampleNameSelectLabel, "", 15.0, juce::Justification::centredLeft);
@@ -391,40 +391,23 @@ void ZoneEditor::setupZoneComponents ()
     loopStartTextEditor.getMinValueCallback = [this] { return minZoneProperties.getLoopStart ().value_or (0); };
     loopStartTextEditor.getMaxValueCallback = [this]
     {
-        if (! treatLoopLengthAsEndInUi)
-        {
-            // if normal Loop Length behavior is used, then Loop Start cannot push Loop Length past the end of the sample
-            //const auto sampleLength { sampleData.getLengthInSamples () };
-            //const auto loopLength { zoneProperties.getLoopLength ().value_or (sampleLength)};
-            //DebugLog ("loopStartTextEditor.getMaxValueCallback (loopLength)", "sampleLength: " + juce::String(sampleLength) + ", loopLength: " + juce::String (loopLength));
-            return sampleProperties.getLengthInSamples () < 4 ? 0 : static_cast<juce::int64> (static_cast<double> (sampleProperties.getLengthInSamples ()) -
-                                                                  zoneProperties.getLoopLength ().value_or (static_cast<double>(sampleProperties.getLengthInSamples ())));
-        }
-        else
-        {
-            // if Loop Length is being viewed as Loop End, then Loop Length will be changed by the location of Loop Start, down to a End Of Sample - 4
-            const auto loopStart { loopStartTextEditor.getText().getLargeIntValue () };
-            const auto loopLength { static_cast<juce::int64> (zoneProperties.getLoopLength ().value_or (minZoneProperties.getLoopLength ().value ())) };
-            const auto loopEnd { std::min (loopStart + loopLength, sampleProperties.getLengthInSamples () - static_cast<juce::int64> (minZoneProperties.getLoopLength ().value ())) };
-            //const auto sampleLength { sampleData.getLengthInSamples () };
-//             DebugLog ("loopStartTextEditor.getMaxValueCallback (loopEnd)", "sampleLength: " + juce::String (sampleLength) + ", loopStart: " + juce::String (loopStart) +
-//                       ", loopLength: " + juce::String (loopLength) + ", loopEnd: " + juce::String (loopEnd));
-            return loopEnd;
-        }
+        return editManager->getMaxLoopStart (parentChannelIndex, zoneIndex, loopStartTextEditor.getText ().getLargeIntValue ());
     };
     loopStartTextEditor.toStringCallback = [this] (juce::int64 value) { return juce::String (value); };
     loopStartTextEditor.updateDataCallback = [this] (juce::int64 value)
     {
+        const auto originalLoopStart { zoneProperties.getLoopStart ().value_or (0) };
         loopStartUiChanged (value);
         if (sourceLoopPointsButton.getToggleState ())
             audioPlayerProperties.setLoopStart (static_cast<int> (value), false);
         if (treatLoopLengthAsEndInUi)
         {
-            // Calculate Loop Length value and store it
-            const auto loopLength { loopLengthTextEditor.getText ().getDoubleValue () - static_cast<double> (zoneProperties.getLoopStart ().value_or (0)) };
-            loopLengthUiChanged (loopLength);
+            // When treating Loop Length as Loop End, we need to adjust the internal storage of Loop Length by the amount Loop Start changed
+            const auto lengthChangeAmount { static_cast<double> (originalLoopStart - value) };
+            const auto newLoopLength { zoneProperties.getLoopLength().value_or (sampleProperties.getLengthInSamples()) + lengthChangeAmount };
+            loopLengthUiChanged (newLoopLength);
             if (sourceLoopPointsButton.getToggleState ())
-                audioPlayerProperties.setLoopLength (static_cast<int> (loopLength), false);
+                audioPlayerProperties.setLoopLength (static_cast<int> (newLoopLength), false);
         }
     };
     loopStartTextEditor.onDragCallback = [this] (DragSpeed dragSpeed, int direction)
@@ -445,10 +428,19 @@ void ZoneEditor::setupZoneComponents ()
     {
         auto editMenu { createZoneEditMenu ([this] (ZoneProperties& destZoneProperties, SampleProperties& destSampleProperties)
                                             {
-//                                                 const auto clampedLoopStart { std::clamp (destZoneProperties.getLoopStart ().value_or (0),
-//                                                                                           minZoneProperties.getLoopStart ().value_or (0),
-//                                                                                           //destZoneProperties.getSampleEnd ().value_or (destSampleProperties.getLengthInSamples ())) };
-//                                                 destZoneProperties.setLoopStart (clampedLoopStart, false);
+                                                const auto originalLoopStart { destZoneProperties.getLoopStart().value_or (0) };
+                                                const auto clampedLoopStart { std::clamp (zoneProperties.getLoopStart ().value_or (0),
+                                                                                          minZoneProperties.getLoopStart ().value_or (0),
+                                                                                          editManager->getMaxLoopStart (parentChannelIndex, destZoneProperties.getId () - 1, zoneProperties.getLoopStart ().value_or (0))) };
+                                                destZoneProperties.setLoopStart (clampedLoopStart, false);
+                                                if (treatLoopLengthAsEndInUi)
+                                                {
+                                                    // When treating Loop Length as Loop End, we need to adjust the internal storage of Loop Length by the amount Loop Start changed
+                                                    const auto lengthChangeAmount { static_cast<double> (originalLoopStart - clampedLoopStart) };
+                                                    const auto newLoopLength { destZoneProperties.getLoopLength ().value_or (destSampleProperties.getLengthInSamples ()) + lengthChangeAmount };
+                                                    destZoneProperties.setLoopLength (newLoopLength, false);
+                                                }
+
                                             },
                                             [this] () { zoneProperties.setLoopStart (0, true); },
                                             [] (ZoneProperties& destZoneProperties) { return destZoneProperties.getSample ().isNotEmpty (); },
@@ -515,7 +507,7 @@ void ZoneEditor::setupZoneComponents ()
     };
     loopLengthTextEditor.onPopupMenuCallback = [this] ()
     {
-        auto editMenu { createZoneEditMenu ([this] (ZoneProperties& destZoneProperties, SampleProperties& destSampleProperties) { destZoneProperties.setLoopLength (zoneProperties.getLoopLength().value_or (sampleProperties.getLengthInSamples ()), false); },
+        auto editMenu { createZoneEditMenu ([this] (ZoneProperties& destZoneProperties, SampleProperties&) { destZoneProperties.setLoopLength (zoneProperties.getLoopLength().value_or (sampleProperties.getLengthInSamples ()), false); },
                                             [this] () { zoneProperties.setLoopLength (sampleProperties.getLengthInSamples () - static_cast<double> (zoneProperties.getLoopStart ().value_or (0)), true); },
                                             [] (ZoneProperties& destZoneProperties) { return destZoneProperties.getSample ().isNotEmpty (); },
                                             [] (ZoneProperties& destZoneProperties) { return destZoneProperties.getSample ().isNotEmpty (); }) };
@@ -554,8 +546,8 @@ void ZoneEditor::setupZoneComponents ()
             return;
         auto editMenu { createZoneEditMenu (nullptr /* cloning across zones does not makes sense, as they have to be unique values */,
                                             [this] () { editManager->resetMinVoltage (parentChannelIndex, zoneIndex); },
-                                            [] (ZoneProperties& destZoneProperties) { return false; },
-                                            [] (ZoneProperties& destZoneProperties) { return false; }) };
+                                            [] (ZoneProperties&) { return false; },
+                                            [] (ZoneProperties&) { return false; }) };
         editMenu.showMenuAsync ({}, [this] (int) {});
     };
     setupTextEditor (minVoltageTextEditor, juce::Justification::centred, 0, "+-.0123456789", "MinVoltage");
@@ -581,7 +573,7 @@ void ZoneEditor::setupZoneComponents ()
     };
     pitchOffsetTextEditor.onPopupMenuCallback = [this] ()
     {
-        auto editMenu { createZoneEditMenu ([this] (ZoneProperties& destZoneProperties, SampleProperties& destSampleProperties) { destZoneProperties.setPitchOffset (zoneProperties.getPitchOffset (), false); },
+        auto editMenu { createZoneEditMenu ([this] (ZoneProperties& destZoneProperties, SampleProperties&) { destZoneProperties.setPitchOffset (zoneProperties.getPitchOffset (), false); },
                                             [this] () { zoneProperties.setPitchOffset (0, true); },
                                             [] (ZoneProperties& destZoneProperties) { return destZoneProperties.getSample ().isNotEmpty (); },
                                             [] (ZoneProperties& destZoneProperties) { return destZoneProperties.getSample ().isNotEmpty (); }) };
@@ -613,7 +605,7 @@ void ZoneEditor::setupZoneComponents ()
     };
     levelOffsetTextEditor.onPopupMenuCallback = [this] () 
     {
-        auto editMenu { createZoneEditMenu ([this] (ZoneProperties& destZoneProperties, SampleProperties& destSampleProperties) { destZoneProperties.setLevelOffset (zoneProperties.getLevelOffset (), false); },
+        auto editMenu { createZoneEditMenu ([this] (ZoneProperties& destZoneProperties, SampleProperties&) { destZoneProperties.setLevelOffset (zoneProperties.getLevelOffset (), false); },
                                             [this] () { zoneProperties.setLevelOffset (0, true); },
                                             [] (ZoneProperties& destZoneProperties) { return destZoneProperties.getSample ().isNotEmpty (); },
                                             [] (ZoneProperties& destZoneProperties) { return destZoneProperties.getSample ().isNotEmpty (); }) };
