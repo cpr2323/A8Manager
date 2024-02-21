@@ -446,10 +446,13 @@ void ZoneEditor::setupZoneComponents ()
                                             {
                                                 const auto originalLoopStart { zoneProperties.getLoopStart ().value_or (0) };
                                                 zoneProperties.setLoopStart (0, true);
-                                                // When treating Loop Length as Loop End, we need to adjust the internal storage of Loop Length by the amount Loop Start changed
-                                                const auto lengthChangeAmount { static_cast<double> (originalLoopStart) };
-                                                const auto newLoopLength { zoneProperties.getLoopLength ().value_or (sampleProperties.getLengthInSamples ()) + lengthChangeAmount };
-                                                zoneProperties.setLoopLength (newLoopLength, false);
+                                                if (treatLoopLengthAsEndInUi)
+                                                {
+                                                    // When treating Loop Length as Loop End, we need to adjust the internal storage of Loop Length by the amount Loop Start changed
+                                                    const auto lengthChangeAmount { static_cast<double> (originalLoopStart) };
+                                                    const auto newLoopLength { zoneProperties.getLoopLength ().value_or (sampleProperties.getLengthInSamples ()) + lengthChangeAmount };
+                                                    zoneProperties.setLoopLength (newLoopLength, false);
+                                                }
                                             },
                                             [] (ZoneProperties& destZoneProperties) { return destZoneProperties.getSample ().isNotEmpty (); },
                                             [] (ZoneProperties& destZoneProperties) { return destZoneProperties.getSample ().isNotEmpty (); }) };
