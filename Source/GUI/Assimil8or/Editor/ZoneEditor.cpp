@@ -518,8 +518,17 @@ void ZoneEditor::setupZoneComponents ()
     };
     loopLengthTextEditor.onPopupMenuCallback = [this] ()
     {
-        auto editMenu { createZoneEditMenu ([this] (ZoneProperties& destZoneProperties, SampleProperties&) { destZoneProperties.setLoopLength (zoneProperties.getLoopLength().value_or (sampleProperties.getLengthInSamples ()), false); },
-                                            [this] () { zoneProperties.setLoopLength (sampleProperties.getLengthInSamples () - static_cast<double> (zoneProperties.getLoopStart ().value_or (0)), true); },
+        auto editMenu { createZoneEditMenu ([this] (ZoneProperties& destZoneProperties, SampleProperties& destSampleProperties)
+                                            {
+                                                const auto clampedLoopLength { std::clamp (zoneProperties.getLoopLength ().value_or (sampleProperties.getLengthInSamples ()),
+                                                                                           minZoneProperties.getLoopLength ().value (),
+                                                                                           static_cast<double> (destSampleProperties.getLengthInSamples () - destZoneProperties.getLoopStart ().value_or (0))) };
+                                                destZoneProperties.setLoopLength (clampedLoopLength, false);
+                                            },
+                                            [this] ()
+                                            {
+                                                zoneProperties.setLoopLength (sampleProperties.getLengthInSamples () - static_cast<double> (zoneProperties.getLoopStart ().value_or (0)), true);
+                                            },
                                             [] (ZoneProperties& destZoneProperties) { return destZoneProperties.getSample ().isNotEmpty (); },
                                             [] (ZoneProperties& destZoneProperties) { return destZoneProperties.getSample ().isNotEmpty (); }) };
         editMenu.showMenuAsync ({}, [this] (int) {});
