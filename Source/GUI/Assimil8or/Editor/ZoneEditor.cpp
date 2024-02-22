@@ -37,14 +37,16 @@ ZoneEditor::ZoneEditor ()
         addAndMakeVisible (label);
     };
 
+    setupLabel (zoneLabel, "Zone", 14.0f, juce::Justification::centredRight);
+
     toolsButton.setButtonText ("TOOLS");
     toolsButton.onClick = [this] ()
     {
-        if (displayToolsMenu != nullptr)
-            displayToolsMenu (zoneProperties.getId () - 1);
+        jassert (displayToolsMenu != nullptr);
+        displayToolsMenu (zoneProperties.getId () - 1);
     };
     addAndMakeVisible (toolsButton);
-
+    
     addAndMakeVisible (loopPointsView);
 
     setupLabel (sourceLabel, "SOURCE", 14.0f, juce::Justification::centred);
@@ -679,6 +681,7 @@ void ZoneEditor::init (juce::ValueTree zonePropertiesVT, juce::ValueTree rootPro
 
     zoneProperties.wrap (zonePropertiesVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::yes);
     zoneIndex = zoneProperties.getId () - 1;
+    zoneLabel.setText ("Zone " + juce::String (zoneProperties.getId ()), juce::NotificationType::dontSendNotification);
     jassert (ChannelProperties::isChannelPropertiesVT (zoneProperties.getValueTree ().getParent ()));
     parentChannelProperties.wrap (zoneProperties.getValueTree ().getParent (), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
     parentChannelIndex = parentChannelProperties.getId () - 1;
@@ -834,8 +837,9 @@ void ZoneEditor::resized ()
     const auto spaceBetweenLabelAndInput { 3 };
     auto scaleWidth = [width] (float scaleAmount) { return static_cast<int> (width * scaleAmount); };
 
-    if (displayToolsMenu != nullptr)
-        toolsButton.setBounds (getWidth () - 5 - 40, getHeight () - 5 - 20, 40, 20);
+    zoneLabel.setBounds (getWidth () - 5 - 95, getHeight () - 5 - 20, 40, 20);
+    jassert (displayToolsMenu != nullptr);
+    toolsButton.setBounds (zoneLabel.getRight () + 5, getHeight () - 5 - 20, 40, 20);
 
     const auto sampleNameLabelScale { 0.156f };
     const auto sampleNameInputScale { 1.f - sampleNameLabelScale };

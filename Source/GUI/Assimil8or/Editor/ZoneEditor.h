@@ -55,6 +55,7 @@ private:
     juce::TextButton oneShotPlayButton;
     juce::TextButton loopPlayButton;
     juce::TextButton toolsButton;
+    juce::Label zoneLabel;
     juce::Rectangle<int> samplePointsBackground;
     juce::Rectangle<int> loopPointsBackground;
     juce::Rectangle<int>* activePointBackground { &samplePointsBackground };
