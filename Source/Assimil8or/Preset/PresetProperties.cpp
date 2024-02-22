@@ -33,7 +33,7 @@ void PresetProperties::copyTreeProperties (juce::ValueTree sourcePresetPropertie
         for (auto zoneIndex { 0 }; zoneIndex < channelSource.getNumChildren (); ++zoneIndex)
         {
             ZoneProperties zoneDestinationProperties (channelDestination.getChild (zoneIndex), ZoneProperties::WrapperType::owner, ZoneProperties::EnableCallbacks::no);
-            zoneDestinationProperties.copyFrom (channelSource.getChild (zoneIndex));
+            zoneDestinationProperties.copyFrom (channelSource.getChild (zoneIndex), false);
         }
     }
 }

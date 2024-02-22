@@ -157,20 +157,22 @@ void ChannelEditor::clearAllZones ()
 {
     const auto numZones { editManager->getNumUsedZones (channelIndex) };
     for (auto curZoneIndex { 0 }; curZoneIndex < numZones; ++curZoneIndex)
-        zoneProperties [curZoneIndex].copyFrom (defaultZoneProperties.getValueTree ());
+        zoneProperties [curZoneIndex].copyFrom (defaultZoneProperties.getValueTree (), false);
 }
 
 // TODO - move this to the EditManger
-void ChannelEditor::copyZone (int zoneIndex)
+void ChannelEditor::copyZone (int zoneIndex, bool settingsOnly)
 {
-    copyBufferZoneProperties.copyFrom (zoneProperties [zoneIndex].getValueTree ());
+    copyBufferZoneProperties.copyFrom (zoneProperties [zoneIndex].getValueTree (), settingsOnly);
+    if (settingsOnly)
+        copyBufferZoneProperties.setSample ("", false);
     *zoneCopyBufferHasData = true;
 }
 
 // TODO - move this to the EditManger
 void ChannelEditor::deleteZone (int zoneIndex)
 {
-    zoneProperties [zoneIndex].copyFrom (defaultZoneProperties.getValueTree ());
+    zoneProperties [zoneIndex].copyFrom (defaultZoneProperties.getValueTree (), false);
     // if this zone was the last in the list, but not also the first, then set the minVoltage for the new last in list to -5
     if (zoneIndex == editManager->getNumUsedZones (channelIndex) && zoneIndex != 0)
         zoneProperties [zoneIndex - 1].setMinVoltage (-5.0, false);
@@ -186,7 +188,7 @@ void ChannelEditor::duplicateZone (int zoneIndex)
     for (auto curZoneIndex { startingZoneIndex }; curZoneIndex >= zoneIndex; --curZoneIndex)
     {
         ZoneProperties destZoneProperties (channelProperties.getZoneVT (curZoneIndex + 1), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
-        destZoneProperties.copyFrom (channelProperties.getZoneVT (curZoneIndex));
+        destZoneProperties.copyFrom (channelProperties.getZoneVT (curZoneIndex), false);
     }
     // if our duplicated zone is not on the end, set the voltage 1/2 between it's neighbors
     const auto indexOfLastZone { numUsedZones - 1 };
@@ -204,7 +206,7 @@ void ChannelEditor::duplicateZone (int zoneIndex)
 // TODO - move this to the EditManger
 void ChannelEditor::pasteZone (int zoneIndex)
 {
-    zoneProperties [zoneIndex].copyFrom (copyBufferZoneProperties.getValueTree ());
+    zoneProperties [zoneIndex].copyFrom (copyBufferZoneProperties.getValueTree (), copyBufferZoneProperties.getSample () == "");
     // if this is not on the end
     if (zoneIndex < editManager->getNumUsedZones (channelIndex) - 1)
     {
@@ -247,8 +249,8 @@ void ChannelEditor::removeEmptyZones ()
                 ZoneProperties nextZoneProperties (channelProperties.getZoneVT (nextZoneIndex), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
                 if (nextZoneProperties.getSample ().isNotEmpty ())
                 {
-                    curZoneProperties.copyFrom (nextZoneProperties.getValueTree ());
-                    nextZoneProperties.copyFrom (defaultZoneProperties.getValueTree ());
+                    curZoneProperties.copyFrom (nextZoneProperties.getValueTree (), false);
+                    nextZoneProperties.copyFrom (defaultZoneProperties.getValueTree (), false);
                     curZoneProperties.wrap (channelProperties.getZoneVT (zoneIndex + (nextZoneIndex - zoneIndex)), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
 
                     moveHappened = true;
@@ -1972,18 +1974,22 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
         zoneEditor.init (zonePropertiesVT, rootPropertiesVT, editManager);
         zoneEditor.displayToolsMenu = [this] (int zoneIndex)
         {
-            juce::PopupMenu pmBalance;
-            pmBalance.addItem ("5V", true, false, [this] () { balanceVoltages (VoltageBalanceType::distributeAcross5V); });
-            pmBalance.addItem ("10V", true, false, [this] () { balanceVoltages (VoltageBalanceType::distributeAcross10V); });
-            pmBalance.addItem ("Kbd", true, false, [this] () { balanceVoltages (VoltageBalanceType::distribute1vPerOct); });
-            pmBalance.addItem ("Maj", true, false, [this] () { balanceVoltages (VoltageBalanceType::distribute1vPerOctMajor); });
-
             juce::PopupMenu pm;
-            pm.addSubMenu ("Balance", pmBalance, zoneProperties [zoneIndex].getSample ().isNotEmpty ());
-            pm.addItem ("Copy", zoneProperties [zoneIndex].getSample ().isNotEmpty (), false, [this, zoneIndex] ()
             {
-                copyZone (zoneIndex);
-            });
+                juce::PopupMenu pmBalance;
+                pmBalance.addItem ("5V", true, false, [this] () { balanceVoltages (VoltageBalanceType::distributeAcross5V); });
+                pmBalance.addItem ("10V", true, false, [this] () { balanceVoltages (VoltageBalanceType::distributeAcross10V); });
+                pmBalance.addItem ("Kbd", true, false, [this] () { balanceVoltages (VoltageBalanceType::distribute1vPerOct); });
+                pmBalance.addItem ("Maj", true, false, [this] () { balanceVoltages (VoltageBalanceType::distribute1vPerOctMajor); });
+                pm.addSubMenu ("Balance", pmBalance, zoneProperties [zoneIndex].getSample ().isNotEmpty ());
+            }
+
+            {
+                juce::PopupMenu pmCopy;
+                pmCopy.addItem ("All", zoneProperties [zoneIndex].getSample ().isNotEmpty (), false, [this, zoneIndex] () { copyZone (zoneIndex, false); });
+                pmCopy.addItem ("Settings", zoneProperties [zoneIndex].getSample ().isNotEmpty (), false, [this, zoneIndex] () { copyZone (zoneIndex, true); });
+                pm.addSubMenu ("Copy", pmCopy, zoneProperties [zoneIndex].getSample ().isNotEmpty ());
+            }
             pm.addItem ("Paste", *zoneCopyBufferHasData, false, [this, zoneIndex] ()
             {
                 pasteZone (zoneIndex);

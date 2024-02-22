@@ -9,12 +9,15 @@ juce::ValueTree ZoneProperties::create (int id)
     return zoneProperties.getValueTree ();
 }
 
-void ZoneProperties::copyFrom (juce::ValueTree sourceVT)
+void ZoneProperties::copyFrom (juce::ValueTree sourceVT, bool settingsOnly)
 {
     ZoneProperties sourceZoneProperties (sourceVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
-    // the sample itself needs to be loaded first, as loading a sample resets the sample and loop points, which would overwrite and values that were already loaded by a raw copying of properties
-    // this issue arose because loopLength and loopStart load before sample, but generally speaking, we can't rely on the ordering of the properties
-    setSample (sourceZoneProperties.getSample (), false);
+    if (! settingsOnly)
+    {
+        // the sample itself needs to be loaded first, as loading a sample resets the sample and loop points, which would overwrite and values that were already loaded by a raw copying of properties
+        // this issue arose because loopLength and loopStart load before sample, but generally speaking, we can't rely on the ordering of the properties
+        setSample (sourceZoneProperties.getSample (), false);
+    }
     setLevelOffset (sourceZoneProperties.getLevelOffset (), false);
     setLoopLength (sourceZoneProperties.getLoopLength ().value_or (-1.0), false);
     setLoopStart (sourceZoneProperties.getLoopStart ().value_or (-1), false);

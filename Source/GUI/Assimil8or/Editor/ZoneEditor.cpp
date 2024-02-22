@@ -957,7 +957,6 @@ juce::PopupMenu ZoneEditor::createZoneEditMenu (std::function <void (ZonePropert
         for (auto destZoneIndex { 0 }; destZoneIndex < 8; ++destZoneIndex)
         {
             // TODO - the actual clone code should be in the EditManager too
-            // TODO - we should not even display the channel if there isn't a sample assigned, EXCEPT for if it is assigning the sample
             if (destZoneIndex != zoneIndex)
             {
                 auto canCloneToDestZone { true };

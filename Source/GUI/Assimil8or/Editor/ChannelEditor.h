@@ -334,7 +334,7 @@ private:
     void checkStereoRightOverlay ();
     void clearAllZones ();
     void configAudioPlayer ();
-    void copyZone (int zoneIndex);
+    void copyZone (int zoneIndex, bool settingsOnly);
     void deleteZone (int zoneIndex);
     void duplicateZone (int zoneIndex);
     void ensureProperZoneIsSelected ();
