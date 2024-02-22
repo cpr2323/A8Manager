@@ -1042,7 +1042,10 @@ void ZoneEditor::levelOffsetUiChanged (double levelOffset)
 
 void ZoneEditor::loopLengthDataChanged (std::optional<double> loopLength)
 {
-    loopLengthTextEditor.setText (formatLoopLength (loopLength.value_or (static_cast<double> (sampleProperties.getLengthInSamples () - zoneProperties.getLoopStart ().value_or (0)))));
+    if (sampleProperties.getStatus () != SampleStatus::uninitialized)
+        loopLengthTextEditor.setText (formatLoopLength (loopLength.value_or (static_cast<double> (sampleProperties.getLengthInSamples () - zoneProperties.getLoopStart ().value_or (0)))));
+    else
+        loopLengthTextEditor.setText ("0");
     updateLoopPointsView ();
 }
 
@@ -1136,7 +1139,11 @@ void ZoneEditor::sampleStartUiChanged (juce::int64 sampleStart)
 
 void ZoneEditor::sampleEndDataChanged (std::optional<juce::int64> sampleEnd)
 {
-    sampleEndTextEditor.setText (juce::String (sampleEnd.value_or (sampleProperties.getLengthInSamples ())));
+    if (sampleProperties.getStatus() != SampleStatus::uninitialized)
+        sampleEndTextEditor.setText (juce::String (sampleEnd.value_or (sampleProperties.getLengthInSamples ())));
+    else
+        sampleEndTextEditor.setText ("0");
+
     updateLoopPointsView ();
 }
 
