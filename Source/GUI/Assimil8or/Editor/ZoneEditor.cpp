@@ -214,7 +214,6 @@ bool ZoneEditor::handleSamplesInternal (int startingZoneIndex, juce::StringArray
 
 void ZoneEditor::updateLoopPointsView ()
 {
-    DebugLog ("ZoneEditor","updateLoopPointsView ()");
     juce::int64 startSample { 0 };
     juce::int64 numSamples { 0 };
     if (sampleProperties.getStatus() == SampleStatus::exists)

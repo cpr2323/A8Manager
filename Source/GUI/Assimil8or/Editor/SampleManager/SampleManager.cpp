@@ -34,10 +34,6 @@ void SampleManager::init (juce::ValueTree rootPropertiesVT)
         closeAllOpenSamples ();
         currentFolder = { juce::File (folderName) };
     };
-    appProperties.onMostRecentFileChange = [this, closeAllOpenSamples] (juce::String fileName)
-    {
-        closeAllOpenSamples ();
-    };
     directoryDataProperties.wrap (runtimeRootProperties.getValueTree (), DirectoryDataProperties::WrapperType::client, DirectoryDataProperties::EnableCallbacks::yes);
     directoryDataProperties.onRootScanComplete = [this] ()
     {
