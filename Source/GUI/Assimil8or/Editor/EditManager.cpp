@@ -237,7 +237,6 @@ bool EditManager::assignSamples (int channelIndex, int zoneIndex, const juce::St
     // assign the samples
     for (auto filesIndex { 0 }; filesIndex < files.size () && zoneIndex + filesIndex < 8; ++filesIndex)
     {
-        auto& zoneProperty { zoneAndSamplePropertiesList [channelIndex][zoneIndex + filesIndex].zoneProperties };
         juce::File file (files [filesIndex]);
         // if file not in preset folder, then copy
         if (appProperties.getMostRecentFolder () != file.getParentDirectory ().getFullPathName ())
@@ -249,8 +248,31 @@ bool EditManager::assignSamples (int channelIndex, int zoneIndex, const juce::St
         }
         //juce::Logger::outputDebugString ("assigning '" + file.getFileName () + "' to Zone " + juce::String (zoneIndex + filesIndex));
         // assign file to zone
-        // TODO - this should be a call to loadZone, which will call zoneProperty.setSample 
-        zoneProperty.setSample (file.getFileName (), false);
+        auto& zoneProperties { zoneAndSamplePropertiesList [channelIndex][zoneIndex + filesIndex].zoneProperties };
+        zoneProperties.setSample (file.getFileName (), false);
+
+        // check if stereo and set up right channel
+        auto& sampleProperties { zoneAndSamplePropertiesList [channelIndex][zoneIndex + filesIndex].sampleProperties };
+        if (sampleProperties.getStatus () == SampleStatus::exists && sampleProperties.getNumChannels () == 2)
+        {
+            if (auto parentChannelId { channelPropertiesList [channelIndex].getId () }; parentChannelId < 8 && channelPropertiesList [channelIndex].getChannelMode () != ChannelProperties::ChannelMode::stereoRight)
+            {
+                // NOTE PresetProperties.getChannelVT takes a 0 based index, but Id's are 1 based. and since we want the NEXT channel, we can use the Id, because it is already +1 to the index
+                ChannelProperties nextChannelProperties (presetProperties.getChannelVT (parentChannelId), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
+                ZoneProperties nextChannelZoneProperties (nextChannelProperties.getZoneVT (zoneProperties.getId () - 1), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
+                // if next Channel does not have a sample
+                if (nextChannelZoneProperties.getSample ().isEmpty ())
+                {
+                    nextChannelProperties.setChannelMode (ChannelProperties::ChannelMode::stereoRight, false);
+                    nextChannelZoneProperties.setSide (1, false);
+                    nextChannelZoneProperties.setSampleStart (-1, true);
+                    nextChannelZoneProperties.setSampleEnd (-1, true);
+                    nextChannelZoneProperties.setLoopStart (-1, true);
+                    nextChannelZoneProperties.setLoopLength (-1, true);
+                    nextChannelZoneProperties.setSample (zoneProperties.getSample (), false); // when the other editor receives this update, it will also update the sample positions, so do it after setting them
+                }
+            }
+        }
     }
 
     // update the minVoltages if needed
