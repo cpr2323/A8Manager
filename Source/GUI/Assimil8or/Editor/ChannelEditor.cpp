@@ -1,5 +1,4 @@
 #include "ChannelEditor.h"
-#include "ChannelEditor.h"
 #include "FormatHelpers.h"
 #include "MinVoltageTests.h"
 #include "ParameterToolTipData.h"
@@ -206,7 +205,7 @@ void ChannelEditor::duplicateZone (int zoneIndex)
 // TODO - move this to the EditManger
 void ChannelEditor::pasteZone (int zoneIndex)
 {
-    zoneProperties [zoneIndex].copyFrom (copyBufferZoneProperties.getValueTree (), copyBufferZoneProperties.getSample () == "");
+    zoneProperties [zoneIndex].copyFrom (copyBufferZoneProperties.getValueTree (), copyBufferZoneProperties.getSample ().isEmpty ());
     // if this is not on the end
     if (zoneIndex < editManager->getNumUsedZones (channelIndex) - 1)
     {
@@ -372,40 +371,45 @@ double ChannelEditor::snapValue (double rawValue, double snapAmount)
     return snappedAmount;
 }
 
-juce::PopupMenu ChannelEditor::createChannelEditMenu (std::function <void (ChannelProperties&)> setter, std::function <void ()> resetter)
+juce::PopupMenu ChannelEditor::createChannelCloneMenu (std::function <void (ChannelProperties&)> setter)
 {
     jassert (setter != nullptr);
-    jassert (resetter != nullptr);
     juce::PopupMenu cloneMenu;
     for (auto destChannelIndex { 0 }; destChannelIndex < 8; ++destChannelIndex)
     {
         if (destChannelIndex != channelIndex)
             cloneMenu.addItem ("To Channel " + juce::String (destChannelIndex + 1), true, false, [this, destChannelIndex, setter] ()
-            {
-                editManager->forChannels ({destChannelIndex}, [this, setter] (juce::ValueTree channelPropertiesVT)
+                {
+                    editManager->forChannels ({ destChannelIndex }, [this, setter] (juce::ValueTree channelPropertiesVT)
+                        {
+                            ChannelProperties destChannelProperties (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
+                            setter (destChannelProperties);
+                        });
+                });
+    }
+    cloneMenu.addItem ("To All", true, false, [this, setter] ()
+        {
+            std::vector<int> channelIndexList;
+            // build list of other channels
+            for (auto destChannelIndex { 0 }; destChannelIndex < 8; ++destChannelIndex)
+                if (destChannelIndex != channelIndex)
+                    channelIndexList.emplace_back (destChannelIndex);
+            // clone to other channels
+            editManager->forChannels (channelIndexList, [this, setter] (juce::ValueTree channelPropertiesVT)
                 {
                     ChannelProperties destChannelProperties (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
                     setter (destChannelProperties);
                 });
-            });
-    }
-    cloneMenu.addItem ("To All", true, false, [this, setter] ()
-    {
-        std::vector<int> channelIndexList;
-        // build list of other channels
-        for (auto destChannelIndex { 0 }; destChannelIndex < 8; ++destChannelIndex)
-            if (destChannelIndex != channelIndex)
-                channelIndexList.emplace_back (destChannelIndex);
-        // clone to other channels
-        editManager->forChannels (channelIndexList, [this, setter] (juce::ValueTree channelPropertiesVT)
-        {
-            ChannelProperties destChannelProperties (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
-            setter (destChannelProperties);
         });
-    });
+    return cloneMenu;
+}
+
+juce::PopupMenu ChannelEditor::createChannelEditMenu (std::function <void (ChannelProperties&)> setter, std::function <void ()> resetter)
+{
     juce::PopupMenu editMenu;
-    editMenu.addSubMenu ("Clone", cloneMenu, true);
-    editMenu.addItem ("Reset", true, false, [this, resetter] () { resetter (); });
+    editMenu.addSubMenu ("Clone", createChannelCloneMenu (setter), true);
+    if (resetter != nullptr)
+        editMenu.addItem ("Reset", true, false, [this, resetter] () { resetter (); });
 
     return editMenu;
 };
@@ -1983,14 +1987,32 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
                 pmBalance.addItem ("Maj", true, false, [this] () { balanceVoltages (VoltageBalanceType::distribute1vPerOctMajor); });
                 pm.addSubMenu ("Balance", pmBalance, zoneProperties [zoneIndex].getSample ().isNotEmpty ());
             }
-
+            {
+                auto pmCloneMenu { createChannelCloneMenu ([this] (ChannelProperties& destChannelProperties)
+                {
+                    if (const auto destNumUsedZones { editManager->getNumUsedZones (destChannelProperties.getId () - 1) };
+                        destNumUsedZones > 1)
+                    {
+                        channelProperties.forEachZone ([this, &destChannelProperties, destNumUsedZones] (juce::ValueTree zonePropertiesVT, int curZoneIndex)
+                        {
+                            if (curZoneIndex == destNumUsedZones - 1)
+                                return false;
+                            ZoneProperties srcZone (zonePropertiesVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
+                            ZoneProperties destZone (destChannelProperties.getZoneVT (curZoneIndex), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
+                            destZone.setMinVoltage (srcZone.getMinVoltage (), false);
+                            return true;
+                        });
+                    }
+                }) };
+                pm.addSubMenu ("Clone MinVoltage", pmCloneMenu, zoneProperties [zoneIndex].getSample ().isNotEmpty ());
+            }
             {
                 juce::PopupMenu pmCopy;
                 pmCopy.addItem ("All", zoneProperties [zoneIndex].getSample ().isNotEmpty (), false, [this, zoneIndex] () { copyZone (zoneIndex, false); });
                 pmCopy.addItem ("Settings", zoneProperties [zoneIndex].getSample ().isNotEmpty (), false, [this, zoneIndex] () { copyZone (zoneIndex, true); });
                 pm.addSubMenu ("Copy", pmCopy, zoneProperties [zoneIndex].getSample ().isNotEmpty ());
             }
-            pm.addItem ("Paste", *zoneCopyBufferHasData, false, [this, zoneIndex] ()
+            pm.addItem ("Paste", *zoneCopyBufferHasData && (zoneProperties [zoneIndex].getSample ().isNotEmpty() || copyBufferZoneProperties.getSample ().isNotEmpty ()), false, [this, zoneIndex] ()
             {
                 pasteZone (zoneIndex);
                 updateAllZoneTabNames ();

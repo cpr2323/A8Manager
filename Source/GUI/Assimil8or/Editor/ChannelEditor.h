@@ -351,6 +351,7 @@ private:
     double snapEnvelopeValue (double rawValue);
     double truncateToDecimalPlaces (double rawValue, int decimalPlaces);
     double snapValue (double rawValue, double snapAmount);
+    juce::PopupMenu createChannelCloneMenu (std::function <void (ChannelProperties&)> setter);
     juce::PopupMenu createChannelEditMenu (std::function <void (ChannelProperties&)> setter, std::function <void ()> resetter);
     void updateAllZoneTabNames ();
     void updateZoneTabName (int zoneIndex);
