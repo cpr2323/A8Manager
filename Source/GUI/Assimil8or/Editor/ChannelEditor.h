@@ -7,6 +7,7 @@
 #include "ZoneEditor.h"
 #include "Envelope/AREnvelopeComponent.h"
 #include "Envelope/AREnvelopeProperties.h"
+#include "Waveform/WaveformDisplay.h"
 #include "../../../AppProperties.h"
 #include "../../../Assimil8or/Audio/AudioPlayerProperties.h"
 #include "../../../Assimil8or/Preset/ChannelProperties.h"
@@ -327,6 +328,8 @@ private:
     NoArrowComboBoxLnF noArrowComboBoxLnF;
     ZonesTabbedLookAndFeel zonesTabbedLookAndFeel;
 
+    WaveformDisplay sampleWaveformDisplay;
+
     std::array<ZoneEditor, 8> zoneEditors;
     std::array<ZoneProperties, 8> zoneProperties;
 
@@ -440,4 +443,5 @@ private:
     void visibilityChanged () override;
     void paint (juce::Graphics& g) override;
     void resized () override;
+    void updateWaveformDisplay ();
 };

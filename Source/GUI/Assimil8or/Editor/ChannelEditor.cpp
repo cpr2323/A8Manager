@@ -68,6 +68,7 @@ ChannelEditor::ChannelEditor ()
     zoneTabs.onSelectedTabChanged = [this] (int)
     {
         configAudioPlayer ();
+        updateWaveformDisplay ();
     };
     addAndMakeVisible (zoneTabs);
 
@@ -122,6 +123,10 @@ ChannelEditor::ChannelEditor ()
         releaseDataChanged (snapEnvelopeValue (static_cast<int> (rawReleaseValue) + curReleaseFractionalValue));
     };
     addAndMakeVisible (arEnvelopeComponent);
+
+    // Waveform display
+    addAndMakeVisible (sampleWaveformDisplay);
+
     updateAllZoneTabNames ();
     addChildComponent (stereoRightTransparantOverly);
 
@@ -1995,6 +2000,8 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
     channelProperties.wrap (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::yes);
     channelIndex = channelProperties.getId () - 1;
     setupChannelPropertiesCallbacks ();
+    sampleWaveformDisplay.init (channelPropertiesVT, rootPropertiesVT);
+
     channelProperties.forEachZone ([this, rootPropertiesVT] (juce::ValueTree zonePropertiesVT, int zoneIndex)
     {
         // Zone Editor setup
@@ -2319,6 +2326,7 @@ void ChannelEditor::positionColumnTwo (int xOffset, int width)
     releaseModTextEditor.setBounds (releaseModComboBox.getRight () + 3, curYOffset, scaleWidth (0.5f), kParameterLineHeight);
     curYOffset += kParameterLineHeight;
 
+    // Envelope Graphic Editor
     curYOffset += kInterControlYOffset;
     arEnvelopeComponent.setBounds (releaseModComboBox.getX (), curYOffset, width + 3, (kParameterLineHeight * 2) + (kInterControlYOffset * 2));
 }
@@ -2476,6 +2484,17 @@ void ChannelEditor::resized ()
     positionColumnThree (xOffSet, columnWidth);
     xOffSet += columnWidth + spaceBetweenColumns;
     positionColumnFour (xOffSet, columnWidth);
+
+    // TODO - improve size calculation
+    // Waveform Display
+    sampleWaveformDisplay.setBounds (mixModComboBox.getX (), xfadeGroupComboBox.getBounds ().getBottom () + kInterControlYOffset + 5,
+                                     zoneTabs.getX () - mixModComboBox.getX () - 15, getHeight () - xfadeGroupComboBox.getBounds ().getBottom () - kInterControlYOffset - 15);
+}
+
+void ChannelEditor::updateWaveformDisplay ()
+{
+    const auto currentZoneIndex { zoneTabs.getCurrentTabIndex () };
+    sampleWaveformDisplay.setZone (currentZoneIndex);
 }
 
 void ChannelEditor::updateAllZoneTabNames ()

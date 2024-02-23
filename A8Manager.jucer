@@ -132,6 +132,12 @@
                     file="Source/GUI/Assimil8or/Editor/SampleManager/SampleProperties.h"/>
               <FILE id="KCeFDE" name="SampleStatus.h" compile="0" resource="0" file="Source/GUI/Assimil8or/Editor/SampleManager/SampleStatus.h"/>
             </GROUP>
+            <GROUP id="{46BD4BD9-2E96-7460-82CE-1DE35CEA5736}" name="Waveform">
+              <FILE id="XL5TLs" name="WaveformDisplay.cpp" compile="1" resource="0"
+                    file="Source/GUI/Assimil8or/Editor/Waveform/WaveformDisplay.cpp"/>
+              <FILE id="Ba2tbm" name="WaveformDisplay.h" compile="0" resource="0"
+                    file="Source/GUI/Assimil8or/Editor/Waveform/WaveformDisplay.h"/>
+            </GROUP>
             <FILE id="liNFVw" name="Assimil8orEditorComponent.cpp" compile="1"
                   resource="0" file="Source/GUI/Assimil8or/Editor/Assimil8orEditorComponent.cpp"/>
             <FILE id="HH5ILq" name="Assimil8orEditorComponent.h" compile="0" resource="0"

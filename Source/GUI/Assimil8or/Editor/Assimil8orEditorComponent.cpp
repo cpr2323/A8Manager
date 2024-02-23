@@ -238,6 +238,7 @@ void Assimil8orEditorComponent::importPreset ()
     {
         if (fc.getURLResults ().size () == 1 && fc.getURLResults () [0].isLocalFile ())
         {
+            // TODO - produce warning if you are going to overwrite edited data
             auto importPresetFile { fc.getURLResults () [0].getLocalFile () };
 
             juce::StringArray fileContents;
@@ -442,6 +443,7 @@ void Assimil8orEditorComponent::exportPreset ()
     {
         if (fc.getURLResults ().size () == 1 && fc.getURLResults () [0].isLocalFile ())
         {
+            // TODO - we should protect against overwriting the current preset
             auto exportPresetFile { fc.getURLResults () [0].getLocalFile () };
             Assimil8orPreset assimil8orPreset;
             assimil8orPreset.write (exportPresetFile, presetProperties.getValueTree ());

@@ -2,6 +2,8 @@
 
 #include <JuceHeader.h>
 
+// TODO - refactor to take a ZoneProperties VT and get the data from there
+//        Will just need an function to set whether to use Sample or Loop points
 class LoopPointsView : public juce::Component
 {
 public:
