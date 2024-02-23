@@ -1008,7 +1008,7 @@ juce::PopupMenu ZoneEditor::createZoneEditMenu (std::function <void (ZonePropert
     }
 
     if (resetter != nullptr)
-        editMenu.addItem ("Reset", true, false, [this, resetter] () { resetter (); });
+        editMenu.addItem ("Default", true, false, [this, resetter] () { resetter (); });
 
     return editMenu;
 }

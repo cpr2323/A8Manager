@@ -433,7 +433,7 @@ juce::PopupMenu ChannelEditor::createChannelEditMenu (std::function <void (Chann
     juce::PopupMenu editMenu;
     editMenu.addSubMenu ("Clone", createChannelCloneMenu (setter, [this] (ChannelProperties&) { return true; }, [this] (ChannelProperties&) { return true; }), true);
     if (resetter != nullptr)
-        editMenu.addItem ("Reset", true, false, [this, resetter] () { resetter (); });
+        editMenu.addItem ("Default", true, false, [this, resetter] () { resetter (); });
 
     return editMenu;
 };
