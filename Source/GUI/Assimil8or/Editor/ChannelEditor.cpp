@@ -2027,8 +2027,9 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
                             return true;
                         });
                     }
-                }, [this] (ChannelProperties& destChannelProperties) { return editManager->getNumUsedZones (destChannelProperties.getId () - 1) > 1; },
-                   [this] (ChannelProperties& destChannelProperties) { return editManager->getNumUsedZones (destChannelProperties.getId () - 1) > 1; }) };
+                },
+                [this] (ChannelProperties& destChannelProperties) { return editManager->getNumUsedZones (destChannelProperties.getId () - 1) > 1; },
+                [this] (ChannelProperties& destChannelProperties) { return editManager->getNumUsedZones (destChannelProperties.getId () - 1) > 1; }) };
                 pm.addSubMenu ("Clone MinVoltages", pmCloneMenu, zoneProperties [zoneIndex].getSample ().isNotEmpty ());
             }
             {
@@ -2447,8 +2448,8 @@ void ChannelEditor::resized ()
     // this is the overlay that is used to indicate a channel is in Stereo/Right mode
     stereoRightTransparantOverly.setBounds (getLocalBounds ());
 
-    if (displayToolsMenu != nullptr)
-        toolsButton.setBounds (5, getHeight () - 5 - 20, 40, 20);
+    jassert (displayToolsMenu != nullptr);
+    toolsButton.setBounds (5, getHeight () - 5 - 20, 40, 20);
 
     // layout the Zones section. ie. the tabs and the channel level controls
     auto zoneColumn {getLocalBounds ().removeFromRight (200)};

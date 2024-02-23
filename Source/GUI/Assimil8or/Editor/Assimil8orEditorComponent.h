@@ -48,11 +48,12 @@ private:
     ZoneProperties copyBufferZoneProperties;
     bool copyBufferHasData { false };
     EditManager editManager;
+    std::unique_ptr<juce::FileChooser> fileChooser;
 
     juce::Label titleLabel;
     juce::TextButton saveButton;
-    juce::TextButton importButton;
-    juce::TextButton exportButton;
+    juce::TextButton toolsButton;
+
     juce::TabbedComponent channelTabs { juce::TabbedButtonBar::Orientation::TabsAtTop };
     WindowDecorator windowDecorator;
 
@@ -83,6 +84,7 @@ private:
     std::array<ChannelEditor, 8> channelEditors;
     std::array<ChannelProperties, 8> channelProperties;
 
+    void displayToolsMenu ();
     void exportPreset ();
     juce::String formatXfadeWidthString (double width);
     void importPreset ();

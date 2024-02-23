@@ -10,8 +10,6 @@
 #include "../../../Utility/PersistentRootProperties.h"
 #include <algorithm>
 
-#define ENABLE_IMPORT_EXPORT 0
-
 Assimil8orEditorComponent::Assimil8orEditorComponent ()
 {
     setOpaque (true);
@@ -28,16 +26,15 @@ Assimil8orEditorComponent::Assimil8orEditorComponent ()
 
     setupButton (saveButton, "SAVE", [this] () { savePreset ();  });
     saveButton.setEnabled (false);
-#if ENABLE_IMPORT_EXPORT
-    setupButton (importButton, "Import", [this] () { importPreset ();  });
-    setupButton (exportButton, "Export", [this] () { exportPreset (); });
-    importButton.setEnabled (false);
-    exportButton.setEnabled (false);
-#endif
 
     for (auto curChannelIndex { 0 }; curChannelIndex < 8; ++curChannelIndex)
         channelTabs.addTab ("CH " + juce::String::charToString ('1' + curChannelIndex), juce::Colours::darkgrey, &channelEditors [curChannelIndex], false);
     addAndMakeVisible (channelTabs);
+
+    // add this AFTER the Channels tabs, because it occupies some of the same space, and ends up behind the tabs if we add it before
+    toolsButton.setButtonText ("TOOLS");
+    toolsButton.onClick = [this] () { displayToolsMenu (); };
+    addAndMakeVisible (toolsButton);
 
     minPresetProperties.wrap (ParameterPresetsSingleton::getInstance ()->getParameterPresetListProperties ().getParameterPreset (ParameterPresetListProperties::MinParameterPresetType),
                               PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
@@ -233,6 +230,19 @@ juce::String Assimil8orEditorComponent::formatXfadeWidthString (double width)
         return newText += "V";
     };
 
+void Assimil8orEditorComponent::importPreset ()
+{
+    // TODO - I am thinking we might want to cache the 'MRU' folder for import/export separate from the Preset folder caching
+    fileChooser.reset (new juce::FileChooser ("Please select the file to import from...", appProperties.getMostRecentFolder (), ""));
+    fileChooser->launchAsync (juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles, [this] (const juce::FileChooser& fc) mutable
+    {
+        if (fc.getURLResults ().size () == 1 && fc.getURLResults () [0].isLocalFile ())
+        {
+        }
+    }, nullptr);
+
+}
+
 void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
 {
     PersistentRootProperties persistentRootProperties (rootPropertiesVT, PersistentRootProperties::WrapperType::client, PersistentRootProperties::EnableCallbacks::no);
@@ -328,16 +338,6 @@ void Assimil8orEditorComponent::setupPresetPropertiesCallbacks ()
     presetProperties.onXfadeDWidthChange = [this] (double width) { xfadeWidthDataChanged (3, width); };
 }
 
-void Assimil8orEditorComponent::importPreset ()
-{
-    jassertfalse;
-}
-
-void Assimil8orEditorComponent::exportPreset ()
-{
-    jassertfalse;
-}
-
 void Assimil8orEditorComponent::receiveSampleLoadRequest (juce::File sampleFile)
 {
     auto channelIndex { channelTabs.getCurrentTabIndex () };
@@ -411,6 +411,26 @@ void Assimil8orEditorComponent::updateChannelTabName (int channelIndex)
     channelTabs.setTabName (channelIndex, channelTabTitle);
 }
 
+void Assimil8orEditorComponent::displayToolsMenu ()
+{
+    juce::PopupMenu pm;
+    pm.addItem ("Import", true, false, [this] () { importPreset (); });
+    pm.addItem ("Export", true, false, [this] () { exportPreset (); });
+    pm.showMenuAsync ({}, [this] (int) {});
+}
+
+void Assimil8orEditorComponent::exportPreset ()
+{
+    // TODO - I am thinking we might want to cache the 'MRU' folder for import/export separate from the Preset folder caching
+    fileChooser.reset (new juce::FileChooser ("Please select the file to export to...", appProperties.getMostRecentFolder (), ""));
+    fileChooser->launchAsync (juce::FileBrowserComponent::saveMode | juce::FileBrowserComponent::canSelectFiles, [this] (const juce::FileChooser& fc) mutable
+    {
+        if (fc.getURLResults ().size () == 1 && fc.getURLResults () [0].isLocalFile ())
+        {
+        }
+    }, nullptr);
+}
+
 void Assimil8orEditorComponent::resized ()
 {
     auto localBounds { getLocalBounds () };
@@ -427,18 +447,17 @@ void Assimil8orEditorComponent::resized ()
     midiSetupLabel.setBounds (topRow.removeFromLeft (75));
     topRow.removeFromLeft (3);
     midiSetupComboBox.setBounds (topRow.removeFromLeft (60));
-
-#if ENABLE_IMPORT_EXPORT
     topRow.removeFromRight (3);
-    exportButton.setBounds (topRow.removeFromRight (75));
-    topRow.removeFromRight (3);
-    importButton.setBounds (topRow.removeFromRight (75));
-#endif
-    topRow.removeFromRight (3);
+    // Save Button
     saveButton.setBounds (topRow.removeFromRight (75));
-    const auto topRowY { titleLabel.getBottom () + 3 };
-    channelTabs.setBounds (3, topRowY, 765, 406);
+    // Tools Button
+    toolsButton.setBounds (getWidth() - 43, saveButton.getBottom () + 3, 40, 20);
+
+    // Channel Tabs
+    const auto channelSectionY { titleLabel.getBottom () + 3 };
+    channelTabs.setBounds (3, channelSectionY, 765, 406);
     const auto bottomRowY (getLocalBounds ().getBottom () - 26);
+    // this is used to overlay the 'right channel' to indicate it is inactive
     windowDecorator.setBounds (getLocalBounds ().removeFromBottom (26));
 
     // Data2 as CV
