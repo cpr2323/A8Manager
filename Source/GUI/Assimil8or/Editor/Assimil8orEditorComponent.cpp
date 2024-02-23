@@ -238,6 +238,21 @@ void Assimil8orEditorComponent::importPreset ()
     {
         if (fc.getURLResults ().size () == 1 && fc.getURLResults () [0].isLocalFile ())
         {
+            auto importPresetFile { fc.getURLResults () [0].getLocalFile () };
+
+            juce::StringArray fileContents;
+            importPresetFile.readLines (fileContents);
+
+            // TODO - check for import errors and handle accordingly
+            Assimil8orPreset assimil8orPreset;
+            assimil8orPreset.parse (fileContents);
+
+            // change the imported Preset Id to the current Preset Id
+            PresetProperties importedPresetProperties (assimil8orPreset.getPresetVT (), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
+            importedPresetProperties.setId (presetProperties.getId (), false);
+
+            // copy imported preset to current preset
+            PresetProperties::copyTreeProperties (importedPresetProperties.getValueTree (), presetProperties.getValueTree ());
         }
     }, nullptr);
 
@@ -427,6 +442,9 @@ void Assimil8orEditorComponent::exportPreset ()
     {
         if (fc.getURLResults ().size () == 1 && fc.getURLResults () [0].isLocalFile ())
         {
+            auto exportPresetFile { fc.getURLResults () [0].getLocalFile () };
+            Assimil8orPreset assimil8orPreset;
+            assimil8orPreset.write (exportPresetFile, presetProperties.getValueTree ());
         }
     }, nullptr);
 }
