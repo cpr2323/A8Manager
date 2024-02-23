@@ -371,43 +371,67 @@ double ChannelEditor::snapValue (double rawValue, double snapAmount)
     return snappedAmount;
 }
 
-juce::PopupMenu ChannelEditor::createChannelCloneMenu (std::function <void (ChannelProperties&)> setter)
+juce::PopupMenu ChannelEditor::createChannelCloneMenu (std::function <void (ChannelProperties&)> setter, std::function<bool (ChannelProperties&)> canCloneCallback,
+                                                       std::function<bool (ChannelProperties&)> canCloneToAllCallback)
 {
     jassert (setter != nullptr);
+    jassert (canCloneCallback != nullptr);
+    jassert (canCloneToAllCallback != nullptr);
     juce::PopupMenu cloneMenu;
     for (auto destChannelIndex { 0 }; destChannelIndex < 8; ++destChannelIndex)
     {
         if (destChannelIndex != channelIndex)
-            cloneMenu.addItem ("To Channel " + juce::String (destChannelIndex + 1), true, false, [this, destChannelIndex, setter] ()
+        {
+            auto canCloneToDestChannel { true };
+            editManager->forChannels ({ destChannelIndex }, [this, canCloneCallback, &canCloneToDestChannel] (juce::ValueTree channelPropertiesVT)
+            {
+                ChannelProperties destChannelProperties (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
+                canCloneToDestChannel = canCloneCallback (destChannelProperties);
+            });
+            if (canCloneToDestChannel)
+            {
+                cloneMenu.addItem ("To Channel " + juce::String (destChannelIndex + 1), true, false, [this, destChannelIndex, setter] ()
                 {
                     editManager->forChannels ({ destChannelIndex }, [this, setter] (juce::ValueTree channelPropertiesVT)
-                        {
-                            ChannelProperties destChannelProperties (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
-                            setter (destChannelProperties);
-                        });
+                    {
+                        ChannelProperties destChannelProperties (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
+                        setter (destChannelProperties);
+                    });
                 });
+            }
+        }
     }
-    cloneMenu.addItem ("To All", true, false, [this, setter] ()
+    std::vector<int> channelIndexList;
+    // build list of other channels
+    for (auto destChannelIndex { 0 }; destChannelIndex < 8; ++destChannelIndex)
+        if (destChannelIndex != channelIndex)
+            channelIndexList.emplace_back (destChannelIndex);
+    auto canCloneDestChannelCount { 0 };
+    editManager->forChannels ({ channelIndexList }, [this, canCloneToAllCallback, &canCloneDestChannelCount] (juce::ValueTree channelPropertiesVT)
+    {
+        ChannelProperties destChannelProperties (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
+        if (canCloneToAllCallback (destChannelProperties))
+            ++canCloneDestChannelCount;
+    });
+    if (canCloneDestChannelCount > 0)
+    {
+        cloneMenu.addItem ("To All", true, false, [this, setter, channelIndexList] ()
         {
-            std::vector<int> channelIndexList;
-            // build list of other channels
-            for (auto destChannelIndex { 0 }; destChannelIndex < 8; ++destChannelIndex)
-                if (destChannelIndex != channelIndex)
-                    channelIndexList.emplace_back (destChannelIndex);
             // clone to other channels
             editManager->forChannels (channelIndexList, [this, setter] (juce::ValueTree channelPropertiesVT)
-                {
-                    ChannelProperties destChannelProperties (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
-                    setter (destChannelProperties);
-                });
+            {
+                ChannelProperties destChannelProperties (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
+                setter (destChannelProperties);
+            });
         });
+    }
     return cloneMenu;
 }
 
 juce::PopupMenu ChannelEditor::createChannelEditMenu (std::function <void (ChannelProperties&)> setter, std::function <void ()> resetter)
 {
     juce::PopupMenu editMenu;
-    editMenu.addSubMenu ("Clone", createChannelCloneMenu (setter), true);
+    editMenu.addSubMenu ("Clone", createChannelCloneMenu (setter, [this] (ChannelProperties&) { return true; }, [this] (ChannelProperties&) { return true; }), true);
     if (resetter != nullptr)
         editMenu.addItem ("Reset", true, false, [this, resetter] () { resetter (); });
 
@@ -2003,8 +2027,9 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
                             return true;
                         });
                     }
-                }) };
-                pm.addSubMenu ("Clone MinVoltage", pmCloneMenu, zoneProperties [zoneIndex].getSample ().isNotEmpty ());
+                }, [this] (ChannelProperties& destChannelProperties) { return editManager->getNumUsedZones (destChannelProperties.getId () - 1) > 1; },
+                   [this] (ChannelProperties& destChannelProperties) { return editManager->getNumUsedZones (destChannelProperties.getId () - 1) > 1; }) };
+                pm.addSubMenu ("Clone MinVoltages", pmCloneMenu, zoneProperties [zoneIndex].getSample ().isNotEmpty ());
             }
             {
                 juce::PopupMenu pmCopy;
