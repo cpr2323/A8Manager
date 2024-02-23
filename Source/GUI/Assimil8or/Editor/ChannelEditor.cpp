@@ -117,7 +117,7 @@ ChannelEditor::ChannelEditor ()
         const auto newAttackValue { snapEnvelopeValue (static_cast<int> (rawAttackValue) + curAttackFractionalValue) };
         attackDataChanged (newAttackValue);
         attackUiChanged (newAttackValue);
-        };
+    };
     arEnvelopeProperties.onReleasePercentChanged = [this] (double releasePercent)
     {
         const auto rawReleaseValue { (kMaxEnvelopeTime *2) * releasePercent };
@@ -125,7 +125,7 @@ ChannelEditor::ChannelEditor ()
         const auto newReleaseValue { snapEnvelopeValue (static_cast<int> (rawReleaseValue) + curReleaseFractionalValue) };
         releaseDataChanged (newReleaseValue);
         releaseUiChanged (newReleaseValue);
-        };
+    };
     addAndMakeVisible (arEnvelopeComponent);
 
     // Waveform display

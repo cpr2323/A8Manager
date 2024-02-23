@@ -40,16 +40,19 @@ void WaveformDisplay::paint (juce::Graphics& g)
         const auto loopLength { zoneProperties.getLoopLength () };
 
         juce::dsp::AudioBlock<float> audioBlock { *audioBufferPtr };
-        const auto samplesToDisplay { static_cast<int> (std::min<juce::int64> (numSamples, getWidth ())) };
+        const auto samplesPerPixel { numSamples / getWidth () };
 
         g.setColour (juce::Colours::black);
-        auto readPtr { audioBlock.getChannelPointer (0) };
-        for (auto sampleCount { 0 }; sampleCount < samplesToDisplay - 1; ++sampleCount)
+        auto readPtr { audioBlock.getChannelPointer (zoneProperties.getSide()) };
+        for (auto pixelIndex { 0 }; pixelIndex < getWidth () - 1; ++pixelIndex)
         {
-            g.drawLine (static_cast<float> (sampleCount),
-                static_cast<float> (static_cast<int> (halfHeight + (readPtr [sampleCount] * halfHeight))),
-                static_cast<float> (sampleCount + 1),
-                static_cast<float> (static_cast<int> (halfHeight + (readPtr [sampleCount + 1] * halfHeight))));
+            if ((pixelIndex + 1) * samplesPerPixel < numSamples)
+            {
+                g.drawLine (static_cast<float> (pixelIndex),
+                    static_cast<float> (static_cast<int> (halfHeight + (readPtr [pixelIndex * samplesPerPixel] * halfHeight))),
+                    static_cast<float> (pixelIndex + 1),
+                    static_cast<float> (static_cast<int> (halfHeight + (readPtr [(pixelIndex + 1) * samplesPerPixel] * halfHeight))));
+            }
         }
     }
 
