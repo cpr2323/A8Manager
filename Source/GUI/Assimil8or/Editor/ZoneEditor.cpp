@@ -392,7 +392,7 @@ void ZoneEditor::setupZoneComponents ()
     loopStartTextEditor.getMinValueCallback = [this] { return minZoneProperties.getLoopStart ().value_or (0); };
     loopStartTextEditor.getMaxValueCallback = [this]
     {
-        return editManager->getMaxLoopStart (parentChannelIndex, zoneIndex, loopStartTextEditor.getText ().getLargeIntValue ());
+        return editManager->getMaxLoopStart (parentChannelIndex, zoneIndex);
     };
     loopStartTextEditor.toStringCallback = [this] (juce::int64 value) { return juce::String (value); };
     loopStartTextEditor.updateDataCallback = [this] (juce::int64 value)
@@ -432,7 +432,7 @@ void ZoneEditor::setupZoneComponents ()
                                                 const auto originalLoopStart { destZoneProperties.getLoopStart().value_or (0) };
                                                 const auto clampedLoopStart { std::clamp (zoneProperties.getLoopStart ().value_or (0),
                                                                                           minZoneProperties.getLoopStart ().value_or (0),
-                                                                                          editManager->getMaxLoopStart (parentChannelIndex, destZoneProperties.getId () - 1, zoneProperties.getLoopStart ().value_or (0))) };
+                                                                                          editManager->getMaxLoopStart (parentChannelIndex, destZoneProperties.getId () - 1)) };
                                                 destZoneProperties.setLoopStart (clampedLoopStart, false);
                                                 if (treatLoopLengthAsEndInUi)
                                                 {
