@@ -1,6 +1,7 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "../EditManager.h"
 #include "../SampleManager/SampleManagerProperties.h"
 #include "../SampleManager/SampleProperties.h"
 #include "../../../../Assimil8or/Preset/ChannelProperties.h"
@@ -9,7 +10,7 @@
 class WaveformDisplay : public juce::Component
 {
 public:
-    void init (juce::ValueTree channelPropertiesVT, juce::ValueTree rootPropertiesVT);
+    void init (juce::ValueTree channelPropertiesVT, juce::ValueTree rootPropertiesVT, EditManager* theEditManager);
     void setZone (int zoneIndex);
 
 private:
@@ -17,6 +18,7 @@ private:
     SampleManagerProperties sampleManagerProperties;
     ZoneProperties zoneProperties;
     SampleProperties sampleProperties;
+    EditManager* editManager { nullptr };
     juce::int64 numSamples { 0 };
     juce::int64 sampleStart { 0 };
     juce::int64 sampleEnd { 0 };

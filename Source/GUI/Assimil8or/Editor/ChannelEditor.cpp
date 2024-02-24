@@ -2004,7 +2004,7 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree r
     channelProperties.wrap (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::yes);
     channelIndex = channelProperties.getId () - 1;
     setupChannelPropertiesCallbacks ();
-    sampleWaveformDisplay.init (channelPropertiesVT, rootPropertiesVT);
+    sampleWaveformDisplay.init (channelPropertiesVT, rootPropertiesVT, editManager);
 
     channelProperties.forEachZone ([this, rootPropertiesVT] (juce::ValueTree zonePropertiesVT, int zoneIndex)
     {

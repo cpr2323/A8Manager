@@ -2,8 +2,10 @@
 #include "../../../../Utility/RuntimeRootProperties.h"
 #include "../../../../Utility/DebugLog.h"
 
-void WaveformDisplay::init (juce::ValueTree channelPropertiesVT, juce::ValueTree rootPropertiesVT)
+void WaveformDisplay::init (juce::ValueTree channelPropertiesVT, juce::ValueTree rootPropertiesVT, EditManager* theEditManager)
 {
+    jassert (theEditManager != nullptr);
+    editManager = theEditManager;
     RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
     channelProperties.wrap (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::yes);
     sampleManagerProperties.wrap (runtimeRootProperties.getValueTree (), SampleManagerProperties::WrapperType::client, SampleManagerProperties::EnableCallbacks::no);
@@ -155,22 +157,39 @@ void WaveformDisplay::mouseDrag (const juce::MouseEvent& e)
         break;
         case 0:
         {
-            zoneProperties.setSampleStart (e.getPosition ().getX () * samplesPerPixel, true);
+            const auto newSampleStart { static_cast<juce::int64> (e.getPosition ().getX () * samplesPerPixel) };
+            const auto clampedSampleStart { std::clamp (newSampleStart, static_cast<juce::int64> (0), zoneProperties.getSampleEnd ().value_or (sampleProperties.getLengthInSamples ()) - 1) };
+            zoneProperties.setSampleStart (clampedSampleStart, true);
         }
         break;
         case 1:
         {
-            zoneProperties.setSampleEnd (e.getPosition ().getX () * samplesPerPixel, true);
+            const auto newSampleEnd { static_cast<juce::int64> (e.getPosition ().getX () * samplesPerPixel) };
+            const auto clampedSampleStart { std::clamp (newSampleEnd, zoneProperties.getSampleStart ().value_or (0) + 1, sampleProperties.getLengthInSamples ()) };
+            zoneProperties.setSampleEnd (clampedSampleStart, true);
         }
         break;
         case 2:
         {
-            zoneProperties.setLoopStart (e.getPosition ().getX () * samplesPerPixel, true);
+            const auto originalLoopStart { zoneProperties.getLoopStart ().value_or (0) };
+            const auto newLoopStart { static_cast<juce::int64> (e.getPosition ().getX () * samplesPerPixel) };
+            const auto clampedLoopStart { std::clamp (newLoopStart, static_cast<juce::int64> (0), editManager->getMaxLoopStart (channelProperties.getId () - 1, zoneProperties.getId () - 1)) };
+            zoneProperties.setLoopStart (clampedLoopStart, true);
+            if (channelProperties.getLoopLengthIsEnd ())
+            {
+                // When treating Loop Length as Loop End, we need to adjust the internal storage of Loop Length by the amount Loop Start changed
+                const auto lengthChangeAmount { static_cast<double> (originalLoopStart - clampedLoopStart) };
+                const auto newLoopLength { zoneProperties.getLoopLength ().value_or (sampleProperties.getLengthInSamples ()) + lengthChangeAmount };
+                zoneProperties.setLoopLength (newLoopLength, true);
+            }
+
         }
         break;
         case 3:
         {
-            zoneProperties.setLoopLength (static_cast<double> (zoneProperties.getLoopStart().value_or (0) + (e.getPosition ().getX () * samplesPerPixel)), true);
+            const auto newLoopLength { static_cast<double> ((e.getPosition ().getX () * samplesPerPixel) - zoneProperties.getLoopStart ().value_or (0)) };
+            const auto clampedLoopLength { std::clamp (newLoopLength, 4.0, static_cast<double> (sampleProperties.getLengthInSamples () - zoneProperties.getLoopStart ().value_or (0))) };
+            zoneProperties.setLoopLength (clampedLoopLength, true);
         }
         break;
     }
