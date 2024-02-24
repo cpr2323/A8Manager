@@ -34,26 +34,43 @@ void WaveformDisplay::paint (juce::Graphics& g)
         const auto halfHeight { getHeight () / 2 };
         const auto audioBufferPtr { sampleProperties.getAudioBufferPtr () };
         const auto numSamples { sampleProperties.getLengthInSamples () };
-        const auto sampleStart { zoneProperties.getSampleStart () };
-        const auto sampleEnd { zoneProperties.getSampleEnd () };
-        const auto loopStart { zoneProperties.getLoopStart () };
-        const auto loopLength { zoneProperties.getLoopLength () };
+        const auto sampleStart { zoneProperties.getSampleStart ().value_or(0) };
+        const auto sampleEnd { zoneProperties.getSampleEnd ().value_or (numSamples) };
+        const auto loopStart { zoneProperties.getLoopStart ().value_or(0) };
+        const auto loopLength { zoneProperties.getLoopLength ().value_or(static_cast<double>(numSamples))};
+        const auto numPixels { getWidth () - 2 };
 
         juce::dsp::AudioBlock<float> audioBlock { *audioBufferPtr };
         const auto samplesPerPixel { numSamples / getWidth () };
 
         g.setColour (juce::Colours::black);
         auto readPtr { audioBlock.getChannelPointer (zoneProperties.getSide()) };
-        for (auto pixelIndex { 0 }; pixelIndex < getWidth () - 1; ++pixelIndex)
+        // TODO - get proper end pixel if sample ends before end of display
+        for (auto pixelIndex { 0 }; pixelIndex < numPixels - 1; ++pixelIndex)
         {
             if ((pixelIndex + 1) * samplesPerPixel < numSamples)
             {
-                g.drawLine (static_cast<float> (pixelIndex),
+                const auto pixelOffset { pixelIndex + 1 };
+                g.drawLine (static_cast<float> (pixelOffset),
                     static_cast<float> (static_cast<int> (halfHeight + (readPtr [pixelIndex * samplesPerPixel] * halfHeight))),
-                    static_cast<float> (pixelIndex + 1),
+                    static_cast<float> (pixelOffset + 1),
                     static_cast<float> (static_cast<int> (halfHeight + (readPtr [(pixelIndex + 1) * samplesPerPixel] * halfHeight))));
             }
+            else
+            {
+                break;
+            }
         }
+
+        g.setColour (juce::Colours::white);
+        const auto sampleStartX { 1 + (static_cast<float>(sampleStart) / static_cast<float>(numSamples) * numPixels) };
+        g.drawLine (sampleStartX, 0, sampleStartX, getHeight ());
+        const auto sampleEndX { 1 + (static_cast<float>(sampleEnd) / static_cast<float>(numSamples) * numPixels) };
+        g.drawLine (sampleEndX, 0, sampleEndX, getHeight ());
+        const auto loopStartX { 1 + (static_cast<float>(loopStart) / static_cast<float>(numSamples) * numPixels) };
+        g.drawLine (loopStartX, 0, loopStartX, getHeight ());
+        const auto loopEndX { 1 + ((static_cast<float>(loopStart + static_cast<juce::int64> (loopLength))) / static_cast<float>(numSamples) * numPixels) };
+        g.drawLine (loopEndX, 0, loopEndX, getHeight ());
     }
 
     g.setColour (juce::Colours::black);
