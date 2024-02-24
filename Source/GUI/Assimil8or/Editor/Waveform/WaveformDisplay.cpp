@@ -63,14 +63,19 @@ void WaveformDisplay::paint (juce::Graphics& g)
         }
 
         g.setColour (juce::Colours::white);
+        // draw sample markers
         const auto sampleStartX { 1 + (static_cast<float>(sampleStart) / static_cast<float>(numSamples) * numPixels) };
         g.drawLine (sampleStartX, 0, sampleStartX, getHeight ());
         const auto sampleEndX { 1 + (static_cast<float>(sampleEnd) / static_cast<float>(numSamples) * numPixels) };
         g.drawLine (sampleEndX, 0, sampleEndX, getHeight ());
+
+        // draw loop markers
+        const auto dashSize { getHeight() / 11.f };
+        const std::array<float,2> dashedSpec { dashSize, dashSize };
         const auto loopStartX { 1 + (static_cast<float>(loopStart) / static_cast<float>(numSamples) * numPixels) };
-        g.drawLine (loopStartX, 0, loopStartX, getHeight ());
+        g.drawDashedLine (juce::Line<float>{ loopStartX, 0, loopStartX, static_cast<float>(getHeight ()) }, dashedSpec.data (), 2);
         const auto loopEndX { 1 + ((static_cast<float>(loopStart + static_cast<juce::int64> (loopLength))) / static_cast<float>(numSamples) * numPixels) };
-        g.drawLine (loopEndX, 0, loopEndX, getHeight ());
+        g.drawDashedLine ({ loopEndX, 0, loopEndX, static_cast<float>(getHeight ()) }, dashedSpec.data (), 2);
     }
 
     g.setColour (juce::Colours::black);

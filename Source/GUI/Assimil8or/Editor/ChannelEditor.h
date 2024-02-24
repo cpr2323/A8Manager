@@ -83,7 +83,7 @@ private:
 class ZonesTabbedLookAndFeel : public juce::LookAndFeel_V4
 {
 public:
-#define USE_COLOR_VOLTAGE
+//#define USE_COLOR_VOLTAGE
 #ifdef USE_COLOR_VOLTAGE
     static inline const juce::Colour kPositiveVoltageColor { juce::Colours::green.darker (0.1f) };
     static inline const juce::Colour kZeroVoltageColor     { juce::Colours::lightgrey.darker (0.3f) };
