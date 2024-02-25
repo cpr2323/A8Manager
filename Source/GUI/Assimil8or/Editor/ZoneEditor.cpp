@@ -314,7 +314,10 @@ void ZoneEditor::setupZoneComponents ()
     {
         sampleStartUiChanged (value);
         if (sourceSamplePointsButton.getToggleState ())
+        {
             audioPlayerProperties.setLoopStart (static_cast<int> (value), false);
+            audioPlayerProperties.setLoopLength (static_cast<int> (zoneProperties.getSampleEnd ().value_or (sampleProperties.getLengthInSamples ()) - value), false);
+        }
     };
     sampleStartTextEditor.onDragCallback = [this] (DragSpeed dragSpeed, int direction)
     {
@@ -1050,6 +1053,8 @@ void ZoneEditor::loopLengthDataChanged (std::optional<double> loopLength)
     else
         loopLengthTextEditor.setText ("0");
     updateLoopPointsView ();
+    if (sourceLoopPointsButton.getToggleState ())
+        audioPlayerProperties.setLoopLength (static_cast<int> (loopLength.value_or (static_cast<double> (sampleProperties.getLengthInSamples () - zoneProperties.getLoopStart ().value_or (0)))), false);
 }
 
 void ZoneEditor::loopLengthUiChanged (double loopLength)
@@ -1062,6 +1067,8 @@ void ZoneEditor::loopStartDataChanged (std::optional<juce::int64> loopStart)
 {
     loopStartTextEditor.setText (juce::String (loopStart.value_or (0)));
     updateLoopPointsView ();
+    if (sourceLoopPointsButton.getToggleState ())
+        audioPlayerProperties.setLoopStart (static_cast<int> (loopStart.value_or (0)), false);
 }
 
 void ZoneEditor::loopStartUiChanged (juce::int64 loopStart)
@@ -1132,6 +1139,12 @@ void ZoneEditor::sampleStartDataChanged (std::optional<juce::int64> sampleStart)
 {
     sampleStartTextEditor.setText (juce::String (sampleStart.value_or (0)));
     updateLoopPointsView ();
+    if (sourceSamplePointsButton.getToggleState ())
+    {
+        audioPlayerProperties.setLoopStart (static_cast<int> (sampleStart.value_or (0)), false);
+        audioPlayerProperties.setLoopLength (static_cast<int> (zoneProperties.getSampleEnd ().value_or (sampleProperties.getLengthInSamples ()) - sampleStart.value_or (0)), false);
+    }
+
 }
 
 void ZoneEditor::sampleStartUiChanged (juce::int64 sampleStart)
@@ -1148,6 +1161,9 @@ void ZoneEditor::sampleEndDataChanged (std::optional<juce::int64> sampleEnd)
         sampleEndTextEditor.setText ("0");
 
     updateLoopPointsView ();
+    if (sourceSamplePointsButton.getToggleState ())
+        audioPlayerProperties.setLoopLength (static_cast<int> (sampleEnd.value_or (sampleProperties.getLengthInSamples ()) - zoneProperties.getSampleStart ().value_or (0)), false);
+
 }
 
 void ZoneEditor::sampleEndUiChanged (juce::int64 sampleEnd)

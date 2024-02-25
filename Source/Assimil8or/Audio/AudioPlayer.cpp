@@ -2,7 +2,7 @@
 #include "../../Utility/PersistentRootProperties.h"
 #include "../../Utility/RuntimeRootProperties.h"
 
-#define LOG_AUDIO_PLAYER 0
+#define LOG_AUDIO_PLAYER 1
 #if LOG_AUDIO_PLAYER
 #define LogAudioPlayer(text) juce::Logger::outputDebugString (text);
 #else
@@ -218,6 +218,10 @@ void AudioPlayer::getNextAudioBlock (const juce::AudioSourceChannelInfo& bufferT
             }
         }
     }
-    if (originalSampleOffset == curSampleOffset)
-        curSampleOffset = cachedSampleOffset;
+    {
+        // NOTE: I am using a lock in the audio callback ONLY BECAUSE the audio play back is a simple audition feature, not recording or performance playback
+        juce::ScopedLock sl (dataCS);
+        if (originalSampleOffset == curSampleOffset)
+            curSampleOffset = cachedSampleOffset;
+    }
 }

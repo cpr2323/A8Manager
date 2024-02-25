@@ -165,8 +165,8 @@ void WaveformDisplay::mouseDrag (const juce::MouseEvent& e)
         case 1:
         {
             const auto newSampleEnd { static_cast<juce::int64> (e.getPosition ().getX () * samplesPerPixel) };
-            const auto clampedSampleStart { std::clamp (newSampleEnd, zoneProperties.getSampleStart ().value_or (0) + 1, sampleProperties.getLengthInSamples ()) };
-            zoneProperties.setSampleEnd (clampedSampleStart, true);
+            const auto clampedSampleEnd { std::clamp (newSampleEnd, zoneProperties.getSampleStart ().value_or (0) + 1, sampleProperties.getLengthInSamples ()) };
+            zoneProperties.setSampleEnd (clampedSampleEnd, true);
         }
         break;
         case 2:
