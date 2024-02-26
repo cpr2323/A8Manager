@@ -3,8 +3,13 @@
 #include <JuceHeader.h>
 #include "AudioPlayerProperties.h"
 #include "AudioSettingsProperties.h"
+#include "../Preset/ChannelProperties.h"
 #include "../Preset/PresetProperties.h"
+#include "../Preset/ZoneProperties.h"
 #include "../../AppProperties.h"
+#include "../../Assimil8or/Assimil8orPreset.h"
+#include "../../GUI/Assimil8or/Editor/SampleManager/SampleManagerProperties.h"
+#include "../../GUI/Assimil8or/Editor/SampleManager/SampleProperties.h"
 
 class AudioPlayer : public juce::AudioSource,
                     public juce::ChangeListener
@@ -19,6 +24,11 @@ private:
     AudioSettingsProperties audioSettingsProperties;
     AudioPlayerProperties audioPlayerProperties;
     AppProperties appProperties;
+    PresetProperties presetProperties;
+    SampleManagerProperties sampleManagerProperties;
+    ChannelProperties channelProperties;
+    ZoneProperties zoneProperties;
+    SampleProperties sampleProperties;
     juce::AudioDeviceManager audioDeviceManager;
     juce::AudioFormatManager audioFormatManager;
     juce::AudioSourcePlayer audioSourcePlayer;
@@ -31,13 +41,15 @@ private:
     int sampleStart { 0 };
     int sampleLength { 0 };
 
-    juce::File audioFile;
+//    juce::File audioFile;
     double sampleRate { 44100.0 };
     int blockSize { 128 };
     double sampleRateRatio { 1.0 };
 
     void configureAudioDevice (juce::String deviceName);
     void handlePlayState (AudioPlayerProperties::PlayState playState);
+    void initFromZone (std::tuple<int, int> channelAndZoneIndecies);
+    void initSamplePoints ();
     void prepareSampleForPlayback ();
     void showConfigDialog ();
 

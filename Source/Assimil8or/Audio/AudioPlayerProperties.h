@@ -10,35 +10,27 @@ public:
     AudioPlayerProperties (juce::ValueTree vt, WrapperType wrapperType, EnableCallbacks shouldEnableCallbacks)
         : ValueTreeWrapper<AudioPlayerProperties> (AudioConfigTypeId, vt, wrapperType, shouldEnableCallbacks) {}
 
-    enum class PlayState
-    {
-        stop,
-        play,
-        loop
-    };
+    enum class SamplePointsSelector { SamplePoints, LoopPoints };
+    enum class PlayState { stop, play, loop };
     void setPlayState (PlayState playState, bool includeSelfCallback);
-    void setSourceFile (juce::String sourceFile, bool includeSelfCallback);
-    void setLoopStart (int startSample, bool includeSelfCallback);
-    void setLoopLength (int endSample, bool includeSelfCallback);
+    void setSampleSource (int channelIndex, int zoneIndex, bool includeSelfCallback);
+    void setSamplePointsSelector (SamplePointsSelector samplePointsSelector, bool includeSelfCallback);
     void showConfigDialog (bool includeSelfCallback);
 
     PlayState getPlayState ();
-    juce::String getSourceFile ();
-    int getLoopStart ();
-    int getLoopLength ();
+    std::tuple<int, int> getSampleSource ();
+    SamplePointsSelector getSSamplePointsSelector ();
 
     std::function<void (PlayState playState)> onPlayStateChange;
-    std::function<void (juce::String sourceFile)> onSourceFileChanged;
-    std::function<void (int loopStart)> onLoopStartChanged;
-    std::function<void (int loopLength)> onLoopLengthChanged;
+    std::function<void (std::tuple<int, int> channelAndZoneIndecies)> onSampleSourceChanged;
+    std::function<void (SamplePointsSelector samplePointsSelector)> onSamplePointsSelectorChanged;
     std::function<void ()> onShowConfigDialog;
 
     static inline const juce::Identifier AudioConfigTypeId { "AudioPlayer" };
-    static inline const juce::Identifier PlayStatePropertyId        { "playState" };
-    static inline const juce::Identifier SourceFilePropertyId       { "sourceFile" };
-    static inline const juce::Identifier LoopStartPropertyId        { "loopStart" };
-    static inline const juce::Identifier LoopLengthPropertyId       { "loopLength" };
-    static inline const juce::Identifier ShowConfigDialogPropertyId { "showConfigDialog" };
+    static inline const juce::Identifier PlayStatePropertyId            { "playState" };
+    static inline const juce::Identifier SampleSourcePropertyId         { "sampleSource" };
+    static inline const juce::Identifier SamplePointsSelectorPropertyId { "samplePointsSelector" };
+    static inline const juce::Identifier ShowConfigDialogPropertyId     { "showConfigDialog" };
 
     void initValueTree ();
     void processValueTree () {}

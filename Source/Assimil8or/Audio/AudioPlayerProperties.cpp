@@ -2,9 +2,9 @@
 
 void AudioPlayerProperties::initValueTree ()
 {
-    setSourceFile ({}, false);
-    setLoopStart (0, false);
-    setLoopLength (0, false);
+    setPlayState (PlayState::stop, false);
+    setSampleSource(-1, -1, false);
+    setSamplePointsSelector (SamplePointsSelector::SamplePoints, false);
 }
 
 void AudioPlayerProperties::setPlayState (PlayState playState, bool includeSelfCallback)
@@ -12,19 +12,15 @@ void AudioPlayerProperties::setPlayState (PlayState playState, bool includeSelfC
     setValue (static_cast<int> (playState), PlayStatePropertyId, includeSelfCallback);
 }
 
-void AudioPlayerProperties::setSourceFile (juce::String sourceFile, bool includeSelfCallback)
+void AudioPlayerProperties::setSampleSource (int channelIndex, int zoneIndex, bool includeSelfCallback)
 {
-    setValue (sourceFile, SourceFilePropertyId, includeSelfCallback);
+    const auto channelAndZoneIndiciesString { juce::String (channelIndex) + "," + juce::String (zoneIndex) };
+    setValue (channelAndZoneIndiciesString, SampleSourcePropertyId, includeSelfCallback);
 }
 
-void AudioPlayerProperties::setLoopStart (int loopStart, bool includeSelfCallback)
+void AudioPlayerProperties::setSamplePointsSelector (SamplePointsSelector samplePointsSelector, bool includeSelfCallback)
 {
-    setValue (loopStart , LoopStartPropertyId, includeSelfCallback);
-}
-
-void AudioPlayerProperties::setLoopLength (int loopLength, bool includeSelfCallback)
-{
-    setValue (loopLength, LoopLengthPropertyId, includeSelfCallback);
+    setValue (static_cast<int> (samplePointsSelector), SamplePointsSelectorPropertyId, includeSelfCallback);
 }
 
 void AudioPlayerProperties::showConfigDialog (bool includeSelfCallback)
@@ -37,19 +33,16 @@ AudioPlayerProperties::PlayState AudioPlayerProperties::getPlayState ()
     return static_cast<PlayState> (getValue<int> (PlayStatePropertyId));
 }
 
-juce::String AudioPlayerProperties::getSourceFile ()
+std::tuple<int, int> AudioPlayerProperties::getSampleSource ()
 {
-    return getValue<juce::String> (SourceFilePropertyId);
+    const auto channelAndZoneIndiciesStrings { juce::StringArray::fromTokens (getValue<juce::String>(SampleSourcePropertyId), ",", "")};
+    jassert (channelAndZoneIndiciesStrings.size () == 2);
+    return { channelAndZoneIndiciesStrings[0].getIntValue (), channelAndZoneIndiciesStrings [1].getIntValue () };
 }
 
-int AudioPlayerProperties::getLoopStart ()
+AudioPlayerProperties::SamplePointsSelector AudioPlayerProperties::getSSamplePointsSelector ()
 {
-    return getValue<int> (LoopStartPropertyId);
-}
-
-int AudioPlayerProperties::getLoopLength ()
-{
-    return getValue<int> (LoopLengthPropertyId);
+    return static_cast<SamplePointsSelector> (getValue<int> (SamplePointsSelectorPropertyId));
 }
 
 void AudioPlayerProperties::valueTreePropertyChanged (juce::ValueTree& treeWhosePropertyHasChanged, const juce::Identifier& property)
@@ -61,20 +54,15 @@ void AudioPlayerProperties::valueTreePropertyChanged (juce::ValueTree& treeWhose
             if (onPlayStateChange != nullptr)
                 onPlayStateChange (getPlayState ());
         }
-        else if (property == SourceFilePropertyId)
+        else if (property == SampleSourcePropertyId)
         {
-            if (onSourceFileChanged != nullptr)
-                onSourceFileChanged (getSourceFile ());
+            if (onSampleSourceChanged != nullptr)
+                onSampleSourceChanged (getSampleSource ());
         }
-        else if (property == LoopStartPropertyId)
+        else if (property == SamplePointsSelectorPropertyId)
         {
-            if (onLoopStartChanged != nullptr)
-                onLoopStartChanged (getLoopStart ());
-        }
-        else if (property == LoopLengthPropertyId)
-        {
-            if (onLoopLengthChanged != nullptr)
-                onLoopLengthChanged (getLoopLength ());
+            if (onSamplePointsSelectorChanged != nullptr)
+                onSamplePointsSelectorChanged (getSSamplePointsSelector ());
         }
         else if (property == ShowConfigDialogPropertyId)
         {

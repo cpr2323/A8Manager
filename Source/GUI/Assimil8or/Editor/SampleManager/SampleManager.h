@@ -37,6 +37,7 @@ private:
         int useCount { 0 };
         SampleStatus status { SampleStatus::uninitialized };
         int bitsPerSample { 0 };
+        double sampleRate { 0.0 };
         int numChannels { 0 };
         juce::int64 lengthInSamples { 0 };
         juce::AudioBuffer<float> audioBuffer;

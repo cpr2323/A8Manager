@@ -20,6 +20,11 @@ void SampleProperties::setBitsPerSample (int bitsPerSample, bool includeSelfCall
     setValue (bitsPerSample, BitsPerSamplePropertyId, includeSelfCallback);
 }
 
+void SampleProperties::setSampleRate (double sampleRate, bool includeSelfCallback)
+{
+    setValue (sampleRate, SampleRatePropertyId, includeSelfCallback);
+}
+
 void SampleProperties::setNumChannels (int numChannels, bool includeSelfCallback)
 {
     setValue (numChannels, NumChannelsPropertyId, includeSelfCallback);
@@ -55,6 +60,11 @@ int SampleProperties::getBitsPerSample ()
     return getValue<int> (BitsPerSamplePropertyId);
 }
 
+double SampleProperties::getSampleRate ()
+{
+    return getValue<double> (SampleRatePropertyId);
+}
+
 int SampleProperties::getNumChannels ()
 {
     return getValue<int> (NumChannelsPropertyId);
@@ -83,6 +93,11 @@ void SampleProperties::valueTreePropertyChanged (juce::ValueTree& vt, const juce
         {
             if (onBitsPerSampleChange != nullptr)
                 onBitsPerSampleChange (getBitsPerSample ());
+        }
+        else if (property == SampleRatePropertyId)
+        {
+            if (onSampleRateChange != nullptr)
+                onSampleRateChange (getSampleRate ());
         }
         else if (property == NumChannelsPropertyId)
         {

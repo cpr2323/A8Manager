@@ -74,16 +74,12 @@ ZoneEditor::ZoneEditor ()
     };
     setupSourceButton (sourceSamplePointsButton, "SMPL", true, &samplePointsBackground, [this] ()
     {
-        const auto sampleStart { static_cast<int> (zoneProperties.getSampleStart ().value_or (0)) };
-        audioPlayerProperties.setLoopStart (sampleStart, false);
-        audioPlayerProperties.setLoopLength (static_cast<int> (zoneProperties.getSampleEnd ().value_or (sampleProperties.getLengthInSamples ()) - sampleStart), false);
+        audioPlayerProperties.setSamplePointsSelector (AudioPlayerProperties::SamplePointsSelector::SamplePoints, false);
     });
 
     setupSourceButton (sourceLoopPointsButton, "LOOP", false, &loopPointsBackground, [this] ()
     {
-        const auto loopStart { static_cast<int> (zoneProperties.getLoopStart ().value_or (0)) };
-        audioPlayerProperties.setLoopStart (loopStart, false);
-        audioPlayerProperties.setLoopLength (static_cast<int> (zoneProperties.getLoopLength ().value_or (sampleProperties.getLengthInSamples ())), false);
+        audioPlayerProperties.setSamplePointsSelector (AudioPlayerProperties::SamplePointsSelector::LoopPoints, false);
     });
 
     setupLabel (playModeLabel, "PLAY", 14.0f, juce::Justification::centred);
@@ -104,7 +100,7 @@ ZoneEditor::ZoneEditor ()
             }
             else
             {
-                audioPlayerProperties.setSourceFile (juce::File (appProperties.getMostRecentFolder ()).getChildFile (zoneProperties.getSample ()).getFullPathName (), false);
+                audioPlayerProperties.setSampleSource (parentChannelIndex, zoneIndex, false);
                 if (sourceButton.getToggleState ())
                 {
                     // starting
@@ -128,29 +124,21 @@ ZoneEditor::ZoneEditor ()
     setupPlayButton (loopPlayButton, "LOOP", false, "ONCE", sourceLoopPointsButton, AudioPlayerProperties::PlayState::loop,
     [this] ()
     {
-        const auto loopStart { static_cast<int> (zoneProperties.getLoopStart ().value_or (0)) };
-        audioPlayerProperties.setLoopStart (loopStart, false);
-        audioPlayerProperties.setLoopLength (static_cast<int> (zoneProperties.getLoopLength ().value_or (sampleProperties.getLengthInSamples ())), false);
+        audioPlayerProperties.setSamplePointsSelector (AudioPlayerProperties::SamplePointsSelector::LoopPoints, false);
     },
     [this] ()
     {
-        const auto sampleStart { static_cast<int> (zoneProperties.getSampleStart ().value_or (0)) };
-        audioPlayerProperties.setLoopStart (sampleStart, false);
-        audioPlayerProperties.setLoopLength (static_cast<int> (zoneProperties.getSampleEnd ().value_or (sampleProperties.getLengthInSamples ()) - sampleStart), false);
+        audioPlayerProperties.setSamplePointsSelector (AudioPlayerProperties::SamplePointsSelector::SamplePoints, false);
     });
 
     setupPlayButton (oneShotPlayButton, "ONCE", false, "LOOP", sourceSamplePointsButton, AudioPlayerProperties::PlayState::play,
     [this] ()
     {
-        const auto sampleStart { static_cast<int> (zoneProperties.getSampleStart ().value_or (0)) };
-        audioPlayerProperties.setLoopStart (sampleStart, false);
-        audioPlayerProperties.setLoopLength (static_cast<int> (zoneProperties.getSampleEnd ().value_or (sampleProperties.getLengthInSamples ()) - sampleStart), false);
+        audioPlayerProperties.setSamplePointsSelector (AudioPlayerProperties::SamplePointsSelector::SamplePoints, false);
     },
     [this] ()
     {
-        const auto loopStart { static_cast<int> (zoneProperties.getLoopStart ().value_or (0)) };
-        audioPlayerProperties.setLoopStart (loopStart, false);
-        audioPlayerProperties.setLoopLength (static_cast<int> (zoneProperties.getLoopLength ().value_or (sampleProperties.getLengthInSamples ())), false);
+        audioPlayerProperties.setSamplePointsSelector (AudioPlayerProperties::SamplePointsSelector::LoopPoints, false);
     });
     setupZoneComponents ();
     setEditComponentsEnabled (false);
@@ -313,11 +301,6 @@ void ZoneEditor::setupZoneComponents ()
     sampleStartTextEditor.updateDataCallback = [this] (juce::int64 value)
     {
         sampleStartUiChanged (value);
-        if (sourceSamplePointsButton.getToggleState ())
-        {
-            audioPlayerProperties.setLoopStart (static_cast<int> (value), false);
-            audioPlayerProperties.setLoopLength (static_cast<int> (zoneProperties.getSampleEnd ().value_or (sampleProperties.getLengthInSamples ()) - value), false);
-        }
     };
     sampleStartTextEditor.onDragCallback = [this] (DragSpeed dragSpeed, int direction)
     {
@@ -357,8 +340,6 @@ void ZoneEditor::setupZoneComponents ()
     sampleEndTextEditor.updateDataCallback = [this] (juce::int64 value)
     {
         sampleEndUiChanged (value);
-        if (sourceSamplePointsButton.getToggleState ())
-            audioPlayerProperties.setLoopLength (static_cast<int> (value - zoneProperties.getSampleStart ().value_or (0)), false);
     };
     sampleEndTextEditor.onDragCallback = [this] (DragSpeed dragSpeed, int direction)
     {
@@ -402,16 +383,12 @@ void ZoneEditor::setupZoneComponents ()
     {
         const auto originalLoopStart { zoneProperties.getLoopStart ().value_or (0) };
         loopStartUiChanged (value);
-        if (sourceLoopPointsButton.getToggleState ())
-            audioPlayerProperties.setLoopStart (static_cast<int> (value), false);
         if (treatLoopLengthAsEndInUi)
         {
             // When treating Loop Length as Loop End, we need to adjust the internal storage of Loop Length by the amount Loop Start changed
             const auto lengthChangeAmount { static_cast<double> (originalLoopStart - value) };
             const auto newLoopLength { zoneProperties.getLoopLength().value_or (sampleProperties.getLengthInSamples()) + lengthChangeAmount };
             loopLengthUiChanged (newLoopLength);
-            if (sourceLoopPointsButton.getToggleState ())
-                audioPlayerProperties.setLoopLength (static_cast<int> (newLoopLength), false);
         }
     };
     loopStartTextEditor.onDragCallback = [this] (DragSpeed dragSpeed, int direction)
@@ -502,8 +479,6 @@ void ZoneEditor::setupZoneComponents ()
                 return value;
         } ();
         loopLengthUiChanged (loopLengthInputValue);
-        if (sourceLoopPointsButton.getToggleState ())
-            audioPlayerProperties.setLoopLength (static_cast<int> (loopLengthInputValue), false);
     };
     loopLengthTextEditor.onDragCallback = [this] (DragSpeed dragSpeed, int direction)
     {
@@ -695,7 +670,7 @@ void ZoneEditor::init (juce::ValueTree zonePropertiesVT, juce::ValueTree rootPro
     {
         if (status == SampleStatus::exists)
         {
-            DebugLog ("ZoneEditor", "sample Status exists");
+            //DebugLog ("ZoneEditor", "sample Status exists");
             // when we receive this callback, it means all of the other sample data is updated too
             setEditComponentsEnabled (true);
             oneShotPlayButton.setEnabled (true);
@@ -706,7 +681,7 @@ void ZoneEditor::init (juce::ValueTree zonePropertiesVT, juce::ValueTree rootPro
         }
         else if (status == SampleStatus::uninitialized)
         {
-            DebugLog ("ZoneEditor", "sample Status uninitialized");
+            //DebugLog ("ZoneEditor", "sample Status uninitialized");
             // this means the sample has been unloaded
             setEditComponentsEnabled (false);
             oneShotPlayButton.setEnabled (false);
@@ -716,7 +691,7 @@ void ZoneEditor::init (juce::ValueTree zonePropertiesVT, juce::ValueTree rootPro
         }
         else if (status == SampleStatus::doesNotExist)
         {
-            DebugLog ("ZoneEditor", "sample Status doesNotExist");
+            //DebugLog ("ZoneEditor", "sample Status doesNotExist");
             // obviously none of the sample data can be used
             setEditComponentsEnabled (false);
             oneShotPlayButton.setEnabled (false);
@@ -727,7 +702,7 @@ void ZoneEditor::init (juce::ValueTree zonePropertiesVT, juce::ValueTree rootPro
         }
         else if (status == SampleStatus::wrongFormat)
         {
-            DebugLog ("ZoneEditor", "sample Status wrongFormat");
+            //DebugLog ("ZoneEditor", "sample Status wrongFormat");
             // we should not be able to load a sample of the wrong format, but if an already loaded sample is changed outside of the app, this could happen
             setEditComponentsEnabled (false);
             oneShotPlayButton.setEnabled (false);
@@ -1053,8 +1028,6 @@ void ZoneEditor::loopLengthDataChanged (std::optional<double> loopLength)
     else
         loopLengthTextEditor.setText ("0");
     updateLoopPointsView ();
-    if (sourceLoopPointsButton.getToggleState ())
-        audioPlayerProperties.setLoopLength (static_cast<int> (loopLength.value_or (static_cast<double> (sampleProperties.getLengthInSamples () - zoneProperties.getLoopStart ().value_or (0)))), false);
 }
 
 void ZoneEditor::loopLengthUiChanged (double loopLength)
@@ -1067,8 +1040,6 @@ void ZoneEditor::loopStartDataChanged (std::optional<juce::int64> loopStart)
 {
     loopStartTextEditor.setText (juce::String (loopStart.value_or (0)));
     updateLoopPointsView ();
-    if (sourceLoopPointsButton.getToggleState ())
-        audioPlayerProperties.setLoopStart (static_cast<int> (loopStart.value_or (0)), false);
 }
 
 void ZoneEditor::loopStartUiChanged (juce::int64 loopStart)
@@ -1139,12 +1110,6 @@ void ZoneEditor::sampleStartDataChanged (std::optional<juce::int64> sampleStart)
 {
     sampleStartTextEditor.setText (juce::String (sampleStart.value_or (0)));
     updateLoopPointsView ();
-    if (sourceSamplePointsButton.getToggleState ())
-    {
-        audioPlayerProperties.setLoopStart (static_cast<int> (sampleStart.value_or (0)), false);
-        audioPlayerProperties.setLoopLength (static_cast<int> (zoneProperties.getSampleEnd ().value_or (sampleProperties.getLengthInSamples ()) - sampleStart.value_or (0)), false);
-    }
-
 }
 
 void ZoneEditor::sampleStartUiChanged (juce::int64 sampleStart)
@@ -1161,9 +1126,6 @@ void ZoneEditor::sampleEndDataChanged (std::optional<juce::int64> sampleEnd)
         sampleEndTextEditor.setText ("0");
 
     updateLoopPointsView ();
-    if (sourceSamplePointsButton.getToggleState ())
-        audioPlayerProperties.setLoopLength (static_cast<int> (sampleEnd.value_or (sampleProperties.getLengthInSamples ()) - zoneProperties.getSampleStart ().value_or (0)), false);
-
 }
 
 void ZoneEditor::sampleEndUiChanged (juce::int64 sampleEnd)

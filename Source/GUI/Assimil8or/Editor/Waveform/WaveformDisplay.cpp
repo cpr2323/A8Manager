@@ -136,7 +136,7 @@ void WaveformDisplay::mouseMove (const juce::MouseEvent& e)
         else
             handleIndex = -1;
         repaint ();
-        DebugLog ("WaveformDisplay", "mouseMove - handleIndex: " + juce::String (handleIndex));
+        //DebugLog ("WaveformDisplay", "mouseMove - handleIndex: " + juce::String (handleIndex));
     }
 }
 

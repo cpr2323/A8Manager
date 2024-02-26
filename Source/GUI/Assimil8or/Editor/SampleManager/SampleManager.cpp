@@ -3,7 +3,7 @@
 #include "../../../../Utility/DebugLog.h"
 #include "../../../../Utility/PersistentRootProperties.h"
 
-#define LOG_SAMPLE_POOL 1
+#define LOG_SAMPLE_POOL 0
 #if LOG_SAMPLE_POOL
 #define LogSamplePool(text) DebugLog ("SampleManager", text);
 #else
@@ -79,11 +79,12 @@ void SampleManager::handleSampleChange (int channelIndex, int zoneIndex, juce::S
     // if there is an already open sample, we want to close it
     if (sampleProperties.getName ().isNotEmpty ())
     {
-        DebugLog ("SampleManager::handleSampleChange", "closing sample '" + sampleProperties.getName () + " 'for c" + juce::String(channelIndex) + "/z" + juce::String (zoneIndex));
+        LogSamplePool ("handleSampleChangeclosing sample '" + sampleProperties.getName () + " 'for c" + juce::String(channelIndex) + "/z" + juce::String (zoneIndex));
         sampleProperties.setStatus (SampleStatus::uninitialized, false); // this should inform clients to stop using the sample, before we reset everything else
         close (sampleProperties.getName ());
         sampleProperties.setAudioBufferPtr (nullptr, false);
         sampleProperties.setBitsPerSample (0, false);
+        sampleProperties.setSampleRate (0.0, false);
         sampleProperties.setLengthInSamples (0, false);
         sampleProperties.setName ("", false);
         sampleProperties.setNumChannels (0, false);
@@ -92,10 +93,11 @@ void SampleManager::handleSampleChange (int channelIndex, int zoneIndex, juce::S
     // if there is a new sample coming in (vs sample being reset) we want to open it
     if (sampleName.isNotEmpty ())
     {
-        DebugLog ("SampleManager::handleSampleChange", "opening sample '" + sampleName + " 'for c" + juce::String (channelIndex) + "/z" + juce::String (zoneIndex));
+        LogSamplePool ("handleSampleChange: opening sample '" + sampleName + " 'for c" + juce::String (channelIndex) + "/z" + juce::String (zoneIndex));
         auto& sampleData { open (sampleName) };
         sampleProperties.setName (sampleName, false);
         sampleProperties.setBitsPerSample (sampleData.bitsPerSample, false);
+        sampleProperties.setSampleRate (sampleData.sampleRate, false);
         sampleProperties.setLengthInSamples (sampleData.lengthInSamples, false);
         sampleProperties.setNumChannels (sampleData.numChannels, false);
         sampleProperties.setAudioBufferPtr (&sampleData.audioBuffer, false);
@@ -138,6 +140,7 @@ void SampleManager::updateSampleProperties (juce::String fileName, SampleData& s
             if (sampleProperties.getName () == fileName)
             {
                 sampleProperties.setBitsPerSample (sampleData.bitsPerSample, false);
+                sampleProperties.setSampleRate (sampleData.sampleRate, false);
                 sampleProperties.setLengthInSamples (sampleData.lengthInSamples, false);
                 sampleProperties.setNumChannels (sampleData.numChannels, false);
                 sampleProperties.setAudioBufferPtr (&sampleData.audioBuffer, false);
@@ -157,6 +160,7 @@ void SampleManager::updateSample (juce::String fileName, SampleData& sampleData)
             // cache sample attributes
             sampleData.status = SampleStatus::exists;
             sampleData.bitsPerSample = sampleFileReader->bitsPerSample;
+            sampleData.sampleRate = sampleFileReader->sampleRate;
             sampleData.numChannels = sampleFileReader->numChannels;
             sampleData.lengthInSamples = sampleFileReader->lengthInSamples;
 

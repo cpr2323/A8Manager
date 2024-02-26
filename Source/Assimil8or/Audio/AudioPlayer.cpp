@@ -1,10 +1,12 @@
 #include "AudioPlayer.h"
+#include "../../Assimil8or/PresetManagerProperties.h"
+#include "../../Utility/DebugLog.h"
 #include "../../Utility/PersistentRootProperties.h"
 #include "../../Utility/RuntimeRootProperties.h"
 
-#define LOG_AUDIO_PLAYER 1
+#define LOG_AUDIO_PLAYER 0
 #if LOG_AUDIO_PLAYER
-#define LogAudioPlayer(text) juce::Logger::outputDebugString (text);
+#define LogAudioPlayer(text) DebugLog ("AudioPlayer", text);
 #else
 #define LogAudioPlayer(text) ;
 #endif
@@ -19,11 +21,16 @@ void AudioPlayer::init (juce::ValueTree rootPropertiesVT)
     PersistentRootProperties persistentRootProperties (rootPropertiesVT, PersistentRootProperties::WrapperType::client, PersistentRootProperties::EnableCallbacks::no);
     RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
 
+    PresetManagerProperties presetManagerProperties (runtimeRootProperties.getValueTree (), PresetManagerProperties::WrapperType::owner, PresetManagerProperties::EnableCallbacks::no);
+    presetProperties.wrap (presetManagerProperties.getPreset ("edit"), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::yes);
+    sampleManagerProperties.wrap (runtimeRootProperties.getValueTree (), SampleManagerProperties::WrapperType::client, SampleManagerProperties::EnableCallbacks::no);
+
     appProperties.wrap (persistentRootProperties.getValueTree (), AppProperties::WrapperType::owner, AppProperties::EnableCallbacks::yes);
 
     audioSettingsProperties.wrap (persistentRootProperties.getValueTree (), AudioSettingsProperties::WrapperType::owner, AudioSettingsProperties::EnableCallbacks::yes);
     audioSettingsProperties.onConfigChange = [this] (juce::String config)
     {
+            // TODO - do we need this callback?
         //configureAudioDevice (deviceName);
     };
 
@@ -31,36 +38,147 @@ void AudioPlayer::init (juce::ValueTree rootPropertiesVT)
     audioPlayerProperties.onShowConfigDialog = [this] () { showConfigDialog (); };
     audioPlayerProperties.onPlayStateChange = [this] (AudioPlayerProperties::PlayState newPlayState)
     {
+        LogAudioPlayer ("init: audioPlayerProperties.onPlayStateChange");
         handlePlayState (newPlayState);
     };
-    audioPlayerProperties.onSourceFileChanged = [this] (juce::String sourceFile)
+    // Clients call this to setup the sample source
+    audioPlayerProperties.onSampleSourceChanged = [this] (std::tuple<int, int> channelAndZoneIndecies)
     {
-        jassert (playState == AudioPlayerProperties::PlayState::stop);
-        LogAudioPlayer ("AudioPlayer - Source File: " + sourceFile);
-        audioFile = juce::File (sourceFile);
-        // TODO - maybe move this into a thread, as long files will block the UI
-        prepareSampleForPlayback ();
+        LogAudioPlayer ("init: audioPlayerProperties.onSampleSourceChanged");
+        initFromZone (channelAndZoneIndecies);
     };
-    audioPlayerProperties.onLoopStartChanged = [this] (int newLoopStart)
+    // Clients call this to change which sample points are used, Sample or Loop
+    audioPlayerProperties.onSamplePointsSelectorChanged = [this] (AudioPlayerProperties::SamplePointsSelector samplePointsSelector)
     {
-        {
-            juce::ScopedLock sl (dataCS);
-            sampleStart = static_cast<int> (newLoopStart * sampleRateRatio);
-        }
-        LogAudioPlayer ("AudioPlayer - Loop Start: " + juce::String (sampleStart));
-    };
-    audioPlayerProperties.onLoopLengthChanged = [this] (int newLoopLength)
-    {
-        {
-            juce::ScopedLock sl (dataCS);
-            sampleLength = static_cast<int> (newLoopLength * sampleRateRatio);
-            if (curSampleOffset > sampleLength)
-                curSampleOffset = 0;
-        }
-        LogAudioPlayer ("AudioPlayer - Loop Length: " + juce::String (sampleLength));
+        LogAudioPlayer ("init: audioPlayerProperties.onSamplePointsSelectorChanged");
+        initSamplePoints ();
     };
     audioDeviceManager.addChangeListener (this);
     configureAudioDevice (audioSettingsProperties.getConfig ());
+}
+
+void AudioPlayer::initFromZone (std::tuple<int, int> channelAndZoneIndecies)
+{
+    LogAudioPlayer ("initFromZone");
+    auto [channelIndex, zoneIndex] {channelAndZoneIndecies};
+    jassert (channelIndex < 8);
+    jassert (zoneIndex < 8);
+    channelProperties.wrap (presetProperties.getChannelVT (channelIndex), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
+
+    zoneProperties.wrap (channelProperties.getZoneVT (zoneIndex), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::yes);
+    sampleProperties.wrap (sampleManagerProperties.getSamplePropertiesVT (channelIndex, zoneIndex), SampleProperties::WrapperType::owner, SampleProperties::EnableCallbacks::yes);
+
+    zoneProperties.onSampleChange = [this] (juce::String sampleName)
+    {
+        LogAudioPlayer ("zoneProperties.onSampleChange");
+        initSamplePoints ();
+        prepareSampleForPlayback ();
+    };
+    zoneProperties.onSampleStartChange = [this] (std::optional<juce::int64> newSampleStart)
+    {
+        LogAudioPlayer ("zoneProperties.onSampleStartChange");
+        juce::ScopedLock sl (dataCS);
+        if (audioPlayerProperties.getSSamplePointsSelector () == AudioPlayerProperties::SamplePointsSelector::LoopPoints)
+            return;
+        sampleStart = static_cast<int> (newSampleStart.value_or (0) * sampleRateRatio);
+        sampleLength = static_cast<int> ((zoneProperties.getSampleEnd().value_or (sampleProperties.getLengthInSamples ()) - zoneProperties.getSampleStart ().value_or (0)) * sampleRateRatio);
+        if (curSampleOffset > sampleLength)
+            curSampleOffset = 0;
+        };
+    zoneProperties.onSampleEndChange = [this] (std::optional <juce::int64> newSampleEnd)
+    {
+        LogAudioPlayer ("zoneProperties.onSampleEndChange");
+        juce::ScopedLock sl (dataCS);
+        if (audioPlayerProperties.getSSamplePointsSelector () == AudioPlayerProperties::SamplePointsSelector::LoopPoints)
+            return;
+        sampleLength = static_cast<int> ((newSampleEnd.value_or (sampleProperties.getLengthInSamples ()) - zoneProperties.getSampleStart ().value_or (0)) * sampleRateRatio);
+        if (curSampleOffset > sampleLength)
+            curSampleOffset = 0;
+    };
+    zoneProperties.onLoopStartChange = [this] (std::optional <juce::int64> newLoopStart)
+    {
+        LogAudioPlayer ("zoneProperties.onLoopStartChange");
+        juce::ScopedLock sl (dataCS);
+        if (audioPlayerProperties.getSSamplePointsSelector () == AudioPlayerProperties::SamplePointsSelector::SamplePoints)
+            return;
+        sampleStart = static_cast<int> (newLoopStart.value_or (0) * sampleRateRatio);
+    };
+    zoneProperties.onLoopLengthChange = [this] (std::optional<double> newLoopLength)
+    {
+        LogAudioPlayer ("zoneProperties.onLoopLengthChange");
+        juce::ScopedLock sl (dataCS);
+        if (audioPlayerProperties.getSSamplePointsSelector () == AudioPlayerProperties::SamplePointsSelector::SamplePoints)
+            return;
+        sampleLength = static_cast<int> (newLoopLength.value_or (sampleProperties.getLengthInSamples ()) * sampleRateRatio);
+        if (curSampleOffset > sampleLength)
+            curSampleOffset = 0;
+        };
+
+    sampleProperties.onStatusChange = [this] (SampleStatus status)
+    {
+        if (status == SampleStatus::exists)
+        {
+            LogAudioPlayer ("sampleProperties.onStatusChange: SampleStatus::exists");
+            initSamplePoints ();
+            prepareSampleForPlayback ();
+        }
+        else
+        {
+            // TODO - reset somethings?
+            LogAudioPlayer ("sampleProperties.onStatusChange: NOT SampleStatus::exists");
+        }
+    };
+
+    // setup local sample start and sample length based on samplePointsSource
+    initSamplePoints ();
+
+    // create local copy of audio data, with resampling if needed
+    prepareSampleForPlayback ();
+
+}
+
+void AudioPlayer::initSamplePoints ()
+{
+    LogAudioPlayer ("initSamplePoints");
+    juce::ScopedLock sl (dataCS);
+    if (audioPlayerProperties.getSSamplePointsSelector () == AudioPlayerProperties::SamplePointsSelector::SamplePoints)
+    {
+        LogAudioPlayer (" using SamplePoints");
+        sampleStart = static_cast<int> (zoneProperties.getSampleStart ().value_or (0) * sampleRateRatio);
+        sampleLength = static_cast<int> ((zoneProperties.getSampleEnd ().value_or (sampleProperties.getLengthInSamples ()) - zoneProperties.getSampleStart ().value_or (0)) * sampleRateRatio);
+        if (curSampleOffset > sampleLength)
+            curSampleOffset = 0;
+    }
+    else
+    {
+        LogAudioPlayer (" using LoopPoints");
+        sampleStart = static_cast<int> (zoneProperties.getLoopStart ().value_or (0) * sampleRateRatio);
+        sampleLength = static_cast<int> (zoneProperties.getLoopLength ().value_or (sampleProperties.getLengthInSamples ()) * sampleRateRatio);
+        if (curSampleOffset > sampleLength)
+            curSampleOffset = 0;
+    }
+    LogAudioPlayer (" sampleStart: " + juce::String (sampleStart) + ", sampleLength: " + juce::String (sampleLength));
+}
+
+void AudioPlayer::prepareSampleForPlayback ()
+{
+    if (zoneProperties.isValid () && sampleProperties.isValid () && sampleProperties.getStatus () == SampleStatus::exists)
+    {
+        LogAudioPlayer ("prepareSampleForPlayback: sample is ready");
+        // TODO - get data from SampleProperties instead of opening the file again
+        std::unique_ptr <juce::MemoryAudioSource> readerSource = std::make_unique<juce::MemoryAudioSource> (*sampleProperties.getAudioBufferPtr (), false, false);
+        std::unique_ptr<juce::ResamplingAudioSource> resamplingAudioSource = std::make_unique<juce::ResamplingAudioSource> (readerSource.get (), false, 2);
+        sampleRateRatio = sampleRate / sampleProperties.getSampleRate ();
+        resamplingAudioSource->setResamplingRatio (sampleProperties.getSampleRate () / sampleRate);
+        resamplingAudioSource->prepareToPlay (blockSize, sampleRate);
+        sampleBuffer = std::make_unique<juce::AudioBuffer<float>> (sampleProperties.getNumChannels (), static_cast<int> (sampleProperties.getLengthInSamples () * sampleRate / sampleProperties.getSampleRate ()));
+        resamplingAudioSource->getNextAudioBlock (juce::AudioSourceChannelInfo (*sampleBuffer.get ()));
+        curSampleOffset = 0;
+    }
+    else
+    {
+        LogAudioPlayer ("prepareSampleForPlayback: sample is NOT ready");
+    }
 }
 
 void AudioPlayer::shutdownAudio ()
@@ -95,16 +213,16 @@ void AudioPlayer::configureAudioDevice (juce::String config)
 void AudioPlayer::handlePlayState (AudioPlayerProperties::PlayState newPlayState)
 {
     juce::ScopedLock sl (dataCS);
-    if (playState == AudioPlayerProperties::PlayState::stop)
+    if (newPlayState == AudioPlayerProperties::PlayState::stop)
     {
         LogAudioPlayer ("AudioPlayer::handlePlayState: stop");
     }
-    else if (playState == AudioPlayerProperties::PlayState::loop)
+    else if (newPlayState == AudioPlayerProperties::PlayState::loop)
     {
-        LogAudioPlayer ("AudioPlayer::handlePlayState: play");
+        LogAudioPlayer ("AudioPlayer::handlePlayState: loop");
         curSampleOffset = 0;
     }
-    else if (playState == AudioPlayerProperties::PlayState::play)
+    else if (newPlayState == AudioPlayerProperties::PlayState::play)
     {
         LogAudioPlayer ("AudioPlayer::handlePlayState: play");
         curSampleOffset = 0;
@@ -123,24 +241,9 @@ void AudioPlayer::showConfigDialog ()
     o.launchAsync ();
 }
 
-void AudioPlayer::prepareSampleForPlayback ()
-{
-    if (audioFile.exists ())
-    {
-        std::unique_ptr <juce::AudioFormatReaderSource> readerSource = std::make_unique<juce::AudioFormatReaderSource> (audioFormatManager.createReaderFor (audioFile), true);
-        std::unique_ptr<juce::ResamplingAudioSource> resamplingAudioSource = std::make_unique<juce::ResamplingAudioSource> (readerSource.get (), false, 2);
-        sampleRateRatio = sampleRate / readerSource->getAudioFormatReader ()->sampleRate;
-        resamplingAudioSource->setResamplingRatio (readerSource->getAudioFormatReader ()->sampleRate / sampleRate);
-        resamplingAudioSource->prepareToPlay (blockSize, sampleRate);
-        sampleBuffer = std::make_unique<juce::AudioBuffer<float>> (readerSource->getAudioFormatReader ()->numChannels,
-                                                                   static_cast<int> (readerSource->getAudioFormatReader ()->lengthInSamples * sampleRate / readerSource->getAudioFormatReader ()->sampleRate));
-        resamplingAudioSource->getNextAudioBlock (juce::AudioSourceChannelInfo (*sampleBuffer.get ()));
-        curSampleOffset = 0;
-    }
-
-}
 void AudioPlayer::prepareToPlay (int samplesPerBlockExpected, double newSampleRate)
 {
+    LogAudioPlayer ("prepareToPlay");
     sampleRate = newSampleRate;
     blockSize = samplesPerBlockExpected;
     prepareSampleForPlayback ();
@@ -191,6 +294,7 @@ void AudioPlayer::getNextAudioBlock (const juce::AudioSourceChannelInfo& bufferT
     while (cachedSampleLength > 0 && outputBufferWritePos < numOutputSamples)
     {
         numSamplesToCopy = juce::jmin (numOutputSamples - outputBufferWritePos, cachedSampleLength - cachedSampleOffset);
+        jassert (numSamplesToCopy >= 0);
 
         // copy data from sample buffer to output buffer, this may, or may not, fill the entire output buffer
         auto ch { 0 };
