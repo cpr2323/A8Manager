@@ -4,7 +4,6 @@ Preset 1 :
   XfadeACV : 1B
   Channel 1 :
     LinAMisExtEnv : 1
-    LoopMode : 2
     Pitch : 2
     Zone 1 :
       MinVoltage : 4.375
