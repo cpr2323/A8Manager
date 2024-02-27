@@ -48,7 +48,7 @@ void AudioPlayer::init (juce::ValueTree rootPropertiesVT)
         initFromZone (channelAndZoneIndecies);
     };
     // Clients call this to change which sample points are used, Sample or Loop
-    audioPlayerProperties.onSamplePointsSelectorChanged = [this] (AudioPlayerProperties::SamplePointsSelector samplePointsSelector)
+    audioPlayerProperties.onSamplePointsSelectorChanged = [this] (AudioPlayerProperties::SamplePointsSelector)
     {
         LogAudioPlayer ("init: audioPlayerProperties.onSamplePointsSelectorChanged");
         initSamplePoints ();
