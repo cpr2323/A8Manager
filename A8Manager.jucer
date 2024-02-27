@@ -251,6 +251,10 @@
               file="Source/Utility/ErrorHelpers.cpp"/>
         <FILE id="CdKTBO" name="ErrorHelpers.h" compile="0" resource="0" file="Source/Utility/ErrorHelpers.h"/>
         <FILE id="GjhfJa" name="LambdaThread.h" compile="0" resource="0" file="Source/Utility/LambdaThread.h"/>
+        <FILE id="NijQvZ" name="MruListProperties.cpp" compile="1" resource="0"
+              file="Source/Utility/MruListProperties.cpp"/>
+        <FILE id="Pwo0us" name="MruListProperties.h" compile="0" resource="0"
+              file="Source/Utility/MruListProperties.h"/>
         <FILE id="ZRKBIm" name="NoArrowComboBoxLnF.h" compile="0" resource="0"
               file="Source/Utility/NoArrowComboBoxLnF.h"/>
         <FILE id="e2rm9l" name="PersistentRootProperties.cpp" compile="1" resource="0"

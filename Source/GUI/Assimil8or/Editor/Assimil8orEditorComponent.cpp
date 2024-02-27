@@ -234,15 +234,14 @@ void Assimil8orEditorComponent::importPreset ()
 {
     overwritePresetOrCancel ([this] ()
     {
-        // TODO - I am thinking we might want to cache the 'MRU' folder for import/export separate from the Preset folder caching
-        fileChooser.reset (new juce::FileChooser ("Please select the file to import from...", appProperties.getMostRecentFolder (), ""));
+        fileChooser.reset (new juce::FileChooser ("Please select the file to import from...", appProperties.getImportExportMruFolder (), ""));
         fileChooser->launchAsync (juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles, [this] (const juce::FileChooser& fc) mutable
             {
                 if (fc.getURLResults ().size () == 1 && fc.getURLResults () [0].isLocalFile ())
                 {
-                    // TODO - produce warning if you are going to overwrite edited data
                     auto importPresetFile { fc.getURLResults () [0].getLocalFile () };
 
+                    appProperties.setImportExportMruFolder (importPresetFile.getParentDirectory ().getFullPathName ());
                     juce::StringArray fileContents;
                     importPresetFile.readLines (fileContents);
 
@@ -441,14 +440,13 @@ void Assimil8orEditorComponent::displayToolsMenu ()
 
 void Assimil8orEditorComponent::exportPreset ()
 {
-    // TODO - I am thinking we might want to cache the 'MRU' folder for import/export separate from the Preset folder caching
-    fileChooser.reset (new juce::FileChooser ("Please select the file to export to...", appProperties.getMostRecentFolder (), ""));
-    fileChooser->launchAsync (juce::FileBrowserComponent::saveMode | juce::FileBrowserComponent::canSelectFiles, [this] (const juce::FileChooser& fc) mutable
+    fileChooser.reset (new juce::FileChooser ("Please select the file to export to...", appProperties.getImportExportMruFolder (), ""));
+    fileChooser->launchAsync (juce::FileBrowserComponent::saveMode | juce::FileBrowserComponent::canSelectFiles | juce::FileBrowserComponent::warnAboutOverwriting, [this] (const juce::FileChooser& fc) mutable
     {
         if (fc.getURLResults ().size () == 1 && fc.getURLResults () [0].isLocalFile ())
         {
-            // TODO - we should protect against overwriting the current preset
             auto exportPresetFile { fc.getURLResults () [0].getLocalFile () };
+            appProperties.setImportExportMruFolder (exportPresetFile.getParentDirectory ().getFullPathName ());
             Assimil8orPreset assimil8orPreset;
             assimil8orPreset.write (exportPresetFile, presetProperties.getValueTree ());
         }
