@@ -37,24 +37,24 @@ void WaveformDisplay::updateData ()
         sampleEnd = zoneProperties.getSampleEnd ().value_or (numSamples);
         loopStart = zoneProperties.getLoopStart ().value_or (0);
         loopLength = static_cast<juce::int64> (zoneProperties.getLoopLength ().value_or (static_cast<double>(numSamples)));
-        samplesPerPixel = numSamples / getWidth ();
+        samplesPerPixel = static_cast<int> (numSamples / getWidth ());
 
         const auto markerHandleSize { 5 };
 
         // draw sample start marker
-        sampleStartMarkerX = 1 + (static_cast<float> (sampleStart) / static_cast<float> (numSamples) * numPixels);
+        sampleStartMarkerX = 1 + static_cast<int> ((static_cast<float> (sampleStart) / static_cast<float> (numSamples) * numPixels));
         sampleStartHandle = { sampleStartMarkerX, markerStartY, markerHandleSize, markerHandleSize };
 
         // draw sample end marker
-        sampleEndMarkerX = 1 + (static_cast<float>(sampleEnd) / static_cast<float>(numSamples) * numPixels);
+        sampleEndMarkerX = 1 + static_cast<int> ((static_cast<float>(sampleEnd) / static_cast<float>(numSamples) * numPixels));
         sampleEndHandle = { sampleEndMarkerX - markerHandleSize, markerStartY, markerHandleSize, markerHandleSize };
 
         // draw loop start marker
-        loopStartMarkerX = 1 + (static_cast<float>(loopStart) / static_cast<float>(numSamples) * numPixels);
+        loopStartMarkerX = 1 + static_cast<int> ((static_cast<float>(loopStart) / static_cast<float>(numSamples) * numPixels));
         loopStartHandle = { loopStartMarkerX, markerEndY - markerHandleSize, markerHandleSize, markerHandleSize };
 
         // draw loop end marker
-        loopEndMarkerX = 1 + ((static_cast<float>(loopStart + static_cast<juce::int64> (loopLength))) / static_cast<float>(numSamples) * numPixels);
+        loopEndMarkerX = 1 + static_cast<int> (((static_cast<float>(loopStart + static_cast<juce::int64> (loopLength))) / static_cast<float>(numSamples) * numPixels));
         loopEndHandle = { loopEndMarkerX - markerHandleSize, markerEndY - markerHandleSize, markerHandleSize, markerHandleSize };
     }
 }
@@ -63,8 +63,8 @@ void WaveformDisplay::resized ()
 {
     halfHeight = getHeight () / 2;
     numPixels = getWidth () - 2;
-    samplesPerPixel = numSamples / getWidth ();
-    markerEndY = static_cast<float>(getHeight () - 2.f);
+    samplesPerPixel = static_cast<int> (numSamples / getWidth ());
+    markerEndY = getHeight () - 2;
     const auto dashSize { getHeight () / 11.f };
     dashedSpec = { dashSize, dashSize };
 }
@@ -102,11 +102,11 @@ void WaveformDisplay::paint (juce::Graphics& g)
 
         // draw sample start marker
         g.fillRect (sampleStartHandle);
-        g.drawLine (sampleStartMarkerX, markerStartY, sampleStartMarkerX, markerEndY);
+        g.drawLine (juce::Line<int> {sampleStartMarkerX, markerStartY, sampleStartMarkerX, markerEndY}.toFloat ());
 
         // draw sample end marker
         g.fillRect (sampleEndHandle);
-        g.drawLine (sampleEndMarkerX, markerStartY, sampleEndMarkerX, markerEndY);
+        g.drawLine (juce::Line<int> {sampleEndMarkerX, markerStartY, sampleEndMarkerX, markerEndY}.toFloat ());
 
         // draw loop start marker
         g.fillRect (loopStartHandle);
