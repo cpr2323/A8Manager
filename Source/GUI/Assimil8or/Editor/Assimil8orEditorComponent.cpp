@@ -232,30 +232,34 @@ juce::String Assimil8orEditorComponent::formatXfadeWidthString (double width)
 
 void Assimil8orEditorComponent::importPreset ()
 {
-    // TODO - I am thinking we might want to cache the 'MRU' folder for import/export separate from the Preset folder caching
-    fileChooser.reset (new juce::FileChooser ("Please select the file to import from...", appProperties.getMostRecentFolder (), ""));
-    fileChooser->launchAsync (juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles, [this] (const juce::FileChooser& fc) mutable
+    overwritePresetOrCancel ([this] ()
     {
-        if (fc.getURLResults ().size () == 1 && fc.getURLResults () [0].isLocalFile ())
-        {
-            // TODO - produce warning if you are going to overwrite edited data
-            auto importPresetFile { fc.getURLResults () [0].getLocalFile () };
+        // TODO - I am thinking we might want to cache the 'MRU' folder for import/export separate from the Preset folder caching
+        fileChooser.reset (new juce::FileChooser ("Please select the file to import from...", appProperties.getMostRecentFolder (), ""));
+        fileChooser->launchAsync (juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles, [this] (const juce::FileChooser& fc) mutable
+            {
+                if (fc.getURLResults ().size () == 1 && fc.getURLResults () [0].isLocalFile ())
+                {
+                    // TODO - produce warning if you are going to overwrite edited data
+                    auto importPresetFile { fc.getURLResults () [0].getLocalFile () };
 
-            juce::StringArray fileContents;
-            importPresetFile.readLines (fileContents);
+                    juce::StringArray fileContents;
+                    importPresetFile.readLines (fileContents);
 
-            // TODO - check for import errors and handle accordingly
-            Assimil8orPreset assimil8orPreset;
-            assimil8orPreset.parse (fileContents);
+                    // TODO - check for import errors and handle accordingly
+                    Assimil8orPreset assimil8orPreset;
+                    assimil8orPreset.parse (fileContents);
 
-            // change the imported Preset Id to the current Preset Id
-            PresetProperties importedPresetProperties (assimil8orPreset.getPresetVT (), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
-            importedPresetProperties.setId (presetProperties.getId (), false);
+                    // change the imported Preset Id to the current Preset Id
+                    PresetProperties importedPresetProperties (assimil8orPreset.getPresetVT (), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
+                    importedPresetProperties.setId (presetProperties.getId (), false);
 
-            // copy imported preset to current preset
-            PresetProperties::copyTreeProperties (importedPresetProperties.getValueTree (), presetProperties.getValueTree ());
-        }
-    }, nullptr);
+                    // copy imported preset to current preset
+                    PresetProperties::copyTreeProperties (importedPresetProperties.getValueTree (), presetProperties.getValueTree ());
+                }
+            }, nullptr);
+    },
+    [] () {});
 
 }
 
