@@ -1,4 +1,5 @@
 #include "PresetHelpers.h"
+#include "../../Utility/DebugLog.h"
 
 namespace PresetHelpers
 {
@@ -29,6 +30,10 @@ namespace PresetHelpers
     }
 
     // TODO - add options to check Preset Id as well
+#define LOG_DIFFERENCE 0
+#if LOG_DIFFERENCE
+#define LogDifference (parameter, value1, value2) DebugLog("areEntirePresetsEqual - [" + parameter + "]: " + value1 + " != " + value2);
+#endif
     bool areEntirePresetsEqual (juce::ValueTree presetOneVT, juce::ValueTree presetTwoVT)
     {
         auto presetsAreEqual { true };
@@ -70,6 +75,8 @@ namespace PresetHelpers
     {
         PresetProperties presetPropertiesOne (presetOneVT, PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
         PresetProperties presetPropertiesTwo (presetTwoVT, PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
+#if LOG_DIFFERENCE
+#endif
         return  presetPropertiesOne.getData2AsCV () == presetPropertiesTwo.getData2AsCV () &&
                 presetPropertiesOne.getMidiSetup () == presetPropertiesTwo.getMidiSetup () &&
                 presetPropertiesOne.getName () == presetPropertiesTwo.getName () &&
@@ -87,6 +94,8 @@ namespace PresetHelpers
     {
         ChannelProperties channelPropertiesOne (channelOneVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
         ChannelProperties channelPropertiesTwo (channelTwoVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
+#if LOG_DIFFERENCE
+#endif
         return  channelPropertiesOne.getAliasing () == channelPropertiesTwo.getAliasing () &&
                 channelPropertiesOne.getAliasingMod () == channelPropertiesTwo.getAliasingMod () &&
                 channelPropertiesOne.getAttack () == channelPropertiesTwo.getAttack () &&
@@ -132,6 +141,34 @@ namespace PresetHelpers
     {
         ZoneProperties zonePropertiesOne (zoneOneVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
         ZoneProperties zonePropertiesTwo (zoneTwoVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
+#if LOG_DIFFERENCE
+        auto displaySampleStart = [] (juce::String text, ZoneProperties& zoneProperties)
+            {
+                const auto updatedSampleStart { zoneProperties.getSampleStart () };
+                if (updatedSampleStart.has_value ())
+                    DebugLog ("areZonesEqual", "[" + text + "] sampleStart: " + juce::String (updatedSampleStart.value ()));
+                else
+                    DebugLog ("areZonesEqual", "[" + text + "] sampleStart: no value");
+            };
+        //displaySampleStart ("one", zonePropertiesOne);
+        //displaySampleStart ("two", zonePropertiesTwo);
+
+        auto displayIfNotEqual = [] (juce::String text, bool areEqual)
+        {
+            if (!areEqual)
+                DebugLog ("areZonesEqual", text + ": are NOT equal");
+        };
+        displayIfNotEqual ("levelOffset", zonePropertiesOne.getLevelOffset () == zonePropertiesTwo.getLevelOffset ());
+        displayIfNotEqual ("loopLength", zonePropertiesOne.getLoopLength ().value_or (0.0) == zonePropertiesTwo.getLoopLength ().value_or (0.0));
+        displayIfNotEqual ("loopStart", zonePropertiesOne.getLoopStart ().value_or (0) == zonePropertiesTwo.getLoopStart ().value_or (0));
+        displayIfNotEqual ("minVoltage", zonePropertiesOne.getMinVoltage () == zonePropertiesTwo.getMinVoltage ());
+        displayIfNotEqual ("pitchOffset", zonePropertiesOne.getPitchOffset () == zonePropertiesTwo.getPitchOffset ());
+        displayIfNotEqual ("sample", zonePropertiesOne.getSample () == zonePropertiesTwo.getSample ());
+        displayIfNotEqual ("sampleStart", zonePropertiesOne.getSampleStart ().value_or (0) == zonePropertiesTwo.getSampleStart ().value_or (0));
+        displayIfNotEqual ("sampleEnd", zonePropertiesOne.getSampleEnd ().value_or (0) == zonePropertiesTwo.getSampleEnd ().value_or (0));
+        displayIfNotEqual ("side", zonePropertiesOne.getSide () == zonePropertiesTwo.getSide ());
+
+#endif
         return  zonePropertiesOne.getLevelOffset () == zonePropertiesTwo.getLevelOffset () &&
                 zonePropertiesOne.getLoopLength ().value_or (0.0) == zonePropertiesTwo.getLoopLength ().value_or (0.0) &&
                 zonePropertiesOne.getLoopStart ().value_or (0) == zonePropertiesTwo.getLoopStart ().value_or (0) &&

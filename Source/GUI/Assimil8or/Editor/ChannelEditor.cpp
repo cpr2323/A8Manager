@@ -2206,7 +2206,7 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree u
     {
         // Zone Editor setup
         auto& zoneEditor { zoneEditors [zoneIndex] };
-        zoneEditor.init (zonePropertiesVT, rootPropertiesVT, editManager);
+        zoneEditor.init (zonePropertiesVT, uneditedChannelProperties.getZoneVT (zoneIndex), rootPropertiesVT, editManager);
         zoneEditor.displayToolsMenu = [this] (int zoneIndex)
         {
             juce::PopupMenu pm;

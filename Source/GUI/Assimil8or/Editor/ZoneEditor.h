@@ -17,7 +17,7 @@ public:
     ZoneEditor ();
     ~ZoneEditor () = default;
 
-    void init (juce::ValueTree zonePropertiesVT, juce::ValueTree rootPropertiesVT, EditManager* theEditManager);
+    void init (juce::ValueTree zonePropertiesVT, juce::ValueTree uneditedZonePropertiesVT, juce::ValueTree rootPropertiesVT, EditManager* theEditManager);
     // TODO - can we move this to the EditManager, as it just calls editManager->assignSamples (parentChannelIndex, startingZoneIndex, files); in the ZoneEditor
     void receiveSampleLoadRequest (juce::File sampleFile);
     // TODO - is there a VTW that could manage this setting?
@@ -30,6 +30,7 @@ private:
     AppProperties appProperties;
     AudioPlayerProperties audioPlayerProperties;
     ZoneProperties zoneProperties;
+    ZoneProperties uneditedZoneProperties;
     ZoneProperties minZoneProperties;
     ZoneProperties maxZoneProperties;
     SampleProperties sampleProperties;
@@ -78,7 +79,7 @@ private:
     CustomTextEditorInt64 sampleStartTextEditor; // int
 
     void setEditComponentsEnabled (bool enabled);
-    juce::PopupMenu createZoneEditMenu (std::function <void (ZoneProperties&, SampleProperties&)> setter, std::function <void ()> resetter,
+    juce::PopupMenu createZoneEditMenu (std::function <void (ZoneProperties&, SampleProperties&)> setter, std::function <void ()> resetter, std::function <void ()> reverter,
                                         std::function<bool (ZoneProperties&)> canCloneToZoneCallback, std::function<bool (ZoneProperties&)> canCloneToAllCallback);
     juce::String formatLoopLength (double loopLength);
     bool handleSamplesInternal (int zoneIndex, juce::StringArray files);

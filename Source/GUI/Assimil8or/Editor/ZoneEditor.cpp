@@ -287,6 +287,7 @@ void ZoneEditor::setupZoneComponents ()
                                                 handleSamplesInternal (destZoneIndex, { fileName });
                                             },
                                             nullptr /* reset is not possible for the sample file parameter, since zones have to have contiguous samples assigned, and resetting one in the middle would break that */,
+                                            [this] () { handleSamplesInternal (zoneIndex, {uneditedZoneProperties.getSample ()}); },
                                             [this] (ZoneProperties& destZoneProperties) { return destZoneProperties.getId () - 1 <= editManager->getNumUsedZones (parentChannelIndex); },
                                             [] (ZoneProperties&) { return true; }) };
         editMenu.showMenuAsync ({}, [this] (int) {});
@@ -326,6 +327,17 @@ void ZoneEditor::setupZoneComponents ()
                                                 destZoneProperties.setSampleStart (clampedSampleStart, false);
                                             },
                                             [this] () { zoneProperties.setSampleStart (0, true); },
+                                            [this] ()
+            {
+                const auto uneditedSampleStart { uneditedZoneProperties.getSampleStart ().value_or (-1) };
+                DebugLog ("ZoneEditor", "uneditedSampleStart: " + juce::String (uneditedSampleStart));
+                zoneProperties.setSampleStart (uneditedSampleStart, true);
+                const auto updatedSampleStart { zoneProperties.getSampleStart () };
+                if (updatedSampleStart.has_value ())
+                    DebugLog ("ZoneEditor", "updatedSampleStart: " + juce::String (updatedSampleStart.value ()));
+                else
+                    DebugLog ("ZoneEditor", "updatedSampleStart: no value");
+            },
                                             [] (ZoneProperties& destZoneProperties) { return destZoneProperties.getSample ().isNotEmpty (); },
                                             [] (ZoneProperties& destZoneProperties) { return destZoneProperties.getSample ().isNotEmpty (); }) };
         editMenu.showMenuAsync ({}, [this] (int) {});
@@ -365,6 +377,7 @@ void ZoneEditor::setupZoneComponents ()
                                                 destZoneProperties.setSampleEnd (clampedSampleEnd , false);
                                             },
                                             [this] () { zoneProperties.setSampleEnd (sampleProperties.getLengthInSamples (), true); },
+                                            [this] () { zoneProperties.setSampleEnd (uneditedZoneProperties.getSampleEnd ().value_or (-1), true); },
                                             [] (ZoneProperties& destZoneProperties) { return destZoneProperties.getSample ().isNotEmpty (); },
                                             [] (ZoneProperties& destZoneProperties) { return destZoneProperties.getSample ().isNotEmpty (); }) };
         editMenu.showMenuAsync ({}, [this] (int) {});
@@ -435,6 +448,7 @@ void ZoneEditor::setupZoneComponents ()
                                                     zoneProperties.setLoopLength (newLoopLength, false);
                                                 }
                                             },
+                                            [this] () { zoneProperties.setLoopStart (uneditedZoneProperties.getLoopStart ().value_or (-1), true); },
                                             [] (ZoneProperties& destZoneProperties) { return destZoneProperties.getSample ().isNotEmpty (); },
                                             [] (ZoneProperties& destZoneProperties) { return destZoneProperties.getSample ().isNotEmpty (); }) };
         editMenu.showMenuAsync ({}, [this] (int) {});
@@ -492,7 +506,6 @@ void ZoneEditor::setupZoneComponents ()
                 return std::max (sampleProperties.getLengthInSamples () / static_cast<juce::int64> (10), static_cast<juce::int64> (1));
         } ();
         const auto newValue { zoneProperties.getLoopLength ().value_or (sampleProperties.getLengthInSamples ()) + (multiplier * direction) };
-        DebugLog ("ZoneEditor/loopLengthTextEditor.onDragCallback", "newValue: " + juce::String (newValue));
         loopLengthTextEditor.setValue (newValue);
     };
     loopLengthTextEditor.onPopupMenuCallback = [this] ()
@@ -508,6 +521,7 @@ void ZoneEditor::setupZoneComponents ()
                                             {
                                                 zoneProperties.setLoopLength (sampleProperties.getLengthInSamples () - static_cast<double> (zoneProperties.getLoopStart ().value_or (0)), true);
                                             },
+                                            [this] () { zoneProperties.setLoopLength (uneditedZoneProperties.getLoopLength ().value_or (-1.0), true); },
                                             [] (ZoneProperties& destZoneProperties) { return destZoneProperties.getSample ().isNotEmpty (); },
                                             [] (ZoneProperties& destZoneProperties) { return destZoneProperties.getSample ().isNotEmpty (); }) };
         editMenu.showMenuAsync ({}, [this] (int) {});
@@ -545,6 +559,7 @@ void ZoneEditor::setupZoneComponents ()
             return;
         auto editMenu { createZoneEditMenu (nullptr /* cloning across zones does not makes sense, as they have to be unique values */,
                                             [this] () { editManager->resetMinVoltage (parentChannelIndex, zoneIndex); },
+                                            [this] () { zoneProperties.setMinVoltage (editManager->clampMinVoltage (parentChannelIndex, zoneIndex, uneditedZoneProperties.getMinVoltage ()), true); },
                                             [] (ZoneProperties&) { return false; },
                                             [] (ZoneProperties&) { return false; }) };
         editMenu.showMenuAsync ({}, [this] (int) {});
@@ -574,6 +589,7 @@ void ZoneEditor::setupZoneComponents ()
     {
         auto editMenu { createZoneEditMenu ([this] (ZoneProperties& destZoneProperties, SampleProperties&) { destZoneProperties.setPitchOffset (zoneProperties.getPitchOffset (), false); },
                                             [this] () { zoneProperties.setPitchOffset (0, true); },
+                                            [this] () { zoneProperties.setPitchOffset (uneditedZoneProperties.getPitchOffset (), true); },
                                             [] (ZoneProperties& destZoneProperties) { return destZoneProperties.getSample ().isNotEmpty (); },
                                             [] (ZoneProperties& destZoneProperties) { return destZoneProperties.getSample ().isNotEmpty (); }) };
         editMenu.showMenuAsync ({}, [this] (int) {});
@@ -606,6 +622,7 @@ void ZoneEditor::setupZoneComponents ()
     {
         auto editMenu { createZoneEditMenu ([this] (ZoneProperties& destZoneProperties, SampleProperties&) { destZoneProperties.setLevelOffset (zoneProperties.getLevelOffset (), false); },
                                             [this] () { zoneProperties.setLevelOffset (0, true); },
+                                            [this] () { zoneProperties.setLevelOffset (uneditedZoneProperties.getLevelOffset (), true); },
                                             [] (ZoneProperties& destZoneProperties) { return destZoneProperties.getSample ().isNotEmpty (); },
                                             [] (ZoneProperties& destZoneProperties) { return destZoneProperties.getSample ().isNotEmpty (); }) };
         editMenu.showMenuAsync ({}, [this] (int) {});
@@ -613,7 +630,7 @@ void ZoneEditor::setupZoneComponents ()
     setupTextEditor (levelOffsetTextEditor, juce::Justification::centred, 0, "+-.0123456789", "LevelOffset");
 }
 
-void ZoneEditor::init (juce::ValueTree zonePropertiesVT, juce::ValueTree rootPropertiesVT, EditManager* theEditManager)
+void ZoneEditor::init (juce::ValueTree zonePropertiesVT, juce::ValueTree uneditedZonePropertiesVT, juce::ValueTree rootPropertiesVT, EditManager* theEditManager)
 {
     //DebugLog ("ZoneEditor[" + juce::String (zoneProperties.getId ()) + "]", "init");
     jassert (theEditManager != nullptr);
@@ -658,6 +675,7 @@ void ZoneEditor::init (juce::ValueTree zonePropertiesVT, juce::ValueTree rootPro
     };
 
     zoneProperties.wrap (zonePropertiesVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::yes);
+    uneditedZoneProperties.wrap (uneditedZonePropertiesVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
     zoneIndex = zoneProperties.getId () - 1;
     zoneLabel.setText ("Zone " + juce::String (zoneProperties.getId ()), juce::NotificationType::dontSendNotification);
     jassert (ChannelProperties::isChannelPropertiesVT (zoneProperties.getValueTree ().getParent ()));
@@ -921,11 +939,12 @@ double ZoneEditor::snapLoopLength (double rawValue)
     }
 }
 
-juce::PopupMenu ZoneEditor::createZoneEditMenu (std::function <void (ZoneProperties&, SampleProperties&)> setter, std::function <void ()> resetter,
+juce::PopupMenu ZoneEditor::createZoneEditMenu (std::function <void (ZoneProperties&, SampleProperties&)> setter, std::function <void ()> resetter, std::function <void ()> reverter,
                                                 std::function<bool(ZoneProperties&)> canCloneCallback, std::function<bool (ZoneProperties&)> canCloneToAllCallback)
 {
     // you can pass in a nullptr for one of the callbacks, to disable that item, but at least one of these should be valid, if not the caller should just not be trying to display an edit menu
     jassert (setter != nullptr || resetter != nullptr);
+    jassert (reverter != nullptr);
     jassert (canCloneCallback != nullptr);
     jassert (canCloneToAllCallback != nullptr);
     juce::PopupMenu editMenu;
@@ -987,6 +1006,8 @@ juce::PopupMenu ZoneEditor::createZoneEditMenu (std::function <void (ZonePropert
 
     if (resetter != nullptr)
         editMenu.addItem ("Default", true, false, [this, resetter] () { resetter (); });
+
+    editMenu.addItem ("Revert", true, false, [this, reverter] () { reverter (); });
 
     return editMenu;
 }
