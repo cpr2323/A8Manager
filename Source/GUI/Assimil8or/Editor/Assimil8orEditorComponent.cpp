@@ -193,7 +193,24 @@ void Assimil8orEditorComponent::setupPresetComponents ()
             pm.addItem ("Default", true, false, [this, xfadeGroupIndex] ()
             {
                 // the default values for all of the XFade Group Widths are the same, so we can just use A
-                    editManager.setXfadeGroupValueByIndex (xfadeGroupIndex, defaultPresetProperties.getXfadeAWidth (), true);
+                editManager.setXfadeGroupValueByIndex (xfadeGroupIndex, defaultPresetProperties.getXfadeAWidth (), true);
+            });
+            pm.addItem ("Revert", true, false, [this, xfadeGroupIndex]
+            {
+                auto getUneditedXfadeGroupValueByIndex = [this] (int xfadeGroupIndex)
+                {
+                    if (xfadeGroupIndex == 0)
+                        return unEditedPresetProperties.getXfadeAWidth ();
+                    else if (xfadeGroupIndex == 1)
+                        return unEditedPresetProperties.getXfadeBWidth ();
+                    else if (xfadeGroupIndex == 2)
+                        return unEditedPresetProperties.getXfadeCWidth ();
+                    else if (xfadeGroupIndex == 3)
+                        return unEditedPresetProperties.getXfadeDWidth ();
+                    jassertfalse;
+                    return 0.0;
+                };
+                editManager.setXfadeGroupValueByIndex (xfadeGroupIndex, getUneditedXfadeGroupValueByIndex (xfadeGroupIndex), true);
             });
             juce::PopupMenu special;
             for (auto curGroupIndex { 0 }; curGroupIndex < 4; ++curGroupIndex)
@@ -201,7 +218,7 @@ void Assimil8orEditorComponent::setupPresetComponents ()
                 if (xfadeGroupIndex != curGroupIndex)
                     special.addItem ("To Group " + juce::String::charToString ('A' + curGroupIndex), true, false, [this, curGroupIndex, xfadeGroupIndex] ()
                     {
-                            editManager.setXfadeGroupValueByIndex (curGroupIndex, editManager.getXfadeGroupValueByIndex (xfadeGroupIndex), true);
+                        editManager.setXfadeGroupValueByIndex (curGroupIndex, editManager.getXfadeGroupValueByIndex (xfadeGroupIndex), true);
                     });
             }
             special.addItem ("To All", true, false, [this, xfadeGroupIndex] ()
@@ -297,7 +314,7 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
     copyBufferZoneProperties.wrap ({}, ZoneProperties::WrapperType::owner, ZoneProperties::EnableCallbacks::no);
     presetProperties.forEachChannel ([this, rootPropertiesVT] (juce::ValueTree channelPropertiesVT, int channelIndex)
     {
-        channelEditors [channelIndex].init (channelPropertiesVT, rootPropertiesVT, &editManager, copyBufferZoneProperties.getValueTree (), &copyBufferHasData);
+        channelEditors [channelIndex].init (channelPropertiesVT, unEditedPresetProperties.getChannelVT(channelIndex), rootPropertiesVT, &editManager, copyBufferZoneProperties.getValueTree (), &copyBufferHasData);
         channelEditors [channelIndex].displayToolsMenu = [this] (int channelIndex)
         {
             juce::PopupMenu pm;

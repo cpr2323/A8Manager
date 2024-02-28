@@ -192,7 +192,7 @@ public:
     ChannelEditor ();
     ~ChannelEditor ();
 
-    void init (juce::ValueTree channelPropertiesVT, juce::ValueTree rootPropertiesVT,
+    void init (juce::ValueTree channelPropertiesVT, juce::ValueTree uneditedChannelPropertiesVT, juce::ValueTree rootPropertiesVT,
                EditManager* theEditManager, juce::ValueTree copyBufferZonePropertiesVT,
                bool* theZoneCopyBufferHasData);
 
@@ -212,6 +212,7 @@ private:
     };
     AppProperties appProperties;
     ChannelProperties channelProperties;
+    ChannelProperties uneditedChannelProperties;
     ChannelProperties defaultChannelProperties;
     ChannelProperties minChannelProperties;
     ChannelProperties maxChannelProperties;
@@ -355,7 +356,7 @@ private:
     double truncateToDecimalPlaces (double rawValue, int decimalPlaces);
     double snapValue (double rawValue, double snapAmount);
     juce::PopupMenu createChannelCloneMenu (std::function <void (ChannelProperties&)> setter, std::function<bool (ChannelProperties&)> canCloneCallback, std::function<bool (ChannelProperties&)> canCloneToAllCallback);
-    juce::PopupMenu createChannelEditMenu (std::function <void (ChannelProperties&)> setter, std::function <void ()> resetter);
+    juce::PopupMenu createChannelEditMenu (std::function <void (ChannelProperties&)> setter, std::function <void ()> resetter, std::function <void ()> reverter);
     void updateAllZoneTabNames ();
     void updateZoneTabName (int zoneIndex);
 
