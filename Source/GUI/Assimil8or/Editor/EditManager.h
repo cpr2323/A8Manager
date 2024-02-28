@@ -14,6 +14,8 @@ public:
 
     double getXfadeGroupValueByIndex (int xfadeGroupIndex);
     void setXfadeGroupValueByIndex (int xfadeGroupIndex, double value, bool doSelfCallback);
+    juce::String getXfadeCvValueByIndex (int xfadeGroupIndex);
+    void setXfadeCvValueByIndex (int xfadeGroupIndex, juce::String cvInput, bool doSelfCallback);
 
     void forChannels (std::vector<int> channelIndexList, std::function<void (juce::ValueTree)> channelCallback);
     void forZones (int channelIndex, std::vector<int> zoneIndexList, std::function<void (juce::ValueTree, juce::ValueTree)> zoneCallback);

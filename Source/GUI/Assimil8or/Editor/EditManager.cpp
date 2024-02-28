@@ -76,6 +76,30 @@ void EditManager::setXfadeGroupValueByIndex (int xfadeGroupIndex, double value, 
     }
 }
 
+juce::String  EditManager::getXfadeCvValueByIndex (int xfadeGroupIndex)
+{
+    switch (xfadeGroupIndex)
+    {
+        case 0: return presetProperties.getXfadeACV (); break;
+        case 1: return presetProperties.getXfadeBCV (); break;
+        case 2: return presetProperties.getXfadeCCV (); break;
+        case 3: return presetProperties.getXfadeDCV (); break;
+        default: jassertfalse; return "Off"; break;
+    }
+}
+
+void EditManager::setXfadeCvValueByIndex (int xfadeGroupIndex, juce::String value, bool doSelfCallback)
+{
+    switch (xfadeGroupIndex)
+    {
+        case 0: presetProperties.setXfadeACV (value, doSelfCallback); break;
+        case 1: presetProperties.setXfadeBCV (value, doSelfCallback); break;
+        case 2: presetProperties.setXfadeCCV (value, doSelfCallback); break;
+        case 3: presetProperties.setXfadeDCV (value, doSelfCallback); break;
+        default: jassertfalse; break;
+    }
+}
+
 void EditManager::forChannels (std::vector<int> channelIndexList, std::function<void (juce::ValueTree)> channelCallback)
 {
     jassert (channelCallback != nullptr);

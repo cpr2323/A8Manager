@@ -103,6 +103,8 @@ void Assimil8orEditorComponent::setupPresetComponents ()
     addAndMakeVisible (midiSetupComboBox);
 
     addAndMakeVisible (windowDecorator);
+
+    // Data 2 CV
     data2AsCvLabel.setBorderSize ({ 1, 0, 1, 0 });
     data2AsCvLabel.setText ("Data2 As", juce::NotificationType::dontSendNotification);
     data2AsCvLabel.setTooltip (parameterToolTipData.getToolTip ("Preset", "Data2asCV"));
@@ -118,7 +120,14 @@ void Assimil8orEditorComponent::setupPresetComponents ()
         data2AsCvComboBox.setSelectedItemIndex (std::clamp (newCvInputComboBoxIndex, 0, data2AsCvComboBox.getNumItems () - 1));
         presetProperties.setData2AsCV (data2AsCvComboBox.getSelectedItemText (), false);
     };
-    data2AsCvComboBox.onPopupMenuCallback = [this] () {};
+    data2AsCvComboBox.onPopupMenuCallback = [this] ()
+    {
+        juce::PopupMenu editMenu;
+        editMenu.addItem ("Default", true, false, [this] () { presetProperties.setData2AsCV (defaultPresetProperties.getData2AsCV (), true); });
+        editMenu.addItem ("Revert", true, false, [this] () { presetProperties.setData2AsCV (unEditedPresetProperties.getData2AsCV (), true); });
+        editMenu.showMenuAsync ({}, [this] (int) {});
+
+    };
     data2AsCvComboBox.setTooltip (parameterToolTipData.getToolTip ("Preset", "Data2asCV"));
     addAndMakeVisible (data2AsCvComboBox);
 
@@ -152,7 +161,63 @@ void Assimil8orEditorComponent::setupPresetComponents ()
             xfadeGroup.xfadeCvComboBox.setSelectedItemIndex (std::clamp (newCvInputComboBoxIndex, 0, xfadeGroup.xfadeCvComboBox.getNumItems () - 1));
             xfadeCvUiChanged (xfadeGroupIndex, xfadeGroups [xfadeGroupIndex].xfadeCvComboBox.getSelectedItemText ());
         };
-        xfadeGroup.xfadeCvComboBox.onPopupMenuCallback = [this, xfadeGroupIndex] () {};
+        xfadeGroup.xfadeCvComboBox.onPopupMenuCallback = [this, xfadeGroupIndex] ()
+        {
+            juce::PopupMenu editMenu;
+            juce::PopupMenu cloneMenu;
+            for (auto curGroupIndex { 0 }; curGroupIndex < 4; ++curGroupIndex)
+            {
+                if (xfadeGroupIndex != curGroupIndex)
+                    cloneMenu.addItem ("To Group " + juce::String::charToString ('A' + curGroupIndex), true, false, [this, curGroupIndex, xfadeGroupIndex] ()
+                    {
+                        editManager.setXfadeCvValueByIndex (curGroupIndex, editManager.getXfadeCvValueByIndex (xfadeGroupIndex), true);
+                    });
+            }
+            cloneMenu.addItem ("To All", true, false, [this, xfadeGroupIndex] ()
+            {
+                const auto value { editManager.getXfadeCvValueByIndex (xfadeGroupIndex) };
+                presetProperties.setXfadeACV (value, true);
+                presetProperties.setXfadeBCV (value, true);
+                presetProperties.setXfadeCCV (value, true);
+                presetProperties.setXfadeDCV (value, true);
+            });
+            editMenu.addSubMenu ("Clone", cloneMenu, true);
+            editMenu.addItem ("Default", true, false, [this, xfadeGroupIndex] ()
+            {
+                auto getDefaultXfadeCvValueByIndex = [this] (int xfadeGroupIndex)
+                {
+                    if (xfadeGroupIndex == 0)
+                        return defaultPresetProperties.getXfadeACV ();
+                    else if (xfadeGroupIndex == 1)
+                        return defaultPresetProperties.getXfadeBCV ();
+                    else if (xfadeGroupIndex == 2)
+                        return defaultPresetProperties.getXfadeCCV ();
+                    else if (xfadeGroupIndex == 3)
+                        return defaultPresetProperties.getXfadeDCV ();
+                    jassertfalse;
+                        return juce::String ("Off");
+                };
+                editManager.setXfadeCvValueByIndex (xfadeGroupIndex, getDefaultXfadeCvValueByIndex (xfadeGroupIndex), true);
+            });
+            editMenu.addItem ("Revert", true, false, [this, xfadeGroupIndex] ()
+            {
+                auto getUneditedXfadeCvValueByIndex = [this] (int xfadeGroupIndex)
+                {
+                    if (xfadeGroupIndex == 0)
+                        return unEditedPresetProperties.getXfadeACV ();
+                    else if (xfadeGroupIndex == 1)
+                        return unEditedPresetProperties.getXfadeBCV ();
+                    else if (xfadeGroupIndex == 2)
+                        return unEditedPresetProperties.getXfadeCCV ();
+                    else if (xfadeGroupIndex == 3)
+                        return unEditedPresetProperties.getXfadeDCV ();
+                    jassertfalse;
+                    return juce::String ("Off");
+                };
+                editManager.setXfadeCvValueByIndex (xfadeGroupIndex, getUneditedXfadeCvValueByIndex (xfadeGroupIndex), true);
+            });
+            editMenu.showMenuAsync ({}, [this] (int) {});
+        };
         xfadeGroup.xfadeCvComboBox.setTooltip (parameterToolTipData.getToolTip ("Preset", "Xfade" + juce::String::charToString ('A' + xfadeGroupIndex) + "CV"));
         addAndMakeVisible (xfadeGroup.xfadeCvComboBox);
 
@@ -188,8 +253,24 @@ void Assimil8orEditorComponent::setupPresetComponents ()
         xfadeGroup.xfadeWidthEditor.onPopupMenuCallback = [this, xfadeGroupIndex] ()
         {
             juce::PopupMenu pm;
-            pm.addItem ("Copy", true, false, [this] () {});
-            pm.addItem ("Paste", true, false, [this] () {});
+            juce::PopupMenu cloneMenu;
+            for (auto curGroupIndex { 0 }; curGroupIndex < 4; ++curGroupIndex)
+            {
+                if (xfadeGroupIndex != curGroupIndex)
+                    cloneMenu.addItem ("To Group " + juce::String::charToString ('A' + curGroupIndex), true, false, [this, curGroupIndex, xfadeGroupIndex] ()
+                        {
+                            editManager.setXfadeGroupValueByIndex (curGroupIndex, editManager.getXfadeGroupValueByIndex (xfadeGroupIndex), true);
+                        });
+            }
+            cloneMenu.addItem ("To All", true, false, [this, xfadeGroupIndex] ()
+            {
+                const auto value { editManager.getXfadeGroupValueByIndex (xfadeGroupIndex) };
+                presetProperties.setXfadeAWidth (value, true);
+                presetProperties.setXfadeBWidth (value, true);
+                presetProperties.setXfadeCWidth (value, true);
+                presetProperties.setXfadeDWidth (value, true);
+            });
+            pm.addSubMenu ("Clone", cloneMenu, true);
             pm.addItem ("Default", true, false, [this, xfadeGroupIndex] ()
             {
                 // the default values for all of the XFade Group Widths are the same, so we can just use A
@@ -212,24 +293,6 @@ void Assimil8orEditorComponent::setupPresetComponents ()
                 };
                 editManager.setXfadeGroupValueByIndex (xfadeGroupIndex, getUneditedXfadeGroupValueByIndex (xfadeGroupIndex), true);
             });
-            juce::PopupMenu special;
-            for (auto curGroupIndex { 0 }; curGroupIndex < 4; ++curGroupIndex)
-            {
-                if (xfadeGroupIndex != curGroupIndex)
-                    special.addItem ("To Group " + juce::String::charToString ('A' + curGroupIndex), true, false, [this, curGroupIndex, xfadeGroupIndex] ()
-                    {
-                        editManager.setXfadeGroupValueByIndex (curGroupIndex, editManager.getXfadeGroupValueByIndex (xfadeGroupIndex), true);
-                    });
-            }
-            special.addItem ("To All", true, false, [this, xfadeGroupIndex] ()
-            {
-                const auto value { editManager.getXfadeGroupValueByIndex (xfadeGroupIndex) };
-                presetProperties.setXfadeAWidth (value, true);
-                presetProperties.setXfadeBWidth (value, true);
-                presetProperties.setXfadeCWidth (value, true);
-                presetProperties.setXfadeDWidth (value, true);
-            });
-            pm.addSubMenu ("Clone", special, true);
             pm.showMenuAsync ({}, [this] (int) {});
         };
         addAndMakeVisible (xfadeGroup.xfadeWidthEditor);
