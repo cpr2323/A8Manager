@@ -31,6 +31,10 @@ void AREnvelopeComponent::releasePercentChanged (double releasePercent)
 
 void AREnvelopeComponent::paint (juce::Graphics& g)
 {
+    g.setColour (juce::Colours::grey.darker (0.3f));
+    g.fillRect (getLocalBounds ());
+
+    g.setColour (juce::Colours::black);
     auto drawAnchor = [this, &g] (EnvelopeAnchor& anchor)
     {
         juce::Colour color { anchor.getActive () ? juce::Colours::white : juce::Colours::grey };
