@@ -390,9 +390,13 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
             {
                 channelProperties [channelIndex].copyFrom (copyBufferChannelProperties.getValueTree ());
             });
-            pm.addItem ("Clear", true, false, [this, channelIndex] ()
+            pm.addItem ("Default", true, false, [this, channelIndex] ()
             {
                 channelProperties [channelIndex].copyFrom (defaultChannelProperties.getValueTree ());
+            });
+            pm.addItem ("Revert", true, false, [this, channelIndex] ()
+            {
+                channelProperties [channelIndex].copyFrom (unEditedPresetProperties.getValueTree ());
             });
             pm.showMenuAsync ({}, [this] (int) {});
         };
