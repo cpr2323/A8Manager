@@ -189,6 +189,16 @@ double EditManager::clampMinVoltage (int channelIndex, int zoneIndex, double vol
     }
 };
 
+juce::ValueTree EditManager::getChannelDefaults ()
+{
+    return defaultChannelProperties.getValueTree ();
+}
+
+juce::ValueTree EditManager::getZoneDefaults ()
+{
+    return defaultZoneProperties.getValueTree ();
+}
+
 juce::int64 EditManager::getMaxLoopStart (int channelIndex, int zoneIndex)
 {
     jassert (channelIndex < 8);

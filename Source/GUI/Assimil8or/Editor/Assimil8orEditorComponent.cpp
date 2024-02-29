@@ -258,9 +258,9 @@ void Assimil8orEditorComponent::setupPresetComponents ()
             {
                 if (xfadeGroupIndex != curGroupIndex)
                     cloneMenu.addItem ("To Group " + juce::String::charToString ('A' + curGroupIndex), true, false, [this, curGroupIndex, xfadeGroupIndex] ()
-                        {
-                            editManager.setXfadeGroupValueByIndex (curGroupIndex, editManager.getXfadeGroupValueByIndex (xfadeGroupIndex), true);
-                        });
+                    {
+                        editManager.setXfadeGroupValueByIndex (curGroupIndex, editManager.getXfadeGroupValueByIndex (xfadeGroupIndex), true);
+                    });
             }
             cloneMenu.addItem ("To All", true, false, [this, xfadeGroupIndex] ()
             {
@@ -342,6 +342,41 @@ void Assimil8orEditorComponent::importPreset ()
 
 }
 
+juce::PopupMenu Assimil8orEditorComponent::createChannelCloneMenu (int channelIndex, std::function <void (ChannelProperties&)> setter)
+{
+    jassert (setter != nullptr);
+    juce::PopupMenu cloneMenu;
+    for (auto destChannelIndex { 0 }; destChannelIndex < 8; ++destChannelIndex)
+    {
+        if (destChannelIndex != channelIndex)
+        {
+            cloneMenu.addItem ("To Channel " + juce::String (destChannelIndex + 1), true, false, [this, destChannelIndex, setter] ()
+            {
+                editManager.forChannels ({ destChannelIndex }, [this, setter] (juce::ValueTree channelPropertiesVT)
+                {
+                    ChannelProperties destChannelProperties (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
+                    setter (destChannelProperties);
+                });
+            });
+        }
+    }
+    cloneMenu.addItem ("To All", true, false, [this, setter, channelIndex] ()
+    {
+        std::vector<int> channelIndexList;
+        // build list of other channels
+        for (auto destChannelIndex { 0 }; destChannelIndex < 8; ++destChannelIndex)
+            if (destChannelIndex != channelIndex)
+                channelIndexList.emplace_back (destChannelIndex);
+        // clone to other channels
+        editManager.forChannels (channelIndexList, [this, setter] (juce::ValueTree channelPropertiesVT)
+        {
+            ChannelProperties destChannelProperties (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
+            setter (destChannelProperties);
+        });
+    });
+    return cloneMenu;
+}
+
 void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
 {
     PersistentRootProperties persistentRootProperties (rootPropertiesVT, PersistentRootProperties::WrapperType::client, PersistentRootProperties::EnableCallbacks::no);
@@ -378,27 +413,51 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
     presetProperties.forEachChannel ([this, rootPropertiesVT] (juce::ValueTree channelPropertiesVT, int channelIndex)
     {
         channelEditors [channelIndex].init (channelPropertiesVT, unEditedPresetProperties.getChannelVT(channelIndex), rootPropertiesVT, &editManager, copyBufferZoneProperties.getValueTree (), &copyBufferHasData);
+        channelProperties [channelIndex].wrap (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::yes);
+        channelProperties [channelIndex].onChannelModeChange = [this] (int)
+        {
+            updateAllChannelTabNames ();
+        };
         channelEditors [channelIndex].displayToolsMenu = [this] (int channelIndex)
         {
-            juce::PopupMenu pm;
-            pm.addItem ("Copy", true, false, [this, channelIndex] ()
+            juce::PopupMenu editMenu;
+
+            // Clone
+            juce::PopupMenu cloneMenu;
+            cloneMenu.addSubMenu ("Channel Settings", createChannelCloneMenu (channelIndex, [this, channelIndex] (ChannelProperties& destChannelProperties)
             {
-                copyBufferChannelProperties.copyFrom (channelProperties [channelIndex].getValueTree ());
-                copyBufferHasData = true;
-            });
-            pm.addItem ("Paste", copyBufferHasData, false, [this, channelIndex] ()
+                destChannelProperties.copyFrom (channelProperties [channelIndex].getValueTree ());
+            }));
+            cloneMenu.addSubMenu ("Zones", createChannelCloneMenu (channelIndex, [this, channelIndex] (ChannelProperties& destChannelProperties)
             {
-                channelProperties [channelIndex].copyFrom (copyBufferChannelProperties.getValueTree ());
-            });
-            pm.addItem ("Default", true, false, [this, channelIndex] ()
+                channelProperties [channelIndex].forEachZone ([this, &destChannelProperties] (juce::ValueTree zonePropertiesVT, int zoneIndex)
+                {
+                    ZoneProperties destZoneProperties (destChannelProperties.getZoneVT (zoneIndex), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
+                    destZoneProperties.copyFrom (zonePropertiesVT, false);
+                    return true;
+                });
+            }));
+            cloneMenu.addSubMenu ("Settings and Zones", createChannelCloneMenu (channelIndex, [this, channelIndex] (ChannelProperties& destChannelProperties)
+            {
+                destChannelProperties.copyFrom (channelProperties [channelIndex].getValueTree ());
+
+                channelProperties [channelIndex].forEachZone ([this, &destChannelProperties] (juce::ValueTree zonePropertiesVT, int zoneIndex)
+                {
+                    ZoneProperties destZoneProperties (destChannelProperties.getZoneVT (zoneIndex), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
+                    destZoneProperties.copyFrom (zonePropertiesVT, false);
+                    return true;
+                });
+            }));
+            editMenu.addSubMenu ("Clone", cloneMenu);
+            editMenu.addItem ("Default", true, false, [this, channelIndex] ()
             {
                 channelProperties [channelIndex].copyFrom (defaultChannelProperties.getValueTree ());
             });
-            pm.addItem ("Revert", true, false, [this, channelIndex] ()
+            editMenu.addItem ("Revert", true, false, [this, channelIndex] ()
             {
                 channelProperties [channelIndex].copyFrom (unEditedPresetProperties.getValueTree ());
             });
-            pm.showMenuAsync ({}, [this] (int) {});
+            editMenu.showMenuAsync ({}, [this] (int) {});
         };
 
         channelProperties [channelIndex].wrap (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::yes);

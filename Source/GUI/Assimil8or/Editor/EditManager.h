@@ -22,6 +22,8 @@ public:
 
     bool assignSamples (int channelIndex, int zoneIndex, const juce::StringArray& files);
     double clampMinVoltage (int channelIndex, int zoneIndex, double voltage);
+    juce::ValueTree getChannelDefaults ();
+    juce::ValueTree getZoneDefaults ();
     juce::int64 getMaxLoopStart (int channelIndex, int zoneIndex);
     int getNumUsedZones (int channelIndex);
     std::tuple<double, double> getVoltageBoundaries (int channelIndex, int zoneIndex, int topDepth);
