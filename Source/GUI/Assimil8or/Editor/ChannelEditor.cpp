@@ -2209,7 +2209,13 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree u
         zoneEditor.init (zonePropertiesVT, uneditedChannelProperties.getZoneVT (zoneIndex), rootPropertiesVT, editManager);
         zoneEditor.displayToolsMenu = [this] (int zoneIndex)
         {
+            auto* popupMenuLnF { new juce::LookAndFeel_V4 };
+            popupMenuLnF->setColour (juce::PopupMenu::ColourIds::headerTextColourId, juce::Colours::white.withAlpha (0.3f));
             juce::PopupMenu editMenu;
+            editMenu.setLookAndFeel (popupMenuLnF);
+            editMenu.addSectionHeader ("Zone " + juce::String (zoneProperties [zoneIndex].getId ()));
+            editMenu.addSeparator ();
+
             {
                 juce::PopupMenu balanceMenu;
                 balanceMenu.addItem ("5V", true, false, [this] () { balanceVoltages (VoltageBalanceType::distributeAcross5V); });
@@ -2271,7 +2277,7 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree u
                 ensureProperZoneIsSelected ();
                 updateAllZoneTabNames ();
             });
-            editMenu.showMenuAsync ({}, [this] (int) {});
+            editMenu.showMenuAsync ({}, [this, popupMenuLnF] (int) { delete popupMenuLnF; });
         };
 
         // Zone Properties setup

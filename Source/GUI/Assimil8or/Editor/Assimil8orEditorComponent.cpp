@@ -420,7 +420,12 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
         };
         channelEditors [channelIndex].displayToolsMenu = [this] (int channelIndex)
         {
+            auto* popupMenuLnF { new juce::LookAndFeel_V4 };
+            popupMenuLnF->setColour (juce::PopupMenu::ColourIds::headerTextColourId, juce::Colours::white.withAlpha (0.3f));
             juce::PopupMenu editMenu;
+            editMenu.setLookAndFeel (popupMenuLnF);
+            editMenu.addSectionHeader ("Channel " + juce::String (channelProperties [channelIndex].getId ()));
+            editMenu.addSeparator ();
 
             // Clone
             juce::PopupMenu cloneMenu;
@@ -457,7 +462,7 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
             {
                 channelProperties [channelIndex].copyFrom (unEditedPresetProperties.getValueTree ());
             });
-            editMenu.showMenuAsync ({}, [this] (int) {});
+            editMenu.showMenuAsync ({}, [this, popupMenuLnF] (int) { delete popupMenuLnF; });
         };
 
         channelProperties [channelIndex].wrap (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::yes);
