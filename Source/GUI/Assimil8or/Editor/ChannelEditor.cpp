@@ -2225,33 +2225,10 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree u
                 editMenu.addSubMenu ("Balance", balanceMenu, zoneProperties [zoneIndex].getSample ().isNotEmpty ());
             }
             {
-                juce::PopupMenu cloneMenu;
-                auto cloneMinVoltagesMenu { createChannelCloneMenu ([this] (ChannelProperties& destChannelProperties)
-                {
-                    if (const auto destNumUsedZones { editManager->getNumUsedZones (destChannelProperties.getId () - 1) };
-                        destNumUsedZones > 1)
-                    {
-                        channelProperties.forEachZone ([this, &destChannelProperties, destNumUsedZones] (juce::ValueTree zonePropertiesVT, int curZoneIndex)
-                        {
-                            if (curZoneIndex == destNumUsedZones - 1)
-                                return false;
-                            ZoneProperties srcZone (zonePropertiesVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
-                            ZoneProperties destZone (destChannelProperties.getZoneVT (curZoneIndex), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
-                            destZone.setMinVoltage (srcZone.getMinVoltage (), false);
-                            return true;
-                        });
-                    }
-                },
-                [this] (ChannelProperties& destChannelProperties) { return editManager->getNumUsedZones (destChannelProperties.getId () - 1) > 1; },
-                [this] (ChannelProperties& destChannelProperties) { return editManager->getNumUsedZones (destChannelProperties.getId () - 1) > 1; }) };
-                cloneMenu.addSubMenu ("MinVoltages", cloneMinVoltagesMenu, zoneProperties [zoneIndex].getSample ().isNotEmpty ());
-                editMenu.addSubMenu ("Clone", cloneMenu, true);
-            }
-            {
-                juce::PopupMenu pmCopy;
-                pmCopy.addItem ("All", zoneProperties [zoneIndex].getSample ().isNotEmpty (), false, [this, zoneIndex] () { copyZone (zoneIndex, false); });
-                pmCopy.addItem ("Settings", zoneProperties [zoneIndex].getSample ().isNotEmpty (), false, [this, zoneIndex] () { copyZone (zoneIndex, true); });
-                editMenu.addSubMenu ("Copy", pmCopy, zoneProperties [zoneIndex].getSample ().isNotEmpty ());
+                juce::PopupMenu copyMenu;
+                copyMenu.addItem ("Settings", zoneProperties [zoneIndex].getSample ().isNotEmpty (), false, [this, zoneIndex] () { copyZone (zoneIndex, true); });
+                copyMenu.addItem ("Sample and Settings", zoneProperties [zoneIndex].getSample ().isNotEmpty (), false, [this, zoneIndex] () { copyZone (zoneIndex, false); });
+                editMenu.addSubMenu ("Copy", copyMenu, zoneProperties [zoneIndex].getSample ().isNotEmpty ());
             }
             editMenu.addItem ("Paste", *zoneCopyBufferHasData && (zoneProperties [zoneIndex].getSample ().isNotEmpty() || copyBufferZoneProperties.getSample ().isNotEmpty ()), false, [this, zoneIndex] ()
             {
@@ -2259,24 +2236,28 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree u
                 updateAllZoneTabNames ();
                 ensureProperZoneIsSelected ();
             });
-            editMenu.addItem ("Delete", zoneProperties [zoneIndex].getSample ().isNotEmpty (), false, [this, zoneIndex] ()
-            {
-                deleteZone (zoneIndex);
-                ensureProperZoneIsSelected ();
-                updateAllZoneTabNames ();
-            });
             editMenu.addItem ("Insert", zoneProperties [zoneIndex].getSample ().isNotEmpty () && zoneIndex > 0 && zoneIndex < zoneProperties.size () - 1, false, [this, zoneIndex] ()
             {
                 duplicateZone (zoneIndex);
                 ensureProperZoneIsSelected ();
                 updateAllZoneTabNames ();
             });
-            editMenu.addItem ("Clear All", editManager->getNumUsedZones (channelIndex) > 0, false, [this] ()
             {
-                clearAllZones ();
-                ensureProperZoneIsSelected ();
-                updateAllZoneTabNames ();
-            });
+                juce::PopupMenu deleteMenu;
+                deleteMenu.addItem ("Zone " + juce::String (zoneProperties [zoneIndex].getId ()), zoneProperties [zoneIndex].getSample ().isNotEmpty (), false, [this, zoneIndex] ()
+                {
+                    deleteZone (zoneIndex);
+                    ensureProperZoneIsSelected ();
+                    updateAllZoneTabNames ();
+                });
+                deleteMenu.addItem ("All", editManager->getNumUsedZones (channelIndex) > 0, false, [this] ()
+                {
+                    clearAllZones ();
+                    ensureProperZoneIsSelected ();
+                    updateAllZoneTabNames ();
+                });
+                editMenu.addSubMenu ("Delete", deleteMenu, zoneProperties [zoneIndex].getSample ().isNotEmpty ());
+            }
             editMenu.showMenuAsync ({}, [this, popupMenuLnF] (int) { delete popupMenuLnF; });
         };
 

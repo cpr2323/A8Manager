@@ -427,33 +427,60 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
             editMenu.addSectionHeader ("Channel " + juce::String (channelProperties [channelIndex].getId ()));
             editMenu.addSeparator ();
 
-            // Clone
-            juce::PopupMenu cloneMenu;
-            cloneMenu.addSubMenu ("Channel Settings", createChannelCloneMenu (channelIndex, [this, channelIndex] (ChannelProperties& destChannelProperties)
             {
-                destChannelProperties.copyFrom (channelProperties [channelIndex].getValueTree ());
-            }));
-            cloneMenu.addSubMenu ("Zones", createChannelCloneMenu (channelIndex, [this, channelIndex] (ChannelProperties& destChannelProperties)
-            {
-                channelProperties [channelIndex].forEachZone ([this, &destChannelProperties] (juce::ValueTree zonePropertiesVT, int zoneIndex)
+                // Clone
+                juce::PopupMenu cloneMenu;
+                cloneMenu.addSubMenu ("Channel Settings", createChannelCloneMenu (channelIndex, [this, channelIndex] (ChannelProperties& destChannelProperties)
                 {
-                    ZoneProperties destZoneProperties (destChannelProperties.getZoneVT (zoneIndex), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
-                    destZoneProperties.copyFrom (zonePropertiesVT, false);
-                    return true;
-                });
-            }));
-            cloneMenu.addSubMenu ("Settings and Zones", createChannelCloneMenu (channelIndex, [this, channelIndex] (ChannelProperties& destChannelProperties)
-            {
-                destChannelProperties.copyFrom (channelProperties [channelIndex].getValueTree ());
+                    destChannelProperties.copyFrom (channelProperties [channelIndex].getValueTree ());
+                }));
+                cloneMenu.addSubMenu ("Zones", createChannelCloneMenu (channelIndex, [this, channelIndex] (ChannelProperties& destChannelProperties)
+                {
+                    channelProperties [channelIndex].forEachZone ([this, &destChannelProperties] (juce::ValueTree zonePropertiesVT, int zoneIndex)
+                    {
+                        ZoneProperties destZoneProperties (destChannelProperties.getZoneVT (zoneIndex), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
+                        destZoneProperties.copyFrom (zonePropertiesVT, false);
+                        return true;
+                    });
+                }));
+                cloneMenu.addSubMenu ("Settings and Zones", createChannelCloneMenu (channelIndex, [this, channelIndex] (ChannelProperties& destChannelProperties)
+                {
+                    destChannelProperties.copyFrom (channelProperties [channelIndex].getValueTree ());
 
-                channelProperties [channelIndex].forEachZone ([this, &destChannelProperties] (juce::ValueTree zonePropertiesVT, int zoneIndex)
+                    channelProperties [channelIndex].forEachZone ([this, &destChannelProperties] (juce::ValueTree zonePropertiesVT, int zoneIndex)
+                    {
+                        ZoneProperties destZoneProperties (destChannelProperties.getZoneVT (zoneIndex), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
+                        destZoneProperties.copyFrom (zonePropertiesVT, false);
+                        return true;
+                    });
+                }));
+                cloneMenu.addSubMenu ("MinVoltages", createChannelCloneMenu (channelIndex, [this, channelIndex] (ChannelProperties& destChannelProperties)
                 {
-                    ZoneProperties destZoneProperties (destChannelProperties.getZoneVT (zoneIndex), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
-                    destZoneProperties.copyFrom (zonePropertiesVT, false);
-                    return true;
-                });
-            }));
-            editMenu.addSubMenu ("Clone", cloneMenu);
+                    if (const auto destNumUsedZones { editManager.getNumUsedZones (destChannelProperties.getId () - 1) };
+                        destNumUsedZones > 1)
+                    {
+                        channelProperties[channelIndex].forEachZone ([this, &destChannelProperties, destNumUsedZones] (juce::ValueTree zonePropertiesVT, int curZoneIndex)
+                        {
+                            if (curZoneIndex == destNumUsedZones - 1)
+                                return false;
+                            ZoneProperties srcZone (zonePropertiesVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
+                            ZoneProperties destZone (destChannelProperties.getZoneVT (curZoneIndex), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
+                            destZone.setMinVoltage (srcZone.getMinVoltage (), false);
+                            return true;
+                        });
+                    }
+                }));
+                editMenu.addSubMenu ("Clone", cloneMenu);
+            }
+            editMenu.addItem ("Copy", true, false, [this, channelIndex] ()
+            {
+                copyBufferChannelProperties.copyFrom (channelProperties [channelIndex].getValueTree ());
+                copyBufferHasData = true;
+            });
+            editMenu.addItem ("Paste", copyBufferHasData, false, [this, channelIndex] ()
+            {
+                channelProperties [channelIndex].copyFrom (copyBufferChannelProperties.getValueTree ());
+            });
             editMenu.addItem ("Default", true, false, [this, channelIndex] ()
             {
                 channelProperties [channelIndex].copyFrom (defaultChannelProperties.getValueTree ());
