@@ -209,9 +209,9 @@ juce::int64 EditManager::getMaxLoopStart (int channelIndex, int zoneIndex)
     {
         // if normal Loop Length behavior is used, then Loop Start cannot push Loop Length past the end of the sample
         const auto sampleLength { sampleProperties.getLengthInSamples () };
-        const auto loopLength { static_cast<juce::int64> (zoneProperties.getLoopLength ().value_or (sampleLength)) };
+        const auto loopLength { static_cast<juce::int64> (zoneProperties.getLoopLength ().value_or (sampleLength - zoneProperties.getLoopStart ().value_or (0))) };
         const auto maxLoopStart { sampleLength - loopLength };
-        //DebugLog ("loopStartTextEditor.getMaxValueCallback (loopLength)", "sampleLength: " + juce::String(sampleLength) + ", loopLength: " + juce::String (loopLength) + ", maxLoopStart: " + juce::String (maxLoopStart));
+        //DebugLog ("EditManager::getMaxLoopStart (loopLength)", "sampleLength: " + juce::String(sampleLength) + ", loopLength: " + juce::String (loopLength) + ", maxLoopStart: " + juce::String (maxLoopStart));
         return sampleProperties.getLengthInSamples () < 4 ? 0 : maxLoopStart;
     }
     else
@@ -222,7 +222,7 @@ juce::int64 EditManager::getMaxLoopStart (int channelIndex, int zoneIndex)
         const auto loopEnd { loopStart + loopLength };
         const auto maxLoopStart { loopEnd - 4 };
         //const auto sampleLength { sampleProperties.getLengthInSamples () };
-        //     DebugLog ("loopStartTextEditor.getMaxValueCallback (loopEnd)", "sampleLength: " + juce::String (sampleLength) + ", loopStart: " + juce::String (loopStart) +
+        //     DebugLog ("EditManager::getMaxLoopStart (loopEnd)", "sampleLength: " + juce::String (sampleLength) + ", loopStart: " + juce::String (loopStart) +
         //               ", loopLength: " + juce::String (loopLength) + ", loopEnd: " + juce::String (loopEnd));
         return maxLoopStart;
     }
@@ -331,71 +331,5 @@ bool EditManager::assignSamples (int channelIndex, int zoneIndex, const juce::St
             jassertfalse;
         }
 #endif
-//    updateAllZoneTabNames ();
     return true;
 }
-
-// TODO - the functionality of assigning the second channel of a stereo wave file to the next channel needs to be moved elsewhere
-#if 0
-void EditManager::loadSample (int channelIndex, int zoneIndex, juce::String sampleFileName)
-{
-    jassert (channelIndex >= 0 && channelIndex < 8);
-    jassert (zoneIndex >= 0 && zoneIndex < 8);
-    //     if (sampleFileName == currentSampleFileName)
-//         return;
-//    currentSampleFileName = sampleFileName;
-
-    auto& zoneProperties { zonePropertiesList [channelIndex][zoneIndex]};
-    auto sampleData = [this, sampleFileName] ()
-    {
-        if (sampleFileName.isNotEmpty ())
-            return samplePool->open (sampleFileName);
-        else
-            return SampleData ();
-    } ();
-
-    if (sampleData.getStatus () == SampleData::SampleDataStatus::exists)
-    {
-
-        zoneProperties.setSampleStart (-1, true);
-        zoneProperties.setSampleEnd (-1, true);
-        zoneProperties.setLoopStart (-1, true);
-        zoneProperties.setLoopLength (-1, true);
-        zoneProperties.setSample (sampleFileName, false);
-
-        if (sampleData.getNumChannels () == 2)
-        {
-            // if this zone not the last channel && the parent channel isn't set to Stereo/Right
-            if (auto parentChannelId { channelPropertiesList [channelIndex].getId ()}; parentChannelId < 8 && channelPropertiesList [channelIndex].getChannelMode () != ChannelProperties::ChannelMode::stereoRight)
-            {
-                // NOTE PresetProperties.getChannelVT takes a 0 based index, but Id's are 1 based. and since we want the NEXT channel, we can use the Id, because it is already +1 to the index
-                ChannelProperties nextChannelProperties (presetProperties.getChannelVT (parentChannelId), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
-                ZoneProperties nextChannelZone1Properties (nextChannelProperties.getZoneVT (zoneProperties.getId () - 1), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
-                // if next Channel does not have a sample
-                if (nextChannelZone1Properties.getSample ().isEmpty ())
-                {
-                    nextChannelProperties.setChannelMode (ChannelProperties::ChannelMode::stereoRight, false);
-                    nextChannelZone1Properties.setSide (1, false);
-                    nextChannelZone1Properties.setSampleStart (-1, true);
-                    nextChannelZone1Properties.setSampleEnd (-1, true);
-                    nextChannelZone1Properties.setLoopStart (-1, true);
-                    nextChannelZone1Properties.setLoopLength (-1, true);
-                    nextChannelZone1Properties.setSample (sampleFileName, false); // when the other editor receives this update, it will also update the sample positions, so do it after setting them
-                }
-            }
-        }
-    }
-
-//     updateLoopPointsView ();
-//     updateSamplePositionInfo ();
-//     sampleUiChanged (sampleFileName);
-//     sampleNameSelectLabel.setText (sampleFileName, juce::NotificationType::dontSendNotification);
-//     sampleNameSelectLabel.setColour (juce::Label::ColourIds::textColourId, juce::Colours::white);
-//     const auto sampleCanBePlayed { sampleData.getStatus () == SampleData::SampleDataStatus::exists };
-//     oneShotPlayButton.setEnabled (sampleCanBePlayed);
-//     loopPlayButton.setEnabled (sampleCanBePlayed);
-// 
-//     if (onSampleChange != nullptr)
-//         onSampleChange (sampleFileName);
-}
-#endif

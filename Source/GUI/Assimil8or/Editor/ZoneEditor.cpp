@@ -446,7 +446,11 @@ void ZoneEditor::setupZoneComponents ()
                                                     zoneProperties.setLoopLength (newLoopLength, false);
                                                 }
                                             },
-                                            [this] () { zoneProperties.setLoopStart (uneditedZoneProperties.getLoopStart ().value_or (-1), true); },
+                                            [this] ()
+                                            {
+                                                // TODO - need to check and update Loop Length if treatLoopLengthAsEndInUi is true
+                                                zoneProperties.setLoopStart (uneditedZoneProperties.getLoopStart ().value_or (-1), true);
+                                            },
                                             [] (ZoneProperties& destZoneProperties) { return destZoneProperties.getSample ().isNotEmpty (); },
                                             [] (ZoneProperties& destZoneProperties) { return destZoneProperties.getSample ().isNotEmpty (); }) };
         editMenu.showMenuAsync ({}, [this] (int) {});
@@ -457,10 +461,12 @@ void ZoneEditor::setupZoneComponents ()
     setupLabel (loopLengthLabel, "LOOP LENGTH", 12.0, juce::Justification::centredRight);
     loopLengthTextEditor.getMinValueCallback = [this]
     {
+            if (sampleProperties.getLengthInSamples () == 0)
+                return  0.0;
         if (treatLoopLengthAsEndInUi)
-            return sampleProperties.getLengthInSamples () == 0 ? 0.0 : zoneProperties.getLoopStart().value_or (0.0) + minZoneProperties.getLoopLength ().value ();
+            return zoneProperties.getLoopStart().value_or (0.0) + minZoneProperties.getLoopLength ().value ();
         else
-            return sampleProperties.getLengthInSamples () == 0 ? 0.0 : minZoneProperties.getLoopLength ().value ();
+            return minZoneProperties.getLoopLength ().value ();
     };
     loopLengthTextEditor.getMaxValueCallback = [this]
     {
@@ -1049,7 +1055,7 @@ void ZoneEditor::loopLengthDataChanged (std::optional<double> loopLength)
 
 void ZoneEditor::loopLengthUiChanged (double loopLength)
 {
-    zoneProperties.setLoopLength (loopLength, false);
+    zoneProperties.setLoopLength (loopLength == static_cast<double> (sampleProperties.getLengthInSamples ()) ? -1.0 : loopLength, false);
     updateLoopPointsView ();
 }
 
@@ -1061,7 +1067,7 @@ void ZoneEditor::loopStartDataChanged (std::optional<juce::int64> loopStart)
 
 void ZoneEditor::loopStartUiChanged (juce::int64 loopStart)
 {
-    zoneProperties.setLoopStart (loopStart, false);
+    zoneProperties.setLoopStart (loopStart == 0 ? -1 : loopStart, false);
     updateLoopPointsView ();
 }
 
@@ -1131,7 +1137,8 @@ void ZoneEditor::sampleStartDataChanged (std::optional<juce::int64> sampleStart)
 
 void ZoneEditor::sampleStartUiChanged (juce::int64 sampleStart)
 {
-    zoneProperties.setSampleStart (sampleStart, false);
+    // -1 indicates the value is default
+    zoneProperties.setSampleStart (sampleStart == 0 ? -1 : sampleStart, false);
     updateLoopPointsView ();
 }
 
@@ -1147,6 +1154,7 @@ void ZoneEditor::sampleEndDataChanged (std::optional<juce::int64> sampleEnd)
 
 void ZoneEditor::sampleEndUiChanged (juce::int64 sampleEnd)
 {
-    zoneProperties.setSampleEnd (sampleEnd, false);
+    // -1 indicates the value is default
+    zoneProperties.setSampleEnd (sampleEnd == sampleProperties.getLengthInSamples () ? -1 : sampleEnd, false);
     updateLoopPointsView ();
 }

@@ -14,6 +14,14 @@ public:
     void setZone (int zoneIndex);
 
 private:
+    enum class EditHandleIndex
+    {
+        kNone = -1,
+        kSampleStart = 0,
+        kSampleEnd = 1,
+        kLoopStart = 2,
+        kLoopEnd = 3
+    };
     ChannelProperties channelProperties;
     SampleManagerProperties sampleManagerProperties;
     ZoneProperties zoneProperties;
@@ -38,7 +46,7 @@ private:
     int sampleEndMarkerX { 0 };
     int loopStartMarkerX { 0 };
     int loopEndMarkerX { 0 };
-    int handleIndex { -1 };
+    EditHandleIndex handleIndex { EditHandleIndex::kNone };
 
     void updateData ();
 

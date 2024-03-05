@@ -36,7 +36,7 @@ void WaveformDisplay::updateData ()
         sampleStart = zoneProperties.getSampleStart ().value_or (0);
         sampleEnd = zoneProperties.getSampleEnd ().value_or (numSamples);
         loopStart = zoneProperties.getLoopStart ().value_or (0);
-        loopLength = static_cast<juce::int64> (zoneProperties.getLoopLength ().value_or (static_cast<double>(numSamples)));
+        loopLength = static_cast<juce::int64> (zoneProperties.getLoopLength ().value_or (static_cast<double>(numSamples - loopStart)));
         samplesPerPixel = static_cast<int> (numSamples / getWidth ());
 
         const auto markerHandleSize { 5 };
@@ -126,15 +126,15 @@ void WaveformDisplay::mouseMove (const juce::MouseEvent& e)
     if (zoneProperties.isValid () && sampleProperties.isValid () && sampleProperties.getStatus () == SampleStatus::exists)
     {
         if (sampleStartHandle.contains (e.getPosition ()))
-            handleIndex = 0;
+            handleIndex = EditHandleIndex::kSampleStart;
         else if (sampleEndHandle.contains (e.getPosition ()))
-            handleIndex = 1;
+            handleIndex = EditHandleIndex::kSampleEnd;
         else if (loopStartHandle.contains (e.getPosition ()))
-            handleIndex = 2;
+            handleIndex = EditHandleIndex::kLoopStart;
         else if (loopEndHandle.contains (e.getPosition ()))
-            handleIndex = 3;
+            handleIndex = EditHandleIndex::kLoopEnd;
         else
-            handleIndex = -1;
+            handleIndex = EditHandleIndex::kNone;
         repaint ();
         //DebugLog ("WaveformDisplay", "mouseMove - handleIndex: " + juce::String (handleIndex));
     }
@@ -142,7 +142,7 @@ void WaveformDisplay::mouseMove (const juce::MouseEvent& e)
 
 void WaveformDisplay::mouseDown ([[maybe_unused]] const juce::MouseEvent& e)
 {
-    if (handleIndex == -1)
+    if (handleIndex == EditHandleIndex::kNone)
         return;
 }
 
@@ -150,46 +150,46 @@ void WaveformDisplay::mouseDrag (const juce::MouseEvent& e)
 {
     switch (handleIndex)
     {
-        case -1:
+        case EditHandleIndex::kNone:
         {
             return;
         }
         break;
-        case 0:
+        case EditHandleIndex::kSampleStart:
         {
             const auto newSampleStart { static_cast<juce::int64> (e.getPosition ().getX () * samplesPerPixel) };
             const auto clampedSampleStart { std::clamp (newSampleStart, static_cast<juce::int64> (0), zoneProperties.getSampleEnd ().value_or (sampleProperties.getLengthInSamples ()) - 1) };
-            zoneProperties.setSampleStart (clampedSampleStart, true);
+            zoneProperties.setSampleStart (clampedSampleStart == 0 ? -1 : clampedSampleStart, true);
         }
         break;
-        case 1:
+        case EditHandleIndex::kSampleEnd:
         {
             const auto newSampleEnd { static_cast<juce::int64> (e.getPosition ().getX () * samplesPerPixel) };
             const auto clampedSampleEnd { std::clamp (newSampleEnd, zoneProperties.getSampleStart ().value_or (0) + 1, sampleProperties.getLengthInSamples ()) };
-            zoneProperties.setSampleEnd (clampedSampleEnd, true);
+            zoneProperties.setSampleEnd (clampedSampleEnd == sampleProperties.getLengthInSamples() ? -1 : clampedSampleEnd, true);
         }
         break;
-        case 2:
+        case EditHandleIndex::kLoopStart:
         {
             const auto originalLoopStart { zoneProperties.getLoopStart ().value_or (0) };
             const auto newLoopStart { static_cast<juce::int64> (e.getPosition ().getX () * samplesPerPixel) };
             const auto clampedLoopStart { std::clamp (newLoopStart, static_cast<juce::int64> (0), editManager->getMaxLoopStart (channelProperties.getId () - 1, zoneProperties.getId () - 1)) };
-            zoneProperties.setLoopStart (clampedLoopStart, true);
+            //DebugLog ("Waveformdisplay::mouseDrag", "originalLoopStart: " + juce::String (originalLoopStart) + "' newLoopStart: " + juce::String (newLoopStart) + ", clampledLoopStart: " + juce::String (clampedLoopStart));
+            zoneProperties.setLoopStart (clampedLoopStart == 0 ? -1 : clampedLoopStart, true);
             if (channelProperties.getLoopLengthIsEnd ())
             {
                 // When treating Loop Length as Loop End, we need to adjust the internal storage of Loop Length by the amount Loop Start changed
                 const auto lengthChangeAmount { static_cast<double> (originalLoopStart - clampedLoopStart) };
                 const auto newLoopLength { zoneProperties.getLoopLength ().value_or (sampleProperties.getLengthInSamples ()) + lengthChangeAmount };
-                zoneProperties.setLoopLength (newLoopLength, true);
+                zoneProperties.setLoopLength (newLoopLength == sampleProperties.getLengthInSamples () ? -1 : newLoopLength, true);
             }
-
         }
         break;
-        case 3:
+        case EditHandleIndex::kLoopEnd:
         {
             const auto newLoopLength { static_cast<double> ((e.getPosition ().getX () * samplesPerPixel) - zoneProperties.getLoopStart ().value_or (0)) };
             const auto clampedLoopLength { std::clamp (newLoopLength, 4.0, static_cast<double> (sampleProperties.getLengthInSamples () - zoneProperties.getLoopStart ().value_or (0))) };
-            zoneProperties.setLoopLength (clampedLoopLength, true);
+            zoneProperties.setLoopLength (clampedLoopLength == sampleProperties.getLengthInSamples () ? -1.0 : clampedLoopLength, true);
         }
         break;
     }

@@ -159,24 +159,24 @@ namespace PresetHelpers
                 DebugLog ("areZonesEqual", text + ": are NOT equal");
         };
         displayIfNotEqual ("levelOffset", zonePropertiesOne.getLevelOffset () == zonePropertiesTwo.getLevelOffset ());
-        displayIfNotEqual ("loopLength", zonePropertiesOne.getLoopLength ().value_or (0.0) == zonePropertiesTwo.getLoopLength ().value_or (0.0));
-        displayIfNotEqual ("loopStart", zonePropertiesOne.getLoopStart ().value_or (0) == zonePropertiesTwo.getLoopStart ().value_or (0));
+        displayIfNotEqual ("loopLength", zonePropertiesOne.getLoopLength ().value_or (-1.0) == zonePropertiesTwo.getLoopLength ().value_or (-1.0));
+        displayIfNotEqual ("loopStart", zonePropertiesOne.getLoopStart ().value_or (-1) == zonePropertiesTwo.getLoopStart ().value_or (-1));
         displayIfNotEqual ("minVoltage", zonePropertiesOne.getMinVoltage () == zonePropertiesTwo.getMinVoltage ());
         displayIfNotEqual ("pitchOffset", zonePropertiesOne.getPitchOffset () == zonePropertiesTwo.getPitchOffset ());
         displayIfNotEqual ("sample", zonePropertiesOne.getSample () == zonePropertiesTwo.getSample ());
-        displayIfNotEqual ("sampleStart", zonePropertiesOne.getSampleStart ().value_or (0) == zonePropertiesTwo.getSampleStart ().value_or (0));
-        displayIfNotEqual ("sampleEnd", zonePropertiesOne.getSampleEnd ().value_or (0) == zonePropertiesTwo.getSampleEnd ().value_or (0));
+        displayIfNotEqual ("sampleStart", zonePropertiesOne.getSampleStart ().value_or (-1) == zonePropertiesTwo.getSampleStart ().value_or (-1));
+        displayIfNotEqual ("sampleEnd", zonePropertiesOne.getSampleEnd ().value_or (-1) == zonePropertiesTwo.getSampleEnd ().value_or (-1));
         displayIfNotEqual ("side", zonePropertiesOne.getSide () == zonePropertiesTwo.getSide ());
 
 #endif
         return  zonePropertiesOne.getLevelOffset () == zonePropertiesTwo.getLevelOffset () &&
-                zonePropertiesOne.getLoopLength ().value_or (0.0) == zonePropertiesTwo.getLoopLength ().value_or (0.0) &&
-                zonePropertiesOne.getLoopStart ().value_or (0) == zonePropertiesTwo.getLoopStart ().value_or (0) &&
+                zonePropertiesOne.getLoopLength ().value_or (-1.0) == zonePropertiesTwo.getLoopLength ().value_or (-1.0) &&
+                zonePropertiesOne.getLoopStart ().value_or (-1) == zonePropertiesTwo.getLoopStart ().value_or (-1) &&
                 zonePropertiesOne.getMinVoltage () == zonePropertiesTwo.getMinVoltage () &&
                 zonePropertiesOne.getPitchOffset () == zonePropertiesTwo.getPitchOffset () &&
                 zonePropertiesOne.getSample () == zonePropertiesTwo.getSample () &&
-                zonePropertiesOne.getSampleStart ().value_or (0) == zonePropertiesTwo.getSampleStart ().value_or (0) &&
-                zonePropertiesOne.getSampleEnd ().value_or (0) == zonePropertiesTwo.getSampleEnd ().value_or (0) &&
+                zonePropertiesOne.getSampleStart ().value_or (-1) == zonePropertiesTwo.getSampleStart ().value_or (-1) &&
+                zonePropertiesOne.getSampleEnd ().value_or (-1) == zonePropertiesTwo.getSampleEnd ().value_or (-1) &&
                 zonePropertiesOne.getSide () == zonePropertiesTwo.getSide ();
     };
 
@@ -192,13 +192,13 @@ namespace PresetHelpers
         ZoneProperties zonePropertiesTwo (zonePropertiesTwoVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
 
         displayIfDiff (zonePropertiesOne.getLevelOffset (), zonePropertiesTwo.getLevelOffset (), "LevelOffset");
-        displayIfDiff (zonePropertiesOne.getLoopLength ().value_or (99999999), zonePropertiesTwo.getLoopLength ().value_or (99999999), "LoopLength");
-        displayIfDiff (zonePropertiesOne.getLoopStart ().value_or (99999999), zonePropertiesTwo.getLoopStart ().value_or (99999999), "LoopStart");
+        displayIfDiff (zonePropertiesOne.getLoopLength ().value_or (-1.0), zonePropertiesTwo.getLoopLength ().value_or (-1.0), "LoopLength");
+        displayIfDiff (zonePropertiesOne.getLoopStart ().value_or (-1), zonePropertiesTwo.getLoopStart ().value_or (-1), "LoopStart");
         displayIfDiff (zonePropertiesOne.getMinVoltage (), zonePropertiesTwo.getMinVoltage (), "MinVoltage");
         displayIfDiff (zonePropertiesOne.getPitchOffset (), zonePropertiesTwo.getPitchOffset (), "PitchOffset");
         displayIfDiff (zonePropertiesOne.getSample (), zonePropertiesTwo.getSample (), "Sample");
-        displayIfDiff (zonePropertiesOne.getSampleStart ().value_or (99999999), zonePropertiesTwo.getSampleStart ().value_or (99999999), "SampleStart");
-        displayIfDiff (zonePropertiesOne.getSampleEnd ().value_or (99999999), zonePropertiesTwo.getSampleEnd ().value_or (99999999), "SampleEnd");
+        displayIfDiff (zonePropertiesOne.getSampleStart ().value_or (-1), zonePropertiesTwo.getSampleStart ().value_or (-1), "SampleStart");
+        displayIfDiff (zonePropertiesOne.getSampleEnd ().value_or (-1), zonePropertiesTwo.getSampleEnd ().value_or (-1), "SampleEnd");
         displayIfDiff (zonePropertiesOne.getSide (), zonePropertiesTwo.getSide (), "Side");
     };
 };
