@@ -135,7 +135,7 @@ void AREnvelopeComponent::mouseMove (const juce::MouseEvent& e)
     }
 }
 
-void AREnvelopeComponent::mouseExit (const juce::MouseEvent& e)
+void AREnvelopeComponent::mouseExit (const juce::MouseEvent&)
 {
     if (curActiveAnchor != nullptr)
     {
