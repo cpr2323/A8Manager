@@ -71,7 +71,7 @@ ZoneEditor::ZoneEditor ()
         };
         addAndMakeVisible (sourceButton);
     };
-    sourceSamplePointsButton.setTooltip ("Selects SMPLE START and SAMPLE END for loop view and playback");
+    sourceSamplePointsButton.setTooltip ("Selects SMPL START and SMPL END for loop view and playback");
     setupSourceButton (sourceSamplePointsButton, "SMPL", true, &samplePointsBackground, [this] ()
     {
         audioPlayerProperties.setSamplePointsSelector (AudioPlayerProperties::SamplePointsSelector::SamplePoints, false);

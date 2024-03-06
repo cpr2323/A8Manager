@@ -1,5 +1,6 @@
 #pragma once
 
+#if 0
 #include <JuceHeader.h>
 #include <stack>
 #include "../../Utility/ValueTreeWrapper.h"
@@ -85,7 +86,7 @@ class MidiSetupProperties : public ValueTreeWrapper<MidiSetupProperties>
     std::function<void (int mode)> onXmtProgramChangeChange;
     std::function<void (int mode)> onCollACCChange;
     std::function<void (int mode)> onCollBCCChange;
-    std::function<void (int mode)> CollCCCChange;
+    std::function<void (int mode)> onCollCCCChange;
     std::function<void (int mode)> onPitchWheelSemiChange;
     std::function<void (int mode)> onVelocityChange;
     std::function<void (int mode)> onnotificationsChange;
@@ -103,7 +104,7 @@ class MidiSetupProperties : public ValueTreeWrapper<MidiSetupProperties>
     static inline const juce::Identifier VelocityDepthPropertyId    { "Velocity" };
     static inline const juce::Identifier NotificationsPropertyId    { "notifications" };
 
-    void initValueTree () {};
+    void initValueTree () {}
     void processValueTree () {}
 
 private:
@@ -114,35 +115,19 @@ private:
 class MidiSetupFile
 {
 public:
-    Assimil8orPreset ();
-    void write (juce::File presetFile);
+    MidiSetupFile ();
     void write (juce::File presetFile, juce::ValueTree presetProperties);
-    void parse (juce::StringArray presetLines);
-
-    juce::ValueTree getPresetVT () { return presetProperties.getValueTree (); }
-    juce::ValueTree getParseErrorsVT () { return parseErrorList; }
+    juce::ValueTree parse (juce::StringArray presetLines);
 
 private:
-    PresetProperties presetProperties;
-    PresetProperties minPresetProperties;
-    PresetProperties maxPresetProperties;
-
-    juce::ValueTree parseErrorList { "ParseErrorList" };
     std::stack<Action> undoActionsStack;
     ActionMap globalActions;
-    ActionMap presetActions;
-    ActionMap channelActions;
-    ActionMap zoneActions;
     ActionMap* curActions { nullptr };
-    juce::ValueTree curPresetSection;
-    ChannelProperties channelProperties;
-    juce::ValueTree curChannelSection;
-    ZoneProperties zoneProperties;
-    juce::ValueTree curZoneSection;
+    juce::ValueTree curSection;
     juce::String key;
     juce::String value;
 
-    void checkCvInputAndAmountFormat (juce::String theKey, juce::String theValue);
     juce::String getSectionName ();
     void initParser ();
 };
+#endif
