@@ -16,14 +16,17 @@ const auto kDialogTextEditorName { "foldername" };
 FileViewComponent::FileViewComponent ()
 {
     openFolderButton.setButtonText ("Open");
+    openFolderButton.setTooltip ("Navigate to a specific folder");
     openFolderButton.onClick = [this] () { openFolder (); };
     addAndMakeVisible (openFolderButton);
     newFolderButton.setButtonText ("New");
+    newFolderButton.setTooltip ("Create a new folder");
     newFolderButton.onClick = [this] () { newFolder (); };
     addAndMakeVisible (newFolderButton);
     addAndMakeVisible (directoryContentsListBox);
     showAllFiles.setToggleState (false, juce::NotificationType::dontSendNotification);
     showAllFiles.setButtonText ("Show All");
+    showAllFiles.setTooltip ("Show all files, or show just Assimil8or files");
     showAllFiles.onClick = [this] () { updateFromNewDataThread.start (); };
     addAndMakeVisible (showAllFiles);
 

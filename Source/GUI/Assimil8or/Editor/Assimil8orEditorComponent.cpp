@@ -25,6 +25,7 @@ Assimil8orEditorComponent::Assimil8orEditorComponent ()
     addAndMakeVisible (titleLabel);
 
     setupButton (saveButton, "SAVE", [this] () { savePreset ();  });
+    saveButton.setTooltip ("Save the current Preset");
     saveButton.setEnabled (false);
 
     for (auto curChannelIndex { 0 }; curChannelIndex < 8; ++curChannelIndex)
@@ -33,6 +34,7 @@ Assimil8orEditorComponent::Assimil8orEditorComponent ()
 
     // add this AFTER the Channels tabs, because it occupies some of the same space, and ends up behind the tabs if we add it before
     toolsButton.setButtonText ("TOOLS");
+    toolsButton.setTooltip ("Preset Tools");
     toolsButton.onClick = [this] () { displayToolsMenu (); };
     addAndMakeVisible (toolsButton);
 

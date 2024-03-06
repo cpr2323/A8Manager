@@ -19,6 +19,7 @@ PresetListComponent::PresetListComponent ()
 {
     showAllPresets.setToggleState (true, juce::NotificationType::dontSendNotification);
     showAllPresets.setButtonText ("Show All");
+    showAllPresets.setTooltip ("Show all Presets, Show only existing presets");
     showAllPresets.onClick = [this] () { checkPresetsThread.start (); };
     addAndMakeVisible (showAllPresets);
     addAndMakeVisible (presetListBox);

@@ -102,6 +102,7 @@ ChannelEditor::ChannelEditor ()
     }
 
     toolsButton.setButtonText ("TOOLS");
+    toolsButton.setTooltip ("Channel Tools");
     toolsButton.onClick = [this] ()
     {
         if (displayToolsMenu != nullptr)

@@ -38,6 +38,7 @@ ZoneEditor::ZoneEditor ()
     };
 
     toolsButton.setButtonText ("TOOLS");
+    toolsButton.setTooltip ("Zone Tools");
     toolsButton.onClick = [this] ()
     {
         jassert (displayToolsMenu != nullptr);
@@ -70,11 +71,13 @@ ZoneEditor::ZoneEditor ()
         };
         addAndMakeVisible (sourceButton);
     };
+    sourceSamplePointsButton.setTooltip ("Selects SMPLE START and SAMPLE END for loop view and playback");
     setupSourceButton (sourceSamplePointsButton, "SMPL", true, &samplePointsBackground, [this] ()
     {
         audioPlayerProperties.setSamplePointsSelector (AudioPlayerProperties::SamplePointsSelector::SamplePoints, false);
     });
 
+    sourceLoopPointsButton.setTooltip ("Selects LOOP START and LOOP LENGTH/END for loop view and playback");
     setupSourceButton (sourceLoopPointsButton, "LOOP", false, &loopPointsBackground, [this] ()
     {
         audioPlayerProperties.setSamplePointsSelector (AudioPlayerProperties::SamplePointsSelector::LoopPoints, false);
@@ -119,6 +122,7 @@ ZoneEditor::ZoneEditor ()
         };
         addAndMakeVisible (playButton);
     };
+    loopPlayButton.setTooltip ("Plays the currently selected SOURCE in looping mode");
     setupPlayButton (loopPlayButton, "LOOP", false, "ONCE", sourceLoopPointsButton, AudioPlayerProperties::PlayState::loop,
     [this] ()
     {
@@ -129,6 +133,7 @@ ZoneEditor::ZoneEditor ()
         audioPlayerProperties.setSamplePointsSelector (AudioPlayerProperties::SamplePointsSelector::SamplePoints, false);
     });
 
+    oneShotPlayButton.setTooltip ("Plays the currently selected SOURCE in one shot mode");
     setupPlayButton (oneShotPlayButton, "ONCE", false, "LOOP", sourceSamplePointsButton, AudioPlayerProperties::PlayState::play,
     [this] ()
     {
