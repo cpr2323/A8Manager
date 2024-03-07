@@ -44,7 +44,7 @@ private:
 //    juce::File audioFile;
     double sampleRate { 44100.0 };
     int blockSize { 128 };
-    double sampleRateRatio { 1.0 };
+    double sampleRateRatio { 0.0 };
 
     void configureAudioDevice (juce::String deviceName);
     void handlePlayState (AudioPlayerProperties::PlayState playState);
