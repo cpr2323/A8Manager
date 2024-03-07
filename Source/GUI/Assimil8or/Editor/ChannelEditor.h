@@ -144,16 +144,11 @@ public:
         if (button.getTabbedButtonBar ().isVertical ())
             std::swap (length, depth);
 
-        // TODO - improve the layout of this text
-        juce::TextLayout textLayout;
-        juce::Font indexFont (depth * 0.4f);
-        juce::Font voltageFont (depth * 0.35f);
-        juce::AttributedString s;
+        g.setColour (col);
         auto textToDraw { button.getButtonText ().trim () };
         auto zoneIndexString { textToDraw.upToFirstOccurrenceOf ("\r" , false, true) };
-        auto minVoltageString { textToDraw.fromFirstOccurrenceOf ("\r", true, true)};
-        s.setJustification (juce::Justification::centred);
-        s.append ("   " + zoneIndexString, indexFont, col);
+        auto minVoltageString { textToDraw.fromFirstOccurrenceOf ("\r", false, true) };
+        g.drawText (zoneIndexString, juce::Rectangle<float> { 0.f, 1.f, static_cast<float> (area.getWidth ()), static_cast<float>(area.getHeight () / 2) }, juce::Justification::centred, false);
         if (minVoltageString.isNotEmpty ())
         {
 #define COLORIZE_VOLTAGE_VALUES 1
@@ -167,13 +162,13 @@ public:
 #else
             col = kZeroVoltageColor;
 #endif
-            s.setJustification (juce::Justification::centredLeft);
-            s.append (minVoltageString, voltageFont, col);
+            auto currentFont { g.getCurrentFont () };
+            juce::Font voltageFont (depth * 0.35f);
+            g.setFont (voltageFont);
+            g.setColour (col);
+            g.drawText (minVoltageString, juce::Rectangle<float> { 2.f, static_cast<float>(area.getHeight () / 2), static_cast<float> (area.getWidth () - 4), static_cast<float>(area.getHeight () / 2) }, juce::Justification::centred, false);
+            g.setFont (currentFont);
         }
-        textLayout.createLayout (s, length);
-        g.setOrigin (1, 2);
-        textLayout.draw (g, juce::Rectangle<float> (length, depth));
-        g.setOrigin (0, 0);
     }
 
 //     juce::Font getTabButtonFont (juce::TabBarButton&, float height) override;
