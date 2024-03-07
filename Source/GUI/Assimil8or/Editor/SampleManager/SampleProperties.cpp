@@ -47,7 +47,7 @@ void SampleProperties::setAudioBufferPtr (AudioBufferType* audioBufferPtr, bool 
 
 SampleStatus SampleProperties::getStatus ()
 {
-    return static_cast<SampleStatus>(getValue<int> (StatusPropertyId));
+    return static_cast<SampleStatus> (getValue<int> (StatusPropertyId));
 }
 
 juce::String SampleProperties::getName ()

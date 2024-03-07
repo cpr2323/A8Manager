@@ -26,13 +26,13 @@ namespace PresetHelpers
             return "Off";
         const auto adjustedIndex {cvInputIndex - 1};
         jassert (adjustedIndex >= 0 && adjustedIndex <= 27);
-        return juce::String::charToString('0' + adjustedIndex / 3) + juce::String::charToString ('A' + (adjustedIndex % 3));
+        return juce::String::charToString ('0' + adjustedIndex / 3) + juce::String::charToString ('A' + (adjustedIndex % 3));
     }
 
     // TODO - add options to check Preset Id as well
 #define LOG_DIFFERENCE 0
 #if LOG_DIFFERENCE
-#define LogDifference (parameter, value1, value2) DebugLog("areEntirePresetsEqual - [" + parameter + "]: " + value1 + " != " + value2);
+#define LogDifference (parameter, value1, value2) DebugLog ("areEntirePresetsEqual - [" + parameter + "]: " + value1 + " != " + value2);
 #endif
     bool areEntirePresetsEqual (juce::ValueTree presetOneVT, juce::ValueTree presetTwoVT)
     {
@@ -155,7 +155,7 @@ namespace PresetHelpers
 
         auto displayIfNotEqual = [] (juce::String text, bool areEqual)
         {
-            if (!areEqual)
+            if (! areEqual)
                 DebugLog ("areZonesEqual", text + ": are NOT equal");
         };
         displayIfNotEqual ("levelOffset", zonePropertiesOne.getLevelOffset () == zonePropertiesTwo.getLevelOffset ());

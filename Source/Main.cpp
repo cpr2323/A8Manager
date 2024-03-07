@@ -118,7 +118,6 @@ public:
         // SampleManager requires that the PresetManagerProperties and DirectoryDataProperties are initialized
         sampleManager.init (rootProperties.getValueTree ());
 
-
         // when the folder being viewed changes, signal the directory scanner to rescan
         appProperties.onMostRecentFolderChange = [this] (juce::String folderName)
         {

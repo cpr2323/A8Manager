@@ -414,7 +414,7 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
     copyBufferZoneProperties.wrap ({}, ZoneProperties::WrapperType::owner, ZoneProperties::EnableCallbacks::no);
     presetProperties.forEachChannel ([this, rootPropertiesVT] (juce::ValueTree channelPropertiesVT, int channelIndex)
     {
-        channelEditors [channelIndex].init (channelPropertiesVT, unEditedPresetProperties.getChannelVT(channelIndex), rootPropertiesVT, &editManager, copyBufferZoneProperties.getValueTree (), &copyBufferHasData);
+        channelEditors [channelIndex].init (channelPropertiesVT, unEditedPresetProperties.getChannelVT (channelIndex), rootPropertiesVT, &editManager, copyBufferZoneProperties.getValueTree (), &copyBufferHasData);
         channelProperties [channelIndex].wrap (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::yes);
         channelProperties [channelIndex].onChannelModeChange = [this] (int)
         {
@@ -650,7 +650,7 @@ void Assimil8orEditorComponent::resized ()
     // Save Button
     saveButton.setBounds (topRow.removeFromRight (75));
     // Tools Button
-    toolsButton.setBounds (getWidth() - 43, saveButton.getBottom () + 3, 40, 20);
+    toolsButton.setBounds (getWidth () - 43, saveButton.getBottom () + 3, 40, 20);
 
     // Channel Tabs
     const auto channelSectionY { titleLabel.getBottom () + 3 };

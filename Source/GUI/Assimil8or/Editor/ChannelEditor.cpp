@@ -506,7 +506,7 @@ void ChannelEditor::setupChannelComponents ()
 
     /////////////////////////////////////////
     // column one
-    // 
+    //
     // PITCH SECTION LABEL
     setupLabel (pitchLabel, "PITCH", kLargeLabelSize, juce::Justification::centred);
 
@@ -859,7 +859,7 @@ void ChannelEditor::setupChannelComponents ()
         editMenu.showMenuAsync ({}, [this] (int) {});
     };
     setupCvInputComboBox (expAMComboBox, "ExpAM", [this] () { expAMUiChanged (expAMComboBox.getSelectedItemText (), expAMTextEditor.getText ().getDoubleValue ()); });
-    
+
     // EXPAM CV OFFSET EDITOR
     expAMTextEditor.getMinValueCallback = [this] () { return FormatHelpers::getAmount (minChannelProperties.getExpAM ()); };
     expAMTextEditor.getMaxValueCallback = [this] () { return FormatHelpers::getAmount (maxChannelProperties.getExpAM ()); };
@@ -2031,7 +2031,7 @@ void ChannelEditor::setupChannelComponents ()
     {
         const auto scrollAmount { (dragSpeed == DragSpeed::fast ? 2 : 1) * direction };
         xfadeGroupComboBox.setSelectedItemIndex (std::clamp (xfadeGroupComboBox.getSelectedItemIndex () + scrollAmount, 0, xfadeGroupComboBox.getNumItems () - 1));
-        channelProperties.setXfadeGroup (xfadeGroupComboBox.getText() ,false);
+        channelProperties.setXfadeGroup (xfadeGroupComboBox.getText () ,false);
     };
     xfadeGroupComboBox.onPopupMenuCallback = [this] ()
     {
@@ -2231,7 +2231,7 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree u
                 copyMenu.addItem ("Sample and Settings", zoneProperties [zoneIndex].getSample ().isNotEmpty (), false, [this, zoneIndex] () { copyZone (zoneIndex, false); });
                 editMenu.addSubMenu ("Copy", copyMenu, zoneProperties [zoneIndex].getSample ().isNotEmpty ());
             }
-            editMenu.addItem ("Paste", *zoneCopyBufferHasData && (zoneProperties [zoneIndex].getSample ().isNotEmpty() || copyBufferZoneProperties.getSample ().isNotEmpty ()), false, [this, zoneIndex] ()
+            editMenu.addItem ("Paste", *zoneCopyBufferHasData && (zoneProperties [zoneIndex].getSample ().isNotEmpty () || copyBufferZoneProperties.getSample ().isNotEmpty ()), false, [this, zoneIndex] ()
             {
                 pasteZone (zoneIndex);
                 updateAllZoneTabNames ();

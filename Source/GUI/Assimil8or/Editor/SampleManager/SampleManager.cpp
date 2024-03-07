@@ -79,7 +79,7 @@ void SampleManager::handleSampleChange (int channelIndex, int zoneIndex, juce::S
     // if there is an already open sample, we want to close it
     if (sampleProperties.getName ().isNotEmpty ())
     {
-        LogSamplePool ("handleSampleChangeclosing sample '" + sampleProperties.getName () + " 'for c" + juce::String(channelIndex) + "/z" + juce::String (zoneIndex));
+        LogSamplePool ("handleSampleChangeclosing sample '" + sampleProperties.getName () + " 'for c" + juce::String (channelIndex) + "/z" + juce::String (zoneIndex));
         sampleProperties.setStatus (SampleStatus::uninitialized, false); // this should inform clients to stop using the sample, before we reset everything else
         close (sampleProperties.getName ());
         sampleProperties.setAudioBufferPtr (nullptr, false);

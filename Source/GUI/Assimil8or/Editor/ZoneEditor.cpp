@@ -209,7 +209,7 @@ void ZoneEditor::updateLoopPointsView ()
 {
     juce::int64 startSample { 0 };
     juce::int64 numSamples { 0 };
-    if (sampleProperties.getStatus() == SampleStatus::exists)
+    if (sampleProperties.getStatus () == SampleStatus::exists)
     {
         if (sourceSamplePointsButton.getToggleState ())
         {
@@ -403,7 +403,7 @@ void ZoneEditor::setupZoneComponents ()
         {
             // When treating Loop Length as Loop End, we need to adjust the internal storage of Loop Length by the amount Loop Start changed
             const auto lengthChangeAmount { static_cast<double> (originalLoopStart - value) };
-            const auto newLoopLength { zoneProperties.getLoopLength().value_or (sampleProperties.getLengthInSamples()) + lengthChangeAmount };
+            const auto newLoopLength { zoneProperties.getLoopLength ().value_or (sampleProperties.getLengthInSamples ()) + lengthChangeAmount };
             loopLengthUiChanged (newLoopLength);
         }
     };
@@ -425,7 +425,7 @@ void ZoneEditor::setupZoneComponents ()
     {
         auto editMenu { createZoneEditMenu ([this] (ZoneProperties& destZoneProperties, SampleProperties& destSampleProperties)
                                             {
-                                                const auto originalLoopStart { destZoneProperties.getLoopStart().value_or (0) };
+                                                const auto originalLoopStart { destZoneProperties.getLoopStart ().value_or (0) };
                                                 const auto clampedLoopStart { std::clamp (zoneProperties.getLoopStart ().value_or (0),
                                                                                           minZoneProperties.getLoopStart ().value_or (0),
                                                                                           editManager->getMaxLoopStart (parentChannelIndex, destZoneProperties.getId () - 1)) };
@@ -469,7 +469,7 @@ void ZoneEditor::setupZoneComponents ()
             if (sampleProperties.getLengthInSamples () == 0)
                 return  0.0;
         if (treatLoopLengthAsEndInUi)
-            return zoneProperties.getLoopStart().value_or (0.0) + minZoneProperties.getLoopLength ().value ();
+            return zoneProperties.getLoopStart ().value_or (0.0) + minZoneProperties.getLoopLength ().value ();
         else
             return minZoneProperties.getLoopLength ().value ();
     };
@@ -627,7 +627,7 @@ void ZoneEditor::setupZoneComponents ()
         const auto newValue { zoneProperties.getLevelOffset () + (multiplier * static_cast<double> (direction)) };
         levelOffsetTextEditor.setValue (newValue);
     };
-    levelOffsetTextEditor.onPopupMenuCallback = [this] () 
+    levelOffsetTextEditor.onPopupMenuCallback = [this] ()
     {
         auto editMenu { createZoneEditMenu ([this] (ZoneProperties& destZoneProperties, SampleProperties&) { destZoneProperties.setLevelOffset (zoneProperties.getLevelOffset (), false); },
                                             [this] () { zoneProperties.setLevelOffset (0, true); },
@@ -947,7 +947,7 @@ double ZoneEditor::snapLoopLength (double rawValue)
 }
 
 juce::PopupMenu ZoneEditor::createZoneEditMenu (std::function <void (ZoneProperties&, SampleProperties&)> setter, std::function <void ()> resetter, std::function <void ()> reverter,
-                                                std::function<bool(ZoneProperties&)> canCloneCallback, std::function<bool (ZoneProperties&)> canCloneToAllCallback)
+                                                std::function<bool (ZoneProperties&)> canCloneCallback, std::function<bool (ZoneProperties&)> canCloneToAllCallback)
 {
     // you can pass in a nullptr for one of the callbacks, to disable that item, but at least one of these should be valid, if not the caller should just not be trying to display an edit menu
     jassert (setter != nullptr || resetter != nullptr);
@@ -1149,7 +1149,7 @@ void ZoneEditor::sampleStartUiChanged (juce::int64 sampleStart)
 
 void ZoneEditor::sampleEndDataChanged (std::optional<juce::int64> sampleEnd)
 {
-    if (sampleProperties.getStatus() != SampleStatus::uninitialized)
+    if (sampleProperties.getStatus () != SampleStatus::uninitialized)
         sampleEndTextEditor.setText (juce::String (sampleEnd.value_or (sampleProperties.getLengthInSamples ())));
     else
         sampleEndTextEditor.setText ("0");

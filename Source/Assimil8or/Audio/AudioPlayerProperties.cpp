@@ -3,7 +3,7 @@
 void AudioPlayerProperties::initValueTree ()
 {
     setPlayState (PlayState::stop, false);
-    setSampleSource(-1, -1, false);
+    setSampleSource (-1, -1, false);
     setSamplePointsSelector (SamplePointsSelector::SamplePoints, false);
 }
 
@@ -35,7 +35,7 @@ AudioPlayerProperties::PlayState AudioPlayerProperties::getPlayState ()
 
 std::tuple<int, int> AudioPlayerProperties::getSampleSource ()
 {
-    const auto channelAndZoneIndiciesStrings { juce::StringArray::fromTokens (getValue<juce::String>(SampleSourcePropertyId), ",", "")};
+    const auto channelAndZoneIndiciesStrings { juce::StringArray::fromTokens (getValue<juce::String> (SampleSourcePropertyId), ",", "")};
     jassert (channelAndZoneIndiciesStrings.size () == 2);
     return { channelAndZoneIndiciesStrings[0].getIntValue (), channelAndZoneIndiciesStrings [1].getIntValue () };
 }

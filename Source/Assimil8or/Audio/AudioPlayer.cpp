@@ -74,7 +74,7 @@ void AudioPlayer::initFromZone (std::tuple<int, int> channelAndZoneIndecies)
         initSamplePoints ();
         prepareSampleForPlayback ();
     };
-    // TODO - can I refactor these callback? 
+    // TODO - can I refactor these callback?
     //  issues:
     //      onSampleStartChange recalculates sampleLength, but onLoopStartChange does NOT change sampleLength
     //      onLoopLengthChange a double parameter, the other three have int64
@@ -86,7 +86,7 @@ void AudioPlayer::initFromZone (std::tuple<int, int> channelAndZoneIndecies)
         if (audioPlayerProperties.getSSamplePointsSelector () == AudioPlayerProperties::SamplePointsSelector::LoopPoints)
             return;
         sampleStart = static_cast<int> (newSampleStart.value_or (0) * sampleRateRatio);
-        sampleLength = static_cast<int> ((zoneProperties.getSampleEnd().value_or (sampleProperties.getLengthInSamples ()) - zoneProperties.getSampleStart ().value_or (0)) * sampleRateRatio);
+        sampleLength = static_cast<int> ((zoneProperties.getSampleEnd ().value_or (sampleProperties.getLengthInSamples ()) - zoneProperties.getSampleStart ().value_or (0)) * sampleRateRatio);
         if (curSampleOffset < sampleStart || curSampleOffset >= sampleStart + sampleLength)
             curSampleOffset = sampleStart;
         LogAudioPlayer ("zoneProperties.onSampleStartChange - sampleStart: " + juce::String (sampleStart) + ", sampleLength: " + juce::String (sampleLength) + ", curSampleOffset: " + juce::String (curSampleOffset));
@@ -184,8 +184,8 @@ void AudioPlayer::prepareSampleForPlayback ()
     if (zoneProperties.isValid () && sampleProperties.isValid () && sampleProperties.getStatus () == SampleStatus::exists)
     {
         LogAudioPlayer ("prepareSampleForPlayback: sample is ready");
-        std::unique_ptr <juce::MemoryAudioSource> readerSource = std::make_unique<juce::MemoryAudioSource> (*sampleProperties.getAudioBufferPtr (), false, false);
-        std::unique_ptr<juce::ResamplingAudioSource> resamplingAudioSource = std::make_unique<juce::ResamplingAudioSource> (readerSource.get (), false, 2);
+        std::unique_ptr <juce::MemoryAudioSource> readerSource { std::make_unique<juce::MemoryAudioSource> (*sampleProperties.getAudioBufferPtr (), false, false) };
+        std::unique_ptr<juce::ResamplingAudioSource> resamplingAudioSource { std::make_unique<juce::ResamplingAudioSource> (readerSource.get (), false, 2) };
         sampleRateRatio = sampleRate / sampleProperties.getSampleRate ();
         resamplingAudioSource->setResamplingRatio (sampleProperties.getSampleRate () / sampleRate);
         resamplingAudioSource->prepareToPlay (blockSize, sampleRate);

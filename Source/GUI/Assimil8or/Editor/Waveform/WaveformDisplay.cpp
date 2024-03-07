@@ -36,7 +36,7 @@ void WaveformDisplay::updateData ()
         sampleStart = zoneProperties.getSampleStart ().value_or (0);
         sampleEnd = zoneProperties.getSampleEnd ().value_or (numSamples);
         loopStart = zoneProperties.getLoopStart ().value_or (0);
-        loopLength = static_cast<juce::int64> (zoneProperties.getLoopLength ().value_or (static_cast<double>(numSamples - loopStart)));
+        loopLength = static_cast<juce::int64> (zoneProperties.getLoopLength ().value_or (static_cast<double> (numSamples - loopStart)));
         samplesPerPixel = static_cast<int> (numSamples / getWidth ());
 
         const auto markerHandleSize { 5 };
@@ -46,15 +46,15 @@ void WaveformDisplay::updateData ()
         sampleStartHandle = { sampleStartMarkerX, markerStartY, markerHandleSize, markerHandleSize };
 
         // draw sample end marker
-        sampleEndMarkerX = 1 + static_cast<int> ((static_cast<float>(sampleEnd) / static_cast<float>(numSamples) * numPixels));
+        sampleEndMarkerX = 1 + static_cast<int> ((static_cast<float> (sampleEnd) / static_cast<float> (numSamples) * numPixels));
         sampleEndHandle = { sampleEndMarkerX - markerHandleSize, markerStartY, markerHandleSize, markerHandleSize };
 
         // draw loop start marker
-        loopStartMarkerX = 1 + static_cast<int> ((static_cast<float>(loopStart) / static_cast<float>(numSamples) * numPixels));
+        loopStartMarkerX = 1 + static_cast<int> ((static_cast<float> (loopStart) / static_cast<float> (numSamples) * numPixels));
         loopStartHandle = { loopStartMarkerX, markerEndY - markerHandleSize, markerHandleSize, markerHandleSize };
 
         // draw loop end marker
-        loopEndMarkerX = 1 + static_cast<int> (((static_cast<float>(loopStart + static_cast<juce::int64> (loopLength))) / static_cast<float>(numSamples) * numPixels));
+        loopEndMarkerX = 1 + static_cast<int> (((static_cast<float> (loopStart + static_cast<juce::int64> (loopLength))) / static_cast<float> (numSamples) * numPixels));
         loopEndHandle = { loopEndMarkerX - markerHandleSize, markerEndY - markerHandleSize, markerHandleSize, markerHandleSize };
     }
 }
@@ -74,7 +74,7 @@ void WaveformDisplay::paint (juce::Graphics& g)
     g.setColour (juce::Colours::grey.darker (0.3f));
     g.fillRect (getLocalBounds ());
 
-    if (zoneProperties.isValid () && sampleProperties.isValid () && sampleProperties.getStatus() == SampleStatus::exists)
+    if (zoneProperties.isValid () && sampleProperties.isValid () && sampleProperties.getStatus () == SampleStatus::exists)
     {
         const auto audioBufferPtr { sampleProperties.getAudioBufferPtr () };
         auto readPtr { audioBufferPtr->getReadPointer (zoneProperties.getSide ()) };
@@ -166,7 +166,7 @@ void WaveformDisplay::mouseDrag (const juce::MouseEvent& e)
         {
             const auto newSampleEnd { static_cast<juce::int64> (e.getPosition ().getX () * samplesPerPixel) };
             const auto clampedSampleEnd { std::clamp (newSampleEnd, zoneProperties.getSampleStart ().value_or (0) + 1, sampleProperties.getLengthInSamples ()) };
-            zoneProperties.setSampleEnd (clampedSampleEnd == sampleProperties.getLengthInSamples() ? -1 : clampedSampleEnd, true);
+            zoneProperties.setSampleEnd (clampedSampleEnd == sampleProperties.getLengthInSamples () ? -1 : clampedSampleEnd, true);
         }
         break;
         case EditHandleIndex::kLoopStart:

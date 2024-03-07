@@ -34,7 +34,7 @@ public:
     {
         jassert (getMinValueCallback != nullptr);
         jassert (getMaxValueCallback != nullptr);
-        //DebugLog ("CustomTextEditor", "minValue: " + juce::String(getMinValueCallback ()) + ", maxValue: " + juce::String (getMaxValueCallback ()));
+        //DebugLog ("CustomTextEditor", "minValue: " + juce::String (getMinValueCallback ()) + ", maxValue: " + juce::String (getMaxValueCallback ()));
         // check if this current value is valid, if it is then also call the extended error check
         if (ErrorHelpers::setColorIfError (*this, getMinValueCallback (), getMaxValueCallback ()) && highlightErrorCallback != nullptr)
             highlightErrorCallback ();
@@ -65,7 +65,7 @@ private:
         {
             //DebugLog ("CustomTextEditor", "input value: " + juce::String (value));
             const auto clampedValue { std::clamp (value, getMinValueCallback (), getMaxValueCallback ()) };
-            //DebugLog ("CustomTextEditor", "clamped value: " + juce::String(clampedValue));
+            //DebugLog ("CustomTextEditor", "clamped value: " + juce::String (clampedValue));
             // TODO - I think this should be handled by the toStringCallback AND in the Preset Writer
             if (snapValueCallback == nullptr)
                 return clampedValue;
@@ -92,7 +92,7 @@ private:
 
     void mouseDown (const juce::MouseEvent& mouseEvent) override
     {
-        if (!customComponentMouseHandler.mouseDown (mouseEvent, onPopupMenuCallback, [this] () { jassert (onFocusLost != nullptr); onFocusLost (); }))
+        if (! customComponentMouseHandler.mouseDown (mouseEvent, onPopupMenuCallback, [this] () { jassert (onFocusLost != nullptr); onFocusLost (); }))
             juce::TextEditor::mouseDown (mouseEvent);
     }
 

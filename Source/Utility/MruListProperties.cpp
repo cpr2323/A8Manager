@@ -35,7 +35,7 @@ void MruListProperties::setMaxMruEntries (int maxMruEntries)
 {
     setValue (maxMruEntries, MaxMRUEntriesPropertyId, false);
     auto numMruEntries { getNumMruEntries () };
-    while(numMruEntries-- > maxMruEntries)
+    while (numMruEntries-- > maxMruEntries)
     {
         // we use the decremented value from the while, since the index is 1 less than the count
         data.removeChild (numMruEntries, nullptr);

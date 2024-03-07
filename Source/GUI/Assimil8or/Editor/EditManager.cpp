@@ -178,7 +178,7 @@ bool EditManager::isMinVoltageInRange (int channelIndex, int zoneIndex, double v
 
 double EditManager::clampMinVoltage (int channelIndex, int zoneIndex, double voltage)
 {
-    if (zoneIndex != getNumUsedZones(channelIndex) - 1)
+    if (zoneIndex != getNumUsedZones (channelIndex) - 1)
     {
         const auto [topBoundary, bottomBoundary] { getVoltageBoundaries (channelIndex, zoneIndex, 0) };
         return std::clamp (voltage, bottomBoundary + 0.01, topBoundary - 0.01);
@@ -211,7 +211,7 @@ juce::int64 EditManager::getMaxLoopStart (int channelIndex, int zoneIndex)
         const auto sampleLength { sampleProperties.getLengthInSamples () };
         const auto loopLength { static_cast<juce::int64> (zoneProperties.getLoopLength ().value_or (sampleLength - zoneProperties.getLoopStart ().value_or (0))) };
         const auto maxLoopStart { sampleLength - loopLength };
-        //DebugLog ("EditManager::getMaxLoopStart (loopLength)", "sampleLength: " + juce::String(sampleLength) + ", loopLength: " + juce::String (loopLength) + ", maxLoopStart: " + juce::String (maxLoopStart));
+        //DebugLog ("EditManager::getMaxLoopStart (loopLength)", "sampleLength: " + juce::String (sampleLength) + ", loopLength: " + juce::String (loopLength) + ", maxLoopStart: " + juce::String (maxLoopStart));
         return sampleProperties.getLengthInSamples () < 4 ? 0 : maxLoopStart;
     }
     else
@@ -312,7 +312,7 @@ bool EditManager::assignSamples (int channelIndex, int zoneIndex, const juce::St
         const auto updateIndexThreshold { initialEndIndex - 1 };
 
         // Update values for the requested section
-        for (int curZoneIndex = initialIndex; curZoneIndex < dropZoneEndIndex; ++curZoneIndex)
+        for (int curZoneIndex { initialIndex }; curZoneIndex < dropZoneEndIndex; ++curZoneIndex)
         {
             if (curZoneIndex > updateIndexThreshold)
                 zoneAndSamplePropertiesList [channelIndex][curZoneIndex].zoneProperties.setMinVoltage (initialValue + (curZoneIndex - initialIndex + 1) * stepSize, false);

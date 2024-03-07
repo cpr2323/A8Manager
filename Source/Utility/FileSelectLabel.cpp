@@ -36,7 +36,7 @@ void FileSelectLabel::browseForSample ()
             {
                 for (auto urlResult : fc.getURLResults ())
                 {
-                    if (!urlResult.isLocalFile ())
+                    if (! urlResult.isLocalFile ())
                         return;
                     juce::File fileToLoad (urlResult.getLocalFile ().getFullPathName ());
                     if (fileToLoad.isDirectory ())

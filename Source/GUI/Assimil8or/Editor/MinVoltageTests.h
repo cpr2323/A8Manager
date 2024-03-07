@@ -10,7 +10,7 @@ namespace MinVoltageTests
         {
             const auto maxValue { 5.0f };
             const auto minValue { -5.0f };
-            const auto initialDataSize { static_cast<int>(inputData.size ()) };
+            const auto initialDataSize { static_cast<int> (inputData.size ()) };
             const auto initialEndIndex { initialDataSize - 1 };
 
             // If the provided array is smaller than endIndex, resize it
@@ -29,7 +29,7 @@ namespace MinVoltageTests
                 const auto updateThreshold { initialEndIndex - 1 };
 
                 // Update values from the start index to the new end index
-                for (int i = initialIndex; i < endIndex; ++i)
+                for (int i { initialIndex }; i < endIndex; ++i)
                 {
                     if (i > updateThreshold)
                         outputData [i] = initialValue + (i - initialIndex + 1) * stepSize;
@@ -45,8 +45,8 @@ namespace MinVoltageTests
             [[maybe_unused]] auto simpleCompare = [] (float firstNumber, float secondNumber)
             {
                 const auto multiplier { 100 };
-                const auto firstNumberMultiplied { static_cast<int>(firstNumber * multiplier) };
-                const auto secondNumberMultiplied { static_cast<int>(secondNumber * multiplier) };
+                const auto firstNumberMultiplied { static_cast<int> (firstNumber * multiplier) };
+                const auto secondNumberMultiplied { static_cast<int> (secondNumber * multiplier) };
                 const auto approxEqual { std::abs (firstNumberMultiplied - secondNumberMultiplied) < 2 };
                 jassert (approxEqual);
                 return approxEqual;

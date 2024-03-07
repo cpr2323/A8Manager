@@ -15,7 +15,7 @@ namespace ErrorHelpers
         if (success)
             textEditor.applyColourToAllText (getNewTextColour (juce::Colours::white), true);
         else
-            textEditor.applyColourToAllText (getNewTextColour(juce::Colours::red), true);
+            textEditor.applyColourToAllText (getNewTextColour (juce::Colours::red), true);
 
         return success;
     }
