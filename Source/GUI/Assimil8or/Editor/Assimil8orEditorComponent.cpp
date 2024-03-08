@@ -318,30 +318,29 @@ void Assimil8orEditorComponent::importPreset ()
     {
         fileChooser.reset (new juce::FileChooser ("Please select the file to import from...", appProperties.getImportExportMruFolder (), ""));
         fileChooser->launchAsync (juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles, [this] (const juce::FileChooser& fc) mutable
+        {
+            if (fc.getURLResults ().size () == 1 && fc.getURLResults () [0].isLocalFile ())
             {
-                if (fc.getURLResults ().size () == 1 && fc.getURLResults () [0].isLocalFile ())
-                {
-                    auto importPresetFile { fc.getURLResults () [0].getLocalFile () };
+                auto importPresetFile { fc.getURLResults () [0].getLocalFile () };
 
-                    appProperties.setImportExportMruFolder (importPresetFile.getParentDirectory ().getFullPathName ());
-                    juce::StringArray fileContents;
-                    importPresetFile.readLines (fileContents);
+                appProperties.setImportExportMruFolder (importPresetFile.getParentDirectory ().getFullPathName ());
+                juce::StringArray fileContents;
+                importPresetFile.readLines (fileContents);
 
-                    // TODO - check for import errors and handle accordingly
-                    Assimil8orPreset assimil8orPreset;
-                    assimil8orPreset.parse (fileContents);
+                // TODO - check for import errors and handle accordingly
+                Assimil8orPreset assimil8orPreset;
+                assimil8orPreset.parse (fileContents);
 
-                    // change the imported Preset Id to the current Preset Id
-                    PresetProperties importedPresetProperties (assimil8orPreset.getPresetVT (), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
-                    importedPresetProperties.setId (presetProperties.getId (), false);
+                // change the imported Preset Id to the current Preset Id
+                PresetProperties importedPresetProperties (assimil8orPreset.getPresetVT (), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
+                importedPresetProperties.setId (presetProperties.getId (), false);
 
-                    // copy imported preset to current preset
-                    PresetProperties::copyTreeProperties (importedPresetProperties.getValueTree (), presetProperties.getValueTree ());
-                }
-            }, nullptr);
+                // copy imported preset to current preset
+                PresetProperties::copyTreeProperties (importedPresetProperties.getValueTree (), presetProperties.getValueTree ());
+            }
+        }, nullptr);
     },
     [] () {});
-
 }
 
 juce::PopupMenu Assimil8orEditorComponent::createChannelCloneMenu (int channelIndex, std::function <void (ChannelProperties&)> setter)
@@ -556,10 +555,13 @@ void Assimil8orEditorComponent::overwritePresetOrCancel (std::function<void ()> 
             "You are about to overwrite a preset that you have edited. Select Continue to lose your changes, Select Cancel to go back and save.", "Continue (lose changes)", "Cancel", nullptr,
             juce::ModalCallbackFunction::create ([this, overwriteFunction, cancelFunction] (int option)
             {
-                if (option == 1) // Continue
-                    overwriteFunction ();
-                else // cancel
-                    cancelFunction ();
+                juce::MessageManager::callAsync ([this, option, overwriteFunction,cancelFunction] ()
+                {
+                    if (option == 1) // Continue
+                        overwriteFunction ();
+                    else // cancel
+                        cancelFunction ();
+                });
             }));
     }
 }
