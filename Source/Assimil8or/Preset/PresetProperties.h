@@ -55,7 +55,7 @@ public:
     std::function<void (juce::String cvInput)> onXfadeDCVChange;
     std::function<void (double width)> onXfadeDWidthChange;
 
-    void forEachChannel (std::function<bool (juce::ValueTree channelVT)> channelVTCallback);
+    void forEachChannel (std::function<bool (juce::ValueTree channelVT, int channelIndex)> channelVTCallback);
     juce::ValueTree getChannelVT (int channelIndex);
 
     static inline const juce::Identifier PresetTypeId { "Preset" };

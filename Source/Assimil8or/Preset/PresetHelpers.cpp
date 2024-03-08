@@ -1,4 +1,5 @@
 #include "PresetHelpers.h"
+#include "../../Utility/DebugLog.h"
 
 namespace PresetHelpers
 {
@@ -9,7 +10,30 @@ namespace PresetHelpers
         setter (cvInput, value);
     };
 
+    int getCvInputIndex (juce::String cvInput)
+    {
+        if (cvInput == "Off")
+            return 0;
+        jassert (cvInput.length () == 2);
+        jassert (cvInput [0] >= '0' && cvInput [0] <= '8');
+        jassert (cvInput [1] >= 'A' && cvInput [1] <= 'C');
+        return 1 + ((cvInput [0] - '0') * 3) + cvInput [1] - 'A';
+    }
+
+    juce::String getCvInputString (int cvInputIndex)
+    {
+        if (cvInputIndex == 0)
+            return "Off";
+        const auto adjustedIndex {cvInputIndex - 1};
+        jassert (adjustedIndex >= 0 && adjustedIndex <= 27);
+        return juce::String::charToString ('0' + adjustedIndex / 3) + juce::String::charToString ('A' + (adjustedIndex % 3));
+    }
+
     // TODO - add options to check Preset Id as well
+#define LOG_DIFFERENCE 0
+#if LOG_DIFFERENCE
+#define LogDifference (parameter, value1, value2) DebugLog ("areEntirePresetsEqual - [" + parameter + "]: " + value1 + " != " + value2);
+#endif
     bool areEntirePresetsEqual (juce::ValueTree presetOneVT, juce::ValueTree presetTwoVT)
     {
         auto presetsAreEqual { true };
@@ -51,6 +75,8 @@ namespace PresetHelpers
     {
         PresetProperties presetPropertiesOne (presetOneVT, PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
         PresetProperties presetPropertiesTwo (presetTwoVT, PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
+#if LOG_DIFFERENCE
+#endif
         return  presetPropertiesOne.getData2AsCV () == presetPropertiesTwo.getData2AsCV () &&
                 presetPropertiesOne.getMidiSetup () == presetPropertiesTwo.getMidiSetup () &&
                 presetPropertiesOne.getName () == presetPropertiesTwo.getName () &&
@@ -68,6 +94,8 @@ namespace PresetHelpers
     {
         ChannelProperties channelPropertiesOne (channelOneVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
         ChannelProperties channelPropertiesTwo (channelTwoVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
+#if LOG_DIFFERENCE
+#endif
         return  channelPropertiesOne.getAliasing () == channelPropertiesTwo.getAliasing () &&
                 channelPropertiesOne.getAliasingMod () == channelPropertiesTwo.getAliasingMod () &&
                 channelPropertiesOne.getAttack () == channelPropertiesTwo.getAttack () &&
@@ -113,14 +141,42 @@ namespace PresetHelpers
     {
         ZoneProperties zonePropertiesOne (zoneOneVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
         ZoneProperties zonePropertiesTwo (zoneTwoVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
+#if LOG_DIFFERENCE
+        auto displaySampleStart = [] (juce::String text, ZoneProperties& zoneProperties)
+            {
+                const auto updatedSampleStart { zoneProperties.getSampleStart () };
+                if (updatedSampleStart.has_value ())
+                    DebugLog ("areZonesEqual", "[" + text + "] sampleStart: " + juce::String (updatedSampleStart.value ()));
+                else
+                    DebugLog ("areZonesEqual", "[" + text + "] sampleStart: no value");
+            };
+        //displaySampleStart ("one", zonePropertiesOne);
+        //displaySampleStart ("two", zonePropertiesTwo);
+
+        auto displayIfNotEqual = [] (juce::String text, bool areEqual)
+        {
+            if (! areEqual)
+                DebugLog ("areZonesEqual", text + ": are NOT equal");
+        };
+        displayIfNotEqual ("levelOffset", zonePropertiesOne.getLevelOffset () == zonePropertiesTwo.getLevelOffset ());
+        displayIfNotEqual ("loopLength", zonePropertiesOne.getLoopLength ().value_or (-1.0) == zonePropertiesTwo.getLoopLength ().value_or (-1.0));
+        displayIfNotEqual ("loopStart", zonePropertiesOne.getLoopStart ().value_or (-1) == zonePropertiesTwo.getLoopStart ().value_or (-1));
+        displayIfNotEqual ("minVoltage", zonePropertiesOne.getMinVoltage () == zonePropertiesTwo.getMinVoltage ());
+        displayIfNotEqual ("pitchOffset", zonePropertiesOne.getPitchOffset () == zonePropertiesTwo.getPitchOffset ());
+        displayIfNotEqual ("sample", zonePropertiesOne.getSample () == zonePropertiesTwo.getSample ());
+        displayIfNotEqual ("sampleStart", zonePropertiesOne.getSampleStart ().value_or (-1) == zonePropertiesTwo.getSampleStart ().value_or (-1));
+        displayIfNotEqual ("sampleEnd", zonePropertiesOne.getSampleEnd ().value_or (-1) == zonePropertiesTwo.getSampleEnd ().value_or (-1));
+        displayIfNotEqual ("side", zonePropertiesOne.getSide () == zonePropertiesTwo.getSide ());
+
+#endif
         return  zonePropertiesOne.getLevelOffset () == zonePropertiesTwo.getLevelOffset () &&
-                zonePropertiesOne.getLoopLength ().value_or (0.0) == zonePropertiesTwo.getLoopLength ().value_or (0.0) &&
-                zonePropertiesOne.getLoopStart ().value_or (0) == zonePropertiesTwo.getLoopStart ().value_or (0) &&
+                zonePropertiesOne.getLoopLength ().value_or (-1.0) == zonePropertiesTwo.getLoopLength ().value_or (-1.0) &&
+                zonePropertiesOne.getLoopStart ().value_or (-1) == zonePropertiesTwo.getLoopStart ().value_or (-1) &&
                 zonePropertiesOne.getMinVoltage () == zonePropertiesTwo.getMinVoltage () &&
                 zonePropertiesOne.getPitchOffset () == zonePropertiesTwo.getPitchOffset () &&
                 zonePropertiesOne.getSample () == zonePropertiesTwo.getSample () &&
-                zonePropertiesOne.getSampleStart ().value_or (0) == zonePropertiesTwo.getSampleStart ().value_or (0) &&
-                zonePropertiesOne.getSampleEnd ().value_or (0) == zonePropertiesTwo.getSampleEnd ().value_or (0) &&
+                zonePropertiesOne.getSampleStart ().value_or (-1) == zonePropertiesTwo.getSampleStart ().value_or (-1) &&
+                zonePropertiesOne.getSampleEnd ().value_or (-1) == zonePropertiesTwo.getSampleEnd ().value_or (-1) &&
                 zonePropertiesOne.getSide () == zonePropertiesTwo.getSide ();
     };
 
@@ -136,32 +192,13 @@ namespace PresetHelpers
         ZoneProperties zonePropertiesTwo (zonePropertiesTwoVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
 
         displayIfDiff (zonePropertiesOne.getLevelOffset (), zonePropertiesTwo.getLevelOffset (), "LevelOffset");
-        displayIfDiff (zonePropertiesOne.getLoopLength ().value_or (99999999), zonePropertiesTwo.getLoopLength ().value_or (99999999), "LoopLength");
-        displayIfDiff (zonePropertiesOne.getLoopStart ().value_or (99999999), zonePropertiesTwo.getLoopStart ().value_or (99999999), "LoopStart");
+        displayIfDiff (zonePropertiesOne.getLoopLength ().value_or (-1.0), zonePropertiesTwo.getLoopLength ().value_or (-1.0), "LoopLength");
+        displayIfDiff (zonePropertiesOne.getLoopStart ().value_or (-1), zonePropertiesTwo.getLoopStart ().value_or (-1), "LoopStart");
         displayIfDiff (zonePropertiesOne.getMinVoltage (), zonePropertiesTwo.getMinVoltage (), "MinVoltage");
         displayIfDiff (zonePropertiesOne.getPitchOffset (), zonePropertiesTwo.getPitchOffset (), "PitchOffset");
         displayIfDiff (zonePropertiesOne.getSample (), zonePropertiesTwo.getSample (), "Sample");
-        displayIfDiff (zonePropertiesOne.getSampleStart ().value_or (99999999), zonePropertiesTwo.getSampleStart ().value_or (99999999), "SampleStart");
-        displayIfDiff (zonePropertiesOne.getSampleEnd ().value_or (99999999), zonePropertiesTwo.getSampleEnd ().value_or (99999999), "SampleEnd");
+        displayIfDiff (zonePropertiesOne.getSampleStart ().value_or (-1), zonePropertiesTwo.getSampleStart ().value_or (-1), "SampleStart");
+        displayIfDiff (zonePropertiesOne.getSampleEnd ().value_or (-1), zonePropertiesTwo.getSampleEnd ().value_or (-1), "SampleEnd");
         displayIfDiff (zonePropertiesOne.getSide (), zonePropertiesTwo.getSide (), "Side");
     };
-
-    // TODO - this should be done in the Directory scan, and stored in a property
-    bool isSupportedAudioFile (juce::File file)
-    {
-        juce::AudioFormatManager audioFormatManager;
-        audioFormatManager.registerBasicFormats ();
-
-        if (file.isDirectory () || file.getFileExtension () != ".wav")
-            return false;
-        std::unique_ptr<juce::AudioFormatReader> reader (audioFormatManager.createReaderFor (file));
-        if (reader == nullptr)
-            return false;
-        // check for any format settings that are unsupported
-        if ((reader->usesFloatingPointData == true) || (reader->bitsPerSample < 8 || reader->bitsPerSample > 32) || (reader->numChannels == 0 || reader->numChannels > 2) || (reader->sampleRate > 192000))
-            return false;
-
-        return true;
-    }
-
 };

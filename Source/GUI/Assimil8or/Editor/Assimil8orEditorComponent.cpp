@@ -1,5 +1,4 @@
 #include "Assimil8orEditorComponent.h"
-#include "FormatHelpers.h"
 #include "ParameterToolTipData.h"
 #include "../../../Assimil8or/Assimil8orPreset.h"
 #include "../../../Assimil8or/PresetManagerProperties.h"
@@ -7,41 +6,44 @@
 #include "../../../Assimil8or/Preset/PresetHelpers.h"
 #include "../../../Utility/DebugLog.h"
 #include "../../../Utility/DumpStack.h"
+#include "../../../Utility/ErrorHelpers.h"
 #include "../../../Utility/PersistentRootProperties.h"
 #include <algorithm>
-
-#define ENABLE_IMPORT_EXPORT 0
 
 Assimil8orEditorComponent::Assimil8orEditorComponent ()
 {
     setOpaque (true);
 
-    addAndMakeVisible (titleLabel);
     auto setupButton = [this] (juce::TextButton& button, juce::String text, std::function<void ()> buttonFunction)
     {
         button.setButtonText (text);
         button.onClick = buttonFunction;
         addAndMakeVisible (button);
     };
+
+    // Title : Preset X
+    addAndMakeVisible (titleLabel);
+
     setupButton (saveButton, "SAVE", [this] () { savePreset ();  });
+    saveButton.setTooltip ("Save the current Preset");
     saveButton.setEnabled (false);
-#if ENABLE_IMPORT_EXPORT
-    setupButton (importButton, "Import", [this] () { importPreset ();  });
-    setupButton (exportButton, "Export", [this] () { exportPreset (); });
-    importButton.setEnabled (false);
-    exportButton.setEnabled (false);
-#endif
 
     for (auto curChannelIndex { 0 }; curChannelIndex < 8; ++curChannelIndex)
         channelTabs.addTab ("CH " + juce::String::charToString ('1' + curChannelIndex), juce::Colours::darkgrey, &channelEditors [curChannelIndex], false);
     addAndMakeVisible (channelTabs);
 
+    // add this AFTER the Channels tabs, because it occupies some of the same space, and ends up behind the tabs if we add it before
+    toolsButton.setButtonText ("TOOLS");
+    toolsButton.setTooltip ("Preset Tools");
+    toolsButton.onClick = [this] () { displayToolsMenu (); };
+    addAndMakeVisible (toolsButton);
+
     minPresetProperties.wrap (ParameterPresetsSingleton::getInstance ()->getParameterPresetListProperties ().getParameterPreset (ParameterPresetListProperties::MinParameterPresetType),
                               PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
     maxPresetProperties.wrap (ParameterPresetsSingleton::getInstance ()->getParameterPresetListProperties ().getParameterPreset (ParameterPresetListProperties::MaxParameterPresetType),
                               PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
-    PresetProperties defaultPresetProperties (ParameterPresetsSingleton::getInstance ()->getParameterPresetListProperties ().getParameterPreset (ParameterPresetListProperties::DefaultParameterPresetType),
-                                              PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
+    defaultPresetProperties.wrap (ParameterPresetsSingleton::getInstance ()->getParameterPresetListProperties ().getParameterPreset (ParameterPresetListProperties::DefaultParameterPresetType),
+                                  PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
     defaultChannelProperties.wrap (defaultPresetProperties.getChannelVT (0), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
 
     setupPresetComponents ();
@@ -92,9 +94,19 @@ void Assimil8orEditorComponent::setupPresetComponents ()
     {
         midiSetupUiChanged (midiSetupComboBox.getSelectedItemIndex ());
     };
+    midiSetupComboBox.onDragCallback = [this] (DragSpeed dragSpeed, int direction)
+    {
+        const auto scrollAmount { (dragSpeed == DragSpeed::fast ? 2 : 1) * direction };
+        presetProperties.setMidiSetup (std::clamp (midiSetupComboBox.getSelectedItemIndex () + scrollAmount, 0, midiSetupComboBox.getNumItems () - 1), true);
+    };
+    midiSetupComboBox.onPopupMenuCallback = [this] ()
+    {
+    };
     addAndMakeVisible (midiSetupComboBox);
 
     addAndMakeVisible (windowDecorator);
+
+    // Data 2 CV
     data2AsCvLabel.setBorderSize ({ 1, 0, 1, 0 });
     data2AsCvLabel.setText ("Data2 As", juce::NotificationType::dontSendNotification);
     data2AsCvLabel.setTooltip (parameterToolTipData.getToolTip ("Preset", "Data2asCV"));
@@ -102,6 +114,21 @@ void Assimil8orEditorComponent::setupPresetComponents ()
     data2AsCvComboBox.onChange = [this] ()
     {
         data2AsCvUiChanged (data2AsCvComboBox.getSelectedItemText ());
+    };
+    data2AsCvComboBox.onDragCallback = [this] (DragSpeed dragSpeed, int direction)
+    {
+        const auto scrollAmount { (dragSpeed == DragSpeed::fast ? 2 : 1) * direction };
+        const auto newCvInputComboBoxIndex { data2AsCvComboBox.getSelectedItemIndex () + scrollAmount };
+        data2AsCvComboBox.setSelectedItemIndex (std::clamp (newCvInputComboBoxIndex, 0, data2AsCvComboBox.getNumItems () - 1));
+        presetProperties.setData2AsCV (data2AsCvComboBox.getSelectedItemText (), false);
+    };
+    data2AsCvComboBox.onPopupMenuCallback = [this] ()
+    {
+        juce::PopupMenu editMenu;
+        editMenu.addItem ("Default", true, false, [this] () { presetProperties.setData2AsCV (defaultPresetProperties.getData2AsCV (), true); });
+        editMenu.addItem ("Revert", true, false, [this] () { presetProperties.setData2AsCV (unEditedPresetProperties.getData2AsCV (), true); });
+        editMenu.showMenuAsync ({}, [this] (int) {});
+
     };
     data2AsCvComboBox.setTooltip (parameterToolTipData.getToolTip ("Preset", "Data2asCV"));
     addAndMakeVisible (data2AsCvComboBox);
@@ -117,53 +144,159 @@ void Assimil8orEditorComponent::setupPresetComponents ()
         xfadeGroup.xfadeGroupLabel.setText (juce::String::charToString ('A' + xfadeGroupIndex) + ":", juce::NotificationType::dontSendNotification);
         addAndMakeVisible (xfadeGroup.xfadeGroupLabel);
 
+        // Xfade Label
         xfadeGroup.xfadeCvLabel.setBorderSize ({ 0, 0, 0, 0 });
         xfadeGroup.xfadeCvLabel.setColour (juce::Label::ColourIds::textColourId, juce::Colours::black);
         xfadeGroup.xfadeCvLabel.setText ("CV", juce::NotificationType::dontSendNotification);
         addAndMakeVisible (xfadeGroup.xfadeCvLabel);
+
+        // Xfade CV Input ComboBox
         xfadeGroup.xfadeCvComboBox.onChange = [this, xfadeGroupIndex] ()
         {
             xfadeCvUiChanged (xfadeGroupIndex, xfadeGroups [xfadeGroupIndex].xfadeCvComboBox.getSelectedItemText ());
         };
-        // XfadeACV
+        xfadeGroup.xfadeCvComboBox.onDragCallback = [this, xfadeGroupIndex] (DragSpeed dragSpeed, int direction)
+        {
+            const auto scrollAmount { (dragSpeed == DragSpeed::fast ? 2 : 1) * direction };
+            auto& xfadeGroup { xfadeGroups [xfadeGroupIndex] };
+            const auto newCvInputComboBoxIndex { xfadeGroup.xfadeCvComboBox.getSelectedItemIndex () + scrollAmount };
+            xfadeGroup.xfadeCvComboBox.setSelectedItemIndex (std::clamp (newCvInputComboBoxIndex, 0, xfadeGroup.xfadeCvComboBox.getNumItems () - 1));
+            xfadeCvUiChanged (xfadeGroupIndex, xfadeGroups [xfadeGroupIndex].xfadeCvComboBox.getSelectedItemText ());
+        };
+        xfadeGroup.xfadeCvComboBox.onPopupMenuCallback = [this, xfadeGroupIndex] ()
+        {
+            juce::PopupMenu editMenu;
+            juce::PopupMenu cloneMenu;
+            for (auto curGroupIndex { 0 }; curGroupIndex < 4; ++curGroupIndex)
+            {
+                if (xfadeGroupIndex != curGroupIndex)
+                    cloneMenu.addItem ("To Group " + juce::String::charToString ('A' + curGroupIndex), true, false, [this, curGroupIndex, xfadeGroupIndex] ()
+                    {
+                        editManager.setXfadeCvValueByIndex (curGroupIndex, editManager.getXfadeCvValueByIndex (xfadeGroupIndex), true);
+                    });
+            }
+            cloneMenu.addItem ("To All", true, false, [this, xfadeGroupIndex] ()
+            {
+                const auto value { editManager.getXfadeCvValueByIndex (xfadeGroupIndex) };
+                presetProperties.setXfadeACV (value, true);
+                presetProperties.setXfadeBCV (value, true);
+                presetProperties.setXfadeCCV (value, true);
+                presetProperties.setXfadeDCV (value, true);
+            });
+            editMenu.addSubMenu ("Clone", cloneMenu, true);
+            editMenu.addItem ("Default", true, false, [this, xfadeGroupIndex] ()
+            {
+                auto getDefaultXfadeCvValueByIndex = [this] (int xfadeGroupIndex)
+                {
+                    if (xfadeGroupIndex == 0)
+                        return defaultPresetProperties.getXfadeACV ();
+                    else if (xfadeGroupIndex == 1)
+                        return defaultPresetProperties.getXfadeBCV ();
+                    else if (xfadeGroupIndex == 2)
+                        return defaultPresetProperties.getXfadeCCV ();
+                    else if (xfadeGroupIndex == 3)
+                        return defaultPresetProperties.getXfadeDCV ();
+                    jassertfalse;
+                        return juce::String ("Off");
+                };
+                editManager.setXfadeCvValueByIndex (xfadeGroupIndex, getDefaultXfadeCvValueByIndex (xfadeGroupIndex), true);
+            });
+            editMenu.addItem ("Revert", true, false, [this, xfadeGroupIndex] ()
+            {
+                auto getUneditedXfadeCvValueByIndex = [this] (int xfadeGroupIndex)
+                {
+                    if (xfadeGroupIndex == 0)
+                        return unEditedPresetProperties.getXfadeACV ();
+                    else if (xfadeGroupIndex == 1)
+                        return unEditedPresetProperties.getXfadeBCV ();
+                    else if (xfadeGroupIndex == 2)
+                        return unEditedPresetProperties.getXfadeCCV ();
+                    else if (xfadeGroupIndex == 3)
+                        return unEditedPresetProperties.getXfadeDCV ();
+                    jassertfalse;
+                    return juce::String ("Off");
+                };
+                editManager.setXfadeCvValueByIndex (xfadeGroupIndex, getUneditedXfadeCvValueByIndex (xfadeGroupIndex), true);
+            });
+            editMenu.showMenuAsync ({}, [this] (int) {});
+        };
         xfadeGroup.xfadeCvComboBox.setTooltip (parameterToolTipData.getToolTip ("Preset", "Xfade" + juce::String::charToString ('A' + xfadeGroupIndex) + "CV"));
         addAndMakeVisible (xfadeGroup.xfadeCvComboBox);
 
-        // xfade group width
+        // Xfade Group Width Label
+        xfadeGroup.xfadeWidthLabel.setBorderSize ({ 0, 0, 0, 0 });
+        xfadeGroup.xfadeWidthLabel.setColour (juce::Label::ColourIds::textColourId, juce::Colours::black);
+        xfadeGroup.xfadeWidthLabel.setText ("Width", juce::NotificationType::dontSendNotification);
+        addAndMakeVisible (xfadeGroup.xfadeWidthLabel);
+
+        // Xfade Group Width
         //      1 decimal place when above 1.0, 0.1 increment
         //      2 decimal places below 1.0, 0.01 increment
         //      10.V
         //      9.0V
         //      .99V
-        xfadeGroup.xfadeWidthLabel.setBorderSize ({ 0, 0, 0, 0 });
-        xfadeGroup.xfadeWidthLabel.setColour (juce::Label::ColourIds::textColourId, juce::Colours::black);
-        xfadeGroup.xfadeWidthLabel.setText ("Width", juce::NotificationType::dontSendNotification);
-        addAndMakeVisible (xfadeGroup.xfadeWidthLabel);
         xfadeGroup.xfadeWidthEditor.setJustification (juce::Justification::centred);
         xfadeGroup.xfadeWidthEditor.setIndents (0, 0);
         xfadeGroup.xfadeWidthEditor.setInputRestrictions (0, "+-.0123456789");
-        auto xFadeGroupEditDone = [this] (int xfadeGroupIndex)
-        {
-            auto& widthEditor { xfadeGroups [xfadeGroupIndex].xfadeWidthEditor };
-            auto width { std::clamp (widthEditor.getText ().getDoubleValue (), minPresetProperties.getXfadeAWidth (), maxPresetProperties.getXfadeAWidth ()) };
-            xfadeWidthUiChanged (xfadeGroupIndex, width);
-
-            auto text { formatXfadeWidthString (width) };
-            widthEditor.setText (text);
-        };
-        xfadeGroup.xfadeWidthEditor.onFocusLost = [this, xfadeGroupIndex, xFadeGroupEditDone] ()
-        {
-            xFadeGroupEditDone (xfadeGroupIndex);
-        };
-        xfadeGroup.xfadeWidthEditor.onReturnKey = [this, xfadeGroupIndex, xFadeGroupEditDone] ()
-        {
-            xFadeGroupEditDone (xfadeGroupIndex);
-        };
-        xfadeGroup.xfadeWidthEditor.onTextChange = [this, xfadeGroupIndex] ()
-        {
-            FormatHelpers::setColorIfError (xfadeGroups [xfadeGroupIndex].xfadeWidthEditor, minPresetProperties.getXfadeAWidth (), maxPresetProperties.getXfadeAWidth ());
-        };
         xfadeGroup.xfadeWidthEditor.setTooltip (parameterToolTipData.getToolTip ("Preset", "Xfade" + juce::String::charToString ('A' + xfadeGroupIndex) + "Width"));
+        xfadeGroup.xfadeWidthEditor.setPopupMenuEnabled (false);
+        xfadeGroup.xfadeWidthEditor.getMinValueCallback = [this] () { return minPresetProperties.getXfadeAWidth (); };
+        xfadeGroup.xfadeWidthEditor.getMaxValueCallback = [this] () { return maxPresetProperties.getXfadeAWidth (); };
+        xfadeGroup.xfadeWidthEditor.toStringCallback = [this] (double value) { return formatXfadeWidthString (value); };
+        xfadeGroup.xfadeWidthEditor.updateDataCallback = [this, xfadeGroupIndex] (double value) { xfadeWidthUiChanged (xfadeGroupIndex, value); };
+        xfadeGroup.xfadeWidthEditor.onDragCallback = [this, xfadeGroupIndex] (DragSpeed dragSpeed, int direction)
+        {
+            const auto scrollAmount { (dragSpeed == DragSpeed::fast ? 1.0 : 0.1) * static_cast<float> (direction) };
+            const auto newAmount { editManager.getXfadeGroupValueByIndex (xfadeGroupIndex) + (0.1 * scrollAmount) };
+            // the min/max values for all of the XFade Group Widths are the same, so we can just use A
+            auto width { std::clamp (newAmount, minPresetProperties.getXfadeAWidth (), maxPresetProperties.getXfadeAWidth ()) };
+            editManager.setXfadeGroupValueByIndex (xfadeGroupIndex, width, true);
+        };
+        xfadeGroup.xfadeWidthEditor.onPopupMenuCallback = [this, xfadeGroupIndex] ()
+        {
+            juce::PopupMenu pm;
+            juce::PopupMenu cloneMenu;
+            for (auto curGroupIndex { 0 }; curGroupIndex < 4; ++curGroupIndex)
+            {
+                if (xfadeGroupIndex != curGroupIndex)
+                    cloneMenu.addItem ("To Group " + juce::String::charToString ('A' + curGroupIndex), true, false, [this, curGroupIndex, xfadeGroupIndex] ()
+                    {
+                        editManager.setXfadeGroupValueByIndex (curGroupIndex, editManager.getXfadeGroupValueByIndex (xfadeGroupIndex), true);
+                    });
+            }
+            cloneMenu.addItem ("To All", true, false, [this, xfadeGroupIndex] ()
+            {
+                const auto value { editManager.getXfadeGroupValueByIndex (xfadeGroupIndex) };
+                presetProperties.setXfadeAWidth (value, true);
+                presetProperties.setXfadeBWidth (value, true);
+                presetProperties.setXfadeCWidth (value, true);
+                presetProperties.setXfadeDWidth (value, true);
+            });
+            pm.addSubMenu ("Clone", cloneMenu, true);
+            pm.addItem ("Default", true, false, [this, xfadeGroupIndex] ()
+            {
+                // the default values for all of the XFade Group Widths are the same, so we can just use A
+                editManager.setXfadeGroupValueByIndex (xfadeGroupIndex, defaultPresetProperties.getXfadeAWidth (), true);
+            });
+            pm.addItem ("Revert", true, false, [this, xfadeGroupIndex]
+            {
+                auto getUneditedXfadeGroupValueByIndex = [this] (int xfadeGroupIndex)
+                {
+                    if (xfadeGroupIndex == 0)
+                        return unEditedPresetProperties.getXfadeAWidth ();
+                    else if (xfadeGroupIndex == 1)
+                        return unEditedPresetProperties.getXfadeBWidth ();
+                    else if (xfadeGroupIndex == 2)
+                        return unEditedPresetProperties.getXfadeCWidth ();
+                    else if (xfadeGroupIndex == 3)
+                        return unEditedPresetProperties.getXfadeDWidth ();
+                    jassertfalse;
+                    return 0.0;
+                };
+                editManager.setXfadeGroupValueByIndex (xfadeGroupIndex, getUneditedXfadeGroupValueByIndex (xfadeGroupIndex), true);
+            });
+            pm.showMenuAsync ({}, [this] (int) {});
+        };
         addAndMakeVisible (xfadeGroup.xfadeWidthEditor);
     }
 }
@@ -178,6 +311,73 @@ juce::String Assimil8orEditorComponent::formatXfadeWidthString (double width)
             newText = newText.trimCharactersAtStart ("0");
         return newText += "V";
     };
+
+void Assimil8orEditorComponent::importPreset ()
+{
+    overwritePresetOrCancel ([this] ()
+    {
+        fileChooser.reset (new juce::FileChooser ("Please select the file to import from...", appProperties.getImportExportMruFolder (), ""));
+        fileChooser->launchAsync (juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles, [this] (const juce::FileChooser& fc) mutable
+            {
+                if (fc.getURLResults ().size () == 1 && fc.getURLResults () [0].isLocalFile ())
+                {
+                    auto importPresetFile { fc.getURLResults () [0].getLocalFile () };
+
+                    appProperties.setImportExportMruFolder (importPresetFile.getParentDirectory ().getFullPathName ());
+                    juce::StringArray fileContents;
+                    importPresetFile.readLines (fileContents);
+
+                    // TODO - check for import errors and handle accordingly
+                    Assimil8orPreset assimil8orPreset;
+                    assimil8orPreset.parse (fileContents);
+
+                    // change the imported Preset Id to the current Preset Id
+                    PresetProperties importedPresetProperties (assimil8orPreset.getPresetVT (), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
+                    importedPresetProperties.setId (presetProperties.getId (), false);
+
+                    // copy imported preset to current preset
+                    PresetProperties::copyTreeProperties (importedPresetProperties.getValueTree (), presetProperties.getValueTree ());
+                }
+            }, nullptr);
+    },
+    [] () {});
+
+}
+
+juce::PopupMenu Assimil8orEditorComponent::createChannelCloneMenu (int channelIndex, std::function <void (ChannelProperties&)> setter)
+{
+    jassert (setter != nullptr);
+    juce::PopupMenu cloneMenu;
+    for (auto destChannelIndex { 0 }; destChannelIndex < 8; ++destChannelIndex)
+    {
+        if (destChannelIndex != channelIndex)
+        {
+            cloneMenu.addItem ("To Channel " + juce::String (destChannelIndex + 1), true, false, [this, destChannelIndex, setter] ()
+            {
+                editManager.forChannels ({ destChannelIndex }, [this, setter] (juce::ValueTree channelPropertiesVT)
+                {
+                    ChannelProperties destChannelProperties (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
+                    setter (destChannelProperties);
+                });
+            });
+        }
+    }
+    cloneMenu.addItem ("To All", true, false, [this, setter, channelIndex] ()
+    {
+        std::vector<int> channelIndexList;
+        // build list of other channels
+        for (auto destChannelIndex { 0 }; destChannelIndex < 8; ++destChannelIndex)
+            if (destChannelIndex != channelIndex)
+                channelIndexList.emplace_back (destChannelIndex);
+        // clone to other channels
+        editManager.forChannels (channelIndexList, [this, setter] (juce::ValueTree channelPropertiesVT)
+        {
+            ChannelProperties destChannelProperties (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
+            setter (destChannelProperties);
+        });
+    });
+    return cloneMenu;
+}
 
 void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
 {
@@ -202,55 +402,103 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
     {
         //DebugLog ("Assimil8orEditorComponent", "Assimil8orEditorComponent::init/appProperties.onMostRecentFileChange: " + fileName);
         //dumpStacktrace (-1, [this] (juce::String logLine) { DebugLog ("Assimil8orEditorComponent", logLine); });
-        samplePool.setFolder (juce::File (fileName).getParentDirectory ());
         audioPlayerProperties.setPlayState (AudioPlayerProperties::PlayState::stop, false);
         channelTabs.setCurrentTabIndex (0);
     };
 
-    directoryDataProperties.wrap (runtimeRootProperties.getValueTree (), DirectoryDataProperties::WrapperType::client, DirectoryDataProperties::EnableCallbacks::yes);
-    directoryDataProperties.onRootScanComplete = [this] ()
-    {
-        juce::MessageManager::callAsync ([this] ()
-        {
-            samplePool.update ();
-            checkSampleFilesExistance ();
-        });
-    };
     PresetManagerProperties presetManagerProperties (runtimeRootProperties.getValueTree (), PresetManagerProperties::WrapperType::owner, PresetManagerProperties::EnableCallbacks::no);
     unEditedPresetProperties.wrap (presetManagerProperties.getPreset ("unedited"), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::yes);
     presetProperties.wrap (presetManagerProperties.getPreset ("edit"), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::yes);
+    editManager.init (rootPropertiesVT, presetProperties.getValueTree ());
     setupPresetPropertiesCallbacks ();
-    auto channelEditorIndex { 0 };
-    samplePool.setFolder (appProperties.getMostRecentFolder ());
     copyBufferZoneProperties.wrap ({}, ZoneProperties::WrapperType::owner, ZoneProperties::EnableCallbacks::no);
-    presetProperties.forEachChannel ([this, &channelEditorIndex, rootPropertiesVT] (juce::ValueTree channelPropertiesVT)
+    presetProperties.forEachChannel ([this, rootPropertiesVT] (juce::ValueTree channelPropertiesVT, int channelIndex)
     {
-        channelEditors [channelEditorIndex].init (channelPropertiesVT, rootPropertiesVT, &samplePool, copyBufferZoneProperties.getValueTree (), &copyBufferHasData);
-        channelEditors [channelEditorIndex].displayToolsMenu = [this] (int channelIndex)
+        channelEditors [channelIndex].init (channelPropertiesVT, unEditedPresetProperties.getChannelVT (channelIndex), rootPropertiesVT, &editManager, copyBufferZoneProperties.getValueTree (), &copyBufferHasData);
+        channelProperties [channelIndex].wrap (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::yes);
+        channelProperties [channelIndex].onChannelModeChange = [this] (int)
         {
-            juce::PopupMenu pm;
-            pm.addItem ("Copy", true, false, [this, channelIndex] ()
+            updateAllChannelTabNames ();
+        };
+        channelEditors [channelIndex].displayToolsMenu = [this] (int channelIndex)
+        {
+            auto* popupMenuLnF { new juce::LookAndFeel_V4 };
+            popupMenuLnF->setColour (juce::PopupMenu::ColourIds::headerTextColourId, juce::Colours::white.withAlpha (0.3f));
+            juce::PopupMenu editMenu;
+            editMenu.setLookAndFeel (popupMenuLnF);
+            editMenu.addSectionHeader ("Channel " + juce::String (channelProperties [channelIndex].getId ()));
+            editMenu.addSeparator ();
+
+            {
+                // Clone
+                juce::PopupMenu cloneMenu;
+                cloneMenu.addSubMenu ("Channel Settings", createChannelCloneMenu (channelIndex, [this, channelIndex] (ChannelProperties& destChannelProperties)
+                {
+                    destChannelProperties.copyFrom (channelProperties [channelIndex].getValueTree ());
+                }));
+                cloneMenu.addSubMenu ("Zones", createChannelCloneMenu (channelIndex, [this, channelIndex] (ChannelProperties& destChannelProperties)
+                {
+                    channelProperties [channelIndex].forEachZone ([this, &destChannelProperties] (juce::ValueTree zonePropertiesVT, int zoneIndex)
+                    {
+                        ZoneProperties destZoneProperties (destChannelProperties.getZoneVT (zoneIndex), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
+                        destZoneProperties.copyFrom (zonePropertiesVT, false);
+                        return true;
+                    });
+                }));
+                cloneMenu.addSubMenu ("Settings and Zones", createChannelCloneMenu (channelIndex, [this, channelIndex] (ChannelProperties& destChannelProperties)
+                {
+                    destChannelProperties.copyFrom (channelProperties [channelIndex].getValueTree ());
+
+                    channelProperties [channelIndex].forEachZone ([this, &destChannelProperties] (juce::ValueTree zonePropertiesVT, int zoneIndex)
+                    {
+                        ZoneProperties destZoneProperties (destChannelProperties.getZoneVT (zoneIndex), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
+                        destZoneProperties.copyFrom (zonePropertiesVT, false);
+                        return true;
+                    });
+                }));
+                cloneMenu.addSubMenu ("MinVoltages", createChannelCloneMenu (channelIndex, [this, channelIndex] (ChannelProperties& destChannelProperties)
+                {
+                    if (const auto destNumUsedZones { editManager.getNumUsedZones (destChannelProperties.getId () - 1) };
+                        destNumUsedZones > 1)
+                    {
+                        channelProperties[channelIndex].forEachZone ([this, &destChannelProperties, destNumUsedZones] (juce::ValueTree zonePropertiesVT, int curZoneIndex)
+                        {
+                            if (curZoneIndex == destNumUsedZones - 1)
+                                return false;
+                            ZoneProperties srcZone (zonePropertiesVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
+                            ZoneProperties destZone (destChannelProperties.getZoneVT (curZoneIndex), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
+                            destZone.setMinVoltage (srcZone.getMinVoltage (), false);
+                            return true;
+                        });
+                    }
+                }));
+                editMenu.addSubMenu ("Clone", cloneMenu);
+            }
+            editMenu.addItem ("Copy", true, false, [this, channelIndex] ()
             {
                 copyBufferChannelProperties.copyFrom (channelProperties [channelIndex].getValueTree ());
                 copyBufferHasData = true;
             });
-            pm.addItem ("Paste", copyBufferHasData, false, [this, channelIndex] ()
+            editMenu.addItem ("Paste", copyBufferHasData, false, [this, channelIndex] ()
             {
                 channelProperties [channelIndex].copyFrom (copyBufferChannelProperties.getValueTree ());
             });
-            pm.addItem ("Clear", true, false, [this, channelIndex] ()
+            editMenu.addItem ("Default", true, false, [this, channelIndex] ()
             {
                 channelProperties [channelIndex].copyFrom (defaultChannelProperties.getValueTree ());
             });
-            pm.showMenuAsync ({}, [this] (int) {});
+            editMenu.addItem ("Revert", true, false, [this, channelIndex] ()
+            {
+                channelProperties [channelIndex].copyFrom (unEditedPresetProperties.getValueTree ());
+            });
+            editMenu.showMenuAsync ({}, [this, popupMenuLnF] (int) { delete popupMenuLnF; });
         };
 
-        channelProperties [channelEditorIndex].wrap (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::yes);
-        channelProperties [channelEditorIndex].onChannelModeChange = [this, channelEditorIndex] (int)
+        channelProperties [channelIndex].wrap (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::yes);
+        channelProperties [channelIndex].onChannelModeChange = [this] (int)
         {
             updateAllChannelTabNames ();
         };
-        ++channelEditorIndex;
         return true;
     });
 
@@ -284,16 +532,6 @@ void Assimil8orEditorComponent::setupPresetPropertiesCallbacks ()
     presetProperties.onXfadeBWidthChange = [this] (double width) { xfadeWidthDataChanged (1, width); };
     presetProperties.onXfadeCWidthChange = [this] (double width) { xfadeWidthDataChanged (2, width); };
     presetProperties.onXfadeDWidthChange = [this] (double width) { xfadeWidthDataChanged (3, width); };
-}
-
-void Assimil8orEditorComponent::importPreset ()
-{
-    jassertfalse;
-}
-
-void Assimil8orEditorComponent::exportPreset ()
-{
-    jassertfalse;
 }
 
 void Assimil8orEditorComponent::receiveSampleLoadRequest (juce::File sampleFile)
@@ -369,10 +607,27 @@ void Assimil8orEditorComponent::updateChannelTabName (int channelIndex)
     channelTabs.setTabName (channelIndex, channelTabTitle);
 }
 
-void Assimil8orEditorComponent::checkSampleFilesExistance ()
+void Assimil8orEditorComponent::displayToolsMenu ()
 {
-    for (auto& channelEditor : channelEditors)
-        channelEditor.checkSampleFileExistence ();
+    juce::PopupMenu pm;
+    pm.addItem ("Import", true, false, [this] () { importPreset (); });
+    pm.addItem ("Export", true, false, [this] () { exportPreset (); });
+    pm.showMenuAsync ({}, [this] (int) {});
+}
+
+void Assimil8orEditorComponent::exportPreset ()
+{
+    fileChooser.reset (new juce::FileChooser ("Please select the file to export to...", appProperties.getImportExportMruFolder (), ""));
+    fileChooser->launchAsync (juce::FileBrowserComponent::saveMode | juce::FileBrowserComponent::canSelectFiles | juce::FileBrowserComponent::warnAboutOverwriting, [this] (const juce::FileChooser& fc) mutable
+    {
+        if (fc.getURLResults ().size () == 1 && fc.getURLResults () [0].isLocalFile ())
+        {
+            auto exportPresetFile { fc.getURLResults () [0].getLocalFile () };
+            appProperties.setImportExportMruFolder (exportPresetFile.getParentDirectory ().getFullPathName ());
+            Assimil8orPreset assimil8orPreset;
+            assimil8orPreset.write (exportPresetFile, presetProperties.getValueTree ());
+        }
+    }, nullptr);
 }
 
 void Assimil8orEditorComponent::resized ()
@@ -391,18 +646,17 @@ void Assimil8orEditorComponent::resized ()
     midiSetupLabel.setBounds (topRow.removeFromLeft (75));
     topRow.removeFromLeft (3);
     midiSetupComboBox.setBounds (topRow.removeFromLeft (60));
-
-#if ENABLE_IMPORT_EXPORT
     topRow.removeFromRight (3);
-    exportButton.setBounds (topRow.removeFromRight (75));
-    topRow.removeFromRight (3);
-    importButton.setBounds (topRow.removeFromRight (75));
-#endif
-    topRow.removeFromRight (3);
+    // Save Button
     saveButton.setBounds (topRow.removeFromRight (75));
-    const auto topRowY { titleLabel.getBottom () + 3 };
-    channelTabs.setBounds (3, topRowY, 765, 406);
+    // Tools Button
+    toolsButton.setBounds (getWidth () - 43, saveButton.getBottom () + 3, 40, 20);
+
+    // Channel Tabs
+    const auto channelSectionY { titleLabel.getBottom () + 3 };
+    channelTabs.setBounds (3, channelSectionY, 765, 406);
     const auto bottomRowY (getLocalBounds ().getBottom () - 26);
+    // this is used to overlay the 'right channel' to indicate it is inactive
     windowDecorator.setBounds (getLocalBounds ().removeFromBottom (26));
 
     // Data2 as CV

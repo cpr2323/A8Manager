@@ -3,11 +3,12 @@
 #include <JuceHeader.h>
 #include "ChannelEditor.h"
 #include "CvInputComboBox.h"
-#include "SamplePool/SamplePool.h"
+#include "EditManager.h"
 #include "../../../AppProperties.h"
 #include "../../../Assimil8or/Audio/AudioPlayerProperties.h"
 #include "../../../Assimil8or/Preset/PresetProperties.h"
-#include "../../../Utility/DirectoryDataProperties.h"
+#include "../../../Utility/CustomTextEditor.h"
+#include "../../../Utility/DebugLog.h"
 #include "../../../Utility/RuntimeRootProperties.h"
 
 class WindowDecorator : public juce::Component
@@ -37,28 +38,29 @@ private:
     RuntimeRootProperties runtimeRootProperties;
     AppProperties appProperties;
     AudioPlayerProperties audioPlayerProperties;
-    DirectoryDataProperties directoryDataProperties;
     PresetProperties presetProperties;
     PresetProperties unEditedPresetProperties;
+    PresetProperties defaultPresetProperties;
     PresetProperties minPresetProperties;
     PresetProperties maxPresetProperties;
     ChannelProperties defaultChannelProperties;
     ChannelProperties copyBufferChannelProperties;
     ZoneProperties copyBufferZoneProperties;
     bool copyBufferHasData { false };
-    SamplePool samplePool;
+    EditManager editManager;
+    std::unique_ptr<juce::FileChooser> fileChooser;
 
     juce::Label titleLabel;
     juce::TextButton saveButton;
-    juce::TextButton importButton;
-    juce::TextButton exportButton;
+    juce::TextButton toolsButton;
+
     juce::TabbedComponent channelTabs { juce::TabbedButtonBar::Orientation::TabsAtTop };
     WindowDecorator windowDecorator;
 
     // Preset Parameters
     juce::TextEditor nameEditor;
     juce::Label midiSetupLabel;
-    juce::ComboBox midiSetupComboBox;
+    CustomComboBox midiSetupComboBox;
     juce::Label data2AsCvLabel;
     CvInputGlobalComboBox data2AsCvComboBox;
     juce::Label xfadeGroupsLabel;
@@ -68,7 +70,7 @@ private:
         juce::Label xfadeCvLabel;
         CvInputGlobalComboBox xfadeCvComboBox;
         juce::Label xfadeWidthLabel;
-        juce::TextEditor xfadeWidthEditor;  // double
+        CustomTextEditorDouble xfadeWidthEditor;
     };
     enum XfadeGroupIndex
     {
@@ -82,10 +84,11 @@ private:
     std::array<ChannelEditor, 8> channelEditors;
     std::array<ChannelProperties, 8> channelProperties;
 
-    void checkSampleFilesExistance ();
+    void displayToolsMenu ();
     void exportPreset ();
     juce::String formatXfadeWidthString (double width);
     void importPreset ();
+    juce::PopupMenu createChannelCloneMenu (int channelIndex,   std::function <void (ChannelProperties&)> setter);
     bool isChannelActive (int channelIndex);
     void savePreset ();
     void setupPresetComponents ();

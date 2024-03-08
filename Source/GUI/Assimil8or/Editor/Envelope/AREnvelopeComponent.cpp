@@ -31,6 +31,10 @@ void AREnvelopeComponent::releasePercentChanged (double releasePercent)
 
 void AREnvelopeComponent::paint (juce::Graphics& g)
 {
+    g.setColour (juce::Colours::grey.darker (0.3f));
+    g.fillRect (getLocalBounds ());
+
+    g.setColour (juce::Colours::black);
     auto drawAnchor = [this, &g] (EnvelopeAnchor& anchor)
     {
         juce::Colour color { anchor.getActive () ? juce::Colours::white : juce::Colours::grey };
@@ -50,7 +54,12 @@ void AREnvelopeComponent::paint (juce::Graphics& g)
                                                    static_cast<float> (curSize)), lineWidth);
             alpha -= alphaStep;
         }
-    };
+        g.setColour (juce::Colours::black);
+        g.drawEllipse (juce::Rectangle<float> (static_cast<float> (kOffset + anchor.getX () - endSize / 2.0f),
+                                               static_cast<float> (kOffset + anchor.getY () - endSize / 2.0f),
+                                               static_cast<float> (endSize),
+                                               static_cast<float> (endSize)), lineWidth);
+        };
 
     g.drawLine (static_cast<float> (kOffset + startAnchor.getX ()),
                 static_cast<float> (kOffset + startAnchor.getY ()),
@@ -122,6 +131,16 @@ void AREnvelopeComponent::mouseMove (const juce::MouseEvent& e)
         curActiveAnchor = mouseOverAnchor;
         setActive (true);
 
+        repaint ();
+    }
+}
+
+void AREnvelopeComponent::mouseExit (const juce::MouseEvent&)
+{
+    if (curActiveAnchor != nullptr)
+    {
+        curActiveAnchor->setActive (false);
+        curActiveAnchor = nullptr;
         repaint ();
     }
 }

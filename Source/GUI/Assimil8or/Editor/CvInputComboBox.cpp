@@ -11,25 +11,49 @@ CvInputComboBox::CvInputComboBox (ListType listType)
         startingIndex = 1;
 
     addAndMakeVisible (cvInputComboBox);
-    {
-        cvInputComboBox.addItem ("Off", 1);
-        for (auto channelIndex { startingIndex }; channelIndex < 9; ++channelIndex)
-            for (auto columnIndex { 0 }; columnIndex < 3; ++columnIndex)
-            {
-                const auto menuId { 2 + (channelIndex * 3) + columnIndex };
-                cvInputComboBox.addItem (juce::String::charToString ('0' + channelIndex) + juce::String::charToString ('A' + columnIndex), menuId);
-            }
-    }
+    cvInputComboBox.addItem ("Off", 1);
+    for (auto channelIndex { startingIndex }; channelIndex < 9; ++channelIndex)
+        for (auto columnIndex { 0 }; columnIndex < 3; ++columnIndex)
+        {
+            const auto menuId { 2 + (channelIndex * 3) + columnIndex };
+            cvInputComboBox.addItem (juce::String::charToString ('0' + channelIndex) + juce::String::charToString ('A' + columnIndex), menuId);
+        }
     cvInputComboBox.onChange = [this] ()
     {
         if (onChange != nullptr)
             onChange ();
+    };
+
+    cvInputComboBox.onDragCallback = [this] (DragSpeed dragSpeed, int direction)
+    {
+        if (onDragCallback != nullptr)
+            onDragCallback (dragSpeed, direction);
+    };
+    cvInputComboBox.onPopupMenuCallback = [this] ()
+    {
+        if (onPopupMenuCallback != nullptr)
+            onPopupMenuCallback ();
     };
 }
 
 CvInputComboBox::~CvInputComboBox ()
 {
     cvInputComboBox.setLookAndFeel (nullptr);
+}
+
+int CvInputComboBox::getNumItems ()
+{
+    return cvInputComboBox.getNumItems ();
+}
+
+int CvInputComboBox::getSelectedItemIndex ()
+{
+    return cvInputComboBox.getSelectedItemIndex ();
+}
+
+void CvInputComboBox::setSelectedItemIndex (int itemIndex)
+{
+    cvInputComboBox.setSelectedItemIndex (itemIndex);
 }
 
 void CvInputComboBox::setSelectedItemText (juce::String cvInputString)

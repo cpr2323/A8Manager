@@ -152,7 +152,7 @@ public:
     std::function<void (juce::String zonesCV)> onZonesCVChange;
     std::function<void (int zonesRT)> onZonesRTChange;
 
-    void forEachZone (std::function<bool (juce::ValueTree zoneVT)> zoneVTCallback);
+    void forEachZone (std::function<bool (juce::ValueTree zoneVT, int zoneIndex)> zoneVTCallback);
     juce::ValueTree getZoneVT (int zoneIndex);
 
     void copyFrom (juce::ValueTree sourceVT);
@@ -160,6 +160,7 @@ public:
     static juce::String getCvInputAndValueString (juce::String cvInput, double value, int decimalPlaces);
     static juce::String getCvInputAndValueString (CvInputAndAmount cvInputAndValue, int decimalPlaces);
     static CvInputAndAmount getCvInputAndValueFromString (juce::String cvInputAndValueString);
+    static bool isChannelPropertiesVT (juce::ValueTree valueTree);
 
     static inline const juce::Identifier ChannelTypeId { "Channel" };
     static inline const juce::Identifier IdPropertyId                { "_id" };

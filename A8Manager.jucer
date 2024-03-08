@@ -2,7 +2,7 @@
 
 <JUCERPROJECT id="wWHbxR" name="A8Manager" projectType="guiapp" useAppConfig="0"
               addUsingNamespaceToJuceHeader="0" displaySplashScreen="0" jucerFormatVersion="1"
-              companyName="OmOhmProductions" cppLanguageStandard="17" version="2.3.3"
+              companyName="OmOhmProductions" cppLanguageStandard="17" version="2.4"
               companyWebsite="www.omohmproductions.com">
   <MAINGROUP id="JDgvjc" name="A8Manager">
     <GROUP id="{26A00EED-F319-636E-6162-8A113C6EE925}" name="Source">
@@ -62,6 +62,10 @@
           <FILE id="m51pzF" name="ZoneProperties.h" compile="0" resource="0"
                 file="Source/Assimil8or/Preset/ZoneProperties.h"/>
         </GROUP>
+        <GROUP id="{51623D41-359A-2A33-39A9-D70877C43812}" name="System">
+          <FILE id="Uo4K1B" name="MidiSetup.cpp" compile="1" resource="0" file="Source/Assimil8or/System/MidiSetup.cpp"/>
+          <FILE id="PtAwVS" name="MidiSetup.h" compile="0" resource="0" file="Source/Assimil8or/System/MidiSetup.h"/>
+        </GROUP>
         <GROUP id="{FFCC55CE-5847-C60B-915E-27F62A58650C}" name="Validator">
           <FILE id="hqDHiE" name="ValidatorProperties.cpp" compile="1" resource="0"
                 file="Source/Assimil8or/Validator/ValidatorProperties.cpp"/>
@@ -118,9 +122,25 @@
               <FILE id="ENQvAV" name="LoopPointsView.h" compile="0" resource="0"
                     file="Source/GUI/Assimil8or/Editor/LoopPoints/LoopPointsView.h"/>
             </GROUP>
-            <GROUP id="{D73921A7-8850-68E4-122F-311FCE12BEE6}" name="SamplePool">
-              <FILE id="yJzkYP" name="SamplePool.cpp" compile="1" resource="0" file="Source/GUI/Assimil8or/Editor/SamplePool/SamplePool.cpp"/>
-              <FILE id="obUalz" name="SamplePool.h" compile="0" resource="0" file="Source/GUI/Assimil8or/Editor/SamplePool/SamplePool.h"/>
+            <GROUP id="{D73921A7-8850-68E4-122F-311FCE12BEE6}" name="SampleManager">
+              <FILE id="Z4XDJQ" name="SampleManager.cpp" compile="1" resource="0"
+                    file="Source/GUI/Assimil8or/Editor/SampleManager/SampleManager.cpp"/>
+              <FILE id="Vxlh4B" name="SampleManager.h" compile="0" resource="0" file="Source/GUI/Assimil8or/Editor/SampleManager/SampleManager.h"/>
+              <FILE id="iug7D5" name="SampleManagerProperties.cpp" compile="1" resource="0"
+                    file="Source/GUI/Assimil8or/Editor/SampleManager/SampleManagerProperties.cpp"/>
+              <FILE id="TTq8z2" name="SampleManagerProperties.h" compile="0" resource="0"
+                    file="Source/GUI/Assimil8or/Editor/SampleManager/SampleManagerProperties.h"/>
+              <FILE id="MMEiyT" name="SampleProperties.cpp" compile="1" resource="0"
+                    file="Source/GUI/Assimil8or/Editor/SampleManager/SampleProperties.cpp"/>
+              <FILE id="pChDcz" name="SampleProperties.h" compile="0" resource="0"
+                    file="Source/GUI/Assimil8or/Editor/SampleManager/SampleProperties.h"/>
+              <FILE id="KCeFDE" name="SampleStatus.h" compile="0" resource="0" file="Source/GUI/Assimil8or/Editor/SampleManager/SampleStatus.h"/>
+            </GROUP>
+            <GROUP id="{46BD4BD9-2E96-7460-82CE-1DE35CEA5736}" name="Waveform">
+              <FILE id="XL5TLs" name="WaveformDisplay.cpp" compile="1" resource="0"
+                    file="Source/GUI/Assimil8or/Editor/Waveform/WaveformDisplay.cpp"/>
+              <FILE id="Ba2tbm" name="WaveformDisplay.h" compile="0" resource="0"
+                    file="Source/GUI/Assimil8or/Editor/Waveform/WaveformDisplay.h"/>
             </GROUP>
             <FILE id="liNFVw" name="Assimil8orEditorComponent.cpp" compile="1"
                   resource="0" file="Source/GUI/Assimil8or/Editor/Assimil8orEditorComponent.cpp"/>
@@ -133,6 +153,8 @@
                   file="Source/GUI/Assimil8or/Editor/CvInputComboBox.cpp"/>
             <FILE id="aw6Hz2" name="CvInputComboBox.h" compile="0" resource="0"
                   file="Source/GUI/Assimil8or/Editor/CvInputComboBox.h"/>
+            <FILE id="n3pnRo" name="EditManager.cpp" compile="1" resource="0" file="Source/GUI/Assimil8or/Editor/EditManager.cpp"/>
+            <FILE id="NdMQT1" name="EditManager.h" compile="0" resource="0" file="Source/GUI/Assimil8or/Editor/EditManager.h"/>
             <FILE id="yhhzYu" name="FormatHelpers.cpp" compile="1" resource="0"
                   file="Source/GUI/Assimil8or/Editor/FormatHelpers.cpp"/>
             <FILE id="QTYi1s" name="FormatHelpers.h" compile="0" resource="0" file="Source/GUI/Assimil8or/Editor/FormatHelpers.h"/>
@@ -196,7 +218,21 @@
               file="Source/GUI/BottomStatusWindow.h"/>
       </GROUP>
       <GROUP id="{8CE93423-6945-B212-EA23-BC0B9325BBF7}" name="Utility">
+        <FILE id="GLIkpL" name="FileSelectLabel.cpp" compile="1" resource="0"
+              file="Source/Utility/FileSelectLabel.cpp"/>
+        <FILE id="qew1vj" name="FileSelectLabel.h" compile="0" resource="0"
+              file="Source/Utility/FileSelectLabel.h"/>
         <FILE id="ZzjeA7" name="Crc.h" compile="0" resource="0" file="Source/Utility/Crc.h"/>
+        <FILE id="GzE9WB" name="CustomComboBox.cpp" compile="1" resource="0"
+              file="Source/Utility/CustomComboBox.cpp"/>
+        <FILE id="csjiew" name="CustomComboBox.h" compile="0" resource="0"
+              file="Source/Utility/CustomComboBox.h"/>
+        <FILE id="XOL5i7" name="CustomTextEditor.h" compile="0" resource="0"
+              file="Source/Utility/CustomTextEditor.h"/>
+        <FILE id="rRGd5q" name="CustomTextButton.cpp" compile="1" resource="0"
+              file="Source/Utility/CustomTextButton.cpp"/>
+        <FILE id="OwWd7j" name="CustomTextButton.h" compile="0" resource="0"
+              file="Source/Utility/CustomTextButton.h"/>
         <FILE id="yrhXEY" name="DebugLog.cpp" compile="1" resource="0" file="Source/Utility/DebugLog.cpp"/>
         <FILE id="i75h2A" name="DebugLog.h" compile="0" resource="0" file="Source/Utility/DebugLog.h"/>
         <FILE id="rv1w6s" name="DebugLogImplementation.h" compile="0" resource="0"
@@ -209,9 +245,20 @@
               file="Source/Utility/DirectoryValueTree.cpp"/>
         <FILE id="eO3HdP" name="DirectoryValueTree.h" compile="0" resource="0"
               file="Source/Utility/DirectoryValueTree.h"/>
+        <FILE id="Qo26Nn" name="CustomComponentMouseHandler.cpp" compile="1"
+              resource="0" file="Source/Utility/CustomComponentMouseHandler.cpp"/>
+        <FILE id="vNZeE3" name="CustomComponentMouseHandler.h" compile="0"
+              resource="0" file="Source/Utility/CustomComponentMouseHandler.h"/>
         <FILE id="pP1sFQ" name="DumpStack.cpp" compile="1" resource="0" file="Source/Utility/DumpStack.cpp"/>
         <FILE id="kz99xu" name="DumpStack.h" compile="0" resource="0" file="Source/Utility/DumpStack.h"/>
+        <FILE id="QJawCv" name="ErrorHelpers.cpp" compile="1" resource="0"
+              file="Source/Utility/ErrorHelpers.cpp"/>
+        <FILE id="CdKTBO" name="ErrorHelpers.h" compile="0" resource="0" file="Source/Utility/ErrorHelpers.h"/>
         <FILE id="GjhfJa" name="LambdaThread.h" compile="0" resource="0" file="Source/Utility/LambdaThread.h"/>
+        <FILE id="NijQvZ" name="MruListProperties.cpp" compile="1" resource="0"
+              file="Source/Utility/MruListProperties.cpp"/>
+        <FILE id="Pwo0us" name="MruListProperties.h" compile="0" resource="0"
+              file="Source/Utility/MruListProperties.h"/>
         <FILE id="ZRKBIm" name="NoArrowComboBoxLnF.h" compile="0" resource="0"
               file="Source/Utility/NoArrowComboBoxLnF.h"/>
         <FILE id="e2rm9l" name="PersistentRootProperties.cpp" compile="1" resource="0"
@@ -226,6 +273,8 @@
               file="Source/Utility/RuntimeRootProperties.cpp"/>
         <FILE id="bVL7gX" name="RuntimeRootProperties.h" compile="0" resource="0"
               file="Source/Utility/RuntimeRootProperties.h"/>
+        <FILE id="vESMQw" name="SinglePoleFilter.h" compile="0" resource="0"
+              file="Source/Utility/SinglePoleFilter.h"/>
         <FILE id="FboCdx" name="SplitWindowComponent.cpp" compile="1" resource="0"
               file="Source/Utility/SplitWindowComponent.cpp"/>
         <FILE id="oat4mf" name="SplitWindowComponent.h" compile="0" resource="0"
@@ -310,5 +359,25 @@
         <MODULEPATH id="juce_dsp" path="../JUCE/modules"/>
       </MODULEPATHS>
     </XCODE_MAC>
+    <LINUX_MAKE targetFolder="Builds/LinuxMakefile">
+      <CONFIGURATIONS>
+        <CONFIGURATION isDebug="1" name="Debug"/>
+        <CONFIGURATION isDebug="0" name="Release"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_audio_basics" path="C:\code\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_devices" path="C:\code\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_formats" path="C:\code\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_processors" path="C:\code\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_utils" path="C:\code\JUCE\modules"/>
+        <MODULEPATH id="juce_core" path="C:\code\JUCE\modules"/>
+        <MODULEPATH id="juce_data_structures" path="C:\code\JUCE\modules"/>
+        <MODULEPATH id="juce_dsp" path="C:\code\JUCE\modules"/>
+        <MODULEPATH id="juce_events" path="C:\code\JUCE\modules"/>
+        <MODULEPATH id="juce_graphics" path="C:\code\JUCE\modules"/>
+        <MODULEPATH id="juce_gui_basics" path="C:\code\JUCE\modules"/>
+        <MODULEPATH id="juce_gui_extra" path="C:\code\JUCE\modules"/>
+      </MODULEPATHS>
+    </LINUX_MAKE>
   </EXPORTFORMATS>
 </JUCERPROJECT>

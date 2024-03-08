@@ -1,78 +1,14 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "EditManager.h"
 #include "LoopPoints/LoopPointsView.h"
-#include "SamplePool/SamplePool.h"
+#include "SampleManager/SampleProperties.h"
+#include "../../../AppProperties.h"
 #include "../../../Assimil8or/Audio/AudioPlayerProperties.h"
 #include "../../../Assimil8or/Preset/ZoneProperties.h"
-#include "../../../AppProperties.h"
-
-class FileSelectLabel : public juce::Label
-{
-public:
-    FileSelectLabel ()
-    {
-        mouseEavesDropper.onMouseDown = [this] (const juce::MouseEvent&) { browseForSample (); };
-        addMouseListener (&mouseEavesDropper, true);
-    }
-    ~FileSelectLabel ()
-    {
-        removeMouseListener (&mouseEavesDropper);
-    }
-    std::function<void (const juce::StringArray& files)> onFilesSelected;
-
-    void setOutline (juce::Colour colour)
-    {
-        outlineColor = colour;
-    }
-private:
-    juce::Colour outlineColor { juce::Colours::transparentWhite };
-    std::unique_ptr<juce::FileChooser> fileChooser;
-
-    class MouseEavesDropper : public juce::MouseListener
-    {
-    public:
-        std::function<void (const juce::MouseEvent& event)> onMouseDown;
-    private:
-        void mouseDown (const juce::MouseEvent& event)
-        {
-            if (onMouseDown != nullptr)
-                onMouseDown (event);
-        }
-    };
-    MouseEavesDropper mouseEavesDropper;
-
-    void browseForSample ()
-    {
-        fileChooser.reset (new juce::FileChooser ("Please select the Assimil8or Preset file you want to load...", {}, "*.wav"));
-        fileChooser->launchAsync (juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles | juce::FileBrowserComponent::canSelectMultipleItems, [this] (const juce::FileChooser& fc) mutable
-        {
-            if (fc.getURLResults ().size () > 0 && fc.getURLResults () [0].isLocalFile () && onFilesSelected != nullptr)
-            {
-                for (auto urlResult : fc.getURLResults ())
-                {
-                    if (! urlResult.isLocalFile ())
-                        return;
-                    juce::File fileToLoad (urlResult.getLocalFile ().getFullPathName ());
-                    if (fileToLoad.isDirectory ())
-                        return;
-                }
-
-                juce::StringArray files;
-                for (auto urlResult : fc.getURLResults ())
-                    files.add (urlResult.getLocalFile ().getFullPathName ());
-                onFilesSelected (files);
-            }
-        }, nullptr);
-    }
-
-    void paintOverChildren (juce::Graphics& g) override
-    {
-        juce::Label::paintOverChildren (g);
-        g.setColour (outlineColor);
-        g.drawRect (getLocalBounds ());
-    }
-};
+#include "../../../Utility/CustomTextEditor.h"
+#include "../../../Utility/FileSelectLabel.h"
 
 class ZoneEditor : public juce::Component,
                    public juce::FileDragAndDropTarget
@@ -81,31 +17,33 @@ public:
     ZoneEditor ();
     ~ZoneEditor () = default;
 
-    void init (juce::ValueTree zonePropertiesVT, juce::ValueTree rootPropertiesVT, SamplePool* theSamplePool);
-    void checkSampleExistence ();
-    bool isSupportedAudioFile (juce::File file);
-    void loadSample (juce::String sampleFileName);
+    void init (juce::ValueTree zonePropertiesVT, juce::ValueTree uneditedZonePropertiesVT, juce::ValueTree rootPropertiesVT, EditManager* theEditManager);
+    // TODO - can we move this to the EditManager, as it just calls editManager->assignSamples (parentChannelIndex, startingZoneIndex, files); in the ZoneEditor
     void receiveSampleLoadRequest (juce::File sampleFile);
+    // TODO - is there a VTW that could manage this setting?
     void setLoopLengthIsEnd (bool loopLengthIsEnd);
 
-    std::function<void (juce::String)> onSampleChange;
-    std::function<bool (double)> isMinVoltageInRange;
-    std::function<double (double)> clampMinVoltage;
+    // TODO - can we make this local, since we should be able to access the edits through the EditManager
     std::function<void (int zoneIndex)> displayToolsMenu;
-    std::function<bool (int zoneIndex, const juce::StringArray& files)> assignSamples;
 
 private:
     AppProperties appProperties;
     AudioPlayerProperties audioPlayerProperties;
     ZoneProperties zoneProperties;
+    ZoneProperties uneditedZoneProperties;
     ZoneProperties minZoneProperties;
     ZoneProperties maxZoneProperties;
-    juce::AudioFormatManager audioFormatManager;
-    SamplePool* samplePool;
-    SampleData sampleData;
+    SampleProperties sampleProperties;
+    // TODO - I want to remove ChannelProperties!
+    ChannelProperties parentChannelProperties;
+    // TODO - I think we might be able to get rid of currentSampleFileName too, but I am not sure yet
     juce::String currentSampleFileName;
+    EditManager* editManager { nullptr };
+    int zoneIndex { -1 };
+    int parentChannelIndex { -1 };
 
-    bool loopLengthIsEnd { false };
+    // Loop Length is always stored as loop length, but the UI can be toggled to display it, and take input for it, as if it is Loop End
+    bool treatLoopLengthAsEndInUi { false };
 
     bool draggingFiles { false };
     int dropIndex { 0 };
@@ -123,22 +61,25 @@ private:
     juce::Rectangle<int>* activePointBackground { &samplePointsBackground };
 
     juce::Label levelOffsetLabel;
-    juce::TextEditor levelOffsetTextEditor; // double
+    CustomTextEditorDouble levelOffsetTextEditor; // double
     juce::Label loopLengthLabel;
-    juce::TextEditor loopLengthTextEditor; // double
+    CustomTextEditorDouble loopLengthTextEditor; // double
     juce::Label loopStartLabel;
-    juce::TextEditor loopStartTextEditor; // int
+    CustomTextEditorInt64 loopStartTextEditor; // int
     juce::Label minVoltageLabel;
-    juce::TextEditor minVoltageTextEditor; // double
+    CustomTextEditorDouble minVoltageTextEditor; // double
     juce::Label pitchOffsetLabel;
-    juce::TextEditor pitchOffsetTextEditor; // double
+    CustomTextEditorDouble pitchOffsetTextEditor; // double
     juce::Label sampleNameLabel;
     FileSelectLabel sampleNameSelectLabel; // filename
     juce::Label sampleEndLabel;
-    juce::TextEditor sampleEndTextEditor; // int
+    CustomTextEditorInt64 sampleEndTextEditor; // int
     juce::Label sampleStartLabel;
-    juce::TextEditor sampleStartTextEditor; // int
+    CustomTextEditorInt64 sampleStartTextEditor; // int
 
+    void setEditComponentsEnabled (bool enabled);
+    juce::PopupMenu createZoneEditMenu (std::function <void (ZoneProperties&, SampleProperties&)> setter, std::function <void ()> resetter, std::function <void ()> reverter,
+                                        std::function<bool (ZoneProperties&)> canCloneToZoneCallback, std::function<bool (ZoneProperties&)> canCloneToAllCallback);
     juce::String formatLoopLength (double loopLength);
     bool handleSamplesInternal (int zoneIndex, juce::StringArray files);
     void setupZoneComponents ();
@@ -152,18 +93,18 @@ private:
     void levelOffsetUiChanged (double levelOffset);
     void loopLengthDataChanged (std::optional<double> loopLength);
     void loopLengthUiChanged (double loopLength);
-    void loopStartDataChanged (std::optional <int64_t> loopStart);
-    void loopStartUiChanged (int64_t loopStart);
+    void loopStartDataChanged (std::optional <juce::int64> loopStart);
+    void loopStartUiChanged (juce::int64 loopStart);
     void minVoltageDataChanged (double minVoltage);
     void minVoltageUiChanged (double minVoltage);
     void pitchOffsetDataChanged (double pitchOffset);
     void pitchOffsetUiChanged (double pitchOffset);
     void sampleDataChanged (juce::String sample);
     void sampleUiChanged (juce::String sample);
-    void sampleStartDataChanged (std::optional <int64_t> sampleStart);
-    void sampleStartUiChanged (int64_t sampleStart);
-    void sampleEndDataChanged (std::optional <int64_t> sampleEnd);
-    void sampleEndUiChanged (int64_t sampleEnd);
+    void sampleStartDataChanged (std::optional <juce::int64> sampleStart);
+    void sampleStartUiChanged (juce::int64 sampleStart);
+    void sampleEndDataChanged (std::optional <juce::int64> sampleEnd);
+    void sampleEndUiChanged (juce::int64 sampleEnd);
     void setDropIndex (const juce::StringArray& files, int x, int y);
 
     bool isInterestedInFileDrag (const juce::StringArray& files) override;

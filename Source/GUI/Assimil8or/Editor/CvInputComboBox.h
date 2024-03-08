@@ -1,6 +1,7 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "../../../Utility/CustomComboBox.h"
 #include "../../../Utility/NoArrowComboBoxLnF.h"
 
 class CvInputComboBox : public juce::Component
@@ -14,13 +15,18 @@ public:
     CvInputComboBox (ListType listType);
     virtual ~CvInputComboBox ();
 
+    int getNumItems ();
+    int getSelectedItemIndex ();
+    void setSelectedItemIndex (int itemIndex);
     void setSelectedItemText (juce::String cvInputString);
     juce::String getSelectedItemText ();
     void setTooltip (juce::String toolTip);
     std::function<void ()> onChange;
+    std::function<void (DragSpeed dragSpeed, int direction)> onDragCallback;
+    std::function<void ()> onPopupMenuCallback;
 
 private:
-    juce::ComboBox cvInputComboBox;
+    CustomComboBox cvInputComboBox;
     int startingIndex { 0 };
     NoArrowComboBoxLnF noArrowComboBoxLnF;
 

@@ -10,6 +10,8 @@ public:
 
     void setMostRecentFolder (juce::String folderName);
     juce::String getMostRecentFolder ();
+    void setImportExportMruFolder (juce::String folderName);
+    juce::String getImportExportMruFolder ();
     void addRecentlyUsedFile (juce::String fileName);
     juce::String getRecentlyUsedFile (int index);
     juce::StringArray getMRUList ();
@@ -17,12 +19,14 @@ public:
     int getMaxMruEntries ();
 
     std::function<void (juce::String folderName)> onMostRecentFolderChange;
+    std::function<void (juce::String folderName)> onImportExportMruFolderChange;
     std::function<void (juce::String fileName)> onMostRecentFileChange;
 
     static inline const juce::Identifier AppTypeId { "App" };
 
     static inline const juce::Identifier FileTypeId { "Files" };
     static inline const juce::Identifier MostRecentFolderPropertyId { "mostRecentFolder" };
+    static inline const juce::Identifier ImportExportMruFolderPropertyId { "importExportMruFolder" };
 
     static inline const juce::Identifier MRUListTypeId { "MRUList" };
     static inline const juce::Identifier MaxMRUEntriesPropertyId { "maxMruEntries" };

@@ -19,6 +19,7 @@ PresetListComponent::PresetListComponent ()
 {
     showAllPresets.setToggleState (true, juce::NotificationType::dontSendNotification);
     showAllPresets.setButtonText ("Show All");
+    showAllPresets.setTooltip ("Show all Presets, Show only existing presets");
     showAllPresets.onClick = [this] () { checkPresetsThread.start (); };
     addAndMakeVisible (showAllPresets);
     addAndMakeVisible (presetListBox);
@@ -193,7 +194,7 @@ void PresetListComponent::loadFirstPreset ()
     juce::File loadedPresetFile;
     forEachPresetFile ([this, &presetLoaded, &loadedPresetFile] (juce::File presetFile, int presetIndex)
     {
-            if (auto [presetNumber, thisPresetExists, presetName] { presetInfoList [presetIndex] }; !thisPresetExists)
+        if (auto [presetNumber, thisPresetExists, presetName] { presetInfoList [presetIndex] }; ! thisPresetExists)
             return true;
 
         presetListBox.selectRow (presetIndex, false, true);
@@ -379,12 +380,16 @@ void PresetListComponent::listBoxItemClicked (int row, [[maybe_unused]] const ju
         if (! thisPresetExists)
             presetName = "(preset)";
 
+        auto* popupMenuLnF { new juce::LookAndFeel_V4 };
+        popupMenuLnF->setColour (juce::PopupMenu::ColourIds::headerTextColourId, juce::Colours::white.withAlpha (0.3f));
         juce::PopupMenu pm;
-        pm.addSectionHeader (juce::String (presetNumber) + "-" + presetName);
+        pm.setLookAndFeel (popupMenuLnF);
+        pm.addSectionHeader (juce::String (presetNumber) + " - " + presetName);
+        pm.addSeparator ();
         pm.addItem ("Copy", thisPresetExists, false, [this, presetNumber = presetNumber] () { copyPreset (presetNumber); });
         pm.addItem ("Paste", copyBufferPresetProperties.getName ().isNotEmpty (), false, [this, presetNumber = presetNumber] () { pastePreset (presetNumber); });
         pm.addItem ("Delete", thisPresetExists, false, [this, presetNumber = presetNumber] () { deletePreset (presetNumber); });
-        pm.showMenuAsync ({}, [this] (int) {});
+        pm.showMenuAsync ({}, [this, popupMenuLnF] (int) { delete popupMenuLnF; });
     }
     else
     {

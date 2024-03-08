@@ -101,24 +101,24 @@ public:
         return static_cast<DirectoryDataProperties::TypeIndex> (getValue<int> (TypePropertyId));
     }
 
-    void setCreateTime (int64_t time, bool includeSelfCallback)
+    void setCreateTime (juce::int64 time, bool includeSelfCallback)
     {
         setValue (time, CreationTimePropertyId, includeSelfCallback);
     }
 
-    int64_t getCreateTime ()
+    juce::int64 getCreateTime ()
     {
-        return getValue<int64_t> (CreationTimePropertyId);
+        return getValue<juce::int64> (CreationTimePropertyId);
     }
 
-    void setModificationTime (int64_t time, bool includeSelfCallback)
+    void setModificationTime (juce::int64 time, bool includeSelfCallback)
     {
         setValue (time, ModificationTimePropertyId, includeSelfCallback);
     }
 
-    int64_t getModificationTime ()
+    juce::int64 getModificationTime ()
     {
-        return getValue<int64_t> (ModificationTimePropertyId);
+        return getValue<juce::int64> (ModificationTimePropertyId);
     }
 
     static inline const juce::Identifier FileTypeId { "File" };
@@ -127,7 +127,7 @@ public:
     static inline const juce::Identifier CreationTimePropertyId     { "createTime" };
     static inline const juce::Identifier ModificationTimePropertyId { "modificationTime" };
 
-    static juce::ValueTree create (juce::String filePath, int64_t createTime, int64_t modificationTime, DirectoryDataProperties::TypeIndex fileType)
+    static juce::ValueTree create (juce::String filePath, juce::int64 createTime, juce::int64 modificationTime, DirectoryDataProperties::TypeIndex fileType)
     {
         juce::ValueTree fileVT { FileTypeId };
         fileVT.setProperty (NamePropertyId, filePath, nullptr);
@@ -169,24 +169,24 @@ public:
         return getValue<juce::String> (NamePropertyId);
     }
 
-    void setCreateTime (int64_t time, bool includeSelfCallback)
+    void setCreateTime (juce::int64 time, bool includeSelfCallback)
     {
         setValue (time, CreationTimePropertyId, includeSelfCallback);
     }
 
-    int64_t getCreateTime ()
+    juce::int64 getCreateTime ()
     {
-        return getValue<int64_t> (CreationTimePropertyId);
+        return getValue<juce::int64> (CreationTimePropertyId);
     }
 
-    void setModificationTime (int64_t time, bool includeSelfCallback)
+    void setModificationTime (juce::int64 time, bool includeSelfCallback)
     {
         setValue (time, ModificationTimePropertyId, includeSelfCallback);
     }
 
-    int64_t getModificationTime ()
+    juce::int64 getModificationTime ()
     {
-        return getValue<int64_t> (ModificationTimePropertyId);
+        return getValue<juce::int64> (ModificationTimePropertyId);
     }
 
     std::function<void (juce::ValueTree folder)> onFolderAdded;
@@ -207,7 +207,7 @@ public:
         return directoryEntryVT.getType () == FolderTypeId;
     }
 
-    static juce::ValueTree create (juce::String filePath, int64_t createTime, int64_t modificationTime)
+    static juce::ValueTree create (juce::String filePath, juce::int64 createTime, juce::int64 modificationTime)
     {
         juce::ValueTree fileVT { FolderTypeId };
         fileVT.setProperty (NamePropertyId, filePath, nullptr);

@@ -7,6 +7,7 @@
 #include "Assimil8or/Preset/PresetProperties.h"
 #include "GUI/GuiProperties.h"
 #include "GUI/MainComponent.h"
+#include "GUI/Assimil8or/Editor/SampleManager/SampleManager.h"
 #include "Utility/DebugLog.h"
 #include "Utility/DirectoryValueTree.h"
 #include "Utility/PersistentRootProperties.h"
@@ -42,9 +43,11 @@ public:
         initLogger ();
         initCrashHandler ();
         initPropertyRoots ();
-        initAudio ();
         initAssimil8or ();
+        initAudio ();
         initUi ();
+
+        //ValueTreeHelpers::dumpValueTreeContent (runtimeRootProperties.getValueTree (), false, [this] (juce::String line) { DebugLog ("", line); });
 
         // async quit timer
         startTimer (125);
@@ -111,6 +114,9 @@ public:
         directoryDataProperties.wrap (directoryValueTree.getDirectoryDataPropertiesVT (), DirectoryDataProperties::WrapperType::client, DirectoryDataProperties::EnableCallbacks::no);
         // debug tool for watching changes on the Directory Data Properties Value Tree
         //directoryDataMonitor.assign (directoryDataProperties.getValueTreeRef ());
+
+        // SampleManager requires that the PresetManagerProperties and DirectoryDataProperties are initialized
+        sampleManager.init (rootProperties.getValueTree ());
 
         // when the folder being viewed changes, signal the directory scanner to rescan
         appProperties.onMostRecentFolderChange = [this] (juce::String folderName)
@@ -280,6 +286,7 @@ private:
     AppProperties appProperties;
     GuiProperties guiProperties;
     RuntimeRootProperties runtimeRootProperties;
+    SampleManager sampleManager;
     Assimil8orValidator assimil8orValidator;
     PresetProperties presetProperties;
     DirectoryValueTree directoryValueTree;

@@ -4,17 +4,15 @@ void AppProperties::initValueTree ()
 {
     juce::ValueTree filesChildVT { juce::ValueTree (FileTypeId) };
     filesChildVT.setProperty (MostRecentFolderPropertyId, "", nullptr);
+    filesChildVT.setProperty (ImportExportMruFolderPropertyId, "", nullptr);
     juce::ValueTree mruListChildVT { juce::ValueTree (MRUListTypeId) };
-    //mruListChildVT.setProperty (MaxMRUEntriesPropertyId, 10, nullptr);
+    mruListChildVT.setProperty (MaxMRUEntriesPropertyId, 1, nullptr);
     filesChildVT.addChild (mruListChildVT, -1, nullptr);
     data.addChild (filesChildVT, -1, nullptr);
-    //mruListChildVT.addListener (this);
 }
 
 void AppProperties::processValueTree ()
 {
-    if (auto XmruListChildVT { getMRUListChildVT () }; ! XmruListChildVT.hasProperty (MaxMRUEntriesPropertyId))
-        XmruListChildVT.setProperty (MaxMRUEntriesPropertyId, 10, nullptr);
 }
 
 int AppProperties::getNumMRUEntries ()
@@ -40,6 +38,18 @@ juce::String AppProperties::getMostRecentFolder ()
 {
     auto filesChildVT { data.getChildWithName (FileTypeId) };
     return filesChildVT.getProperty (MostRecentFolderPropertyId);
+}
+
+void AppProperties::setImportExportMruFolder (juce::String folderName)
+{
+    auto filesChildVT { data.getChildWithName (FileTypeId) };
+    filesChildVT.setProperty (ImportExportMruFolderPropertyId, folderName, nullptr);
+}
+
+juce::String AppProperties::getImportExportMruFolder ()
+{
+    auto filesChildVT { data.getChildWithName (FileTypeId) };
+    return filesChildVT.getProperty (ImportExportMruFolderPropertyId);
 }
 
 void AppProperties::addRecentlyUsedFile (juce::String fileName)

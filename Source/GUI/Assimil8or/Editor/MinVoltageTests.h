@@ -7,58 +7,58 @@ namespace MinVoltageTests
     void runDistributionTests ()
     {
         auto generateData = [] (std::vector<float>& inputData, int startIndex, int endIndex) -> std::vector<float>
-            {
-                const auto maxValue { 5.0f };
-                const auto minValue { -5.0f };
-                const auto initialDataSize { static_cast<int>(inputData.size ()) };
-                const auto initialEndIndex { initialDataSize - 1 };
+        {
+            const auto maxValue { 5.0f };
+            const auto minValue { -5.0f };
+            const auto initialDataSize { static_cast<int> (inputData.size ()) };
+            const auto initialEndIndex { initialDataSize - 1 };
 
-                // If the provided array is smaller than endIndex, resize it
-                std::vector<float> outputData { inputData.begin (), inputData.end () };
-                if (endIndex < inputData.size ())
-                    return outputData;
-
-                outputData.resize (endIndex + 1);
-
-                if (endIndex - initialEndIndex > 0)
-                {
-                    const auto initialValue { startIndex == 0 || (startIndex == 1 && initialDataSize == 1) ? maxValue : outputData [initialEndIndex - 1] };
-                    const auto initialIndex { startIndex > 0 && startIndex == initialDataSize ? startIndex - 1 : startIndex };
-                    // Calculate the step size for even distribution
-                    const float stepSize { (minValue - initialValue) / (endIndex - initialIndex + 1) };
-                    const auto updateThreshold { initialEndIndex - 1 };
-
-                    // Update values from the start index to the new end index
-                    for (int i = initialIndex; i < endIndex; ++i)
-                    {
-                        if (i > updateThreshold)
-                            outputData [i] = initialValue + (i - initialIndex + 1) * stepSize;
-                    }
-                }
-
-                outputData [outputData.size () - 1] = minValue;
+            // If the provided array is smaller than endIndex, resize it
+            std::vector<float> outputData { inputData.begin (), inputData.end () };
+            if (endIndex < inputData.size ())
                 return outputData;
-            };
+
+            outputData.resize (endIndex + 1);
+
+            if (endIndex - initialEndIndex > 0)
+            {
+                const auto initialValue { startIndex == 0 || (startIndex == 1 && initialDataSize == 1) ? maxValue : outputData [initialEndIndex - 1] };
+                const auto initialIndex { startIndex > 0 && startIndex == initialDataSize ? startIndex - 1 : startIndex };
+                // Calculate the step size for even distribution
+                const float stepSize { (minValue - initialValue) / (endIndex - initialIndex + 1) };
+                const auto updateThreshold { initialEndIndex - 1 };
+
+                // Update values from the start index to the new end index
+                for (int i { initialIndex }; i < endIndex; ++i)
+                {
+                    if (i > updateThreshold)
+                        outputData [i] = initialValue + (i - initialIndex + 1) * stepSize;
+                }
+            }
+
+            outputData [outputData.size () - 1] = minValue;
+            return outputData;
+        };
 
         auto runTest = [&generateData] (std::vector<float>& testData, int startIndex, int endIndex, std::vector<float> expectedOutputData)
+        {
+            [[maybe_unused]] auto simpleCompare = [] (float firstNumber, float secondNumber)
             {
-                auto simpleCompare = [] (float firstNumber, float secondNumber)
-                    {
-                        const auto multiplier { 100 };
-                        const auto firstNumberMultiplied { static_cast<int>(firstNumber * multiplier) };
-                        const auto secondNumberMultiplied { static_cast<int>(secondNumber * multiplier) };
-                        const auto approxEqual { std::abs (firstNumberMultiplied - secondNumberMultiplied) < 2 };
-                        jassert (approxEqual);
-                        return approxEqual;
-                    };
-                auto outputData { generateData (testData, startIndex, endIndex) };
-
-                jassert (outputData.size () == expectedOutputData.size ());
-                for (auto dataIndex { 0 }; dataIndex < outputData.size (); ++dataIndex)
-                {
-                    jassert (simpleCompare (outputData [dataIndex], expectedOutputData [dataIndex]) == true);
-                }
+                const auto multiplier { 100 };
+                const auto firstNumberMultiplied { static_cast<int> (firstNumber * multiplier) };
+                const auto secondNumberMultiplied { static_cast<int> (secondNumber * multiplier) };
+                const auto approxEqual { std::abs (firstNumberMultiplied - secondNumberMultiplied) < 2 };
+                jassert (approxEqual);
+                return approxEqual;
             };
+            auto outputData { generateData (testData, startIndex, endIndex) };
+
+            jassert (outputData.size () == expectedOutputData.size ());
+            for (auto dataIndex { 0 }; dataIndex < outputData.size (); ++dataIndex)
+            {
+                jassert (simpleCompare (outputData [dataIndex], expectedOutputData [dataIndex]) == true);
+            }
+        };
 
         std::vector<float> inputData;
         runTest (inputData, 0, 0, { -5.0f });
