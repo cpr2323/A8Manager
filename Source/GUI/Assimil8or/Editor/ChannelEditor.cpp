@@ -56,7 +56,7 @@ ChannelEditor::ChannelEditor ()
     setupLabel (zonesLabel, "ZONES", kMediumLabelSize, juce::Justification::centredLeft);
     zonesLabel.setColour (juce::Label::ColourIds::textColourId, juce::Colours::white);
     setupLabel (zoneMaxVoltage, "+5.00", 10.0, juce::Justification::centredLeft);
-    zoneMaxVoltage.setColour (juce::Label::ColourIds::textColourId, ZonesTabbedLookAndFeel::kPositiveVoltageColor);
+    zoneMaxVoltage.setColour (juce::Label::ColourIds::textColourId, juce::Colours::white.darker (0.1f));
 
     for (auto curZoneIndex { 0 }; curZoneIndex < 8; ++curZoneIndex)
     {

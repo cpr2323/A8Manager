@@ -136,7 +136,8 @@ public:
                 col = findColour (colID);
         }
 
-        const juce::Rectangle<float> area (button.getTextArea ().toFloat ());
+        //const juce::Rectangle<float> area (button.getTextArea ().toFloat ());
+        const juce::Rectangle<float> area (button.getActiveArea ().toFloat ());
 
         float length { area.getWidth () };
         float depth { area.getHeight () };
@@ -144,29 +145,33 @@ public:
         if (button.getTabbedButtonBar ().isVertical ())
             std::swap (length, depth);
 
-        g.setColour (col);
+
         auto textToDraw { button.getButtonText ().trim () };
         auto zoneIndexString { textToDraw.upToFirstOccurrenceOf ("\r" , false, true) };
         auto minVoltageString { textToDraw.fromFirstOccurrenceOf ("\r", false, true) };
-        g.drawText (zoneIndexString, juce::Rectangle<float> { 0.f, 1.f, static_cast<float> (area.getWidth ()), static_cast<float>(area.getHeight () / 2) }, juce::Justification::centred, false);
+        const auto zoneIndexBounds {juce::Rectangle<float> { 0.f, 3.f, static_cast<float> (area.getWidth ()), static_cast<float>(area.getHeight () / 2) }};
+        g.setColour (col);
+        g.drawText (zoneIndexString, zoneIndexBounds, juce::Justification::centred, false);
         if (minVoltageString.isNotEmpty ())
         {
 #define COLORIZE_VOLTAGE_VALUES 1
 #if COLORIZE_VOLTAGE_VALUES
             if (auto minVoltage { minVoltageString.getDoubleValue () }; minVoltage > 0.01)
-                col = kPositiveVoltageColor;
+                col = juce::Colours::white.darker (0.1f);
             else if (minVoltage <= 0.01 && minVoltage >= -0.01)
-                col = kZeroVoltageColor;
+                col = juce::Colours::lightgrey.darker (0.3f);
             else
-                col = kNegativeVoltageColor;
+                col = juce::Colours::black;
 #else
             col = kZeroVoltageColor;
 #endif
             auto currentFont { g.getCurrentFont () };
-            juce::Font voltageFont (depth * 0.35f);
+            juce::Font voltageFont { currentFont.withHeight (depth * 0.35f) };
             g.setFont (voltageFont);
+
+            const auto minVoltageBounds {juce::Rectangle<float> { 2.f, static_cast<float>(area.getHeight () / 2), static_cast<float> (area.getWidth () - 4), static_cast<float>(area.getHeight () / 2) }};
             g.setColour (col);
-            g.drawText (minVoltageString, juce::Rectangle<float> { 2.f, static_cast<float>(area.getHeight () / 2), static_cast<float> (area.getWidth () - 4), static_cast<float>(area.getHeight () / 2) }, juce::Justification::centred, false);
+            g.drawText (minVoltageString, minVoltageBounds, juce::Justification::centred, false);
             g.setFont (currentFont);
         }
     }
