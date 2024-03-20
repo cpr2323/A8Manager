@@ -1,0 +1,42 @@
+Preset 1 :
+  Name : MinV Test 5v
+  Data2asCV : 1A
+  XfadeACV : 1B
+  Channel 1 :
+    LinAMisExtEnv : 1
+    LoopStartMod : Off 0.4200
+    Pitch : 2
+    PitchCV : 8C 0.7700
+    PMSource : 8
+    Zone 1 :
+      LevelOffset : 0.4
+      MinVoltage : 3.75
+      PitchOffset : 0.43
+      Sample : 1.wav
+      SampleStart : 0
+    Zone 2 :
+      LevelOffset : 0.4
+      MinVoltage : 2.5
+      PitchOffset : 0.43
+      Sample : 1.wav
+      SampleStart : 0
+    Zone 3 :
+      LevelOffset : 0.4
+      MinVoltage : 1.25
+      PitchOffset : 0.43
+      Sample : 3.wav
+      SampleStart : 0
+    Zone 4 :
+      Sample : 4.wav
+    Zone 5 :
+      MinVoltage : -1.25
+      Sample : 5.wav
+    Zone 6 :
+      MinVoltage : -2.5
+      Sample : 6.wav
+    Zone 7 :
+      MinVoltage : -3.75
+      Sample : 7.wav
+    Zone 8 :
+      MinVoltage : -5
+      Sample : 8.wav

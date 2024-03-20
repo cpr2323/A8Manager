@@ -1,0 +1,14 @@
+Preset 5 :
+  Name : LoopModeTst
+  Channel 1 :
+    LoopMode : 1
+    PlayMode : 1
+    Zone 1 :
+      MinVoltage : -5
+      Sample : 1.wav
+  Channel 2 :
+    LoopMode : 1
+    PlayMode : 1
+    Zone 1 :
+      MinVoltage : -5
+      Sample : 2.wav
