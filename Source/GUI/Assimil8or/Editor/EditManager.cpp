@@ -312,7 +312,8 @@ bool EditManager::assignSamples (int channelIndex, int zoneIndex, const juce::St
         const auto updateIndexThreshold { initialEndIndex - 1 };
 
         // Update values for the requested section
-        for (int curZoneIndex { initialIndex }; curZoneIndex < dropZoneEndIndex; ++curZoneIndex)
+        const auto lastZoneIndex { std::min (dropZoneEndIndex, 8) };
+        for (int curZoneIndex { initialIndex }; curZoneIndex < lastZoneIndex; ++curZoneIndex)
         {
             if (curZoneIndex > updateIndexThreshold)
                 zoneAndSamplePropertiesList [channelIndex][curZoneIndex].zoneProperties.setMinVoltage (initialValue + (curZoneIndex - initialIndex + 1) * stepSize, false);
