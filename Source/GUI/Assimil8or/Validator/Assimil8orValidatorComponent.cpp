@@ -522,8 +522,6 @@ void Assimil8orValidatorComponent::convert (juce::File file)
         else if (bitsPerSample > 24) // the wave writer supports int 8/16/24
             bitsPerSample = 24;
         jassert (numChannels != 0);
-        if (numChannels > 1)
-            numChannels = 1;
 #define ONLY_MONO_TEST 0
 #if ONLY_MONO_TEST
         if (numChannels > 1)
