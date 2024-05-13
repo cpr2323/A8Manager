@@ -145,11 +145,10 @@ public:
         if (button.getTabbedButtonBar ().isVertical ())
             std::swap (length, depth);
 
-
         auto textToDraw { button.getButtonText ().trim () };
         auto zoneIndexString { textToDraw.upToFirstOccurrenceOf ("\r" , false, true) };
         auto minVoltageString { textToDraw.fromFirstOccurrenceOf ("\r", false, true) };
-        const auto zoneIndexBounds {juce::Rectangle<float> { 0.f, 3.f, static_cast<float> (area.getWidth ()), static_cast<float>(area.getHeight () / 2) }};
+        const auto zoneIndexBounds {juce::Rectangle<float> { 0.f, 3.f, static_cast<float> (area.getWidth ()), static_cast<float> (area.getHeight () / 2) }};
         g.setColour (col);
         g.drawText (zoneIndexString, zoneIndexBounds, juce::Justification::centred, false);
         if (minVoltageString.isNotEmpty ())
@@ -169,7 +168,7 @@ public:
             juce::Font voltageFont { currentFont.withHeight (depth * 0.35f) };
             g.setFont (voltageFont);
 
-            const auto minVoltageBounds {juce::Rectangle<float> { 2.f, static_cast<float>(area.getHeight () / 2), static_cast<float> (area.getWidth () - 4), static_cast<float>(area.getHeight () / 2) }};
+            const auto minVoltageBounds {juce::Rectangle<float> { 2.f, static_cast<float> (area.getHeight () / 2), static_cast<float> (area.getWidth () - 4), static_cast<float>(area.getHeight () / 2) }};
             g.setColour (col);
             g.drawText (minVoltageString, minVoltageBounds, juce::Justification::centred, false);
             g.setFont (currentFont);
