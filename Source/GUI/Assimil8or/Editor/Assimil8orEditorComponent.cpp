@@ -552,7 +552,7 @@ void Assimil8orEditorComponent::overwritePresetOrCancel (std::function<void ()> 
     else
     {
         juce::AlertWindow::showOkCancelBox (juce::AlertWindow::WarningIcon, "Overwriting Edited Preset",
-            "You are about to overwrite a preset that you have edited. Select Continue to lose your changes, Select Cancel to go back and save.", "Continue (lose changes)", "Cancel", nullptr,
+            "You have not saved a preset that you have edited.\n  Select Continue to lose your changes.\n  Select Cancel to go back and save.", "Continue (lose changes)", "Cancel", nullptr,
             juce::ModalCallbackFunction::create ([this, overwriteFunction, cancelFunction] (int option)
             {
                 juce::MessageManager::callAsync ([this, option, overwriteFunction,cancelFunction] ()
@@ -598,23 +598,41 @@ void Assimil8orEditorComponent::updateChannelTabName (int channelIndex)
     if (channelIndex != 7 && channelProperties [channelIndex].getChannelMode () != ChannelProperties::ChannelMode::stereoRight && isChannelActive (channelIndex) &&
         channelProperties [channelIndex + 1].getChannelMode () == ChannelProperties::ChannelMode::stereoRight)
     {
-            channelTabTitle += "-L";
+        channelTabTitle += "-L";
     }
     else if (channelProperties [channelIndex].getChannelMode () == ChannelProperties::ChannelMode::stereoRight)
     {
         channelTabTitle = "R-" + channelTabTitle;
-
     }
 
     channelTabs.setTabName (channelIndex, channelTabTitle);
 }
 
+void Assimil8orEditorComponent::setPresetToDefaults ()
+{
+    PresetProperties::copyTreeProperties (defaultPresetProperties.getValueTree (), presetProperties.getValueTree ());
+}
+
+void Assimil8orEditorComponent::revertPreset ()
+{
+    PresetProperties::copyTreeProperties (unEditedPresetProperties.getValueTree (), presetProperties.getValueTree ());
+}
+
 void Assimil8orEditorComponent::displayToolsMenu ()
 {
+    auto* popupMenuLnF { new juce::LookAndFeel_V4 };
+    popupMenuLnF->setColour (juce::PopupMenu::ColourIds::headerTextColourId, juce::Colours::white.withAlpha (0.3f));
     juce::PopupMenu pm;
+    pm.setLookAndFeel (popupMenuLnF);
+    pm.addSectionHeader ("Preset");
+    pm.addSeparator ();
+
     pm.addItem ("Import", true, false, [this] () { importPreset (); });
     pm.addItem ("Export", true, false, [this] () { exportPreset (); });
-    pm.showMenuAsync ({}, [this] (int) {});
+    pm.addItem ("Default", true, false, [this] () { setPresetToDefaults (); });
+    pm.addItem ("Revert", true, false, [this] () { revertPreset (); });
+
+    pm.showMenuAsync ({}, [this, popupMenuLnF] (int) { delete popupMenuLnF; });
 }
 
 void Assimil8orEditorComponent::exportPreset ()
