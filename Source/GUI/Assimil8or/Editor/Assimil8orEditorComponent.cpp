@@ -611,6 +611,7 @@ void Assimil8orEditorComponent::updateChannelTabName (int channelIndex)
 void Assimil8orEditorComponent::setPresetToDefaults ()
 {
     PresetProperties::copyTreeProperties (defaultPresetProperties.getValueTree (), presetProperties.getValueTree ());
+    presetProperties.setId (unEditedPresetProperties.getId (), true);
 }
 
 void Assimil8orEditorComponent::revertPreset ()
