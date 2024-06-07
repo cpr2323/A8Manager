@@ -329,7 +329,9 @@ void PresetListComponent::pastePreset (int presetNumber)
         if (presetNumber == lastSelectedPresetNumber)
         {
             PresetProperties::copyTreeProperties (copyBufferPresetProperties.getValueTree (), unEditedPresetProperties.getValueTree ());
+            unEditedPresetProperties.setId (presetNumber, false);
             PresetProperties::copyTreeProperties (copyBufferPresetProperties.getValueTree (), presetProperties.getValueTree ());
+            presetProperties.setId (presetNumber, false);
         }
     };
 
@@ -361,8 +363,13 @@ void PresetListComponent::deletePreset (int presetNumber)
             // TODO handle delete error
             auto [lastSelectedPresetNumber, thisPresetExists, presetName] { presetInfoList [lastSelectedPresetIndex] };
             if (presetNumber == lastSelectedPresetNumber)
-                PresetProperties::copyTreeProperties (ParameterPresetsSingleton::getInstance ()->getParameterPresetListProperties ().getParameterPreset (ParameterPresetListProperties::DefaultParameterPresetType),
-                                                      unEditedPresetProperties.getValueTree ());
+            {
+                auto defaultPreset { ParameterPresetsSingleton::getInstance ()->getParameterPresetListProperties ().getParameterPreset (ParameterPresetListProperties::DefaultParameterPresetType) };
+                PresetProperties::copyTreeProperties (defaultPreset, unEditedPresetProperties.getValueTree ());
+                unEditedPresetProperties.setId (presetNumber, false);
+                PresetProperties::copyTreeProperties (defaultPreset, presetProperties.getValueTree ());
+                presetProperties.setId (presetNumber, false);
+            }
         }));
 }
 

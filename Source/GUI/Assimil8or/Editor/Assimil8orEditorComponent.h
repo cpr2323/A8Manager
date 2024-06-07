@@ -90,9 +90,13 @@ private:
     void importPreset ();
     juce::PopupMenu createChannelCloneMenu (int channelIndex,   std::function <void (ChannelProperties&)> setter);
     bool isChannelActive (int channelIndex);
+    void revertPreset ();
     void savePreset ();
+    void setPresetToDefaults ();
     void setupPresetComponents ();
     void setupPresetPropertiesCallbacks ();
+    void updateAllChannelTabNames ();
+    void updateChannelTabName (int channelIndex);
 
     // Preset callbacks
     void idDataChanged (int id); // tracks when a new preset has been loaded
@@ -110,6 +114,4 @@ private:
     void timerCallback () override;
     void resized () override;
     void paint (juce::Graphics& g) override;
-    void updateAllChannelTabNames ();
-    void updateChannelTabName (int channelIndex);
 };
