@@ -3,7 +3,7 @@
 #include "../../../../Utility/DebugLog.h"
 #include "../../../../Utility/PersistentRootProperties.h"
 
-#define LOG_SAMPLE_POOL 0
+#define LOG_SAMPLE_POOL 1
 #if LOG_SAMPLE_POOL
 #define LogSamplePool(text) DebugLog ("SampleManager", text);
 #else
@@ -166,7 +166,7 @@ void SampleManager::updateSample (juce::String fileName, SampleData& sampleData)
 
             // read in audio data
             sampleData.audioBuffer.setSize (sampleData.numChannels, static_cast<int> (sampleData.lengthInSamples), false, true, false);
-            sampleFileReader->read (&sampleData.audioBuffer, 0, static_cast<int> (sampleData.lengthInSamples), 0, true, false);
+            sampleFileReader->read (&sampleData.audioBuffer, 0, static_cast<int> (sampleData.lengthInSamples), 0, true, true);
             updateSampleProperties (fileName, sampleData);
         }
         else

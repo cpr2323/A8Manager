@@ -34,7 +34,7 @@ private:
     juce::int64 loopLength { 0 };
     int halfHeight { 0 };
     int numPixels { 0 };
-    int samplesPerPixel { 0 };
+    float samplesPerPixel { 0.f };
     int markerStartY { 1 };
     int markerEndY { 0 };
     juce::Rectangle<int> sampleStartHandle;

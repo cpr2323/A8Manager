@@ -4,7 +4,7 @@
 #include "../../Utility/PersistentRootProperties.h"
 #include "../../Utility/RuntimeRootProperties.h"
 
-#define LOG_AUDIO_PLAYER 0
+#define LOG_AUDIO_PLAYER 1
 #if LOG_AUDIO_PLAYER
 #define LogAudioPlayer(text) DebugLog ("AudioPlayer", text);
 #else
@@ -183,8 +183,16 @@ void AudioPlayer::prepareSampleForPlayback ()
     jassert (playState == AudioPlayerProperties::PlayState::stop);
     if (zoneProperties.isValid () && sampleProperties.isValid () && sampleProperties.getStatus () == SampleStatus::exists)
     {
+        // if channel is master and next channel is not stereo/right, then use MonoToStereoAudioSource (copies left channel into both channels)
+        // if channel is master and next channel is stereo/right
+        //      if both channels are the same file, then copy into output buffer
+        //      if channels are different files, copy left from master and right from stereo/right
         LogAudioPlayer ("prepareSampleForPlayback: sample is ready");
+        LogAudioPlayer ("prepareSampleForPlayback: num channels: " + juce::String(sampleProperties.getAudioBufferPtr ()->getNumChannels ()));
         std::unique_ptr <juce::MemoryAudioSource> readerSource { std::make_unique<juce::MemoryAudioSource> (*sampleProperties.getAudioBufferPtr (), false, false) };
+
+        //std::unique_ptr<MonoToStereoAudioSource> monoToStereoAudioSource { std::make_unique<MonoToStereoAudioSource> (readerSource.get (), false) };
+
         std::unique_ptr<juce::ResamplingAudioSource> resamplingAudioSource { std::make_unique<juce::ResamplingAudioSource> (readerSource.get (), false, 2) };
         sampleRateRatio = sampleRate / sampleProperties.getSampleRate ();
         resamplingAudioSource->setResamplingRatio (sampleProperties.getSampleRate () / sampleRate);

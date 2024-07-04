@@ -1700,6 +1700,13 @@ void ChannelEditor::setupChannelComponents ()
     setupLabel (channelModeLabel, "MODE", kMediumLabelSize, juce::Justification::centred);
 
     // CHANNEL MODE COMBOBOX
+    auto updateSideSetting = [this] (int channelMode)
+    {
+//             if (channelMode == ChannelProperties::ChannelMode::stereoRight)
+//                 channelProperties.setSide (1);
+//             else
+//                 channelProperties
+    };
     channelModeComboBox.addItem ("Master", ChannelProperties::ChannelMode::master + 1); // 0 = Master, 1 = Link, 2 = Stereo/Right, 3 = Cycle
     channelModeComboBox.addItem ("Link", ChannelProperties::ChannelMode::link + 1);
     channelModeComboBox.addItem ("Stereo/Right", ChannelProperties::ChannelMode::stereoRight + 1);
