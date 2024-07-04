@@ -734,6 +734,7 @@ void ZoneEditor::init (juce::ValueTree zonePropertiesVT, juce::ValueTree unedite
             loopPlayButton.setEnabled (false);
             updateLoopPointsView ();
             updateSamplePositionInfo ();
+            updateSideSelectButtons (0);
         }
         else if (status == SampleStatus::doesNotExist)
         {
@@ -745,6 +746,7 @@ void ZoneEditor::init (juce::ValueTree zonePropertiesVT, juce::ValueTree unedite
             updateLoopPointsView ();
             updateSamplePositionInfo ();
             updateSampleFileInfo (zoneProperties.getSample ());
+            updateSideSelectButtons (0);
         }
         else if (status == SampleStatus::wrongFormat)
         {
@@ -756,6 +758,7 @@ void ZoneEditor::init (juce::ValueTree zonePropertiesVT, juce::ValueTree unedite
             updateLoopPointsView ();
             updateSamplePositionInfo ();
             updateSampleFileInfo (zoneProperties.getSample ());
+            updateSideSelectButtons (0);
         }
     };
 
