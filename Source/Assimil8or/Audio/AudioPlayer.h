@@ -45,13 +45,17 @@ private:
     int blockSize { 128 };
     double sampleRateRatio { 0.0 };
 
-    class MonoToStereoAudioSource : public juce::AudioSource
+    class LeftRightCombinerAudioSource : public juce::AudioSource
     {
     public:
-        MonoToStereoAudioSource (AudioSource* inputSource, const bool deleteInputWhenDeleted)
-            : input { inputSource, deleteInputWhenDeleted }
+        LeftRightCombinerAudioSource (AudioSource* leftInputSource, int leftInputIndex, AudioSource* rightInputSource, int rightInputIndex, const bool deleteInputWhenDeleted)
+            : leftInput { leftInputSource, deleteInputWhenDeleted },
+              rightInput { rightInputSource, deleteInputWhenDeleted },
+              leftChannelIndex { leftInputIndex },
+              rightChannelIndex { rightInputIndex }
         {
-            jassert (input != nullptr);
+            jassert (leftInput != nullptr);
+            jassert (rightInput != nullptr);
         }
 
         void prepareToPlay (int, double) {}
@@ -59,13 +63,23 @@ private:
         void getNextAudioBlock (const juce::AudioSourceChannelInfo& bufferToFill)
         {
             jassert (bufferToFill.buffer->getNumChannels () == 2);
-            // use getNextAudioBlock to fill in the first channel
-            input->getNextAudioBlock (bufferToFill);
-            // and copy it to the second channel
-            bufferToFill.buffer->copyFrom (1, bufferToFill.startSample, bufferToFill.buffer->getReadPointer (0, bufferToFill.startSample), bufferToFill.numSamples);
+            tempBuffer.setSize (2, bufferToFill.buffer->getNumSamples ());
+            juce::AudioSourceChannelInfo tempBufferChannelInfo (&tempBuffer, 0, bufferToFill.numSamples);
+
+            leftInput->getNextAudioBlock (tempBufferChannelInfo);
+            bufferToFill.buffer->clear ();
+            bufferToFill.buffer->copyFrom (0, bufferToFill.startSample, tempBufferChannelInfo.buffer->getReadPointer (leftChannelIndex, 0),
+                                           juce::jmin(tempBufferChannelInfo.buffer->getNumSamples(), bufferToFill.numSamples));
+            rightInput->getNextAudioBlock (tempBufferChannelInfo);
+            bufferToFill.buffer->copyFrom (1, bufferToFill.startSample, tempBufferChannelInfo.buffer->getReadPointer (rightChannelIndex, 0),
+                                           juce::jmin (tempBufferChannelInfo.buffer->getNumSamples (), bufferToFill.numSamples));
         }
     private:
-        juce::OptionalScopedPointer<AudioSource> input;
+        juce::AudioBuffer<float> tempBuffer;
+        juce::OptionalScopedPointer<AudioSource> leftInput;
+        juce::OptionalScopedPointer<AudioSource> rightInput;
+        int leftChannelIndex { 0 };
+        int rightChannelIndex { 0 };
     };
 
     void configureAudioDevice (juce::String deviceName);
