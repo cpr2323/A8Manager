@@ -65,14 +65,14 @@ void AudioPlayer::initFromZone (std::tuple<int, int> channelAndZoneIndecies)
     auto [channelIndex, zoneIndex] {channelAndZoneIndecies};
     jassert (channelIndex < 8);
     jassert (zoneIndex < 8);
-    channelProperties.wrap (presetProperties.getChannelVT (channelIndex), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
+    channelProperties.wrap (presetProperties.getChannelVT (channelIndex), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::yes);
     zoneProperties.wrap (channelProperties.getZoneVT (zoneIndex), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::yes);
     sampleProperties.wrap (sampleManagerProperties.getSamplePropertiesVT (channelIndex, zoneIndex), SampleProperties::WrapperType::owner, SampleProperties::EnableCallbacks::yes);
 
     if (channelIndex < 7)
     {
         const auto nextChannelIndex { channelIndex + 1 };
-        nextChannelProperties.wrap (presetProperties.getChannelVT (nextChannelIndex), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
+        nextChannelProperties.wrap (presetProperties.getChannelVT (nextChannelIndex), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::yes);
         nextZoneProperties.wrap (nextChannelProperties.getZoneVT (zoneIndex), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::yes);
         nextSampleProperties.wrap (sampleManagerProperties.getSamplePropertiesVT (nextChannelIndex, zoneIndex), SampleProperties::WrapperType::owner, SampleProperties::EnableCallbacks::yes);
     }
@@ -288,12 +288,15 @@ void AudioPlayer::prepareSampleForPlayback ()
             leftAudioSource = leftResamplingAudioSource.get ();
             leftAudioSourceChannel = zoneProperties.getSide ();
 
-            rightReaderSource = std::make_unique<juce::MemoryAudioSource> (*nextSampleProperties.getAudioBufferPtr (), false, false);
-            rightResamplingAudioSource = std::make_unique<juce::ResamplingAudioSource> (rightReaderSource.get (), false, 2);
-            rightResamplingAudioSource->setResamplingRatio (nextSampleProperties.getSampleRate () / sampleRate);
-            rightResamplingAudioSource->prepareToPlay (blockSize, sampleRate);
-            rightAudioSource = rightResamplingAudioSource.get ();
-            rightAudioSourceChannel = nextZoneProperties.getSide ();
+            if (nextSampleProperties.getStatus() == SampleStatus::exists)
+            {
+                rightReaderSource = std::make_unique<juce::MemoryAudioSource> (*nextSampleProperties.getAudioBufferPtr (), false, false);
+                rightResamplingAudioSource = std::make_unique<juce::ResamplingAudioSource> (rightReaderSource.get (), false, 2);
+                rightResamplingAudioSource->setResamplingRatio (nextSampleProperties.getSampleRate () / sampleRate);
+                rightResamplingAudioSource->prepareToPlay (blockSize, sampleRate);
+                rightAudioSource = rightResamplingAudioSource.get ();
+                rightAudioSourceChannel = nextZoneProperties.getSide ();
+            }
         }
         else
         {
@@ -303,8 +306,7 @@ void AudioPlayer::prepareSampleForPlayback ()
             return;
         }
 
-        jassert (leftAudioSource != nullptr);
-        jassert (rightAudioSource != nullptr);
+        jassert (leftAudioSource != nullptr || rightAudioSource != nullptr);
         std::unique_ptr<LeftRightCombinerAudioSource> leftRightCombinerAudioSource { std::make_unique<LeftRightCombinerAudioSource> (leftAudioSource, leftAudioSourceChannel,
                                                                                                                                      rightAudioSource, rightAudioSourceChannel, false) };
         

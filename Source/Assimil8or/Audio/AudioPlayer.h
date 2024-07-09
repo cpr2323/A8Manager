@@ -55,8 +55,7 @@ private:
               leftChannelIndex { leftInputIndex },
               rightChannelIndex { rightInputIndex }
         {
-            jassert (leftInput != nullptr);
-            jassert (rightInput != nullptr);
+            jassert (leftInput != nullptr || rightInput != nullptr);
         }
 
         void prepareToPlay (int, double) {}
@@ -67,13 +66,19 @@ private:
             tempBuffer.setSize (2, bufferToFill.buffer->getNumSamples ());
             juce::AudioSourceChannelInfo tempBufferChannelInfo (&tempBuffer, 0, bufferToFill.numSamples);
 
-            leftInput->getNextAudioBlock (tempBufferChannelInfo);
             bufferToFill.buffer->clear ();
-            bufferToFill.buffer->copyFrom (0, bufferToFill.startSample, tempBufferChannelInfo.buffer->getReadPointer (leftChannelIndex, 0),
-                                           juce::jmin(tempBufferChannelInfo.buffer->getNumSamples(), bufferToFill.numSamples));
-            rightInput->getNextAudioBlock (tempBufferChannelInfo);
-            bufferToFill.buffer->copyFrom (1, bufferToFill.startSample, tempBufferChannelInfo.buffer->getReadPointer (rightChannelIndex, 0),
-                                           juce::jmin (tempBufferChannelInfo.buffer->getNumSamples (), bufferToFill.numSamples));
+            if (leftInput != nullptr)
+            {
+                leftInput->getNextAudioBlock (tempBufferChannelInfo);
+                bufferToFill.buffer->copyFrom (0, bufferToFill.startSample, tempBufferChannelInfo.buffer->getReadPointer (leftChannelIndex, 0),
+                    juce::jmin (tempBufferChannelInfo.buffer->getNumSamples (), bufferToFill.numSamples));
+            }
+            if (rightInput != nullptr)
+            {
+                rightInput->getNextAudioBlock (tempBufferChannelInfo);
+                bufferToFill.buffer->copyFrom (1, bufferToFill.startSample, tempBufferChannelInfo.buffer->getReadPointer (rightChannelIndex, 0),
+                    juce::jmin (tempBufferChannelInfo.buffer->getNumSamples (), bufferToFill.numSamples));
+            }
         }
     private:
         juce::AudioBuffer<float> tempBuffer;
