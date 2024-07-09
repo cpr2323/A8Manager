@@ -11,10 +11,12 @@
 #define LogAudioPlayer(text) ;
 #endif
 
-AudioPlayer::AudioPlayer ()
-{
-    audioFormatManager.registerBasicFormats ();
-}
+#define LOG_AUDIO_PLAY_BACK 0
+#if LOG_AUDIO_PLAY_BACK
+#define LogAudioPlayback(text) DebugLog ("AudioPlayer", text);
+#else
+#define LogAudioPlayback(text) ;
+#endif
 
 void AudioPlayer::init (juce::ValueTree rootPropertiesVT)
 {
@@ -64,16 +66,57 @@ void AudioPlayer::initFromZone (std::tuple<int, int> channelAndZoneIndecies)
     jassert (channelIndex < 8);
     jassert (zoneIndex < 8);
     channelProperties.wrap (presetProperties.getChannelVT (channelIndex), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
-
     zoneProperties.wrap (channelProperties.getZoneVT (zoneIndex), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::yes);
     sampleProperties.wrap (sampleManagerProperties.getSamplePropertiesVT (channelIndex, zoneIndex), SampleProperties::WrapperType::owner, SampleProperties::EnableCallbacks::yes);
 
-    zoneProperties.onSampleChange = [this] (juce::String sampleName)
+    if (channelIndex < 7)
+    {
+        const auto nextChannelIndex { channelIndex + 1 };
+        nextChannelProperties.wrap (presetProperties.getChannelVT (nextChannelIndex), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
+        nextZoneProperties.wrap (nextChannelProperties.getZoneVT (zoneIndex), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::yes);
+        nextSampleProperties.wrap (sampleManagerProperties.getSamplePropertiesVT (nextChannelIndex, zoneIndex), SampleProperties::WrapperType::owner, SampleProperties::EnableCallbacks::yes);
+    }
+    else
+    {
+        nextChannelProperties.wrap ({}, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
+        nextZoneProperties.wrap ({}, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
+        nextSampleProperties.wrap ({}, SampleProperties::WrapperType::owner, SampleProperties::EnableCallbacks::no);
+    }
+
+    channelProperties.onChannelModeChange = [this] (int)
+    {
+        LogAudioPlayer ("channelProperties.onChannelModeChange");
+        initSamplePoints ();
+        prepareSampleForPlayback ();
+    };
+    zoneProperties.onSampleChange = [this] (juce::String)
     {
         LogAudioPlayer ("zoneProperties.onSampleChange");
         initSamplePoints ();
         prepareSampleForPlayback ();
     };
+    zoneProperties.onSideChange = [this] (int)
+    {
+        LogAudioPlayer ("zoneProperties.onSideChange");
+        initSamplePoints ();
+        prepareSampleForPlayback ();
+    };
+    nextChannelProperties.onChannelModeChange = [this] (int)
+    {
+        LogAudioPlayer ("nextChannelProperties.onChannelModeChange");
+        prepareSampleForPlayback ();
+    };
+    nextZoneProperties.onSampleChange = [this] (juce::String)
+    {
+        LogAudioPlayer ("nextZoneProperties.onSampleChange");
+        prepareSampleForPlayback ();
+    };
+    nextZoneProperties.onSideChange = [this] (int)
+    {
+        LogAudioPlayer ("nextZoneProperties.onSideChange");
+        prepareSampleForPlayback ();
+    };
+
     // TODO - can I refactor these callback?
     //  issues:
     //      onSampleStartChange recalculates sampleLength, but onLoopStartChange does NOT change sampleLength
@@ -148,6 +191,27 @@ void AudioPlayer::initFromZone (std::tuple<int, int> channelAndZoneIndecies)
             }
         }
     };
+    nextSampleProperties.onStatusChange = [this] (SampleStatus status)
+    {
+        if (status == SampleStatus::exists)
+        {
+            LogAudioPlayer ("nextSampleProperties.onStatusChange: SampleStatus::exists");
+            initSamplePoints ();
+            prepareSampleForPlayback ();
+        }
+        else
+        {
+            // TODO - reset somethings?
+            LogAudioPlayer ("nextSampleProperties.onStatusChange: NOT SampleStatus::exists");
+            audioPlayerProperties.setPlayState (AudioPlayerProperties::PlayState::stop, true);
+            {
+                juce::ScopedLock sl (dataCS);
+                sampleStart = 0;
+                sampleLength = 0;
+                sampleBuffer.reset ();
+            }
+        }
+    };
 
     // create local copy of audio data, with resampling if needed
     prepareSampleForPlayback ();
@@ -183,38 +247,70 @@ void AudioPlayer::prepareSampleForPlayback ()
     jassert (playState == AudioPlayerProperties::PlayState::stop);
     if (zoneProperties.isValid () && sampleProperties.isValid () && sampleProperties.getStatus () == SampleStatus::exists)
     {
-        // if channel is master and next channel is not stereo/right, then use MonoToStereoAudioSource (copies left channel into both channels)
-        // if channel is master and next channel is stereo/right
-        //      if both channels are the same file, then copy into output buffer
-        //      if channels are different files, copy left from master and right from stereo/right
-
-        // TEST - this version of the code will just copy the master channel left to both outputs
-        std::unique_ptr <juce::MemoryAudioSource> leftReaderSource { std::make_unique<juce::MemoryAudioSource> (*sampleProperties.getAudioBufferPtr (), false, false) };
-        std::unique_ptr<juce::ResamplingAudioSource> leftResamplingAudioSource { std::make_unique<juce::ResamplingAudioSource> (leftReaderSource.get (), false, 1) };
-        sampleRateRatio = sampleRate / sampleProperties.getSampleRate (); // we use the master channel sample rate, since we use the sample points from that
-        leftResamplingAudioSource->setResamplingRatio (sampleProperties.getSampleRate () / sampleRate);
-        leftResamplingAudioSource->prepareToPlay (blockSize, sampleRate);
-
-        std::unique_ptr <juce::MemoryAudioSource> rightReaderSource { std::make_unique<juce::MemoryAudioSource> (*sampleProperties.getAudioBufferPtr (), false, false) };
-        std::unique_ptr<juce::ResamplingAudioSource> rightResamplingAudioSource { std::make_unique<juce::ResamplingAudioSource> (rightReaderSource.get (), false, 2) };
-        rightResamplingAudioSource->setResamplingRatio (sampleProperties.getSampleRate () / sampleRate);
-        rightResamplingAudioSource->prepareToPlay (blockSize, sampleRate);
-
-        std::unique_ptr<LeftRightCombinerAudioSource> leftRightCombinerAudioSource { std::make_unique<LeftRightCombinerAudioSource> (leftResamplingAudioSource.get (), 0,
-                                                                                                                                     rightResamplingAudioSource.get (), 1, false) };
+        juce::AudioSource* leftAudioSource { nullptr };
+        juce::AudioSource* rightAudioSource { nullptr };
+        int leftAudioSourceChannel { 0 };
+        int rightAudioSourceChannel { 0 };
 
         LogAudioPlayer ("prepareSampleForPlayback: sample is ready");
-        LogAudioPlayer ("prepareSampleForPlayback: num channels: " + juce::String(sampleProperties.getAudioBufferPtr ()->getNumChannels ()));
-        //std::unique_ptr <juce::MemoryAudioSource> readerSource { std::make_unique<juce::MemoryAudioSource> (*sampleProperties.getAudioBufferPtr (), false, false) };
-        //std::unique_ptr<juce::ResamplingAudioSource> resamplingAudioSource { std::make_unique<juce::ResamplingAudioSource> (readerSource.get (), false, 2) };
-        sampleRateRatio = sampleRate / sampleProperties.getSampleRate ();
-        //resamplingAudioSource->setResamplingRatio (sampleProperties.getSampleRate () / sampleRate);
-        //resamplingAudioSource->prepareToPlay (blockSize, sampleRate);
+        LogAudioPlayer ("prepareSampleForPlayback: num channels: " + juce::String (sampleProperties.getAudioBufferPtr ()->getNumChannels ()));
+        std::unique_ptr <juce::MemoryAudioSource> leftReaderSource;
+        std::unique_ptr<juce::ResamplingAudioSource> leftResamplingAudioSource;
+        std::unique_ptr <juce::MemoryAudioSource> rightReaderSource;
+        std::unique_ptr<juce::ResamplingAudioSource> rightResamplingAudioSource;
+
+        if (channelProperties.getChannelMode () == ChannelProperties::ChannelMode::master && nextChannelProperties.getChannelMode () != ChannelProperties::ChannelMode::stereoRight)
+        {
+            LogAudioPlayer ("prepareSampleForPlayback: master channel only");
+            leftReaderSource = std::make_unique<juce::MemoryAudioSource> (*sampleProperties.getAudioBufferPtr (), false, false);
+            leftResamplingAudioSource = std::make_unique<juce::ResamplingAudioSource> (leftReaderSource.get (), false, 1);
+            sampleRateRatio = sampleRate / sampleProperties.getSampleRate (); // we use the master channel sample rate, since we use the sample points from that
+            leftResamplingAudioSource->setResamplingRatio (sampleProperties.getSampleRate () / sampleRate);
+            leftResamplingAudioSource->prepareToPlay (blockSize, sampleRate);
+            leftAudioSource = leftResamplingAudioSource.get ();
+            leftAudioSourceChannel = zoneProperties.getSide ();
+
+            rightReaderSource = std::make_unique<juce::MemoryAudioSource> (*sampleProperties.getAudioBufferPtr (), false, false);
+            rightResamplingAudioSource = std::make_unique<juce::ResamplingAudioSource> (rightReaderSource.get (), false, 1);
+            rightResamplingAudioSource->setResamplingRatio (sampleProperties.getSampleRate () / sampleRate);
+            rightResamplingAudioSource->prepareToPlay (blockSize, sampleRate);
+            rightAudioSource = rightResamplingAudioSource.get ();
+            rightAudioSourceChannel = zoneProperties.getSide ();
+        }
+        else if (channelProperties.getChannelMode () == ChannelProperties::ChannelMode::master && nextChannelProperties.getChannelMode () == ChannelProperties::ChannelMode::stereoRight)
+        {
+            LogAudioPlayer ("prepareSampleForPlayback: master and stereo/right");
+            leftReaderSource = std::make_unique<juce::MemoryAudioSource> (*sampleProperties.getAudioBufferPtr (), false, false);
+            leftResamplingAudioSource = std::make_unique<juce::ResamplingAudioSource> (leftReaderSource.get (), false, 2);
+            sampleRateRatio = sampleRate / sampleProperties.getSampleRate (); // we use the master channel sample rate, since we use the sample points from that
+            leftResamplingAudioSource->setResamplingRatio (sampleProperties.getSampleRate () / sampleRate);
+            leftResamplingAudioSource->prepareToPlay (blockSize, sampleRate);
+            leftAudioSource = leftResamplingAudioSource.get ();
+            leftAudioSourceChannel = zoneProperties.getSide ();
+
+            rightReaderSource = std::make_unique<juce::MemoryAudioSource> (*nextSampleProperties.getAudioBufferPtr (), false, false);
+            rightResamplingAudioSource = std::make_unique<juce::ResamplingAudioSource> (rightReaderSource.get (), false, 2);
+            rightResamplingAudioSource->setResamplingRatio (nextSampleProperties.getSampleRate () / sampleRate);
+            rightResamplingAudioSource->prepareToPlay (blockSize, sampleRate);
+            rightAudioSource = rightResamplingAudioSource.get ();
+            rightAudioSourceChannel = nextZoneProperties.getSide ();
+        }
+        else
+        {
+            jassertfalse;
+            sampleBuffer = std::make_unique<juce::AudioBuffer<float>> (2, 0);
+            curSampleOffset = 0;
+            return;
+        }
+
+        jassert (leftAudioSource != nullptr);
+        jassert (rightAudioSource != nullptr);
+        std::unique_ptr<LeftRightCombinerAudioSource> leftRightCombinerAudioSource { std::make_unique<LeftRightCombinerAudioSource> (leftAudioSource, leftAudioSourceChannel,
+                                                                                                                                     rightAudioSource, rightAudioSourceChannel, false) };
         
         sampleBuffer = std::make_unique<juce::AudioBuffer<float>> (2, static_cast<int> (sampleProperties.getLengthInSamples () * sampleRate / sampleProperties.getSampleRate ()));
 
         leftRightCombinerAudioSource->getNextAudioBlock (juce::AudioSourceChannelInfo (*sampleBuffer.get ()));
-        //resamplingAudioSource->getNextAudioBlock (juce::AudioSourceChannelInfo (*sampleBuffer.get ()));
         curSampleOffset = 0;
     }
     else
@@ -333,7 +429,7 @@ void AudioPlayer::getNextAudioBlock (const juce::AudioSourceChannelInfo& bufferT
         cachedSampleStart = sampleStart;
         chachedPlayState = playState;
         cachedLocalSampleOffset = curSampleOffset - sampleStart;
-        LogAudioPlayer ("AudioPlayer::getNextAudioBlock - cachedSampleStart: " + juce::String (cachedSampleStart) + ", chachedSampleLength: " + juce::String (cachedSampleLength) +
+        LogAudioPlayback ("AudioPlayer::getNextAudioBlock - cachedSampleStart: " + juce::String (cachedSampleStart) + ", chachedSampleLength: " + juce::String (cachedSampleLength) +
                         ", curSampleOffset: " + juce::String (curSampleOffset) + ", cachedLocalSampleOffset: " + juce::String (cachedLocalSampleOffset));
     }
     auto numSamplesToCopy { 0 };
@@ -341,7 +437,7 @@ void AudioPlayer::getNextAudioBlock (const juce::AudioSourceChannelInfo& bufferT
     while (cachedSampleLength > 0 && outputBufferWritePos < numOutputSamples)
     {
         numSamplesToCopy = juce::jmin (numOutputSamples - outputBufferWritePos, cachedSampleLength - cachedLocalSampleOffset);
-        LogAudioPlayer ("AudioPlayer::getNextAudioBlock - numSamplesToCopy: " + juce::String (numSamplesToCopy));
+        LogAudioPlayback ("AudioPlayer::getNextAudioBlock - numSamplesToCopy: " + juce::String (numSamplesToCopy));
         jassert (numSamplesToCopy >= 0);
 
         // copy data from sample buffer to output buffer, this may, or may not, fill the entire output buffer
@@ -362,7 +458,7 @@ void AudioPlayer::getNextAudioBlock (const juce::AudioSourceChannelInfo& bufferT
         }
         else
         {
-            LogAudioPlayer ("AudioPlayer::getNextAudioBlock - outputBufferWritePos : " + juce::String (outputBufferWritePos) + ", numOutputSamples: " + juce::String (numOutputSamples));
+            LogAudioPlayback ("AudioPlayer::getNextAudioBlock - outputBufferWritePos : " + juce::String (outputBufferWritePos) + ", numOutputSamples: " + juce::String (numOutputSamples));
             if (outputBufferWritePos < numOutputSamples)
             {
                 outputBuffer.clear (bufferToFill.startSample + outputBufferWritePos, numOutputSamples - outputBufferWritePos);
@@ -377,12 +473,12 @@ void AudioPlayer::getNextAudioBlock (const juce::AudioSourceChannelInfo& bufferT
         if (originalSampleOffset == curSampleOffset && cachedSampleStart == sampleStart && cachedSampleLength == sampleLength) // if the offset has not changed externally
         {
             curSampleOffset = cachedSampleStart + cachedLocalSampleOffset;
-            LogAudioPlayer ("AudioPlayer::getNextAudioBlock setting new curSampleOffset: " + juce::String (curSampleOffset) + ", cachedSampleStart: " + juce::String (cachedSampleStart) + ", chachedSampleLength: " + juce::String (cachedSampleLength) +
+            LogAudioPlayback ("AudioPlayer::getNextAudioBlock setting new curSampleOffset: " + juce::String (curSampleOffset) + ", cachedSampleStart: " + juce::String (cachedSampleStart) + ", chachedSampleLength: " + juce::String (cachedSampleLength) +
                             ", cachedLocalSampleOffset: " + juce::String (cachedLocalSampleOffset));
         }
         else
         {
-            LogAudioPlayer ("AudioPlayer::getNextAudioBlock - curSampleOffset: " + juce::String (cachedSampleStart) + " != originalSampleOffset: " + juce::String (originalSampleOffset));
+            LogAudioPlayback ("AudioPlayer::getNextAudioBlock - curSampleOffset: " + juce::String (cachedSampleStart) + " != originalSampleOffset: " + juce::String (originalSampleOffset));
         }
     }
 }

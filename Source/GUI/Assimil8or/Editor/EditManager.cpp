@@ -277,6 +277,7 @@ bool EditManager::assignSamples (int channelIndex, int zoneIndex, const juce::St
         // assign file to zone
         auto& zoneProperties { zoneAndSamplePropertiesList [channelIndex][zoneIndex + filesIndex].zoneProperties };
         zoneProperties.setSample (file.getFileName (), false);
+        zoneProperties.setSide (0, false);
 
         // check if stereo and set up right channel
         auto& sampleProperties { zoneAndSamplePropertiesList [channelIndex][zoneIndex + filesIndex].sampleProperties };

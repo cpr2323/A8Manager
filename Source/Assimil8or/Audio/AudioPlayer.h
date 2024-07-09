@@ -15,8 +15,6 @@ class AudioPlayer : public juce::AudioSource,
                     public juce::ChangeListener
 {
 public:
-    AudioPlayer ();
-
     void init (juce::ValueTree rootProperties);
     void shutdownAudio ();
 
@@ -29,8 +27,11 @@ private:
     ChannelProperties channelProperties;
     ZoneProperties zoneProperties;
     SampleProperties sampleProperties;
+    ChannelProperties nextChannelProperties;
+    ZoneProperties nextZoneProperties;
+    SampleProperties nextSampleProperties;
+
     juce::AudioDeviceManager audioDeviceManager;
-    juce::AudioFormatManager audioFormatManager;
     juce::AudioSourcePlayer audioSourcePlayer;
     std::unique_ptr < juce::AudioBuffer<float>> sampleBuffer;
     juce::AudioDeviceSelectorComponent audioSetupComp { audioDeviceManager, 0, 0, 0, 256, false, false, true, false};
