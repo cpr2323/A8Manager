@@ -22,6 +22,7 @@ public:
     void receiveSampleLoadRequest (juce::File sampleFile);
     // TODO - is there a VTW that could manage this setting?
     void setLoopLengthIsEnd (bool loopLengthIsEnd);
+    void setStereoRightChannelMode (bool isStereoRightChannelMode);
 
     // TODO - can we make this local, since we should be able to access the edits through the EditManager
     std::function<void (int zoneIndex)> displayToolsMenu;
@@ -41,6 +42,7 @@ private:
     EditManager* editManager { nullptr };
     int zoneIndex { -1 };
     int parentChannelIndex { -1 };
+    bool isStereoRightChannelMode { false };
 
     // Loop Length is always stored as loop length, but the UI can be toggled to display it, and take input for it, as if it is Loop End
     bool treatLoopLengthAsEndInUi { false };

@@ -124,6 +124,9 @@ void WaveformDisplay::paint (juce::Graphics& g)
 
 void WaveformDisplay::mouseMove (const juce::MouseEvent& e)
 {
+    if (!isEnabled ())
+        return;
+
     if (zoneProperties.isValid () && sampleProperties.isValid () && sampleProperties.getStatus () == SampleStatus::exists)
     {
         if (sampleStartHandle.contains (e.getPosition ()))
@@ -143,12 +146,18 @@ void WaveformDisplay::mouseMove (const juce::MouseEvent& e)
 
 void WaveformDisplay::mouseDown ([[maybe_unused]] const juce::MouseEvent& e)
 {
+    if (!isEnabled ())
+        return;
+
     if (handleIndex == EditHandleIndex::kNone)
         return;
 }
 
 void WaveformDisplay::mouseDrag (const juce::MouseEvent& e)
 {
+    if (!isEnabled ())
+        return;
+
     switch (handleIndex)
     {
         case EditHandleIndex::kNone:

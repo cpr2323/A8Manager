@@ -718,8 +718,8 @@ void ZoneEditor::init (juce::ValueTree zonePropertiesVT, juce::ValueTree unedite
             //DebugLog ("ZoneEditor", "sample Status exists");
             // when we receive this callback, it means all of the other sample data is updated too
             setEditComponentsEnabled (true);
-            oneShotPlayButton.setEnabled (true);
-            loopPlayButton.setEnabled (true);
+            oneShotPlayButton.setEnabled (true && !isStereoRightChannelMode);
+            loopPlayButton.setEnabled (true && !isStereoRightChannelMode);
             updateLoopPointsView ();
             updateSamplePositionInfo ();
             updateSampleFileInfo (zoneProperties.getSample ());
@@ -792,6 +792,27 @@ void ZoneEditor::setLoopLengthIsEnd (bool newLoopLengthIsEnd)
     }
     // reformat the UI string
     loopLengthDataChanged (zoneProperties.getLoopLength ());
+}
+
+void ZoneEditor::setStereoRightChannelMode (bool newStereoRightChannelMode)
+{
+    isStereoRightChannelMode = newStereoRightChannelMode;
+
+    sourceSamplePointsButton.setEnabled (!isStereoRightChannelMode);
+    sourceLoopPointsButton.setEnabled (!isStereoRightChannelMode);
+    oneShotPlayButton.setEnabled (!isStereoRightChannelMode);
+    loopPlayButton.setEnabled (!isStereoRightChannelMode);
+    toolsButton.setEnabled (!isStereoRightChannelMode);
+    levelOffsetTextEditor.setEnabled (!isStereoRightChannelMode);
+    loopLengthTextEditor.setEnabled (!isStereoRightChannelMode);
+    loopStartTextEditor.setEnabled (!isStereoRightChannelMode);
+    minVoltageTextEditor.setEnabled (!isStereoRightChannelMode);
+    pitchOffsetTextEditor.setEnabled (!isStereoRightChannelMode);
+    //leftChannelSelectButton.setEnabled (!isStereoRightChannelMode); // can still edit in stereo/right channel mode
+    //rightChannelSelectButton.setEnabled (!isStereoRightChannelMode); // can still edit in stereo/right channel mode
+    //sampleNameSelectLabel.setEnabled (!isStereoRightChannelMode); // can still edit in stereo/right channel mode
+    sampleEndTextEditor.setEnabled (!isStereoRightChannelMode);
+    sampleStartTextEditor.setEnabled (!isStereoRightChannelMode);
 }
 
 void ZoneEditor::receiveSampleLoadRequest (juce::File sampleFile)
@@ -927,13 +948,13 @@ void ZoneEditor::resized ()
 
 void ZoneEditor::setEditComponentsEnabled (bool enabled)
 {
-    sampleStartTextEditor.setEnabled (enabled);
-    sampleEndTextEditor.setEnabled (enabled);
-    loopStartTextEditor.setEnabled (enabled);
-    loopLengthTextEditor.setEnabled (enabled);
-    minVoltageTextEditor.setEnabled (enabled);
-    pitchOffsetTextEditor.setEnabled (enabled);
-    levelOffsetTextEditor.setEnabled (enabled);
+    sampleStartTextEditor.setEnabled (enabled && !isStereoRightChannelMode);
+    sampleEndTextEditor.setEnabled (enabled && !isStereoRightChannelMode);
+    loopStartTextEditor.setEnabled (enabled && !isStereoRightChannelMode);
+    loopLengthTextEditor.setEnabled (enabled && !isStereoRightChannelMode);
+    minVoltageTextEditor.setEnabled (enabled && !isStereoRightChannelMode);
+    pitchOffsetTextEditor.setEnabled (enabled && !isStereoRightChannelMode);
+    levelOffsetTextEditor.setEnabled (enabled && !isStereoRightChannelMode);
 }
 
 double ZoneEditor::snapLoopLength (double rawValue)
