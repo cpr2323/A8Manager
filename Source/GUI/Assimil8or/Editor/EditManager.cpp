@@ -293,12 +293,12 @@ bool EditManager::assignSamples (int channelIndex, int zoneIndex, const juce::St
                 {
                     nextChannelProperties.setChannelMode (ChannelProperties::ChannelMode::stereoRight, false);
                     nextChannelZoneProperties.setSide (1, false);
-                    nextChannelZoneProperties.setSampleStart (-1, true);
+                    nextChannelZoneProperties.setSampleStart (-1, true); // I think this,and the next 3 lines, could pass false for doSelfCallback
                     nextChannelZoneProperties.setSampleEnd (-1, true);
                     nextChannelZoneProperties.setLoopStart (-1, true);
                     nextChannelZoneProperties.setLoopLength (-1, true);
                     nextChannelZoneProperties.setSample (zoneProperties.getSample (), false); // when the other editor receives this update, it will also update the sample positions, so do it after setting them
-                }
+                } 
             }
         }
     }

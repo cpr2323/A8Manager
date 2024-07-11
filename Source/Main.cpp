@@ -16,7 +16,7 @@
 #include "Utility/ValueTreeFile.h"
 #include "Utility/ValueTreeMonitor.h"
 
-constexpr char* kVersionDecorator { " [TEST]" };
+constexpr char* kVersionDecorator { " [TEST-2]" };
 
 // this requires the third party Melatonin Inspector be installed and added to the project
 // https://github.com/sudara/melatonin_inspector

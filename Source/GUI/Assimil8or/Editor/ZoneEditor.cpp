@@ -1242,6 +1242,11 @@ void ZoneEditor::sampleEndUiChanged (juce::int64 sampleEnd)
 
 void ZoneEditor::sideDataChanged (int side)
 {
+    if (sampleProperties.getStatus () == SampleStatus::exists && sampleProperties.getNumChannels () == 1 && side == 1)
+    {
+        side = 0;
+        zoneProperties.setSide (0, false);
+    }
     updateSideSelectButtons (side);
     updateLoopPointsView ();
 }

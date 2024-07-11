@@ -233,10 +233,6 @@ void PresetListComponent::loadPresetFile (juce::File presetFile, juce::ValueTree
     Assimil8orPreset assimil8orPreset;
     assimil8orPreset.parse (fileContents);
 
-    // TODO - is this redundant, since assimil8orPreset.parse resets it's PresetProperties to defaults already
-    // first set preset to defaults
-    PresetProperties::copyTreeProperties (ParameterPresetsSingleton::getInstance ()->getParameterPresetListProperties ().getParameterPreset (ParameterPresetListProperties::DefaultParameterPresetType),
-                                          presetPropertiesVT);
     // then load new preset
     PresetProperties::copyTreeProperties (assimil8orPreset.getPresetVT (), presetPropertiesVT);
 
@@ -245,8 +241,10 @@ void PresetListComponent::loadPresetFile (juce::File presetFile, juce::ValueTree
 
 void PresetListComponent::loadPreset (juce::File presetFile)
 {
-    loadPresetFile (presetFile, presetProperties.getValueTree ());
-    PresetProperties::copyTreeProperties (presetProperties.getValueTree (), unEditedPresetProperties.getValueTree ());
+    loadPresetFile (presetFile, unEditedPresetProperties.getValueTree ());
+    PresetProperties::copyTreeProperties (ParameterPresetsSingleton::getInstance ()->getParameterPresetListProperties ().getParameterPreset (ParameterPresetListProperties::DefaultParameterPresetType),
+                                          presetProperties.getValueTree ());
+    PresetProperties::copyTreeProperties (unEditedPresetProperties.getValueTree (), presetProperties.getValueTree ());
 }
 
 void PresetListComponent::resized ()

@@ -164,6 +164,16 @@ void SampleManager::updateSample (juce::String fileName, SampleData& sampleData)
             sampleData.numChannels = sampleFileReader->numChannels;
             sampleData.lengthInSamples = sampleFileReader->lengthInSamples;
 
+            // ensure that a mono sample does not have side set to 1
+            // this could happen if the sample was stereo when the preset was made, but changed to mono afterwards
+            for (auto channelIndex { 0 }; channelIndex < 8; ++channelIndex)
+                for (auto zoneIndex { 0 }; zoneIndex < 8; ++zoneIndex)
+                {
+                    auto& zoneProperties { zoneAndSamplePropertiesList [channelIndex][zoneIndex].zoneProperties };
+                    if (zoneProperties.getSample() == fileName && sampleData.numChannels == 1 && zoneProperties.getSide () == 1)
+                        zoneProperties.setSide (0, false);
+                }
+
             // read in audio data
             sampleData.audioBuffer.setSize (sampleData.numChannels, static_cast<int> (sampleData.lengthInSamples), false, true, false);
             sampleFileReader->read (&sampleData.audioBuffer, 0, static_cast<int> (sampleData.lengthInSamples), 0, true, true);

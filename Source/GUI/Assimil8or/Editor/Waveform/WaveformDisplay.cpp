@@ -78,7 +78,8 @@ void WaveformDisplay::paint (juce::Graphics& g)
     if (zoneProperties.isValid () && sampleProperties.isValid () && sampleProperties.getStatus () == SampleStatus::exists)
     {
         const auto audioBufferPtr { sampleProperties.getAudioBufferPtr () };
-        auto readPtr { audioBufferPtr->getReadPointer (zoneProperties.getSide ()) };
+        const auto side { zoneProperties.getSide () };
+        auto readPtr { audioBufferPtr->getReadPointer (side < sampleProperties.getNumChannels() ? side : 0) };
 
         g.setColour (juce::Colours::black);
         // TODO - get proper end pixel if sample ends before end of display
