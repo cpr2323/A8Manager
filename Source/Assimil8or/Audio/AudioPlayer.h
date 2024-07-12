@@ -15,8 +15,6 @@ class AudioPlayer : public juce::AudioSource,
                     public juce::ChangeListener
 {
 public:
-    AudioPlayer ();
-
     void init (juce::ValueTree rootProperties);
     void shutdownAudio ();
 
@@ -29,8 +27,11 @@ private:
     ChannelProperties channelProperties;
     ZoneProperties zoneProperties;
     SampleProperties sampleProperties;
+    ChannelProperties nextChannelProperties;
+    ZoneProperties nextZoneProperties;
+    SampleProperties nextSampleProperties;
+
     juce::AudioDeviceManager audioDeviceManager;
-    juce::AudioFormatManager audioFormatManager;
     juce::AudioSourcePlayer audioSourcePlayer;
     std::unique_ptr < juce::AudioBuffer<float>> sampleBuffer;
     juce::AudioDeviceSelectorComponent audioSetupComp { audioDeviceManager, 0, 0, 0, 256, false, false, true, false};
@@ -41,10 +42,51 @@ private:
     int sampleStart { 0 };
     int sampleLength { 0 };
 
-//    juce::File audioFile;
     double sampleRate { 44100.0 };
     int blockSize { 128 };
     double sampleRateRatio { 0.0 };
+
+    class LeftRightCombinerAudioSource : public juce::AudioSource
+    {
+    public:
+        LeftRightCombinerAudioSource (AudioSource* leftInputSource, int leftInputIndex, AudioSource* rightInputSource, int rightInputIndex, const bool deleteInputWhenDeleted)
+            : leftInput { leftInputSource, deleteInputWhenDeleted },
+              rightInput { rightInputSource, deleteInputWhenDeleted },
+              leftChannelIndex { leftInputIndex },
+              rightChannelIndex { rightInputIndex }
+        {
+            jassert (leftInput != nullptr || rightInput != nullptr);
+        }
+
+        void prepareToPlay (int, double) {}
+        void releaseResources () {}
+        void getNextAudioBlock (const juce::AudioSourceChannelInfo& bufferToFill)
+        {
+            jassert (bufferToFill.buffer->getNumChannels () == 2);
+            tempBuffer.setSize (2, bufferToFill.buffer->getNumSamples ());
+            juce::AudioSourceChannelInfo tempBufferChannelInfo (&tempBuffer, 0, bufferToFill.numSamples);
+
+            bufferToFill.buffer->clear ();
+            if (leftInput != nullptr)
+            {
+                leftInput->getNextAudioBlock (tempBufferChannelInfo);
+                bufferToFill.buffer->copyFrom (0, bufferToFill.startSample, tempBufferChannelInfo.buffer->getReadPointer (leftChannelIndex, 0),
+                    juce::jmin (tempBufferChannelInfo.buffer->getNumSamples (), bufferToFill.numSamples));
+            }
+            if (rightInput != nullptr)
+            {
+                rightInput->getNextAudioBlock (tempBufferChannelInfo);
+                bufferToFill.buffer->copyFrom (1, bufferToFill.startSample, tempBufferChannelInfo.buffer->getReadPointer (rightChannelIndex, 0),
+                    juce::jmin (tempBufferChannelInfo.buffer->getNumSamples (), bufferToFill.numSamples));
+            }
+        }
+    private:
+        juce::AudioBuffer<float> tempBuffer;
+        juce::OptionalScopedPointer<AudioSource> leftInput;
+        juce::OptionalScopedPointer<AudioSource> rightInput;
+        int leftChannelIndex { 0 };
+        int rightChannelIndex { 0 };
+    };
 
     void configureAudioDevice (juce::String deviceName);
     void handlePlayState (AudioPlayerProperties::PlayState playState);

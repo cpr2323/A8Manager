@@ -101,6 +101,8 @@ void AREnvelopeComponent::resized ()
 
 void AREnvelopeComponent::mouseMove (const juce::MouseEvent& e)
 {
+    if (! isEnabled ())
+        return;
     auto isMouseOverAnchor = [&e] (EnvelopeAnchor& anchor) -> bool
     {
         return juce::Rectangle<int> (static_cast<int> (anchor.getX ()),
@@ -137,6 +139,8 @@ void AREnvelopeComponent::mouseMove (const juce::MouseEvent& e)
 
 void AREnvelopeComponent::mouseExit (const juce::MouseEvent&)
 {
+    if (! isEnabled ())
+        return;
     if (curActiveAnchor != nullptr)
     {
         curActiveAnchor->setActive (false);
@@ -147,12 +151,16 @@ void AREnvelopeComponent::mouseExit (const juce::MouseEvent&)
 
 void AREnvelopeComponent::mouseDown ([[maybe_unused]] const juce::MouseEvent& e)
 {
+    if (! isEnabled ())
+        return;
     if (curActiveAnchor == nullptr)
         return;
 }
 
 void AREnvelopeComponent::mouseDrag (const juce::MouseEvent& e)
 {
+    if (! isEnabled ())
+        return;
     if (curActiveAnchor == nullptr)
         return;
 

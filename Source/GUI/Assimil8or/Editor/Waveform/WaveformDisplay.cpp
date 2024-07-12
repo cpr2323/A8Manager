@@ -20,6 +20,7 @@ void WaveformDisplay::setZone (int zoneIndex)
     zoneProperties.onSampleEndChange = [this] (std::optional<juce::int64>) { updateData (); repaint (); };
     zoneProperties.onLoopStartChange = [this] (std::optional<juce::int64>) { updateData (); repaint (); };
     zoneProperties.onLoopLengthChange = [this] (std::optional<double>) { updateData (); repaint (); };
+    zoneProperties.onSideChange = [this] (int) { updateData (); repaint (); };
 
     sampleProperties.wrap (sampleManagerProperties.getSamplePropertiesVT (channelProperties.getId () - 1, zoneIndex), SampleProperties::WrapperType::client, SampleProperties::EnableCallbacks::yes);
     sampleProperties.onStatusChange = [this] (SampleStatus) { updateData ();  repaint (); };
@@ -37,7 +38,7 @@ void WaveformDisplay::updateData ()
         sampleEnd = zoneProperties.getSampleEnd ().value_or (numSamples);
         loopStart = zoneProperties.getLoopStart ().value_or (0);
         loopLength = static_cast<juce::int64> (zoneProperties.getLoopLength ().value_or (static_cast<double> (numSamples - loopStart)));
-        samplesPerPixel = static_cast<int> (numSamples / getWidth ());
+        samplesPerPixel = static_cast<float> (numSamples) / getWidth ();
 
         const auto markerHandleSize { 5 };
 
@@ -63,7 +64,7 @@ void WaveformDisplay::resized ()
 {
     halfHeight = getHeight () / 2;
     numPixels = getWidth () - 2;
-    samplesPerPixel = static_cast<int> (numSamples / getWidth ());
+    samplesPerPixel = static_cast<float> (numSamples) / getWidth ();
     markerEndY = getHeight () - 2;
     const auto dashSize { getHeight () / 11.f };
     dashedSpec = { dashSize, dashSize };
@@ -77,7 +78,8 @@ void WaveformDisplay::paint (juce::Graphics& g)
     if (zoneProperties.isValid () && sampleProperties.isValid () && sampleProperties.getStatus () == SampleStatus::exists)
     {
         const auto audioBufferPtr { sampleProperties.getAudioBufferPtr () };
-        auto readPtr { audioBufferPtr->getReadPointer (zoneProperties.getSide ()) };
+        const auto side { zoneProperties.getSide () };
+        auto readPtr { audioBufferPtr->getReadPointer (side < sampleProperties.getNumChannels () ? side : 0) };
 
         g.setColour (juce::Colours::black);
         // TODO - get proper end pixel if sample ends before end of display
@@ -87,9 +89,9 @@ void WaveformDisplay::paint (juce::Graphics& g)
             {
                 const auto pixelOffset { pixelIndex + 1 };
                 g.drawLine (static_cast<float> (pixelOffset),
-                            static_cast<float> (static_cast<int> (halfHeight + (readPtr [pixelIndex * samplesPerPixel] * halfHeight))),
+                            static_cast<float> (static_cast<int> (halfHeight + (readPtr [static_cast<int> (pixelIndex * samplesPerPixel)] * halfHeight))),
                             static_cast<float> (pixelOffset + 1),
-                            static_cast<float> (static_cast<int> (halfHeight + (readPtr [(pixelIndex + 1) * samplesPerPixel] * halfHeight))));
+                            static_cast<float> (static_cast<int> (halfHeight + (readPtr [static_cast<int> ((pixelIndex + 1) * samplesPerPixel)] * halfHeight))));
             }
             else
             {
@@ -123,6 +125,9 @@ void WaveformDisplay::paint (juce::Graphics& g)
 
 void WaveformDisplay::mouseMove (const juce::MouseEvent& e)
 {
+    if (! isEnabled ())
+        return;
+
     if (zoneProperties.isValid () && sampleProperties.isValid () && sampleProperties.getStatus () == SampleStatus::exists)
     {
         if (sampleStartHandle.contains (e.getPosition ()))
@@ -142,12 +147,18 @@ void WaveformDisplay::mouseMove (const juce::MouseEvent& e)
 
 void WaveformDisplay::mouseDown ([[maybe_unused]] const juce::MouseEvent& e)
 {
+    if (! isEnabled ())
+        return;
+
     if (handleIndex == EditHandleIndex::kNone)
         return;
 }
 
 void WaveformDisplay::mouseDrag (const juce::MouseEvent& e)
 {
+    if (! isEnabled ())
+        return;
+
     switch (handleIndex)
     {
         case EditHandleIndex::kNone:

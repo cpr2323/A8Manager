@@ -277,6 +277,7 @@ bool EditManager::assignSamples (int channelIndex, int zoneIndex, const juce::St
         // assign file to zone
         auto& zoneProperties { zoneAndSamplePropertiesList [channelIndex][zoneIndex + filesIndex].zoneProperties };
         zoneProperties.setSample (file.getFileName (), false);
+        zoneProperties.setSide (0, false);
 
         // check if stereo and set up right channel
         auto& sampleProperties { zoneAndSamplePropertiesList [channelIndex][zoneIndex + filesIndex].sampleProperties };
@@ -292,7 +293,7 @@ bool EditManager::assignSamples (int channelIndex, int zoneIndex, const juce::St
                 {
                     nextChannelProperties.setChannelMode (ChannelProperties::ChannelMode::stereoRight, false);
                     nextChannelZoneProperties.setSide (1, false);
-                    nextChannelZoneProperties.setSampleStart (-1, true);
+                    nextChannelZoneProperties.setSampleStart (-1, true); // I think this,and the next 3 lines, could pass false for doSelfCallback
                     nextChannelZoneProperties.setSampleEnd (-1, true);
                     nextChannelZoneProperties.setLoopStart (-1, true);
                     nextChannelZoneProperties.setLoopLength (-1, true);

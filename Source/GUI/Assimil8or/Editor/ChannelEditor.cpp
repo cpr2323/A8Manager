@@ -1,6 +1,5 @@
 #include "ChannelEditor.h"
 #include "FormatHelpers.h"
-#include "MinVoltageTests.h"
 #include "ParameterToolTipData.h"
 #include "../../../Assimil8or/Preset/PresetHelpers.h"
 #include "../../../Assimil8or/Preset/PresetProperties.h"
@@ -2321,6 +2320,7 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree u
 
     ensureProperZoneIsSelected ();
     updateAllZoneTabNames ();
+    checkStereoRightOverlay ();
     if (isVisible ())
         configAudioPlayer ();
 }
@@ -2380,7 +2380,71 @@ void ChannelEditor::setupChannelPropertiesCallbacks ()
 
 void ChannelEditor::checkStereoRightOverlay ()
 {
-    stereoRightTransparantOverly.setVisible (channelProperties.getChannelMode () == ChannelProperties::ChannelMode::stereoRight);
+    const bool isStereoRightMode { channelProperties.getChannelMode () == ChannelProperties::ChannelMode::stereoRight };
+    stereoRightTransparantOverly.setVisible (isStereoRightMode);
+
+    aliasingTextEditor.setEnabled (! isStereoRightMode);
+    aliasingModComboBox.setEnabled (! isStereoRightMode);
+    aliasingModTextEditor.setEnabled (! isStereoRightMode);
+    attackTextEditor.setEnabled (! isStereoRightMode);
+    attackFromCurrentComboBox.setEnabled (! isStereoRightMode);
+    attackModComboBox.setEnabled (! isStereoRightMode);
+    attackModTextEditor.setEnabled (! isStereoRightMode);
+    autoTriggerComboBox.setEnabled (! isStereoRightMode);
+    bitsTextEditor.setEnabled (! isStereoRightMode);
+    bitsModComboBox.setEnabled (! isStereoRightMode);
+    bitsModTextEditor.setEnabled (! isStereoRightMode);
+    //channelModeComboBox.setEnabled (! isStereoRightMode); // this is still editable in stereo/right mode
+    expAMComboBox.setEnabled (! isStereoRightMode);
+    expAMTextEditor.setEnabled (! isStereoRightMode);
+    expFMComboBox.setEnabled (! isStereoRightMode);
+    expFMTextEditor.setEnabled (! isStereoRightMode);
+    levelTextEditor.setEnabled (! isStereoRightMode);
+    linAMComboBox.setEnabled (! isStereoRightMode);
+    linAMTextEditor.setEnabled (! isStereoRightMode);
+    linAMisExtEnvComboBox.setEnabled (! isStereoRightMode);
+    linFMComboBox.setEnabled (! isStereoRightMode);
+    linFMTextEditor.setEnabled (! isStereoRightMode);
+    loopLengthIsEndComboBox.setEnabled (! isStereoRightMode);
+    loopLengthModComboBox.setEnabled (! isStereoRightMode);
+    loopLengthModTextEditor.setEnabled (! isStereoRightMode);
+    loopModeComboBox.setEnabled (! isStereoRightMode);
+    loopStartModComboBox.setEnabled (! isStereoRightMode);
+    loopStartModTextEditor.setEnabled (! isStereoRightMode);
+    mixLevelTextEditor.setEnabled (! isStereoRightMode);
+    mixModComboBox.setEnabled (! isStereoRightMode);
+    mixModTextEditor.setEnabled (! isStereoRightMode);
+    mixModIsFaderComboBox.setEnabled (! isStereoRightMode);
+    panTextEditor.setEnabled (! isStereoRightMode);
+    panModComboBox.setEnabled (! isStereoRightMode);
+    panModTextEditor.setEnabled (! isStereoRightMode);
+    phaseCVComboBox.setEnabled (! isStereoRightMode);
+    phaseCVTextEditor.setEnabled (! isStereoRightMode);
+    pitchTextEditor.setEnabled (! isStereoRightMode);
+    pitchCVComboBox.setEnabled (! isStereoRightMode);
+    pitchCVTextEditor.setEnabled (! isStereoRightMode);
+    playModeComboBox.setEnabled (! isStereoRightMode);
+    pMIndexTextEditor.setEnabled (! isStereoRightMode);
+    pMIndexModComboBox.setEnabled (! isStereoRightMode);
+    pMIndexModTextEditor.setEnabled (! isStereoRightMode);
+    pMSourceComboBox.setEnabled (! isStereoRightMode);
+    releaseTextEditor.setEnabled (! isStereoRightMode);
+    releaseModComboBox.setEnabled (! isStereoRightMode);
+    releaseModTextEditor.setEnabled (! isStereoRightMode);
+    reverseButton.setEnabled (! isStereoRightMode);
+    sampleEndModComboBox.setEnabled (! isStereoRightMode);
+    sampleEndModTextEditor.setEnabled (! isStereoRightMode);
+    sampleStartModComboBox.setEnabled (! isStereoRightMode);
+    sampleStartModTextEditor.setEnabled (! isStereoRightMode);
+    spliceSmoothingButton.setEnabled (! isStereoRightMode);
+    xfadeGroupComboBox.setEnabled (! isStereoRightMode);
+    zonesCVComboBox.setEnabled (! isStereoRightMode);
+    zonesRTComboBox.setEnabled (! isStereoRightMode);
+    arEnvelopeComponent.setEnabled (! isStereoRightMode);
+    sampleWaveformDisplay.setEnabled (! isStereoRightMode);
+    toolsButton.setEnabled (! isStereoRightMode);
+    for (auto zoneIndex { 0 }; zoneIndex < 8; ++zoneIndex)
+        dynamic_cast<ZoneEditor*> (zoneTabs.getTabContentComponent (zoneIndex))->setStereoRightChannelMode (isStereoRightMode);
 }
 
 void ChannelEditor::configAudioPlayer ()

@@ -22,6 +22,7 @@ public:
     void receiveSampleLoadRequest (juce::File sampleFile);
     // TODO - is there a VTW that could manage this setting?
     void setLoopLengthIsEnd (bool loopLengthIsEnd);
+    void setStereoRightChannelMode (bool isStereoRightChannelMode);
 
     // TODO - can we make this local, since we should be able to access the edits through the EditManager
     std::function<void (int zoneIndex)> displayToolsMenu;
@@ -41,6 +42,7 @@ private:
     EditManager* editManager { nullptr };
     int zoneIndex { -1 };
     int parentChannelIndex { -1 };
+    bool isStereoRightChannelMode { false };
 
     // Loop Length is always stored as loop length, but the UI can be toggled to display it, and take input for it, as if it is Loop End
     bool treatLoopLengthAsEndInUi { false };
@@ -70,6 +72,8 @@ private:
     CustomTextEditorDouble minVoltageTextEditor; // double
     juce::Label pitchOffsetLabel;
     CustomTextEditorDouble pitchOffsetTextEditor; // double
+    juce::TextButton leftChannelSelectButton;
+    juce::TextButton rightChannelSelectButton;
     juce::Label sampleNameLabel;
     FileSelectLabel sampleNameSelectLabel; // filename
     juce::Label sampleEndLabel;
@@ -88,6 +92,7 @@ private:
     void updateLoopPointsView ();
     void updateSampleFileInfo (juce::String sample);
     void updateSamplePositionInfo ();
+    void updateSideSelectButtons (int side);
 
     void levelOffsetDataChanged (double levelOffset);
     void levelOffsetUiChanged (double levelOffset);
@@ -105,6 +110,8 @@ private:
     void sampleStartUiChanged (juce::int64 sampleStart);
     void sampleEndDataChanged (std::optional <juce::int64> sampleEnd);
     void sampleEndUiChanged (juce::int64 sampleEnd);
+    void sideDataChanged (int side);
+    void sideUiChanged (int side);
     void setDropIndex (const juce::StringArray& files, int x, int y);
 
     bool isInterestedInFileDrag (const juce::StringArray& files) override;

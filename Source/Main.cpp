@@ -16,6 +16,9 @@
 #include "Utility/ValueTreeFile.h"
 #include "Utility/ValueTreeMonitor.h"
 
+// used to add things like TEST, or ALPHA, or BETA, etc to the version number when displayed
+constexpr char* kVersionDecorator { "" };
+
 // this requires the third party Melatonin Inspector be installed and added to the project
 // https://github.com/sudara/melatonin_inspector
 #define ENABLE_MELATONIN_INSPECTOR 0
@@ -136,7 +139,7 @@ public:
     void initUi ()
     {
         guiProperties.wrap (persistentRootProperties.getValueTree (), GuiProperties::WrapperType::owner, GuiProperties::EnableCallbacks::no);
-        mainWindow.reset (new MainWindow (getApplicationName () + " - v" + getApplicationVersion (), rootProperties.getValueTree ()));
+        mainWindow.reset (new MainWindow (getApplicationName () + " - " + getVersionDisplayString (), rootProperties.getValueTree ()));
     }
 
     void initPropertyRoots ()
@@ -181,6 +184,11 @@ public:
         }
     }
 
+    juce::String getVersionDisplayString ()
+    {
+        return "v" + getApplicationVersion () + juce::String (kVersionDecorator);
+    }
+
     void initLogger ()
     {
         auto getSessionTextForLogFile = [this] ()
@@ -193,7 +201,7 @@ public:
                     return result;
             };
             const auto nl { juce::String ("\n") };
-            auto welcomeText { juce::String (getApplicationName () + " - v" + getApplicationVersion () + " Log File" + nl) };
+            auto welcomeText { juce::String (getApplicationName () + " - v" + getVersionDisplayString () + " Log File" + nl) };
             welcomeText += " OS: " + resultOrNa (juce::SystemStats::getOperatingSystemName ()) + nl;
             welcomeText += " Device Description: " + resultOrNa (juce::SystemStats::getDeviceDescription ()) + nl;
             welcomeText += " Device Manufacturer: " + resultOrNa (juce::SystemStats::getDeviceManufacturer ()) + nl;

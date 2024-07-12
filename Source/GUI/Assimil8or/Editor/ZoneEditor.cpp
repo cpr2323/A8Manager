@@ -209,6 +209,7 @@ void ZoneEditor::updateLoopPointsView ()
 {
     juce::int64 startSample { 0 };
     juce::int64 numSamples { 0 };
+    int side { 0 };
     if (sampleProperties.getStatus () == SampleStatus::exists)
     {
         if (sourceSamplePointsButton.getToggleState ())
@@ -222,12 +223,13 @@ void ZoneEditor::updateLoopPointsView ()
             numSamples = static_cast<juce::int64> (zoneProperties.getLoopLength ().value_or (static_cast<double> (sampleProperties.getLengthInSamples ())));
         }
         loopPointsView.setAudioBuffer (sampleProperties.getAudioBufferPtr ());
+        side = zoneProperties.getSide ();
     }
     else
     {
         loopPointsView.setAudioBuffer (nullptr);
     }
-    loopPointsView.setLoopPoints (startSample, numSamples);
+    loopPointsView.setLoopPoints (startSample, numSamples, side);
     loopPointsView.repaint ();
 }
 
@@ -296,6 +298,23 @@ void ZoneEditor::setupZoneComponents ()
         editMenu.showMenuAsync ({}, [this] (int) {});
     };
     setupLabel (sampleNameSelectLabel, "", 15.0, juce::Justification::centredLeft);
+
+    // AUDIO FILE CHANNEL SELECT BUTTONS
+    auto setupChannelSelectButton = [this] (juce::TextButton& channelSelectButton, juce::String buttonText, int side)
+    {
+        channelSelectButton.setColour (juce::TextButton::ColourIds::buttonOnColourId, juce::Colours::lightgrey);
+        channelSelectButton.setColour (juce::TextButton::ColourIds::textColourOnId, juce::Colours::black);
+        channelSelectButton.setButtonText (buttonText);
+        channelSelectButton.setEnabled (false);
+        channelSelectButton.onClick = [this, side] ()
+        {
+            sideUiChanged (side);
+            updateSideSelectButtons (side);
+        };
+        addAndMakeVisible (channelSelectButton);
+    };
+    setupChannelSelectButton (leftChannelSelectButton, "L", 0);
+    setupChannelSelectButton (rightChannelSelectButton, "R", 1);
 
     // SAMPLE START
     setupLabel (sampleStartLabel, "SMPL START", 12.0, juce::Justification::centredRight);
@@ -699,11 +718,12 @@ void ZoneEditor::init (juce::ValueTree zonePropertiesVT, juce::ValueTree unedite
             //DebugLog ("ZoneEditor", "sample Status exists");
             // when we receive this callback, it means all of the other sample data is updated too
             setEditComponentsEnabled (true);
-            oneShotPlayButton.setEnabled (true);
-            loopPlayButton.setEnabled (true);
+            oneShotPlayButton.setEnabled (true && ! isStereoRightChannelMode);
+            loopPlayButton.setEnabled (true && ! isStereoRightChannelMode);
             updateLoopPointsView ();
             updateSamplePositionInfo ();
             updateSampleFileInfo (zoneProperties.getSample ());
+            updateSideSelectButtons (zoneProperties.getSide ());
         }
         else if (status == SampleStatus::uninitialized)
         {
@@ -714,6 +734,7 @@ void ZoneEditor::init (juce::ValueTree zonePropertiesVT, juce::ValueTree unedite
             loopPlayButton.setEnabled (false);
             updateLoopPointsView ();
             updateSamplePositionInfo ();
+            updateSideSelectButtons (0);
         }
         else if (status == SampleStatus::doesNotExist)
         {
@@ -725,6 +746,7 @@ void ZoneEditor::init (juce::ValueTree zonePropertiesVT, juce::ValueTree unedite
             updateLoopPointsView ();
             updateSamplePositionInfo ();
             updateSampleFileInfo (zoneProperties.getSample ());
+            updateSideSelectButtons (0);
         }
         else if (status == SampleStatus::wrongFormat)
         {
@@ -736,6 +758,7 @@ void ZoneEditor::init (juce::ValueTree zonePropertiesVT, juce::ValueTree unedite
             updateLoopPointsView ();
             updateSamplePositionInfo ();
             updateSampleFileInfo (zoneProperties.getSample ());
+            updateSideSelectButtons (0);
         }
     };
 
@@ -749,6 +772,7 @@ void ZoneEditor::init (juce::ValueTree zonePropertiesVT, juce::ValueTree unedite
     sampleDataChanged (zoneProperties.getSample ());
     sampleStartDataChanged (zoneProperties.getSampleStart ());
     sampleEndDataChanged (zoneProperties.getSampleEnd ());
+    sideDataChanged (zoneProperties.getSide ());
 
     setLoopLengthIsEnd (parentChannelProperties.getLoopLengthIsEnd ());
 }
@@ -770,6 +794,27 @@ void ZoneEditor::setLoopLengthIsEnd (bool newLoopLengthIsEnd)
     loopLengthDataChanged (zoneProperties.getLoopLength ());
 }
 
+void ZoneEditor::setStereoRightChannelMode (bool newStereoRightChannelMode)
+{
+    isStereoRightChannelMode = newStereoRightChannelMode;
+
+    sourceSamplePointsButton.setEnabled (! isStereoRightChannelMode);
+    sourceLoopPointsButton.setEnabled (! isStereoRightChannelMode);
+    oneShotPlayButton.setEnabled (! isStereoRightChannelMode);
+    loopPlayButton.setEnabled (! isStereoRightChannelMode);
+    toolsButton.setEnabled (! isStereoRightChannelMode);
+    levelOffsetTextEditor.setEnabled (! isStereoRightChannelMode);
+    loopLengthTextEditor.setEnabled (! isStereoRightChannelMode);
+    loopStartTextEditor.setEnabled (! isStereoRightChannelMode);
+    minVoltageTextEditor.setEnabled (! isStereoRightChannelMode);
+    pitchOffsetTextEditor.setEnabled (! isStereoRightChannelMode);
+    //leftChannelSelectButton.setEnabled (! isStereoRightChannelMode); // can still edit in stereo/right channel mode
+    //rightChannelSelectButton.setEnabled (! isStereoRightChannelMode); // can still edit in stereo/right channel mode
+    //sampleNameSelectLabel.setEnabled (! isStereoRightChannelMode); // can still edit in stereo/right channel mode
+    sampleEndTextEditor.setEnabled (! isStereoRightChannelMode);
+    sampleStartTextEditor.setEnabled (! isStereoRightChannelMode);
+}
+
 void ZoneEditor::receiveSampleLoadRequest (juce::File sampleFile)
 {
     if (! handleSamplesInternal (zoneProperties.getId () - 1, { sampleFile.getFullPathName () }))
@@ -781,14 +826,15 @@ void ZoneEditor::receiveSampleLoadRequest (juce::File sampleFile)
 void ZoneEditor::setupZonePropertiesCallbacks ()
 {
     zoneProperties.onIdChange = [this] ([[maybe_unused]] int id) { jassertfalse; /* I don't think this should change while we are editing */};
-    zoneProperties.onLevelOffsetChange = [this] (double levelOffset) { levelOffsetDataChanged (levelOffset);  };
-    zoneProperties.onLoopLengthChange = [this] (std::optional<double> loopLength) { loopLengthDataChanged (loopLength);  };
-    zoneProperties.onLoopStartChange = [this] (std::optional <juce::int64> loopStart) { loopStartDataChanged (loopStart);  };
-    zoneProperties.onMinVoltageChange = [this] (double minVoltage) { minVoltageDataChanged (minVoltage);  };
-    zoneProperties.onPitchOffsetChange = [this] (double pitchOffset) { pitchOffsetDataChanged (pitchOffset);  };
-    zoneProperties.onSampleChange = [this] (juce::String sample) { sampleDataChanged (sample);  };
-    zoneProperties.onSampleStartChange = [this] (std::optional <juce::int64> sampleStart) { sampleStartDataChanged (sampleStart);  };
-    zoneProperties.onSampleEndChange = [this] (std::optional <juce::int64> sampleEnd) { sampleEndDataChanged (sampleEnd);  };
+    zoneProperties.onLevelOffsetChange = [this] (double levelOffset) { levelOffsetDataChanged (levelOffset); };
+    zoneProperties.onLoopLengthChange = [this] (std::optional<double> loopLength) { loopLengthDataChanged (loopLength); };
+    zoneProperties.onLoopStartChange = [this] (std::optional <juce::int64> loopStart) { loopStartDataChanged (loopStart); };
+    zoneProperties.onMinVoltageChange = [this] (double minVoltage) { minVoltageDataChanged (minVoltage); };
+    zoneProperties.onPitchOffsetChange = [this] (double pitchOffset) { pitchOffsetDataChanged (pitchOffset); };
+    zoneProperties.onSampleChange = [this] (juce::String sample) { sampleDataChanged (sample); };
+    zoneProperties.onSampleStartChange = [this] (std::optional <juce::int64> sampleStart) { sampleStartDataChanged (sampleStart); };
+    zoneProperties.onSampleEndChange = [this] (std::optional <juce::int64> sampleEnd) { sampleEndDataChanged (sampleEnd); };
+    zoneProperties.onSideChange = [this] (int side) { sideDataChanged (side); };
 }
 
 void ZoneEditor::paint ([[maybe_unused]] juce::Graphics& g)
@@ -847,7 +893,11 @@ void ZoneEditor::resized ()
     const auto sampleNameLabelScale { 0.156f };
     const auto sampleNameInputScale { 1.f - sampleNameLabelScale };
     sampleNameLabel.setBounds (xOffset, 5, scaleWidth (sampleNameLabelScale), 20);
-    sampleNameSelectLabel.setBounds (sampleNameLabel.getRight () + spaceBetweenLabelAndInput, 5, scaleWidth (sampleNameInputScale) - spaceBetweenLabelAndInput + 1, 20);
+    sampleNameSelectLabel.setBounds (sampleNameLabel.getRight () + spaceBetweenLabelAndInput, 5,
+                                     scaleWidth (sampleNameInputScale) - spaceBetweenLabelAndInput + 1 - 22, 20);
+
+    leftChannelSelectButton.setBounds (sampleNameSelectLabel.getRight () + 2, sampleNameSelectLabel.getY (), 20, 10);
+    rightChannelSelectButton.setBounds (sampleNameSelectLabel.getRight () + 2, leftChannelSelectButton.getBottom () + 1, 20, 10);
 
     const auto loopPointsViewHeight { 40 };
     const auto samplePointLabelScale { 0.45f };
@@ -898,13 +948,13 @@ void ZoneEditor::resized ()
 
 void ZoneEditor::setEditComponentsEnabled (bool enabled)
 {
-    sampleStartTextEditor.setEnabled (enabled);
-    sampleEndTextEditor.setEnabled (enabled);
-    loopStartTextEditor.setEnabled (enabled);
-    loopLengthTextEditor.setEnabled (enabled);
-    minVoltageTextEditor.setEnabled (enabled);
-    pitchOffsetTextEditor.setEnabled (enabled);
-    levelOffsetTextEditor.setEnabled (enabled);
+    sampleStartTextEditor.setEnabled (enabled && ! isStereoRightChannelMode);
+    sampleEndTextEditor.setEnabled (enabled && ! isStereoRightChannelMode);
+    loopStartTextEditor.setEnabled (enabled && ! isStereoRightChannelMode);
+    loopLengthTextEditor.setEnabled (enabled && ! isStereoRightChannelMode);
+    minVoltageTextEditor.setEnabled (enabled && ! isStereoRightChannelMode);
+    pitchOffsetTextEditor.setEnabled (enabled && ! isStereoRightChannelMode);
+    levelOffsetTextEditor.setEnabled (enabled && ! isStereoRightChannelMode);
 }
 
 double ZoneEditor::snapLoopLength (double rawValue)
@@ -1067,6 +1117,8 @@ void ZoneEditor::loopLengthUiChanged (double loopLength)
 void ZoneEditor::loopStartDataChanged (std::optional<juce::int64> loopStart)
 {
     loopStartTextEditor.setText (juce::String (loopStart.value_or (0)));
+    if (treatLoopLengthAsEndInUi)
+        loopLengthDataChanged (zoneProperties.getLoopLength ());
     updateLoopPointsView ();
 }
 
@@ -1123,6 +1175,32 @@ void ZoneEditor::updateSamplePositionInfo ()
     sampleEndDataChanged (zoneProperties.getSampleEnd ());
 }
 
+void ZoneEditor::updateSideSelectButtons (int side)
+{
+    auto disableButtons = [this] ()
+    {
+        leftChannelSelectButton.setEnabled (false);
+        rightChannelSelectButton.setEnabled (false);
+        leftChannelSelectButton.setToggleState (false, juce::NotificationType::dontSendNotification);
+        rightChannelSelectButton.setToggleState (false, juce::NotificationType::dontSendNotification);
+    };
+    if (sampleProperties.getStatus () != SampleStatus::exists)
+    {
+        disableButtons ();
+    }
+    else if (sampleProperties.getNumChannels () == 1)
+    {
+        disableButtons ();
+    }
+    else
+    {
+        leftChannelSelectButton.setEnabled (true);
+        rightChannelSelectButton.setEnabled (true);
+        leftChannelSelectButton.setToggleState (side == 0, juce::NotificationType::dontSendNotification);
+        rightChannelSelectButton.setToggleState (side == 1, juce::NotificationType::dontSendNotification);
+    }
+}
+
 void ZoneEditor::sampleDataChanged (juce::String sample)
 {
     //DebugLog ("ZoneEditor", "ZoneEditor[" + juce::String (zoneProperties.getId ()) + "]::sampleDataChanged: '" + sample + "'");
@@ -1161,5 +1239,22 @@ void ZoneEditor::sampleEndUiChanged (juce::int64 sampleEnd)
 {
     // -1 indicates the value is default
     zoneProperties.setSampleEnd (sampleEnd == sampleProperties.getLengthInSamples () ? -1 : sampleEnd, false);
+    updateLoopPointsView ();
+}
+
+void ZoneEditor::sideDataChanged (int side)
+{
+    if (sampleProperties.getStatus () == SampleStatus::exists && sampleProperties.getNumChannels () == 1 && side == 1)
+    {
+        side = 0;
+        zoneProperties.setSide (0, false);
+    }
+    updateSideSelectButtons (side);
+    updateLoopPointsView ();
+}
+
+void ZoneEditor::sideUiChanged (int side)
+{
+    zoneProperties.setSide (side, false);
     updateLoopPointsView ();
 }
