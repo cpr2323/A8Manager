@@ -1101,7 +1101,6 @@ void ZoneEditor::levelOffsetUiChanged (double levelOffset)
 
 void ZoneEditor::loopLengthDataChanged (std::optional<double> loopLength)
 {
-    DebugLog ("ZoneEditor", "loopLengthDataChanged");
     if (sampleProperties.getStatus () != SampleStatus::uninitialized)
         loopLengthTextEditor.setText (formatLoopLength (loopLength.value_or (static_cast<double> (sampleProperties.getLengthInSamples () - zoneProperties.getLoopStart ().value_or (0)))));
     else
@@ -1117,7 +1116,6 @@ void ZoneEditor::loopLengthUiChanged (double loopLength)
 
 void ZoneEditor::loopStartDataChanged (std::optional<juce::int64> loopStart)
 {
-    DebugLog ("ZoneEditor", "loopStartDataChanged");
     loopStartTextEditor.setText (juce::String (loopStart.value_or (0)));
     if (treatLoopLengthAsEndInUi)
         loopLengthDataChanged (zoneProperties.getLoopLength ());

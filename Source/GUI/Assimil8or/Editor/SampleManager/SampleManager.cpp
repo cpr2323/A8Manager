@@ -3,7 +3,7 @@
 #include "../../../../Utility/DebugLog.h"
 #include "../../../../Utility/PersistentRootProperties.h"
 
-#define LOG_SAMPLE_POOL 1
+#define LOG_SAMPLE_POOL 0
 #if LOG_SAMPLE_POOL
 #define LogSamplePool(text) DebugLog ("SampleManager", text);
 #else

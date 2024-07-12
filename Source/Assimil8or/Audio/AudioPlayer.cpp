@@ -4,7 +4,7 @@
 #include "../../Utility/PersistentRootProperties.h"
 #include "../../Utility/RuntimeRootProperties.h"
 
-#define LOG_AUDIO_PLAYER 1
+#define LOG_AUDIO_PLAYER 0
 #if LOG_AUDIO_PLAYER
 #define LogAudioPlayer(text) DebugLog ("AudioPlayer", text);
 #else
