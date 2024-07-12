@@ -288,7 +288,7 @@ void AudioPlayer::prepareSampleForPlayback ()
             leftAudioSource = leftResamplingAudioSource.get ();
             leftAudioSourceChannel = zoneProperties.getSide ();
 
-            if (nextSampleProperties.getStatus() == SampleStatus::exists)
+            if (nextSampleProperties.getStatus () == SampleStatus::exists)
             {
                 rightReaderSource = std::make_unique<juce::MemoryAudioSource> (*nextSampleProperties.getAudioBufferPtr (), false, false);
                 rightResamplingAudioSource = std::make_unique<juce::ResamplingAudioSource> (rightReaderSource.get (), false, 2);
@@ -309,7 +309,7 @@ void AudioPlayer::prepareSampleForPlayback ()
         jassert (leftAudioSource != nullptr || rightAudioSource != nullptr);
         std::unique_ptr<LeftRightCombinerAudioSource> leftRightCombinerAudioSource { std::make_unique<LeftRightCombinerAudioSource> (leftAudioSource, leftAudioSourceChannel,
                                                                                                                                      rightAudioSource, rightAudioSourceChannel, false) };
-        
+
         sampleBuffer = std::make_unique<juce::AudioBuffer<float>> (2, static_cast<int> (sampleProperties.getLengthInSamples () * sampleRate / sampleProperties.getSampleRate ()));
 
         leftRightCombinerAudioSource->getNextAudioBlock (juce::AudioSourceChannelInfo (*sampleBuffer.get ()));

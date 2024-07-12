@@ -170,7 +170,7 @@ void SampleManager::updateSample (juce::String fileName, SampleData& sampleData)
                 for (auto zoneIndex { 0 }; zoneIndex < 8; ++zoneIndex)
                 {
                     auto& zoneProperties { zoneAndSamplePropertiesList [channelIndex][zoneIndex].zoneProperties };
-                    if (zoneProperties.getSample() == fileName && sampleData.numChannels == 1 && zoneProperties.getSide () == 1)
+                    if (zoneProperties.getSample () == fileName && sampleData.numChannels == 1 && zoneProperties.getSide () == 1)
                         zoneProperties.setSide (0, false);
                 }
 

@@ -298,7 +298,7 @@ bool EditManager::assignSamples (int channelIndex, int zoneIndex, const juce::St
                     nextChannelZoneProperties.setLoopStart (-1, true);
                     nextChannelZoneProperties.setLoopLength (-1, true);
                     nextChannelZoneProperties.setSample (zoneProperties.getSample (), false); // when the other editor receives this update, it will also update the sample positions, so do it after setting them
-                } 
+                }
             }
         }
     }

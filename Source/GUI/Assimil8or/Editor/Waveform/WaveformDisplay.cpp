@@ -79,7 +79,7 @@ void WaveformDisplay::paint (juce::Graphics& g)
     {
         const auto audioBufferPtr { sampleProperties.getAudioBufferPtr () };
         const auto side { zoneProperties.getSide () };
-        auto readPtr { audioBufferPtr->getReadPointer (side < sampleProperties.getNumChannels() ? side : 0) };
+        auto readPtr { audioBufferPtr->getReadPointer (side < sampleProperties.getNumChannels () ? side : 0) };
 
         g.setColour (juce::Colours::black);
         // TODO - get proper end pixel if sample ends before end of display
@@ -89,9 +89,9 @@ void WaveformDisplay::paint (juce::Graphics& g)
             {
                 const auto pixelOffset { pixelIndex + 1 };
                 g.drawLine (static_cast<float> (pixelOffset),
-                            static_cast<float> (static_cast<int> (halfHeight + (readPtr [static_cast<int>(pixelIndex * samplesPerPixel)] * halfHeight))),
+                            static_cast<float> (static_cast<int> (halfHeight + (readPtr [static_cast<int> (pixelIndex * samplesPerPixel)] * halfHeight))),
                             static_cast<float> (pixelOffset + 1),
-                            static_cast<float> (static_cast<int> (halfHeight + (readPtr [static_cast<int>((pixelIndex + 1) * samplesPerPixel)] * halfHeight))));
+                            static_cast<float> (static_cast<int> (halfHeight + (readPtr [static_cast<int> ((pixelIndex + 1) * samplesPerPixel)] * halfHeight))));
             }
             else
             {
@@ -125,7 +125,7 @@ void WaveformDisplay::paint (juce::Graphics& g)
 
 void WaveformDisplay::mouseMove (const juce::MouseEvent& e)
 {
-    if (!isEnabled ())
+    if (! isEnabled ())
         return;
 
     if (zoneProperties.isValid () && sampleProperties.isValid () && sampleProperties.getStatus () == SampleStatus::exists)
@@ -147,7 +147,7 @@ void WaveformDisplay::mouseMove (const juce::MouseEvent& e)
 
 void WaveformDisplay::mouseDown ([[maybe_unused]] const juce::MouseEvent& e)
 {
-    if (!isEnabled ())
+    if (! isEnabled ())
         return;
 
     if (handleIndex == EditHandleIndex::kNone)
@@ -156,7 +156,7 @@ void WaveformDisplay::mouseDown ([[maybe_unused]] const juce::MouseEvent& e)
 
 void WaveformDisplay::mouseDrag (const juce::MouseEvent& e)
 {
-    if (!isEnabled ())
+    if (! isEnabled ())
         return;
 
     switch (handleIndex)

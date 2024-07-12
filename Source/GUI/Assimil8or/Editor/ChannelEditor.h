@@ -168,7 +168,7 @@ public:
             juce::Font voltageFont { currentFont.withHeight (depth * 0.35f) };
             g.setFont (voltageFont);
 
-            const auto minVoltageBounds {juce::Rectangle<float> { 2.f, static_cast<float> (area.getHeight () / 2), static_cast<float> (area.getWidth () - 4), static_cast<float>(area.getHeight () / 2) }};
+            const auto minVoltageBounds {juce::Rectangle<float> { 2.f, static_cast<float> (area.getHeight () / 2), static_cast<float> (area.getWidth () - 4), static_cast<float> (area.getHeight () / 2) }};
             g.setColour (col);
             g.drawText (minVoltageString, minVoltageBounds, juce::Justification::centred, false);
             g.setFont (currentFont);

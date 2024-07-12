@@ -25,7 +25,7 @@ void LoopPointsView::paint (juce::Graphics& g)
         const auto samplesToDisplay { static_cast<int> (std::min<juce::int64> (numSamples, halfWidth)) };
 
         g.setColour (juce::Colours::black);
-        auto readPtr { loopSamples.getChannelPointer (side < audioBuffer->getNumChannels() ? side : 0) };
+        auto readPtr { loopSamples.getChannelPointer (side < audioBuffer->getNumChannels () ? side : 0) };
         for (auto sampleCount { 0 }; sampleCount < samplesToDisplay - 1; ++sampleCount)
         {
             // draw one line of sample going reverse from middle to left

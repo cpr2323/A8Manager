@@ -92,7 +92,7 @@ private:
 
     void mouseDown (const juce::MouseEvent& mouseEvent) override
     {
-        if (!isEnabled ())
+        if (! isEnabled ())
             return;
         if (! customComponentMouseHandler.mouseDown (mouseEvent, onPopupMenuCallback, [this] () { jassert (onFocusLost != nullptr); onFocusLost (); }))
             juce::TextEditor::mouseDown (mouseEvent);
@@ -100,7 +100,7 @@ private:
 
     void mouseUp (const juce::MouseEvent& mouseEvent) override
     {
-        if (!isEnabled ())
+        if (! isEnabled ())
             return;
         if (! customComponentMouseHandler.mouseUp (mouseEvent))
             juce::TextEditor::mouseUp (mouseEvent);
@@ -108,7 +108,7 @@ private:
 
     void mouseMove (const juce::MouseEvent& mouseEvent) override
     {
-        if (!isEnabled ())
+        if (! isEnabled ())
             return;
         if (! customComponentMouseHandler.mouseMove (mouseEvent))
             juce::TextEditor::mouseMove (mouseEvent);
@@ -116,7 +116,7 @@ private:
 
     void mouseEnter (const juce::MouseEvent& mouseEvent) override
     {
-        if (!isEnabled ())
+        if (! isEnabled ())
             return;
         if (! customComponentMouseHandler.mouseEnter (mouseEvent))
             juce::TextEditor::mouseEnter (mouseEvent);
@@ -124,7 +124,7 @@ private:
 
     void mouseExit (const juce::MouseEvent& mouseEvent) override
     {
-        if (!isEnabled ())
+        if (! isEnabled ())
             return;
         if (! customComponentMouseHandler.mouseExit (mouseEvent))
             juce::TextEditor::mouseExit (mouseEvent);
@@ -132,7 +132,7 @@ private:
 
     void mouseDrag (const juce::MouseEvent& mouseEvent) override
     {
-        if (!isEnabled ())
+        if (! isEnabled ())
             return;
         if (! customComponentMouseHandler.mouseDrag (mouseEvent, onDragCallback))
             juce::TextEditor::mouseDrag (mouseEvent);
@@ -140,7 +140,7 @@ private:
 
     void mouseDoubleClick (const juce::MouseEvent& mouseEvent) override
     {
-        if (!isEnabled ())
+        if (! isEnabled ())
             return;
         if (! customComponentMouseHandler.mouseDoubleClick (mouseEvent))
             juce::TextEditor::mouseDoubleClick (mouseEvent);
@@ -148,7 +148,7 @@ private:
 
     void mouseWheelMove (const juce::MouseEvent& mouseEvent, const juce::MouseWheelDetails& wheel) override
     {
-        if (!isEnabled ())
+        if (! isEnabled ())
             return;
         if (! customComponentMouseHandler.mouseWheelMove (mouseEvent, wheel))
             juce::TextEditor::mouseWheelMove (mouseEvent, wheel);
