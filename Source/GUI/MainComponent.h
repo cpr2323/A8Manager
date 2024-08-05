@@ -1,17 +1,38 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include "ToolWindow.h"
+#include "CurrentFolderComponent.h"
+#include "GuiProperties.h"
+#include "BottomStatusWindow.h"
+#include "Assimil8or/Editor/Assimil8orEditorComponent.h"
+#include "Assimil8or/FileView/FileViewComponent.h"
+#include "Assimil8or/FileView/FileViewComponent.h"
+#include "Assimil8or/PresetList/PresetListComponent.h"
+#include "Assimil8or/Validator/Assimil8orValidatorComponent.h"
+#include "../Utility/SplitWindowComponent.h"
 
-class MainComponent  : public juce::Component
+class MainComponent : public juce::Component
 {
 public:
-    MainComponent (juce::ValueTree persistentRootPropertiesVT, juce::ValueTree runtimeRootPropertiesVT);
-    ~MainComponent () override;
+    MainComponent (juce::ValueTree rootPropertiesVT);
+    ~MainComponent () = default;
 
 private:
-    ToolWindow toolWindow;
-//    BezierComponent bezierComponent;
+    Assimil8orEditorComponent assimil8orEditorComponent;
+    Assimil8orValidatorComponent assimil8orValidatorComponent;
+    GuiProperties guiProperties;
+    CurrentFolderComponent currentFolderComponent;
+    FileViewComponent fileViewComponent;
+    PresetListComponent presetListComponent;
+    SplitWindowComponent topAndBottomSplitter;
+    SplitWindowComponent presetListEditorSplitter;
+    SplitWindowComponent folderBrowserEditorSplitter;
+    BottomStatusWindow bottomStatusWindow;
+
+    juce::TooltipWindow tooltipWindow;
+
+    void restoreLayout ();
+    void saveLayoutChanges ();
 
     void resized () override;
     void paint (juce::Graphics& g) override;
