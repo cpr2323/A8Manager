@@ -4,8 +4,6 @@ A tool to manage Presets and Sample files for the Rossum-Electro Assimil8or
 
 Currently requires JUCE version 7. The revision from 1/10/2024: 31dfb05ea3299176a416bf9258e030d04a099798
 
-Also requires the [JUCE Serial Library](https://github.com/cpr2323/juce_serialport) 
-
 # Windows
 
 There are no special steps to installing on Windows.
