@@ -4,7 +4,7 @@
 #include "ValueTreeWrapper.h"
 
 // A ValueTreeWrapper for properties that are not saved to the properties file
-class RuntimeRootProperties : public ValueTreeWrapper
+class RuntimeRootProperties : public ValueTreeWrapper<RuntimeRootProperties>
 {
 public:
     enum class QuitState
@@ -14,23 +14,25 @@ public:
         cancel
     };
 
-    RuntimeRootProperties () noexcept : ValueTreeWrapper (RuntimeRootPropertiesId) {}
+    RuntimeRootProperties () noexcept : ValueTreeWrapper<RuntimeRootProperties> (RuntimeRootPropertiesId) {}
+    RuntimeRootProperties (juce::ValueTree vt, WrapperType wrapperType, EnableCallbacks shouldEnableCallbacks) noexcept
+        : ValueTreeWrapper<RuntimeRootProperties> (RuntimeRootPropertiesId, vt, wrapperType, shouldEnableCallbacks) {}
 
     juce::ValueTree addSection (juce::Identifier sectionType);
     bool removeSection (juce::Identifier sectionType);
     juce::ValueTree getSection (juce::Identifier sectionType);
 
-    void setAppDataPath (juce::String appDataPath, bool includeSelfCallback = false);
-    void setAppVersion (juce::String appVersion, bool includeSelfCallback = false);
-    void setLayout (juce::String layout, bool includeSelfCallback = false);
-    void setPreferredQuitState (QuitState preferredQuitState, bool includeSelfCallback = false);
-    void setQuitState (QuitState newQuitState, bool includeSelfCallback = false);
-    void triggerWindowMoved (bool includeSelfCallback = false);
-    void triggerMinimiseButtonPressed (bool includeSelfCallback = false);
-    void triggerMaximiseButtonPressed (bool includeSelfCallback = false);
-    void triggerAppSuspended (bool includeSelfCallback = false);
-    void triggerAppResumed (bool includeSelfCallback = false);
-    void triggerSystemRequestedQuit (bool includeSelfCallback = false);
+    void setAppDataPath (juce::String appDataPath, bool includeSelfCallback);
+    void setAppVersion (juce::String appVersion, bool includeSelfCallback);
+    void setLayout (juce::String layout, bool includeSelfCallback);
+    void setPreferredQuitState (QuitState preferredQuitState, bool includeSelfCallback);
+    void setQuitState (QuitState newQuitState, bool includeSelfCallback);
+    void triggerWindowMoved (bool includeSelfCallback);
+    void triggerMinimiseButtonPressed (bool includeSelfCallback);
+    void triggerMaximiseButtonPressed (bool includeSelfCallback);
+    void triggerAppSuspended (bool includeSelfCallback);
+    void triggerAppResumed (bool includeSelfCallback);
+    void triggerSystemRequestedQuit (bool includeSelfCallback);
 
     juce::String getAppDataPath () noexcept;
     juce::String getAppVersion () noexcept;
@@ -67,8 +69,9 @@ public:
     static inline const juce::String LayoutPortrait   { "portrait" };
     static inline const juce::String LayoutLandscape  { "landscape" };
 
-private:
-    void initValueTree () override;
+    void initValueTree ();
+    void processValueTree () {}
 
+private:
     void valueTreePropertyChanged (juce::ValueTree& treeWhosePropertyHasChanged, const juce::Identifier& property) override;
 };

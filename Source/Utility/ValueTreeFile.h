@@ -1,5 +1,4 @@
-#ifndef _VALUE_TREE_FILE_H_
-#define _VALUE_TREE_FILE_H_
+#pragma once
 
 #include <JuceHeader.h>
 
@@ -55,5 +54,3 @@ private:
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ValueTreeFile)
 };
-
-#endif // _VALUE_TREE_FILE_H_
