@@ -899,8 +899,8 @@ void ChannelEditor::setupChannelComponents ()
     {
         pMSourceComboBox.addItem ("Channel " + juce::String::charToString ('1' + pmSourceIndex), pmSourceIndex + 1);
     }
-    pMSourceComboBox.addItem ("Right Input", 9);
-    pMSourceComboBox.addItem ("Left Input", 10);
+    pMSourceComboBox.addItem ("Left Input", 9);
+    pMSourceComboBox.addItem ("Right Input", 10);
     pMSourceComboBox.addItem ("Phase CV", 11);
     pMSourceComboBox.onDragCallback = [this] (DragSpeed dragSpeed, int direction)
     {
