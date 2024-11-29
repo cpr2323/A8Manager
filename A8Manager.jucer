@@ -2,7 +2,7 @@
 
 <JUCERPROJECT id="wWHbxR" name="A8Manager" projectType="guiapp" useAppConfig="0"
               addUsingNamespaceToJuceHeader="0" displaySplashScreen="0" jucerFormatVersion="1"
-              companyName="OmOhmProductions" cppLanguageStandard="17" version="2.4.5"
+              companyName="OmOhmProductions" cppLanguageStandard="17" version="2.4.6"
               companyWebsite="www.omohmproductions.com">
   <MAINGROUP id="JDgvjc" name="A8Manager">
     <GROUP id="{26A00EED-F319-636E-6162-8A113C6EE925}" name="Source">
