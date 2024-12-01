@@ -143,6 +143,12 @@ void FileViewComponent::newFolder ()
     newAlertWindow->addTextEditor (kDialogTextEditorName, {}, {});
     newAlertWindow->addButton ("CREATE", 1, juce::KeyPress (juce::KeyPress::returnKey, 0, 0));
     newAlertWindow->addButton ("CANCEL", 0, juce::KeyPress (juce::KeyPress::escapeKey, 0, 0));
+    auto* textEdtitor { newAlertWindow->getTextEditor (kDialogTextEditorName) };
+    auto* createButton { newAlertWindow->getButton ("CREATE") };
+    auto* cancelButton { newAlertWindow->getButton ("CANCEL") };
+    textEdtitor->setExplicitFocusOrder (1);
+    createButton->setExplicitFocusOrder (2);
+    cancelButton->setExplicitFocusOrder (3);
     newAlertWindow->enterModalState (true, juce::ModalCallbackFunction::create ([this] (int option)
     {
         newAlertWindow->exitModalState (option);
@@ -265,6 +271,13 @@ void FileViewComponent::listBoxItemClicked (int row, [[maybe_unused]] const juce
             renameAlertWindow->addTextEditor (kDialogTextEditorName, folder.getFileName (), {});
             renameAlertWindow->addButton ("RENAME", 1, juce::KeyPress (juce::KeyPress::returnKey, 0, 0));
             renameAlertWindow->addButton ("CANCEL", 0, juce::KeyPress (juce::KeyPress::escapeKey, 0, 0));
+            auto* textEdtitor { renameAlertWindow->getTextEditor (kDialogTextEditorName) };
+            auto* createButton { renameAlertWindow->getButton ("RENAME") };
+            auto* cancelButton { renameAlertWindow->getButton ("CANCEL") };
+            textEdtitor->setExplicitFocusOrder (1);
+            createButton->setExplicitFocusOrder (2);
+            cancelButton->setExplicitFocusOrder (3);
+
             renameAlertWindow->enterModalState (true, juce::ModalCallbackFunction::create ([this, folder] (int option)
             {
                 renameAlertWindow->exitModalState (option);
