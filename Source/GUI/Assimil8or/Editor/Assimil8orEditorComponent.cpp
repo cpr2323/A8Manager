@@ -83,6 +83,7 @@ void Assimil8orEditorComponent::setupPresetComponents ()
     nameEditor.setIndents (1, 0);
     nameEditor.onFocusLost = [this] () { nameUiChanged (nameEditor.getText ()); };
     nameEditor.onReturnKey = [this] () { nameUiChanged (nameEditor.getText ()); };
+    nameEditor.onTextChange = [this] () { nameUiChanged (nameEditor.getText ()); };
     nameEditor.setInputRestrictions (12, " !\"#$%^&'()#+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~");
     nameEditor.setTooltip (parameterToolTipData.getToolTip ("Preset", "Name"));
     addAndMakeVisible (nameEditor);
