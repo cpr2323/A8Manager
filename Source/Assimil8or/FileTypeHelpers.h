@@ -23,7 +23,7 @@ namespace FileTypeHelpers
     DirectoryDataProperties::TypeIndex getFileType (juce::File file);
     juce::String getPresetFileName (int presetIndex);
     int  getPresetNumberFromName (juce::File file);
-    bool isAudioFile (juce::File file);
+    bool isSupportedAudioFile (juce::File file);
     bool isPresetFile (juce::File file);
     bool isFolderPrefsFile (juce::File file);
     bool isLastFolderFile (juce::File file);

@@ -8,7 +8,7 @@ namespace FileTypeHelpers
             return DirectoryDataProperties::TypeIndex::systemFile;
         else if (FileTypeHelpers::isPresetFile (file))
             return DirectoryDataProperties::TypeIndex::presetFile;
-        else if (FileTypeHelpers::isAudioFile (file))
+        else if (FileTypeHelpers::isSupportedAudioFile (file))
             return DirectoryDataProperties::TypeIndex::audioFile;
         else // unknown file
             return DirectoryDataProperties::TypeIndex::unknownFile;
@@ -29,7 +29,7 @@ namespace FileTypeHelpers
         return file.getFileNameWithoutExtension ().substring (kPresetFileNumberOffset).getIntValue ();
     }
 
-    bool isAudioFile (juce::File file)
+    bool isSupportedAudioFile (juce::File file)
     {
         return file.getFileExtension ().toLowerCase () == kWaveFileExtension;
     }

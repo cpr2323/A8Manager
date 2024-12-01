@@ -32,6 +32,7 @@ private:
     ValidatorProperties validatorProperties;
     ValidatorResultListProperties validatorResultListProperties;
     DirectoryDataProperties directoryDataProperties;
+    juce::StringArray audioFileExtensions;
 
     // TODO - my current thought is that the DirectoryValueTree class should perform all of the checks (files types, supported audio, etc), and store into in the valuetree
     juce::AudioFormatManager audioFormatManager;

@@ -2,7 +2,7 @@
 #include "Assimil8orPreset.h"
 #include "FileTypeHelpers.h"
 #include "Validator/ValidatorResultProperties.h"
-#include "../Utility/PersistentRootProperties.h"
+#include "../Utility/DebugLog.h"
 #include "../Utility/RuntimeRootProperties.h"
 #include "../Utility/WatchDogTimer.h"
 
@@ -40,7 +40,13 @@ juce::String getMemorySizeString (uint64_t memoryUsage)
 Assimil8orValidator::Assimil8orValidator () : Thread ("Assimil8orValidator")
 {
     audioFormatManager.registerBasicFormats ();
-
+    for (auto formatIndex { 0 }; formatIndex < audioFormatManager.getNumKnownFormats (); ++formatIndex)
+    {
+        const auto* format { audioFormatManager.getKnownFormat (formatIndex) };
+        DebugLog ("Assimil8orValidator", "Format Name: " + format->getFormatName ());
+        DebugLog ("Assimil8orValidator", "Format Extensions: " + format->getFileExtensions ().joinIntoString (", "));
+        audioFileExtensions.addArray (format->getFileExtensions ());
+    }
     validateThread.onThreadLoop = [this] ()
     {
         WatchdogTimer timer;
@@ -427,7 +433,7 @@ std::tuple<uint64_t, std::optional<std::map<juce::String, uint64_t>>> Assimil8or
         LogValidation ("  File (preset)");
         return { 0, optionalPresetInfo };
     }
-    else if (FileTypeHelpers::isAudioFile (file))
+    else if (audioFileExtensions.contains (file.getFileExtension (), true))
     {
         validatorResultProperties.updateType (ValidatorResultProperties::ResultTypeInfo, false);
         if (file.getFileName ().length () > kMaxFileNameLength)
@@ -457,15 +463,6 @@ std::tuple<uint64_t, std::optional<std::map<juce::String, uint64_t>>> Assimil8or
 //             LogValidation ("    Length/Samples: " + juce::String (reader->lengthInSamples));
 //             LogValidation ("    Length/Time: " + juce::String (reader->lengthInSamples / reader->sampleRate));
 
-            const auto memoryUsage { reader->numChannels * reader->lengthInSamples * 4 };
-            const auto sampleRateString { juce::String (reader->sampleRate / 1000.0f, 2).trimCharactersAtEnd ("0.") };
-            validatorResultProperties.updateText (juce::String (" {") +
-                                                 juce::String (reader->usesFloatingPointData == true ? "floating point" : "integer") + ", " +
-                                                 juce::String (reader->bitsPerSample) + "bits/" + sampleRateString + "k, " +
-                                                 juce::String (reader->numChannels == 1 ? "mono" : (reader->numChannels == 2 ? "stereo" : juce::String (reader->numChannels) + " channels")) + "}, " +
-                                                 juce::String (reader->lengthInSamples / reader->sampleRate, 2) + " seconds, " +
-                                                 "RAM: " + getMemorySizeString (memoryUsage), false);
-            sizeRequiredForSamples = reader->numChannels * reader->lengthInSamples * bytesPerSampleInAssimMemory;
             auto reportErrorIfTrue = [&validatorResultProperties, &file] (bool conditionalResult, juce::String newText)
             {
                 if (conditionalResult)
@@ -476,18 +473,29 @@ std::tuple<uint64_t, std::optional<std::map<juce::String, uint64_t>>> Assimil8or
                     validatorResultProperties.addFixerEntry (FixerEntryProperties::FixerTypeConvert, file.getFullPathName ());
                 }
             };
-            reportErrorIfTrue (reader->usesFloatingPointData == true, "[sample format must be integer]");
-            reportErrorIfTrue (reader->bitsPerSample < 8 || reader->bitsPerSample > 32, "[bit depth must be between 8 and 32]");
-            if (reader->numChannels == 0)
-                validatorResultProperties.update (ValidatorResultProperties::ResultTypeError, "[no channels in file]", false);
+            if (FileTypeHelpers::isSupportedAudioFile (file))
+            {
+                const auto memoryUsage { reader->numChannels * reader->lengthInSamples * 4 };
+                const auto sampleRateString { juce::String (reader->sampleRate / 1000.0f, 2).trimCharactersAtEnd ("0.") };
+                validatorResultProperties.updateText (juce::String (" {") +
+                                                      juce::String (reader->usesFloatingPointData == true ? "floating point" : "integer") + ", " +
+                                                      juce::String (reader->bitsPerSample) + "bits/" + sampleRateString + "k, " +
+                                                      juce::String (reader->numChannels == 1 ? "mono" : (reader->numChannels == 2 ? "stereo" : juce::String (reader->numChannels) + " channels")) + "}, " +
+                                                      juce::String (reader->lengthInSamples / reader->sampleRate, 2) + " seconds, " +
+                                                      "RAM: " + getMemorySizeString (memoryUsage), false);
+                sizeRequiredForSamples = reader->numChannels * reader->lengthInSamples * bytesPerSampleInAssimMemory;
+                reportErrorIfTrue (reader->usesFloatingPointData == true, "[sample format must be integer]");
+                reportErrorIfTrue (reader->bitsPerSample < 8 || reader->bitsPerSample > 32, "[bit depth must be between 8 and 32]");
+                if (reader->numChannels == 0)
+                    validatorResultProperties.update (ValidatorResultProperties::ResultTypeError, "[no channels in file]", false);
+                else
+                    reportErrorIfTrue (reader->numChannels > 2, "[only mono and stereo supported]");
+                reportErrorIfTrue (reader->sampleRate > 192000, "[sample rate must not exceed 192k]");
+            }
             else
-#define ONLY_MONO_TEST 0
-#if ONLY_MONO_TEST
-                reportErrorIfTrue (reader->numChannels > 1, "[only mono supported]");
-#else
-                reportErrorIfTrue (reader->numChannels > 2, "[only mono and stereo supported]");
-#endif
-            reportErrorIfTrue (reader->sampleRate > 192000, "[sample rate must not exceed 192k]");
+            {
+                reportErrorIfTrue (true, "[unsupported file type: '" + reader->getFormatName () + "/" + file.getFileExtension () + "']");
+            }
         }
         else
         {
