@@ -469,7 +469,7 @@ std::tuple<uint64_t, std::optional<std::map<juce::String, uint64_t>>> Assimil8or
                     validatorResultProperties.addFixerEntry (FixerEntryProperties::FixerTypeConvert, file.getFullPathName ());
                 }
             };
-            if (FileTypeHelpers::isSupportedAudioFile (file))
+            if (audioManager->isAssimil8orSupportedAudioFile (file))
             {
                 const auto memoryUsage { reader->numChannels * reader->lengthInSamples * 4 };
                 const auto sampleRateString { juce::String (reader->sampleRate / 1000.0f, 2).trimCharactersAtEnd ("0.") };

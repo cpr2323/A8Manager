@@ -232,18 +232,11 @@ juce::int64 EditManager::getMaxLoopStart (int channelIndex, int zoneIndex)
     }
 }
 
-bool EditManager::isSupportedAudioFile (juce::File file)
-{
-    if (file.isDirectory () || file.getFileExtension ().toLowerCase () != ".wav")
-        return false;
-    return audioManager->isAssimil8orSupportedAudioFile (file);
-}
-
 bool EditManager::assignSamples (int channelIndex, int zoneIndex, const juce::StringArray& files)
 {
     // TODO - should this have been checked prior to this call?
     for (auto fileName : files)
-        if (! isSupportedAudioFile (fileName))
+        if (! audioManager->isAssimil8orSupportedAudioFile (fileName))
             return false;
 
     const auto initialNumZones { getNumUsedZones (channelIndex) };
