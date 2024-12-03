@@ -3,6 +3,7 @@
 #include <JuceHeader.h>
 #include "SampleManager/SampleProperties.h"
 #include "../../../AppProperties.h"
+#include "../../../Assimil8or/Audio/AudioManager.h"
 #include "../../../Assimil8or/Preset/PresetProperties.h"
 
 class EditManager
@@ -48,6 +49,6 @@ private:
         SampleProperties sampleProperties;
     };
     std::array<std::array<ZoneAndSampleProperties, 8>, 8> zoneAndSamplePropertiesList;
-    juce::AudioFormatManager audioFormatManager;
+    AudioManager* audioManager { nullptr };
 };
 

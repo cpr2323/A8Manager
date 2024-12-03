@@ -1,5 +1,6 @@
 #include "EditManager.h"
 #include "SampleManager/SampleManagerProperties.h"
+#include "../../../SystemServices.h"
 #include "../../../Assimil8or/Preset/ParameterPresetsSingleton.h"
 #include "../../../Utility/DebugLog.h"
 #include "../../../Utility/PersistentRootProperties.h"
@@ -7,7 +8,6 @@
 
 EditManager::EditManager ()
 {
-    audioFormatManager.registerBasicFormats ();
 }
 
 void EditManager::init (juce::ValueTree rootPropertiesVT, juce::ValueTree presetPropertiesVT)
@@ -35,6 +35,10 @@ void EditManager::init (juce::ValueTree rootPropertiesVT, juce::ValueTree preset
     }
 
     RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::yes);
+
+    SystemServices systemServices { runtimeRootProperties.getValueTree (), SystemServices::WrapperType::client, SystemServices::EnableCallbacks::yes };
+    audioManager = systemServices.getAudioManager ();
+
     SampleManagerProperties sampleManagerProperties (runtimeRootProperties.getValueTree (), SampleManagerProperties::WrapperType::owner, SampleManagerProperties::EnableCallbacks::no);
 
     presetProperties.wrap (presetPropertiesVT, PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
@@ -232,14 +236,7 @@ bool EditManager::isSupportedAudioFile (juce::File file)
 {
     if (file.isDirectory () || file.getFileExtension ().toLowerCase () != ".wav")
         return false;
-    std::unique_ptr<juce::AudioFormatReader> reader (audioFormatManager.createReaderFor (file));
-    if (reader == nullptr)
-        return false;
-    // check for any format settings that are unsupported
-    if ((reader->usesFloatingPointData == true) || (reader->bitsPerSample < 8 || reader->bitsPerSample > 32) || (reader->numChannels == 0 || reader->numChannels > 2) || (reader->sampleRate > 192000))
-        return false;
-
-    return true;
+    return audioManager->isAssimil8orSupportedAudioFile (file);
 }
 
 bool EditManager::assignSamples (int channelIndex, int zoneIndex, const juce::StringArray& files)

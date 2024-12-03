@@ -8,6 +8,9 @@
     <GROUP id="{26A00EED-F319-636E-6162-8A113C6EE925}" name="Source">
       <GROUP id="{B33B27D7-84B5-739E-6EF4-3DA0243B11AC}" name="Assimil8or">
         <GROUP id="{83CA1B10-C350-95FD-802D-488AEB6104FA}" name="Audio">
+          <FILE id="vJcB3D" name="AudioManager.cpp" compile="1" resource="0"
+                file="Source/Assimil8or/Audio/AudioManager.cpp"/>
+          <FILE id="RFQ0on" name="AudioManager.h" compile="0" resource="0" file="Source/Assimil8or/Audio/AudioManager.h"/>
           <FILE id="U8EWD4" name="AudioPlayer.cpp" compile="1" resource="0" file="Source/Assimil8or/Audio/AudioPlayer.cpp"/>
           <FILE id="JIblHe" name="AudioPlayer.h" compile="0" resource="0" file="Source/Assimil8or/Audio/AudioPlayer.h"/>
           <FILE id="i2OwG7" name="AudioPlayerProperties.cpp" compile="1" resource="0"
@@ -300,6 +303,10 @@
             file="Source/AppProperties.cpp"/>
       <FILE id="FkHRCS" name="AppProperties.h" compile="0" resource="0" file="Source/AppProperties.h"/>
       <FILE id="RnmsSv" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
+      <FILE id="AKE62I" name="SystemServices.cpp" compile="1" resource="0"
+            file="Source/SystemServices.cpp"/>
+      <FILE id="HGFfkn" name="SystemServices.h" compile="0" resource="0"
+            file="Source/SystemServices.h"/>
     </GROUP>
   </MAINGROUP>
   <MODULES>

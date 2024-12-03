@@ -3,6 +3,7 @@
 #include <JuceHeader.h>
 #include "ValidatorComponentProperties.h"
 #include "ValidatorToolWindow.h"
+#include "../../../Assimil8or/Audio/AudioManager.h"
 #include "../../../Assimil8or/Validator/ValidatorProperties.h"
 #include "../../../Assimil8or/Validator/ValidatorResultProperties.h"
 #include "../../../Utility/DirectoryDataProperties.h"
@@ -34,7 +35,7 @@ private:
     juce::StringArray viewList { ValidatorResultProperties::ResultTypeInfo };
     SafePointer<juce::DialogWindow> renameDialog;
     SafePointer<juce::DialogWindow> locateDialog;
-    juce::AudioFormatManager audioFormatManager;
+    AudioManager* audioManager { nullptr };
     std::unique_ptr<juce::FileChooser> fileChooser;
     juce::ValueTree localCopyOfValidatorResultsList;
     juce::File locateFilesInitialDirectory;

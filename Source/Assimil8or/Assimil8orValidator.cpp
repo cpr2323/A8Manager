@@ -2,6 +2,7 @@
 #include "Assimil8orPreset.h"
 #include "FileTypeHelpers.h"
 #include "Validator/ValidatorResultProperties.h"
+#include "../SystemServices.h"
 #include "../Utility/DebugLog.h"
 #include "../Utility/RuntimeRootProperties.h"
 #include "../Utility/WatchDogTimer.h"
@@ -39,14 +40,6 @@ juce::String getMemorySizeString (uint64_t memoryUsage)
 
 Assimil8orValidator::Assimil8orValidator () : Thread ("Assimil8orValidator")
 {
-    audioFormatManager.registerBasicFormats ();
-    for (auto formatIndex { 0 }; formatIndex < audioFormatManager.getNumKnownFormats (); ++formatIndex)
-    {
-        const auto* format { audioFormatManager.getKnownFormat (formatIndex) };
-        DebugLog ("Assimil8orValidator", "Format Name: " + format->getFormatName ());
-        DebugLog ("Assimil8orValidator", "Format Extensions: " + format->getFileExtensions ().joinIntoString (", "));
-        audioFileExtensions.addArray (format->getFileExtensions ());
-    }
     validateThread.onThreadLoop = [this] ()
     {
         WatchdogTimer timer;
@@ -68,6 +61,9 @@ void Assimil8orValidator::init (juce::ValueTree rootPropertiesVT)
 {
     RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
     validatorProperties.wrap (runtimeRootProperties.getValueTree (), ValidatorProperties::WrapperType::owner, ValidatorProperties::EnableCallbacks::yes);
+
+    SystemServices systemServices { runtimeRootProperties.getValueTree (), SystemServices::WrapperType::client, SystemServices::EnableCallbacks::yes };
+    audioManager = systemServices.getAudioManager ();
 
     directoryDataProperties.wrap (runtimeRootProperties.getValueTree (), DirectoryDataProperties::WrapperType::client, DirectoryDataProperties::EnableCallbacks::yes);
     directoryDataProperties.onStatusChange = [this] (DirectoryDataProperties::ScanStatus status)
@@ -400,7 +396,7 @@ std::tuple<uint64_t, std::optional<std::map<juce::String, uint64_t>>> Assimil8or
                     else
                     {
                         // open as audio file, calculate memory requirements
-                        if (std::unique_ptr<juce::AudioFormatReader> reader (audioFormatManager.createReaderFor (sampleFile)); reader != nullptr)
+                        if (auto reader { audioManager->getReaderFor (sampleFile) }; reader != nullptr)
                         {
                             // stereo files are always fully loaded, even if only one channel is used
                             sampleSizeList [sampleFileName] = reader->lengthInSamples * reader->numChannels * bytesPerSampleInAssimMemory;
@@ -433,7 +429,7 @@ std::tuple<uint64_t, std::optional<std::map<juce::String, uint64_t>>> Assimil8or
         LogValidation ("  File (preset)");
         return { 0, optionalPresetInfo };
     }
-    else if (audioFileExtensions.contains (file.getFileExtension (), true))
+    else if (audioManager->isA8ManagerSupportedAudioFile (file))
     {
         validatorResultProperties.updateType (ValidatorResultProperties::ResultTypeInfo, false);
         if (file.getFileName ().length () > kMaxFileNameLength)
@@ -453,7 +449,7 @@ std::tuple<uint64_t, std::optional<std::map<juce::String, uint64_t>>> Assimil8or
         }
 
         uint64_t sizeRequiredForSamples { 0 };
-        if (std::unique_ptr<juce::AudioFormatReader> reader (audioFormatManager.createReaderFor (file)); reader != nullptr)
+        if (auto reader { audioManager->getReaderFor (file) }; reader != nullptr)
         {
 //             LogValidation ("    Format: " + reader->getFormatName ());
 //             LogValidation ("    Sample data: " + juce::String (reader->usesFloatingPointData == true ? "floating point" : "integer"));
@@ -506,18 +502,8 @@ std::tuple<uint64_t, std::optional<std::map<juce::String, uint64_t>>> Assimil8or
     }
     else
     {
-        // possibly an audio file of a format not supported on the Assimil8or
-        if (auto* format { audioFormatManager.findFormatForFileExtension (file.getFileExtension ()) }; format != nullptr)
-        {
-            // this is a type we can read, so we can offer to convert it
-            LogValidation ("  File (unsupported audio format)");
-            validatorResultProperties.update (ValidatorResultProperties::ResultTypeWarning, "(unsupported audio format)", false);
-        }
-        else
-        {
-            LogValidation ("  File (unknown)");
-            validatorResultProperties.update (ValidatorResultProperties::ResultTypeWarning, "(unknown file type)", false);
-        }
+        LogValidation ("  File (unknown)");
+        validatorResultProperties.update (ValidatorResultProperties::ResultTypeWarning, "(unknown file type)", false);
     }
 
     return {};

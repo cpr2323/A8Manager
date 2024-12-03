@@ -1,6 +1,7 @@
 #include "Assimil8orValidatorComponent.h"
 #include "RenameDialogComponent.h"
 #include "LocateFileComponent.h"
+#include "../../../SystemServices.h"
 #include "../../../Assimil8or/Validator/ValidatorResultListProperties.h"
 #include "../../../Utility/RuntimeRootProperties.h"
 
@@ -21,7 +22,6 @@ Assimil8orValidatorComponent::Assimil8orValidatorComponent ()
     validationResultsListBox.getHeader ().setStretchToFitActive (true);
     addAndMakeVisible (validationResultsListBox);
 
-    audioFormatManager.registerBasicFormats ();
     setupViewList ();
 }
 
@@ -49,6 +49,9 @@ void Assimil8orValidatorComponent::init (juce::ValueTree rootPropertiesVT)
 {
     RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
     directoryDataProperties.wrap (runtimeRootProperties.getValueTree (), DirectoryDataProperties::WrapperType::client, DirectoryDataProperties::EnableCallbacks::yes);
+
+    SystemServices systemServices { runtimeRootProperties.getValueTree (), SystemServices::WrapperType::client, SystemServices::EnableCallbacks::yes };
+    audioManager = systemServices.getAudioManager ();
 
     validatorComponentProperties.wrap (runtimeRootProperties.getValueTree (), ValidatorComponentProperties::WrapperType::owner, ValidatorComponentProperties::EnableCallbacks::yes);
     auto updateFromViewChange = [this] ()
@@ -506,7 +509,7 @@ void Assimil8orValidatorComponent::convert (juce::File file)
                                                 juce::ModalCallbackFunction::create ([this] (int) {}));
     };
 
-    if (std::unique_ptr<juce::AudioFormatReader> reader (audioFormatManager.createReaderFor (file)); reader != nullptr)
+    if (auto reader { audioManager->getReaderFor (file) }; reader != nullptr)
     {
         auto tempFile { juce::File::createTempFile (".wav") };
         auto tempFileStream { std::make_unique<juce::FileOutputStream> (tempFile) };

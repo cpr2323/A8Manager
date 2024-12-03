@@ -5,6 +5,7 @@
 #include "SampleProperties.h"
 #include "SampleStatus.h"
 #include "../../../../AppProperties.h"
+#include "../../../../Assimil8or/Audio/AudioManager.h"
 #include "../../../../Assimil8or/Preset/PresetProperties.h"
 #include "../../../../Utility/DebugLog.h"
 #include "../../../../Utility/DirectoryDataProperties.h"
@@ -30,7 +31,7 @@ private:
     };
     std::array<std::array<ZoneAndSampleProperties, 8>, 8> zoneAndSamplePropertiesList;
 
-    juce::AudioFormatManager audioFormatManager;
+    AudioManager* audioManager { nullptr };
     juce::File currentFolder;
     struct SampleData
     {

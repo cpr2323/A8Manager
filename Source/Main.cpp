@@ -1,7 +1,9 @@
 #include <JuceHeader.h>
 #include "AppProperties.h"
+#include "SystemServices.h"
 #include "Assimil8or/Assimil8orValidator.h"
 #include "Assimil8or/PresetManagerProperties.h"
+#include "Assimil8or/Audio/AudioManager.h"
 #include "Assimil8or/Audio/AudioPlayer.h"
 #include "Assimil8or/Preset/ParameterPresetsSingleton.h"
 #include "Assimil8or/Preset/PresetProperties.h"
@@ -46,6 +48,7 @@ public:
         initLogger ();
         initCrashHandler ();
         initPropertyRoots ();
+        initSystemServices ();
         initAssimil8or ();
         initAudio ();
         initUi ();
@@ -163,6 +166,16 @@ public:
         audioPlayer.init (rootProperties.getValueTree ());
         //AudioSettingsProperties audioSettingsProperties (persistentRootProperties.getValueTree (), AudioSettingsProperties::WrapperType::client, AudioSettingsProperties::EnableCallbacks::no);
         //audioConfigPropertiesMonitor.assign (audioSettingsProperties.getValueTreeRef ());
+    }
+
+    void initSystemServices ()
+    {
+        // initialize services
+        audioManager.init (rootProperties.getValueTree ());
+
+        // connect services to the SystemServices VTW
+        SystemServices systemServices (runtimeRootProperties.getValueTree (), SystemServices::WrapperType::owner, SystemServices::EnableCallbacks::no);
+        systemServices.setAudioManager (&audioManager);
     }
 
     void initAppDirectory ()
@@ -303,6 +316,7 @@ private:
     std::atomic<RuntimeRootProperties::QuitState> localQuitState { RuntimeRootProperties::QuitState::idle };
     std::unique_ptr<MainWindow> mainWindow;
     AudioPlayer audioPlayer;
+    AudioManager audioManager;
 
     ValueTreeMonitor audioConfigPropertiesMonitor;
     ValueTreeMonitor directoryDataMonitor;

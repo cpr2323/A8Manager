@@ -2,6 +2,7 @@
 
 #include <JuceHeader.h>
 #include "DirectoryDataProperties.h"
+#include "../Assimil8or/Audio/AudioManager.h"
 #include "../Utility/LambdaThread.h"
 #include "../Utility/ValueTreeMonitor.h"
 #include "../Utility/WatchDogTimer.h"
@@ -33,7 +34,7 @@ private:
     };
     WatchdogTimer timer; // TODO - remove when not needed, ie. when done measuring things
     DirectoryDataProperties directoryDataProperties;
-    juce::AudioFormatManager audioFormatManager;
+    AudioManager* audioManager { nullptr };
     LambdaThread scanThread { "ScanThread", 1000 };
     LambdaThread checkThread { "CheckThread", 1000 };
 

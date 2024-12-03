@@ -1,5 +1,6 @@
 #include "DirectoryValueTree.h"
 #include "../Assimil8or/FileTypeHelpers.h"
+#include "../SystemServices.h"
 #include "../Utility/DebugLog.h"
 #include "../Utility/RuntimeRootProperties.h"
 
@@ -64,11 +65,12 @@ void DirectoryValueTree::wakeUpTaskManagmentThread ()
     notify ();
 }
 
-void DirectoryValueTree::init (juce::ValueTree rootPropertiesVT)
+void DirectoryValueTree::init (juce::ValueTree runtimeRootPropertiesVT)
 {
-    audioFormatManager.registerBasicFormats ();
+    SystemServices systemServices { runtimeRootPropertiesVT, SystemServices::WrapperType::client, SystemServices::EnableCallbacks::yes };
+    audioManager = systemServices.getAudioManager ();
 
-    directoryDataProperties.wrap (rootPropertiesVT, DirectoryDataProperties::WrapperType::owner, DirectoryDataProperties::EnableCallbacks::yes);
+    directoryDataProperties.wrap (runtimeRootPropertiesVT, DirectoryDataProperties::WrapperType::owner, DirectoryDataProperties::EnableCallbacks::yes);
     //ddpMonitor.assign (directoryDataProperties.getValueTreeRef ());
 
     directoryDataProperties.onScanDepthChange = [this] (int scanDepth) { setScanDepth (scanDepth); };
@@ -120,7 +122,7 @@ juce::ValueTree DirectoryValueTree::makeFileEntry (juce::File file, juce::int64 
         {
         case DirectoryDataProperties::TypeIndex::audioFile:
         {
-            if (std::unique_ptr<juce::AudioFormatReader> reader (audioFormatManager.createReaderFor (file)); reader == nullptr)
+            if (auto reader { audioManager->getReaderFor (file) }; reader == nullptr)
             {
                 fileVT.setProperty ("error", "invalid format", nullptr);
             }
