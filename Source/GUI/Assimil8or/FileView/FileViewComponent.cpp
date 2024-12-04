@@ -251,10 +251,12 @@ void FileViewComponent::listBoxItemClicked (int row, [[maybe_unused]] const juce
     if (row >= getNumRows ())
         return;
 
+    const auto directoryEntryVT { getDirectoryEntryVT (row) };
+    const auto entryType { static_cast<int> (directoryEntryVT.getProperty ("type")) };
+
     if (! isRootFolder && row != 0)
     {
-        const auto directoryEntryVT { getDirectoryEntryVT (row) };
-        if (static_cast<int> (directoryEntryVT.getProperty ("type")) != DirectoryDataProperties::TypeIndex::folder)
+        if (entryType != DirectoryDataProperties::TypeIndex::folder && entryType != DirectoryDataProperties::TypeIndex::audioFile)
             return;
     }
 
@@ -262,50 +264,72 @@ void FileViewComponent::listBoxItemClicked (int row, [[maybe_unused]] const juce
     {
         if (! isRootFolder && row == 0)
             return;
-        const auto directoryEntryVT { getDirectoryEntryVT (row) };
-        auto folder { juce::File (directoryEntryVT.getProperty ("name").toString ()) };
-        juce::PopupMenu pm;
-        pm.addItem ("Rename", true, false, [this, folder] ()
+        if (entryType == DirectoryDataProperties::TypeIndex::folder)
         {
-            renameAlertWindow = std::make_unique<juce::AlertWindow> ("RENAME FOLDER", "Enter the new name for '" + folder.getFileName ()  + "'", juce::MessageBoxIconType::NoIcon);
-            renameAlertWindow->addTextEditor (kDialogTextEditorName, folder.getFileName (), {});
-            renameAlertWindow->addButton ("RENAME", 1, juce::KeyPress (juce::KeyPress::returnKey, 0, 0));
-            renameAlertWindow->addButton ("CANCEL", 0, juce::KeyPress (juce::KeyPress::escapeKey, 0, 0));
-            auto* textEdtitor { renameAlertWindow->getTextEditor (kDialogTextEditorName) };
-            auto* createButton { renameAlertWindow->getButton ("RENAME") };
-            auto* cancelButton { renameAlertWindow->getButton ("CANCEL") };
-            textEdtitor->setExplicitFocusOrder (1);
-            createButton->setExplicitFocusOrder (2);
-            cancelButton->setExplicitFocusOrder (3);
+            auto folder { juce::File (directoryEntryVT.getProperty ("name").toString ()) };
+            juce::PopupMenu pm;
+            pm.addItem ("Rename", true, false, [this, folder] ()
+            {
+                renameAlertWindow = std::make_unique<juce::AlertWindow> ("RENAME FOLDER", "Enter the new name for '" + folder.getFileName () + "'", juce::MessageBoxIconType::NoIcon);
+                renameAlertWindow->addTextEditor (kDialogTextEditorName, folder.getFileName (), {});
+                renameAlertWindow->addButton ("RENAME", 1, juce::KeyPress (juce::KeyPress::returnKey, 0, 0));
+                renameAlertWindow->addButton ("CANCEL", 0, juce::KeyPress (juce::KeyPress::escapeKey, 0, 0));
+                auto* textEdtitor { renameAlertWindow->getTextEditor (kDialogTextEditorName) };
+                auto* createButton { renameAlertWindow->getButton ("RENAME") };
+                auto* cancelButton { renameAlertWindow->getButton ("CANCEL") };
+                textEdtitor->setExplicitFocusOrder (1);
+                createButton->setExplicitFocusOrder (2);
+                cancelButton->setExplicitFocusOrder (3);
 
-            renameAlertWindow->enterModalState (true, juce::ModalCallbackFunction::create ([this, folder] (int option)
+                renameAlertWindow->enterModalState (true, juce::ModalCallbackFunction::create ([this, folder] (int option)
+                                                                                                {
+                                                                                                    renameAlertWindow->exitModalState (option);
+                                                                                                    renameAlertWindow->setVisible (false);
+                                                                                                    if (option == 1) // ok
+                                                                                                    {
+                                                                                                        auto newFolderName { renameAlertWindow->getTextEditorContents (kDialogTextEditorName) };
+                                                                                                        folder.moveFileTo (folder.getParentDirectory ().getChildFile (newFolderName));
+                                                                                                        // TODO handle error
+                                                                                                    }
+                                                                                                    renameAlertWindow.reset ();
+                                                                                                }));
+            });
+            pm.addItem ("Delete", true, false, [this, folder] ()
             {
-                renameAlertWindow->exitModalState (option);
-                renameAlertWindow->setVisible (false);
-                if (option == 1) // ok
-                {
-                    auto newFolderName { renameAlertWindow->getTextEditorContents (kDialogTextEditorName)};
-                    folder.moveFileTo (folder.getParentDirectory ().getChildFile (newFolderName));
-                    // TODO handle error
-                }
-                renameAlertWindow.reset ();
-            }));
-        });
-        pm.addItem ("Delete", true, false, [this, folder] ()
+                juce::AlertWindow::showOkCancelBox (juce::AlertWindow::WarningIcon, "DELETE FOLDER",
+                                                    "Are you sure you want to delete the folder '" + folder.getFileName () + "'", "YES", "NO", nullptr,
+                                                    juce::ModalCallbackFunction::create ([this, folder] (int option)
+                                                                                         {
+                                                                                             if (option == 0) // no
+                                                                                                 return;
+                                                                                             if (! folder.deleteFile ())
+                                                                                             {
+                                                                                                // TODO handle delete error
+                                                                                             }
+                                                                                         }));
+            });
+            pm.showMenuAsync ({}, [this] (int) {});
+        }
+        else if (entryType == DirectoryDataProperties::TypeIndex::audioFile)
         {
-            juce::AlertWindow::showOkCancelBox (juce::AlertWindow::WarningIcon, "DELETE FOLDER",
-            "Are you sure you want to delete the folder '" + folder.getFileName () + "'", "YES", "NO", nullptr,
-            juce::ModalCallbackFunction::create ([this, folder] (int option)
+            auto folder { juce::File (directoryEntryVT.getProperty ("name").toString ()) };
+            juce::PopupMenu pm;
+            pm.addItem ("Delete", true, false, [this, folder] ()
             {
-                if (option == 0) // no
-                    return;
-                if (! folder.deleteFile ())
-                {
-                    // TODO handle delete error
-                }
-            }));
-        });
-        pm.showMenuAsync ({}, [this] (int) {});
+                juce::AlertWindow::showOkCancelBox (juce::AlertWindow::WarningIcon, "DELETE FILE",
+                                                    "Are you sure you want to delete the file '" + folder.getFileName () + "'", "YES", "NO", nullptr,
+                                                    juce::ModalCallbackFunction::create ([this, folder] (int option)
+                                                                                            {
+                                                                                                if (option == 0) // no
+                                                                                                    return;
+                                                                                                if (! folder.deleteFile ())
+                                                                                                {
+                                                                                                // TODO handle delete error
+                                                                                                }
+                                                                                            }));
+            });
+            pm.showMenuAsync ({}, [this] (int) {});
+        }
     }
     else
     {
