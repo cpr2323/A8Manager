@@ -40,3 +40,11 @@ std::unique_ptr<juce::AudioFormatReader> AudioManager::getReaderFor (const juce:
 {
     return std::unique_ptr<juce::AudioFormatReader> (audioFormatManager.createReaderFor (file));
 }
+
+juce::String AudioManager::getFileTypesList ()
+{
+    juce::String fileTypesList;
+    for (auto fileExtension : audioFileExtensions)
+        fileTypesList += juce::String (fileTypesList.length () == 0 ? "" : ";") + "*" + fileExtension;
+    return fileTypesList;
+}
