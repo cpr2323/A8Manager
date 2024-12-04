@@ -323,7 +323,7 @@ void FileViewComponent::listBoxItemClicked (int row, [[maybe_unused]] const juce
                                                                                              }
                                                                                          }));
             });
-            pm.showMenuAsync ({}, [this] (int) {});
+            pm.showMenuAsync ({}, [this, popupMenuLnF] (int) { delete popupMenuLnF; });
         }
         else if (entryType == DirectoryDataProperties::TypeIndex::audioFile)
         {
@@ -374,7 +374,7 @@ void FileViewComponent::listBoxItemClicked (int row, [[maybe_unused]] const juce
                                                                                                 }
                                                                                             }));
             });
-            pm.showMenuAsync ({}, [this] (int) {});
+            pm.showMenuAsync ({}, [this, popupMenuLnF] (int) { delete popupMenuLnF; });
         }
     }
     else
