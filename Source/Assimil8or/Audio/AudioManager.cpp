@@ -1,6 +1,8 @@
 #include "AudioManager.h"
 #include "../../Utility/DebugLog.h"
 
+constexpr float epsilon = 1e-6f;
+
 AudioManager::AudioManager ()
 {
     audioFormatManager.registerBasicFormats ();
@@ -47,4 +49,39 @@ juce::String AudioManager::getFileTypesList ()
     for (auto fileExtension : audioFileExtensions)
         fileTypesList += juce::String (fileTypesList.length () == 0 ? "" : ";") + "*" + fileExtension;
     return fileTypesList;
+}
+
+juce::int64 AudioManager::findNextZeroCrossing (juce::int64 startSampleOffset, juce::int64 maxSampleOffset, juce::AudioBuffer<float>& buffer, int side)
+{
+    if (startSampleOffset < 0 || startSampleOffset >= maxSampleOffset - 1)
+        return -1; // Invalid start position
+
+    auto readPtr { buffer.getReadPointer (side) };
+    for (juce::int64 i = startSampleOffset; i < maxSampleOffset - 1; ++i)
+    {
+        if ((readPtr [i] > epsilon && readPtr [i + 1] <= epsilon) || (readPtr [i] < epsilon && readPtr [i + 1] >= epsilon))
+        {
+            return i; // Return the index of the zero crossing
+        }
+    }
+    return -1; // No zero crossing found
+}
+
+juce::int64 AudioManager::findPreviousZeroCrossing (juce::int64 startSampleOffset, juce::int64 minSampleOffset, juce::AudioBuffer<float>& buffer, int side)
+{
+    if (startSampleOffset <= minSampleOffset || startSampleOffset >= buffer.getNumSamples ())
+    {
+        return -1; // Invalid start position
+    }
+
+    auto readPtr { buffer.getReadPointer (side) };
+    for (juce::int64 i = startSampleOffset; i > minSampleOffset; --i)
+    {
+        if ((readPtr [i] > epsilon && readPtr [i - 1] <= epsilon) || (readPtr [i] < epsilon && readPtr [i - 1] >= epsilon))
+        {
+            return i - 1; // Return the index of the zero crossing
+        }
+    }
+    return -1; // No zero crossing found
+
 }
