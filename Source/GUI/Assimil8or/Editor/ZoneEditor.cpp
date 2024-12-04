@@ -2,6 +2,7 @@
 #include "FormatHelpers.h"
 #include "ParameterToolTipData.h"
 #include "SampleManager/SampleManagerProperties.h"
+#include "../../../SystemServices.h"
 #include "../../../Assimil8or/Preset/ChannelProperties.h"
 #include "../../../Assimil8or/Preset/PresetProperties.h"
 #include "../../../Assimil8or/Preset/ParameterPresetsSingleton.h"
@@ -147,18 +148,14 @@ ZoneEditor::ZoneEditor ()
     setEditComponentsEnabled (false);
 }
 
-bool ZoneEditor::isInterestedInFileDrag (const juce::StringArray& files)
+bool ZoneEditor::isInterestedInFileDrag ([[maybe_unused]] const juce::StringArray& files)
 {
-    for (auto file : files)
-        if (! editManager->isSupportedAudioFile (file))
-            return false;
-
+    // we do this check in the fileDragEnter and fileDragMove handlers, presenting more info regarding the drop operation
     return true;
 }
 
 void ZoneEditor::setDropIndex (const juce::StringArray& files, int x, int y)
 {
-//       dropIndex = -1;
     if (files.size () == 1)
         dropIndex = -1;
     else if (getLocalBounds ().removeFromTop (getLocalBounds ().getHeight () / 2).contains (x, y))
@@ -169,31 +166,57 @@ void ZoneEditor::setDropIndex (const juce::StringArray& files, int x, int y)
 
 void ZoneEditor::filesDropped (const juce::StringArray& files, int x, int y)
 {
+
     setDropIndex (files, x, y);
-    draggingFiles = false;
-    repaint ();
-    if (! handleSamplesInternal (dropIndex == 0 ? 0 : zoneIndex, files))
+    if (supportedFile && ! handleSamplesInternal (dropIndex == 0 ? 0 : zoneIndex, files))
     {
         // TODO - indicate an error? first thought was a red outline that fades out over a couple of second
+    }
+    resetDropInfo ();
+    repaint ();
+}
+
+void ZoneEditor::resetDropInfo ()
+{
+    draggingFilesCount = 0;
+    dropMsg = {};
+    dropDetails = {};
+}
+
+void ZoneEditor::updateDropInfo (const juce::StringArray& files)
+{
+    supportedFile = true;
+    for (auto& fileName : files)
+    {
+        auto draggedFile { juce::File (fileName) };
+        if (! audioManager->isA8ManagerSupportedAudioFile (draggedFile))
+            supportedFile = false;
     }
 }
 
 void ZoneEditor::fileDragEnter (const juce::StringArray& files, int x, int y)
 {
+    draggingFilesCount = files.size ();
+    updateDropInfo (files);
     setDropIndex (files, x, y);
-    draggingFiles = true;
     repaint ();
 }
 
 void ZoneEditor::fileDragMove (const juce::StringArray& files, int x, int y)
 {
+    const auto prevDropIndex= dropIndex;
     setDropIndex (files, x, y);
+    if (prevDropIndex != dropIndex)
+    {
+        updateDropInfo (files);
+        repaint ();
+    }
     repaint ();
 }
 
 void ZoneEditor::fileDragExit (const juce::StringArray&)
 {
-    draggingFiles = false;
+    resetDropInfo ();
     repaint ();
 }
 
@@ -668,6 +691,8 @@ void ZoneEditor::init (juce::ValueTree zonePropertiesVT, juce::ValueTree unedite
     RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
 
     appProperties.wrap (persistentRootProperties.getValueTree (), AppProperties::WrapperType::client, AppProperties::EnableCallbacks::no);
+    SystemServices systemServices { runtimeRootProperties.getValueTree (), SystemServices::WrapperType::client, SystemServices::EnableCallbacks::yes };
+    audioManager = systemServices.getAudioManager ();
 
     audioPlayerProperties.wrap (runtimeRootProperties.getValueTree (), AudioPlayerProperties::WrapperType::client, AudioPlayerProperties::EnableCallbacks::yes);
     audioPlayerProperties.onPlayStateChange = [this] (AudioPlayerProperties::PlayState playState)
@@ -850,7 +875,7 @@ void ZoneEditor::paintOverChildren (juce::Graphics& g)
     juce::Colour fillColor { juce::Colours::white };
     float activeAlpha { 0.7f };
     float nonActiveAlpha { 0.2f };
-    if (draggingFiles)
+    if (draggingFilesCount > 0)
     {
         auto localBounds { getLocalBounds () };
         if (dropIndex == -1 || zoneProperties.getId () == 1)

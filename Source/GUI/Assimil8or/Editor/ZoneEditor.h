@@ -5,6 +5,7 @@
 #include "LoopPoints/LoopPointsView.h"
 #include "SampleManager/SampleProperties.h"
 #include "../../../AppProperties.h"
+#include "../../../Assimil8or/Audio/AudioManager.h"
 #include "../../../Assimil8or/Audio/AudioPlayerProperties.h"
 #include "../../../Assimil8or/Preset/ZoneProperties.h"
 #include "../../../Utility/CustomTextEditor.h"
@@ -40,6 +41,7 @@ private:
     // TODO - I think we might be able to get rid of currentSampleFileName too, but I am not sure yet
     juce::String currentSampleFileName;
     EditManager* editManager { nullptr };
+    AudioManager* audioManager { nullptr };
     int zoneIndex { -1 };
     int parentChannelIndex { -1 };
     bool isStereoRightChannelMode { false };
@@ -47,7 +49,11 @@ private:
     // Loop Length is always stored as loop length, but the UI can be toggled to display it, and take input for it, as if it is Loop End
     bool treatLoopLengthAsEndInUi { false };
 
-    bool draggingFiles { false };
+    int draggingFilesCount { 0 };
+    bool supportedFile { false };
+    juce::String dropMsg;
+    juce::StringArray dropDetails;
+
     int dropIndex { 0 };
 
     LoopPointsView loopPointsView;
@@ -104,6 +110,7 @@ private:
     void minVoltageUiChanged (double minVoltage);
     void pitchOffsetDataChanged (double pitchOffset);
     void pitchOffsetUiChanged (double pitchOffset);
+    void resetDropInfo ();
     void sampleDataChanged (juce::String sample);
     void sampleUiChanged (juce::String sample);
     void sampleStartDataChanged (std::optional <juce::int64> sampleStart);
@@ -113,6 +120,7 @@ private:
     void sideDataChanged (int side);
     void sideUiChanged (int side);
     void setDropIndex (const juce::StringArray& files, int x, int y);
+    void updateDropInfo (const juce::StringArray& files);
 
     bool isInterestedInFileDrag (const juce::StringArray& files) override;
     void filesDropped (const juce::StringArray& files, int, int) override;
