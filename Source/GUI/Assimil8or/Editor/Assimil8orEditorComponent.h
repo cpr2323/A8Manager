@@ -47,7 +47,7 @@ private:
     ChannelProperties copyBufferChannelProperties;
     ZoneProperties copyBufferZoneProperties;
     bool copyBufferHasData { false };
-    EditManager editManager;
+    EditManager* editManager { nullptr };
     std::unique_ptr<juce::FileChooser> fileChooser;
 
     juce::Label titleLabel;

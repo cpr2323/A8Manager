@@ -681,12 +681,9 @@ void ZoneEditor::setupZoneComponents ()
     setupTextEditor (levelOffsetTextEditor, juce::Justification::centred, 0, "+-.0123456789", "LevelOffset");
 }
 
-void ZoneEditor::init (juce::ValueTree zonePropertiesVT, juce::ValueTree uneditedZonePropertiesVT, juce::ValueTree rootPropertiesVT, EditManager* theEditManager)
+void ZoneEditor::init (juce::ValueTree zonePropertiesVT, juce::ValueTree uneditedZonePropertiesVT, juce::ValueTree rootPropertiesVT)
 {
     //DebugLog ("ZoneEditor[" + juce::String (zoneProperties.getId ()) + "]", "init");
-    jassert (theEditManager != nullptr);
-    editManager = theEditManager;
-
     PersistentRootProperties persistentRootProperties (rootPropertiesVT, PersistentRootProperties::WrapperType::client, PersistentRootProperties::EnableCallbacks::no);
     RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
 
@@ -694,6 +691,7 @@ void ZoneEditor::init (juce::ValueTree zonePropertiesVT, juce::ValueTree unedite
     SystemServices systemServices { runtimeRootProperties.getValueTree (), SystemServices::WrapperType::client, SystemServices::EnableCallbacks::yes };
     audioManager = systemServices.getAudioManager ();
     sampleNameSelectLabel.setFileFilter (audioManager->getFileTypesList ());
+    editManager = systemServices.getEditManager ();
 
     audioPlayerProperties.wrap (runtimeRootProperties.getValueTree (), AudioPlayerProperties::WrapperType::client, AudioPlayerProperties::EnableCallbacks::yes);
     audioPlayerProperties.onPlayStateChange = [this] (AudioPlayerProperties::PlayState playState)

@@ -9,6 +9,7 @@
 #include "Assimil8or/Preset/PresetProperties.h"
 #include "GUI/GuiProperties.h"
 #include "GUI/MainComponent.h"
+#include "GUI/Assimil8or/Editor/EditManager.h"
 #include "GUI/Assimil8or/Editor/SampleManager/SampleManager.h"
 #include "Utility/DebugLog.h"
 #include "Utility/DirectoryValueTree.h"
@@ -48,6 +49,7 @@ public:
         initLogger ();
         initCrashHandler ();
         initPropertyRoots ();
+        initPresetManager ();
         initSystemServices ();
         initAssimil8or ();
         initAudio ();
@@ -100,11 +102,8 @@ public:
             quit ();
     }
 
-    void initAssimil8or ()
+    void initPresetManager ()
     {
-        // debug tool for watching changes on the Preset Value Tree
-        //presetPropertiesMonitor.assign (presetProperties.getValueTreeRef ());
-
         PresetManagerProperties presetManagerProperties (runtimeRootProperties.getValueTree (), PresetManagerProperties::WrapperType::owner, PresetManagerProperties::EnableCallbacks::no);
         // initialize the Preset with defaults
         PresetProperties::copyTreeProperties (ParameterPresetsSingleton::getInstance ()->getParameterPresetListProperties ().getParameterPreset (ParameterPresetListProperties::DefaultParameterPresetType),
@@ -114,6 +113,12 @@ public:
 
         // add the Preset Manager to the Runtime Root
         runtimeRootProperties.getValueTree ().addChild (presetManagerProperties.getValueTree (), -1, nullptr);
+    }
+
+    void initAssimil8or ()
+    {
+        // debug tool for watching changes on the Preset Value Tree
+        //presetPropertiesMonitor.assign (presetProperties.getValueTreeRef ());
 
         // setup the directory scanner
         directoryValueTree.init (runtimeRootProperties.getValueTree ());
@@ -170,12 +175,15 @@ public:
 
     void initSystemServices ()
     {
-        // initialize services
-        audioManager.init (rootProperties.getValueTree ());
-
         // connect services to the SystemServices VTW
         SystemServices systemServices (runtimeRootProperties.getValueTree (), SystemServices::WrapperType::owner, SystemServices::EnableCallbacks::no);
+
+        audioManager.init (rootProperties.getValueTree ());
         systemServices.setAudioManager (&audioManager);
+
+        PresetManagerProperties presetManagerProperties (runtimeRootProperties.getValueTree (), PresetManagerProperties::WrapperType::client, PresetManagerProperties::EnableCallbacks::no);
+        editManager.init (rootProperties.getValueTree (), presetManagerProperties.getPreset ("edit"));
+        systemServices.setEditManager (&editManager);
     }
 
     void initAppDirectory ()
@@ -317,6 +325,7 @@ private:
     std::unique_ptr<MainWindow> mainWindow;
     AudioPlayer audioPlayer;
     AudioManager audioManager;
+    EditManager editManager;
 
     ValueTreeMonitor audioConfigPropertiesMonitor;
     ValueTreeMonitor directoryDataMonitor;

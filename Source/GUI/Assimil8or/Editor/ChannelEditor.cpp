@@ -1,6 +1,7 @@
 #include "ChannelEditor.h"
 #include "FormatHelpers.h"
 #include "ParameterToolTipData.h"
+#include "../../../SystemServices.h"
 #include "../../../Assimil8or/Preset/PresetHelpers.h"
 #include "../../../Assimil8or/Preset/PresetProperties.h"
 #include "../../../Assimil8or/Preset/ParameterPresetsSingleton.h"
@@ -2179,13 +2180,10 @@ void ChannelEditor::balanceVoltages (VoltageBalanceType balanceType)
     updateAllZoneTabNames ();
 }
 
-void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree uneditedChannelPropertiesVT, juce::ValueTree rootPropertiesVT, EditManager* theEditManager,
+void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree uneditedChannelPropertiesVT, juce::ValueTree rootPropertiesVT,
                           juce::ValueTree copyBufferZonePropertiesVT, bool* theZoneCopyBufferHasData)
 {
     //DebugLog ("ChannelEditor["+ juce::String (channelProperties.getId ()) + "]", "init");
-    jassert (theEditManager != nullptr);
-    editManager = theEditManager;
-
     jassert (theZoneCopyBufferHasData != nullptr);
     zoneCopyBufferHasData = theZoneCopyBufferHasData;
 
@@ -2196,17 +2194,20 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree u
     appProperties.wrap (persistentRootProperties.getValueTree (), AppProperties::WrapperType::client, AppProperties::EnableCallbacks::no);
     audioPlayerProperties.wrap (runtimeRootProperties.getValueTree (), AudioPlayerProperties::WrapperType::client, AudioPlayerProperties::EnableCallbacks::no);
 
+    SystemServices systemServices {runtimeRootProperties.getValueTree (), SystemServices::WrapperType::client, SystemServices::EnableCallbacks::yes};
+    editManager = systemServices.getEditManager ();
+
     channelProperties.wrap (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::yes);
     uneditedChannelProperties.wrap (uneditedChannelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
     channelIndex = channelProperties.getId () - 1;
     setupChannelPropertiesCallbacks ();
-    sampleWaveformDisplay.init (channelPropertiesVT, rootPropertiesVT, editManager);
+    sampleWaveformDisplay.init (channelPropertiesVT, rootPropertiesVT);
 
     channelProperties.forEachZone ([this, rootPropertiesVT] (juce::ValueTree zonePropertiesVT, int zoneIndex)
     {
         // Zone Editor setup
         auto& zoneEditor { zoneEditors [zoneIndex] };
-        zoneEditor.init (zonePropertiesVT, uneditedChannelProperties.getZoneVT (zoneIndex), rootPropertiesVT, editManager);
+        zoneEditor.init (zonePropertiesVT, uneditedChannelProperties.getZoneVT (zoneIndex), rootPropertiesVT);
         zoneEditor.displayToolsMenu = [this] (int zoneIndex)
         {
             auto* popupMenuLnF { new juce::LookAndFeel_V4 };

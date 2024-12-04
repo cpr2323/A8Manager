@@ -10,7 +10,7 @@
 class WaveformDisplay : public juce::Component
 {
 public:
-    void init (juce::ValueTree channelPropertiesVT, juce::ValueTree rootPropertiesVT, EditManager* theEditManager);
+    void init (juce::ValueTree channelPropertiesVT, juce::ValueTree rootPropertiesVT);
     void setZone (int zoneIndex);
 
 private:

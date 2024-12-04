@@ -192,8 +192,7 @@ public:
     ~ChannelEditor ();
 
     void init (juce::ValueTree channelPropertiesVT, juce::ValueTree uneditedChannelPropertiesVT, juce::ValueTree rootPropertiesVT,
-               EditManager* theEditManager, juce::ValueTree copyBufferZonePropertiesVT,
-               bool* theZoneCopyBufferHasData);
+               juce::ValueTree copyBufferZonePropertiesVT, bool* theZoneCopyBufferHasData);
 
     // TODO - can we move this to the EditManager, as it eventually just calls editManager->assignSamples (parentChannelIndex, startingZoneIndex, files); in the ZoneEditor
     void receiveSampleLoadRequest (juce::File sampleFile);

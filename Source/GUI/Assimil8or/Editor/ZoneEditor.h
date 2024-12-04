@@ -18,7 +18,7 @@ public:
     ZoneEditor ();
     ~ZoneEditor () = default;
 
-    void init (juce::ValueTree zonePropertiesVT, juce::ValueTree uneditedZonePropertiesVT, juce::ValueTree rootPropertiesVT, EditManager* theEditManager);
+    void init (juce::ValueTree zonePropertiesVT, juce::ValueTree uneditedZonePropertiesVT, juce::ValueTree rootPropertiesVT);
     // TODO - can we move this to the EditManager, as it just calls editManager->assignSamples (parentChannelIndex, startingZoneIndex, files); in the ZoneEditor
     void receiveSampleLoadRequest (juce::File sampleFile);
     // TODO - is there a VTW that could manage this setting?

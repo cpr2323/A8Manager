@@ -1,14 +1,17 @@
 #include "WaveformDisplay.h"
+#include "../../../../SystemServices.h"
 #include "../../../../Utility/RuntimeRootProperties.h"
 #include "../../../../Utility/DebugLog.h"
 
-void WaveformDisplay::init (juce::ValueTree channelPropertiesVT, juce::ValueTree rootPropertiesVT, EditManager* theEditManager)
+void WaveformDisplay::init (juce::ValueTree channelPropertiesVT, juce::ValueTree rootPropertiesVT)
 {
-    jassert (theEditManager != nullptr);
-    editManager = theEditManager;
     RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
     channelProperties.wrap (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::yes);
     sampleManagerProperties.wrap (runtimeRootProperties.getValueTree (), SampleManagerProperties::WrapperType::client, SampleManagerProperties::EnableCallbacks::no);
+
+    SystemServices systemServices { runtimeRootProperties.getValueTree (), SystemServices::WrapperType::client, SystemServices::EnableCallbacks::yes };
+    editManager = systemServices.getEditManager ();
+
     setZone (0);
 }
 
