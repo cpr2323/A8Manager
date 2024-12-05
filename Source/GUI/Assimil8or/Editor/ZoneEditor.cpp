@@ -263,14 +263,14 @@ auto ZoneEditor::getSampleAdjustMenu (std::function<juce::int64 ()> getSampleOff
         juce::PopupMenu adjustMenuOptions;
         {
             juce::PopupMenu zeroCrossingMenuOptions;
-            zeroCrossingMenuOptions.addItem ("Left", true, false, [this, getSampleOffset, getMinSampleOffset, setSampleOffset] ()
+            zeroCrossingMenuOptions.addItem ("Left  <<", true, false, [this, getSampleOffset, getMinSampleOffset, setSampleOffset] ()
             {
                 auto newSampleStart { audioManager->findPreviousZeroCrossing (getSampleOffset (), getMinSampleOffset (),
                                                                               *sampleProperties.getAudioBufferPtr (), zoneProperties.getSide ()) };
                 if (newSampleStart != -1)
                     setSampleOffset (newSampleStart);
             });
-            zeroCrossingMenuOptions.addItem ("Right", true, false, [this, getSampleOffset, getMaxSampleOffset, setSampleOffset] ()
+            zeroCrossingMenuOptions.addItem ("Right >>", true, false, [this, getSampleOffset, getMaxSampleOffset, setSampleOffset] ()
             {
                 auto newSampleStart { audioManager->findNextZeroCrossing (getSampleOffset (), getMaxSampleOffset (),
                                                                           *sampleProperties.getAudioBufferPtr (), zoneProperties.getSide ()) };
@@ -281,8 +281,8 @@ auto ZoneEditor::getSampleAdjustMenu (std::function<juce::int64 ()> getSampleOff
         }
         {
             juce::PopupMenu matchOtherMenuOptions;
-            matchOtherMenuOptions.addItem ("Left", true, false, [this] () {});
-            matchOtherMenuOptions.addItem ("Right", true, false, [this] () {});
+            matchOtherMenuOptions.addItem ("Left  <<", true, false, [this] () {});
+            matchOtherMenuOptions.addItem ("Right >>", true, false, [this] () {});
             adjustMenuOptions.addSubMenu ("Match Other", matchOtherMenuOptions);
         }
         adjustMenu.addSubMenu ("Adjust", adjustMenuOptions);
@@ -613,14 +613,6 @@ void ZoneEditor::setupZoneComponents ()
                                                [this] () { return zoneProperties.getLoopStart ().value_or (0); },
                                                [this] () { return sampleProperties.getLengthInSamples (); },
                                                [this] (juce::int64 sampleOffset) { zoneProperties.setLoopLength (sampleOffset - zoneProperties.getLoopStart ().value_or (0), true); }) };
-        // only allow adjust of Loop Length if it is being treated as Loop End
-        if (! treatLoopLengthAsEndInUi)
-        {
-            juce::PopupMenu::MenuItemIterator menuItemIterator (adjustMenu, false);
-            menuItemIterator.next ();
-            auto& menuItem { menuItemIterator.getItem () };
-            menuItem.setEnabled (false);
-        }
         auto editMenu { createZoneEditMenu (adjustMenu, [this] (ZoneProperties& destZoneProperties, SampleProperties& destSampleProperties)
                                             {
                                                 const auto clampedLoopLength { std::clamp (zoneProperties.getLoopLength ().value_or (sampleProperties.getLengthInSamples ()),
