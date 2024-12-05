@@ -91,6 +91,7 @@ private:
     juce::PopupMenu createZoneEditMenu (juce::PopupMenu existingPopupMenu, std::function <void (ZoneProperties&, SampleProperties&)> setter, std::function <void ()> resetter, std::function <void ()> reverter,
                                         std::function<bool (ZoneProperties&)> canCloneToZoneCallback, std::function<bool (ZoneProperties&)> canCloneToAllCallback);
     juce::String formatLoopLength (double loopLength);
+    auto getSampleAdjustMenu (std::function<juce::int64 ()> getSampleOffset, std::function<juce::int64 ()> getMinSampleOffset, std::function<juce::int64 ()>getMaxSampleOffset, std::function<void (juce::int64)> setSampleOffset);
     bool handleSamplesInternal (int zoneIndex, juce::StringArray files);
     void setupZoneComponents ();
     void setupZonePropertiesCallbacks ();

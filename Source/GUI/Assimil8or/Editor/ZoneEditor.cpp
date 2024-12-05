@@ -256,6 +256,40 @@ void ZoneEditor::updateLoopPointsView ()
     loopPointsView.repaint ();
 }
 
+auto ZoneEditor::getSampleAdjustMenu (std::function<juce::int64 ()> getSampleOffset, std::function<juce::int64 ()> getMinSampleOffset, std::function<juce::int64 ()>getMaxSampleOffset, std::function<void (juce::int64)> setSampleOffset)
+{
+    juce::PopupMenu adjustMenu;
+    {
+        juce::PopupMenu adjustMenuOptions;
+        {
+            juce::PopupMenu zeroCrossingMenuOptions;
+            zeroCrossingMenuOptions.addItem ("Left", true, false, [this, getSampleOffset, getMinSampleOffset, setSampleOffset] ()
+            {
+                auto newSampleStart { audioManager->findPreviousZeroCrossing (getSampleOffset (), getMinSampleOffset (),
+                                                                              *sampleProperties.getAudioBufferPtr (), zoneProperties.getSide ()) };
+                if (newSampleStart != -1)
+                    setSampleOffset (newSampleStart);
+            });
+            zeroCrossingMenuOptions.addItem ("Right", true, false, [this, getSampleOffset, getMaxSampleOffset, setSampleOffset] ()
+            {
+                auto newSampleStart { audioManager->findNextZeroCrossing (getSampleOffset (), getMaxSampleOffset (),
+                                                                          *sampleProperties.getAudioBufferPtr (), zoneProperties.getSide ()) };
+                if (newSampleStart != -1)
+                    setSampleOffset (newSampleStart);
+            });
+            adjustMenuOptions.addSubMenu ("Zero Crossing", zeroCrossingMenuOptions);
+        }
+        {
+            juce::PopupMenu matchOtherMenuOptions;
+            matchOtherMenuOptions.addItem ("Left", true, false, [this] () {});
+            matchOtherMenuOptions.addItem ("Right", true, false, [this] () {});
+            adjustMenuOptions.addSubMenu ("Match Other", matchOtherMenuOptions);
+        }
+        adjustMenu.addSubMenu ("Adjust", adjustMenuOptions);
+    }
+    return adjustMenu;
+}
+
 void ZoneEditor::setupZoneComponents ()
 {
     juce::XmlDocument xmlDoc { BinaryData::Assimil8orToolTips_xml };
@@ -364,35 +398,10 @@ void ZoneEditor::setupZoneComponents ()
     };
     sampleStartTextEditor.onPopupMenuCallback = [this] ()
     {
-        juce::PopupMenu adjustMenu;
-        {
-            juce::PopupMenu adjustMenuOptions;
-            {
-                juce::PopupMenu zeroCrossingMenuOptions;
-                zeroCrossingMenuOptions.addItem ("Left", true, false, [this] ()
-                {
-                    auto newSampleStart { audioManager->findPreviousZeroCrossing (zoneProperties.getSampleStart ().value_or (0), 0, *sampleProperties.getAudioBufferPtr (), zoneProperties.getSide ()) };
-                    if (newSampleStart != -1)
-                        zoneProperties.setSampleStart (newSampleStart, true);
-                });
-                zeroCrossingMenuOptions.addItem ("Right", true, false, [this] ()
-                {
-                    auto newSampleStart { audioManager->findNextZeroCrossing (zoneProperties.getSampleStart ().value_or (0),
-                                                                              zoneProperties.getSampleEnd ().value_or (sampleProperties.getLengthInSamples ()),
-                                                                              *sampleProperties.getAudioBufferPtr (), zoneProperties.getSide ())};
-                    if (newSampleStart != -1)
-                        zoneProperties.setSampleStart (newSampleStart, true);
-                });
-                adjustMenuOptions.addSubMenu ("Zero Crossing", zeroCrossingMenuOptions);
-            }
-            {
-                juce::PopupMenu matchOtherMenuOptions;
-                matchOtherMenuOptions.addItem ("Left", true, false, [this] () {});
-                matchOtherMenuOptions.addItem ("Right", true, false, [this] () {});
-                adjustMenuOptions.addSubMenu ("Match Other", matchOtherMenuOptions);
-            }
-            adjustMenu.addSubMenu ("Adjust", adjustMenuOptions);
-        }
+        auto adjustMenu { getSampleAdjustMenu ([this] () { return zoneProperties.getSampleStart ().value_or (0); },
+                                               [this] () { return 0; },
+                                               [this] () { return zoneProperties.getSampleEnd ().value_or (sampleProperties.getLengthInSamples ()); },
+                                               [this] (juce::int64 sampleOffset) { zoneProperties.setSampleStart (sampleOffset, true); }) };
         auto editMenu { createZoneEditMenu (adjustMenu, [this] (ZoneProperties& destZoneProperties, SampleProperties& destSampleProperties)
                                             {
                                                 const auto clampedSampleStart { std::clamp (zoneProperties.getSampleStart ().value_or (0),
@@ -443,7 +452,12 @@ void ZoneEditor::setupZoneComponents ()
     };
     sampleEndTextEditor.onPopupMenuCallback = [this] ()
     {
-        auto editMenu { createZoneEditMenu ({}, [this] (ZoneProperties& destZoneProperties, SampleProperties& destSampleProperties)
+        auto adjustMenu { getSampleAdjustMenu ([this] () { return zoneProperties.getSampleEnd ().value_or (sampleProperties.getLengthInSamples ()); },
+                                               [this] () { return zoneProperties.getSampleStart ().value_or (0); },
+                                               [this] () { return sampleProperties.getLengthInSamples (); },
+                                               [this] (juce::int64 sampleOffset) { zoneProperties.setSampleEnd (sampleOffset, true); }) };
+
+        auto editMenu { createZoneEditMenu (adjustMenu, [this] (ZoneProperties& destZoneProperties, SampleProperties& destSampleProperties)
                                             {
                                                 const auto clampedSampleEnd { std::clamp (zoneProperties.getSampleEnd ().value_or (0),
                                                                                           destZoneProperties.getSampleStart ().value_or (0),
@@ -494,7 +508,12 @@ void ZoneEditor::setupZoneComponents ()
     };
     loopStartTextEditor.onPopupMenuCallback = [this] ()
     {
-        auto editMenu { createZoneEditMenu ({}, [this] (ZoneProperties& destZoneProperties, SampleProperties& destSampleProperties)
+        auto adjustMenu { getSampleAdjustMenu ([this] () { return zoneProperties.getLoopStart ().value_or (0); },
+                                               [this] () { return minZoneProperties.getLoopStart ().value_or (0); },
+                                               [this] () { return editManager->getMaxLoopStart (parentChannelIndex, zoneIndex); },
+                                               [this] (juce::int64 sampleOffset) { zoneProperties.setLoopStart (sampleOffset, true); }) };
+
+        auto editMenu { createZoneEditMenu (adjustMenu , [this] (ZoneProperties& destZoneProperties, SampleProperties& destSampleProperties)
                                             {
                                                 const auto originalLoopStart { destZoneProperties.getLoopStart ().value_or (0) };
                                                 const auto clampedLoopStart { std::clamp (zoneProperties.getLoopStart ().value_or (0),
@@ -537,8 +556,8 @@ void ZoneEditor::setupZoneComponents ()
     setupLabel (loopLengthLabel, "LOOP LENGTH", 12.0, juce::Justification::centredRight);
     loopLengthTextEditor.getMinValueCallback = [this]
     {
-            if (sampleProperties.getLengthInSamples () == 0)
-                return  0.0;
+        if (sampleProperties.getLengthInSamples () == 0)
+            return  0.0;
         if (treatLoopLengthAsEndInUi)
             return zoneProperties.getLoopStart ().value_or (0.0) + minZoneProperties.getLoopLength ().value ();
         else
@@ -590,7 +609,19 @@ void ZoneEditor::setupZoneComponents ()
     };
     loopLengthTextEditor.onPopupMenuCallback = [this] ()
     {
-        auto editMenu { createZoneEditMenu ({}, [this] (ZoneProperties& destZoneProperties, SampleProperties& destSampleProperties)
+        auto adjustMenu { getSampleAdjustMenu ([this] () { return zoneProperties.getLoopStart ().value_or (0) + zoneProperties.getLoopLength ().value_or (4); },
+                                               [this] () { return zoneProperties.getLoopStart ().value_or (0); },
+                                               [this] () { return sampleProperties.getLengthInSamples (); },
+                                               [this] (juce::int64 sampleOffset) { zoneProperties.setLoopLength (sampleOffset - zoneProperties.getLoopStart ().value_or (0), true); }) };
+        // only allow adjust of Loop Length if it is being treated as Loop End
+        if (! treatLoopLengthAsEndInUi)
+        {
+            juce::PopupMenu::MenuItemIterator menuItemIterator (adjustMenu, false);
+            menuItemIterator.next ();
+            auto& menuItem { menuItemIterator.getItem () };
+            menuItem.setEnabled (false);
+        }
+        auto editMenu { createZoneEditMenu (adjustMenu, [this] (ZoneProperties& destZoneProperties, SampleProperties& destSampleProperties)
                                             {
                                                 const auto clampedLoopLength { std::clamp (zoneProperties.getLoopLength ().value_or (sampleProperties.getLengthInSamples ()),
                                                                                            minZoneProperties.getLoopLength ().value (),
