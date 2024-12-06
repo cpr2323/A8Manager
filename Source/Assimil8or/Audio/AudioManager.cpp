@@ -85,3 +85,116 @@ juce::int64 AudioManager::findPreviousZeroCrossing (juce::int64 startSampleOffse
     return -1; // No zero crossing found
 
 }
+
+void AudioManager::mixStereoToMono (juce::File inputFile)
+{
+    if (auto sampleFileReader { getReaderFor (inputFile) }; sampleFileReader != nullptr)
+    {
+        if (sampleFileReader->numChannels != 2)
+        {
+            jassertfalse;
+            return;
+        }
+
+        // read in stereo data into stereo audio buffer
+        juce::AudioBuffer<float> stereoAudioBuffer;
+        stereoAudioBuffer.setSize (2, static_cast<int> (sampleFileReader->lengthInSamples), false, true, false);
+        sampleFileReader->read (&stereoAudioBuffer, 0, static_cast<int> (sampleFileReader->lengthInSamples), 0, true, true);
+
+        // prepare mono audio buffer
+        juce::AudioBuffer<float> monoAudioBuffer;
+        monoAudioBuffer.setSize (1, static_cast<int> (sampleFileReader->lengthInSamples), false, true, false);
+
+        // mix to mono
+        constexpr float sqrRootOfTwo { 1.41421356237f };
+        auto leftChannelReadPtr { stereoAudioBuffer.getReadPointer (0) };
+        auto rightChannelReadPtr { stereoAudioBuffer.getReadPointer (1) };
+        auto monoWritePtr { monoAudioBuffer.getWritePointer (0) };
+        for (uint32_t sampleCounter { 0 }; sampleCounter < sampleFileReader->lengthInSamples; ++sampleCounter)
+        {
+            *monoWritePtr = (*leftChannelReadPtr + *rightChannelReadPtr) / sqrRootOfTwo;
+            ++monoWritePtr;
+            ++leftChannelReadPtr;
+            ++rightChannelReadPtr;
+        }
+
+        // write mono audio buffer to new file
+        const auto monoOutputFileName { inputFile.getFileNameWithoutExtension () + "-mono" };
+        juce::File monoOuputFile { inputFile.getParentDirectory ().getChildFile (monoOutputFileName).withFileExtension ("wav") };
+        auto outputStream { monoOuputFile.createOutputStream () };
+        outputStream->setPosition (0);
+        outputStream->truncate ();
+        juce::WavAudioFormat wavAudioFormat;
+        if (std::unique_ptr<juce::AudioFormatWriter> writer { wavAudioFormat.createWriterFor (outputStream.get (), sampleFileReader->sampleRate, 1, sampleFileReader->bitsPerSample, {}, 0) }; writer != nullptr)
+        {
+            // audioFormatWriter will delete the file stream when done
+            outputStream.release ();
+            writer->writeFromAudioSampleBuffer (monoAudioBuffer, 0, sampleFileReader->lengthInSamples);
+        }
+        else
+        {
+            // TODO - handle error for not being able to create the writer
+            jassertfalse;
+        }
+    }
+    else
+    {
+        // TODO - handle error for not being able to create the reader
+        jassertfalse;
+    }
+}
+
+void AudioManager::splitStereoIntoTwoMono (juce::File inputFile)
+{
+    if (auto sampleFileReader { getReaderFor (inputFile) }; sampleFileReader != nullptr)
+    {
+        if (sampleFileReader->numChannels != 2)
+        {
+            jassertfalse;
+            return;
+        }
+
+        // read in stereo data into stereo audio buffer
+        juce::AudioBuffer<float> stereoAudioBuffer;
+        stereoAudioBuffer.setSize (2, static_cast<int> (sampleFileReader->lengthInSamples), false, true, false);
+        sampleFileReader->read (&stereoAudioBuffer, 0, static_cast<int> (sampleFileReader->lengthInSamples), 0, true, true);
+
+        auto readWriteOneChannel = [&inputFile, &sampleFileReader] (const float* monoReadPtr, juce::String postFixChannelIndicator)
+        {
+            // prepare mono audio buffer
+            juce::AudioBuffer<float> monoAudioBuffer;
+            monoAudioBuffer.setSize (1, static_cast<int> (sampleFileReader->lengthInSamples), false, true, false);
+
+            auto monoWritePtr { monoAudioBuffer.getWritePointer (0) };
+            std::memcpy (monoWritePtr, monoReadPtr, sampleFileReader->lengthInSamples * (sampleFileReader->bitsPerSample / 8));
+
+            // write mono audio buffer to new file
+            const auto monoOutputFileName { inputFile.getFileNameWithoutExtension () + "-" + postFixChannelIndicator };
+            juce::File monoOuputFile { inputFile.getParentDirectory ().getChildFile (monoOutputFileName).withFileExtension ("wav") };
+            auto outputStream { monoOuputFile.createOutputStream () };
+            outputStream->setPosition (0);
+            outputStream->truncate ();
+            juce::WavAudioFormat wavAudioFormat;
+            if (std::unique_ptr<juce::AudioFormatWriter> writer { wavAudioFormat.createWriterFor (outputStream.get (), sampleFileReader->sampleRate, 1, sampleFileReader->bitsPerSample, {}, 0) }; writer != nullptr)
+            {
+                // audioFormatWriter will delete the file stream when done
+                outputStream.release ();
+                writer->writeFromAudioSampleBuffer (monoAudioBuffer, 0, sampleFileReader->lengthInSamples);
+            }
+            else
+            {
+                // TODO - handle error for not being able to create the writer
+                jassertfalse;
+            }
+        };
+        // mix to mono
+        readWriteOneChannel (stereoAudioBuffer.getReadPointer (0), "L");
+        readWriteOneChannel (stereoAudioBuffer.getReadPointer (1), "R");
+    }
+    else
+    {
+        // TODO - handle error for not being able to create the reader
+        jassertfalse;
+    }
+
+}

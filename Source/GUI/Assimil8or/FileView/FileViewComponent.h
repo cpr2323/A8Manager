@@ -2,6 +2,7 @@
 
 #include <JuceHeader.h>
 #include "../../../AppProperties.h"
+#include "../../../Assimil8or/Audio/AudioManager.h"
 #include "../../../Utility/DirectoryDataProperties.h"
 #include "../../../Utility/LambdaThread.h"
 
@@ -20,6 +21,7 @@ public:
 private:
     AppProperties appProperties;
     DirectoryDataProperties directoryDataProperties;
+    AudioManager* audioManager { nullptr };
 
     juce::CriticalSection directoryListQuickLookupListLock;
     std::vector<juce::ValueTree> directoryListQuickLookupListA;

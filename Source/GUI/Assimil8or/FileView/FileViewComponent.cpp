@@ -1,5 +1,6 @@
 #include "FileViewComponent.h"
 #include <tuple>
+#include "../../../SystemServices.h"
 #include "../../../Assimil8or/Preset/PresetHelpers.h"
 #include "../../../Utility/PersistentRootProperties.h"
 #include "../../../Utility/RuntimeRootProperties.h"
@@ -45,6 +46,9 @@ void FileViewComponent::init (juce::ValueTree rootPropertiesVT)
     appProperties.wrap (persistentRootProperties.getValueTree (), AppProperties::WrapperType::client, AppProperties::EnableCallbacks::yes);
 
     RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
+    SystemServices systemServices { runtimeRootProperties.getValueTree (), SystemServices::WrapperType::client, SystemServices::EnableCallbacks::yes };
+    audioManager = systemServices.getAudioManager ();
+
     directoryDataProperties.wrap (runtimeRootProperties.getValueTree (), DirectoryDataProperties::WrapperType::client, DirectoryDataProperties::EnableCallbacks::yes);
     directoryDataProperties.onRootScanComplete = [this] ()
     {
@@ -374,6 +378,26 @@ void FileViewComponent::listBoxItemClicked (int row, [[maybe_unused]] const juce
                                                                                                 }
                                                                                             }));
             });
+            if (getEntryType () == DirectoryDataProperties::TypeIndex::audioFile)
+            {
+                const auto directoryEntryVT { getDirectoryEntryVT (row) };
+                if (static_cast<int> (directoryEntryVT.getProperty ("numChannels")) == 2)
+                {
+                    juce::PopupMenu stereoConvertMenu;
+                    stereoConvertMenu.addItem ("To Mono", true, false, [this, directoryEntry] ()
+                    {
+                        // mix to mono
+                        audioManager->mixStereoToMono (directoryEntry);
+                    });
+                    stereoConvertMenu.addItem ("Split", true, false, [this, directoryEntry] ()
+                    {
+                        // split into two mono L/R files
+                        audioManager->splitStereoIntoTwoMono (directoryEntry);
+                    });
+                    pm.addSubMenu ("Stereo Convert", stereoConvertMenu, true);
+                }
+            }
+
             pm.showMenuAsync ({}, [this, popupMenuLnF] (int) { delete popupMenuLnF; });
         }
     }

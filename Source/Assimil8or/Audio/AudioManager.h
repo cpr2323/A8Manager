@@ -15,6 +15,8 @@ public:
     juce::String getFileTypesList ();
     juce::int64 findNextZeroCrossing (juce::int64 startSampleOffset, juce::int64 maxSampleOffset, juce::AudioBuffer<float>& buffer, int side);
     juce::int64 findPreviousZeroCrossing (juce::int64 startSampleOffset, juce::int64 minSampleOffset, juce::AudioBuffer<float>& buffer, int side);
+    void mixStereoToMono (juce::File inputFile);
+    void splitStereoIntoTwoMono (juce::File inputFile);
 
 private:
     juce::AudioFormatManager audioFormatManager;

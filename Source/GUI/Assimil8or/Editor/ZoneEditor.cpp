@@ -607,6 +607,7 @@ void ZoneEditor::setupZoneComponents ()
         const auto newValue { zoneProperties.getLoopLength ().value_or (sampleProperties.getLengthInSamples ()) + (multiplier * direction) };
         loopLengthTextEditor.setValue (newValue);
     };
+
     loopLengthTextEditor.onPopupMenuCallback = [this] ()
     {
         auto adjustMenu { getSampleAdjustMenu ([this] () { return zoneProperties.getLoopStart ().value_or (0) + zoneProperties.getLoopLength ().value_or (4); },
