@@ -43,7 +43,7 @@ void WaveformDisplay::updateData ()
         loopLength = static_cast<juce::int64> (zoneProperties.getLoopLength ().value_or (static_cast<double> (numSamples - loopStart)));
         samplesPerPixel = static_cast<float> (numSamples) / getWidth ();
 
-        const auto markerHandleSize { 5 };
+        const auto markerHandleSize { 10 };
 
         // draw sample start marker
         sampleStartMarkerX = 1 + static_cast<int> ((static_cast<float> (sampleStart) / static_cast<float> (numSamples) * numPixels));
