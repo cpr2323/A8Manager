@@ -57,7 +57,7 @@ juce::int64 AudioManager::findNextZeroCrossing (juce::int64 startSampleOffset, j
         return -1; // Invalid start position
 
     auto readPtr { buffer.getReadPointer (side) };
-    for (juce::int64 i = startSampleOffset; i < maxSampleOffset - 1; ++i)
+    for (juce::int64 i = startSampleOffset + 1; i < maxSampleOffset - 1; ++i)
     {
         if ((readPtr [i] > epsilon && readPtr [i + 1] <= epsilon) || (readPtr [i] < epsilon && readPtr [i + 1] >= epsilon))
         {
@@ -69,13 +69,11 @@ juce::int64 AudioManager::findNextZeroCrossing (juce::int64 startSampleOffset, j
 
 juce::int64 AudioManager::findPreviousZeroCrossing (juce::int64 startSampleOffset, juce::int64 minSampleOffset, juce::AudioBuffer<float>& buffer, int side)
 {
-    if (startSampleOffset <= minSampleOffset || startSampleOffset >= buffer.getNumSamples ())
-    {
+    if (startSampleOffset <= minSampleOffset || startSampleOffset > buffer.getNumSamples ())
         return -1; // Invalid start position
-    }
 
     auto readPtr { buffer.getReadPointer (side) };
-    for (juce::int64 i = startSampleOffset; i > minSampleOffset; --i)
+    for (juce::int64 i = startSampleOffset - 1; i > minSampleOffset; --i)
     {
         if ((readPtr [i] > epsilon && readPtr [i - 1] <= epsilon) || (readPtr [i] < epsilon && readPtr [i - 1] >= epsilon))
         {
