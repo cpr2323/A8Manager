@@ -2,7 +2,7 @@
 #include "../../Utility/DebugLog.h"
 
 constexpr float epsilon = 1e-6f;
-
+#define INCLUDE_WAVE_MATCHING_LOOP_POINT_ALIGN 0
 AudioManager::AudioManager ()
 {
     audioFormatManager.registerBasicFormats ();
@@ -86,6 +86,55 @@ juce::int64 AudioManager::findPreviousZeroCrossing (juce::int64 startSampleOffse
 
 }
 
+#if INCLUDE_WAVE_MATCHING_LOOP_POINT_ALIGN
+// Function to calculate similarity (e.g., RMSE) between two segments
+float AudioManager::calculateSimilarity (const float* buffer, size_t index1, size_t index2, size_t window_size)
+{
+    float error = 0.0f;
+    for (size_t i = 0; i < window_size; ++i)
+    {
+        float diff = buffer [index1 + i] - buffer [index2 + i];
+        error += diff * diff;
+    }
+    return std::sqrt (error / window_size);
+}
+
+// Function to move a marker left or right to match another point
+size_t AudioManager::findWaveMatchingOffset (const float* buffer, juce::int64 size, size_t currentOffset, size_t targetOffset, size_t windowSize, SearchDirection searchDirection, size_t maxDistance)
+{
+    size_t bestOffset = currentOffset;
+    float bestError = std::numeric_limits<float>::max ();
+
+    // Define search range
+    size_t searchStart = (searchDirection == SearchDirection::left) ? (currentOffset > maxDistance ? currentOffset - maxDistance : 0) : currentOffset;
+    size_t searchEnd = (searchDirection == SearchDirection::left) ? currentOffset : std::min (currentOffset + maxDistance, size - windowSize);
+
+    // Search for the best match within the range
+    for (size_t candidateOffset = searchStart; candidateOffset < searchEnd; ++candidateOffset)
+    {
+        float error = calculateSimilarity (buffer, candidateOffset, targetOffset, windowSize);
+        if (error < bestError)
+        {
+            bestError = error;
+            bestOffset = candidateOffset;
+        }
+    }
+
+    return bestOffset;
+}
+
+constexpr size_t kWindowSize { 60 };
+juce::int64 AudioManager::findNextZeroWaveMatching (juce::int64 startSampleOffset, juce::int64 maxSampleOffset, juce::AudioBuffer<float>& buffer, int side)
+{
+    return findWaveMatchingOffset (buffer.getReadPointer(side), buffer.getNumSamples(), startSampleOffset, maxSampleOffset, kWindowSize, SearchDirection::right, std::abs(maxSampleOffset - startSampleOffset));
+}
+
+juce::int64 AudioManager::findPreviousWaveMatching (juce::int64 startSampleOffset, juce::int64 minSampleOffset, juce::AudioBuffer<float>& buffer, int side)
+{
+    return findWaveMatchingOffset (buffer.getReadPointer (side), buffer.getNumSamples (), startSampleOffset, minSampleOffset, kWindowSize, SearchDirection::left, std::abs (startSampleOffset - minSampleOffset));
+}
+#endif
+
 void AudioManager::mixStereoToMono (juce::File inputFile)
 {
     if (auto sampleFileReader { getReaderFor (inputFile) }; sampleFileReader != nullptr)
@@ -129,7 +178,7 @@ void AudioManager::mixStereoToMono (juce::File inputFile)
         {
             // audioFormatWriter will delete the file stream when done
             outputStream.release ();
-            writer->writeFromAudioSampleBuffer (monoAudioBuffer, 0, sampleFileReader->lengthInSamples);
+            writer->writeFromAudioSampleBuffer (monoAudioBuffer, 0, static_cast<int>(sampleFileReader->lengthInSamples));
         }
         else
         {
@@ -179,7 +228,7 @@ void AudioManager::splitStereoIntoTwoMono (juce::File inputFile)
             {
                 // audioFormatWriter will delete the file stream when done
                 outputStream.release ();
-                writer->writeFromAudioSampleBuffer (monoAudioBuffer, 0, sampleFileReader->lengthInSamples);
+                writer->writeFromAudioSampleBuffer (monoAudioBuffer, 0, static_cast<int>(sampleFileReader->lengthInSamples));
             }
             else
             {

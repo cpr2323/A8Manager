@@ -12,6 +12,7 @@
 #include "../../../Utility/PersistentRootProperties.h"
 #include "../../../Utility/RuntimeRootProperties.h"
 
+#define INCLUDE_WAVE_MATCHING_LOOP_POINT_ALIGN 0
 ZoneEditor::ZoneEditor ()
 {
     {
@@ -260,6 +261,7 @@ auto ZoneEditor::getSampleAdjustMenu (std::function<juce::int64 ()> getSampleOff
 {
     juce::PopupMenu adjustMenu;
     {
+#if INCLUDE_WAVE_MATCHING_LOOP_POINT_ALIGN
         juce::PopupMenu adjustMenuOptions;
         {
             juce::PopupMenu zeroCrossingMenuOptions;
@@ -281,11 +283,42 @@ auto ZoneEditor::getSampleAdjustMenu (std::function<juce::int64 ()> getSampleOff
         }
         {
             juce::PopupMenu matchOtherMenuOptions;
-            matchOtherMenuOptions.addItem ("Left  <<", true, false, [this] () {});
-            matchOtherMenuOptions.addItem ("Right >>", true, false, [this] () {});
+            matchOtherMenuOptions.addItem ("Left  <<", true, false, [this, getSampleOffset, getMinSampleOffset, setSampleOffset] ()
+            {
+                auto newSampleStart { audioManager->findPreviousWaveMatching (getSampleOffset (), getMinSampleOffset (),
+                                                                              *sampleProperties.getAudioBufferPtr (), zoneProperties.getSide ()) };
+                if (newSampleStart != -1)
+                    setSampleOffset (newSampleStart);
+            });
+            matchOtherMenuOptions.addItem ("Right >>", true, false, [this, getSampleOffset, getMaxSampleOffset, setSampleOffset] ()
+            {
+                auto newSampleStart { audioManager->findNextZeroWaveMatching (getSampleOffset (), getMaxSampleOffset (),
+                                                                          *sampleProperties.getAudioBufferPtr (), zoneProperties.getSide ()) };
+                if (newSampleStart != -1)
+                    setSampleOffset (newSampleStart);
+            });
             adjustMenuOptions.addSubMenu ("Match Other", matchOtherMenuOptions);
         }
+
         adjustMenu.addSubMenu ("Adjust", adjustMenuOptions);
+#else
+        juce::PopupMenu zeroCrossingMenuOptions;
+        zeroCrossingMenuOptions.addItem ("Left  <<", true, false, [this, getSampleOffset, getMinSampleOffset, setSampleOffset] ()
+                                         {
+                                             auto newSampleStart { audioManager->findPreviousZeroCrossing (getSampleOffset (), getMinSampleOffset (),
+                                                                                                           *sampleProperties.getAudioBufferPtr (), zoneProperties.getSide ()) };
+                                             if (newSampleStart != -1)
+                                                 setSampleOffset (newSampleStart);
+                                         });
+        zeroCrossingMenuOptions.addItem ("Right >>", true, false, [this, getSampleOffset, getMaxSampleOffset, setSampleOffset] ()
+                                         {
+                                             auto newSampleStart { audioManager->findNextZeroCrossing (getSampleOffset (), getMaxSampleOffset (),
+                                                                                                       *sampleProperties.getAudioBufferPtr (), zoneProperties.getSide ()) };
+                                             if (newSampleStart != -1)
+                                                 setSampleOffset (newSampleStart);
+                                         });
+        adjustMenu.addSubMenu ("Zero Crossing", zeroCrossingMenuOptions);
+#endif
     }
     return adjustMenu;
 }
@@ -610,10 +643,10 @@ void ZoneEditor::setupZoneComponents ()
 
     loopLengthTextEditor.onPopupMenuCallback = [this] ()
     {
-        auto adjustMenu { getSampleAdjustMenu ([this] () { return zoneProperties.getLoopStart ().value_or (0) + zoneProperties.getLoopLength ().value_or (4); },
+        auto adjustMenu { getSampleAdjustMenu ([this] () { return zoneProperties.getLoopStart ().value_or (0) + static_cast<juce::int64>(zoneProperties.getLoopLength ().value_or (4.)); },
                                                [this] () { return zoneProperties.getLoopStart ().value_or (0); },
                                                [this] () { return sampleProperties.getLengthInSamples (); },
-                                               [this] (juce::int64 sampleOffset) { zoneProperties.setLoopLength (sampleOffset - zoneProperties.getLoopStart ().value_or (0), true); }) };
+                                               [this] (juce::int64 sampleOffset) { zoneProperties.setLoopLength (static_cast<double> (sampleOffset - zoneProperties.getLoopStart ().value_or (0.)), true); }) };
         auto editMenu { createZoneEditMenu (adjustMenu, [this] (ZoneProperties& destZoneProperties, SampleProperties& destSampleProperties)
                                             {
                                                 const auto clampedLoopLength { std::clamp (zoneProperties.getLoopLength ().value_or (sampleProperties.getLengthInSamples ()),
