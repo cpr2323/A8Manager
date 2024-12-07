@@ -45,6 +45,8 @@ private:
     void loadDefault (int row);
     void loadFirstPreset ();
     void loadPreset (juce::File presetFile);
+    void movePresetUp (int presetNumber);
+    void movePresetDown (int presetNumber);
     void pastePreset (int presetNumber);
 
     void resized () override;

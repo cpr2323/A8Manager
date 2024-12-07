@@ -306,9 +306,18 @@ void PresetListComponent::timerCallback ()
     LogPresetList ("PresetListComponent::timerCallback - enter");
 }
 
+void PresetListComponent::movePresetUp (int presetNumber)
+{
+}
+
+void PresetListComponent::movePresetDown (int presetNumber)
+{
+}
+
 juce::String PresetListComponent::getTooltipForRow (int row)
 {
-    return "Preset " + juce::String (row + 1);
+    auto [presetNumber, thisPresetExists, presetName] { presetInfoList [row] };
+    return "Preset " + juce::String (presetNumber);
 }
 
 void PresetListComponent::copyPreset (int presetNumber)
@@ -380,7 +389,7 @@ void PresetListComponent::listBoxItemClicked (int row, [[maybe_unused]] const ju
 {
     if (me.mods.isPopupMenu ())
     {
-        presetListBox.selectRow (lastSelectedPresetIndex, false, true);
+        //presetListBox.selectRow (lastSelectedPresetIndex, false, true);
         auto [presetNumber, thisPresetExists, presetName] { presetInfoList [row] };
         if (! thisPresetExists)
             presetName = "(preset)";
@@ -394,6 +403,12 @@ void PresetListComponent::listBoxItemClicked (int row, [[maybe_unused]] const ju
         pm.addItem ("Copy", thisPresetExists, false, [this, presetNumber = presetNumber] () { copyPreset (presetNumber); });
         pm.addItem ("Paste", copyBufferPresetProperties.getName ().isNotEmpty (), false, [this, presetNumber = presetNumber] () { pastePreset (presetNumber); });
         pm.addItem ("Delete", thisPresetExists, false, [this, presetNumber = presetNumber] () { deletePreset (presetNumber); });
+        {
+            juce::PopupMenu moveMenu;
+            moveMenu.addItem ("Up", presetNumber > 1, false, [this, presetNumber = presetNumber] () { movePresetUp (presetNumber); });
+            moveMenu.addItem ("Down", presetNumber < kMaxPresets, false, [this, presetNumber = presetNumber] () { movePresetDown (presetNumber); });
+            pm.addSubMenu ("Move", moveMenu, thisPresetExists);
+        }
         pm.showMenuAsync ({}, [this, popupMenuLnF] (int) { delete popupMenuLnF; });
     }
     else
