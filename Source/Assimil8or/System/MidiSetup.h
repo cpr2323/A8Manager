@@ -101,7 +101,7 @@ class MidiSetupProperties : public ValueTreeWrapper<MidiSetupProperties>
     static inline const juce::Identifier ColBCCPropertyId           { "colBCC" };
     static inline const juce::Identifier ColCCCPropertyId           { "colCCC" };
     static inline const juce::Identifier PitchWheelSemiPropertyId   { "pitchWheelSemi" };
-    static inline const juce::Identifier VelocityDepthPropertyId    { "Velocity" };
+    static inline const juce::Identifier VelocityDepthPropertyId    { "velocity" };
     static inline const juce::Identifier NotificationsPropertyId    { "notifications" };
 
     void initValueTree () {}
