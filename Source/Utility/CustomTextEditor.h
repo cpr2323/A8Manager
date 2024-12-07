@@ -19,6 +19,7 @@ class CustomTextEditor : public juce::TextEditor
 public:
     CustomTextEditor ()
     {
+        setSelectAllWhenFocused (true);
         onTextChange = [this] () { checkValue (); };
         textColor = juce::Colours::white;
         applyColourToAllText (textColor, true);
