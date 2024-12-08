@@ -306,12 +306,40 @@ void PresetListComponent::timerCallback ()
     LogPresetList ("PresetListComponent::timerCallback - enter");
 }
 
-void PresetListComponent::movePresetUp (int presetNumber)
+void PresetListComponent::movePresetUp (int row)
 {
+    jassert (row > 1);
+    auto [moveToPresetNumber, moveToPresetExists, moveToPresetName] { presetInfoList [row - 1] };
+    auto [moveFromPresetNumber, moveFromPresetExists, moveFromPresetName] { presetInfoList [row] };
+    if (! moveToPresetExists)
+    {
+        // rename preset file
+        auto newFile { getPresetFile (moveToPresetNumber) };
+        auto oldFile { getPresetFile (moveFromPresetNumber) };
+        oldFile.moveFileTo (newFile);
+    }
+    else
+    {
+        // rename both preset files
+    }
 }
 
-void PresetListComponent::movePresetDown (int presetNumber)
+void PresetListComponent::movePresetDown (int row)
 {
+    jassert (row < kMaxPresets);
+    auto [moveToPresetNumber, moveToPresetExists, moveToPresetName] { presetInfoList [row + 1] };
+    auto [moveFromPresetNumber, moveFromPresetExists, moveFromPresetName] { presetInfoList [row] };
+    if (!moveToPresetExists)
+    {
+        // rename preset file
+        auto newFile { getPresetFile (moveToPresetNumber) };
+        auto oldFile { getPresetFile (moveFromPresetNumber) };
+        oldFile.moveFileTo (newFile);
+    }
+    else
+    {
+        // rename both preset files
+    }
 }
 
 juce::String PresetListComponent::getTooltipForRow (int row)
@@ -389,7 +417,9 @@ void PresetListComponent::listBoxItemClicked (int row, [[maybe_unused]] const ju
 {
     if (me.mods.isPopupMenu ())
     {
-        //presetListBox.selectRow (lastSelectedPresetIndex, false, true);
+        if (row != lastSelectedPresetIndex)
+            presetListBox.selectRow (lastSelectedPresetIndex, true, true);
+
         auto [presetNumber, thisPresetExists, presetName] { presetInfoList [row] };
         if (! thisPresetExists)
             presetName = "(preset)";
@@ -405,8 +435,8 @@ void PresetListComponent::listBoxItemClicked (int row, [[maybe_unused]] const ju
         pm.addItem ("Delete", thisPresetExists, false, [this, presetNumber = presetNumber] () { deletePreset (presetNumber); });
         {
             juce::PopupMenu moveMenu;
-            moveMenu.addItem ("Up", presetNumber > 1, false, [this, presetNumber = presetNumber] () { movePresetUp (presetNumber); });
-            moveMenu.addItem ("Down", presetNumber < kMaxPresets, false, [this, presetNumber = presetNumber] () { movePresetDown (presetNumber); });
+            moveMenu.addItem ("Up", presetNumber > 1, false, [this, row] () { movePresetUp (row); });
+            moveMenu.addItem ("Down", presetNumber < kMaxPresets, false, [this, row] () { movePresetDown (row); });
             pm.addSubMenu ("Move", moveMenu, thisPresetExists);
         }
         pm.showMenuAsync ({}, [this, popupMenuLnF] (int) { delete popupMenuLnF; });
