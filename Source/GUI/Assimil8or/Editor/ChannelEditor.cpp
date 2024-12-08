@@ -200,11 +200,11 @@ void ChannelEditor::duplicateZone (int zoneIndex)
         destZoneProperties.copyFrom (channelProperties.getZoneVT (curZoneIndex), false);
     }
     // if our duplicated zone is not on the end, set the voltage 1/2 between it's neighbors
-    const auto indexOfLastZone { numUsedZones - 1 };
-    if (zoneIndex + 1 < indexOfLastZone)
+    const auto indexOfLastZone { numUsedZones };
+    if (zoneIndex < numUsedZones)
     {
-        auto [topBoundary, bottomBoundary] { editManager->getVoltageBoundaries (channelIndex, zoneIndex + 1, 0) };
-        zoneProperties [zoneIndex + 1].setMinVoltage (bottomBoundary + ((topBoundary - bottomBoundary) / 2), false);
+        auto [topBoundary, bottomBoundary] { editManager->getVoltageBoundaries (channelIndex, zoneIndex, 0) };
+        zoneProperties [zoneIndex].setMinVoltage (bottomBoundary + ((topBoundary - bottomBoundary) / 2), false);
     }
 
     // if the zone on the end does not have a -5 minVoltage, then set it to -5
