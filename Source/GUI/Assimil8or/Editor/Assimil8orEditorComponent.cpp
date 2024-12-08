@@ -612,32 +612,27 @@ void Assimil8orEditorComponent::explodeChannel (int channelIndex, int explodeCou
     }
     // set sample/loop points for channelIndex and explodeCount-1 subsequent channels to sequential slice size pieces
     SampleManagerProperties sampleManagerProperties (runtimeRootProperties.getValueTree (), SampleManagerProperties::WrapperType::client, SampleManagerProperties::EnableCallbacks::no);
-
     channelProperties [channelIndex].forEachZone ([this, channelIndex, explodeCount, &sampleManagerProperties] (juce::ValueTree zonePropertiesVT, int zoneIndex)
     {
         ZoneProperties zoneProperties {zonePropertiesVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no};
         SampleProperties sampleProperties (sampleManagerProperties.getSamplePropertiesVT (channelIndex, zoneIndex), SampleProperties::WrapperType::client, SampleProperties::EnableCallbacks::yes);
-            // get Sample Size from SampleProperties
         juce::int64 sampleSize { sampleProperties.getLengthInSamples () };
         const auto sliceSize { sampleSize / explodeCount };
-        const auto sampleStart { channelIndex * sliceSize };
-        const auto sampleEnd { sampleStart + sliceSize };
-        zoneProperties.setSampleStart (sampleStart, true);
-        zoneProperties.setSampleEnd (sampleEnd, true);
-        zoneProperties.setLoopStart (sampleStart, true);
-        zoneProperties.setLoopLength (sliceSize, true);
-        auto channelCount { 1 };
-        for (auto destinationChannelIndex { channelIndex + 1 }; destinationChannelIndex < channelIndex + explodeCount; ++destinationChannelIndex)
+        auto setSamplePoints = [this, sliceSize] (ZoneProperties& zpToUpdate, int index)
         {
-            auto& destChannelProperties { channelProperties [destinationChannelIndex] };
+            const auto sampleStart { index * sliceSize };
+            const auto sampleEnd { sampleStart + sliceSize };
+            zpToUpdate.setSampleStart (sampleStart, true);
+            zpToUpdate.setSampleEnd (sampleEnd, true);
+            zpToUpdate.setLoopStart (sampleStart, true);
+            zpToUpdate.setLoopLength (sliceSize, true);
+        };
+        setSamplePoints (zoneProperties, 0);
+        for (auto channelCount { 0 }; channelCount < explodeCount - 1; ++channelCount)
+        {
+            auto& destChannelProperties { channelProperties [channelIndex + channelCount + 1] };
             ZoneProperties destZoneProperties { destChannelProperties.getZoneVT (zoneIndex), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no };
-            const auto destSampleStart { channelCount * sliceSize };
-            const auto destSampleEnd { destSampleStart + sliceSize };
-            destZoneProperties.setSampleStart (destSampleStart, false);
-            destZoneProperties.setSampleEnd (destSampleEnd, false);
-            destZoneProperties.setLoopStart (destSampleStart, false);
-            destZoneProperties.setLoopLength (sliceSize, false);
-            ++channelCount;
+            setSamplePoints (destZoneProperties, channelCount + 1);
         }
         return true;
     });
