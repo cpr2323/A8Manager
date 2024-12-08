@@ -431,7 +431,6 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
             editMenu.setLookAndFeel (popupMenuLnF);
             editMenu.addSectionHeader ("Channel " + juce::String (channelProperties [channelIndex].getId ()));
             editMenu.addSeparator ();
-
             {
                 // Clone
                 juce::PopupMenu cloneMenu;
@@ -477,15 +476,28 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
                 }));
                 editMenu.addSubMenu ("Clone", cloneMenu);
             }
-            editMenu.addItem ("Copy", true, false, [this, channelIndex] ()
             {
-                copyBufferChannelProperties.copyFrom (channelProperties [channelIndex].getValueTree ());
-                copyBufferHasData = true;
-            });
-            editMenu.addItem ("Paste", copyBufferHasData, false, [this, channelIndex] ()
+                juce::PopupMenu copyPasteMenu;
+                copyPasteMenu.addItem ("Copy", true, false, [this, channelIndex] ()
+                {
+                    copyBufferChannelProperties.copyFrom (channelProperties [channelIndex].getValueTree ());
+                    copyBufferHasData = true;
+                });
+                copyPasteMenu.addItem ("Paste", copyBufferHasData, false, [this, channelIndex] ()
+                {
+                    channelProperties [channelIndex].copyFrom (copyBufferChannelProperties.getValueTree ());
+                });
+                editMenu.addSubMenu ("Edit", copyPasteMenu, true);
+            }
             {
-                channelProperties [channelIndex].copyFrom (copyBufferChannelProperties.getValueTree ());
-            });
+                juce::PopupMenu explodeMenu;
+                for (auto explodeCount { 2 }; explodeCount < 9 - channelIndex; ++explodeCount)
+                    explodeMenu.addItem (juce::String (explodeCount) + " channels", true, false, [this, channelIndex, explodeCount] ()
+                    {
+                        explodeChannel (channelIndex, explodeCount);
+                    });
+                editMenu.addSubMenu ("Explode", explodeMenu, channelIndex < 7);
+            }
             editMenu.addItem ("Default", true, false, [this, channelIndex] ()
             {
                 channelProperties [channelIndex].copyFrom (defaultChannelProperties.getValueTree ());
@@ -581,6 +593,54 @@ void Assimil8orEditorComponent::savePreset ()
 void Assimil8orEditorComponent::paint ([[maybe_unused]] juce::Graphics& g)
 {
     g.fillAll (juce::Colours::darkgrey.darker (0.7f));
+}
+
+void Assimil8orEditorComponent::explodeChannel (int channelIndex, int explodeCount)
+{
+    // clone channelIndex into explodeCount-1 subsequent channels
+    for (auto destinationChannelIndex { channelIndex + 1 }; destinationChannelIndex < channelIndex + explodeCount; ++destinationChannelIndex)
+    {
+        auto& destChannelProperties { channelProperties [destinationChannelIndex] };
+        destChannelProperties.copyFrom (channelProperties [channelIndex].getValueTree ());
+
+        channelProperties [channelIndex].forEachZone ([this, &destChannelProperties] (juce::ValueTree zonePropertiesVT, int zoneIndex)
+        {
+            ZoneProperties destZoneProperties (destChannelProperties.getZoneVT (zoneIndex), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
+            destZoneProperties.copyFrom (zonePropertiesVT, false);
+            return true;
+        });
+    }
+    // set sample/loop points for channelIndex and explodeCount-1 subsequent channels to sequential slice size pieces
+    SampleManagerProperties sampleManagerProperties (runtimeRootProperties.getValueTree (), SampleManagerProperties::WrapperType::client, SampleManagerProperties::EnableCallbacks::no);
+
+    channelProperties [channelIndex].forEachZone ([this, channelIndex, explodeCount, &sampleManagerProperties] (juce::ValueTree zonePropertiesVT, int zoneIndex)
+    {
+        ZoneProperties zoneProperties {zonePropertiesVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no};
+        SampleProperties sampleProperties (sampleManagerProperties.getSamplePropertiesVT (channelIndex, zoneIndex), SampleProperties::WrapperType::client, SampleProperties::EnableCallbacks::yes);
+            // get Sample Size from SampleProperties
+        juce::int64 sampleSize { sampleProperties.getLengthInSamples () };
+        const auto sliceSize { sampleSize / explodeCount };
+        const auto sampleStart { channelIndex * sliceSize };
+        const auto sampleEnd { sampleStart + sliceSize };
+        zoneProperties.setSampleStart (sampleStart, true);
+        zoneProperties.setSampleEnd (sampleEnd, true);
+        zoneProperties.setLoopStart (sampleStart, true);
+        zoneProperties.setLoopLength (sliceSize, true);
+        auto channelCount { 1 };
+        for (auto destinationChannelIndex { channelIndex + 1 }; destinationChannelIndex < channelIndex + explodeCount; ++destinationChannelIndex)
+        {
+            auto& destChannelProperties { channelProperties [destinationChannelIndex] };
+            ZoneProperties destZoneProperties { destChannelProperties.getZoneVT (zoneIndex), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no };
+            const auto destSampleStart { channelCount * sliceSize };
+            const auto destSampleEnd { destSampleStart + sliceSize };
+            destZoneProperties.setSampleStart (destSampleStart, false);
+            destZoneProperties.setSampleEnd (destSampleEnd, false);
+            destZoneProperties.setLoopStart (destSampleStart, false);
+            destZoneProperties.setLoopLength (sliceSize, false);
+            ++channelCount;
+        }
+        return true;
+    });
 }
 
 void Assimil8orEditorComponent::updateAllChannelTabNames ()

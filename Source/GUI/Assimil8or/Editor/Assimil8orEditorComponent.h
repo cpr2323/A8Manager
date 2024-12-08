@@ -85,6 +85,7 @@ private:
     std::array<ChannelProperties, 8> channelProperties;
 
     void displayToolsMenu ();
+    void explodeChannel (int channelIndex, int explodeCount);
     void exportPreset ();
     juce::String formatXfadeWidthString (double width);
     void importPreset ();
