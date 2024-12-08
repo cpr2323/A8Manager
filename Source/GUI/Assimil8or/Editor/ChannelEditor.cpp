@@ -326,6 +326,32 @@ void ChannelEditor::ensureProperZoneIsSelected ()
     }
 }
 
+void ChannelEditor::explodeZone (int zoneIndex, int explodeCount)
+{
+    SampleProperties sampleProperties (sampleManagerProperties.getSamplePropertiesVT (channelIndex, zoneIndex), SampleProperties::WrapperType::client, SampleProperties::EnableCallbacks::yes);
+    juce::int64 sampleSize { sampleProperties.getLengthInSamples () };
+    const auto sliceSize { sampleSize / explodeCount };
+    auto setSamplePoints = [this, sliceSize] (ZoneProperties& zpToUpdate, int index)
+    {
+        const auto sampleStart { index * sliceSize };
+        const auto sampleEnd { sampleStart + sliceSize };
+        zpToUpdate.setSampleStart (sampleStart, true);
+        zpToUpdate.setSampleEnd (sampleEnd, true);
+        zpToUpdate.setLoopStart (sampleStart, true);
+        zpToUpdate.setLoopLength (static_cast<double> (sliceSize), true);
+    };
+    setSamplePoints (zoneProperties [zoneIndex], 0);
+
+    for (auto destinationZoneIndex { zoneIndex + 1 }; destinationZoneIndex < zoneIndex + explodeCount; ++destinationZoneIndex)
+    {
+        auto& destZoneProperties { zoneProperties [destinationZoneIndex] };
+        duplicateZone (destinationZoneIndex - 1);
+        setSamplePoints (destZoneProperties, destinationZoneIndex - zoneIndex);
+    }
+    balanceVoltages (VoltageBalanceType::distributeAcross10V);
+    updateAllZoneTabNames ();
+}
+
 int ChannelEditor::getEnvelopeValueResolution (double envelopeValue)
 {
     if (envelopeValue < 0.01)
@@ -2197,6 +2223,8 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree u
     SystemServices systemServices {runtimeRootProperties.getValueTree (), SystemServices::WrapperType::client, SystemServices::EnableCallbacks::yes};
     editManager = systemServices.getEditManager ();
 
+    sampleManagerProperties.wrap (runtimeRootProperties.getValueTree (), SampleManagerProperties::WrapperType::client, SampleManagerProperties::EnableCallbacks::no);
+
     channelProperties.wrap (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::yes);
     uneditedChannelProperties.wrap (uneditedChannelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
     channelIndex = channelProperties.getId () - 1;
@@ -2212,10 +2240,10 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree u
         {
             auto* popupMenuLnF { new juce::LookAndFeel_V4 };
             popupMenuLnF->setColour (juce::PopupMenu::ColourIds::headerTextColourId, juce::Colours::white.withAlpha (0.3f));
-            juce::PopupMenu editMenu;
-            editMenu.setLookAndFeel (popupMenuLnF);
-            editMenu.addSectionHeader ("Zone " + juce::String (zoneProperties [zoneIndex].getId ()));
-            editMenu.addSeparator ();
+            juce::PopupMenu toolsMenu;
+            toolsMenu.setLookAndFeel (popupMenuLnF);
+            toolsMenu.addSectionHeader ("Zone " + juce::String (zoneProperties [zoneIndex].getId ()));
+            toolsMenu.addSeparator ();
 
             {
                 juce::PopupMenu balanceMenu;
@@ -2223,43 +2251,57 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree u
                 balanceMenu.addItem ("10V", true, false, [this] () { balanceVoltages (VoltageBalanceType::distributeAcross10V); });
                 balanceMenu.addItem ("Kbd", true, false, [this] () { balanceVoltages (VoltageBalanceType::distribute1vPerOct); });
                 balanceMenu.addItem ("Maj", true, false, [this] () { balanceVoltages (VoltageBalanceType::distribute1vPerOctMajor); });
-                editMenu.addSubMenu ("Balance", balanceMenu, zoneProperties [zoneIndex].getSample ().isNotEmpty ());
+                toolsMenu.addSubMenu ("Balance", balanceMenu, zoneProperties [zoneIndex].getSample ().isNotEmpty ());
             }
             {
-                juce::PopupMenu copyMenu;
-                copyMenu.addItem ("Settings", zoneProperties [zoneIndex].getSample ().isNotEmpty (), false, [this, zoneIndex] () { copyZone (zoneIndex, true); });
-                copyMenu.addItem ("Sample and Settings", zoneProperties [zoneIndex].getSample ().isNotEmpty (), false, [this, zoneIndex] () { copyZone (zoneIndex, false); });
-                editMenu.addSubMenu ("Copy", copyMenu, zoneProperties [zoneIndex].getSample ().isNotEmpty ());
-            }
-            editMenu.addItem ("Paste", *zoneCopyBufferHasData && (zoneProperties [zoneIndex].getSample ().isNotEmpty () || copyBufferZoneProperties.getSample ().isNotEmpty ()), false, [this, zoneIndex] ()
-            {
-                pasteZone (zoneIndex);
-                updateAllZoneTabNames ();
-                ensureProperZoneIsSelected ();
-            });
-            editMenu.addItem ("Insert", zoneProperties [zoneIndex].getSample ().isNotEmpty () && zoneIndex > 0 && zoneIndex < zoneProperties.size () - 1, false, [this, zoneIndex] ()
-            {
-                duplicateZone (zoneIndex);
-                ensureProperZoneIsSelected ();
-                updateAllZoneTabNames ();
-            });
-            {
-                juce::PopupMenu deleteMenu;
-                deleteMenu.addItem ("Zone " + juce::String (zoneProperties [zoneIndex].getId ()), zoneProperties [zoneIndex].getSample ().isNotEmpty (), false, [this, zoneIndex] ()
+                juce::PopupMenu editMenu;
                 {
-                    deleteZone (zoneIndex);
+                    juce::PopupMenu copyMenu;
+                    copyMenu.addItem ("Settings", zoneProperties [zoneIndex].getSample ().isNotEmpty (), false, [this, zoneIndex] () { copyZone (zoneIndex, true); });
+                    copyMenu.addItem ("Sample and Settings", zoneProperties [zoneIndex].getSample ().isNotEmpty (), false, [this, zoneIndex] () { copyZone (zoneIndex, false); });
+                    editMenu.addSubMenu ("Copy", copyMenu, zoneProperties [zoneIndex].getSample ().isNotEmpty ());
+                }
+                editMenu.addItem ("Paste", *zoneCopyBufferHasData && (zoneProperties [zoneIndex].getSample ().isNotEmpty () || copyBufferZoneProperties.getSample ().isNotEmpty ()), false, [this, zoneIndex] ()
+                {
+                    pasteZone (zoneIndex);
+                    updateAllZoneTabNames ();
+                    ensureProperZoneIsSelected ();
+                });
+                editMenu.addItem ("Insert", zoneProperties [zoneIndex].getSample ().isNotEmpty () && zoneIndex > 0 && zoneIndex < zoneProperties.size () - 1, false, [this, zoneIndex] ()
+                {
+                    duplicateZone (zoneIndex);
                     ensureProperZoneIsSelected ();
                     updateAllZoneTabNames ();
                 });
-                deleteMenu.addItem ("All", editManager->getNumUsedZones (channelIndex) > 0, false, [this] ()
                 {
-                    clearAllZones ();
-                    ensureProperZoneIsSelected ();
-                    updateAllZoneTabNames ();
-                });
-                editMenu.addSubMenu ("Delete", deleteMenu, zoneProperties [zoneIndex].getSample ().isNotEmpty ());
+                    juce::PopupMenu deleteMenu;
+                    deleteMenu.addItem ("Zone " + juce::String (zoneProperties [zoneIndex].getId ()), zoneProperties [zoneIndex].getSample ().isNotEmpty (), false, [this, zoneIndex] ()
+                    {
+                        deleteZone (zoneIndex);
+                        ensureProperZoneIsSelected ();
+                        updateAllZoneTabNames ();
+                    });
+                    deleteMenu.addItem ("All", editManager->getNumUsedZones (channelIndex) > 0, false, [this] ()
+                    {
+                        clearAllZones ();
+                        ensureProperZoneIsSelected ();
+                        updateAllZoneTabNames ();
+                    });
+                    editMenu.addSubMenu ("Delete", deleteMenu, zoneProperties [zoneIndex].getSample ().isNotEmpty ());
+                }
+                toolsMenu.addSubMenu ("Edit", editMenu, true);
             }
-            editMenu.showMenuAsync ({}, [this, popupMenuLnF] (int) { delete popupMenuLnF; });
+            {
+                juce::PopupMenu explodeMenu;
+                for (auto explodeCount { 2 }; explodeCount < 9 - zoneIndex; ++explodeCount)
+                    explodeMenu.addItem (juce::String (explodeCount) + " zones", true, false, [this, zoneIndex, explodeCount] ()
+                    {
+                        explodeZone (zoneIndex, explodeCount);
+                    });
+                toolsMenu.addSubMenu ("Explode", explodeMenu, zoneIndex < 7);
+            }
+
+            toolsMenu.showMenuAsync ({}, [this, popupMenuLnF] (int) { delete popupMenuLnF; });
         };
 
         // Zone Properties setup

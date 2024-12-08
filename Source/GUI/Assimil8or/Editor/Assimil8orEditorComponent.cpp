@@ -427,10 +427,10 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
         {
             auto* popupMenuLnF { new juce::LookAndFeel_V4 };
             popupMenuLnF->setColour (juce::PopupMenu::ColourIds::headerTextColourId, juce::Colours::white.withAlpha (0.3f));
-            juce::PopupMenu editMenu;
-            editMenu.setLookAndFeel (popupMenuLnF);
-            editMenu.addSectionHeader ("Channel " + juce::String (channelProperties [channelIndex].getId ()));
-            editMenu.addSeparator ();
+            juce::PopupMenu toolsMenu;
+            toolsMenu.setLookAndFeel (popupMenuLnF);
+            toolsMenu.addSectionHeader ("Channel " + juce::String (channelProperties [channelIndex].getId ()));
+            toolsMenu.addSeparator ();
             {
                 // Clone
                 juce::PopupMenu cloneMenu;
@@ -474,20 +474,20 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
                         });
                     }
                 }));
-                editMenu.addSubMenu ("Clone", cloneMenu);
+                toolsMenu.addSubMenu ("Clone", cloneMenu);
             }
             {
-                juce::PopupMenu copyPasteMenu;
-                copyPasteMenu.addItem ("Copy", true, false, [this, channelIndex] ()
+                juce::PopupMenu editMenu;
+                editMenu.addItem ("Copy", true, false, [this, channelIndex] ()
                 {
                     copyBufferChannelProperties.copyFrom (channelProperties [channelIndex].getValueTree ());
                     copyBufferHasData = true;
                 });
-                copyPasteMenu.addItem ("Paste", copyBufferHasData, false, [this, channelIndex] ()
+                editMenu.addItem ("Paste", copyBufferHasData, false, [this, channelIndex] ()
                 {
                     channelProperties [channelIndex].copyFrom (copyBufferChannelProperties.getValueTree ());
                 });
-                editMenu.addSubMenu ("Edit", copyPasteMenu, true);
+                toolsMenu.addSubMenu ("Edit", editMenu, true);
             }
             {
                 juce::PopupMenu explodeMenu;
@@ -496,17 +496,17 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
                     {
                         explodeChannel (channelIndex, explodeCount);
                     });
-                editMenu.addSubMenu ("Explode", explodeMenu, channelIndex < 7);
+                toolsMenu.addSubMenu ("Explode", explodeMenu, channelIndex < 7);
             }
-            editMenu.addItem ("Default", true, false, [this, channelIndex] ()
+            toolsMenu.addItem ("Default", true, false, [this, channelIndex] ()
             {
                 channelProperties [channelIndex].copyFrom (defaultChannelProperties.getValueTree ());
             });
-            editMenu.addItem ("Revert", true, false, [this, channelIndex] ()
+            toolsMenu.addItem ("Revert", true, false, [this, channelIndex] ()
             {
                 channelProperties [channelIndex].copyFrom (unEditedPresetProperties.getValueTree ());
             });
-            editMenu.showMenuAsync ({}, [this, popupMenuLnF] (int) { delete popupMenuLnF; });
+            toolsMenu.showMenuAsync ({}, [this, popupMenuLnF] (int) { delete popupMenuLnF; });
         };
 
         channelProperties [channelIndex].wrap (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::yes);
@@ -625,7 +625,7 @@ void Assimil8orEditorComponent::explodeChannel (int channelIndex, int explodeCou
             zpToUpdate.setSampleStart (sampleStart, true);
             zpToUpdate.setSampleEnd (sampleEnd, true);
             zpToUpdate.setLoopStart (sampleStart, true);
-            zpToUpdate.setLoopLength (sliceSize, true);
+            zpToUpdate.setLoopLength (static_cast<double> (sliceSize), true);
         };
         setSamplePoints (zoneProperties, 0);
         for (auto channelCount { 0 }; channelCount < explodeCount - 1; ++channelCount)
@@ -682,17 +682,17 @@ void Assimil8orEditorComponent::displayToolsMenu ()
 {
     auto* popupMenuLnF { new juce::LookAndFeel_V4 };
     popupMenuLnF->setColour (juce::PopupMenu::ColourIds::headerTextColourId, juce::Colours::white.withAlpha (0.3f));
-    juce::PopupMenu pm;
-    pm.setLookAndFeel (popupMenuLnF);
-    pm.addSectionHeader ("Preset");
-    pm.addSeparator ();
+    juce::PopupMenu toolsMenu;
+    toolsMenu.setLookAndFeel (popupMenuLnF);
+    toolsMenu.addSectionHeader ("Preset");
+    toolsMenu.addSeparator ();
 
-    pm.addItem ("Import", true, false, [this] () { importPreset (); });
-    pm.addItem ("Export", true, false, [this] () { exportPreset (); });
-    pm.addItem ("Default", true, false, [this] () { setPresetToDefaults (); });
-    pm.addItem ("Revert", true, false, [this] () { revertPreset (); });
+    toolsMenu.addItem ("Import", true, false, [this] () { importPreset (); });
+    toolsMenu.addItem ("Export", true, false, [this] () { exportPreset (); });
+    toolsMenu.addItem ("Default", true, false, [this] () { setPresetToDefaults (); });
+    toolsMenu.addItem ("Revert", true, false, [this] () { revertPreset (); });
 
-    pm.showMenuAsync ({}, [this, popupMenuLnF] (int) { delete popupMenuLnF; });
+    toolsMenu.showMenuAsync ({}, [this, popupMenuLnF] (int) { delete popupMenuLnF; });
 }
 
 void Assimil8orEditorComponent::exportPreset ()

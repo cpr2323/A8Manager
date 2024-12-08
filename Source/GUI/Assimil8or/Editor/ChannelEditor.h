@@ -216,6 +216,7 @@ private:
     ChannelProperties maxChannelProperties;
     ZoneProperties defaultZoneProperties;
     ZoneProperties copyBufferZoneProperties;
+    SampleManagerProperties sampleManagerProperties;
     bool* zoneCopyBufferHasData { nullptr };
     AudioPlayerProperties audioPlayerProperties;
     EditManager* editManager { nullptr };
@@ -340,6 +341,7 @@ private:
     void deleteZone (int zoneIndex);
     void duplicateZone (int zoneIndex);
     void ensureProperZoneIsSelected ();
+    void explodeZone (int zoneIndex, int explodeCount);
     int getEnvelopeValueResolution (double envelopeValue);
     void pasteZone (int zoneIndex);
     void positionColumnOne (int xOffset, int width);
