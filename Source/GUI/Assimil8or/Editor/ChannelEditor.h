@@ -343,6 +343,7 @@ private:
     void ensureProperZoneIsSelected ();
     void explodeZone (int zoneIndex, int explodeCount);
     int getEnvelopeValueResolution (double envelopeValue);
+    void flipZones (int zoneIndex, int flipCount);
     void pasteZone (int zoneIndex);
     void positionColumnOne (int xOffset, int width);
     void positionColumnTwo (int xOffset, int width);

@@ -2300,6 +2300,16 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree u
                     });
                 toolsMenu.addSubMenu ("Explode", explodeMenu, zoneIndex < 7);
             }
+            {
+                juce::PopupMenu flipMenu;
+                const auto maxFlipCount { editManager->getNumUsedZones (channelIndex) + 1 - zoneIndex };
+                for (auto flipCount { 2 }; flipCount < maxFlipCount; ++flipCount)
+                    flipMenu.addItem (juce::String (flipCount) + " zones", true, false, [this, zoneIndex, flipCount] ()
+                    {
+                        flipZones (zoneIndex, flipCount);
+                    });
+                toolsMenu.addSubMenu ("Flip", flipMenu, zoneIndex < 7);
+            }
 
             toolsMenu.showMenuAsync ({}, [this, popupMenuLnF] (int) { delete popupMenuLnF; });
         };
@@ -2792,6 +2802,23 @@ void ChannelEditor::updateWaveformDisplay ()
 {
     const auto currentZoneIndex { zoneTabs.getCurrentTabIndex () };
     sampleWaveformDisplay.setZone (currentZoneIndex);
+}
+
+void ChannelEditor::flipZones (int zoneIndex, int flipCount)
+{
+    ZoneProperties tempZoneProperties;
+    for (auto zoneCount { 0 }; zoneCount< flipCount / 2; ++zoneCount)
+    {
+        auto& firstZone { zoneProperties [zoneIndex + zoneCount] };
+        const auto firstZoneMinVoltage { firstZone.getMinVoltage() };
+        auto& secondZone { zoneProperties [zoneIndex + (flipCount - zoneCount - 1)] };
+        const auto secondZoneMinVoltage { secondZone.getMinVoltage () };
+        tempZoneProperties.copyFrom (secondZone.getValueTree (), false);
+        secondZone.copyFrom (firstZone.getValueTree (), false);
+        secondZone.setMinVoltage (secondZoneMinVoltage, true);
+        firstZone.copyFrom (tempZoneProperties.getValueTree (), false);
+        firstZone.setMinVoltage (firstZoneMinVoltage, true);
+    }
 }
 
 void ChannelEditor::updateAllZoneTabNames ()
