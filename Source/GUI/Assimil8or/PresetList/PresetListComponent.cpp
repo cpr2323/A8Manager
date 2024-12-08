@@ -309,36 +309,33 @@ void PresetListComponent::timerCallback ()
 void PresetListComponent::movePresetUp (int row)
 {
     jassert (row > 1);
-    auto [moveToPresetNumber, moveToPresetExists, moveToPresetName] { presetInfoList [row - 1] };
-    auto [moveFromPresetNumber, moveFromPresetExists, moveFromPresetName] { presetInfoList [row] };
-    if (! moveToPresetExists)
-    {
-        // rename preset file
-        auto newFile { getPresetFile (moveToPresetNumber) };
-        auto oldFile { getPresetFile (moveFromPresetNumber) };
-        oldFile.moveFileTo (newFile);
-    }
-    else
-    {
-        // rename both preset files
-    }
+    swapPresets (row, row - 1);
 }
 
 void PresetListComponent::movePresetDown (int row)
 {
     jassert (row < kMaxPresets);
-    auto [moveToPresetNumber, moveToPresetExists, moveToPresetName] { presetInfoList [row + 1] };
-    auto [moveFromPresetNumber, moveFromPresetExists, moveFromPresetName] { presetInfoList [row] };
-    if (!moveToPresetExists)
+    swapPresets (row, row + 1);
+}
+
+void PresetListComponent::swapPresets (int fromRow, int toRow)
+{
+    auto [moveFromPresetNumber, moveFromPresetExists, moveFromPresetName] { presetInfoList [fromRow] };
+    jassert (moveFromPresetExists == true);
+    auto [moveToPresetNumber, moveToPresetExists, moveToPresetName] { presetInfoList [toRow] };
+    auto newFile { getPresetFile (moveToPresetNumber) };
+    auto oldFile { getPresetFile (moveFromPresetNumber) };
+    if (! moveToPresetExists)
     {
         // rename preset file
-        auto newFile { getPresetFile (moveToPresetNumber) };
-        auto oldFile { getPresetFile (moveFromPresetNumber) };
         oldFile.moveFileTo (newFile);
     }
     else
     {
         // rename both preset files
+        newFile.moveFileTo (newFile.withFileExtension ("tmp"));
+        oldFile.moveFileTo (newFile);
+        newFile.withFileExtension ("tmp").moveFileTo (oldFile);
     }
 }
 
