@@ -65,9 +65,9 @@
           <FILE id="m51pzF" name="ZoneProperties.h" compile="0" resource="0"
                 file="Source/Assimil8or/Preset/ZoneProperties.h"/>
         </GROUP>
-        <GROUP id="{51623D41-359A-2A33-39A9-D70877C43812}" name="System">
-          <FILE id="Uo4K1B" name="MidiSetup.cpp" compile="1" resource="0" file="Source/Assimil8or/System/MidiSetup.cpp"/>
-          <FILE id="PtAwVS" name="MidiSetup.h" compile="0" resource="0" file="Source/Assimil8or/System/MidiSetup.h"/>
+        <GROUP id="{51623D41-359A-2A33-39A9-D70877C43812}" name="MidiSetup">
+          <FILE id="UBMQBQ" name="MidiSetup.cpp" compile="1" resource="0" file="Source/Assimil8or/MidiSetup/MidiSetup.cpp"/>
+          <FILE id="gCTftQ" name="MidiSetup.h" compile="0" resource="0" file="Source/Assimil8or/MidiSetup/MidiSetup.h"/>
         </GROUP>
         <GROUP id="{FFCC55CE-5847-C60B-915E-27F62A58650C}" name="Validator">
           <FILE id="hqDHiE" name="ValidatorProperties.cpp" compile="1" resource="0"
@@ -176,6 +176,12 @@
             <FILE id="zqHPvq" name="FileViewComponent.h" compile="0" resource="0"
                   file="Source/GUI/Assimil8or/FileView/FileViewComponent.h"/>
           </GROUP>
+          <GROUP id="{8CABFECE-EB83-DE98-9FEB-0FD8C13B5252}" name="MidiConfig">
+            <FILE id="xjn7Jj" name="MidiConfigComponent.cpp" compile="1" resource="0"
+                  file="Source/GUI/Assimil8or/MidiConfig/MidiConfigComponent.cpp"/>
+            <FILE id="la52Lw" name="MidiConfigComponent.h" compile="0" resource="0"
+                  file="Source/GUI/Assimil8or/MidiConfig/MidiConfigComponent.h"/>
+          </GROUP>
           <GROUP id="{61BC93EF-3ED8-1898-EC8D-0EF6927D16ED}" name="PresetList">
             <FILE id="NxljVl" name="PresetListComponent.cpp" compile="1" resource="0"
                   file="Source/GUI/Assimil8or/PresetList/PresetListComponent.cpp"/>
@@ -209,6 +215,10 @@
               file="Source/GUI/CurrentFolderComponent.cpp"/>
         <FILE id="RdTALO" name="CurrentFolderComponent.h" compile="0" resource="0"
               file="Source/GUI/CurrentFolderComponent.h"/>
+        <FILE id="VetOsz" name="GuiControlProperties.cpp" compile="1" resource="0"
+              file="Source/GUI/GuiControlProperties.cpp"/>
+        <FILE id="ZCgjRh" name="GuiControlProperties.h" compile="0" resource="0"
+              file="Source/GUI/GuiControlProperties.h"/>
         <FILE id="Ky1FeG" name="GuiProperties.cpp" compile="1" resource="0"
               file="Source/GUI/GuiProperties.cpp"/>
         <FILE id="BYrQvg" name="GuiProperties.h" compile="0" resource="0" file="Source/GUI/GuiProperties.h"/>
