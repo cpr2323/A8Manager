@@ -69,6 +69,7 @@ private:
         juce::TextButton cancelButton;
         std::array<MidiSetupComponent, 9> midiSetupComponents;
         std::array<MidiSetupProperties, 9> midiSetupPropertiesList;
+        std::array<MidiSetupProperties, 9> unEditedMidiSetupPropertiesList;
 
         void cancelClicked ();
         void closeDialog ();

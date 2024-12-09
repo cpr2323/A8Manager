@@ -65,12 +65,14 @@ void MidiConfigComponent::MidiConfigComponentDialog::loadMidiSetups ()
         {
             midiSetupPropertiesList [curMidiSetupIndex].wrap ({}, MidiSetupProperties::WrapperType::owner, MidiSetupProperties::EnableCallbacks::no);
         }
+        unEditedMidiSetupPropertiesList [curMidiSetupIndex].wrap (midiSetupPropertiesList [curMidiSetupIndex].getValueTree ().createCopy (), MidiSetupProperties::WrapperType::owner, MidiSetupProperties::EnableCallbacks::no);
     }
 }
 
 void MidiConfigComponent::MidiConfigComponentDialog::cancelClicked ()
 {
-    // query if data has changed but not saved
+    // compare midiSetupPropertiesList && unEditedMidiSetupPropertiesList
+    // if they do not match, query inform user the data will be lost if they do not cancel and go back to save
     closeDialog ();
 }
 
