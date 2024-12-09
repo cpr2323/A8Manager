@@ -217,6 +217,22 @@ int MidiSetupProperties::getNotifications ()
     return getValue<int> (NotificationsPropertyId);
 }
 
+void MidiSetupProperties::initValueTree ()
+{
+    // initialize to defaults
+    setMode (1, false);
+    setAssign (0, false);
+    setBasicChannel (0, false);
+    setRcvProgramChange (1, false);
+    setXmtProgramChange (1, false);
+    setColACC (-1, false);
+    setColBCC (-1, false);
+    setColCCC (-1, false);
+    setPitchWheelSemi (12, false);
+    setVelocityDepth (32, false);
+    setNotifications (1, false);
+}
+
 void MidiSetupProperties::valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property)
 {
     if (vt != data)

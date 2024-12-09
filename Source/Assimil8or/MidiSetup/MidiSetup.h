@@ -119,7 +119,7 @@ public:
     static inline const juce::Identifier VelocityDepthPropertyId    { "velocityDepth" };
     static inline const juce::Identifier NotificationsPropertyId    { "notifications" };
 
-    void initValueTree () {}
+    void initValueTree ();
     void processValueTree () {}
 
 private:
