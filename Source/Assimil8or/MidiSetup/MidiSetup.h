@@ -1,12 +1,26 @@
 #pragma once
 
-#if 0
 #include <JuceHeader.h>
 #include <stack>
 #include "../../Utility/ValueTreeWrapper.h"
 
 using Action = std::function<void ()>;
 using ActionMap = std::map<juce::String, Action>;
+
+namespace MidiSetup
+{
+    static inline const juce::String ModeId             { "mode" };
+    static inline const juce::String AssignId           { "assign" };
+    static inline const juce::String BasicChannelId     { "basicchannel" };
+    static inline const juce::String RcvProgramChangeId { "rcvprogamchange" };
+    static inline const juce::String XmtProgramChangeId { "xmtprogamchange" };
+    static inline const juce::String ColACCId           { "colAcc" };
+    static inline const juce::String ColBCCId           { "colBcc" };
+    static inline const juce::String ColCCCId           { "colCcc" };
+    static inline const juce::String PitchWheelSemiId   { "pitchwheelsemi" };
+    static inline const juce::String VelocityDepthId    { "velocitydepth" };
+    static inline const juce::String NotificationsId    { "notifications" };
+};
 
 // Mode : Omni, Uni, Multi - 0,1,2
 // Assignment : One set of values for Omni/Uni and another for Multi. The unit seems to remember the setting for each of these
@@ -47,6 +61,7 @@ using ActionMap = std::map<juce::String, Action>;
 // Notification: On/Off
 class MidiSetupProperties : public ValueTreeWrapper<MidiSetupProperties>
 {
+public:
     MidiSetupProperties () noexcept : ValueTreeWrapper<MidiSetupProperties> (MidiSetupTypeId)
     {
     }
@@ -88,8 +103,8 @@ class MidiSetupProperties : public ValueTreeWrapper<MidiSetupProperties>
     std::function<void (int mode)> onCollBCCChange;
     std::function<void (int mode)> onCollCCCChange;
     std::function<void (int mode)> onPitchWheelSemiChange;
-    std::function<void (int mode)> onVelocityChange;
-    std::function<void (int mode)> onnotificationsChange;
+    std::function<void (int mode)> onVelocityDepthChange;
+    std::function<void (int mode)> onNotificationsChange;
 
     static inline const juce::Identifier MidiSetupTypeId { "MidiSetup" };
     static inline const juce::Identifier ModePropertyId             { "mode" };
@@ -101,7 +116,7 @@ class MidiSetupProperties : public ValueTreeWrapper<MidiSetupProperties>
     static inline const juce::Identifier ColBCCPropertyId           { "colBCC" };
     static inline const juce::Identifier ColCCCPropertyId           { "colCCC" };
     static inline const juce::Identifier PitchWheelSemiPropertyId   { "pitchWheelSemi" };
-    static inline const juce::Identifier VelocityDepthPropertyId    { "velocity" };
+    static inline const juce::Identifier VelocityDepthPropertyId    { "velocityDepth" };
     static inline const juce::Identifier NotificationsPropertyId    { "notifications" };
 
     void initValueTree () {}
@@ -119,15 +134,13 @@ public:
     void write (juce::File presetFile, juce::ValueTree presetProperties);
     juce::ValueTree parse (juce::StringArray presetLines);
 
+    juce::ValueTree getMidiSetupPropertiesVT () { return midiSetupProperties.getValueTree (); }
+
 private:
-    std::stack<Action> undoActionsStack;
+    MidiSetupProperties midiSetupProperties;
     ActionMap globalActions;
-    ActionMap* curActions { nullptr };
-    juce::ValueTree curSection;
     juce::String key;
     juce::String value;
 
-    juce::String getSectionName ();
     void initParser ();
 };
-#endif

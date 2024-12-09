@@ -35,9 +35,7 @@ MainComponent::MainComponent (juce::ValueTree rootPropertiesVT)
     guiControlProperties.wrap (runtimeRootProperties.getValueTree (), GuiControlProperties::WrapperType::client, GuiControlProperties::EnableCallbacks::yes);
     guiProperties.wrap (persistentRootProperties.getValueTree (), GuiProperties::WrapperType::client, GuiProperties::EnableCallbacks::no);
 
-    guiControlProperties.onShowMidiConfigWindowChange = [this] (bool show)
-        {
-            midiConfigComponent.setVisible (show); };
+    guiControlProperties.onShowMidiConfigWindowChange = [this] (bool show) { midiConfigComponent.setVisible (show); };
 
     fileViewComponent.overwritePresetOrCancel = [this] (std::function<void ()> overwriteFunction, std::function<void ()> cancelFunction)
     {
