@@ -5,9 +5,32 @@ MidiSetupFile::MidiSetupFile ()
     initParser ();
 }
 
-void MidiSetupFile::write (juce::File presetFile, juce::ValueTree presetProperties)
+void MidiSetupFile::write (juce::File midiSetupFile, juce::ValueTree midiSetupPropertiesVT)
 {
+    MidiSetupProperties midiSetupPropertiesToWrite (midiSetupPropertiesVT, MidiSetupProperties::WrapperType::owner, MidiSetupProperties::EnableCallbacks::no);
 
+    juce::StringArray lines;
+    auto addLine = [this, &lines] (juce::String key, int value)
+    {
+        juce::String lineToAdd { key + " : " + juce::String (value) };
+        lines.add (juce::String (lineToAdd));
+    };
+
+    lines.add ("# MIDI Setup");
+    addLine (MidiSetup::ModeId, midiSetupPropertiesToWrite.getMode ());
+    addLine (MidiSetup::AssignId, midiSetupPropertiesToWrite.getAssign ());
+    addLine (MidiSetup::BasicChannelId, midiSetupPropertiesToWrite.getBasicChannel ());
+    addLine (MidiSetup::RcvProgramChangeId, midiSetupPropertiesToWrite.getRcvProgramChange ());
+    addLine (MidiSetup::XmtProgramChangeId, midiSetupPropertiesToWrite.getXmtProgramChange ());
+    addLine (MidiSetup::ColACCId, midiSetupPropertiesToWrite.getColACC ());
+    addLine (MidiSetup::ColBCCId, midiSetupPropertiesToWrite.getColBCC ());
+    addLine (MidiSetup::ColCCCId, midiSetupPropertiesToWrite.getColCCC ());
+    addLine (MidiSetup::PitchWheelSemiId, midiSetupPropertiesToWrite.getPitchWheelSemi ());
+    addLine (MidiSetup::VelocityDepthId, midiSetupPropertiesToWrite.getVelocityDepth ());
+    addLine (MidiSetup::NotificationsId, midiSetupPropertiesToWrite.getNotifications ());
+
+    const auto stringToWrite { lines.joinIntoString ("\r\n") };
+    midiSetupFile.replaceWithText (stringToWrite);
 }
 
 juce::ValueTree MidiSetupFile::parse (juce::StringArray presetLines)
