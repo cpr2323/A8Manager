@@ -2,11 +2,12 @@
 
 #include <JuceHeader.h>
 #include "CurrentFolderComponent.h"
+#include "GuiControlProperties.h"
 #include "GuiProperties.h"
 #include "BottomStatusWindow.h"
 #include "Assimil8or/Editor/Assimil8orEditorComponent.h"
 #include "Assimil8or/FileView/FileViewComponent.h"
-#include "Assimil8or/FileView/FileViewComponent.h"
+#include "Assimil8or/MidiConfig/MidiConfigComponent.h"
 #include "Assimil8or/PresetList/PresetListComponent.h"
 #include "Assimil8or/Validator/Assimil8orValidatorComponent.h"
 #include "../Utility/SplitWindowComponent.h"
@@ -20,8 +21,10 @@ public:
 private:
     Assimil8orEditorComponent assimil8orEditorComponent;
     Assimil8orValidatorComponent assimil8orValidatorComponent;
+    GuiControlProperties guiControlProperties;
     GuiProperties guiProperties;
     CurrentFolderComponent currentFolderComponent;
+    MidiConfigComponent midiConfigComponent;
     FileViewComponent fileViewComponent;
     PresetListComponent presetListComponent;
     SplitWindowComponent topAndBottomSplitter;

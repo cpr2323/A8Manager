@@ -48,6 +48,10 @@ Assimil8orEditorComponent::Assimil8orEditorComponent ()
     defaultChannelProperties.wrap (defaultPresetProperties.getChannelVT (0), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
 
     setupPresetComponents ();
+
+    // NOTE: This must go last to overlay the entire window when activated
+    //addChildComponent (midiConfigWindow);
+
     startTimer (250);
 }
 
@@ -106,6 +110,7 @@ void Assimil8orEditorComponent::setupPresetComponents ()
     };
     addAndMakeVisible (midiSetupComboBox);
 
+    // used to cover the right channel controls for a stereo linked pair
     addAndMakeVisible (windowDecorator);
 
     // Data 2 CV
@@ -407,6 +412,8 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
         channelTabs.setCurrentTabIndex (0);
     };
 
+    guiControlProperties.wrap (runtimeRootProperties.getValueTree (), GuiControlProperties::WrapperType::client, GuiControlProperties::EnableCallbacks::no);
+
     PresetManagerProperties presetManagerProperties (runtimeRootProperties.getValueTree (), PresetManagerProperties::WrapperType::client, PresetManagerProperties::EnableCallbacks::no);
     unEditedPresetProperties.wrap (presetManagerProperties.getPreset ("unedited"), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::yes);
     presetProperties.wrap (presetManagerProperties.getPreset ("edit"), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::yes);
@@ -691,6 +698,7 @@ void Assimil8orEditorComponent::displayToolsMenu ()
     toolsMenu.addItem ("Export", true, false, [this] () { exportPreset (); });
     toolsMenu.addItem ("Default", true, false, [this] () { setPresetToDefaults (); });
     toolsMenu.addItem ("Revert", true, false, [this] () { revertPreset (); });
+    toolsMenu.addItem ("Midi Setups", true, false, [this] () { guiControlProperties.showMidiConfigWindow (true); });
 
     toolsMenu.showMenuAsync ({}, [this, popupMenuLnF] (int) { delete popupMenuLnF; });
 }
@@ -714,6 +722,8 @@ void Assimil8orEditorComponent::resized ()
 {
     auto localBounds { getLocalBounds () };
 
+    //midiConfigWindow.setBounds (localBounds);
+
     auto topRow { localBounds.removeFromTop (25) };
     topRow.removeFromTop (3);
     topRow.removeFromLeft (5);
@@ -725,7 +735,8 @@ void Assimil8orEditorComponent::resized ()
     // Midi Setup
     midiSetupLabel.setBounds (topRow.removeFromLeft (75));
     topRow.removeFromLeft (3);
-    midiSetupComboBox.setBounds (topRow.removeFromLeft (60));
+    midiSetupComboBox.setBounds (topRow.removeFromLeft (50));
+
     topRow.removeFromRight (3);
     // Save Button
     saveButton.setBounds (topRow.removeFromRight (75));

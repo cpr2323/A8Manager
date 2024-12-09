@@ -30,8 +30,14 @@ MainComponent::MainComponent (juce::ValueTree rootPropertiesVT)
 {
     setSize (1117, 609);
 
+    RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
     PersistentRootProperties persistentRootProperties (rootPropertiesVT, PersistentRootProperties::WrapperType::client, PersistentRootProperties::EnableCallbacks::no);
+    guiControlProperties.wrap (runtimeRootProperties.getValueTree (), GuiControlProperties::WrapperType::client, GuiControlProperties::EnableCallbacks::yes);
     guiProperties.wrap (persistentRootProperties.getValueTree (), GuiProperties::WrapperType::client, GuiProperties::EnableCallbacks::no);
+
+    guiControlProperties.onShowMidiConfigWindowChange = [this] (bool show)
+        {
+            midiConfigComponent.setVisible (show); };
 
     fileViewComponent.overwritePresetOrCancel = [this] (std::function<void ()> overwriteFunction, std::function<void ()> cancelFunction)
     {
@@ -48,6 +54,7 @@ MainComponent::MainComponent (juce::ValueTree rootPropertiesVT)
     presetListComponent.init (rootPropertiesVT);
     bottomStatusWindow.init (rootPropertiesVT);
     currentFolderComponent.init (rootPropertiesVT);
+    midiConfigComponent.init (rootPropertiesVT);
 
     presetListEditorSplitter.setComponents (&presetListComponent, &assimil8orEditorComponent);
     presetListEditorSplitter.setHorizontalSplit (false);
@@ -66,6 +73,7 @@ MainComponent::MainComponent (juce::ValueTree rootPropertiesVT)
 
     addAndMakeVisible (currentFolderComponent);
     addAndMakeVisible (topAndBottomSplitter);
+    addChildComponent (midiConfigComponent);
     addAndMakeVisible (bottomStatusWindow);
 
     fileViewComponent.onAudioFileSelected = [this] (juce::File audioFile) { assimil8orEditorComponent.receiveSampleLoadRequest (audioFile); };
@@ -99,4 +107,5 @@ void MainComponent::resized ()
     bottomStatusWindow.setBounds (localBounds.removeFromBottom (toolWindowHeight));
     localBounds.reduce (3, 3);
     topAndBottomSplitter.setBounds (localBounds);
+    midiConfigComponent.setBounds (localBounds);
 }

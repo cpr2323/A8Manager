@@ -4,6 +4,7 @@
 #include "ChannelEditor.h"
 #include "CvInputComboBox.h"
 #include "EditManager.h"
+#include "../../GuiControlProperties.h"
 #include "../../../AppProperties.h"
 #include "../../../Assimil8or/Audio/AudioPlayerProperties.h"
 #include "../../../Assimil8or/Preset/PresetProperties.h"
@@ -38,6 +39,7 @@ private:
     RuntimeRootProperties runtimeRootProperties;
     AppProperties appProperties;
     AudioPlayerProperties audioPlayerProperties;
+    GuiControlProperties guiControlProperties;
     PresetProperties presetProperties;
     PresetProperties unEditedPresetProperties;
     PresetProperties defaultPresetProperties;
@@ -61,6 +63,7 @@ private:
     juce::TextEditor nameEditor;
     juce::Label midiSetupLabel;
     CustomComboBox midiSetupComboBox;
+
     juce::Label data2AsCvLabel;
     CvInputGlobalComboBox data2AsCvComboBox;
     juce::Label xfadeGroupsLabel;
