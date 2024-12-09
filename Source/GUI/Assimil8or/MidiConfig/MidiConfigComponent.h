@@ -2,6 +2,8 @@
 
 #include <JuceHeader.h>
 #include "../../GuiControlProperties.h"
+#include "../../../AppProperties.h"
+#include "../../../Assimil8or/MidiSetup/MidiSetup.h"
 
 // Mode : Omni, Uni, Multi - 0,1,2
 // Assignment : One set of values for Omni/Uni and another for Multi. The unit seems to remember the setting for each of these
@@ -56,14 +58,17 @@ private:
     {
     public:
         MidiConfigComponentDialog ();
-        void init (juce::ValueTree guiControlPropertiesVT);
+        void init (juce::ValueTree rootPropertiesVT);
+        void loadMidiSetups ();
 
     private:
+        AppProperties appProperties;
         GuiControlProperties guiControlProperties;
         juce::TabbedComponent midiSetupTabs { juce::TabbedButtonBar::Orientation::TabsAtTop };
         juce::TextButton saveButton;
         juce::TextButton cancelButton;
-        std::array<MidiSetupComponent, 8> midiSetupComponents;
+        std::array<MidiSetupComponent, 9> midiSetupComponents;
+        std::array<MidiSetupProperties, 9> midiSetupPropertiesList;
 
         void cancelClicked ();
         void closeDialog ();

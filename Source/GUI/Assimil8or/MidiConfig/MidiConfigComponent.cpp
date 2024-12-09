@@ -1,4 +1,5 @@
 #include "MidiConfigComponent.h"
+#include "../../../Utility/PersistentRootProperties.h"
 #include "../../../Utility/RuntimeRootProperties.h"
 
 MidiConfigComponent::MidiConfigComponent ()
@@ -11,27 +12,21 @@ void MidiConfigComponent::init (juce::ValueTree rootPropertiesVT)
     RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
     guiControlProperties.wrap (runtimeRootProperties.getValueTree (), GuiControlProperties::WrapperType::client, GuiControlProperties::EnableCallbacks::yes);
     guiControlProperties.onShowMidiConfigWindowChange = [this] (bool show) { handleShowChange (show); };
-    midiConfigComponentDialog.init (guiControlProperties.getValueTree ());
+    midiConfigComponentDialog.init (rootPropertiesVT);
 }
-
 
 void MidiConfigComponent::handleShowChange (bool show)
 {
     if (show)
-    {
-        // read midi setups
-    }
-    else
-    {
-        // release midi setups
-    }
+        midiConfigComponentDialog.loadMidiSetups ();
+
     setVisible (show);
 }
 
 MidiConfigComponent::MidiConfigComponentDialog::MidiConfigComponentDialog ()
 {
     setOpaque (true);
-    for (auto curMidiSetupIndex { 0 }; curMidiSetupIndex < 8; ++curMidiSetupIndex)
+    for (auto curMidiSetupIndex { 0 }; curMidiSetupIndex < 9; ++curMidiSetupIndex)
         midiSetupTabs.addTab (juce::String::charToString ('1' + curMidiSetupIndex), juce::Colours::darkgrey, &midiSetupComponents [curMidiSetupIndex], false);
     addAndMakeVisible (midiSetupTabs);
 
@@ -43,9 +38,34 @@ MidiConfigComponent::MidiConfigComponentDialog::MidiConfigComponentDialog ()
     cancelButton.onClick = [this] () { cancelClicked (); };
 }
 
-void MidiConfigComponent::MidiConfigComponentDialog::init (juce::ValueTree guiControlPropertiesVT)
+void MidiConfigComponent::MidiConfigComponentDialog::init (juce::ValueTree rootPropertiesVT)
 {
-    guiControlProperties.wrap (guiControlPropertiesVT, GuiControlProperties::WrapperType::client, GuiControlProperties::EnableCallbacks::no);
+    PersistentRootProperties persistentRootProperties (rootPropertiesVT, PersistentRootProperties::WrapperType::client, PersistentRootProperties::EnableCallbacks::no);
+    RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
+    guiControlProperties.wrap (runtimeRootProperties.getValueTree (), GuiControlProperties::WrapperType::client, GuiControlProperties::EnableCallbacks::no);
+    appProperties.wrap (persistentRootProperties.getValueTree (), AppProperties::WrapperType::client, AppProperties::EnableCallbacks::no);
+}
+
+void MidiConfigComponent::MidiConfigComponentDialog::loadMidiSetups ()
+{
+    // get current folder
+    juce::File currentFolder { appProperties.getMostRecentFolder () };
+    // iterate over possible midi setup files
+    for (auto curMidiSetupIndex { 0 }; curMidiSetupIndex < 9; ++curMidiSetupIndex)
+    {
+        auto midiSetupRawFile { currentFolder.getChildFile ("midi" + juce::String (curMidiSetupIndex + 1)).withFileExtension("yml") };
+        if (midiSetupRawFile.exists ())
+        {
+            MidiSetupFile midiSetupFile;
+            juce::StringArray midiSetupFileLines;
+            midiSetupRawFile.readLines (midiSetupFileLines);
+            midiSetupPropertiesList [curMidiSetupIndex].wrap (midiSetupFile.parse (midiSetupFileLines),MidiSetupProperties::WrapperType::owner, MidiSetupProperties::EnableCallbacks::no);
+        }
+        else
+        {
+            midiSetupPropertiesList [curMidiSetupIndex].wrap ({}, MidiSetupProperties::WrapperType::owner, MidiSetupProperties::EnableCallbacks::no);
+        }
+    }
 }
 
 void MidiConfigComponent::MidiConfigComponentDialog::cancelClicked ()
