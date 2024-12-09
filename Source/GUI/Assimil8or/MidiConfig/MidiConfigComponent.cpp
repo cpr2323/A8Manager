@@ -8,7 +8,24 @@ MidiConfigComponent::MidiConfigComponent ()
 
 void MidiConfigComponent::init (juce::ValueTree rootPropertiesVT)
 {
-    midiConfigComponentDialog.init (rootPropertiesVT);
+    RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
+    guiControlProperties.wrap (runtimeRootProperties.getValueTree (), GuiControlProperties::WrapperType::client, GuiControlProperties::EnableCallbacks::yes);
+    guiControlProperties.onShowMidiConfigWindowChange = [this] (bool show) { handleShowChange (show); };
+    midiConfigComponentDialog.init (guiControlProperties.getValueTree ());
+}
+
+
+void MidiConfigComponent::handleShowChange (bool show)
+{
+    if (show)
+    {
+        // read midi setups
+    }
+    else
+    {
+        // release midi setups
+    }
+    setVisible (show);
 }
 
 MidiConfigComponent::MidiConfigComponentDialog::MidiConfigComponentDialog ()
@@ -26,10 +43,9 @@ MidiConfigComponent::MidiConfigComponentDialog::MidiConfigComponentDialog ()
     cancelButton.onClick = [this] () { cancelClicked (); };
 }
 
-void MidiConfigComponent::MidiConfigComponentDialog::init (juce::ValueTree rootPropertiesVT)
+void MidiConfigComponent::MidiConfigComponentDialog::init (juce::ValueTree guiControlPropertiesVT)
 {
-    RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
-    guiControlProperties.wrap (runtimeRootProperties.getValueTree (), GuiControlProperties::WrapperType::client, GuiControlProperties::EnableCallbacks::no);
+    guiControlProperties.wrap (guiControlPropertiesVT, GuiControlProperties::WrapperType::client, GuiControlProperties::EnableCallbacks::no);
 }
 
 void MidiConfigComponent::MidiConfigComponentDialog::cancelClicked ()

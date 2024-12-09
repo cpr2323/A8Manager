@@ -1,6 +1,5 @@
 #include "MainComponent.h"
 #include "../Utility/PersistentRootProperties.h"
-#include "../Utility/RuntimeRootProperties.h"
 
 const auto toolWindowHeight { 30 };
 
@@ -30,12 +29,8 @@ MainComponent::MainComponent (juce::ValueTree rootPropertiesVT)
 {
     setSize (1117, 609);
 
-    RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
     PersistentRootProperties persistentRootProperties (rootPropertiesVT, PersistentRootProperties::WrapperType::client, PersistentRootProperties::EnableCallbacks::no);
-    guiControlProperties.wrap (runtimeRootProperties.getValueTree (), GuiControlProperties::WrapperType::client, GuiControlProperties::EnableCallbacks::yes);
     guiProperties.wrap (persistentRootProperties.getValueTree (), GuiProperties::WrapperType::client, GuiProperties::EnableCallbacks::no);
-
-    guiControlProperties.onShowMidiConfigWindowChange = [this] (bool show) { midiConfigComponent.setVisible (show); };
 
     fileViewComponent.overwritePresetOrCancel = [this] (std::function<void ()> overwriteFunction, std::function<void ()> cancelFunction)
     {

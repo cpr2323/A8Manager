@@ -56,7 +56,7 @@ private:
     {
     public:
         MidiConfigComponentDialog ();
-        void init (juce::ValueTree rootPropertiesVT);
+        void init (juce::ValueTree guiControlPropertiesVT);
 
     private:
         GuiControlProperties guiControlProperties;
@@ -73,6 +73,7 @@ private:
         void paint (juce::Graphics& g) override;
     };
 
+    GuiControlProperties guiControlProperties;
     MidiConfigComponentDialog midiConfigComponentDialog;
 
     void resized () override
@@ -85,4 +86,5 @@ private:
     {
         g.fillAll (juce::Colours::grey.withAlpha (0.5f));
     }
+    void handleShowChange (bool show);
 };
