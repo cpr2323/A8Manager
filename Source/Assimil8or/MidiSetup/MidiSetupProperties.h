@@ -3,24 +3,6 @@
 #include <JuceHeader.h>
 #include "../../Utility/ValueTreeWrapper.h"
 
-using Action = std::function<void ()>;
-using ActionMap = std::map<juce::String, Action>;
-
-namespace MidiSetup
-{
-    static inline const juce::String ModeId             { "mode" };
-    static inline const juce::String AssignId           { "assign" };
-    static inline const juce::String BasicChannelId     { "basicchannel" };
-    static inline const juce::String RcvProgramChangeId { "rcvprogamchange" };
-    static inline const juce::String XmtProgramChangeId { "xmtprogamchange" };
-    static inline const juce::String ColACCId           { "colAcc" };
-    static inline const juce::String ColBCCId           { "colBcc" };
-    static inline const juce::String ColCCCId           { "colCcc" };
-    static inline const juce::String PitchWheelSemiId   { "pitchwheelsemi" };
-    static inline const juce::String VelocityDepthId    { "velocitydepth" };
-    static inline const juce::String NotificationsId    { "notifications" };
-};
-
 // Mode : Omni, Uni, Multi - 0,1,2
 // Assignment : One set of values for Omni/Uni and another for Multi. The unit seems to remember the setting for each of these
 //              Dynamic, Dynamic II, Chroma 8, Chroma VZ, Chroma KZ, SP-1200, SP-1200 X - (0-6)
@@ -124,22 +106,4 @@ public:
 private:
 
     void valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property) override;
-};
-
-class MidiSetupFile
-{
-public:
-    MidiSetupFile ();
-    void write (juce::File presetFile, juce::ValueTree presetProperties);
-    juce::ValueTree parse (juce::StringArray presetLines);
-
-    juce::ValueTree getMidiSetupPropertiesVT () { return midiSetupProperties.getValueTree (); }
-
-private:
-    MidiSetupProperties midiSetupProperties;
-    ActionMap globalActions;
-    juce::String key;
-    juce::String value;
-
-    void initParser ();
 };

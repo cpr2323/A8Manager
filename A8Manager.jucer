@@ -66,8 +66,13 @@
                 file="Source/Assimil8or/Preset/ZoneProperties.h"/>
         </GROUP>
         <GROUP id="{51623D41-359A-2A33-39A9-D70877C43812}" name="MidiSetup">
-          <FILE id="UBMQBQ" name="MidiSetup.cpp" compile="1" resource="0" file="Source/Assimil8or/MidiSetup/MidiSetup.cpp"/>
-          <FILE id="gCTftQ" name="MidiSetup.h" compile="0" resource="0" file="Source/Assimil8or/MidiSetup/MidiSetup.h"/>
+          <FILE id="igOYuE" name="MidiSetupFile.cpp" compile="1" resource="0"
+                file="Source/Assimil8or/MidiSetup/MidiSetupFile.cpp"/>
+          <FILE id="axArnO" name="MidiSetupFile.h" compile="0" resource="0" file="Source/Assimil8or/MidiSetup/MidiSetupFile.h"/>
+          <FILE id="UBMQBQ" name="MidiSetupProperties.cpp" compile="1" resource="0"
+                file="Source/Assimil8or/MidiSetup/MidiSetupProperties.cpp"/>
+          <FILE id="gCTftQ" name="MidiSetupProperties.h" compile="0" resource="0"
+                file="Source/Assimil8or/MidiSetup/MidiSetupProperties.h"/>
         </GROUP>
         <GROUP id="{FFCC55CE-5847-C60B-915E-27F62A58650C}" name="Validator">
           <FILE id="hqDHiE" name="ValidatorProperties.cpp" compile="1" resource="0"

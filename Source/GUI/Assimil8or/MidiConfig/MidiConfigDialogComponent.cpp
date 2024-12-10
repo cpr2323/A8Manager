@@ -1,4 +1,5 @@
 #include "MidiConfigDialogComponent.h"
+#include "../../../Assimil8or/MidiSetup/MidiSetupFile.h"
 #include "../../../Utility/PersistentRootProperties.h"
 #include "../../../Utility/RuntimeRootProperties.h"
 

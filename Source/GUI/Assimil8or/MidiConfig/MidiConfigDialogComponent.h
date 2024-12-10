@@ -4,6 +4,7 @@
 #include "MidiSetupEditorComponent.h"
 #include "../../GuiControlProperties.h"
 #include "../../../AppProperties.h"
+#include "../../../Assimil8or/MidiSetup/MidiSetupProperties.h"
 
 class MidiConfigDialogComponent : public juce::Component
 {

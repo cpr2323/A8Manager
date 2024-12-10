@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../../Assimil8or/MidiSetup/MidiSetup.h"
+#include "../../../Assimil8or/MidiSetup/MidiSetupProperties.h"
 #include "../../../Utility/CustomComboBox.h"
 #include "../../../Utility/CustomTextEditor.h"
 
