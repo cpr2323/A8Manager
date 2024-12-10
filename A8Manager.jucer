@@ -181,6 +181,14 @@
                   file="Source/GUI/Assimil8or/MidiConfig/MidiConfigComponent.cpp"/>
             <FILE id="la52Lw" name="MidiConfigComponent.h" compile="0" resource="0"
                   file="Source/GUI/Assimil8or/MidiConfig/MidiConfigComponent.h"/>
+            <FILE id="z1K6R5" name="MidiConfigDialogComponent.cpp" compile="1"
+                  resource="0" file="Source/GUI/Assimil8or/MidiConfig/MidiConfigDialogComponent.cpp"/>
+            <FILE id="sH42j0" name="MidiConfigDialogComponent.h" compile="0" resource="0"
+                  file="Source/GUI/Assimil8or/MidiConfig/MidiConfigDialogComponent.h"/>
+            <FILE id="TChKBF" name="MidiSetupEditorComponent.cpp" compile="1" resource="0"
+                  file="Source/GUI/Assimil8or/MidiConfig/MidiSetupEditorComponent.cpp"/>
+            <FILE id="u9shCs" name="MidiSetupEditorComponent.h" compile="0" resource="0"
+                  file="Source/GUI/Assimil8or/MidiConfig/MidiSetupEditorComponent.h"/>
           </GROUP>
           <GROUP id="{61BC93EF-3ED8-1898-EC8D-0EF6927D16ED}" name="PresetList">
             <FILE id="NxljVl" name="PresetListComponent.cpp" compile="1" resource="0"

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include <stack>
 #include "../../Utility/ValueTreeWrapper.h"
 
 using Action = std::function<void ()>;
