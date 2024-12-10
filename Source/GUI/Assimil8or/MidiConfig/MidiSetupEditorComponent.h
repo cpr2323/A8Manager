@@ -72,4 +72,32 @@ private:
     CustomTextEditorInt velocityDepthTextEditor;
     juce::Label notificationsLabel;
     CustomComboBox notificationsComboBox;
+
+    void populateAssignmentComboBox (int mode);
+    void populateColCCComboBox (juce::ComboBox& comboBox);
+
+    void modeDataChanged (int mode);
+    void modeUiChanged (int mode);
+    void assignDataChanged (int assign);
+    void assignUiChanged (int assign);
+    void basicChannelDataChanged (int basicChannel);
+    void basicChannelUiChanged (int basicChannel);
+    void rcvProgramChangeDataChanged (int rcvProgramChange);
+    void rcvProgramChangeUiChanged (int rcvProgramChange);
+    void xmtProgramChangeDataChanged (int xmtProgramChange);
+    void xmtProgramChangeUiChanged (int xmtProgramChange);
+    void colACCDataChanged (int colAcc);
+    void colACCUiChanged (int colAcc);
+    void colBCCDataChanged (int colBcc);
+    void colBCCUiChanged (int colBcc);
+    void colCCCDataChanged (int colCcc);
+    void colCCCUiChanged (int colCcc);
+    void pitchWheelSemiDataChanged (int pitchWheelSemi);
+    void pitchWheelSemiUiChanged (int pitchWheelSemi);
+    void velocityDepthDataChanged (int velocityDepth);
+    void velocityDepthUiChanged (int velocityDepth);
+    void notificationsDataChanged (int notifications);
+    void notificationsUiChanged (int notifications);
+
+    void resized () override;
 };

@@ -78,14 +78,14 @@ public:
     std::function<void (int mode)> onModeChange;
     std::function<void (int assign)> onAssignChange;
     std::function<void (int basciChannel)> onBasicChannelChange;
-    std::function<void (int receiveChange)> onRcvProgramChangeChange;
-    std::function<void (int mode)> onXmtProgramChangeChange;
-    std::function<void (int mode)> onCollACCChange;
-    std::function<void (int mode)> onCollBCCChange;
-    std::function<void (int mode)> onCollCCCChange;
-    std::function<void (int mode)> onPitchWheelSemiChange;
-    std::function<void (int mode)> onVelocityDepthChange;
-    std::function<void (int mode)> onNotificationsChange;
+    std::function<void (int rcvProgramChange)> onRcvProgramChangeChange;
+    std::function<void (int xmtProgramChange)> onXmtProgramChangeChange;
+    std::function<void (int collAcc)> onColACCChange;
+    std::function<void (int collBcc)> onColBCCChange;
+    std::function<void (int collCcc)> onColCCCChange;
+    std::function<void (int pitchWheelSmemi)> onPitchWheelSemiChange;
+    std::function<void (int velocityDepth)> onVelocityDepthChange;
+    std::function<void (int notifications)> onNotificationsChange;
 
     void copyFrom (juce::ValueTree srcMidiSetupPropertiesVT);
 

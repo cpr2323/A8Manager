@@ -174,18 +174,18 @@ void MidiSetupProperties::valueTreePropertyChanged (juce::ValueTree& vt, const j
     }
     else if (property == ColACCPropertyId)
     {
-        if (onCollACCChange != nullptr)
-            onCollACCChange (getColACC ());
+        if (onColACCChange != nullptr)
+            onColACCChange (getColACC ());
     }
     else if (property == ColBCCPropertyId)
     {
-        if (onCollBCCChange != nullptr)
-            onCollBCCChange (getColBCC ());
+        if (onColBCCChange != nullptr)
+            onColBCCChange (getColBCC ());
     }
     else if (property == ColCCCPropertyId)
     {
-        if (onCollCCCChange != nullptr)
-            onCollCCCChange (getColCCC ());
+        if (onColCCCChange != nullptr)
+            onColCCCChange (getColCCC ());
     }
     else if (property == PitchWheelSemiPropertyId)
     {
