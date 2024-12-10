@@ -18,57 +18,57 @@ void MidiSetupProperties::initValueTree ()
 
 void MidiSetupProperties::setMode (int mode, bool includeSelfCallback)
 {
-    setValue (mode, ModePropertyId, false);
+    setValue (mode, ModePropertyId, includeSelfCallback);
 }
 
 void MidiSetupProperties::setAssign (int assign, bool includeSelfCallback)
 {
-    setValue (assign, AssignPropertyId, false);
+    setValue (assign, AssignPropertyId, includeSelfCallback);
 }
 
 void MidiSetupProperties::setBasicChannel (int basicChannel, bool includeSelfCallback)
 {
-    setValue (basicChannel, BasicChannelPropertyId, false);
+    setValue (basicChannel, BasicChannelPropertyId, includeSelfCallback);
 }
 
 void MidiSetupProperties::setRcvProgramChange (int receiveChange, bool includeSelfCallback)
 {
-    setValue (receiveChange, RcvProgramChangePropertyId, false);
+    setValue (receiveChange, RcvProgramChangePropertyId, includeSelfCallback);
 }
 
 void MidiSetupProperties::setXmtProgramChange (int transmitChange, bool includeSelfCallback)
 {
-    setValue (transmitChange, XmtProgramChangePropertyId, false);
+    setValue (transmitChange, XmtProgramChangePropertyId, includeSelfCallback);
 }
 
 void MidiSetupProperties::setColACC (int cc, bool includeSelfCallback)
 {
-    setValue (cc, ColACCPropertyId, false);
+    setValue (cc, ColACCPropertyId, includeSelfCallback);
 }
 
 void MidiSetupProperties::setColBCC (int cc, bool includeSelfCallback)
 {
-    setValue (cc, ColBCCPropertyId, false);
+    setValue (cc, ColBCCPropertyId, includeSelfCallback);
 }
 
 void MidiSetupProperties::setColCCC (int cc, bool includeSelfCallback)
 {
-    setValue (cc, ColCCCPropertyId, false);
+    setValue (cc, ColCCCPropertyId, includeSelfCallback);
 }
 
 void MidiSetupProperties::setPitchWheelSemi (int semiTones, bool includeSelfCallback)
 {
-    setValue (semiTones, PitchWheelSemiPropertyId, false);
+    setValue (semiTones, PitchWheelSemiPropertyId, includeSelfCallback);
 }
 
 void MidiSetupProperties::setVelocityDepth (int velocityDepth, bool includeSelfCallback)
 {
-    setValue (velocityDepth, VelocityDepthPropertyId, false);
+    setValue (velocityDepth, VelocityDepthPropertyId, includeSelfCallback);
 }
 
 void MidiSetupProperties::setNotifications (int notifications, bool includeSelfCallback)
 {
-    setValue (notifications, NotificationsPropertyId, false);
+    setValue (notifications, NotificationsPropertyId, includeSelfCallback);
 }
 
 int MidiSetupProperties::getMode ()
@@ -124,6 +124,22 @@ int MidiSetupProperties::getVelocityDepth ()
 int MidiSetupProperties::getNotifications ()
 {
     return getValue<int> (NotificationsPropertyId);
+}
+
+void MidiSetupProperties::copyFrom (juce::ValueTree srcMidiSetupPropertiesVT)
+{
+    MidiSetupProperties srcMidiSetupProperties { srcMidiSetupPropertiesVT, MidiSetupProperties::WrapperType::client, MidiSetupProperties::EnableCallbacks::no };
+    setMode (srcMidiSetupProperties.getMode (), false);
+    setAssign (srcMidiSetupProperties.getAssign (), false);
+    setBasicChannel (srcMidiSetupProperties.getBasicChannel (), false);
+    setRcvProgramChange (srcMidiSetupProperties.getRcvProgramChange (), false);
+    setXmtProgramChange (srcMidiSetupProperties.getXmtProgramChange (), false);
+    setColACC (srcMidiSetupProperties.getColACC (), false);
+    setColBCC (srcMidiSetupProperties.getColBCC (), false);
+    setColCCC (srcMidiSetupProperties.getColCCC (), false);
+    setPitchWheelSemi (srcMidiSetupProperties.getPitchWheelSemi (), false);
+    setVelocityDepth (srcMidiSetupProperties.getVelocityDepth (), false);
+    setNotifications (srcMidiSetupProperties.getNotifications (), false);
 }
 
 void MidiSetupProperties::valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property)

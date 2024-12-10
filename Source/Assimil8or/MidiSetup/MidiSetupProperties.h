@@ -87,6 +87,8 @@ public:
     std::function<void (int mode)> onVelocityDepthChange;
     std::function<void (int mode)> onNotificationsChange;
 
+    void copyFrom (juce::ValueTree srcMidiSetupPropertiesVT);
+
     static inline const juce::Identifier MidiSetupTypeId { "MidiSetup" };
     static inline const juce::Identifier ModePropertyId             { "mode" };
     static inline const juce::Identifier AssignPropertyId           { "assign" };

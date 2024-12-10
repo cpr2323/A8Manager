@@ -24,6 +24,12 @@ void MidiConfigDialogComponent::init (juce::ValueTree rootPropertiesVT)
     RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
     guiControlProperties.wrap (runtimeRootProperties.getValueTree (), GuiControlProperties::WrapperType::client, GuiControlProperties::EnableCallbacks::no);
     appProperties.wrap (persistentRootProperties.getValueTree (), AppProperties::WrapperType::client, AppProperties::EnableCallbacks::no);
+
+    for (auto curMidiSetupIndex { 0 }; curMidiSetupIndex < 9; ++curMidiSetupIndex)
+    {
+        midiSetupPropertiesList [curMidiSetupIndex].wrap ({}, MidiSetupProperties::WrapperType::owner, MidiSetupProperties::EnableCallbacks::no);
+        midiSetupEditorComponents [curMidiSetupIndex].init (midiSetupPropertiesList [curMidiSetupIndex].getValueTree ());
+    }
 }
 
 void MidiConfigDialogComponent::loadMidiSetups ()
@@ -39,13 +45,13 @@ void MidiConfigDialogComponent::loadMidiSetups ()
             MidiSetupFile midiSetupFile;
             juce::StringArray midiSetupFileLines;
             midiSetupRawFile.readLines (midiSetupFileLines);
-            midiSetupPropertiesList [curMidiSetupIndex].wrap (midiSetupFile.parse (midiSetupFileLines), MidiSetupProperties::WrapperType::owner, MidiSetupProperties::EnableCallbacks::no);
+            midiSetupPropertiesList [curMidiSetupIndex].copyFrom (midiSetupFile.parse (midiSetupFileLines));
         }
         else
         {
-            midiSetupPropertiesList [curMidiSetupIndex].wrap ({}, MidiSetupProperties::WrapperType::owner, MidiSetupProperties::EnableCallbacks::no);
+            midiSetupPropertiesList [curMidiSetupIndex].copyFrom (MidiSetupProperties ({}, MidiSetupProperties::WrapperType::owner, MidiSetupProperties::EnableCallbacks::no).getValueTree ());
         }
-        unEditedMidiSetupPropertiesList [curMidiSetupIndex].wrap (midiSetupPropertiesList [curMidiSetupIndex].getValueTree ().createCopy (), MidiSetupProperties::WrapperType::owner, MidiSetupProperties::EnableCallbacks::no);
+        unEditedMidiSetupPropertiesList [curMidiSetupIndex].copyFrom (midiSetupPropertiesList [curMidiSetupIndex].getValueTree ());
     }
 }
 
