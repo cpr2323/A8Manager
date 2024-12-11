@@ -82,27 +82,27 @@ private:
     void populateColCCComboBox (juce::ComboBox& comboBox);
 
     void modeDataChanged (int mode);
-    void modeUiChanged (int modeId);
+    void modeUiChanged (int modeId, bool updateUi);
     void assignDataChanged (int assign);
-    void assignUiChanged (int assignId);
+    void assignUiChanged (int assignId, bool updateUi);
     void basicChannelDataChanged (int basicChannel);
-    void basicChannelUiChanged (int basicChannelId);
+    void basicChannelUiChanged (int basicChannelId, bool updateUi);
     void rcvProgramChangeDataChanged (int rcvProgramChange);
-    void rcvProgramChangeUiChanged (int rcvProgramChangeId);
+    void rcvProgramChangeUiChanged (int rcvProgramChangeId, bool updateUi);
     void xmtProgramChangeDataChanged (int xmtProgramChange);
-    void xmtProgramChangeUiChanged (int xmtProgramChangeId);
+    void xmtProgramChangeUiChanged (int xmtProgramChangeId, bool updateUi);
     void colACCDataChanged (int colAcc);
-    void colACCUiChanged (int colAccId);
+    void colACCUiChanged (int colAccId, bool updateUi);
     void colBCCDataChanged (int colBcc);
-    void colBCCUiChanged (int colBccId);
+    void colBCCUiChanged (int colBccId, bool updateUi);
     void colCCCDataChanged (int colCcc);
-    void colCCCUiChanged (int colCccId);
+    void colCCCUiChanged (int colCccId, bool updateUi);
     void pitchWheelSemiDataChanged (int pitchWheelSemi);
-    void pitchWheelSemiUiChanged (int pitchWheelSemiId);
+    void pitchWheelSemiUiChanged (int pitchWheelSemiId, bool updateUi);
     void velocityDepthDataChanged (int velocityDepth);
-    void velocityDepthUiChanged (int velocityDepth);
+    void velocityDepthUiChanged (int velocityDepth, bool updateUi);
     void notificationsDataChanged (int notifications);
-    void notificationsUiChanged (int notificationsId);
+    void notificationsUiChanged (int notificationsId, bool updateUi);
 
     void resized () override;
 };
