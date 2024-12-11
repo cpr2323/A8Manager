@@ -69,6 +69,13 @@ void MidiConfigDialogComponent::closeDialog ()
 
 void MidiConfigDialogComponent::saveClicked ()
 {
+    juce::File currentFolder { appProperties.getMostRecentFolder () };
+    for (auto curMidiSetupIndex { 0 }; curMidiSetupIndex < 9; ++curMidiSetupIndex)
+    {
+        auto midiSetupRawFile { currentFolder.getChildFile ("midi" + juce::String (curMidiSetupIndex + 1)).withFileExtension ("yml") };
+        MidiSetupFile midiSetupFile;
+        midiSetupFile.write (midiSetupRawFile, midiSetupPropertiesList [curMidiSetupIndex].getValueTree ());
+    }
     closeDialog ();
 }
 

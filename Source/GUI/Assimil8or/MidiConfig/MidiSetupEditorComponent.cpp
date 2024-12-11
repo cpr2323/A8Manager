@@ -177,7 +177,7 @@ void MidiSetupEditorComponent::xmtProgramChangeUiChanged (int xmtProgramChange)
 
 void MidiSetupEditorComponent::colACCDataChanged (int colAcc)
 {
-    colACCComboBox.setSelectedId (colAcc + 1, juce::NotificationType::dontSendNotification);
+    colACCComboBox.setSelectedId (colAcc + 2, juce::NotificationType::dontSendNotification);
 }
 
 void MidiSetupEditorComponent::colACCUiChanged (int colAcc)
@@ -187,7 +187,7 @@ void MidiSetupEditorComponent::colACCUiChanged (int colAcc)
 
 void MidiSetupEditorComponent::colBCCDataChanged (int colBcc)
 {
-    colBCCComboBox.setSelectedId (colBcc + 1, juce::NotificationType::dontSendNotification);
+    colBCCComboBox.setSelectedId (colBcc + 2, juce::NotificationType::dontSendNotification);
 }
 
 void MidiSetupEditorComponent::colBCCUiChanged (int colBcc)
@@ -197,7 +197,7 @@ void MidiSetupEditorComponent::colBCCUiChanged (int colBcc)
 
 void MidiSetupEditorComponent::colCCCDataChanged (int colCcc)
 {
-    colCCCComboBox.setSelectedId (colCcc + 1, juce::NotificationType::dontSendNotification);
+    colCCCComboBox.setSelectedId (colCcc + 2, juce::NotificationType::dontSendNotification);
 }
 
 void MidiSetupEditorComponent::colCCCUiChanged (int colCcc)
@@ -235,8 +235,28 @@ void MidiSetupEditorComponent::notificationsUiChanged (int notifications)
     midiSetupProperties.setNotifications (notifications, false);
 }
 
-
 void MidiSetupEditorComponent::resized ()
 {
-    // place editor components
+    auto localBounds { getLocalBounds () };
+    localBounds.reduce (5, 5);
+
+    auto displayComponentPair = [this, &localBounds] (juce::Component& Label, juce::Component& editor)
+    {
+        auto displayLine { localBounds.removeFromTop (25) };
+        Label.setBounds (displayLine.removeFromLeft (140));
+        displayLine.removeFromLeft (10);
+        editor.setBounds (displayLine.removeFromLeft (150));
+        localBounds.removeFromTop (5);
+    };
+    displayComponentPair (modeLabel, modeComboBox);
+    displayComponentPair (assignLabel, assignComboBox);
+    displayComponentPair (basicChannelLabel, basicChannelComboBox);
+    displayComponentPair (rcvProgramChangeLabel, rcvProgramChangeComboBox);
+    displayComponentPair (xmtProgramChangeLabel, xmtProgramChangeComboBox);
+    displayComponentPair (colACCLabel, colACCComboBox);
+    displayComponentPair (colBCCLabel, colBCCComboBox);
+    displayComponentPair (colCCCLabel, colCCCComboBox);
+    displayComponentPair (pitchWheelSemiLabel, pitchWheelSemiComboBox);
+    displayComponentPair (velocityDepthLabel, velocityDepthTextEditor);
+    displayComponentPair (notificationsLabel, notificationsComboBox);
 }
