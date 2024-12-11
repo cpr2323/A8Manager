@@ -7,38 +7,86 @@ MidiSetupEditorComponent::MidiSetupEditorComponent ()
         label.setText (text, juce::NotificationType::dontSendNotification);
         addAndMakeVisible (label);
     };
-    auto setupComboBox = [this] (juce::ComboBox& comboBox, const std::vector<juce::String>& comboBoxItems)
+    auto setupComboBox = [this] (juce::ComboBox& comboBox, const std::vector<juce::String>& comboBoxItems, std::function<void ()> onChangeCallback)
     {
         for (auto itemIndex { 0 }; itemIndex < comboBoxItems.size (); ++itemIndex)
             comboBox.addItem (comboBoxItems [itemIndex], itemIndex + 1);
+        comboBox.setTooltip ("");
+        comboBox.onChange = onChangeCallback;
         addAndMakeVisible (comboBox);
     };
     setupLabel (modeLabel, "Mode");
-    setupComboBox (modeComboBox, {"Omni", "Uni", "Multi"});
+    setupComboBox (modeComboBox, { "Omni", "Uni", "Multi" }, [this] ()
+    {
+        modeUiChanged (modeComboBox.getSelectedId ());
+        populateAssignmentComboBox (midiSetupProperties.getMode ());
+    });
+
     setupLabel (assignLabel, "Assign");
     populateAssignmentComboBox (0);
+    assignComboBox.setTooltip ("");
+    assignComboBox.onChange = [this] () { assignUiChanged (assignComboBox.getSelectedId ()); };
     addAndMakeVisible (assignComboBox);
+
     setupLabel (basicChannelLabel, "Basic Channel");
-    setupComboBox (basicChannelComboBox, {"1", "2", "3", "4","5", "6", "7", "8", "9", "10", "11", "12", "13", "14","15", "16" });
+    setupComboBox (basicChannelComboBox, { "1", "2", "3", "4","5", "6", "7", "8", "9", "10", "11", "12", "13", "14","15", "16" }, [this] () { basicChannelUiChanged (basicChannelComboBox.getSelectedId ()); });
+
     setupLabel (rcvProgramChangeLabel, "Rcv Program Change");
-    setupComboBox (rcvProgramChangeComboBox, {"Off", "Exists","Any"});
+    setupComboBox (rcvProgramChangeComboBox, { "Off", "Exists","Any" }, [this] () { rcvProgramChangeUiChanged (rcvProgramChangeComboBox.getSelectedId ()); });
+
     setupLabel (xmtProgramChangeLabel, "Xmt Program Change");
-    setupComboBox (xmtProgramChangeComboBox, { "Off", "On" });
+    setupComboBox (xmtProgramChangeComboBox, { "Off", "On" }, [this] () { xmtProgramChangeUiChanged (xmtProgramChangeComboBox.getSelectedId ()); });
+
     setupLabel (colACCLabel, "Col A CC");
     populateColCCComboBox (colACCComboBox);
+    colACCComboBox.setTooltip ("");
+    colACCComboBox.onChange = [this] () { colACCUiChanged (colACCComboBox.getSelectedId ()); };
     addAndMakeVisible (colACCComboBox);
+
     setupLabel (colBCCLabel, "Col B CC");
     populateColCCComboBox (colBCCComboBox);
+    colBCCComboBox.setTooltip ("");
+    colBCCComboBox.onChange = [this] () { colBCCUiChanged (colBCCComboBox.getSelectedId ()); };
     addAndMakeVisible (colBCCComboBox);
+
     setupLabel (colCCCLabel, "Col C CC");
     populateColCCComboBox (colCCCComboBox);
+    colCCCComboBox.setTooltip ("");
+    colCCCComboBox.onChange = [this] () { colCCCUiChanged (colCCCComboBox.getSelectedId ()); };
     addAndMakeVisible (colCCCComboBox);
+
     setupLabel (pitchWheelSemiLabel, "Pitch Wheel Semi");
-    setupComboBox (pitchWheelSemiComboBox, {"+/- 0", "+/- 1", "+/- 2", "+/- 3", "+/- 4", "+/- 5", "+/- 6", "+/- 7", "+/- 8", "+/- 9", "+/- 10", "+/- 11", "+/- 12" });
+    setupComboBox (pitchWheelSemiComboBox, { "+/- 0", "+/- 1", "+/- 2", "+/- 3", "+/- 4", "+/- 5", "+/- 6", "+/- 7", "+/- 8", "+/- 9", "+/- 10", "+/- 11", "+/- 12" },
+                   [this] () { pitchWheelSemiUiChanged (pitchWheelSemiComboBox.getSelectedId()); });
+
+
     setupLabel (velocityDepthLabel, "Velocity Depth");
+    velocityDepthTextEditor.getMinValueCallback = [this] () { return 0; };
+    velocityDepthTextEditor.getMaxValueCallback = [this] () { return 127; };
+    velocityDepthTextEditor.toStringCallback = [this] (int value) { return juce::String (value); };
+    velocityDepthTextEditor.updateDataCallback = [this] (int value) { velocityDepthUiChanged (value); };
+    velocityDepthTextEditor.onDragCallback = [this] (DragSpeed dragSpeed, int direction)
+    {
+        const auto multiplier = [this, dragSpeed] ()
+        {
+            if (dragSpeed == DragSpeed::slow)
+                return 1;
+            else if (dragSpeed == DragSpeed::medium)
+                return 5;
+            else
+                return 10;
+        } ();
+        const auto newValue { midiSetupProperties.getVelocityDepth () + (multiplier * direction) };
+        velocityDepthTextEditor.setValue (newValue);
+    };
+    velocityDepthTextEditor.onPopupMenuCallback = [this] ()
+    {
+    };
+    velocityDepthTextEditor.setTooltip ("");
     addAndMakeVisible (velocityDepthTextEditor);
+
     setupLabel (notificationsLabel, "Notifications");
-    setupComboBox (notificationsComboBox, { "Off", "On" });
+    setupComboBox (notificationsComboBox, { "Off", "On" }, [this] () { notificationsUiChanged (notificationsComboBox.getSelectedId ()); });
 
     modeComboBox.setLookAndFeel (&noArrowComboBoxLnF);
     assignComboBox.setLookAndFeel (&noArrowComboBoxLnF);
@@ -108,6 +156,15 @@ void MidiSetupEditorComponent::populateAssignmentComboBox (int mode)
         populateComboBox (0, { "Dynamic", "Dynamic II", "Chroma 8", "Chroma VZ", "Chroma KZ", "SP - 1200", "SP - 1200 X" });
     else
         populateComboBox (10, { "Multi", "Multi VZ", "Multi KZ", "No Trigger" });
+    auto newAssignSelection = [this, mode] ()
+    {
+        const auto curAssignSelection { midiSetupProperties.getAssign () };
+        if (mode == 0 || mode == 1)
+            return curAssignSelection < 7 ? curAssignSelection : 0;
+        else
+            return curAssignSelection > 6 ? curAssignSelection : 10;
+    } ();
+    assignDataChanged (newAssignSelection);
 }
 
 void MidiSetupEditorComponent::populateColCCComboBox (juce::ComboBox& comboBox)
@@ -154,10 +211,10 @@ void MidiSetupEditorComponent::modeDataChanged (int mode)
     populateAssignmentComboBox (mode);
 }
 
-void MidiSetupEditorComponent::modeUiChanged (int mode)
+void MidiSetupEditorComponent::modeUiChanged (int modeId)
 {
-    midiSetupProperties.setMode (mode, false);
-    populateAssignmentComboBox (mode);
+    midiSetupProperties.setMode (modeId - 1, false);
+    populateAssignmentComboBox (modeId - 1);
 }
 
 void MidiSetupEditorComponent::assignDataChanged (int assign)
@@ -165,9 +222,9 @@ void MidiSetupEditorComponent::assignDataChanged (int assign)
     assignComboBox.setSelectedId (assign + 1, juce::NotificationType::dontSendNotification);
 }
 
-void MidiSetupEditorComponent::assignUiChanged (int assign)
+void MidiSetupEditorComponent::assignUiChanged (int assignId)
 {
-    midiSetupProperties.setAssign (assign, false);
+    midiSetupProperties.setAssign (assignId - 1, false);
 }
 
 void MidiSetupEditorComponent::basicChannelDataChanged (int basciChannel)
@@ -175,9 +232,9 @@ void MidiSetupEditorComponent::basicChannelDataChanged (int basciChannel)
     basicChannelComboBox.setSelectedId (basciChannel + 1, juce::NotificationType::dontSendNotification);
 }
 
-void MidiSetupEditorComponent::basicChannelUiChanged (int basicChannel)
+void MidiSetupEditorComponent::basicChannelUiChanged (int basicChannelId)
 {
-    midiSetupProperties.setBasicChannel (basicChannel, false);
+    midiSetupProperties.setBasicChannel (basicChannelId - 1, false);
 }
 
 void MidiSetupEditorComponent::rcvProgramChangeDataChanged (int rcvProgramChange)
@@ -185,9 +242,9 @@ void MidiSetupEditorComponent::rcvProgramChangeDataChanged (int rcvProgramChange
     rcvProgramChangeComboBox.setSelectedId (rcvProgramChange + 1, juce::NotificationType::dontSendNotification);
 }
 
-void MidiSetupEditorComponent::rcvProgramChangeUiChanged (int rcvProgramChange)
+void MidiSetupEditorComponent::rcvProgramChangeUiChanged (int rcvProgramChangeId)
 {
-    midiSetupProperties.setRcvProgramChange (rcvProgramChange, false);
+    midiSetupProperties.setRcvProgramChange (rcvProgramChangeId - 1, false);
 }
 
 void MidiSetupEditorComponent::xmtProgramChangeDataChanged (int xmtProgramChange)
@@ -195,9 +252,9 @@ void MidiSetupEditorComponent::xmtProgramChangeDataChanged (int xmtProgramChange
     xmtProgramChangeComboBox.setSelectedId (xmtProgramChange+ 1, juce::NotificationType::dontSendNotification);
 }
 
-void MidiSetupEditorComponent::xmtProgramChangeUiChanged (int xmtProgramChange)
+void MidiSetupEditorComponent::xmtProgramChangeUiChanged (int xmtProgramChangeId)
 {
-    midiSetupProperties.setXmtProgramChange (xmtProgramChange, false);
+    midiSetupProperties.setXmtProgramChange (xmtProgramChangeId - 1, false);
 }
 
 void MidiSetupEditorComponent::colACCDataChanged (int colAcc)
@@ -205,9 +262,9 @@ void MidiSetupEditorComponent::colACCDataChanged (int colAcc)
     colACCComboBox.setSelectedId (colAcc + 2, juce::NotificationType::dontSendNotification);
 }
 
-void MidiSetupEditorComponent::colACCUiChanged (int colAcc)
+void MidiSetupEditorComponent::colACCUiChanged (int colAccId)
 {
-    midiSetupProperties.setColACC (colAcc, false);
+    midiSetupProperties.setColACC (colAccId - 2, false);
 }
 
 void MidiSetupEditorComponent::colBCCDataChanged (int colBcc)
@@ -215,9 +272,9 @@ void MidiSetupEditorComponent::colBCCDataChanged (int colBcc)
     colBCCComboBox.setSelectedId (colBcc + 2, juce::NotificationType::dontSendNotification);
 }
 
-void MidiSetupEditorComponent::colBCCUiChanged (int colBcc)
+void MidiSetupEditorComponent::colBCCUiChanged (int colBccId)
 {
-    midiSetupProperties.setColBCC (colBcc, false);
+    midiSetupProperties.setColBCC (colBccId - 2, false);
 }
 
 void MidiSetupEditorComponent::colCCCDataChanged (int colCcc)
@@ -225,9 +282,9 @@ void MidiSetupEditorComponent::colCCCDataChanged (int colCcc)
     colCCCComboBox.setSelectedId (colCcc + 2, juce::NotificationType::dontSendNotification);
 }
 
-void MidiSetupEditorComponent::colCCCUiChanged (int colCcc)
+void MidiSetupEditorComponent::colCCCUiChanged (int colCccId)
 {
-    midiSetupProperties.setColCCC (colCcc, false);
+    midiSetupProperties.setColCCC (colCccId - 2, false);
 }
 
 void MidiSetupEditorComponent::pitchWheelSemiDataChanged (int pitchWheelSemi)
@@ -235,9 +292,9 @@ void MidiSetupEditorComponent::pitchWheelSemiDataChanged (int pitchWheelSemi)
     pitchWheelSemiComboBox.setSelectedId (pitchWheelSemi + 1, juce::NotificationType::dontSendNotification);
 }
 
-void MidiSetupEditorComponent::pitchWheelSemiUiChanged (int pitchWheelSemi)
+void MidiSetupEditorComponent::pitchWheelSemiUiChanged (int pitchWheelSemiId)
 {
-    midiSetupProperties.setPitchWheelSemi (pitchWheelSemi, false);
+    midiSetupProperties.setPitchWheelSemi (pitchWheelSemiId - 1, false);
 }
 
 void MidiSetupEditorComponent::velocityDepthDataChanged (int velocityDepth)
@@ -255,9 +312,9 @@ void MidiSetupEditorComponent::notificationsDataChanged (int notifications)
     notificationsComboBox.setSelectedId (notifications + 1, juce::NotificationType::dontSendNotification);
 }
 
-void MidiSetupEditorComponent::notificationsUiChanged (int notifications)
+void MidiSetupEditorComponent::notificationsUiChanged (int notificationsId)
 {
-    midiSetupProperties.setNotifications (notifications, false);
+    midiSetupProperties.setNotifications (notificationsId - 1, false);
 }
 
 void MidiSetupEditorComponent::resized ()
