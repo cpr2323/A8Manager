@@ -3,6 +3,7 @@
 #include "../../../Assimil8or/MidiSetup/MidiSetupProperties.h"
 #include "../../../Utility/CustomComboBox.h"
 #include "../../../Utility/CustomTextEditor.h"
+#include "../../../Utility/NoArrowComboBoxLnF.h"
 
 // Mode : Omni, Uni, Multi - 0,1,2
 // Assignment : One set of values for Omni/Uni and another for Multi. The unit seems to remember the setting for each of these
@@ -46,7 +47,9 @@ class MidiSetupEditorComponent : public juce::Component
 {
 public:
     MidiSetupEditorComponent ();
+    ~MidiSetupEditorComponent ();
     void init (juce::ValueTree midiSetupPropertiesVT);
+
 private:
     MidiSetupProperties midiSetupProperties;
 
@@ -72,6 +75,8 @@ private:
     CustomTextEditorInt velocityDepthTextEditor;
     juce::Label notificationsLabel;
     CustomComboBox notificationsComboBox;
+
+    NoArrowComboBoxLnF noArrowComboBoxLnF;
 
     void populateAssignmentComboBox (int mode);
     void populateColCCComboBox (juce::ComboBox& comboBox);

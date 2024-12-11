@@ -39,6 +39,31 @@ MidiSetupEditorComponent::MidiSetupEditorComponent ()
     addAndMakeVisible (velocityDepthTextEditor);
     setupLabel (notificationsLabel, "Notifications");
     setupComboBox (notificationsComboBox, { "Off", "On" });
+
+    modeComboBox.setLookAndFeel (&noArrowComboBoxLnF);
+    assignComboBox.setLookAndFeel (&noArrowComboBoxLnF);
+    basicChannelComboBox.setLookAndFeel (&noArrowComboBoxLnF);
+    rcvProgramChangeComboBox.setLookAndFeel (&noArrowComboBoxLnF);
+    xmtProgramChangeComboBox.setLookAndFeel (&noArrowComboBoxLnF);
+    colACCComboBox.setLookAndFeel (&noArrowComboBoxLnF);
+    colBCCComboBox.setLookAndFeel (&noArrowComboBoxLnF);
+    colCCCComboBox.setLookAndFeel (&noArrowComboBoxLnF);
+    pitchWheelSemiComboBox.setLookAndFeel (&noArrowComboBoxLnF);
+    notificationsComboBox.setLookAndFeel (&noArrowComboBoxLnF);
+}
+
+MidiSetupEditorComponent::~MidiSetupEditorComponent ()
+{
+    modeComboBox.setLookAndFeel (nullptr);
+    assignComboBox.setLookAndFeel (nullptr);
+    basicChannelComboBox.setLookAndFeel (nullptr);
+    rcvProgramChangeComboBox.setLookAndFeel (nullptr);
+    xmtProgramChangeComboBox.setLookAndFeel (nullptr);
+    colACCComboBox.setLookAndFeel (nullptr);
+    colBCCComboBox.setLookAndFeel (nullptr);
+    colCCCComboBox.setLookAndFeel (nullptr);
+    pitchWheelSemiComboBox.setLookAndFeel (nullptr);
+    notificationsComboBox.setLookAndFeel (nullptr);
 }
 
 void MidiSetupEditorComponent::init (juce::ValueTree midiSetupPropertiesVT)
