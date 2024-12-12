@@ -78,6 +78,11 @@ private:
         setText (toStringCallback (newValue));
     }
 
+    void focusLost (FocusChangeType)
+    {
+        setHighlightedRegion ({});
+    }
+
     void enablementChanged () override
     {
         auto getNewTextColour = [this] ()
