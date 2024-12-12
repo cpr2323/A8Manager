@@ -22,7 +22,13 @@ MidiSetupEditorComponent::MidiSetupEditorComponent ()
         const auto scrollAmount { 1 * direction };
         modeUiChanged (std::clamp (modeComboBox.getSelectedId () + scrollAmount, 1, modeComboBox.getNumItems ()), true);
     };
-    modeComboBox.onPopupMenuCallback = [this] () {};
+    modeComboBox.onPopupMenuCallback = [this] ()
+    {
+        auto editMenu { createMidiSetupEditMenu ([this] (MidiSetupProperties& destMidiSetupProperties) { destMidiSetupProperties.setMode (midiSetupProperties.getMode (), false); },
+                                                 [this] () { midiSetupProperties.setMode (0, true); },
+                                                 [this] () { midiSetupProperties.setMode (uneditedMidiSetupProperties.getMode (), true); }) };
+        editMenu.showMenuAsync ({}, [this] (int) {});
+    };
     modeComboBox.setTooltip ("");
     setupComboBox (modeComboBox, { "Omni", "Uni", "Multi" }, [this] ()
     {
@@ -199,9 +205,57 @@ MidiSetupEditorComponent::~MidiSetupEditorComponent ()
     notificationsComboBox.setLookAndFeel (nullptr);
 }
 
-void MidiSetupEditorComponent::init (juce::ValueTree midiSetupPropertiesVT)
+juce::PopupMenu MidiSetupEditorComponent::createMidiSetupCloneMenu (std::function <void (MidiSetupProperties&)> setter)
 {
-    midiSetupProperties.wrap (midiSetupPropertiesVT, MidiSetupProperties::WrapperType::client, MidiSetupProperties::EnableCallbacks::yes);
+    jassert (setter != nullptr);
+    juce::PopupMenu cloneMenu;
+    for (auto destMidiSetupIndex { 0 }; destMidiSetupIndex < 9; ++destMidiSetupIndex)
+    {
+        if (destMidiSetupIndex != midiSetupIndex)
+        {
+            cloneMenu.addItem ("To Midi Setup " + juce::String (destMidiSetupIndex + 1), true, false, [this, destMidiSetupIndex, setter] ()
+            {
+                MidiSetupProperties destMidiSetupProperties (midiSetupPropertiesListVT.getChild (destMidiSetupIndex), MidiSetupProperties::WrapperType::client, MidiSetupProperties::EnableCallbacks::no);
+                setter (destMidiSetupProperties);
+            });
+        }
+    }
+    cloneMenu.addItem ("To All", true, false, [this, setter] ()
+    {
+        // clone to other midi setups
+        for (auto destMidiSetupIndex { 0 }; destMidiSetupIndex < 9; ++destMidiSetupIndex)
+        {
+            if (destMidiSetupIndex != midiSetupIndex)
+            {
+                MidiSetupProperties destMidiSetupProperties (midiSetupPropertiesListVT.getChild (destMidiSetupIndex), MidiSetupProperties::WrapperType::client, MidiSetupProperties::EnableCallbacks::no);
+                setter (destMidiSetupProperties);
+            }
+            }
+    });
+    return cloneMenu;
+}
+
+juce::PopupMenu MidiSetupEditorComponent::createMidiSetupEditMenu (std::function <void (MidiSetupProperties&)> setter, std::function <void ()> resetter, std::function <void ()> reverter)
+{
+    juce::PopupMenu editMenu;
+    editMenu.addSubMenu ("Clone", createMidiSetupCloneMenu (setter), true);
+    if (resetter != nullptr)
+        editMenu.addItem ("Default", true, false, [this, resetter] () { resetter (); });
+    if (reverter != nullptr)
+        editMenu.addItem ("Revert", true, false, [this, reverter] () { reverter (); });
+
+    return editMenu;
+};
+
+void MidiSetupEditorComponent::init (int theMidiSetupIndex, juce::ValueTree theMidiSetupPropertiesListVT, juce::ValueTree uneditedMidiSetupPropertiesListVT)
+{
+    midiSetupPropertiesListVT = theMidiSetupPropertiesListVT;
+
+    midiSetupIndex = theMidiSetupIndex;
+
+    uneditedMidiSetupProperties.wrap (uneditedMidiSetupPropertiesListVT.getChild (midiSetupIndex), MidiSetupProperties::WrapperType::client, MidiSetupProperties::EnableCallbacks::yes);
+
+    midiSetupProperties.wrap (midiSetupPropertiesListVT.getChild (midiSetupIndex), MidiSetupProperties::WrapperType::client, MidiSetupProperties::EnableCallbacks::yes);
     midiSetupProperties.onModeChange = [this] (int mode) { modeDataChanged (mode); };
     midiSetupProperties.onAssignChange = [this] (int assign) { assignDataChanged (assign); };
     midiSetupProperties.onBasicChannelChange = [this] (int basciChannel) { basicChannelDataChanged (basciChannel); };

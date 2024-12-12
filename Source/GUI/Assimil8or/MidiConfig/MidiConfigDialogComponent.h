@@ -16,12 +16,13 @@ public:
 private:
     AppProperties appProperties;
     GuiControlProperties guiControlProperties;
+    juce::ValueTree midiSetupPropertiesListVT { "MidiSetupPropertiesList" };
+    juce::ValueTree uneditedMidiSetupPropertiesListVT { "MidiSetupPropertiesList" };
+
     juce::TabbedComponent midiSetupTabs { juce::TabbedButtonBar::Orientation::TabsAtTop };
     juce::TextButton saveButton;
     juce::TextButton cancelButton;
     std::array<MidiSetupEditorComponent, 9> midiSetupEditorComponents;
-    std::array<MidiSetupProperties, 9> midiSetupPropertiesList;
-    std::array<MidiSetupProperties, 9> unEditedMidiSetupPropertiesList;
 
     void cancelClicked ();
     void closeDialog ();

@@ -48,10 +48,14 @@ class MidiSetupEditorComponent : public juce::Component
 public:
     MidiSetupEditorComponent ();
     ~MidiSetupEditorComponent ();
-    void init (juce::ValueTree midiSetupPropertiesVT);
+    void init (int theMidiSetupIndex, juce::ValueTree theMidiSetupPropertiesListVT, juce::ValueTree theUneditedMidiSetupPropertiesListVT);
 
 private:
+    juce::ValueTree midiSetupPropertiesListVT;
     MidiSetupProperties midiSetupProperties;
+    MidiSetupProperties uneditedMidiSetupProperties;
+
+    int midiSetupIndex { 0 };
 
     juce::Label modeLabel;
     CustomComboBox modeComboBox;
@@ -78,6 +82,8 @@ private:
 
     NoArrowComboBoxLnF noArrowComboBoxLnF;
 
+    juce::PopupMenu createMidiSetupCloneMenu (std::function <void (MidiSetupProperties&)> setter);
+    juce::PopupMenu createMidiSetupEditMenu (std::function <void (MidiSetupProperties&)> setter, std::function <void ()> resetter, std::function <void ()> reverter);
     void populateAssignmentComboBox (int mode);
     void populateColCCComboBox (juce::ComboBox& comboBox);
 

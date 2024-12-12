@@ -27,8 +27,12 @@ void MidiConfigDialogComponent::init (juce::ValueTree rootPropertiesVT)
 
     for (auto curMidiSetupIndex { 0 }; curMidiSetupIndex < 9; ++curMidiSetupIndex)
     {
-        midiSetupPropertiesList [curMidiSetupIndex].wrap ({}, MidiSetupProperties::WrapperType::owner, MidiSetupProperties::EnableCallbacks::no);
-        midiSetupEditorComponents [curMidiSetupIndex].init (midiSetupPropertiesList [curMidiSetupIndex].getValueTree ());
+        MidiSetupProperties midiSetupProperties { {}, MidiSetupProperties::WrapperType::owner, MidiSetupProperties::EnableCallbacks::no };
+        MidiSetupProperties uneditedMidiSetupProperties { {}, MidiSetupProperties::WrapperType::owner, MidiSetupProperties::EnableCallbacks::no };
+        midiSetupPropertiesListVT.addChild (midiSetupProperties.getValueTree (), -1, nullptr);
+        uneditedMidiSetupPropertiesListVT.addChild (midiSetupProperties.getValueTree ().createCopy (), -1, nullptr);
+
+        midiSetupEditorComponents [curMidiSetupIndex].init (curMidiSetupIndex, midiSetupPropertiesListVT, uneditedMidiSetupPropertiesListVT);
     }
 }
 
@@ -39,19 +43,21 @@ void MidiConfigDialogComponent::loadMidiSetups ()
     // iterate over possible midi setup files
     for (auto curMidiSetupIndex { 0 }; curMidiSetupIndex < 9; ++curMidiSetupIndex)
     {
+        MidiSetupProperties midiSetupProperties { midiSetupPropertiesListVT.getChild (curMidiSetupIndex), MidiSetupProperties::WrapperType::owner, MidiSetupProperties::EnableCallbacks::no };
+        MidiSetupProperties uneditedMidiSetupProperties { uneditedMidiSetupPropertiesListVT.getChild (curMidiSetupIndex), MidiSetupProperties::WrapperType::owner, MidiSetupProperties::EnableCallbacks::no };
         auto midiSetupRawFile { currentFolder.getChildFile ("midi" + juce::String (curMidiSetupIndex + 1)).withFileExtension ("yml") };
         if (midiSetupRawFile.exists ())
         {
             MidiSetupFile midiSetupFile;
             juce::StringArray midiSetupFileLines;
             midiSetupRawFile.readLines (midiSetupFileLines);
-            midiSetupPropertiesList [curMidiSetupIndex].copyFrom (midiSetupFile.parse (midiSetupFileLines));
+            midiSetupProperties.copyFrom (midiSetupFile.parse (midiSetupFileLines));
         }
         else
         {
-            midiSetupPropertiesList [curMidiSetupIndex].copyFrom (MidiSetupProperties ({}, MidiSetupProperties::WrapperType::owner, MidiSetupProperties::EnableCallbacks::no).getValueTree ());
+            midiSetupProperties.copyFrom (MidiSetupProperties ({}, MidiSetupProperties::WrapperType::owner, MidiSetupProperties::EnableCallbacks::no).getValueTree ());
         }
-        unEditedMidiSetupPropertiesList [curMidiSetupIndex].copyFrom (midiSetupPropertiesList [curMidiSetupIndex].getValueTree ());
+        uneditedMidiSetupProperties.copyFrom (midiSetupProperties.getValueTree ());
     }
 }
 
@@ -74,7 +80,7 @@ void MidiConfigDialogComponent::saveClicked ()
     {
         auto midiSetupRawFile { currentFolder.getChildFile ("midi" + juce::String (curMidiSetupIndex + 1)).withFileExtension ("yml") };
         MidiSetupFile midiSetupFile;
-        midiSetupFile.write (midiSetupRawFile, midiSetupPropertiesList [curMidiSetupIndex].getValueTree ());
+        midiSetupFile.write (midiSetupRawFile, midiSetupPropertiesListVT.getChild (curMidiSetupIndex));
     }
     closeDialog ();
 }
