@@ -77,9 +77,23 @@ void MidiConfigDialogComponent::loadMidiSetups ()
 
 void MidiConfigDialogComponent::cancelClicked ()
 {
-    // compare midiSetupPropertiesList && unEditedMidiSetupPropertiesList
-    // if they do not match, query inform user the data will be lost if they do not cancel and go back to save
-    closeDialog ();
+    if (anyMidiSetupsEdited)
+    {
+        juce::AlertWindow::showOkCancelBox (juce::AlertWindow::WarningIcon, "Midi Setups Have Been Edited",
+            "You have not saved your edited Midi Setups.\n  Select Continue to lose your changes.\n  Select Cancel to go back and save.", "Continue (lose changes)", "Cancel", nullptr,
+            juce::ModalCallbackFunction::create ([this] (int option)
+            {
+                juce::MessageManager::callAsync ([this, option] ()
+                {
+                    if (option == 1) // Continue
+                        closeDialog ();
+                });
+            }));
+    }
+    else
+    {
+        closeDialog ();
+    }
 }
 
 void MidiConfigDialogComponent::closeDialog ()
@@ -117,7 +131,7 @@ void MidiConfigDialogComponent::timerCallback ()
                uneditedMidiSetupProperties.getVelocityDepth () == midiSetupProperties.getVelocityDepth () &&
                uneditedMidiSetupProperties.getNotifications () == midiSetupProperties.getNotifications ();
     };
-    auto anyMidiSetupsEdited { false };
+    anyMidiSetupsEdited = false;
     for (auto curMidiSetupIndex { 0 }; curMidiSetupIndex < 9; ++curMidiSetupIndex)
     {
         const auto midiSetupEdited { ! areMidiSetupsEqual (uneditedMidiSetupPropertiesListVT.getChild (curMidiSetupIndex), midiSetupPropertiesListVT.getChild (curMidiSetupIndex)) };

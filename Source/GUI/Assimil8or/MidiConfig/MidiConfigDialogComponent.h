@@ -24,6 +24,7 @@ private:
     juce::TextButton saveButton;
     juce::TextButton cancelButton;
     std::array<MidiSetupEditorComponent, 9> midiSetupEditorComponents;
+    bool anyMidiSetupsEdited { false };
 
     void cancelClicked ();
     void closeDialog ();
