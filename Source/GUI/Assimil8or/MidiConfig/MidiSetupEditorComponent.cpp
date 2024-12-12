@@ -188,10 +188,10 @@ MidiSetupEditorComponent::MidiSetupEditorComponent ()
     // PITCH WHEEL SEMI
     setupLabel (pitchWheelSemiLabel, "Pitch Wheel Semi");
     pitchWheelSemiComboBox.onDragCallback = [this] (DragSpeed dragSpeed, int direction)
-        {
-            const auto scrollAmount { 1 * direction };
-            pitchWheelSemiUiChanged (std::clamp (pitchWheelSemiComboBox.getSelectedId () + scrollAmount, 1, pitchWheelSemiComboBox.getNumItems ()), true);
-        };
+    {
+        const auto scrollAmount { 1 * direction };
+        pitchWheelSemiUiChanged (std::clamp (pitchWheelSemiComboBox.getSelectedId () + scrollAmount, 1, pitchWheelSemiComboBox.getNumItems ()), true);
+    };
     pitchWheelSemiComboBox.onPopupMenuCallback = [this] ()
     {
         auto editMenu { createMidiSetupEditMenu ([this] (MidiSetupProperties& destMidiSetupProperties) { destMidiSetupProperties.setPitchWheelSemi (midiSetupProperties.getPitchWheelSemi (), false); },
@@ -236,10 +236,10 @@ MidiSetupEditorComponent::MidiSetupEditorComponent ()
     // NOTIFICATIONS
     setupLabel (notificationsLabel, "Notifications");
     notificationsComboBox.onDragCallback = [this] (DragSpeed dragSpeed, int direction)
-        {
-            const auto scrollAmount { 1 * direction };
-            notificationsUiChanged (std::clamp (notificationsComboBox.getSelectedId () + scrollAmount, 1, notificationsComboBox.getNumItems ()), true);
-        };
+    {
+        const auto scrollAmount { 1 * direction };
+        notificationsUiChanged (std::clamp (notificationsComboBox.getSelectedId () + scrollAmount, 1, notificationsComboBox.getNumItems ()), true);
+    };
     notificationsComboBox.onPopupMenuCallback = [this] ()
     {
         auto editMenu { createMidiSetupEditMenu ([this] (MidiSetupProperties& destMidiSetupProperties) { destMidiSetupProperties.setNotifications (midiSetupProperties.getNotifications (), false); },

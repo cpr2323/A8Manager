@@ -6,12 +6,13 @@
 #include "../../../AppProperties.h"
 #include "../../../Assimil8or/MidiSetup/MidiSetupProperties.h"
 
-class MidiConfigDialogComponent : public juce::Component
+class MidiConfigDialogComponent : public juce::Component,
+                                         juce::Timer
 {
 public:
     MidiConfigDialogComponent ();
     void init (juce::ValueTree rootPropertiesVT);
-    void loadMidiSetups ();
+    void handleShowChange (bool show);
 
 private:
     AppProperties appProperties;
@@ -26,8 +27,10 @@ private:
 
     void cancelClicked ();
     void closeDialog ();
+    void loadMidiSetups ();
     void saveClicked ();
 
+    void timerCallback () override;
     void resized () override;
     void paint (juce::Graphics& g) override;
 };

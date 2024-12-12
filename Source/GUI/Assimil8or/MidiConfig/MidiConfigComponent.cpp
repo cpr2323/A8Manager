@@ -16,9 +16,7 @@ void MidiConfigComponent::init (juce::ValueTree rootPropertiesVT)
 
 void MidiConfigComponent::handleShowChange (bool show)
 {
-    if (show)
-        midiConfigComponentDialog.loadMidiSetups ();
-
+    midiConfigComponentDialog.handleShowChange (show);
     setVisible (show);
 }
 
