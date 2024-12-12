@@ -99,6 +99,18 @@ void FileViewComponent::updateFromNewData ()
     //juce::Logger::outputDebugString ("FileViewComponent::updateFromNewData () - elapsed time: " + juce::String (timer.getElapsedTime ()));
 }
 
+void FileViewComponent::timerCallback ()
+{
+    const auto elapsedTime { juce::Time::currentTimeMillis () - curBlinkTime };
+    if (elapsedTime > 1500)
+    {
+        doubleClickedRow = -1;
+        curBlinkTime = 0;
+        stopTimer ();
+    }
+    repaint ();
+}
+
 void FileViewComponent::buildQuickLookupList ()
 {
     updateDirectoryListQuickLookupList->clear ();
@@ -208,6 +220,11 @@ void FileViewComponent::paintListBoxItem (int row, juce::Graphics& g, int width,
         {
             filePrefix = "-  ";
             textColor = juce::Colours::forestgreen;
+            if (curBlinkTime != 0 && doubleClickedRow == row)
+            {
+                filePrefix += "Loading ";
+                textColor = textColor.brighter (0.7);
+            }
         }
         else
         {
@@ -443,6 +460,9 @@ void FileViewComponent::listBoxItemDoubleClicked (int row, [[maybe_unused]] cons
     const auto directoryEntryVT { getDirectoryEntryVT (row) };
     if (directoryEntryVT.getType ().toString () == "File" && static_cast<int> (directoryEntryVT.getProperty ("type")) == DirectoryDataProperties::TypeIndex::audioFile)
     {
+        doubleClickedRow = row;
+        curBlinkTime = juce::Time::currentTimeMillis ();
+        startTimer (125);
         if (onAudioFileSelected != nullptr)
             onAudioFileSelected (juce::File (directoryEntryVT.getProperty ("name").toString ()));
     }

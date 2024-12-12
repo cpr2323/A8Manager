@@ -7,7 +7,8 @@
 #include "../../../Utility/LambdaThread.h"
 
 class FileViewComponent : public juce::Component,
-                          private juce::ListBoxModel
+                          private juce::ListBoxModel,
+                          private juce::Timer
 {
 public:
     FileViewComponent ();
@@ -42,12 +43,16 @@ private:
     std::unique_ptr<juce::AlertWindow> newAlertWindow;
     LambdaThread updateFromNewDataThread { "UpdateFromNewDataThread", 100 };
 
+    juce::int64 curBlinkTime { 0 };
+    int doubleClickedRow { -1 };
+
     void buildQuickLookupList ();
     juce::ValueTree getDirectoryEntryVT (int row);
     void newFolder ();
     void openFolder ();
     void updateFromNewData ();
 
+    void timerCallback () override;
     int getNumRows () override;
     juce::String getTooltipForRow (int row) override;
     void listBoxItemClicked (int row, const juce::MouseEvent& me) override;
