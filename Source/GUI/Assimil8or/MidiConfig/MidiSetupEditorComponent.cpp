@@ -25,7 +25,7 @@ MidiSetupEditorComponent::MidiSetupEditorComponent ()
     modeComboBox.onPopupMenuCallback = [this] ()
     {
         auto editMenu { createMidiSetupEditMenu ([this] (MidiSetupProperties& destMidiSetupProperties) { destMidiSetupProperties.setMode (midiSetupProperties.getMode (), false); },
-                                                 [this] () { midiSetupProperties.setMode (0, true); },
+                                                 [this] () { midiSetupProperties.setMode (1, true); },
                                                  [this] () { midiSetupProperties.setMode (uneditedMidiSetupProperties.getMode (), true); }) };
         editMenu.showMenuAsync ({}, [this] (int) {});
     };
@@ -51,7 +51,25 @@ MidiSetupEditorComponent::MidiSetupEditorComponent ()
             } ();
         assignUiChanged (std::clamp (assignComboBox.getSelectedId () + scrollAmount, minAssign, maxAssign), true);
     };
-    assignComboBox.onPopupMenuCallback = [this] () {};
+    assignComboBox.onPopupMenuCallback = [this] ()
+    {
+        auto editMenu { createMidiSetupEditMenu ([this] (MidiSetupProperties& destMidiSetupProperties)
+                                                 {
+                                                     destMidiSetupProperties.setMode (midiSetupProperties.getMode (), false);
+                                                     destMidiSetupProperties.setAssign (midiSetupProperties.getAssign (), false);
+                                                 },
+                                                 [this] ()
+                                                 {
+                                                     midiSetupProperties.setMode (1, true);
+                                                     midiSetupProperties.setAssign (0, false);
+                                                 },
+                                                 [this] ()
+                                                 {
+                                                     midiSetupProperties.setMode (uneditedMidiSetupProperties.getMode (), true);
+                                                     midiSetupProperties.setAssign (uneditedMidiSetupProperties.getAssign (), true);
+                                                 }) };
+        editMenu.showMenuAsync ({}, [this] (int) {});
+    };
     assignComboBox.setTooltip ("");
     populateAssignmentComboBox (0);
     assignComboBox.onChange = [this] () { assignUiChanged (assignComboBox.getSelectedId (), false); };
@@ -64,7 +82,13 @@ MidiSetupEditorComponent::MidiSetupEditorComponent ()
         const auto scrollAmount { 1 * direction };
         basicChannelUiChanged (std::clamp (basicChannelComboBox.getSelectedId () + scrollAmount, 1, basicChannelComboBox.getNumItems ()), true);
     };
-    basicChannelComboBox.onPopupMenuCallback = [this] () {};
+    basicChannelComboBox.onPopupMenuCallback = [this] ()
+    {
+        auto editMenu { createMidiSetupEditMenu ([this] (MidiSetupProperties& destMidiSetupProperties) { destMidiSetupProperties.setBasicChannel (midiSetupProperties.getBasicChannel (), false); },
+                                                 [this] () { midiSetupProperties.setBasicChannel (0, true); },
+                                                 [this] () { midiSetupProperties.setBasicChannel( uneditedMidiSetupProperties.getBasicChannel (), true); }) };
+        editMenu.showMenuAsync ({}, [this] (int) {});
+    };
     basicChannelComboBox.setTooltip ("");
     setupComboBox (basicChannelComboBox, { "1", "2", "3", "4","5", "6", "7", "8", "9", "10", "11", "12", "13", "14","15", "16" },
                    [this] () { basicChannelUiChanged (basicChannelComboBox.getSelectedId (), false); });
@@ -76,7 +100,13 @@ MidiSetupEditorComponent::MidiSetupEditorComponent ()
         const auto scrollAmount { 1 * direction };
         rcvProgramChangeUiChanged (std::clamp (rcvProgramChangeComboBox.getSelectedId () + scrollAmount, 1, rcvProgramChangeComboBox.getNumItems ()), true);
     };
-    rcvProgramChangeComboBox.onPopupMenuCallback = [this] () {};
+    rcvProgramChangeComboBox.onPopupMenuCallback = [this] ()
+    {
+        auto editMenu { createMidiSetupEditMenu ([this] (MidiSetupProperties& destMidiSetupProperties) { destMidiSetupProperties.setRcvProgramChange (midiSetupProperties.getRcvProgramChange (), false); },
+                                                 [this] () { midiSetupProperties.setRcvProgramChange (1, true); },
+                                                 [this] () { midiSetupProperties.setRcvProgramChange (uneditedMidiSetupProperties.getRcvProgramChange (), true); }) };
+        editMenu.showMenuAsync ({}, [this] (int) {});
+    };
     rcvProgramChangeComboBox.setTooltip ("");
     setupComboBox (rcvProgramChangeComboBox, { "Off", "Exists","Any" }, [this] () { rcvProgramChangeUiChanged (rcvProgramChangeComboBox.getSelectedId (), false); });
 
@@ -87,7 +117,14 @@ MidiSetupEditorComponent::MidiSetupEditorComponent ()
         const auto scrollAmount { 1 * direction };
         xmtProgramChangeUiChanged (std::clamp (xmtProgramChangeComboBox.getSelectedId () + scrollAmount, 1, xmtProgramChangeComboBox.getNumItems ()), true);
     };
-    xmtProgramChangeComboBox.onPopupMenuCallback = [this] () {};
+    xmtProgramChangeComboBox.onPopupMenuCallback = [this] ()
+    {
+        auto editMenu { createMidiSetupEditMenu ([this] (MidiSetupProperties& destMidiSetupProperties) { destMidiSetupProperties.setXmtProgramChange (midiSetupProperties.getXmtProgramChange (), false); },
+                                                 [this] () { midiSetupProperties.setXmtProgramChange (1, true); },
+                                                 [this] () { midiSetupProperties.setXmtProgramChange (uneditedMidiSetupProperties.getXmtProgramChange (), true); }) };
+        editMenu.showMenuAsync ({}, [this] (int) {});
+    };
+
     xmtProgramChangeComboBox.setTooltip ("");
     setupComboBox (xmtProgramChangeComboBox, { "Off", "On" }, [this] () { xmtProgramChangeUiChanged (xmtProgramChangeComboBox.getSelectedId (), false); });
 
@@ -98,7 +135,13 @@ MidiSetupEditorComponent::MidiSetupEditorComponent ()
         const auto scrollAmount { (dragSpeed == DragSpeed::fast ? 2 : 1) * direction };
         colACCUiChanged (std::clamp (colACCComboBox.getSelectedId () + scrollAmount, 1, colACCComboBox.getNumItems ()), true);
     };
-    colACCComboBox.onPopupMenuCallback = [this] () {};
+    colACCComboBox.onPopupMenuCallback = [this] ()
+    {
+        auto editMenu { createMidiSetupEditMenu ([this] (MidiSetupProperties& destMidiSetupProperties) { destMidiSetupProperties.setColACC (midiSetupProperties.getColACC (), false); },
+                                                 [this] () { midiSetupProperties.setColACC (-1, true); },
+                                                 [this] () { midiSetupProperties.setColACC (uneditedMidiSetupProperties.getColACC (), true); }) };
+        editMenu.showMenuAsync ({}, [this] (int) {});
+    };
     colACCComboBox.setTooltip ("");
     populateColCCComboBox (colACCComboBox);
     colACCComboBox.onChange = [this] () { colACCUiChanged (colACCComboBox.getSelectedId (), false); };
@@ -111,7 +154,13 @@ MidiSetupEditorComponent::MidiSetupEditorComponent ()
         const auto scrollAmount { (dragSpeed == DragSpeed::fast ? 2 : 1) * direction };
         colBCCUiChanged (std::clamp (colBCCComboBox.getSelectedId () + scrollAmount, 1, colBCCComboBox.getNumItems ()), true);
     };
-    colBCCComboBox.onPopupMenuCallback = [this] () {};
+    colBCCComboBox.onPopupMenuCallback = [this] ()
+    {
+        auto editMenu { createMidiSetupEditMenu ([this] (MidiSetupProperties& destMidiSetupProperties) { destMidiSetupProperties.setColBCC (midiSetupProperties.getColBCC (), false); },
+                                                 [this] () { midiSetupProperties.setColBCC (-1, true); },
+                                                 [this] () { midiSetupProperties.setColBCC (uneditedMidiSetupProperties.getColBCC (), true); }) };
+        editMenu.showMenuAsync ({}, [this] (int) {});
+    };
     colBCCComboBox.setTooltip ("");
     populateColCCComboBox (colBCCComboBox);
     colBCCComboBox.onChange = [this] () { colBCCUiChanged (colBCCComboBox.getSelectedId (), false); };
@@ -124,7 +173,13 @@ MidiSetupEditorComponent::MidiSetupEditorComponent ()
         const auto scrollAmount { (dragSpeed == DragSpeed::fast ? 2 : 1) * direction };
         colCCCUiChanged (std::clamp (colCCCComboBox.getSelectedId () + scrollAmount, 1, colCCCComboBox.getNumItems ()), true);
     };
-    colCCCComboBox.onPopupMenuCallback = [this] () {};
+    colCCCComboBox.onPopupMenuCallback = [this] ()
+    {
+        auto editMenu { createMidiSetupEditMenu ([this] (MidiSetupProperties& destMidiSetupProperties) { destMidiSetupProperties.setColCCC (midiSetupProperties.getColCCC (), false); },
+                                                [this] () { midiSetupProperties.setColCCC (-1, true); },
+                                                [this] () { midiSetupProperties.setColCCC (uneditedMidiSetupProperties.getColCCC (), true); }) };
+        editMenu.showMenuAsync ({}, [this] (int) {});
+    };
     colCCCComboBox.setTooltip ("");
     populateColCCComboBox (colCCCComboBox);
     colCCCComboBox.onChange = [this] () { colCCCUiChanged (colCCCComboBox.getSelectedId (), false); };
@@ -137,7 +192,13 @@ MidiSetupEditorComponent::MidiSetupEditorComponent ()
             const auto scrollAmount { 1 * direction };
             pitchWheelSemiUiChanged (std::clamp (pitchWheelSemiComboBox.getSelectedId () + scrollAmount, 1, pitchWheelSemiComboBox.getNumItems ()), true);
         };
-    pitchWheelSemiComboBox.onPopupMenuCallback = [this] () {};
+    pitchWheelSemiComboBox.onPopupMenuCallback = [this] ()
+    {
+        auto editMenu { createMidiSetupEditMenu ([this] (MidiSetupProperties& destMidiSetupProperties) { destMidiSetupProperties.setPitchWheelSemi (midiSetupProperties.getPitchWheelSemi (), false); },
+                                                 [this] () { midiSetupProperties.setPitchWheelSemi (12, true); },
+                                                 [this] () { midiSetupProperties.setPitchWheelSemi (uneditedMidiSetupProperties.getPitchWheelSemi (), true); }) };
+        editMenu.showMenuAsync ({}, [this] (int) {});
+    };
     pitchWheelSemiComboBox.setTooltip ("");
     setupComboBox (pitchWheelSemiComboBox, { "+/- 0", "+/- 1", "+/- 2", "+/- 3", "+/- 4", "+/- 5", "+/- 6", "+/- 7", "+/- 8", "+/- 9", "+/- 10", "+/- 11", "+/- 12" },
                    [this] () { pitchWheelSemiUiChanged (pitchWheelSemiComboBox.getSelectedId(), false); });
@@ -164,6 +225,10 @@ MidiSetupEditorComponent::MidiSetupEditorComponent ()
     };
     velocityDepthTextEditor.onPopupMenuCallback = [this] ()
     {
+        auto editMenu { createMidiSetupEditMenu ([this] (MidiSetupProperties& destMidiSetupProperties) { destMidiSetupProperties.setVelocityDepth (midiSetupProperties.getVelocityDepth (), false); },
+                                                 [this] () { midiSetupProperties.setVelocityDepth (32, true); },
+                                                 [this] () { midiSetupProperties.setVelocityDepth (uneditedMidiSetupProperties.getVelocityDepth (), true); }) };
+        editMenu.showMenuAsync ({}, [this] (int) {});
     };
     velocityDepthTextEditor.setTooltip ("");
     addAndMakeVisible (velocityDepthTextEditor);
@@ -175,7 +240,13 @@ MidiSetupEditorComponent::MidiSetupEditorComponent ()
             const auto scrollAmount { 1 * direction };
             notificationsUiChanged (std::clamp (notificationsComboBox.getSelectedId () + scrollAmount, 1, notificationsComboBox.getNumItems ()), true);
         };
-    notificationsComboBox.onPopupMenuCallback = [this] () {};
+    notificationsComboBox.onPopupMenuCallback = [this] ()
+    {
+        auto editMenu { createMidiSetupEditMenu ([this] (MidiSetupProperties& destMidiSetupProperties) { destMidiSetupProperties.setNotifications (midiSetupProperties.getNotifications (), false); },
+                                                 [this] () { midiSetupProperties.setNotifications (1, true); },
+                                                 [this] () { midiSetupProperties.setNotifications (uneditedMidiSetupProperties.getNotifications (), true); }) };
+        editMenu.showMenuAsync ({}, [this] (int) {});
+    };
     notificationsComboBox.setTooltip ("");
     setupComboBox (notificationsComboBox, { "Off", "On" }, [this] () { notificationsUiChanged (notificationsComboBox.getSelectedId (), false); });
 
@@ -243,18 +314,15 @@ juce::PopupMenu MidiSetupEditorComponent::createMidiSetupEditMenu (std::function
         editMenu.addItem ("Default", true, false, [this, resetter] () { resetter (); });
     if (reverter != nullptr)
         editMenu.addItem ("Revert", true, false, [this, reverter] () { reverter (); });
-
     return editMenu;
 };
 
 void MidiSetupEditorComponent::init (int theMidiSetupIndex, juce::ValueTree theMidiSetupPropertiesListVT, juce::ValueTree uneditedMidiSetupPropertiesListVT)
 {
     midiSetupPropertiesListVT = theMidiSetupPropertiesListVT;
-
     midiSetupIndex = theMidiSetupIndex;
-
+    
     uneditedMidiSetupProperties.wrap (uneditedMidiSetupPropertiesListVT.getChild (midiSetupIndex), MidiSetupProperties::WrapperType::client, MidiSetupProperties::EnableCallbacks::yes);
-
     midiSetupProperties.wrap (midiSetupPropertiesListVT.getChild (midiSetupIndex), MidiSetupProperties::WrapperType::client, MidiSetupProperties::EnableCallbacks::yes);
     midiSetupProperties.onModeChange = [this] (int mode) { modeDataChanged (mode); };
     midiSetupProperties.onAssignChange = [this] (int assign) { assignDataChanged (assign); };
@@ -265,7 +333,7 @@ void MidiSetupEditorComponent::init (int theMidiSetupIndex, juce::ValueTree theM
     midiSetupProperties.onColBCCChange = [this] (int colBcc) { colBCCDataChanged (colBcc); };
     midiSetupProperties.onColCCCChange = [this] (int colCcc) { colCCCDataChanged (colCcc); };
     midiSetupProperties.onPitchWheelSemiChange = [this] (int pitchWheelSmemi) { pitchWheelSemiDataChanged (pitchWheelSmemi); };
-    midiSetupProperties.onVelocityDepthChange = [this] (int velocityDepth) { colBCCDataChanged (velocityDepth); };
+    midiSetupProperties.onVelocityDepthChange = [this] (int velocityDepth) { velocityDepthDataChanged (velocityDepth); };
     midiSetupProperties.onNotificationsChange = [this] (int notifications) { notificationsDataChanged (notifications); };
 
     modeDataChanged (midiSetupProperties.getMode ());
