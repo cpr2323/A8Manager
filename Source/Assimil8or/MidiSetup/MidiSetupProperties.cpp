@@ -129,17 +129,17 @@ int MidiSetupProperties::getNotifications ()
 void MidiSetupProperties::copyFrom (juce::ValueTree srcMidiSetupPropertiesVT)
 {
     MidiSetupProperties srcMidiSetupProperties { srcMidiSetupPropertiesVT, MidiSetupProperties::WrapperType::client, MidiSetupProperties::EnableCallbacks::no };
-    setMode (srcMidiSetupProperties.getMode (), false);
-    setAssign (srcMidiSetupProperties.getAssign (), false);
-    setBasicChannel (srcMidiSetupProperties.getBasicChannel (), false);
-    setRcvProgramChange (srcMidiSetupProperties.getRcvProgramChange (), false);
-    setXmtProgramChange (srcMidiSetupProperties.getXmtProgramChange (), false);
-    setColACC (srcMidiSetupProperties.getColACC (), false);
-    setColBCC (srcMidiSetupProperties.getColBCC (), false);
-    setColCCC (srcMidiSetupProperties.getColCCC (), false);
-    setPitchWheelSemi (srcMidiSetupProperties.getPitchWheelSemi (), false);
-    setVelocityDepth (srcMidiSetupProperties.getVelocityDepth (), false);
-    setNotifications (srcMidiSetupProperties.getNotifications (), false);
+    setMode (srcMidiSetupProperties.getMode (), true);
+    setAssign (srcMidiSetupProperties.getAssign (), true);
+    setBasicChannel (srcMidiSetupProperties.getBasicChannel (), true);
+    setRcvProgramChange (srcMidiSetupProperties.getRcvProgramChange (), true);
+    setXmtProgramChange (srcMidiSetupProperties.getXmtProgramChange (), true);
+    setColACC (srcMidiSetupProperties.getColACC (), true);
+    setColBCC (srcMidiSetupProperties.getColBCC (), true);
+    setColCCC (srcMidiSetupProperties.getColCCC (), true);
+    setPitchWheelSemi (srcMidiSetupProperties.getPitchWheelSemi (), true);
+    setVelocityDepth (srcMidiSetupProperties.getVelocityDepth (), true);
+    setNotifications (srcMidiSetupProperties.getNotifications (), true);
 }
 
 void MidiSetupProperties::valueTreePropertyChanged (juce::ValueTree& vt, const juce::Identifier& property)

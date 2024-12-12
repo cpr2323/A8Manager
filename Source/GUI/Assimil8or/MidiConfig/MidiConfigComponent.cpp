@@ -25,7 +25,7 @@ void MidiConfigComponent::handleShowChange (bool show)
 void MidiConfigComponent::resized ()
 {
     constexpr auto kContentWidth { 400 };
-    constexpr auto kContentHeight { 400 };
+    constexpr auto kContentHeight { 430 };
     midiConfigComponentDialog.setBounds (getWidth () / 2 - kContentWidth / 2, 27, kContentWidth, kContentHeight);
 }
 void MidiConfigComponent::paint (juce::Graphics& g)

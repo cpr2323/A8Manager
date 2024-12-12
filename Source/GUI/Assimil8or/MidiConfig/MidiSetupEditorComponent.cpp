@@ -250,6 +250,27 @@ MidiSetupEditorComponent::MidiSetupEditorComponent ()
     notificationsComboBox.setTooltip ("");
     setupComboBox (notificationsComboBox, { "Off", "On" }, [this] () { notificationsUiChanged (notificationsComboBox.getSelectedId (), false); });
 
+    toolsButton.setButtonText ("TOOLS");
+    toolsButton.onClick = [this] ()
+    {
+        juce::PopupMenu toolsMenu;
+        toolsMenu.addSubMenu ("Clone", createMidiSetupCloneMenu ([this] (MidiSetupProperties& destMidiSetupProperties)
+        {
+            destMidiSetupProperties.copyFrom(midiSetupProperties.getValueTree());
+        }), true);
+        toolsMenu.addItem ("Default", true, false, [this] ()
+        {
+            MidiSetupProperties defaultMidiSetupProperties ({}, MidiSetupProperties::WrapperType::owner, MidiSetupProperties::EnableCallbacks::no);
+            midiSetupProperties.copyFrom (defaultMidiSetupProperties.getValueTree ());
+        });
+        toolsMenu.addItem ("Revert", true, false, [this] ()
+        {
+            midiSetupProperties.copyFrom (uneditedMidiSetupProperties.getValueTree ());
+        });
+        toolsMenu.showMenuAsync ({}, [this] (int) {});
+    };
+    addAndMakeVisible (toolsButton);
+
     modeComboBox.setLookAndFeel (&noArrowComboBoxLnF);
     assignComboBox.setLookAndFeel (&noArrowComboBoxLnF);
     basicChannelComboBox.setLookAndFeel (&noArrowComboBoxLnF);
@@ -548,4 +569,7 @@ void MidiSetupEditorComponent::resized ()
     displayComponentPair (pitchWheelSemiLabel, pitchWheelSemiComboBox);
     displayComponentPair (velocityDepthLabel, velocityDepthTextEditor);
     displayComponentPair (notificationsLabel, notificationsComboBox);
+
+    localBounds.removeFromLeft (10);
+    toolsButton.setBounds (localBounds.removeFromTop (20).removeFromLeft (40));
 }

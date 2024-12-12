@@ -80,6 +80,8 @@ private:
     juce::Label notificationsLabel;
     CustomComboBox notificationsComboBox;
 
+    juce::TextButton toolsButton;
+
     NoArrowComboBoxLnF noArrowComboBoxLnF;
 
     juce::PopupMenu createMidiSetupCloneMenu (std::function <void (MidiSetupProperties&)> setter);
