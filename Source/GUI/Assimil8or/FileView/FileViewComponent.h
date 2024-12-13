@@ -47,6 +47,7 @@ private:
     int doubleClickedRow { -1 };
 
     void buildQuickLookupList ();
+    void deleteUnusedSamples ();
     juce::ValueTree getDirectoryEntryVT (int row);
     void newFolder ();
     void openFolder ();

@@ -1,7 +1,7 @@
 #include "FileViewComponent.h"
-#include <tuple>
 #include "../../../SystemServices.h"
-#include "../../../Assimil8or/Preset/PresetHelpers.h"
+#include "../../../Assimil8or/Assimil8orPreset.h"
+#include "../../../Assimil8or/FileTypeHelpers.h"
 #include "../../../Utility/PersistentRootProperties.h"
 #include "../../../Utility/RuntimeRootProperties.h"
 #include "../../../Utility/WatchDogTimer.h"
@@ -478,4 +478,77 @@ void FileViewComponent::resized ()
 
     localBounds.removeFromTop (3);
     directoryContentsListBox.setBounds (localBounds);
+}
+
+void FileViewComponent::deleteUnusedSamples ()
+{
+    // build list of files in the preset files
+    std::set<juce::File> samplesInPresets;
+    ValueTreeHelpers::forEachChild (directoryDataProperties.getRootFolderVT (), [this, &samplesInPresets] (juce::ValueTree child)
+    {
+        const auto name { child.getProperty ("name").toString () };
+        auto file { juce::File (name) };
+        if (FileTypeHelpers::isPresetFile (file))
+        {
+            const auto presetNumber { FileTypeHelpers::getPresetNumberFromName (file) };
+            if (presetNumber < 1 || presetNumber > 199 || file.getFileNameWithoutExtension ().startsWith (FileTypeHelpers::kPresetFileNamePrefix) == false)
+                return true;
+
+            juce::StringArray fileContents;
+            file.readLines (fileContents);
+            Assimil8orPreset assimil8orPreset;
+            assimil8orPreset.parse (fileContents);
+
+            // TODO - how should we handle errors in the preset file
+            if (auto presetErrorList { assimil8orPreset.getParseErrorsVT () }; presetErrorList.getNumChildren () > 0)
+            {
+                ValueTreeHelpers::forEachChildOfType (presetErrorList, "ParseError", [this] (juce::ValueTree childVT)
+                {
+                    const auto parseErrorType { childVT.getProperty ("type").toString () };
+                    const auto parseErrorDescription { childVT.getProperty ("description").toString () };
+                    return true;
+                });
+            }
+            PresetProperties presetProperties (assimil8orPreset.getPresetVT (), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
+            if (presetProperties.isValid ())
+            {
+                presetProperties.forEachChannel ([this, &samplesInPresets, &file] (juce::ValueTree channelVT, int)
+                {
+                    ChannelProperties channelProperties (channelVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
+                    channelProperties.forEachZone ([this, &samplesInPresets, &file] (juce::ValueTree zoneVT, int)
+                    {
+                        ZoneProperties zoneProperties (zoneVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
+                        const auto sampleFileName { zoneProperties.getSample () };
+                        if (sampleFileName.isEmpty ())
+                            return true;
+                        const auto sampleFile { file.getParentDirectory ().getChildFile (sampleFileName) };
+                        samplesInPresets.emplace (sampleFile);
+                        return true;
+                    });
+                    return true;
+                });
+            }
+            else
+            {
+                // TODO - how should we handle errors in the preset file
+            }
+        }
+        return true;
+    });
+
+    // iterate over sample files, and remove any that aren't in the list
+    ValueTreeHelpers::forEachChild (directoryDataProperties.getRootFolderVT (), [this, &samplesInPresets] (juce::ValueTree child)
+    {
+        const auto name { child.getProperty ("name").toString () };
+        auto file { juce::File (name) };
+        if (FileTypeHelpers::getFileType (file) == DirectoryDataProperties::audioFile)
+        {
+            if (samplesInPresets.find (file) == samplesInPresets.end ())
+            {
+                juce::Logger::outputDebugString ("delete: " + file.getFileName ());
+                file.moveToTrash ();
+            }
+        }
+        return true;
+    });
 }
