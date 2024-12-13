@@ -122,9 +122,7 @@ void FileViewComponent::buildQuickLookupList ()
             updateDirectoryListQuickLookupList->emplace_back (child);
         }
         else if (typeIndex == DirectoryDataProperties::TypeIndex::audioFile ||
-                 typeIndex == DirectoryDataProperties::TypeIndex::folder ||
-                 typeIndex == DirectoryDataProperties::TypeIndex::presetFile ||
-                 typeIndex == DirectoryDataProperties::TypeIndex::systemFile)
+                 typeIndex == DirectoryDataProperties::TypeIndex::folder)
         {
             updateDirectoryListQuickLookupList->emplace_back (child);
         }
