@@ -17,14 +17,27 @@ const auto kDialogTextEditorName { "foldername" };
 
 FileViewComponent::FileViewComponent ()
 {
-    openFolderButton.setButtonText ("Open");
-    openFolderButton.setTooltip ("Navigate to a specific folder");
-    openFolderButton.onClick = [this] () { openFolder (); };
-    addAndMakeVisible (openFolderButton);
-    newFolderButton.setButtonText ("New");
-    newFolderButton.setTooltip ("Create a new folder");
-    newFolderButton.onClick = [this] () { newFolder (); };
-    addAndMakeVisible (newFolderButton);
+    optionsButton.setButtonText ("OPTIONS");
+    optionsButton.setTooltip ("Folder and File options");
+    optionsButton.onClick = [this] ()
+    {
+        juce::PopupMenu optionsMenu;
+        optionsMenu.addItem ("Open Folder", true, false, [this] () { openFolder (); });
+        optionsMenu.addItem ("New Folder", true, false, [this] () { newFolder (); });
+        optionsMenu.addItem ("Remove Unused Samples", true, false, [this] ()
+        {
+            juce::AlertWindow::showOkCancelBox (juce::AlertWindow::WarningIcon, "REMOVE UNUSED SAMPLES",
+                                                "Unused Samples are samples that are not used by any presets in the current preset folder.\r\n\r\nAre you sure you want to delete the unused samples in'" + appProperties.getMostRecentFolder () + "'", "YES", "NO", nullptr,
+                                                juce::ModalCallbackFunction::create ([this] (int option)
+                                                                                    {
+                                                                                        if (option == 0) // no
+                                                                                            return;
+                                                                                        deleteUnusedSamples ();
+                                                                                    }));
+        });
+        optionsMenu.showMenuAsync ({}, [this] (int) {});
+    };
+    addAndMakeVisible (optionsButton);
     addAndMakeVisible (directoryContentsListBox);
     showAllFiles.setToggleState (false, juce::NotificationType::dontSendNotification);
     showAllFiles.setButtonText ("Show All");
@@ -471,9 +484,8 @@ void FileViewComponent::resized ()
     auto localBounds { getLocalBounds () };
     localBounds.reduce (3, 3);
     auto toolRow { localBounds.removeFromTop (25) };
-    openFolderButton.setBounds (toolRow.removeFromLeft (50));
+    optionsButton.setBounds (toolRow.removeFromLeft (70));
     toolRow.removeFromLeft (5);
-    newFolderButton.setBounds (toolRow.removeFromLeft (50));
     showAllFiles.setBounds (toolRow);
 
     localBounds.removeFromTop (3);
@@ -544,10 +556,7 @@ void FileViewComponent::deleteUnusedSamples ()
         if (FileTypeHelpers::getFileType (file) == DirectoryDataProperties::audioFile)
         {
             if (samplesInPresets.find (file) == samplesInPresets.end ())
-            {
-                juce::Logger::outputDebugString ("delete: " + file.getFileName ());
                 file.moveToTrash ();
-            }
         }
         return true;
     });

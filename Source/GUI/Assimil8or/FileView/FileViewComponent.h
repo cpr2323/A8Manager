@@ -30,8 +30,7 @@ private:
     std::vector<juce::ValueTree>* curDirectoryListQuickLookupList { &directoryListQuickLookupListA };
     std::vector<juce::ValueTree>* updateDirectoryListQuickLookupList { &directoryListQuickLookupListB };
 
-    juce::TextButton openFolderButton;
-    juce::TextButton newFolderButton;
+    juce::TextButton optionsButton;
     juce::ToggleButton showAllFiles { "Show All" };
     std::unique_ptr<juce::FileChooser> fileChooser;
     juce::ListBox directoryContentsListBox { {}, this };
