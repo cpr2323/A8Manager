@@ -108,10 +108,10 @@ bool CustomComponentMouseHandler::mouseDoubleClick (const juce::MouseEvent&)
 }
 
 // TODO - also use for scrolling
-bool CustomComponentMouseHandler::mouseWheelMove (const juce::MouseEvent&, const juce::MouseWheelDetails&)
+bool CustomComponentMouseHandler::mouseWheelMove (const juce::MouseEvent&, const juce::MouseWheelDetails& mwd, OnDragCallback onDragCallback)
 {
-    if (! mouseCaptured)
-        return kEventNotHandled;
-
+    const auto dragDirection { ((mwd.deltaY >= 0) ? 1 : -1) * (mwd.isReversed ? -1 : 1) }; // 1 indicates dragging upwards (increment value), -1 indicates dragging downwards (decrement value)
+    if (onDragCallback != nullptr)
+        onDragCallback (DragSpeed::slow, dragDirection);
     return kEventHandled;
 }

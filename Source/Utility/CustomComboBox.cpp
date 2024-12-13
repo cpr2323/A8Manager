@@ -45,6 +45,11 @@ void CustomComboBox::mouseDoubleClick (const juce::MouseEvent& mouseEvent)
 
 void CustomComboBox::mouseWheelMove (const juce::MouseEvent& mouseEvent, const juce::MouseWheelDetails& wheel)
 {
-    if (! customComponentMouseHandler.mouseWheelMove (mouseEvent, wheel))
-        juce::ComboBox::mouseWheelMove (mouseEvent, wheel);
+    // NOTE: there is a bug in the JUCE library regarding scroll wheel and comboboxes, which causes two events for every event.
+    if (evenEvent)
+    {
+        if (! customComponentMouseHandler.mouseWheelMove (mouseEvent, wheel, onDragCallback))
+            juce::ComboBox::mouseWheelMove (mouseEvent, wheel);
+    }
+    evenEvent = ! evenEvent;
 }

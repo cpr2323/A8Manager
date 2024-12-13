@@ -17,7 +17,7 @@ MidiSetupEditorComponent::MidiSetupEditorComponent ()
     };
     // MODE
     setupLabel (modeLabel, "Mode");
-    modeComboBox.onDragCallback = [this] (DragSpeed dragSpeed, int direction)
+    modeComboBox.onDragCallback = [this] ([[maybe_unused]]DragSpeed dragSpeed, int direction)
     {
         const auto scrollAmount { 1 * direction };
         modeUiChanged (std::clamp (modeComboBox.getSelectedId () + scrollAmount, 1, modeComboBox.getNumItems ()), true);
@@ -38,7 +38,7 @@ MidiSetupEditorComponent::MidiSetupEditorComponent ()
 
     // ASSIGN
     setupLabel (assignLabel, "Assign");
-    assignComboBox.onDragCallback = [this] (DragSpeed dragSpeed, int direction)
+    assignComboBox.onDragCallback = [this] ([[maybe_unused]] DragSpeed dragSpeed, int direction)
     {
         const auto scrollAmount { 1 * direction };
         auto [minAssign, maxAssign] = [this] ()
@@ -77,7 +77,7 @@ MidiSetupEditorComponent::MidiSetupEditorComponent ()
 
     // BASIC CHANNEL
     setupLabel (basicChannelLabel, "Basic Channel");
-    basicChannelComboBox.onDragCallback = [this] (DragSpeed dragSpeed, int direction)
+    basicChannelComboBox.onDragCallback = [this] ([[maybe_unused]] DragSpeed dragSpeed, int direction)
     {
         const auto scrollAmount { 1 * direction };
         basicChannelUiChanged (std::clamp (basicChannelComboBox.getSelectedId () + scrollAmount, 1, basicChannelComboBox.getNumItems ()), true);
@@ -95,7 +95,7 @@ MidiSetupEditorComponent::MidiSetupEditorComponent ()
 
     // RCV PROGRAM CHANGE
     setupLabel (rcvProgramChangeLabel, "Rcv Program Change");
-    rcvProgramChangeComboBox.onDragCallback = [this] (DragSpeed dragSpeed, int direction)
+    rcvProgramChangeComboBox.onDragCallback = [this] ([[maybe_unused]] DragSpeed dragSpeed, int direction)
     {
         const auto scrollAmount { 1 * direction };
         rcvProgramChangeUiChanged (std::clamp (rcvProgramChangeComboBox.getSelectedId () + scrollAmount, 1, rcvProgramChangeComboBox.getNumItems ()), true);
@@ -112,7 +112,7 @@ MidiSetupEditorComponent::MidiSetupEditorComponent ()
 
     // XMT PROGRAM CHANGE
     setupLabel (xmtProgramChangeLabel, "Xmt Program Change");
-    xmtProgramChangeComboBox.onDragCallback = [this] (DragSpeed dragSpeed, int direction)
+    xmtProgramChangeComboBox.onDragCallback = [this] ([[maybe_unused]] DragSpeed dragSpeed, int direction)
     {
         const auto scrollAmount { 1 * direction };
         xmtProgramChangeUiChanged (std::clamp (xmtProgramChangeComboBox.getSelectedId () + scrollAmount, 1, xmtProgramChangeComboBox.getNumItems ()), true);
@@ -187,7 +187,7 @@ MidiSetupEditorComponent::MidiSetupEditorComponent ()
 
     // PITCH WHEEL SEMI
     setupLabel (pitchWheelSemiLabel, "Pitch Wheel Semi");
-    pitchWheelSemiComboBox.onDragCallback = [this] (DragSpeed dragSpeed, int direction)
+    pitchWheelSemiComboBox.onDragCallback = [this] ([[maybe_unused]] DragSpeed dragSpeed, int direction)
     {
         const auto scrollAmount { 1 * direction };
         pitchWheelSemiUiChanged (std::clamp (pitchWheelSemiComboBox.getSelectedId () + scrollAmount, 1, pitchWheelSemiComboBox.getNumItems ()), true);
@@ -235,7 +235,7 @@ MidiSetupEditorComponent::MidiSetupEditorComponent ()
 
     // NOTIFICATIONS
     setupLabel (notificationsLabel, "Notifications");
-    notificationsComboBox.onDragCallback = [this] (DragSpeed dragSpeed, int direction)
+    notificationsComboBox.onDragCallback = [this] ([[maybe_unused]] DragSpeed dragSpeed, int direction)
     {
         const auto scrollAmount { 1 * direction };
         notificationsUiChanged (std::clamp (notificationsComboBox.getSelectedId () + scrollAmount, 1, notificationsComboBox.getNumItems ()), true);

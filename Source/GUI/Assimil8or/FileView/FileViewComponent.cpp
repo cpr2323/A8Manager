@@ -223,7 +223,7 @@ void FileViewComponent::paintListBoxItem (int row, juce::Graphics& g, int width,
             if (curBlinkTime != 0 && doubleClickedRow == row)
             {
                 filePrefix += "Loading ";
-                textColor = textColor.brighter (0.7);
+                textColor = textColor.brighter (0.7f);
             }
         }
         else

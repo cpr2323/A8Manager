@@ -156,7 +156,7 @@ private:
     {
         if (! isEnabled ())
             return;
-        if (! customComponentMouseHandler.mouseWheelMove (mouseEvent, wheel))
+        if (! customComponentMouseHandler.mouseWheelMove (mouseEvent, wheel, onDragCallback))
             juce::TextEditor::mouseWheelMove (mouseEvent, wheel);
     }
 };
