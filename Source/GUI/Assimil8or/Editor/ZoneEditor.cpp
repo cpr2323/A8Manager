@@ -949,10 +949,11 @@ void ZoneEditor::setupZonePropertiesCallbacks ()
 
 void ZoneEditor::paint ([[maybe_unused]] juce::Graphics& g)
 {
-//     g.setColour (juce::Colours::magenta);
-//     g.drawRect (getLocalBounds ());
+    // draw area to indicate active sample points (sample or loop)
     g.setColour (juce::Colours::grey.withAlpha (0.3f));
     g.fillRoundedRectangle (activePointBackground->toFloat (), 0.5f);
+    g.setColour (juce::Colours::black);
+    g.drawRoundedRectangle (activePointBackground->toFloat (), 0.5f, 1.f);
 }
 
 void ZoneEditor::paintOverChildren (juce::Graphics& g)
@@ -1028,9 +1029,9 @@ void ZoneEditor::resized ()
     sampleStartTextEditor.setBounds (sampleStartLabel.getRight () + spaceBetweenLabelAndInput, sampleStartLabel.getY (), scaleWidth (samplePointInputScale) - spaceBetweenLabelAndInput, 20);
     sampleEndLabel.setBounds (xOffset, sampleStartLabel.getBottom () + interParameterYOffset, scaleWidth (samplePointLabelScale), 20);
     sampleEndTextEditor.setBounds (sampleEndLabel.getRight () + spaceBetweenLabelAndInput, sampleEndLabel.getY (), scaleWidth (samplePointInputScale) - spaceBetweenLabelAndInput, 20);
-    samplePointsBackground = { sampleStartLabel.getX (), sampleStartLabel.getY (),
+    samplePointsBackground = { sampleStartLabel.getX (), sampleStartLabel.getY () - 1,
                                sampleEndTextEditor.getRight () - sampleStartLabel.getX (),
-                               sampleEndTextEditor.getBottom () - sampleStartLabel.getY () + loopPointsViewHeight };
+                               sampleStartTextEditor.getHeight () + sampleEndTextEditor.getHeight () + loopPointsViewHeight + (interParameterYOffset * 2) + 1};
 
     auto loopPointsViewBounds { juce::Rectangle<int> {0, sampleEndTextEditor.getBottom () + interParameterYOffset, getWidth (), loopPointsViewHeight } };
     loopPointsView.setBounds (loopPointsViewBounds.reduced (3, 0));
@@ -1041,7 +1042,7 @@ void ZoneEditor::resized ()
     loopLengthTextEditor.setBounds (loopLengthLabel.getRight () + spaceBetweenLabelAndInput, loopLengthLabel.getY (), scaleWidth (samplePointInputScale) - spaceBetweenLabelAndInput, 20);
     loopPointsBackground = { loopStartLabel.getX (), loopStartLabel.getY () - loopPointsViewHeight,
                              loopLengthTextEditor.getRight () - loopStartLabel.getX (),
-                             loopLengthTextEditor.getBottom () - loopStartLabel.getY () + loopPointsViewHeight };
+                             loopStartTextEditor.getHeight () + loopLengthTextEditor.getHeight () + loopPointsViewHeight + (interParameterYOffset * 2) + 1 };
 
     auto labelBounds { juce::Rectangle<int> {0, loopLengthTextEditor.getBottom () + interParameterYOffset, getWidth (), 14} };
     sourceLabel.setBounds (labelBounds.removeFromLeft (labelBounds.getWidth () / 2));
