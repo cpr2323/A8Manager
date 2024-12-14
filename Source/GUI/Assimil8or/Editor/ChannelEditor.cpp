@@ -2767,7 +2767,7 @@ void ChannelEditor::resized ()
     toolsButton.setBounds (5, getHeight () - 5 - 20, 40, 20);
 
     // layout the Zones section. ie. the tabs and the channel level controls
-    auto zoneColumn {getLocalBounds ().removeFromRight (200)};
+    auto zoneColumn {getLocalBounds ().removeFromRight (213)};
     zoneColumn.removeFromTop (3);
     auto zoneTopSection { zoneColumn.removeFromTop (75).withTrimmedBottom (5).withTrimmedRight (3)};
     zonesLabel.setBounds (zoneTopSection.getX (), zoneTopSection.getHeight () / 2 - kMediumLabelIntSize / 2, 80, kMediumLabelIntSize);

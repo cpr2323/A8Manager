@@ -56,7 +56,7 @@ ZoneEditor::ZoneEditor ()
                                    AudioPlayerProperties::PlayState playState)
     {
         playButton.setButtonText (text);
-        playButton.setEnabled (initilalEnabledState);
+        playButton.setEnabled (false);
         playButton.onClick = [this, text, &playButton, playState, otherButtonText] ()
         {
             if (playButton.getButtonText () == "STOP")
@@ -869,8 +869,8 @@ void ZoneEditor::setStereoRightChannelMode (bool newStereoRightChannelMode)
 {
     isStereoRightChannelMode = newStereoRightChannelMode;
 
-    oneShotPlayButton.setEnabled (! isStereoRightChannelMode);
-    loopPlayButton.setEnabled (! isStereoRightChannelMode);
+    oneShotPlayButton.setEnabled (! isStereoRightChannelMode && sampleProperties.getStatus () == SampleStatus::exists);
+    loopPlayButton.setEnabled (! isStereoRightChannelMode && sampleProperties.getStatus () == SampleStatus::exists);
     toolsButton.setEnabled (! isStereoRightChannelMode);
     levelOffsetTextEditor.setEnabled (! isStereoRightChannelMode);
     loopLengthTextEditor.setEnabled (! isStereoRightChannelMode);
@@ -963,7 +963,7 @@ void ZoneEditor::paintOverChildren (juce::Graphics& g)
 
 void ZoneEditor::resized ()
 {
-    const auto xOffset { 3 };
+    const auto xOffset { 10 };
     const auto width { 160 };
     const auto interParameterYOffset { 1 };
     const auto spaceBetweenLabelAndInput { 3 };
@@ -989,18 +989,18 @@ void ZoneEditor::resized ()
     sampleEndLabel.setBounds (xOffset, sampleStartLabel.getBottom () + interParameterYOffset, scaleWidth (samplePointLabelScale), 20);
     sampleEndTextEditor.setBounds (sampleEndLabel.getRight () + spaceBetweenLabelAndInput, sampleEndLabel.getY (), scaleWidth (samplePointInputScale) - spaceBetweenLabelAndInput, 20);
     samplePointsBackground = { sampleStartLabel.getX (), sampleStartLabel.getY () - 1,
-                               sampleEndTextEditor.getRight () - sampleStartLabel.getX (),
+                               sampleEndTextEditor.getRight () - sampleStartLabel.getX () + 1,
                                sampleStartTextEditor.getHeight () + sampleEndTextEditor.getHeight () + loopPointsViewHeight + (interParameterYOffset * 2) + 1};
 
-    auto loopPointsViewBounds { juce::Rectangle<int> {0, sampleEndTextEditor.getBottom () + interParameterYOffset, getWidth (), loopPointsViewHeight } };
-    loopPointsView.setBounds (loopPointsViewBounds.reduced (3, 0));
+    auto loopPointsViewBounds { juce::Rectangle<int> {xOffset, sampleEndTextEditor.getBottom () + interParameterYOffset, width + 1, loopPointsViewHeight } };
+    loopPointsView.setBounds (loopPointsViewBounds/*.reduced (3, 0)*/);
 
     loopStartLabel.setBounds (xOffset, loopPointsView.getBottom () + interParameterYOffset, scaleWidth (samplePointLabelScale), 20);
     loopStartTextEditor.setBounds (loopStartLabel.getRight () + spaceBetweenLabelAndInput, loopStartLabel.getY (), scaleWidth (samplePointInputScale) - spaceBetweenLabelAndInput, 20);
     loopLengthLabel.setBounds (xOffset, loopStartLabel.getBottom () + interParameterYOffset, scaleWidth (samplePointLabelScale), 20);
     loopLengthTextEditor.setBounds (loopLengthLabel.getRight () + spaceBetweenLabelAndInput, loopLengthLabel.getY (), scaleWidth (samplePointInputScale) - spaceBetweenLabelAndInput, 20);
     loopPointsBackground = { loopStartLabel.getX (), loopStartLabel.getY () - loopPointsViewHeight,
-                             loopLengthTextEditor.getRight () - loopStartLabel.getX (),
+                             loopLengthTextEditor.getRight () - loopStartLabel.getX () + 1,
                              loopStartTextEditor.getHeight () + loopLengthTextEditor.getHeight () + loopPointsViewHeight + (interParameterYOffset * 2) + 1 };
 
     auto playControlsArea { loopPointsView.getBounds () };
