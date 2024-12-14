@@ -29,6 +29,18 @@ public:
     std::function<void (int zoneIndex)> displayToolsMenu;
 
 private:
+    class ClickListener : public juce::MouseListener
+    {
+    public:
+        std::function<void ()> onClick;
+    private:
+        void mouseDown (const juce::MouseEvent&) override
+        {
+            if (onClick != nullptr)
+                onClick ();
+        }
+    };
+
     AppProperties appProperties;
     AudioPlayerProperties audioPlayerProperties;
     ZoneProperties zoneProperties;
@@ -57,9 +69,6 @@ private:
     int dropIndex { 0 };
 
     LoopPointsView loopPointsView;
-    juce::Label sourceLabel;
-    juce::TextButton sourceSamplePointsButton;
-    juce::TextButton sourceLoopPointsButton;
     juce::Label playModeLabel;
     juce::TextButton oneShotPlayButton;
     juce::TextButton loopPlayButton;
@@ -87,12 +96,16 @@ private:
     juce::Label sampleStartLabel;
     CustomTextEditorInt64 sampleStartTextEditor; // int
 
+    ClickListener selectSamplePointsClickListener;
+    ClickListener selectLoopPointsClickListener;
+
     void setEditComponentsEnabled (bool enabled);
     juce::PopupMenu createZoneEditMenu (juce::PopupMenu existingPopupMenu, std::function <void (ZoneProperties&, SampleProperties&)> setter, std::function <void ()> resetter, std::function <void ()> reverter,
                                         std::function<bool (ZoneProperties&)> canCloneToZoneCallback, std::function<bool (ZoneProperties&)> canCloneToAllCallback);
     juce::String formatLoopLength (double loopLength);
     auto getSampleAdjustMenu (std::function<juce::int64 ()> getSampleOffset, std::function<juce::int64 ()> getMinSampleOffset, std::function<juce::int64 ()>getMaxSampleOffset, std::function<void (juce::int64)> setSampleOffset);
     bool handleSamplesInternal (int zoneIndex, juce::StringArray files);
+    void setActiveSamplePoints (AudioPlayerProperties::SamplePointsSelector samplePointsSelector, bool forceSetup);
     void setupZoneComponents ();
     void setupZonePropertiesCallbacks ();
     double snapLoopLength (double rawValue);

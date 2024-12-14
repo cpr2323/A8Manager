@@ -126,7 +126,7 @@ void AudioPlayer::initFromZone (std::tuple<int, int> channelAndZoneIndecies)
         LogAudioPlayer ("zoneProperties.onSampleStartChange");
         jassert (sampleRateRatio > 0.0);
         juce::ScopedLock sl (dataCS);
-        if (audioPlayerProperties.getSSamplePointsSelector () == AudioPlayerProperties::SamplePointsSelector::LoopPoints)
+        if (audioPlayerProperties.getSamplePointsSelector () == AudioPlayerProperties::SamplePointsSelector::LoopPoints)
             return;
         sampleStart = static_cast<int> (newSampleStart.value_or (0) * sampleRateRatio);
         sampleLength = static_cast<int> ((zoneProperties.getSampleEnd ().value_or (sampleProperties.getLengthInSamples ()) - zoneProperties.getSampleStart ().value_or (0)) * sampleRateRatio);
@@ -139,7 +139,7 @@ void AudioPlayer::initFromZone (std::tuple<int, int> channelAndZoneIndecies)
         LogAudioPlayer ("zoneProperties.onSampleEndChange");
         jassert (sampleRateRatio > 0.0);
         juce::ScopedLock sl (dataCS);
-        if (audioPlayerProperties.getSSamplePointsSelector () == AudioPlayerProperties::SamplePointsSelector::LoopPoints)
+        if (audioPlayerProperties.getSamplePointsSelector () == AudioPlayerProperties::SamplePointsSelector::LoopPoints)
             return;
         sampleLength = static_cast<int> ((newSampleEnd.value_or (sampleProperties.getLengthInSamples ()) - zoneProperties.getSampleStart ().value_or (0)) * sampleRateRatio);
         if (curSampleOffset >= sampleStart + sampleLength)
@@ -151,7 +151,7 @@ void AudioPlayer::initFromZone (std::tuple<int, int> channelAndZoneIndecies)
         LogAudioPlayer ("zoneProperties.onLoopStartChange");
         jassert (sampleRateRatio > 0.0);
         juce::ScopedLock sl (dataCS);
-        if (audioPlayerProperties.getSSamplePointsSelector () == AudioPlayerProperties::SamplePointsSelector::SamplePoints)
+        if (audioPlayerProperties.getSamplePointsSelector () == AudioPlayerProperties::SamplePointsSelector::SamplePoints)
             return;
         sampleStart = static_cast<int> (newLoopStart.value_or (0) * sampleRateRatio);
         if (curSampleOffset < sampleStart || curSampleOffset >= sampleStart + sampleLength)
@@ -163,7 +163,7 @@ void AudioPlayer::initFromZone (std::tuple<int, int> channelAndZoneIndecies)
         LogAudioPlayer ("zoneProperties.onLoopLengthChange");
         jassert (sampleRateRatio > 0.0);
         juce::ScopedLock sl (dataCS);
-        if (audioPlayerProperties.getSSamplePointsSelector () == AudioPlayerProperties::SamplePointsSelector::SamplePoints)
+        if (audioPlayerProperties.getSamplePointsSelector () == AudioPlayerProperties::SamplePointsSelector::SamplePoints)
             return;
         sampleLength = static_cast<int> (newLoopLength.value_or (sampleProperties.getLengthInSamples ()) * sampleRateRatio);
         if (curSampleOffset >= sampleStart + sampleLength)
@@ -225,7 +225,7 @@ void AudioPlayer::initSamplePoints ()
     LogAudioPlayer ("initSamplePoints");
     jassert (sampleRateRatio > 0.0);
     juce::ScopedLock sl (dataCS);
-    if (audioPlayerProperties.getSSamplePointsSelector () == AudioPlayerProperties::SamplePointsSelector::SamplePoints)
+    if (audioPlayerProperties.getSamplePointsSelector () == AudioPlayerProperties::SamplePointsSelector::SamplePoints)
     {
         LogAudioPlayer (" using SamplePoints");
         sampleStart = static_cast<int> (zoneProperties.getSampleStart ().value_or (0) * sampleRateRatio);

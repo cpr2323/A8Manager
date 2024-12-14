@@ -50,50 +50,16 @@ ZoneEditor::ZoneEditor ()
 
     addAndMakeVisible (loopPointsView);
 
-    setupLabel (sourceLabel, "SOURCE", 14.0f, juce::Justification::centred);
-    addAndMakeVisible (sourceLabel);
-    auto setupSourceButton = [this] (juce::TextButton& sourceButton, juce::String text, bool initilalState, juce::Rectangle<int>* background,
-                                     std::function<void ()> ifStoppedFunc)
-    {
-        jassert (ifStoppedFunc != nullptr);
-        jassert (background != nullptr);
-        sourceButton.setColour (juce::TextButton::ColourIds::textColourOnId, juce::Colours::black);
-        sourceButton.setColour (juce::TextButton::ColourIds::buttonOnColourId, sourceSamplePointsButton.findColour (juce::TextButton::ColourIds::buttonColourId).brighter (0.3f));
-        sourceButton.setToggleState (initilalState, juce::NotificationType::dontSendNotification);
-        sourceButton.setButtonText (text);
-        sourceButton.onClick = [this, ifStoppedFunc, background, &sourceButton] ()
-        {
-            activePointBackground = background;
-            sourceSamplePointsButton.setToggleState (&sourceButton == &sourceSamplePointsButton, juce::NotificationType::dontSendNotification);
-            sourceLoopPointsButton.setToggleState (&sourceButton == &sourceLoopPointsButton, juce::NotificationType::dontSendNotification);
-            updateLoopPointsView ();
-            repaint ();
-            if (audioPlayerProperties.getPlayState () != AudioPlayerProperties::PlayState::stop)
-                ifStoppedFunc ();
-        };
-        addAndMakeVisible (sourceButton);
-    };
-    sourceSamplePointsButton.setTooltip ("Selects SMPL START and SMPL END for loop view and playback");
-    setupSourceButton (sourceSamplePointsButton, "SMPL", true, &samplePointsBackground, [this] ()
-    {
-        audioPlayerProperties.setSamplePointsSelector (AudioPlayerProperties::SamplePointsSelector::SamplePoints, false);
-    });
-
-    sourceLoopPointsButton.setTooltip ("Selects LOOP START and LOOP LENGTH/END for loop view and playback");
-    setupSourceButton (sourceLoopPointsButton, "LOOP", false, &loopPointsBackground, [this] ()
-    {
-        audioPlayerProperties.setSamplePointsSelector (AudioPlayerProperties::SamplePointsSelector::LoopPoints, false);
-    });
+    setActiveSamplePoints (AudioPlayerProperties::SamplePointsSelector::SamplePoints, true);
 
     setupLabel (playModeLabel, "PLAY", 14.0f, juce::Justification::centred);
     addAndMakeVisible (playModeLabel);
     auto setupPlayButton = [this] (juce::TextButton& playButton, juce::String text, bool initilalEnabledState, juce::String otherButtonText,
-                                   juce::TextButton& sourceButton, AudioPlayerProperties::PlayState playState,
-                                   std::function<void ()> startPlayFunction, std::function<void ()> switchPlayFunction)
+                                   AudioPlayerProperties::PlayState playState)
     {
         playButton.setButtonText (text);
         playButton.setEnabled (initilalEnabledState);
-        playButton.onClick = [this, text, &playButton, &sourceButton, startPlayFunction, switchPlayFunction, playState, otherButtonText] ()
+        playButton.onClick = [this, text, &playButton, playState, otherButtonText] ()
         {
             if (playButton.getButtonText () == "STOP")
             {
@@ -104,16 +70,7 @@ ZoneEditor::ZoneEditor ()
             else
             {
                 audioPlayerProperties.setSampleSource (parentChannelIndex, zoneIndex, false);
-                if (sourceButton.getToggleState ())
-                {
-                    // starting
-                    startPlayFunction ();
-                }
-                else
-                {
-                    // switching play states
-                    switchPlayFunction ();
-                }
+                // starting
                 audioPlayerProperties.setPlayState (playState, false);
                 playButton.setButtonText ("STOP");
                 if (&playButton == &oneShotPlayButton)
@@ -125,26 +82,10 @@ ZoneEditor::ZoneEditor ()
         addAndMakeVisible (playButton);
     };
     loopPlayButton.setTooltip ("Plays the currently selected SOURCE in looping mode");
-    setupPlayButton (loopPlayButton, "LOOP", false, "ONCE", sourceLoopPointsButton, AudioPlayerProperties::PlayState::loop,
-    [this] ()
-    {
-        audioPlayerProperties.setSamplePointsSelector (AudioPlayerProperties::SamplePointsSelector::LoopPoints, false);
-    },
-    [this] ()
-    {
-        audioPlayerProperties.setSamplePointsSelector (AudioPlayerProperties::SamplePointsSelector::SamplePoints, false);
-    });
+    setupPlayButton (loopPlayButton, "LOOP", false, "ONCE", AudioPlayerProperties::PlayState::loop);
 
     oneShotPlayButton.setTooltip ("Plays the currently selected SOURCE in one shot mode");
-    setupPlayButton (oneShotPlayButton, "ONCE", false, "LOOP", sourceSamplePointsButton, AudioPlayerProperties::PlayState::play,
-    [this] ()
-    {
-        audioPlayerProperties.setSamplePointsSelector (AudioPlayerProperties::SamplePointsSelector::SamplePoints, false);
-    },
-    [this] ()
-    {
-        audioPlayerProperties.setSamplePointsSelector (AudioPlayerProperties::SamplePointsSelector::LoopPoints, false);
-    });
+    setupPlayButton (oneShotPlayButton, "ONCE", false, "LOOP", AudioPlayerProperties::PlayState::play);
     setupZoneComponents ();
     setEditComponentsEnabled (false);
 }
@@ -229,6 +170,18 @@ bool ZoneEditor::handleSamplesInternal (int startingZoneIndex, juce::StringArray
     return editManager->assignSamples (parentChannelIndex, startingZoneIndex, files); // will end up calling ZoneProperties::setSample ()
 }
 
+void ZoneEditor::setActiveSamplePoints (AudioPlayerProperties::SamplePointsSelector samplePointsSelector, bool forceSetup)
+{
+    if (audioPlayerProperties.getSamplePointsSelector () != samplePointsSelector || forceSetup)
+    {
+        activePointBackground = (samplePointsSelector == AudioPlayerProperties::SamplePointsSelector::SamplePoints ? &samplePointsBackground : &loopPointsBackground);
+        updateLoopPointsView ();
+        repaint ();
+        audioPlayerProperties.setPlayState (AudioPlayerProperties::PlayState::stop, true);
+        audioPlayerProperties.setSamplePointsSelector (samplePointsSelector, false);
+    }
+}
+
 void ZoneEditor::updateLoopPointsView ()
 {
     juce::int64 startSample { 0 };
@@ -236,7 +189,7 @@ void ZoneEditor::updateLoopPointsView ()
     int side { 0 };
     if (sampleProperties.getStatus () == SampleStatus::exists)
     {
-        if (sourceSamplePointsButton.getToggleState ())
+        if (audioPlayerProperties.getSamplePointsSelector() == AudioPlayerProperties::SamplePointsSelector::SamplePoints)
         {
             startSample = zoneProperties.getSampleStart ().value_or (0);
             numSamples = zoneProperties.getSampleEnd ().value_or (sampleProperties.getLengthInSamples ()) - startSample;
@@ -406,7 +359,9 @@ void ZoneEditor::setupZoneComponents ()
     setupChannelSelectButton (leftChannelSelectButton, "L", 0);
     setupChannelSelectButton (rightChannelSelectButton, "R", 1);
 
+    selectSamplePointsClickListener.onClick = [this] () { setActiveSamplePoints (AudioPlayerProperties::SamplePointsSelector::SamplePoints, false); };
     // SAMPLE START
+    sampleStartLabel.addMouseListener (&selectSamplePointsClickListener, false);
     setupLabel (sampleStartLabel, "SMPL START", 12.0, juce::Justification::centredRight);
     sampleStartTextEditor.getMinValueCallback = [this] { return minZoneProperties.getSampleStart ().value_or (0); };
     sampleStartTextEditor.getMaxValueCallback = [this] { return zoneProperties.getSampleEnd ().value_or (sampleProperties.getLengthInSamples ()); };
@@ -458,9 +413,11 @@ void ZoneEditor::setupZoneComponents ()
                                             [] (ZoneProperties& destZoneProperties) { return destZoneProperties.getSample ().isNotEmpty (); }) };
         editMenu.showMenuAsync ({}, [this] (int) {});
     };
+    sampleStartTextEditor.addMouseListener (&selectSamplePointsClickListener, false);
     setupTextEditor (sampleStartTextEditor, juce::Justification::centred, 0, "0123456789", "SampleStart");
 
     // SAMPLE END
+    sampleEndLabel.addMouseListener (&selectSamplePointsClickListener, false);
     setupLabel (sampleEndLabel, "SMPL END", 12.0, juce::Justification::centredRight);
     sampleEndTextEditor.getMinValueCallback = [this] { return zoneProperties.getSampleStart ().value_or (0); };
     sampleEndTextEditor.getMaxValueCallback = [this] { return sampleProperties.getLengthInSamples (); };
@@ -503,9 +460,12 @@ void ZoneEditor::setupZoneComponents ()
                                             [] (ZoneProperties& destZoneProperties) { return destZoneProperties.getSample ().isNotEmpty (); }) };
         editMenu.showMenuAsync ({}, [this] (int) {});
     };
+    sampleEndTextEditor.addMouseListener (&selectSamplePointsClickListener, false);
     setupTextEditor (sampleEndTextEditor, juce::Justification::centred, 0, "0123456789", "SampleEnd");
 
     // LOOP START
+    selectLoopPointsClickListener.onClick = [this] () { setActiveSamplePoints (AudioPlayerProperties::SamplePointsSelector::LoopPoints, false); };
+    loopStartLabel.addMouseListener (&selectLoopPointsClickListener, false);
     setupLabel (loopStartLabel, "LOOP START", 12.0, juce::Justification::centredRight);
     loopStartTextEditor.getMinValueCallback = [this] { return minZoneProperties.getLoopStart ().value_or (0); };
     loopStartTextEditor.getMaxValueCallback = [this]
@@ -583,9 +543,11 @@ void ZoneEditor::setupZoneComponents ()
                                             [] (ZoneProperties& destZoneProperties) { return destZoneProperties.getSample ().isNotEmpty (); }) };
         editMenu.showMenuAsync ({}, [this] (int) {});
     };
+    loopStartTextEditor.addMouseListener (&selectLoopPointsClickListener, false);
     setupTextEditor (loopStartTextEditor, juce::Justification::centred, 0, "0123456789", "LoopStart");
 
     // LOOP LENGTH/END
+    loopLengthLabel.addMouseListener (&selectLoopPointsClickListener, false);
     setupLabel (loopLengthLabel, "LOOP LENGTH", 12.0, juce::Justification::centredRight);
     loopLengthTextEditor.getMinValueCallback = [this]
     {
@@ -663,6 +625,7 @@ void ZoneEditor::setupZoneComponents ()
                                             [] (ZoneProperties& destZoneProperties) { return destZoneProperties.getSample ().isNotEmpty (); }) };
         editMenu.showMenuAsync ({}, [this] (int) {});
     };
+    loopLengthTextEditor.addMouseListener (&selectLoopPointsClickListener, false);
     setupTextEditor (loopLengthTextEditor, juce::Justification::centred, 0, ".0123456789", "LoopLength");
 
     // MIN VOLTAGE
@@ -908,8 +871,6 @@ void ZoneEditor::setStereoRightChannelMode (bool newStereoRightChannelMode)
 {
     isStereoRightChannelMode = newStereoRightChannelMode;
 
-    sourceSamplePointsButton.setEnabled (! isStereoRightChannelMode);
-    sourceLoopPointsButton.setEnabled (! isStereoRightChannelMode);
     oneShotPlayButton.setEnabled (! isStereoRightChannelMode);
     loopPlayButton.setEnabled (! isStereoRightChannelMode);
     toolsButton.setEnabled (! isStereoRightChannelMode);
@@ -1045,14 +1006,8 @@ void ZoneEditor::resized ()
                              loopStartTextEditor.getHeight () + loopLengthTextEditor.getHeight () + loopPointsViewHeight + (interParameterYOffset * 2) + 1 };
 
     auto labelBounds { juce::Rectangle<int> {0, loopLengthTextEditor.getBottom () + interParameterYOffset, getWidth (), 14} };
-    sourceLabel.setBounds (labelBounds.removeFromLeft (labelBounds.getWidth () / 2));
     playModeLabel.setBounds (labelBounds);
     auto controlsBounds { juce::Rectangle<int> {0, labelBounds.getBottom () + interParameterYOffset, getWidth (), 20} };
-    controlsBounds.removeFromLeft (3);
-    sourceSamplePointsButton.setBounds (controlsBounds.removeFromLeft (35));
-    controlsBounds.removeFromLeft (3);
-    sourceLoopPointsButton.setBounds (controlsBounds.removeFromLeft (35));
-    controlsBounds.removeFromRight (3);
     loopPlayButton.setBounds (controlsBounds.removeFromRight (35));
     controlsBounds.removeFromRight (3);
     oneShotPlayButton.setBounds (controlsBounds.removeFromRight (35));
