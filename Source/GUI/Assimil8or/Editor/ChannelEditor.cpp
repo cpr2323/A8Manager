@@ -2770,7 +2770,7 @@ void ChannelEditor::resized ()
     auto zoneColumn {getLocalBounds ().removeFromRight (213)};
     zoneColumn.removeFromTop (3);
     auto zoneTopSection { zoneColumn.removeFromTop (75).withTrimmedBottom (5).withTrimmedRight (3)};
-    zonesLabel.setBounds (zoneTopSection.getX (), zoneTopSection.getHeight () / 2 - kMediumLabelIntSize / 2, 80, kMediumLabelIntSize);
+    zonesLabel.setBounds (zoneTopSection.getX () + 15, zoneTopSection.getHeight () / 2 - kMediumLabelIntSize / 2, 80, kMediumLabelIntSize);
     const auto zoneSectionInputWidth { 65 };
     const auto zoneSectionLabelWidth { 85 };
     zonesCVComboBox.setBounds (zoneTopSection.getRight () - zoneSectionInputWidth, zoneTopSection.getY () + 3, zoneSectionInputWidth, kParameterLineHeight);
