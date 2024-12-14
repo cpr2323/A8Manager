@@ -8,7 +8,8 @@
 
 class FileViewComponent : public juce::Component,
                           private juce::ListBoxModel,
-                          private juce::Timer
+                          private juce::Timer,
+                          public juce::FileDragAndDropTarget
 {
 public:
     FileViewComponent ();
@@ -45,12 +46,26 @@ private:
     juce::int64 curBlinkTime { 0 };
     int doubleClickedRow { -1 };
 
+    int draggingFilesCount { 0 };
+    bool supportedFile { false };
+    juce::String dropMsg;
+    juce::StringArray dropDetails;
+
     void buildQuickLookupList ();
     void deleteUnusedSamples ();
     juce::ValueTree getDirectoryEntryVT (int row);
+    void importSamples (const juce::StringArray& files);
     void newFolder ();
     void openFolder ();
+    void resetDropInfo ();
+    void updateDropInfo (const juce::StringArray& files);
     void updateFromNewData ();
+
+    bool isInterestedInFileDrag (const juce::StringArray& files) override;
+    void filesDropped (const juce::StringArray& files, int, int) override;
+    void fileDragEnter (const juce::StringArray& files, int, int) override;
+    void fileDragMove (const juce::StringArray& files, int, int) override;
+    void fileDragExit (const juce::StringArray& files) override;
 
     void timerCallback () override;
     int getNumRows () override;
@@ -59,5 +74,6 @@ private:
     void listBoxItemDoubleClicked (int row, const juce::MouseEvent& me) override;
     void paintListBoxItem (int rowNumber, juce::Graphics& g, int width, int height, bool rowIsSelected) override;
     void resized () override;
+    void paintOverChildren (juce::Graphics& g) override;
 };
     

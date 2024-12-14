@@ -492,6 +492,18 @@ void FileViewComponent::resized ()
     directoryContentsListBox.setBounds (localBounds);
 }
 
+void FileViewComponent::paintOverChildren (juce::Graphics& g)
+{
+    if (draggingFilesCount > 0)
+    {
+        auto localBounds { getLocalBounds () };
+        juce::Colour fillColor { juce::Colours::white };
+        float activeAlpha { 0.7f };
+        g.setColour (fillColor.withAlpha (activeAlpha));
+        g.fillRect (directoryContentsListBox.getBounds ());
+    }
+}
+
 void FileViewComponent::deleteUnusedSamples ()
 {
     // build list of files in the preset files
@@ -560,4 +572,129 @@ void FileViewComponent::deleteUnusedSamples ()
         }
         return true;
     });
+}
+
+void FileViewComponent::updateDropInfo (const juce::StringArray& files)
+{
+    supportedFile = true;
+    for (auto& fileName : files)
+    {
+        auto draggedFile { juce::File (fileName) };
+        if (! audioManager->isA8ManagerSupportedAudioFile (draggedFile))
+            supportedFile = false;
+    }
+}
+
+void FileViewComponent::resetDropInfo ()
+{
+    draggingFilesCount = 0;
+    dropMsg = {};
+    dropDetails = {};
+}
+
+void FileViewComponent::importSamples (const juce::StringArray& files)
+{
+    auto errorDialog = [this] (juce::String message)
+    {
+        juce::AlertWindow::showMessageBoxAsync (juce::AlertWindow::WarningIcon, "Conversion Failed", message, {}, nullptr,
+                                                juce::ModalCallbackFunction::create ([this] (int) {}));
+    };
+
+    for (auto& fileName : files)
+    {
+        auto file { juce::File { fileName } };
+        // skip files in the preset folder
+        if (file.getParentDirectory () == appProperties.getMostRecentFolder ())
+            continue;
+        if (auto reader { audioManager->getReaderFor (file) }; reader != nullptr)
+        {
+            auto destinationFile { juce::File (appProperties.getMostRecentFolder ()).getChildFile (file.getFileNameWithoutExtension ()).withFileExtension ("wav") };
+            auto destinationFileStream { std::make_unique<juce::FileOutputStream> (destinationFile) };
+            destinationFileStream->setPosition (0);
+            destinationFileStream->truncate ();
+
+            auto sampleRate { reader->sampleRate };
+            auto numChannels { reader->numChannels };
+            auto bitsPerSample { reader->bitsPerSample };
+
+            if (bitsPerSample < 8)
+                bitsPerSample = 8;
+            else if (bitsPerSample > 24) // the wave writer supports int 8/16/24
+                bitsPerSample = 24;
+            jassert (numChannels != 0);
+            if (numChannels > 2)
+                numChannels = 2;
+            if (reader->sampleRate > 192000)
+            {
+                // we need to do sample rate conversion
+                jassertfalse;
+            }
+
+            juce::WavAudioFormat wavAudioFormat;
+            if (std::unique_ptr<juce::AudioFormatWriter> writer { wavAudioFormat.createWriterFor (destinationFileStream.get (),
+                                                                  sampleRate, numChannels, bitsPerSample, {}, 0) }; writer != nullptr)
+            {
+                // audioFormatWriter will delete the file stream when done
+                destinationFileStream.release ();
+
+                // copy the whole thing
+                // TODO - two things
+                //   a) this needs to be done in a thread
+                //   b) we should locally read into a buffer and then write that, so we can display progress if needed
+                if (! writer->writeFromAudioReader (*reader.get (), 0, -1) == true)
+                {
+                    // failure to convert
+                    errorDialog ("Failure to write new file");
+                    jassertfalse;
+                }
+            }
+            else
+            {
+                //failure to create writer
+                errorDialog ("Failure to create writer");
+                jassertfalse;
+            }
+        }
+        else
+        {
+            // failure to create reader
+            errorDialog ("Failure to create reader");
+            jassertfalse;
+        }
+    }
+}
+
+
+bool FileViewComponent::isInterestedInFileDrag ([[maybe_unused]] const juce::StringArray& files)
+{
+    // we do this check in the fileDragEnter and fileDragMove handlers, presenting more info regarding the drop operation
+    return true;
+}
+
+void FileViewComponent::filesDropped (const juce::StringArray& files, int x, int y)
+{
+
+    if (supportedFile)
+        importSamples (files);
+    resetDropInfo ();
+    repaint ();
+}
+
+void FileViewComponent::fileDragEnter (const juce::StringArray& files, int x, int y)
+{
+    draggingFilesCount = files.size ();
+    updateDropInfo (files);
+    repaint ();
+}
+
+void FileViewComponent::fileDragMove (const juce::StringArray& files, int x, int y)
+{
+    updateDropInfo (files);
+    repaint ();
+}
+
+void FileViewComponent::fileDragExit (const juce::StringArray&)
+{
+    resetDropInfo ();
+    repaint ();
 }
