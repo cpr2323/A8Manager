@@ -963,28 +963,40 @@ void ZoneEditor::paintOverChildren (juce::Graphics& g)
     if (draggingFilesCount > 0)
     {
         auto localBounds { getLocalBounds () };
-        if (dropIndex == -1 || zoneProperties.getId () == 1)
+        if (supportedFile)
+        {
+            if (dropIndex == -1 || zoneProperties.getId () == 1)
+            {
+                g.setColour (fillColor.withAlpha (activeAlpha));
+                g.fillRect (localBounds);
+                g.setFont (20.0f);
+                g.setColour (juce::Colours::black);
+                g.drawText ("Start on Zone " + juce::String (zoneProperties.getId ()), localBounds, juce::Justification::centred, false);
+            }
+            else
+            {
+                g.setColour (fillColor.withAlpha (dropIndex == 0 ? activeAlpha : nonActiveAlpha));
+                const auto topHalfBounds { localBounds.removeFromTop (localBounds.getHeight () / 2) };
+                g.fillRect (topHalfBounds);
+                g.setColour (fillColor.withAlpha (dropIndex == 1 ? activeAlpha : nonActiveAlpha));
+                g.fillRect (localBounds);
+
+                g.setFont (20.0f);
+                g.setColour (juce::Colours::black);
+                if (dropIndex == 0)
+                    g.drawText ("Start on Zone 1", topHalfBounds, juce::Justification::centred, false);
+                else
+                    g.drawText ("Start on Zone " + juce::String (zoneProperties.getId ()), localBounds, juce::Justification::centred, false);
+            }
+        }
+        else
         {
             g.setColour (fillColor.withAlpha (activeAlpha));
             g.fillRect (localBounds);
             g.setFont (20.0f);
-            g.setColour (juce::Colours::black);
-            g.drawText ("Start on Zone " + juce::String (zoneProperties.getId ()), localBounds, juce::Justification::centred, false);
-        }
-        else
-        {
-            g.setColour (fillColor.withAlpha (dropIndex == 0 ? activeAlpha : nonActiveAlpha));
-            const auto topHalfBounds { localBounds.removeFromTop (localBounds.getHeight () / 2) };
-            g.fillRect (topHalfBounds);
-            g.setColour (fillColor.withAlpha (dropIndex == 1 ? activeAlpha : nonActiveAlpha));
-            g.fillRect (localBounds);
-
-            g.setFont (20.0f);
-            g.setColour (juce::Colours::black);
-            if (dropIndex == 0)
-                g.drawText ("Start on Zone 1", topHalfBounds, juce::Justification::centred, false);
-            else
-                g.drawText ("Start on Zone " + juce::String (zoneProperties.getId ()), localBounds, juce::Justification::centred, false);
+            g.setColour (juce::Colours::red);
+            localBounds.reduce (5, 0);
+            g.drawFittedText (draggingFilesCount == 1 ? "Unsupported file type" : "One, or more, unsupported file types", localBounds, juce::Justification::centred, 10);
         }
     }
 }
