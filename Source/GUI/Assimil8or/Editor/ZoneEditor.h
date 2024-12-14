@@ -69,7 +69,6 @@ private:
     int dropIndex { 0 };
 
     LoopPointsView loopPointsView;
-    juce::Label playModeLabel;
     juce::TextButton oneShotPlayButton;
     juce::TextButton loopPlayButton;
     juce::TextButton toolsButton;

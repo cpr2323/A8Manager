@@ -52,8 +52,6 @@ ZoneEditor::ZoneEditor ()
 
     setActiveSamplePoints (AudioPlayerProperties::SamplePointsSelector::SamplePoints, true);
 
-    setupLabel (playModeLabel, "PLAY", 14.0f, juce::Justification::centred);
-    addAndMakeVisible (playModeLabel);
     auto setupPlayButton = [this] (juce::TextButton& playButton, juce::String text, bool initilalEnabledState, juce::String otherButtonText,
                                    AudioPlayerProperties::PlayState playState)
     {
@@ -983,7 +981,7 @@ void ZoneEditor::resized ()
     leftChannelSelectButton.setBounds (sampleNameSelectLabel.getRight () + 2, sampleNameSelectLabel.getY (), 20, 10);
     rightChannelSelectButton.setBounds (sampleNameSelectLabel.getRight () + 2, leftChannelSelectButton.getBottom () + 1, 20, 10);
 
-    const auto loopPointsViewHeight { 40 };
+    const auto loopPointsViewHeight { 50 };
     const auto samplePointLabelScale { 0.45f };
     const auto samplePointInputScale { 1.f - samplePointLabelScale };
     sampleStartLabel.setBounds (xOffset, sampleNameSelectLabel.getBottom () + 5, scaleWidth (samplePointLabelScale), 20);
@@ -1005,16 +1003,14 @@ void ZoneEditor::resized ()
                              loopLengthTextEditor.getRight () - loopStartLabel.getX (),
                              loopStartTextEditor.getHeight () + loopLengthTextEditor.getHeight () + loopPointsViewHeight + (interParameterYOffset * 2) + 1 };
 
-    auto labelBounds { juce::Rectangle<int> {0, loopLengthTextEditor.getBottom () + interParameterYOffset, getWidth (), 14} };
-    playModeLabel.setBounds (labelBounds);
-    auto controlsBounds { juce::Rectangle<int> {0, labelBounds.getBottom () + interParameterYOffset, getWidth (), 20} };
-    loopPlayButton.setBounds (controlsBounds.removeFromRight (35));
-    controlsBounds.removeFromRight (3);
-    oneShotPlayButton.setBounds (controlsBounds.removeFromRight (35));
+    auto playControlsArea { loopPointsView.getBounds () };
+    const auto buttonHeight { playControlsArea.getHeight () / 3 };
+    oneShotPlayButton.setBounds (playControlsArea.getX () + 3, playControlsArea.getY () + 3, 35, buttonHeight);
+    loopPlayButton.setBounds (playControlsArea.getX () + 3, playControlsArea.getBottom () - 3 - buttonHeight, 35, buttonHeight);
 
     const auto otherLabelScale { 0.66f };
     const auto otherInputScale { 1.f - otherLabelScale };
-    minVoltageLabel.setBounds (xOffset, oneShotPlayButton.getBottom () + 5, scaleWidth (otherLabelScale), 20);
+    minVoltageLabel.setBounds (xOffset, loopLengthTextEditor.getBottom () + 5, scaleWidth (otherLabelScale), 20);
     minVoltageTextEditor.setBounds (minVoltageLabel.getRight () + spaceBetweenLabelAndInput, minVoltageLabel.getY (), scaleWidth (otherInputScale) - spaceBetweenLabelAndInput, 20);
 
     pitchOffsetLabel.setBounds (xOffset, minVoltageTextEditor.getBottom () + 3, scaleWidth (otherLabelScale), 20);
