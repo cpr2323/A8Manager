@@ -49,7 +49,6 @@ private:
     int draggingFilesCount { 0 };
     bool supportedFile { false };
     juce::String dropMsg;
-    juce::StringArray dropDetails;
 
     void buildQuickLookupList ();
     void deleteUnusedSamples ();

@@ -501,6 +501,9 @@ void FileViewComponent::paintOverChildren (juce::Graphics& g)
         float activeAlpha { 0.7f };
         g.setColour (fillColor.withAlpha (activeAlpha));
         g.fillRect (directoryContentsListBox.getBounds ());
+        g.setColour (supportedFile ? juce::Colours::black : juce::Colours::red);
+        localBounds.reduce (5, 0);
+        g.drawFittedText (dropMsg, localBounds, juce::Justification::centred, 10);
     }
 }
 
@@ -583,13 +586,20 @@ void FileViewComponent::updateDropInfo (const juce::StringArray& files)
         if (! audioManager->isA8ManagerSupportedAudioFile (draggedFile))
             supportedFile = false;
     }
+    if (supportedFile)
+    {
+        dropMsg = juce::String (draggingFilesCount) + " files to copy";
+    }
+    else
+    {
+        dropMsg = (draggingFilesCount == 1 ? "Unsupported file type" : "One, or more, unsupported file types");
+    }
 }
 
 void FileViewComponent::resetDropInfo ()
 {
     draggingFilesCount = 0;
     dropMsg = {};
-    dropDetails = {};
 }
 
 void FileViewComponent::importSamples (const juce::StringArray& files)
