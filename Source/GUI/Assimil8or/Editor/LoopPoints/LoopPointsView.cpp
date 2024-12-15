@@ -18,7 +18,7 @@ void LoopPointsView::paint (juce::Graphics& g)
     const auto halfWidth { getWidth () / 2 };
     const auto halfHeight { getHeight () / 2 };
 
-    if (audioBuffer != nullptr && audioBuffer->getNumSamples () >= numSamples && numSamples > 4 && audioBuffer->getNumSamples () >= numSamples + numSamples)
+    if (audioBuffer != nullptr && audioBuffer->getNumSamples () >= numSamples && numSamples > 4 && audioBuffer->getNumSamples () >= sampleOffset + numSamples)
     {
         juce::dsp::AudioBlock<float> audioBlock { *audioBuffer };
         juce::dsp::AudioBlock<float> loopSamples { audioBlock.getSubBlock (sampleOffset, numSamples) };
