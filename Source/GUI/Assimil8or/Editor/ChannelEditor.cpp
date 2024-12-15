@@ -191,25 +191,18 @@ void ChannelEditor::deleteZone (int zoneIndex)
 // TODO - move this to the EditManger
 void ChannelEditor::duplicateZone (int zoneIndex)
 {
-    // if the list is full, we can't copy the end anywhere, so we'll start with the one before the end, otherwise start at the end
-    const auto numUsedZones { editManager->getNumUsedZones (channelIndex) };
-    const auto startingZoneIndex { numUsedZones - (numUsedZones == zoneProperties.size () ? 2 : 1) };
-    for (auto curZoneIndex { startingZoneIndex }; curZoneIndex >= zoneIndex; --curZoneIndex)
+    jassert (zoneIndex > 0 && zoneIndex < 7);
+    const auto topBoundary { zoneProperties[zoneIndex - 1].getMinVoltage () };
+    const auto bottomBoundary { zoneProperties [zoneIndex].getMinVoltage () };
+    const auto newZoneVoltage { bottomBoundary + ((topBoundary - bottomBoundary) / 2) };
+    for (auto curZoneIndex { 6 }; curZoneIndex >= zoneIndex; --curZoneIndex)
     {
         ZoneProperties destZoneProperties (channelProperties.getZoneVT (curZoneIndex + 1), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
         destZoneProperties.copyFrom (channelProperties.getZoneVT (curZoneIndex), false);
     }
-    // if our duplicated zone is not on the end, set the voltage 1/2 between it's neighbors
-    const auto indexOfLastZone { numUsedZones };
-    if (zoneIndex < numUsedZones)
-    {
-        auto [topBoundary, bottomBoundary] { editManager->getVoltageBoundaries (channelIndex, zoneIndex, 0) };
-        zoneProperties [zoneIndex].setMinVoltage (bottomBoundary + ((topBoundary - bottomBoundary) / 2), false);
-    }
-
-    // if the zone on the end does not have a -5 minVoltage, then set it to -5
-    if (zoneProperties[indexOfLastZone].getMinVoltage () != -5.0)
-        zoneProperties [indexOfLastZone].setMinVoltage (-5.0, false);
+    zoneProperties [zoneIndex].setMinVoltage (newZoneVoltage, false);
+    if (editManager->getNumUsedZones (channelIndex) == 8)
+        zoneProperties [7].setMinVoltage (-5.0, false);
 }
 
 // TODO - move this to the EditManger
@@ -331,6 +324,7 @@ void ChannelEditor::explodeZone (int zoneIndex, int explodeCount)
     SampleProperties sampleProperties (sampleManagerProperties.getSamplePropertiesVT (channelIndex, zoneIndex), SampleProperties::WrapperType::client, SampleProperties::EnableCallbacks::yes);
     juce::int64 sampleSize { sampleProperties.getLengthInSamples () };
     const auto sliceSize { sampleSize / explodeCount };
+    auto& sourceZoneProperties { zoneProperties [zoneIndex] };
     auto setSamplePoints = [this, sliceSize] (ZoneProperties& zpToUpdate, int index)
     {
         const auto sampleStart { index * sliceSize };
@@ -340,15 +334,17 @@ void ChannelEditor::explodeZone (int zoneIndex, int explodeCount)
         zpToUpdate.setLoopStart (sampleStart, true);
         zpToUpdate.setLoopLength (static_cast<double> (sliceSize), true);
     };
-    setSamplePoints (zoneProperties [zoneIndex], 0);
+    setSamplePoints (sourceZoneProperties, 0);
 
     for (auto destinationZoneIndex { zoneIndex + 1 }; destinationZoneIndex < zoneIndex + explodeCount; ++destinationZoneIndex)
     {
         auto& destZoneProperties { zoneProperties [destinationZoneIndex] };
-        duplicateZone (destinationZoneIndex - 1);
+        destZoneProperties.copyFrom (sourceZoneProperties.getValueTree (), false);
         setSamplePoints (destZoneProperties, destinationZoneIndex - zoneIndex);
     }
+    zoneProperties [editManager->getNumUsedZones (channelIndex) - 1].setMinVoltage (-5.0, false);
     balanceVoltages (VoltageBalanceType::distributeAcross10V);
+    ensureProperZoneIsSelected ();
     updateAllZoneTabNames ();
 }
 

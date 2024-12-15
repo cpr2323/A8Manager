@@ -110,7 +110,7 @@ public:
         if (button.getToggleState ())
             g.setColour (bkg);
         else
-            g.setColour (bkg.darker (0.4f));
+            g.setColour (bkg.darker (0.3f));
 
         g.fillRect (activeArea);
         g.setColour (button.findColour (juce::TabbedButtonBar::tabOutlineColourId));
