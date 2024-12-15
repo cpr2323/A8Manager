@@ -379,11 +379,19 @@ bool EditManager::assignSamples (int channelIndex, int zoneIndex, const juce::St
         //juce::Logger::outputDebugString ("assigning '" + file.getFileName () + "' to Zone " + juce::String (zoneIndex + filesIndex));
         // assign file to zone
         auto& zoneProperties { zoneAndSamplePropertiesList [channelIndex][zoneIndex + filesIndex].zoneProperties };
+        auto& sampleProperties { zoneAndSamplePropertiesList [channelIndex][zoneIndex + filesIndex].sampleProperties };
         zoneProperties.setSample (file.getFileName (), false);
         zoneProperties.setSide (0, false);
+        if (zoneProperties.getSampleStart ().value_or (0) > sampleProperties.getLengthInSamples ())
+            zoneProperties.setSampleStart (sampleProperties.getLengthInSamples () - 1, false);
+        if (zoneProperties.getSampleEnd ().value_or (sampleProperties.getLengthInSamples ()) > sampleProperties.getLengthInSamples ())
+            zoneProperties.setSampleEnd (sampleProperties.getLengthInSamples () - 1, false);
+        if (zoneProperties.getLoopStart ().value_or (0) + 4> sampleProperties.getLengthInSamples ())
+            zoneProperties.setLoopStart (sampleProperties.getLengthInSamples () - 4, false);
+        if (zoneProperties.getLoopStart ().value_or (0) + zoneProperties.getLoopLength ().value_or (4) > sampleProperties.getLengthInSamples ())
+            zoneProperties.setLoopLength (static_cast<double> (sampleProperties.getLengthInSamples () - zoneProperties.getLoopStart ().value_or (0)), false);
 
         // check if stereo and set up right channel
-        auto& sampleProperties { zoneAndSamplePropertiesList [channelIndex][zoneIndex + filesIndex].sampleProperties };
         if (sampleProperties.getStatus () == SampleStatus::exists && sampleProperties.getNumChannels () == 2)
         {
             if (auto parentChannelId { channelPropertiesList [channelIndex].getId () }; parentChannelId < 8 && channelPropertiesList [channelIndex].getChannelMode () != ChannelProperties::ChannelMode::stereoRight)
