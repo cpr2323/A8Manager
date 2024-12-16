@@ -681,7 +681,7 @@ bool FileViewComponent::isInterestedInFileDrag ([[maybe_unused]] const juce::Str
     return true;
 }
 
-void FileViewComponent::filesDropped (const juce::StringArray& files, int x, int y)
+void FileViewComponent::filesDropped (const juce::StringArray& files, int /*x*/, int /*y*/)
 {
 
     if (supportedFile)
@@ -690,14 +690,14 @@ void FileViewComponent::filesDropped (const juce::StringArray& files, int x, int
     repaint ();
 }
 
-void FileViewComponent::fileDragEnter (const juce::StringArray& files, int x, int y)
+void FileViewComponent::fileDragEnter (const juce::StringArray& files, int /*x*/, int /*y*/)
 {
     draggingFilesCount = files.size ();
     updateDropInfo (files);
     repaint ();
 }
 
-void FileViewComponent::fileDragMove (const juce::StringArray& files, int x, int y)
+void FileViewComponent::fileDragMove (const juce::StringArray& files, int /*x*/, int /*y*/)
 {
     updateDropInfo (files);
     repaint ();

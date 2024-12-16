@@ -52,7 +52,7 @@ ZoneEditor::ZoneEditor ()
 
     setActiveSamplePoints (AudioPlayerProperties::SamplePointsSelector::SamplePoints, true);
 
-    auto setupPlayButton = [this] (juce::TextButton& playButton, juce::String text, bool initilalEnabledState, juce::String otherButtonText,
+    auto setupPlayButton = [this] (juce::TextButton& playButton, juce::String text, juce::String otherButtonText,
                                    AudioPlayerProperties::PlayState playState)
     {
         playButton.setButtonText (text);
@@ -80,10 +80,10 @@ ZoneEditor::ZoneEditor ()
         addAndMakeVisible (playButton);
     };
     loopPlayButton.setTooltip ("Plays the currently selected SOURCE in looping mode");
-    setupPlayButton (loopPlayButton, "LOOP", false, "ONCE", AudioPlayerProperties::PlayState::loop);
+    setupPlayButton (loopPlayButton, "LOOP", "ONCE", AudioPlayerProperties::PlayState::loop);
 
     oneShotPlayButton.setTooltip ("Plays the currently selected SOURCE in one shot mode");
-    setupPlayButton (oneShotPlayButton, "ONCE", false, "LOOP", AudioPlayerProperties::PlayState::play);
+    setupPlayButton (oneShotPlayButton, "ONCE", "LOOP", AudioPlayerProperties::PlayState::play);
     setupZoneComponents ();
     setEditComponentsEnabled (false);
 }
