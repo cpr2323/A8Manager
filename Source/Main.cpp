@@ -1,12 +1,16 @@
 #include <JuceHeader.h>
 #include "AppProperties.h"
+#include "SystemServices.h"
 #include "Assimil8or/Assimil8orValidator.h"
 #include "Assimil8or/PresetManagerProperties.h"
+#include "Assimil8or/Audio/AudioManager.h"
 #include "Assimil8or/Audio/AudioPlayer.h"
 #include "Assimil8or/Preset/ParameterPresetsSingleton.h"
 #include "Assimil8or/Preset/PresetProperties.h"
+#include "GUI/GuiControlProperties.h"
 #include "GUI/GuiProperties.h"
 #include "GUI/MainComponent.h"
+#include "GUI/Assimil8or/Editor/EditManager.h"
 #include "GUI/Assimil8or/Editor/SampleManager/SampleManager.h"
 #include "Utility/DebugLog.h"
 #include "Utility/DirectoryValueTree.h"
@@ -46,6 +50,8 @@ public:
         initLogger ();
         initCrashHandler ();
         initPropertyRoots ();
+        initPresetManager ();
+        initSystemServices ();
         initAssimil8or ();
         initAudio ();
         initUi ();
@@ -97,11 +103,8 @@ public:
             quit ();
     }
 
-    void initAssimil8or ()
+    void initPresetManager ()
     {
-        // debug tool for watching changes on the Preset Value Tree
-        //presetPropertiesMonitor.assign (presetProperties.getValueTreeRef ());
-
         PresetManagerProperties presetManagerProperties (runtimeRootProperties.getValueTree (), PresetManagerProperties::WrapperType::owner, PresetManagerProperties::EnableCallbacks::no);
         // initialize the Preset with defaults
         PresetProperties::copyTreeProperties (ParameterPresetsSingleton::getInstance ()->getParameterPresetListProperties ().getParameterPreset (ParameterPresetListProperties::DefaultParameterPresetType),
@@ -111,6 +114,12 @@ public:
 
         // add the Preset Manager to the Runtime Root
         runtimeRootProperties.getValueTree ().addChild (presetManagerProperties.getValueTree (), -1, nullptr);
+    }
+
+    void initAssimil8or ()
+    {
+        // debug tool for watching changes on the Preset Value Tree
+        //presetPropertiesMonitor.assign (presetProperties.getValueTreeRef ());
 
         // setup the directory scanner
         directoryValueTree.init (runtimeRootProperties.getValueTree ());
@@ -138,6 +147,7 @@ public:
 
     void initUi ()
     {
+        guiControlProperties.wrap (runtimeRootProperties.getValueTree (), GuiControlProperties::WrapperType::owner, GuiControlProperties::EnableCallbacks::no);
         guiProperties.wrap (persistentRootProperties.getValueTree (), GuiProperties::WrapperType::owner, GuiProperties::EnableCallbacks::no);
         mainWindow.reset (new MainWindow (getApplicationName () + " - " + getVersionDisplayString (), rootProperties.getValueTree ()));
     }
@@ -163,6 +173,19 @@ public:
         audioPlayer.init (rootProperties.getValueTree ());
         //AudioSettingsProperties audioSettingsProperties (persistentRootProperties.getValueTree (), AudioSettingsProperties::WrapperType::client, AudioSettingsProperties::EnableCallbacks::no);
         //audioConfigPropertiesMonitor.assign (audioSettingsProperties.getValueTreeRef ());
+    }
+
+    void initSystemServices ()
+    {
+        // connect services to the SystemServices VTW
+        SystemServices systemServices (runtimeRootProperties.getValueTree (), SystemServices::WrapperType::owner, SystemServices::EnableCallbacks::no);
+
+        audioManager.init (rootProperties.getValueTree ());
+        systemServices.setAudioManager (&audioManager);
+
+        PresetManagerProperties presetManagerProperties (runtimeRootProperties.getValueTree (), PresetManagerProperties::WrapperType::client, PresetManagerProperties::EnableCallbacks::no);
+        editManager.init (rootProperties.getValueTree (), presetManagerProperties.getPreset ("edit"));
+        systemServices.setEditManager (&editManager);
     }
 
     void initAppDirectory ()
@@ -292,6 +315,7 @@ private:
     ValueTreeFile persitentPropertiesFile;
     PersistentRootProperties persistentRootProperties;
     AppProperties appProperties;
+    GuiControlProperties guiControlProperties;
     GuiProperties guiProperties;
     RuntimeRootProperties runtimeRootProperties;
     SampleManager sampleManager;
@@ -303,6 +327,8 @@ private:
     std::atomic<RuntimeRootProperties::QuitState> localQuitState { RuntimeRootProperties::QuitState::idle };
     std::unique_ptr<MainWindow> mainWindow;
     AudioPlayer audioPlayer;
+    AudioManager audioManager;
+    EditManager editManager;
 
     ValueTreeMonitor audioConfigPropertiesMonitor;
     ValueTreeMonitor directoryDataMonitor;

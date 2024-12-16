@@ -11,6 +11,7 @@ public:
 
 private:
     CustomComponentMouseHandler customComponentMouseHandler;
+    bool evenEvent { true };
 
     void mouseDown (const juce::MouseEvent& mouseEvent) override;
     void mouseUp (const juce::MouseEvent& mouseEvent) override;

@@ -1,6 +1,7 @@
 #include "ChannelEditor.h"
 #include "FormatHelpers.h"
 #include "ParameterToolTipData.h"
+#include "../../../SystemServices.h"
 #include "../../../Assimil8or/Preset/PresetHelpers.h"
 #include "../../../Assimil8or/Preset/PresetProperties.h"
 #include "../../../Assimil8or/Preset/ParameterPresetsSingleton.h"
@@ -190,25 +191,18 @@ void ChannelEditor::deleteZone (int zoneIndex)
 // TODO - move this to the EditManger
 void ChannelEditor::duplicateZone (int zoneIndex)
 {
-    // if the list is full, we can't copy the end anywhere, so we'll start with the one before the end, otherwise start at the end
-    const auto numUsedZones { editManager->getNumUsedZones (channelIndex) };
-    const auto startingZoneIndex { numUsedZones - (numUsedZones == zoneProperties.size () ? 2 : 1) };
-    for (auto curZoneIndex { startingZoneIndex }; curZoneIndex >= zoneIndex; --curZoneIndex)
+    jassert (zoneIndex > 0 && zoneIndex < 7);
+    const auto topBoundary { zoneProperties[zoneIndex - 1].getMinVoltage () };
+    const auto bottomBoundary { zoneProperties [zoneIndex].getMinVoltage () };
+    const auto newZoneVoltage { bottomBoundary + ((topBoundary - bottomBoundary) / 2) };
+    for (auto curZoneIndex { 6 }; curZoneIndex >= zoneIndex; --curZoneIndex)
     {
         ZoneProperties destZoneProperties (channelProperties.getZoneVT (curZoneIndex + 1), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
         destZoneProperties.copyFrom (channelProperties.getZoneVT (curZoneIndex), false);
     }
-    // if our duplicated zone is not on the end, set the voltage 1/2 between it's neighbors
-    const auto indexOfLastZone { numUsedZones - 1 };
-    if (zoneIndex + 1 < indexOfLastZone)
-    {
-        auto [topBoundary, bottomBoundary] { editManager->getVoltageBoundaries (channelIndex, zoneIndex + 1, 0) };
-        zoneProperties [zoneIndex + 1].setMinVoltage (bottomBoundary + ((topBoundary - bottomBoundary) / 2), false);
-    }
-
-    // if the zone on the end does not have a -5 minVoltage, then set it to -5
-    if (zoneProperties[indexOfLastZone].getMinVoltage () != -5.0)
-        zoneProperties [indexOfLastZone].setMinVoltage (-5.0, false);
+    zoneProperties [zoneIndex].setMinVoltage (newZoneVoltage, false);
+    if (editManager->getNumUsedZones (channelIndex) == 8)
+        zoneProperties [7].setMinVoltage (-5.0, false);
 }
 
 // TODO - move this to the EditManger
@@ -323,6 +317,35 @@ void ChannelEditor::ensureProperZoneIsSelected ()
             }
         }
     }
+}
+
+void ChannelEditor::explodeZone (int zoneIndex, int explodeCount)
+{
+    SampleProperties sampleProperties (sampleManagerProperties.getSamplePropertiesVT (channelIndex, zoneIndex), SampleProperties::WrapperType::client, SampleProperties::EnableCallbacks::yes);
+    juce::int64 sampleSize { sampleProperties.getLengthInSamples () };
+    const auto sliceSize { sampleSize / explodeCount };
+    auto& sourceZoneProperties { zoneProperties [zoneIndex] };
+    auto setSamplePoints = [this, sliceSize] (ZoneProperties& zpToUpdate, int index)
+    {
+        const auto sampleStart { index * sliceSize };
+        const auto sampleEnd { sampleStart + sliceSize };
+        zpToUpdate.setSampleStart (sampleStart, true);
+        zpToUpdate.setSampleEnd (sampleEnd, true);
+        zpToUpdate.setLoopStart (sampleStart, true);
+        zpToUpdate.setLoopLength (static_cast<double> (sliceSize), true);
+    };
+    setSamplePoints (sourceZoneProperties, 0);
+
+    for (auto destinationZoneIndex { zoneIndex + 1 }; destinationZoneIndex < zoneIndex + explodeCount; ++destinationZoneIndex)
+    {
+        auto& destZoneProperties { zoneProperties [destinationZoneIndex] };
+        destZoneProperties.copyFrom (sourceZoneProperties.getValueTree (), false);
+        setSamplePoints (destZoneProperties, destinationZoneIndex - zoneIndex);
+    }
+    zoneProperties [editManager->getNumUsedZones (channelIndex) - 1].setMinVoltage (-5.0, false);
+    balanceVoltages (VoltageBalanceType::distributeAcross10V);
+    ensureProperZoneIsSelected ();
+    updateAllZoneTabNames ();
 }
 
 int ChannelEditor::getEnvelopeValueResolution (double envelopeValue)
@@ -2179,13 +2202,10 @@ void ChannelEditor::balanceVoltages (VoltageBalanceType balanceType)
     updateAllZoneTabNames ();
 }
 
-void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree uneditedChannelPropertiesVT, juce::ValueTree rootPropertiesVT, EditManager* theEditManager,
+void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree uneditedChannelPropertiesVT, juce::ValueTree rootPropertiesVT,
                           juce::ValueTree copyBufferZonePropertiesVT, bool* theZoneCopyBufferHasData)
 {
     //DebugLog ("ChannelEditor["+ juce::String (channelProperties.getId ()) + "]", "init");
-    jassert (theEditManager != nullptr);
-    editManager = theEditManager;
-
     jassert (theZoneCopyBufferHasData != nullptr);
     zoneCopyBufferHasData = theZoneCopyBufferHasData;
 
@@ -2196,25 +2216,30 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree u
     appProperties.wrap (persistentRootProperties.getValueTree (), AppProperties::WrapperType::client, AppProperties::EnableCallbacks::no);
     audioPlayerProperties.wrap (runtimeRootProperties.getValueTree (), AudioPlayerProperties::WrapperType::client, AudioPlayerProperties::EnableCallbacks::no);
 
+    SystemServices systemServices {runtimeRootProperties.getValueTree (), SystemServices::WrapperType::client, SystemServices::EnableCallbacks::yes};
+    editManager = systemServices.getEditManager ();
+
+    sampleManagerProperties.wrap (runtimeRootProperties.getValueTree (), SampleManagerProperties::WrapperType::client, SampleManagerProperties::EnableCallbacks::no);
+
     channelProperties.wrap (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::yes);
     uneditedChannelProperties.wrap (uneditedChannelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
     channelIndex = channelProperties.getId () - 1;
     setupChannelPropertiesCallbacks ();
-    sampleWaveformDisplay.init (channelPropertiesVT, rootPropertiesVT, editManager);
+    sampleWaveformDisplay.init (channelPropertiesVT, rootPropertiesVT);
 
     channelProperties.forEachZone ([this, rootPropertiesVT] (juce::ValueTree zonePropertiesVT, int zoneIndex)
     {
         // Zone Editor setup
         auto& zoneEditor { zoneEditors [zoneIndex] };
-        zoneEditor.init (zonePropertiesVT, uneditedChannelProperties.getZoneVT (zoneIndex), rootPropertiesVT, editManager);
+        zoneEditor.init (zonePropertiesVT, uneditedChannelProperties.getZoneVT (zoneIndex), rootPropertiesVT);
         zoneEditor.displayToolsMenu = [this] (int zoneIndex)
         {
             auto* popupMenuLnF { new juce::LookAndFeel_V4 };
             popupMenuLnF->setColour (juce::PopupMenu::ColourIds::headerTextColourId, juce::Colours::white.withAlpha (0.3f));
-            juce::PopupMenu editMenu;
-            editMenu.setLookAndFeel (popupMenuLnF);
-            editMenu.addSectionHeader ("Zone " + juce::String (zoneProperties [zoneIndex].getId ()));
-            editMenu.addSeparator ();
+            juce::PopupMenu toolsMenu;
+            toolsMenu.setLookAndFeel (popupMenuLnF);
+            toolsMenu.addSectionHeader ("Zone " + juce::String (zoneProperties [zoneIndex].getId ()));
+            toolsMenu.addSeparator ();
 
             {
                 juce::PopupMenu balanceMenu;
@@ -2222,43 +2247,67 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree u
                 balanceMenu.addItem ("10V", true, false, [this] () { balanceVoltages (VoltageBalanceType::distributeAcross10V); });
                 balanceMenu.addItem ("Kbd", true, false, [this] () { balanceVoltages (VoltageBalanceType::distribute1vPerOct); });
                 balanceMenu.addItem ("Maj", true, false, [this] () { balanceVoltages (VoltageBalanceType::distribute1vPerOctMajor); });
-                editMenu.addSubMenu ("Balance", balanceMenu, zoneProperties [zoneIndex].getSample ().isNotEmpty ());
+                toolsMenu.addSubMenu ("Balance", balanceMenu, zoneProperties [zoneIndex].getSample ().isNotEmpty ());
             }
             {
-                juce::PopupMenu copyMenu;
-                copyMenu.addItem ("Settings", zoneProperties [zoneIndex].getSample ().isNotEmpty (), false, [this, zoneIndex] () { copyZone (zoneIndex, true); });
-                copyMenu.addItem ("Sample and Settings", zoneProperties [zoneIndex].getSample ().isNotEmpty (), false, [this, zoneIndex] () { copyZone (zoneIndex, false); });
-                editMenu.addSubMenu ("Copy", copyMenu, zoneProperties [zoneIndex].getSample ().isNotEmpty ());
-            }
-            editMenu.addItem ("Paste", *zoneCopyBufferHasData && (zoneProperties [zoneIndex].getSample ().isNotEmpty () || copyBufferZoneProperties.getSample ().isNotEmpty ()), false, [this, zoneIndex] ()
-            {
-                pasteZone (zoneIndex);
-                updateAllZoneTabNames ();
-                ensureProperZoneIsSelected ();
-            });
-            editMenu.addItem ("Insert", zoneProperties [zoneIndex].getSample ().isNotEmpty () && zoneIndex > 0 && zoneIndex < zoneProperties.size () - 1, false, [this, zoneIndex] ()
-            {
-                duplicateZone (zoneIndex);
-                ensureProperZoneIsSelected ();
-                updateAllZoneTabNames ();
-            });
-            {
-                juce::PopupMenu deleteMenu;
-                deleteMenu.addItem ("Zone " + juce::String (zoneProperties [zoneIndex].getId ()), zoneProperties [zoneIndex].getSample ().isNotEmpty (), false, [this, zoneIndex] ()
+                juce::PopupMenu editMenu;
                 {
-                    deleteZone (zoneIndex);
+                    juce::PopupMenu copyMenu;
+                    copyMenu.addItem ("Settings", zoneProperties [zoneIndex].getSample ().isNotEmpty (), false, [this, zoneIndex] () { copyZone (zoneIndex, true); });
+                    copyMenu.addItem ("Sample and Settings", zoneProperties [zoneIndex].getSample ().isNotEmpty (), false, [this, zoneIndex] () { copyZone (zoneIndex, false); });
+                    editMenu.addSubMenu ("Copy", copyMenu, zoneProperties [zoneIndex].getSample ().isNotEmpty ());
+                }
+                editMenu.addItem ("Paste", *zoneCopyBufferHasData && (zoneProperties [zoneIndex].getSample ().isNotEmpty () || copyBufferZoneProperties.getSample ().isNotEmpty ()), false, [this, zoneIndex] ()
+                {
+                    pasteZone (zoneIndex);
+                    updateAllZoneTabNames ();
+                    ensureProperZoneIsSelected ();
+                });
+                editMenu.addItem ("Insert", zoneProperties [zoneIndex].getSample ().isNotEmpty () && zoneIndex > 0 && zoneIndex < zoneProperties.size () - 1, false, [this, zoneIndex] ()
+                {
+                    duplicateZone (zoneIndex);
                     ensureProperZoneIsSelected ();
                     updateAllZoneTabNames ();
                 });
-                deleteMenu.addItem ("All", editManager->getNumUsedZones (channelIndex) > 0, false, [this] ()
                 {
-                    clearAllZones ();
-                    ensureProperZoneIsSelected ();
-                    updateAllZoneTabNames ();
-                });
-                editMenu.addSubMenu ("Delete", deleteMenu, zoneProperties [zoneIndex].getSample ().isNotEmpty ());
+                    juce::PopupMenu deleteMenu;
+                    deleteMenu.addItem ("Zone " + juce::String (zoneProperties [zoneIndex].getId ()), zoneProperties [zoneIndex].getSample ().isNotEmpty (), false, [this, zoneIndex] ()
+                    {
+                        deleteZone (zoneIndex);
+                        ensureProperZoneIsSelected ();
+                        updateAllZoneTabNames ();
+                    });
+                    deleteMenu.addItem ("All", editManager->getNumUsedZones (channelIndex) > 0, false, [this] ()
+                    {
+                        clearAllZones ();
+                        ensureProperZoneIsSelected ();
+                        updateAllZoneTabNames ();
+                    });
+                    editMenu.addSubMenu ("Delete", deleteMenu, zoneProperties [zoneIndex].getSample ().isNotEmpty ());
+                }
+                toolsMenu.addSubMenu ("Edit", editMenu, true);
             }
-            editMenu.showMenuAsync ({}, [this, popupMenuLnF] (int) { delete popupMenuLnF; });
+            {
+                juce::PopupMenu explodeMenu;
+                for (auto explodeCount { 2 }; explodeCount < 9 - zoneIndex; ++explodeCount)
+                    explodeMenu.addItem (juce::String (explodeCount) + " zones", true, false, [this, zoneIndex, explodeCount] ()
+                    {
+                        explodeZone (zoneIndex, explodeCount);
+                    });
+                toolsMenu.addSubMenu ("Explode", explodeMenu, zoneIndex < 7);
+            }
+            {
+                juce::PopupMenu flipMenu;
+                const auto maxFlipCount { editManager->getNumUsedZones (channelIndex) + 1 - zoneIndex };
+                for (auto flipCount { 2 }; flipCount < maxFlipCount; ++flipCount)
+                    flipMenu.addItem (juce::String (flipCount) + " zones", true, false, [this, zoneIndex, flipCount] ()
+                    {
+                        flipZones (zoneIndex, flipCount);
+                    });
+                toolsMenu.addSubMenu ("Flip", flipMenu, zoneIndex < 7);
+            }
+
+            toolsMenu.showMenuAsync ({}, [this, popupMenuLnF] (int) { delete popupMenuLnF; });
         };
 
         // Zone Properties setup
@@ -2714,10 +2763,10 @@ void ChannelEditor::resized ()
     toolsButton.setBounds (5, getHeight () - 5 - 20, 40, 20);
 
     // layout the Zones section. ie. the tabs and the channel level controls
-    auto zoneColumn {getLocalBounds ().removeFromRight (200)};
+    auto zoneColumn {getLocalBounds ().removeFromRight (213)};
     zoneColumn.removeFromTop (3);
     auto zoneTopSection { zoneColumn.removeFromTop (75).withTrimmedBottom (5).withTrimmedRight (3)};
-    zonesLabel.setBounds (zoneTopSection.getX (), zoneTopSection.getHeight () / 2 - kMediumLabelIntSize / 2, 80, kMediumLabelIntSize);
+    zonesLabel.setBounds (zoneTopSection.getX () + 15, zoneTopSection.getHeight () / 2 - kMediumLabelIntSize / 2, 80, kMediumLabelIntSize);
     const auto zoneSectionInputWidth { 65 };
     const auto zoneSectionLabelWidth { 85 };
     zonesCVComboBox.setBounds (zoneTopSection.getRight () - zoneSectionInputWidth, zoneTopSection.getY () + 3, zoneSectionInputWidth, kParameterLineHeight);
@@ -2749,6 +2798,23 @@ void ChannelEditor::updateWaveformDisplay ()
 {
     const auto currentZoneIndex { zoneTabs.getCurrentTabIndex () };
     sampleWaveformDisplay.setZone (currentZoneIndex);
+}
+
+void ChannelEditor::flipZones (int zoneIndex, int flipCount)
+{
+    ZoneProperties tempZoneProperties;
+    for (auto zoneCount { 0 }; zoneCount< flipCount / 2; ++zoneCount)
+    {
+        auto& firstZone { zoneProperties [zoneIndex + zoneCount] };
+        const auto firstZoneMinVoltage { firstZone.getMinVoltage() };
+        auto& secondZone { zoneProperties [zoneIndex + (flipCount - zoneCount - 1)] };
+        const auto secondZoneMinVoltage { secondZone.getMinVoltage () };
+        tempZoneProperties.copyFrom (secondZone.getValueTree (), false);
+        secondZone.copyFrom (firstZone.getValueTree (), false);
+        secondZone.setMinVoltage (secondZoneMinVoltage, true);
+        firstZone.copyFrom (tempZoneProperties.getValueTree (), false);
+        firstZone.setMinVoltage (firstZoneMinVoltage, true);
+    }
 }
 
 void ChannelEditor::updateAllZoneTabNames ()

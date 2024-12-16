@@ -1,6 +1,7 @@
 #include "Assimil8orValidatorComponent.h"
 #include "RenameDialogComponent.h"
 #include "LocateFileComponent.h"
+#include "../../../SystemServices.h"
 #include "../../../Assimil8or/Validator/ValidatorResultListProperties.h"
 #include "../../../Utility/RuntimeRootProperties.h"
 
@@ -21,7 +22,6 @@ Assimil8orValidatorComponent::Assimil8orValidatorComponent ()
     validationResultsListBox.getHeader ().setStretchToFitActive (true);
     addAndMakeVisible (validationResultsListBox);
 
-    audioFormatManager.registerBasicFormats ();
     setupViewList ();
 }
 
@@ -49,6 +49,9 @@ void Assimil8orValidatorComponent::init (juce::ValueTree rootPropertiesVT)
 {
     RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
     directoryDataProperties.wrap (runtimeRootProperties.getValueTree (), DirectoryDataProperties::WrapperType::client, DirectoryDataProperties::EnableCallbacks::yes);
+
+    SystemServices systemServices { runtimeRootProperties.getValueTree (), SystemServices::WrapperType::client, SystemServices::EnableCallbacks::yes };
+    audioManager = systemServices.getAudioManager ();
 
     validatorComponentProperties.wrap (runtimeRootProperties.getValueTree (), ValidatorComponentProperties::WrapperType::owner, ValidatorComponentProperties::EnableCallbacks::yes);
     auto updateFromViewChange = [this] ()
@@ -506,7 +509,7 @@ void Assimil8orValidatorComponent::convert (juce::File file)
                                                 juce::ModalCallbackFunction::create ([this] (int) {}));
     };
 
-    if (std::unique_ptr<juce::AudioFormatReader> reader (audioFormatManager.createReaderFor (file)); reader != nullptr)
+    if (auto reader { audioManager->getReaderFor (file) }; reader != nullptr)
     {
         auto tempFile { juce::File::createTempFile (".wav") };
         auto tempFileStream { std::make_unique<juce::FileOutputStream> (tempFile) };
@@ -522,14 +525,8 @@ void Assimil8orValidatorComponent::convert (juce::File file)
         else if (bitsPerSample > 24) // the wave writer supports int 8/16/24
             bitsPerSample = 24;
         jassert (numChannels != 0);
-#define ONLY_MONO_TEST 0
-#if ONLY_MONO_TEST
-        if (numChannels > 1)
-            numChannels = 1;
-#else
         if (numChannels > 2)
             numChannels = 2;
-#endif
         if (reader->sampleRate > 192000)
         {
             // we need to do sample rate conversion
@@ -556,7 +553,7 @@ void Assimil8orValidatorComponent::convert (juce::File file)
                 // TODO - should we rename the original, until we have succeeded in copying of the new file, and only then delete it
                 if (file.deleteFile () == true)
                 {
-                    if (tempFile.moveFileTo (file) == false)
+                    if (tempFile.moveFileTo (file.withFileExtension("wav")) == false)
                     {
                         // failure to move temp file to new file
                         errorDialog ("Failure to move converted file to original file");

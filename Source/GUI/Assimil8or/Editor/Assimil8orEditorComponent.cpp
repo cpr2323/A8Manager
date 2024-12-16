@@ -1,5 +1,6 @@
 #include "Assimil8orEditorComponent.h"
 #include "ParameterToolTipData.h"
+#include "../../../SystemServices.h"
 #include "../../../Assimil8or/Assimil8orPreset.h"
 #include "../../../Assimil8or/PresetManagerProperties.h"
 #include "../../../Assimil8or/Preset/ParameterPresetsSingleton.h"
@@ -47,6 +48,10 @@ Assimil8orEditorComponent::Assimil8orEditorComponent ()
     defaultChannelProperties.wrap (defaultPresetProperties.getChannelVT (0), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
 
     setupPresetComponents ();
+
+    // NOTE: This must go last to overlay the entire window when activated
+    //addChildComponent (midiConfigWindow);
+
     startTimer (250);
 }
 
@@ -83,6 +88,7 @@ void Assimil8orEditorComponent::setupPresetComponents ()
     nameEditor.setIndents (1, 0);
     nameEditor.onFocusLost = [this] () { nameUiChanged (nameEditor.getText ()); };
     nameEditor.onReturnKey = [this] () { nameUiChanged (nameEditor.getText ()); };
+    nameEditor.onTextChange = [this] () { nameUiChanged (nameEditor.getText ()); };
     nameEditor.setInputRestrictions (12, " !\"#$%^&'()#+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~");
     nameEditor.setTooltip (parameterToolTipData.getToolTip ("Preset", "Name"));
     addAndMakeVisible (nameEditor);
@@ -104,6 +110,7 @@ void Assimil8orEditorComponent::setupPresetComponents ()
     };
     addAndMakeVisible (midiSetupComboBox);
 
+    // used to cover the right channel controls for a stereo linked pair
     addAndMakeVisible (windowDecorator);
 
     // Data 2 CV
@@ -172,12 +179,12 @@ void Assimil8orEditorComponent::setupPresetComponents ()
                 if (xfadeGroupIndex != curGroupIndex)
                     cloneMenu.addItem ("To Group " + juce::String::charToString ('A' + curGroupIndex), true, false, [this, curGroupIndex, xfadeGroupIndex] ()
                     {
-                        editManager.setXfadeCvValueByIndex (curGroupIndex, editManager.getXfadeCvValueByIndex (xfadeGroupIndex), true);
+                        editManager->setXfadeCvValueByIndex (curGroupIndex, editManager->getXfadeCvValueByIndex (xfadeGroupIndex), true);
                     });
             }
             cloneMenu.addItem ("To All", true, false, [this, xfadeGroupIndex] ()
             {
-                const auto value { editManager.getXfadeCvValueByIndex (xfadeGroupIndex) };
+                const auto value { editManager->getXfadeCvValueByIndex (xfadeGroupIndex) };
                 presetProperties.setXfadeACV (value, true);
                 presetProperties.setXfadeBCV (value, true);
                 presetProperties.setXfadeCCV (value, true);
@@ -199,7 +206,7 @@ void Assimil8orEditorComponent::setupPresetComponents ()
                     jassertfalse;
                         return juce::String ("Off");
                 };
-                editManager.setXfadeCvValueByIndex (xfadeGroupIndex, getDefaultXfadeCvValueByIndex (xfadeGroupIndex), true);
+                editManager->setXfadeCvValueByIndex (xfadeGroupIndex, getDefaultXfadeCvValueByIndex (xfadeGroupIndex), true);
             });
             editMenu.addItem ("Revert", true, false, [this, xfadeGroupIndex] ()
             {
@@ -216,7 +223,7 @@ void Assimil8orEditorComponent::setupPresetComponents ()
                     jassertfalse;
                     return juce::String ("Off");
                 };
-                editManager.setXfadeCvValueByIndex (xfadeGroupIndex, getUneditedXfadeCvValueByIndex (xfadeGroupIndex), true);
+                editManager->setXfadeCvValueByIndex (xfadeGroupIndex, getUneditedXfadeCvValueByIndex (xfadeGroupIndex), true);
             });
             editMenu.showMenuAsync ({}, [this] (int) {});
         };
@@ -247,10 +254,10 @@ void Assimil8orEditorComponent::setupPresetComponents ()
         xfadeGroup.xfadeWidthEditor.onDragCallback = [this, xfadeGroupIndex] (DragSpeed dragSpeed, int direction)
         {
             const auto scrollAmount { (dragSpeed == DragSpeed::fast ? 1.0 : 0.1) * static_cast<float> (direction) };
-            const auto newAmount { editManager.getXfadeGroupValueByIndex (xfadeGroupIndex) + (0.1 * scrollAmount) };
+            const auto newAmount { editManager->getXfadeGroupValueByIndex (xfadeGroupIndex) + (0.1 * scrollAmount) };
             // the min/max values for all of the XFade Group Widths are the same, so we can just use A
             auto width { std::clamp (newAmount, minPresetProperties.getXfadeAWidth (), maxPresetProperties.getXfadeAWidth ()) };
-            editManager.setXfadeGroupValueByIndex (xfadeGroupIndex, width, true);
+            editManager->setXfadeGroupValueByIndex (xfadeGroupIndex, width, true);
         };
         xfadeGroup.xfadeWidthEditor.onPopupMenuCallback = [this, xfadeGroupIndex] ()
         {
@@ -261,12 +268,12 @@ void Assimil8orEditorComponent::setupPresetComponents ()
                 if (xfadeGroupIndex != curGroupIndex)
                     cloneMenu.addItem ("To Group " + juce::String::charToString ('A' + curGroupIndex), true, false, [this, curGroupIndex, xfadeGroupIndex] ()
                     {
-                        editManager.setXfadeGroupValueByIndex (curGroupIndex, editManager.getXfadeGroupValueByIndex (xfadeGroupIndex), true);
+                        editManager->setXfadeGroupValueByIndex (curGroupIndex, editManager->getXfadeGroupValueByIndex (xfadeGroupIndex), true);
                     });
             }
             cloneMenu.addItem ("To All", true, false, [this, xfadeGroupIndex] ()
             {
-                const auto value { editManager.getXfadeGroupValueByIndex (xfadeGroupIndex) };
+                const auto value { editManager->getXfadeGroupValueByIndex (xfadeGroupIndex) };
                 presetProperties.setXfadeAWidth (value, true);
                 presetProperties.setXfadeBWidth (value, true);
                 presetProperties.setXfadeCWidth (value, true);
@@ -276,7 +283,7 @@ void Assimil8orEditorComponent::setupPresetComponents ()
             pm.addItem ("Default", true, false, [this, xfadeGroupIndex] ()
             {
                 // the default values for all of the XFade Group Widths are the same, so we can just use A
-                editManager.setXfadeGroupValueByIndex (xfadeGroupIndex, defaultPresetProperties.getXfadeAWidth (), true);
+                editManager->setXfadeGroupValueByIndex (xfadeGroupIndex, defaultPresetProperties.getXfadeAWidth (), true);
             });
             pm.addItem ("Revert", true, false, [this, xfadeGroupIndex]
             {
@@ -293,7 +300,7 @@ void Assimil8orEditorComponent::setupPresetComponents ()
                     jassertfalse;
                     return 0.0;
                 };
-                editManager.setXfadeGroupValueByIndex (xfadeGroupIndex, getUneditedXfadeGroupValueByIndex (xfadeGroupIndex), true);
+                editManager->setXfadeGroupValueByIndex (xfadeGroupIndex, getUneditedXfadeGroupValueByIndex (xfadeGroupIndex), true);
             });
             pm.showMenuAsync ({}, [this] (int) {});
         };
@@ -353,7 +360,7 @@ juce::PopupMenu Assimil8orEditorComponent::createChannelCloneMenu (int channelIn
         {
             cloneMenu.addItem ("To Channel " + juce::String (destChannelIndex + 1), true, false, [this, destChannelIndex, setter] ()
             {
-                editManager.forChannels ({ destChannelIndex }, [this, setter] (juce::ValueTree channelPropertiesVT)
+                editManager->forChannels ({ destChannelIndex }, [this, setter] (juce::ValueTree channelPropertiesVT)
                 {
                     ChannelProperties destChannelProperties (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
                     setter (destChannelProperties);
@@ -369,7 +376,7 @@ juce::PopupMenu Assimil8orEditorComponent::createChannelCloneMenu (int channelIn
             if (destChannelIndex != channelIndex)
                 channelIndexList.emplace_back (destChannelIndex);
         // clone to other channels
-        editManager.forChannels (channelIndexList, [this, setter] (juce::ValueTree channelPropertiesVT)
+        editManager->forChannels (channelIndexList, [this, setter] (juce::ValueTree channelPropertiesVT)
         {
             ChannelProperties destChannelProperties (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
             setter (destChannelProperties);
@@ -405,15 +412,19 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
         channelTabs.setCurrentTabIndex (0);
     };
 
-    PresetManagerProperties presetManagerProperties (runtimeRootProperties.getValueTree (), PresetManagerProperties::WrapperType::owner, PresetManagerProperties::EnableCallbacks::no);
+    guiControlProperties.wrap (runtimeRootProperties.getValueTree (), GuiControlProperties::WrapperType::client, GuiControlProperties::EnableCallbacks::no);
+
+    PresetManagerProperties presetManagerProperties (runtimeRootProperties.getValueTree (), PresetManagerProperties::WrapperType::client, PresetManagerProperties::EnableCallbacks::no);
     unEditedPresetProperties.wrap (presetManagerProperties.getPreset ("unedited"), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::yes);
     presetProperties.wrap (presetManagerProperties.getPreset ("edit"), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::yes);
-    editManager.init (rootPropertiesVT, presetProperties.getValueTree ());
+
+    SystemServices systemServices { runtimeRootProperties.getValueTree (), SystemServices::WrapperType::client, SystemServices::EnableCallbacks::yes };
+    editManager = systemServices.getEditManager ();
     setupPresetPropertiesCallbacks ();
     copyBufferZoneProperties.wrap ({}, ZoneProperties::WrapperType::owner, ZoneProperties::EnableCallbacks::no);
     presetProperties.forEachChannel ([this, rootPropertiesVT] (juce::ValueTree channelPropertiesVT, int channelIndex)
     {
-        channelEditors [channelIndex].init (channelPropertiesVT, unEditedPresetProperties.getChannelVT (channelIndex), rootPropertiesVT, &editManager, copyBufferZoneProperties.getValueTree (), &copyBufferHasData);
+        channelEditors [channelIndex].init (channelPropertiesVT, unEditedPresetProperties.getChannelVT (channelIndex), rootPropertiesVT, copyBufferZoneProperties.getValueTree (), &copyBufferHasData);
         channelProperties [channelIndex].wrap (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::yes);
         channelProperties [channelIndex].onChannelModeChange = [this] (int)
         {
@@ -423,11 +434,10 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
         {
             auto* popupMenuLnF { new juce::LookAndFeel_V4 };
             popupMenuLnF->setColour (juce::PopupMenu::ColourIds::headerTextColourId, juce::Colours::white.withAlpha (0.3f));
-            juce::PopupMenu editMenu;
-            editMenu.setLookAndFeel (popupMenuLnF);
-            editMenu.addSectionHeader ("Channel " + juce::String (channelProperties [channelIndex].getId ()));
-            editMenu.addSeparator ();
-
+            juce::PopupMenu toolsMenu;
+            toolsMenu.setLookAndFeel (popupMenuLnF);
+            toolsMenu.addSectionHeader ("Channel " + juce::String (channelProperties [channelIndex].getId ()));
+            toolsMenu.addSeparator ();
             {
                 // Clone
                 juce::PopupMenu cloneMenu;
@@ -457,7 +467,7 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
                 }));
                 cloneMenu.addSubMenu ("MinVoltages", createChannelCloneMenu (channelIndex, [this, channelIndex] (ChannelProperties& destChannelProperties)
                 {
-                    if (const auto destNumUsedZones { editManager.getNumUsedZones (destChannelProperties.getId () - 1) };
+                    if (const auto destNumUsedZones { editManager->getNumUsedZones (destChannelProperties.getId () - 1) };
                         destNumUsedZones > 1)
                     {
                         channelProperties[channelIndex].forEachZone ([this, &destChannelProperties, destNumUsedZones] (juce::ValueTree zonePropertiesVT, int curZoneIndex)
@@ -471,26 +481,39 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
                         });
                     }
                 }));
-                editMenu.addSubMenu ("Clone", cloneMenu);
+                toolsMenu.addSubMenu ("Clone", cloneMenu);
             }
-            editMenu.addItem ("Copy", true, false, [this, channelIndex] ()
             {
-                copyBufferChannelProperties.copyFrom (channelProperties [channelIndex].getValueTree ());
-                copyBufferHasData = true;
-            });
-            editMenu.addItem ("Paste", copyBufferHasData, false, [this, channelIndex] ()
+                juce::PopupMenu editMenu;
+                editMenu.addItem ("Copy", true, false, [this, channelIndex] ()
+                {
+                    copyBufferChannelProperties.copyFrom (channelProperties [channelIndex].getValueTree ());
+                    copyBufferHasData = true;
+                });
+                editMenu.addItem ("Paste", copyBufferHasData, false, [this, channelIndex] ()
+                {
+                    channelProperties [channelIndex].copyFrom (copyBufferChannelProperties.getValueTree ());
+                });
+                toolsMenu.addSubMenu ("Edit", editMenu, true);
+            }
             {
-                channelProperties [channelIndex].copyFrom (copyBufferChannelProperties.getValueTree ());
-            });
-            editMenu.addItem ("Default", true, false, [this, channelIndex] ()
+                juce::PopupMenu explodeMenu;
+                for (auto explodeCount { 2 }; explodeCount < 9 - channelIndex; ++explodeCount)
+                    explodeMenu.addItem (juce::String (explodeCount) + " channels", true, false, [this, channelIndex, explodeCount] ()
+                    {
+                        explodeChannel (channelIndex, explodeCount);
+                    });
+                toolsMenu.addSubMenu ("Explode", explodeMenu, channelIndex < 7);
+            }
+            toolsMenu.addItem ("Default", true, false, [this, channelIndex] ()
             {
                 channelProperties [channelIndex].copyFrom (defaultChannelProperties.getValueTree ());
             });
-            editMenu.addItem ("Revert", true, false, [this, channelIndex] ()
+            toolsMenu.addItem ("Revert", true, false, [this, channelIndex] ()
             {
                 channelProperties [channelIndex].copyFrom (unEditedPresetProperties.getValueTree ());
             });
-            editMenu.showMenuAsync ({}, [this, popupMenuLnF] (int) { delete popupMenuLnF; });
+            toolsMenu.showMenuAsync ({}, [this, popupMenuLnF] (int) { delete popupMenuLnF; });
         };
 
         channelProperties [channelIndex].wrap (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::yes);
@@ -579,6 +602,49 @@ void Assimil8orEditorComponent::paint ([[maybe_unused]] juce::Graphics& g)
     g.fillAll (juce::Colours::darkgrey.darker (0.7f));
 }
 
+void Assimil8orEditorComponent::explodeChannel (int channelIndex, int explodeCount)
+{
+    // clone channelIndex into explodeCount-1 subsequent channels
+    for (auto destinationChannelIndex { channelIndex + 1 }; destinationChannelIndex < channelIndex + explodeCount; ++destinationChannelIndex)
+    {
+        auto& destChannelProperties { channelProperties [destinationChannelIndex] };
+        destChannelProperties.copyFrom (channelProperties [channelIndex].getValueTree ());
+
+        channelProperties [channelIndex].forEachZone ([this, &destChannelProperties] (juce::ValueTree zonePropertiesVT, int zoneIndex)
+        {
+            ZoneProperties destZoneProperties (destChannelProperties.getZoneVT (zoneIndex), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
+            destZoneProperties.copyFrom (zonePropertiesVT, false);
+            return true;
+        });
+    }
+    // set sample/loop points for channelIndex and explodeCount-1 subsequent channels to sequential slice size pieces
+    SampleManagerProperties sampleManagerProperties (runtimeRootProperties.getValueTree (), SampleManagerProperties::WrapperType::client, SampleManagerProperties::EnableCallbacks::no);
+    channelProperties [channelIndex].forEachZone ([this, channelIndex, explodeCount, &sampleManagerProperties] (juce::ValueTree zonePropertiesVT, int zoneIndex)
+    {
+        ZoneProperties zoneProperties {zonePropertiesVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no};
+        SampleProperties sampleProperties (sampleManagerProperties.getSamplePropertiesVT (channelIndex, zoneIndex), SampleProperties::WrapperType::client, SampleProperties::EnableCallbacks::yes);
+        juce::int64 sampleSize { sampleProperties.getLengthInSamples () };
+        const auto sliceSize { sampleSize / explodeCount };
+        auto setSamplePoints = [this, sliceSize] (ZoneProperties& zpToUpdate, int index)
+        {
+            const auto sampleStart { index * sliceSize };
+            const auto sampleEnd { sampleStart + sliceSize };
+            zpToUpdate.setSampleStart (sampleStart, true);
+            zpToUpdate.setSampleEnd (sampleEnd, true);
+            zpToUpdate.setLoopStart (sampleStart, true);
+            zpToUpdate.setLoopLength (static_cast<double> (sliceSize), true);
+        };
+        setSamplePoints (zoneProperties, 0);
+        for (auto channelCount { 0 }; channelCount < explodeCount - 1; ++channelCount)
+        {
+            auto& destChannelProperties { channelProperties [channelIndex + channelCount + 1] };
+            ZoneProperties destZoneProperties { destChannelProperties.getZoneVT (zoneIndex), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no };
+            setSamplePoints (destZoneProperties, channelCount + 1);
+        }
+        return true;
+    });
+}
+
 void Assimil8orEditorComponent::updateAllChannelTabNames ()
 {
     for (auto channelIndex { 0 }; channelIndex < channelTabs.getNumTabs (); ++channelIndex)
@@ -623,17 +689,18 @@ void Assimil8orEditorComponent::displayToolsMenu ()
 {
     auto* popupMenuLnF { new juce::LookAndFeel_V4 };
     popupMenuLnF->setColour (juce::PopupMenu::ColourIds::headerTextColourId, juce::Colours::white.withAlpha (0.3f));
-    juce::PopupMenu pm;
-    pm.setLookAndFeel (popupMenuLnF);
-    pm.addSectionHeader ("Preset");
-    pm.addSeparator ();
+    juce::PopupMenu toolsMenu;
+    toolsMenu.setLookAndFeel (popupMenuLnF);
+    toolsMenu.addSectionHeader ("Preset");
+    toolsMenu.addSeparator ();
 
-    pm.addItem ("Import", true, false, [this] () { importPreset (); });
-    pm.addItem ("Export", true, false, [this] () { exportPreset (); });
-    pm.addItem ("Default", true, false, [this] () { setPresetToDefaults (); });
-    pm.addItem ("Revert", true, false, [this] () { revertPreset (); });
+    toolsMenu.addItem ("Import", true, false, [this] () { importPreset (); });
+    toolsMenu.addItem ("Export", true, false, [this] () { exportPreset (); });
+    toolsMenu.addItem ("Default", true, false, [this] () { setPresetToDefaults (); });
+    toolsMenu.addItem ("Revert", true, false, [this] () { revertPreset (); });
+    toolsMenu.addItem ("Midi Setups", true, false, [this] () { guiControlProperties.showMidiConfigWindow (true); });
 
-    pm.showMenuAsync ({}, [this, popupMenuLnF] (int) { delete popupMenuLnF; });
+    toolsMenu.showMenuAsync ({}, [this, popupMenuLnF] (int) { delete popupMenuLnF; });
 }
 
 void Assimil8orEditorComponent::exportPreset ()
@@ -655,6 +722,8 @@ void Assimil8orEditorComponent::resized ()
 {
     auto localBounds { getLocalBounds () };
 
+    //midiConfigWindow.setBounds (localBounds);
+
     auto topRow { localBounds.removeFromTop (25) };
     topRow.removeFromTop (3);
     topRow.removeFromLeft (5);
@@ -666,7 +735,8 @@ void Assimil8orEditorComponent::resized ()
     // Midi Setup
     midiSetupLabel.setBounds (topRow.removeFromLeft (75));
     topRow.removeFromLeft (3);
-    midiSetupComboBox.setBounds (topRow.removeFromLeft (60));
+    midiSetupComboBox.setBounds (topRow.removeFromLeft (50));
+
     topRow.removeFromRight (3);
     // Save Button
     saveButton.setBounds (topRow.removeFromRight (75));

@@ -1,6 +1,5 @@
 #include "MainComponent.h"
 #include "../Utility/PersistentRootProperties.h"
-#include "../Utility/RuntimeRootProperties.h"
 
 const auto toolWindowHeight { 30 };
 
@@ -48,6 +47,7 @@ MainComponent::MainComponent (juce::ValueTree rootPropertiesVT)
     presetListComponent.init (rootPropertiesVT);
     bottomStatusWindow.init (rootPropertiesVT);
     currentFolderComponent.init (rootPropertiesVT);
+    midiConfigComponent.init (rootPropertiesVT);
 
     presetListEditorSplitter.setComponents (&presetListComponent, &assimil8orEditorComponent);
     presetListEditorSplitter.setHorizontalSplit (false);
@@ -66,6 +66,7 @@ MainComponent::MainComponent (juce::ValueTree rootPropertiesVT)
 
     addAndMakeVisible (currentFolderComponent);
     addAndMakeVisible (topAndBottomSplitter);
+    addChildComponent (midiConfigComponent);
     addAndMakeVisible (bottomStatusWindow);
 
     fileViewComponent.onAudioFileSelected = [this] (juce::File audioFile) { assimil8orEditorComponent.receiveSampleLoadRequest (audioFile); };
@@ -99,4 +100,5 @@ void MainComponent::resized ()
     bottomStatusWindow.setBounds (localBounds.removeFromBottom (toolWindowHeight));
     localBounds.reduce (3, 3);
     topAndBottomSplitter.setBounds (localBounds);
+    midiConfigComponent.setBounds (localBounds);
 }

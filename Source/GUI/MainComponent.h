@@ -6,7 +6,7 @@
 #include "BottomStatusWindow.h"
 #include "Assimil8or/Editor/Assimil8orEditorComponent.h"
 #include "Assimil8or/FileView/FileViewComponent.h"
-#include "Assimil8or/FileView/FileViewComponent.h"
+#include "Assimil8or/MidiConfig/MidiConfigComponent.h"
 #include "Assimil8or/PresetList/PresetListComponent.h"
 #include "Assimil8or/Validator/Assimil8orValidatorComponent.h"
 #include "../Utility/SplitWindowComponent.h"
@@ -22,6 +22,7 @@ private:
     Assimil8orValidatorComponent assimil8orValidatorComponent;
     GuiProperties guiProperties;
     CurrentFolderComponent currentFolderComponent;
+    MidiConfigComponent midiConfigComponent;
     FileViewComponent fileViewComponent;
     PresetListComponent presetListComponent;
     SplitWindowComponent topAndBottomSplitter;

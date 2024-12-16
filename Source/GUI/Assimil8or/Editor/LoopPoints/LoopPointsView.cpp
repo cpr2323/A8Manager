@@ -18,18 +18,23 @@ void LoopPointsView::paint (juce::Graphics& g)
     const auto halfWidth { getWidth () / 2 };
     const auto halfHeight { getHeight () / 2 };
 
-    if (audioBuffer != nullptr && audioBuffer->getNumSamples () >= numSamples && numSamples > 4)
+    if (audioBuffer != nullptr && audioBuffer->getNumSamples () >= numSamples && numSamples > 4 && audioBuffer->getNumSamples () >= sampleOffset + numSamples)
     {
         juce::dsp::AudioBlock<float> audioBlock { *audioBuffer };
         juce::dsp::AudioBlock<float> loopSamples { audioBlock.getSubBlock (sampleOffset, numSamples) };
         const auto samplesToDisplay { static_cast<int> (std::min<juce::int64> (numSamples, halfWidth)) };
 
+        g.setColour (juce::Colours::lightgrey);
+        const auto dashSize { getHeight () / 11.f };
+        std::array<float, 2> dashedSpec { dashSize, dashSize };
+
+        g.drawDashedLine (juce::Line<int>{ 0, halfHeight,getWidth (), halfHeight }.toFloat(), dashedSpec.data (), 2);
         g.setColour (juce::Colours::black);
         auto readPtr { loopSamples.getChannelPointer (side < audioBuffer->getNumChannels () ? side : 0) };
         for (auto sampleCount { 0 }; sampleCount < samplesToDisplay - 1; ++sampleCount)
         {
             // draw one line of sample going reverse from middle to left
-            const auto xOffset { halfWidth - sampleCount };
+            const auto xOffset { halfWidth - sampleCount - 1 };
             const auto sampleIndex { numSamples - sampleCount };
             g.drawLine (static_cast<float> (xOffset),
                         static_cast<float> (static_cast<int> (halfHeight + (readPtr [sampleIndex] * halfHeight))),

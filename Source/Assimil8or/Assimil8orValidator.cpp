@@ -2,7 +2,8 @@
 #include "Assimil8orPreset.h"
 #include "FileTypeHelpers.h"
 #include "Validator/ValidatorResultProperties.h"
-#include "../Utility/PersistentRootProperties.h"
+#include "../SystemServices.h"
+#include "../Utility/DebugLog.h"
 #include "../Utility/RuntimeRootProperties.h"
 #include "../Utility/WatchDogTimer.h"
 
@@ -39,8 +40,6 @@ juce::String getMemorySizeString (uint64_t memoryUsage)
 
 Assimil8orValidator::Assimil8orValidator () : Thread ("Assimil8orValidator")
 {
-    audioFormatManager.registerBasicFormats ();
-
     validateThread.onThreadLoop = [this] ()
     {
         WatchdogTimer timer;
@@ -62,6 +61,9 @@ void Assimil8orValidator::init (juce::ValueTree rootPropertiesVT)
 {
     RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
     validatorProperties.wrap (runtimeRootProperties.getValueTree (), ValidatorProperties::WrapperType::owner, ValidatorProperties::EnableCallbacks::yes);
+
+    SystemServices systemServices { runtimeRootProperties.getValueTree (), SystemServices::WrapperType::client, SystemServices::EnableCallbacks::yes };
+    audioManager = systemServices.getAudioManager ();
 
     directoryDataProperties.wrap (runtimeRootProperties.getValueTree (), DirectoryDataProperties::WrapperType::client, DirectoryDataProperties::EnableCallbacks::yes);
     directoryDataProperties.onStatusChange = [this] (DirectoryDataProperties::ScanStatus status)
@@ -394,7 +396,7 @@ std::tuple<uint64_t, std::optional<std::map<juce::String, uint64_t>>> Assimil8or
                     else
                     {
                         // open as audio file, calculate memory requirements
-                        if (std::unique_ptr<juce::AudioFormatReader> reader (audioFormatManager.createReaderFor (sampleFile)); reader != nullptr)
+                        if (auto reader { audioManager->getReaderFor (sampleFile) }; reader != nullptr)
                         {
                             // stereo files are always fully loaded, even if only one channel is used
                             sampleSizeList [sampleFileName] = reader->lengthInSamples * reader->numChannels * bytesPerSampleInAssimMemory;
@@ -427,7 +429,7 @@ std::tuple<uint64_t, std::optional<std::map<juce::String, uint64_t>>> Assimil8or
         LogValidation ("  File (preset)");
         return { 0, optionalPresetInfo };
     }
-    else if (FileTypeHelpers::isAudioFile (file))
+    else if (audioManager->isA8ManagerSupportedAudioFile (file))
     {
         validatorResultProperties.updateType (ValidatorResultProperties::ResultTypeInfo, false);
         if (file.getFileName ().length () > kMaxFileNameLength)
@@ -447,7 +449,7 @@ std::tuple<uint64_t, std::optional<std::map<juce::String, uint64_t>>> Assimil8or
         }
 
         uint64_t sizeRequiredForSamples { 0 };
-        if (std::unique_ptr<juce::AudioFormatReader> reader (audioFormatManager.createReaderFor (file)); reader != nullptr)
+        if (auto reader { audioManager->getReaderFor (file) }; reader != nullptr)
         {
 //             LogValidation ("    Format: " + reader->getFormatName ());
 //             LogValidation ("    Sample data: " + juce::String (reader->usesFloatingPointData == true ? "floating point" : "integer"));
@@ -457,15 +459,6 @@ std::tuple<uint64_t, std::optional<std::map<juce::String, uint64_t>>> Assimil8or
 //             LogValidation ("    Length/Samples: " + juce::String (reader->lengthInSamples));
 //             LogValidation ("    Length/Time: " + juce::String (reader->lengthInSamples / reader->sampleRate));
 
-            const auto memoryUsage { reader->numChannels * reader->lengthInSamples * 4 };
-            const auto sampleRateString { juce::String (reader->sampleRate / 1000.0f, 2).trimCharactersAtEnd ("0.") };
-            validatorResultProperties.updateText (juce::String (" {") +
-                                                 juce::String (reader->usesFloatingPointData == true ? "floating point" : "integer") + ", " +
-                                                 juce::String (reader->bitsPerSample) + "bits/" + sampleRateString + "k, " +
-                                                 juce::String (reader->numChannels == 1 ? "mono" : (reader->numChannels == 2 ? "stereo" : juce::String (reader->numChannels) + " channels")) + "}, " +
-                                                 juce::String (reader->lengthInSamples / reader->sampleRate, 2) + " seconds, " +
-                                                 "RAM: " + getMemorySizeString (memoryUsage), false);
-            sizeRequiredForSamples = reader->numChannels * reader->lengthInSamples * bytesPerSampleInAssimMemory;
             auto reportErrorIfTrue = [&validatorResultProperties, &file] (bool conditionalResult, juce::String newText)
             {
                 if (conditionalResult)
@@ -476,18 +469,29 @@ std::tuple<uint64_t, std::optional<std::map<juce::String, uint64_t>>> Assimil8or
                     validatorResultProperties.addFixerEntry (FixerEntryProperties::FixerTypeConvert, file.getFullPathName ());
                 }
             };
-            reportErrorIfTrue (reader->usesFloatingPointData == true, "[sample format must be integer]");
-            reportErrorIfTrue (reader->bitsPerSample < 8 || reader->bitsPerSample > 32, "[bit depth must be between 8 and 32]");
-            if (reader->numChannels == 0)
-                validatorResultProperties.update (ValidatorResultProperties::ResultTypeError, "[no channels in file]", false);
+            if (audioManager->isAssimil8orSupportedAudioFile (file))
+            {
+                const auto memoryUsage { reader->numChannels * reader->lengthInSamples * 4 };
+                const auto sampleRateString { juce::String (reader->sampleRate / 1000.0f, 2).trimCharactersAtEnd ("0.") };
+                validatorResultProperties.updateText (juce::String (" {") +
+                                                      juce::String (reader->usesFloatingPointData == true ? "floating point" : "integer") + ", " +
+                                                      juce::String (reader->bitsPerSample) + "bits/" + sampleRateString + "k, " +
+                                                      juce::String (reader->numChannels == 1 ? "mono" : (reader->numChannels == 2 ? "stereo" : juce::String (reader->numChannels) + " channels")) + "}, " +
+                                                      juce::String (reader->lengthInSamples / reader->sampleRate, 2) + " seconds, " +
+                                                      "RAM: " + getMemorySizeString (memoryUsage), false);
+                sizeRequiredForSamples = reader->numChannels * reader->lengthInSamples * bytesPerSampleInAssimMemory;
+                reportErrorIfTrue (reader->usesFloatingPointData == true, "[sample format must be integer]");
+                reportErrorIfTrue (reader->bitsPerSample < 8 || reader->bitsPerSample > 32, "[bit depth must be between 8 and 32]");
+                if (reader->numChannels == 0)
+                    validatorResultProperties.update (ValidatorResultProperties::ResultTypeError, "[no channels in file]", false);
+                else
+                    reportErrorIfTrue (reader->numChannels > 2, "[only mono and stereo supported]");
+                reportErrorIfTrue (reader->sampleRate > 192000, "[sample rate must not exceed 192k]");
+            }
             else
-#define ONLY_MONO_TEST 0
-#if ONLY_MONO_TEST
-                reportErrorIfTrue (reader->numChannels > 1, "[only mono supported]");
-#else
-                reportErrorIfTrue (reader->numChannels > 2, "[only mono and stereo supported]");
-#endif
-            reportErrorIfTrue (reader->sampleRate > 192000, "[sample rate must not exceed 192k]");
+            {
+                reportErrorIfTrue (true, "[unsupported file type: '" + reader->getFormatName () + "/" + file.getFileExtension () + "']");
+            }
         }
         else
         {
@@ -498,18 +502,8 @@ std::tuple<uint64_t, std::optional<std::map<juce::String, uint64_t>>> Assimil8or
     }
     else
     {
-        // possibly an audio file of a format not supported on the Assimil8or
-        if (auto* format { audioFormatManager.findFormatForFileExtension (file.getFileExtension ()) }; format != nullptr)
-        {
-            // this is a type we can read, so we can offer to convert it
-            LogValidation ("  File (unsupported audio format)");
-            validatorResultProperties.update (ValidatorResultProperties::ResultTypeWarning, "(unsupported audio format)", false);
-        }
-        else
-        {
-            LogValidation ("  File (unknown)");
-            validatorResultProperties.update (ValidatorResultProperties::ResultTypeWarning, "(unknown file type)", false);
-        }
+        LogValidation ("  File (unknown)");
+        validatorResultProperties.update (ValidatorResultProperties::ResultTypeWarning, "(unknown file type)", false);
     }
 
     return {};

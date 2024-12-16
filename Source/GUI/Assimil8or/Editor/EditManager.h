@@ -3,6 +3,7 @@
 #include <JuceHeader.h>
 #include "SampleManager/SampleProperties.h"
 #include "../../../AppProperties.h"
+#include "../../../Assimil8or/Audio/AudioManager.h"
 #include "../../../Assimil8or/Preset/PresetProperties.h"
 
 class EditManager
@@ -28,7 +29,6 @@ public:
     int getNumUsedZones (int channelIndex);
     std::tuple<double, double> getVoltageBoundaries (int channelIndex, int zoneIndex, int topDepth);
     bool isMinVoltageInRange (int channelIndex, int zoneIndex, double voltage);
-    bool isSupportedAudioFile (juce::File file);
     void resetMinVoltage (int channelIndex, int zoneIndex);
 
 private:
@@ -48,6 +48,6 @@ private:
         SampleProperties sampleProperties;
     };
     std::array<std::array<ZoneAndSampleProperties, 8>, 8> zoneAndSamplePropertiesList;
-    juce::AudioFormatManager audioFormatManager;
+    AudioManager* audioManager { nullptr };
 };
 

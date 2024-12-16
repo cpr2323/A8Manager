@@ -1,5 +1,7 @@
 #include "FileViewComponent.h"
-#include "../../../Assimil8or/Preset/PresetHelpers.h"
+#include "../../../SystemServices.h"
+#include "../../../Assimil8or/Assimil8orPreset.h"
+#include "../../../Assimil8or/FileTypeHelpers.h"
 #include "../../../Utility/PersistentRootProperties.h"
 #include "../../../Utility/RuntimeRootProperties.h"
 #include "../../../Utility/WatchDogTimer.h"
@@ -15,14 +17,27 @@ const auto kDialogTextEditorName { "foldername" };
 
 FileViewComponent::FileViewComponent ()
 {
-    openFolderButton.setButtonText ("Open");
-    openFolderButton.setTooltip ("Navigate to a specific folder");
-    openFolderButton.onClick = [this] () { openFolder (); };
-    addAndMakeVisible (openFolderButton);
-    newFolderButton.setButtonText ("New");
-    newFolderButton.setTooltip ("Create a new folder");
-    newFolderButton.onClick = [this] () { newFolder (); };
-    addAndMakeVisible (newFolderButton);
+    optionsButton.setButtonText ("OPTIONS");
+    optionsButton.setTooltip ("Folder and File options");
+    optionsButton.onClick = [this] ()
+    {
+        juce::PopupMenu optionsMenu;
+        optionsMenu.addItem ("Open Folder", true, false, [this] () { openFolder (); });
+        optionsMenu.addItem ("New Folder", true, false, [this] () { newFolder (); });
+        optionsMenu.addItem ("Remove Unused Samples", true, false, [this] ()
+        {
+            juce::AlertWindow::showOkCancelBox (juce::AlertWindow::WarningIcon, "REMOVE UNUSED SAMPLES",
+                                                "Unused Samples are samples that are not used by any presets in the current preset folder.\r\n\r\nAre you sure you want to delete the unused samples in'" + appProperties.getMostRecentFolder () + "'", "YES", "NO", nullptr,
+                                                juce::ModalCallbackFunction::create ([this] (int option)
+                                                                                    {
+                                                                                        if (option == 0) // no
+                                                                                            return;
+                                                                                        deleteUnusedSamples ();
+                                                                                    }));
+        });
+        optionsMenu.showMenuAsync ({}, [this] (int) {});
+    };
+    addAndMakeVisible (optionsButton);
     addAndMakeVisible (directoryContentsListBox);
     showAllFiles.setToggleState (false, juce::NotificationType::dontSendNotification);
     showAllFiles.setButtonText ("Show All");
@@ -44,6 +59,9 @@ void FileViewComponent::init (juce::ValueTree rootPropertiesVT)
     appProperties.wrap (persistentRootProperties.getValueTree (), AppProperties::WrapperType::client, AppProperties::EnableCallbacks::yes);
 
     RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
+    SystemServices systemServices { runtimeRootProperties.getValueTree (), SystemServices::WrapperType::client, SystemServices::EnableCallbacks::yes };
+    audioManager = systemServices.getAudioManager ();
+
     directoryDataProperties.wrap (runtimeRootProperties.getValueTree (), DirectoryDataProperties::WrapperType::client, DirectoryDataProperties::EnableCallbacks::yes);
     directoryDataProperties.onRootScanComplete = [this] ()
     {
@@ -94,6 +112,18 @@ void FileViewComponent::updateFromNewData ()
     //juce::Logger::outputDebugString ("FileViewComponent::updateFromNewData () - elapsed time: " + juce::String (timer.getElapsedTime ()));
 }
 
+void FileViewComponent::timerCallback ()
+{
+    const auto elapsedTime { juce::Time::currentTimeMillis () - curBlinkTime };
+    if (elapsedTime > 1500)
+    {
+        doubleClickedRow = -1;
+        curBlinkTime = 0;
+        stopTimer ();
+    }
+    repaint ();
+}
+
 void FileViewComponent::buildQuickLookupList ()
 {
     updateDirectoryListQuickLookupList->clear ();
@@ -105,9 +135,7 @@ void FileViewComponent::buildQuickLookupList ()
             updateDirectoryListQuickLookupList->emplace_back (child);
         }
         else if (typeIndex == DirectoryDataProperties::TypeIndex::audioFile ||
-                 typeIndex == DirectoryDataProperties::TypeIndex::folder ||
-                 typeIndex == DirectoryDataProperties::TypeIndex::presetFile ||
-                 typeIndex == DirectoryDataProperties::TypeIndex::systemFile)
+                 typeIndex == DirectoryDataProperties::TypeIndex::folder)
         {
             updateDirectoryListQuickLookupList->emplace_back (child);
         }
@@ -143,6 +171,12 @@ void FileViewComponent::newFolder ()
     newAlertWindow->addTextEditor (kDialogTextEditorName, {}, {});
     newAlertWindow->addButton ("CREATE", 1, juce::KeyPress (juce::KeyPress::returnKey, 0, 0));
     newAlertWindow->addButton ("CANCEL", 0, juce::KeyPress (juce::KeyPress::escapeKey, 0, 0));
+    auto* textEdtitor { newAlertWindow->getTextEditor (kDialogTextEditorName) };
+    auto* createButton { newAlertWindow->getButton ("CREATE") };
+    auto* cancelButton { newAlertWindow->getButton ("CANCEL") };
+    textEdtitor->setExplicitFocusOrder (1);
+    createButton->setExplicitFocusOrder (2);
+    cancelButton->setExplicitFocusOrder (3);
     newAlertWindow->enterModalState (true, juce::ModalCallbackFunction::create ([this] (int option)
     {
         newAlertWindow->exitModalState (option);
@@ -197,6 +231,11 @@ void FileViewComponent::paintListBoxItem (int row, juce::Graphics& g, int width,
         {
             filePrefix = "-  ";
             textColor = juce::Colours::forestgreen;
+            if (curBlinkTime != 0 && doubleClickedRow == row)
+            {
+                filePrefix += "Loading ";
+                textColor = textColor.brighter (0.7f);
+            }
         }
         else
         {
@@ -245,67 +284,165 @@ void FileViewComponent::listBoxItemClicked (int row, [[maybe_unused]] const juce
     if (row >= getNumRows ())
         return;
 
-    if (! isRootFolder && row != 0)
+    auto getEntryType = [this, row] ()
     {
         const auto directoryEntryVT { getDirectoryEntryVT (row) };
-        if (static_cast<int> (directoryEntryVT.getProperty ("type")) != DirectoryDataProperties::TypeIndex::folder)
-            return;
-    }
+        return static_cast<int> (directoryEntryVT.getProperty ("type"));
+    };
+    auto getEntryFile = [this, row] ()
+    {
+        const auto directoryEntryVT { getDirectoryEntryVT (row) };
+        return juce::File (directoryEntryVT.getProperty ("name").toString ());
+    };
+
+    auto isUpFolder = [this, row] ()
+    {
+        return ! isRootFolder && row == 0;
+    };
 
     if (me.mods.isPopupMenu ())
     {
-        if (! isRootFolder && row == 0)
+        if (isUpFolder ())
             return;
-        const auto directoryEntryVT { getDirectoryEntryVT (row) };
-        auto folder { juce::File (directoryEntryVT.getProperty ("name").toString ()) };
-        juce::PopupMenu pm;
-        pm.addItem ("Rename", true, false, [this, folder] ()
+
+        const auto entryType { getEntryType () };
+        if (entryType == DirectoryDataProperties::TypeIndex::folder)
         {
-            renameAlertWindow = std::make_unique<juce::AlertWindow> ("RENAME FOLDER", "Enter the new name for '" + folder.getFileName ()  + "'", juce::MessageBoxIconType::NoIcon);
-            renameAlertWindow->addTextEditor (kDialogTextEditorName, folder.getFileName (), {});
-            renameAlertWindow->addButton ("RENAME", 1, juce::KeyPress (juce::KeyPress::returnKey, 0, 0));
-            renameAlertWindow->addButton ("CANCEL", 0, juce::KeyPress (juce::KeyPress::escapeKey, 0, 0));
-            renameAlertWindow->enterModalState (true, juce::ModalCallbackFunction::create ([this, folder] (int option)
+            auto directoryEntry { getEntryFile () };
+            auto* popupMenuLnF { new juce::LookAndFeel_V4 };
+            popupMenuLnF->setColour (juce::PopupMenu::ColourIds::headerTextColourId, juce::Colours::white.withAlpha (0.3f));
+            juce::PopupMenu pm;
+            pm.setLookAndFeel (popupMenuLnF);
+            pm.addSectionHeader (directoryEntry.getFileName ());
+            pm.addSeparator ();
+            pm.addItem ("Rename", true, false, [this, directoryEntry] ()
             {
-                renameAlertWindow->exitModalState (option);
-                renameAlertWindow->setVisible (false);
-                if (option == 1) // ok
-                {
-                    auto newFolderName { renameAlertWindow->getTextEditorContents (kDialogTextEditorName)};
-                    folder.moveFileTo (folder.getParentDirectory ().getChildFile (newFolderName));
-                    // TODO handle error
-                }
-                renameAlertWindow.reset ();
-            }));
-        });
-        pm.addItem ("Delete", true, false, [this, folder] ()
+                renameAlertWindow = std::make_unique<juce::AlertWindow> ("RENAME FOLDER", "Enter the new name for '" + directoryEntry.getFileName () + "'", juce::MessageBoxIconType::NoIcon);
+                renameAlertWindow->addTextEditor (kDialogTextEditorName, directoryEntry.getFileName (), {});
+                renameAlertWindow->addButton ("RENAME", 1, juce::KeyPress (juce::KeyPress::returnKey, 0, 0));
+                renameAlertWindow->addButton ("CANCEL", 0, juce::KeyPress (juce::KeyPress::escapeKey, 0, 0));
+                auto* textEdtitor { renameAlertWindow->getTextEditor (kDialogTextEditorName) };
+                auto* createButton { renameAlertWindow->getButton ("RENAME") };
+                auto* cancelButton { renameAlertWindow->getButton ("CANCEL") };
+                textEdtitor->setExplicitFocusOrder (1);
+                createButton->setExplicitFocusOrder (2);
+                cancelButton->setExplicitFocusOrder (3);
+
+                renameAlertWindow->enterModalState (true, juce::ModalCallbackFunction::create ([this, directoryEntry] (int option)
+                                                                                                {
+                                                                                                    renameAlertWindow->exitModalState (option);
+                                                                                                    renameAlertWindow->setVisible (false);
+                                                                                                    if (option == 1) // ok
+                                                                                                    {
+                                                                                                        auto newFolderName { renameAlertWindow->getTextEditorContents (kDialogTextEditorName) };
+                                                                                                        directoryEntry.moveFileTo (directoryEntry.getParentDirectory ().getChildFile (newFolderName));
+                                                                                                        // TODO handle error
+                                                                                                    }
+                                                                                                    renameAlertWindow.reset ();
+                                                                                                }));
+            });
+            pm.addItem ("Delete", true, false, [this, directoryEntry] ()
+            {
+                juce::AlertWindow::showOkCancelBox (juce::AlertWindow::WarningIcon, "DELETE FOLDER",
+                                                    "Are you sure you want to delete the folder '" + directoryEntry.getFileName () + "'", "YES", "NO", nullptr,
+                                                    juce::ModalCallbackFunction::create ([this, directoryEntry] (int option)
+                                                                                         {
+                                                                                             if (option == 0) // no
+                                                                                                 return;
+                                                                                             if (!directoryEntry.deleteFile ())
+                                                                                             {
+                                                                                                // TODO handle delete error
+                                                                                             }
+                                                                                         }));
+            });
+            pm.showMenuAsync ({}, [this, popupMenuLnF] (int) { delete popupMenuLnF; });
+        }
+        else if (entryType == DirectoryDataProperties::TypeIndex::audioFile)
         {
-            juce::AlertWindow::showOkCancelBox (juce::AlertWindow::WarningIcon, "DELETE FOLDER",
-            "Are you sure you want to delete the folder '" + folder.getFileName () + "'", "YES", "NO", nullptr,
-            juce::ModalCallbackFunction::create ([this, folder] (int option)
+            auto directoryEntry { getEntryFile () };
+            auto* popupMenuLnF { new juce::LookAndFeel_V4 };
+            popupMenuLnF->setColour (juce::PopupMenu::ColourIds::headerTextColourId, juce::Colours::white.withAlpha (0.3f));
+            juce::PopupMenu pm;
+            pm.setLookAndFeel (popupMenuLnF);
+            pm.addSectionHeader (directoryEntry.getFileName ());
+            pm.addSeparator ();
+            pm.addItem ("Rename", true, false, [this, directoryEntry] ()
             {
-                if (option == 0) // no
-                    return;
-                if (! folder.deleteFile ())
+                renameAlertWindow = std::make_unique<juce::AlertWindow> ("RENAME FOLDER", "Enter the new name for '" + directoryEntry.getFileName () + "'", juce::MessageBoxIconType::NoIcon);
+                renameAlertWindow->addTextEditor (kDialogTextEditorName, directoryEntry.getFileName (), {});
+                renameAlertWindow->addButton ("RENAME", 1, juce::KeyPress (juce::KeyPress::returnKey, 0, 0));
+                renameAlertWindow->addButton ("CANCEL", 0, juce::KeyPress (juce::KeyPress::escapeKey, 0, 0));
+                auto* textEdtitor { renameAlertWindow->getTextEditor (kDialogTextEditorName) };
+                auto* createButton { renameAlertWindow->getButton ("RENAME") };
+                auto* cancelButton { renameAlertWindow->getButton ("CANCEL") };
+                textEdtitor->setExplicitFocusOrder (1);
+                createButton->setExplicitFocusOrder (2);
+                cancelButton->setExplicitFocusOrder (3);
+
+                renameAlertWindow->enterModalState (true, juce::ModalCallbackFunction::create ([this, directoryEntry] (int option)
+                                                                                                {
+                                                                                                    renameAlertWindow->exitModalState (option);
+                                                                                                    renameAlertWindow->setVisible (false);
+                                                                                                    if (option == 1) // ok
+                                                                                                    {
+                                                                                                        auto newFolderName { renameAlertWindow->getTextEditorContents (kDialogTextEditorName) };
+                                                                                                        directoryEntry.moveFileTo (directoryEntry.getParentDirectory ().getChildFile (newFolderName));
+                                                                                                        // TODO handle error
+                                                                                                    }
+                                                                                                    renameAlertWindow.reset ();
+                                                                                                }));
+            });
+            pm.addItem ("Delete", true, false, [this, directoryEntry] ()
+            {
+                juce::AlertWindow::showOkCancelBox (juce::AlertWindow::WarningIcon, "DELETE FILE",
+                                                    "Are you sure you want to delete the file '" + directoryEntry.getFileName () + "'", "YES", "NO", nullptr,
+                                                    juce::ModalCallbackFunction::create ([this, directoryEntry] (int option)
+                                                                                            {
+                                                                                                if (option == 0) // no
+                                                                                                    return;
+                                                                                                if (! directoryEntry.deleteFile ())
+                                                                                                {
+                                                                                                // TODO handle delete error
+                                                                                                }
+                                                                                            }));
+            });
+            if (getEntryType () == DirectoryDataProperties::TypeIndex::audioFile)
+            {
+                const auto directoryEntryVT { getDirectoryEntryVT (row) };
+                if (static_cast<int> (directoryEntryVT.getProperty ("numChannels")) == 2)
                 {
-                    // TODO handle delete error
+                    juce::PopupMenu stereoConvertMenu;
+                    stereoConvertMenu.addItem ("To Mono", true, false, [this, directoryEntry] ()
+                    {
+                        // mix to mono
+                        audioManager->mixStereoToMono (directoryEntry);
+                    });
+                    stereoConvertMenu.addItem ("Split", true, false, [this, directoryEntry] ()
+                    {
+                        // split into two mono L/R files
+                        audioManager->splitStereoIntoTwoMono (directoryEntry);
+                    });
+                    pm.addSubMenu ("Stereo Convert", stereoConvertMenu, true);
                 }
-            }));
-        });
-        pm.showMenuAsync ({}, [this] (int) {});
+            }
+
+            pm.showMenuAsync ({}, [this, popupMenuLnF] (int) { delete popupMenuLnF; });
+        }
     }
     else
     {
-        auto completeSelection = [this, row] ()
+        if (! isUpFolder () && getEntryType () != DirectoryDataProperties::TypeIndex::folder)
+            return;
+
+        auto completeSelection = [this, row, isUpFolder, getEntryFile] ()
         {
-            if (! isRootFolder && row == 0)
+            if (isUpFolder ())
             {
                 appProperties.setMostRecentFolder (juce::File (directoryDataProperties.getRootFolder ()).getParentDirectory ().getFullPathName ());
             }
             else
             {
-                const auto directoryEntryVT { getDirectoryEntryVT (row) };
-                auto folder { juce::File (directoryEntryVT.getProperty ("name").toString ()) };
+                auto folder { getEntryFile ()};
                 appProperties.setMostRecentFolder (folder.getFullPathName ());
             }
         };
@@ -334,6 +471,9 @@ void FileViewComponent::listBoxItemDoubleClicked (int row, [[maybe_unused]] cons
     const auto directoryEntryVT { getDirectoryEntryVT (row) };
     if (directoryEntryVT.getType ().toString () == "File" && static_cast<int> (directoryEntryVT.getProperty ("type")) == DirectoryDataProperties::TypeIndex::audioFile)
     {
+        doubleClickedRow = row;
+        curBlinkTime = juce::Time::currentTimeMillis ();
+        startTimer (125);
         if (onAudioFileSelected != nullptr)
             onAudioFileSelected (juce::File (directoryEntryVT.getProperty ("name").toString ()));
     }
@@ -344,11 +484,227 @@ void FileViewComponent::resized ()
     auto localBounds { getLocalBounds () };
     localBounds.reduce (3, 3);
     auto toolRow { localBounds.removeFromTop (25) };
-    openFolderButton.setBounds (toolRow.removeFromLeft (50));
+    optionsButton.setBounds (toolRow.removeFromLeft (70));
     toolRow.removeFromLeft (5);
-    newFolderButton.setBounds (toolRow.removeFromLeft (50));
     showAllFiles.setBounds (toolRow);
 
     localBounds.removeFromTop (3);
     directoryContentsListBox.setBounds (localBounds);
+}
+
+void FileViewComponent::paintOverChildren (juce::Graphics& g)
+{
+    if (draggingFilesCount > 0)
+    {
+        auto localBounds { getLocalBounds () };
+        juce::Colour fillColor { juce::Colours::white };
+        float activeAlpha { 0.7f };
+        g.setColour (fillColor.withAlpha (activeAlpha));
+        g.fillRect (directoryContentsListBox.getBounds ());
+        g.setColour (supportedFile ? juce::Colours::black : juce::Colours::red);
+        localBounds.reduce (5, 0);
+        g.drawFittedText (dropMsg, localBounds, juce::Justification::centred, 10);
+    }
+}
+
+void FileViewComponent::deleteUnusedSamples ()
+{
+    // build list of files in the preset files
+    std::set<juce::File> samplesInPresets;
+    ValueTreeHelpers::forEachChild (directoryDataProperties.getRootFolderVT (), [this, &samplesInPresets] (juce::ValueTree child)
+    {
+        const auto name { child.getProperty ("name").toString () };
+        auto file { juce::File (name) };
+        if (FileTypeHelpers::isPresetFile (file))
+        {
+            const auto presetNumber { FileTypeHelpers::getPresetNumberFromName (file) };
+            if (presetNumber < 1 || presetNumber > 199 || file.getFileNameWithoutExtension ().startsWith (FileTypeHelpers::kPresetFileNamePrefix) == false)
+                return true;
+
+            juce::StringArray fileContents;
+            file.readLines (fileContents);
+            Assimil8orPreset assimil8orPreset;
+            assimil8orPreset.parse (fileContents);
+
+            // TODO - how should we handle errors in the preset file
+            if (auto presetErrorList { assimil8orPreset.getParseErrorsVT () }; presetErrorList.getNumChildren () > 0)
+            {
+                ValueTreeHelpers::forEachChildOfType (presetErrorList, "ParseError", [this] (juce::ValueTree childVT)
+                {
+                    const auto parseErrorType { childVT.getProperty ("type").toString () };
+                    const auto parseErrorDescription { childVT.getProperty ("description").toString () };
+                    return true;
+                });
+            }
+            PresetProperties presetProperties (assimil8orPreset.getPresetVT (), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
+            if (presetProperties.isValid ())
+            {
+                presetProperties.forEachChannel ([this, &samplesInPresets, &file] (juce::ValueTree channelVT, int)
+                {
+                    ChannelProperties channelProperties (channelVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
+                    channelProperties.forEachZone ([this, &samplesInPresets, &file] (juce::ValueTree zoneVT, int)
+                    {
+                        ZoneProperties zoneProperties (zoneVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
+                        const auto sampleFileName { zoneProperties.getSample () };
+                        if (sampleFileName.isEmpty ())
+                            return true;
+                        const auto sampleFile { file.getParentDirectory ().getChildFile (sampleFileName) };
+                        samplesInPresets.emplace (sampleFile);
+                        return true;
+                    });
+                    return true;
+                });
+            }
+            else
+            {
+                // TODO - how should we handle errors in the preset file
+            }
+        }
+        return true;
+    });
+
+    // iterate over sample files, and remove any that aren't in the list
+    ValueTreeHelpers::forEachChild (directoryDataProperties.getRootFolderVT (), [this, &samplesInPresets] (juce::ValueTree child)
+    {
+        const auto name { child.getProperty ("name").toString () };
+        auto file { juce::File (name) };
+        if (FileTypeHelpers::getFileType (file) == DirectoryDataProperties::audioFile)
+        {
+            if (samplesInPresets.find (file) == samplesInPresets.end ())
+                file.moveToTrash ();
+        }
+        return true;
+    });
+}
+
+void FileViewComponent::updateDropInfo (const juce::StringArray& files)
+{
+    supportedFile = true;
+    for (auto& fileName : files)
+    {
+        auto draggedFile { juce::File (fileName) };
+        if (! audioManager->isA8ManagerSupportedAudioFile (draggedFile))
+            supportedFile = false;
+    }
+    if (supportedFile)
+    {
+        dropMsg = juce::String (draggingFilesCount) + " files to copy";
+    }
+    else
+    {
+        dropMsg = (draggingFilesCount == 1 ? "Unsupported file type" : "One, or more, unsupported file types");
+    }
+}
+
+void FileViewComponent::resetDropInfo ()
+{
+    draggingFilesCount = 0;
+    dropMsg = {};
+}
+
+void FileViewComponent::importSamples (const juce::StringArray& files)
+{
+    auto errorDialog = [this] (juce::String message)
+    {
+        juce::AlertWindow::showMessageBoxAsync (juce::AlertWindow::WarningIcon, "Conversion Failed", message, {}, nullptr,
+                                                juce::ModalCallbackFunction::create ([this] (int) {}));
+    };
+
+    for (auto& fileName : files)
+    {
+        auto file { juce::File { fileName } };
+        // skip files in the preset folder
+        if (file.getParentDirectory () == appProperties.getMostRecentFolder ())
+            continue;
+        if (auto reader { audioManager->getReaderFor (file) }; reader != nullptr)
+        {
+            auto destinationFile { juce::File (appProperties.getMostRecentFolder ()).getChildFile (file.getFileNameWithoutExtension ()).withFileExtension ("wav") };
+            auto destinationFileStream { std::make_unique<juce::FileOutputStream> (destinationFile) };
+            destinationFileStream->setPosition (0);
+            destinationFileStream->truncate ();
+
+            auto sampleRate { reader->sampleRate };
+            auto numChannels { reader->numChannels };
+            auto bitsPerSample { reader->bitsPerSample };
+
+            if (bitsPerSample < 8)
+                bitsPerSample = 8;
+            else if (bitsPerSample > 24) // the wave writer supports int 8/16/24
+                bitsPerSample = 24;
+            jassert (numChannels != 0);
+            if (numChannels > 2)
+                numChannels = 2;
+            if (reader->sampleRate > 192000)
+            {
+                // we need to do sample rate conversion
+                jassertfalse;
+            }
+
+            juce::WavAudioFormat wavAudioFormat;
+            if (std::unique_ptr<juce::AudioFormatWriter> writer { wavAudioFormat.createWriterFor (destinationFileStream.get (),
+                                                                  sampleRate, numChannels, bitsPerSample, {}, 0) }; writer != nullptr)
+            {
+                // audioFormatWriter will delete the file stream when done
+                destinationFileStream.release ();
+
+                // copy the whole thing
+                // TODO - two things
+                //   a) this needs to be done in a thread
+                //   b) we should locally read into a buffer and then write that, so we can display progress if needed
+                if (! writer->writeFromAudioReader (*reader.get (), 0, -1) == true)
+                {
+                    // failure to convert
+                    errorDialog ("Failure to write new file");
+                    jassertfalse;
+                }
+            }
+            else
+            {
+                //failure to create writer
+                errorDialog ("Failure to create writer");
+                jassertfalse;
+            }
+        }
+        else
+        {
+            // failure to create reader
+            errorDialog ("Failure to create reader");
+            jassertfalse;
+        }
+    }
+}
+
+
+bool FileViewComponent::isInterestedInFileDrag ([[maybe_unused]] const juce::StringArray& files)
+{
+    // we do this check in the fileDragEnter and fileDragMove handlers, presenting more info regarding the drop operation
+    return true;
+}
+
+void FileViewComponent::filesDropped (const juce::StringArray& files, int /*x*/, int /*y*/)
+{
+
+    if (supportedFile)
+        importSamples (files);
+    resetDropInfo ();
+    repaint ();
+}
+
+void FileViewComponent::fileDragEnter (const juce::StringArray& files, int /*x*/, int /*y*/)
+{
+    draggingFilesCount = files.size ();
+    updateDropInfo (files);
+    repaint ();
+}
+
+void FileViewComponent::fileDragMove (const juce::StringArray& files, int /*x*/, int /*y*/)
+{
+    updateDropInfo (files);
+    repaint ();
+}
+
+void FileViewComponent::fileDragExit (const juce::StringArray&)
+{
+    resetDropInfo ();
+    repaint ();
 }

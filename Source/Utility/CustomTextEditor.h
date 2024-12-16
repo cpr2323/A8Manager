@@ -19,6 +19,7 @@ class CustomTextEditor : public juce::TextEditor
 public:
     CustomTextEditor ()
     {
+        setSelectAllWhenFocused (true);
         onTextChange = [this] () { checkValue (); };
         textColor = juce::Colours::white;
         applyColourToAllText (textColor, true);
@@ -75,6 +76,11 @@ private:
         //DebugLog ("CustomTextEditor", "final value: " + juce::String (newValue));
         updateDataCallback (newValue);
         setText (toStringCallback (newValue));
+    }
+
+    void focusLost (FocusChangeType) override
+    {
+        setHighlightedRegion ({});
     }
 
     void enablementChanged () override
@@ -150,7 +156,7 @@ private:
     {
         if (! isEnabled ())
             return;
-        if (! customComponentMouseHandler.mouseWheelMove (mouseEvent, wheel))
+        if (! customComponentMouseHandler.mouseWheelMove (mouseEvent, wheel, onDragCallback))
             juce::TextEditor::mouseWheelMove (mouseEvent, wheel);
     }
 };

@@ -1,4 +1,5 @@
 #include "SampleManager.h"
+#include "../../../../SystemServices.h"
 #include "../../../../Assimil8or/PresetManagerProperties.h"
 #include "../../../../Utility/DebugLog.h"
 #include "../../../../Utility/PersistentRootProperties.h"
@@ -12,13 +13,15 @@
 
 SampleManager::SampleManager ()
 {
-    audioFormatManager.registerBasicFormats ();
 }
 
 void SampleManager::init (juce::ValueTree rootPropertiesVT)
 {
     PersistentRootProperties persistentRootProperties (rootPropertiesVT, PersistentRootProperties::WrapperType::client, PersistentRootProperties::EnableCallbacks::no);
     runtimeRootProperties.wrap (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::yes);
+
+    SystemServices systemServices { runtimeRootProperties.getValueTree (), SystemServices::WrapperType::client, SystemServices::EnableCallbacks::yes };
+    audioManager = systemServices.getAudioManager ();
 
     auto closeAllOpenSamples = [this] ()
     {
@@ -155,7 +158,7 @@ void SampleManager::updateSample (juce::String fileName, SampleData& sampleData)
     if (fullPath.exists ())
     {
         LogSamplePool ("updateSample: file exists");
-        if (std::unique_ptr<juce::AudioFormatReader> sampleFileReader { audioFormatManager.createReaderFor (fullPath) }; sampleFileReader != nullptr)
+        if (auto sampleFileReader { audioManager->getReaderFor (fullPath) }; sampleFileReader != nullptr)
         {
             // cache sample attributes
             sampleData.status = SampleStatus::exists;

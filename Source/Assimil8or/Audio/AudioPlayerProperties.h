@@ -19,7 +19,7 @@ public:
 
     PlayState getPlayState ();
     std::tuple<int, int> getSampleSource ();
-    SamplePointsSelector getSSamplePointsSelector ();
+    SamplePointsSelector getSamplePointsSelector ();
 
     std::function<void (PlayState playState)> onPlayStateChange;
     std::function<void (std::tuple<int, int> channelAndZoneIndecies)> onSampleSourceChanged;

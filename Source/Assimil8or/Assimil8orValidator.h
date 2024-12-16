@@ -3,6 +3,7 @@
 #include <JuceHeader.h>
 #include "Validator/ValidatorProperties.h"
 #include "../AppProperties.h"
+#include "../Assimil8or/Audio/AudioManager.h"
 #include "../Utility/DirectoryDataProperties.h"
 #include "../Utility/LambdaThread.h"
 
@@ -32,9 +33,7 @@ private:
     ValidatorProperties validatorProperties;
     ValidatorResultListProperties validatorResultListProperties;
     DirectoryDataProperties directoryDataProperties;
-
-    // TODO - my current thought is that the DirectoryValueTree class should perform all of the checks (files types, supported audio, etc), and store into in the valuetree
-    juce::AudioFormatManager audioFormatManager;
+    AudioManager* audioManager { nullptr };
 
     juce::int64 lastScanInProgressUpdate {};
     ValdatationState valdatationState { ValdatationState::idle };

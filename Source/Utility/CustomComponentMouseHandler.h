@@ -22,7 +22,7 @@ public:
     bool mouseDrag (const juce::MouseEvent& mouseEvent, OnDragCallback onDragCallback);
     bool mouseDoubleClick (const juce::MouseEvent&);
     // TODO - also use for scrolling
-    bool mouseWheelMove (const juce::MouseEvent&, const juce::MouseWheelDetails&);
+    bool mouseWheelMove (const juce::MouseEvent&, const juce::MouseWheelDetails&, OnDragCallback onDragCallback);
 
 private:
     bool mouseCaptured { false };

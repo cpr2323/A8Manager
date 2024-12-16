@@ -40,7 +40,7 @@ std::tuple<int, int> AudioPlayerProperties::getSampleSource ()
     return { channelAndZoneIndiciesStrings[0].getIntValue (), channelAndZoneIndiciesStrings [1].getIntValue () };
 }
 
-AudioPlayerProperties::SamplePointsSelector AudioPlayerProperties::getSSamplePointsSelector ()
+AudioPlayerProperties::SamplePointsSelector AudioPlayerProperties::getSamplePointsSelector ()
 {
     return static_cast<SamplePointsSelector> (getValue<int> (SamplePointsSelectorPropertyId));
 }
@@ -62,7 +62,7 @@ void AudioPlayerProperties::valueTreePropertyChanged (juce::ValueTree& treeWhose
         else if (property == SamplePointsSelectorPropertyId)
         {
             if (onSamplePointsSelectorChanged != nullptr)
-                onSamplePointsSelectorChanged (getSSamplePointsSelector ());
+                onSamplePointsSelectorChanged (getSamplePointsSelector ());
         }
         else if (property == ShowConfigDialogPropertyId)
         {

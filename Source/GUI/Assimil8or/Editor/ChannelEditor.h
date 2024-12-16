@@ -110,7 +110,7 @@ public:
         if (button.getToggleState ())
             g.setColour (bkg);
         else
-            g.setColour (bkg.darker (0.2f));
+            g.setColour (bkg.darker (0.3f));
 
         g.fillRect (activeArea);
         g.setColour (button.findColour (juce::TabbedButtonBar::tabOutlineColourId));
@@ -192,8 +192,7 @@ public:
     ~ChannelEditor ();
 
     void init (juce::ValueTree channelPropertiesVT, juce::ValueTree uneditedChannelPropertiesVT, juce::ValueTree rootPropertiesVT,
-               EditManager* theEditManager, juce::ValueTree copyBufferZonePropertiesVT,
-               bool* theZoneCopyBufferHasData);
+               juce::ValueTree copyBufferZonePropertiesVT, bool* theZoneCopyBufferHasData);
 
     // TODO - can we move this to the EditManager, as it eventually just calls editManager->assignSamples (parentChannelIndex, startingZoneIndex, files); in the ZoneEditor
     void receiveSampleLoadRequest (juce::File sampleFile);
@@ -217,6 +216,7 @@ private:
     ChannelProperties maxChannelProperties;
     ZoneProperties defaultZoneProperties;
     ZoneProperties copyBufferZoneProperties;
+    SampleManagerProperties sampleManagerProperties;
     bool* zoneCopyBufferHasData { nullptr };
     AudioPlayerProperties audioPlayerProperties;
     EditManager* editManager { nullptr };
@@ -341,7 +341,9 @@ private:
     void deleteZone (int zoneIndex);
     void duplicateZone (int zoneIndex);
     void ensureProperZoneIsSelected ();
+    void explodeZone (int zoneIndex, int explodeCount);
     int getEnvelopeValueResolution (double envelopeValue);
+    void flipZones (int zoneIndex, int flipCount);
     void pasteZone (int zoneIndex);
     void positionColumnOne (int xOffset, int width);
     void positionColumnTwo (int xOffset, int width);

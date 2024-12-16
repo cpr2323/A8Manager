@@ -1,5 +1,6 @@
 #include "EditManager.h"
 #include "SampleManager/SampleManagerProperties.h"
+#include "../../../SystemServices.h"
 #include "../../../Assimil8or/Preset/ParameterPresetsSingleton.h"
 #include "../../../Utility/DebugLog.h"
 #include "../../../Utility/PersistentRootProperties.h"
@@ -7,7 +8,6 @@
 
 EditManager::EditManager ()
 {
-    audioFormatManager.registerBasicFormats ();
 }
 
 void EditManager::init (juce::ValueTree rootPropertiesVT, juce::ValueTree presetPropertiesVT)
@@ -35,6 +35,10 @@ void EditManager::init (juce::ValueTree rootPropertiesVT, juce::ValueTree preset
     }
 
     RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::yes);
+
+    SystemServices systemServices { runtimeRootProperties.getValueTree (), SystemServices::WrapperType::client, SystemServices::EnableCallbacks::yes };
+    audioManager = systemServices.getAudioManager ();
+
     SampleManagerProperties sampleManagerProperties (runtimeRootProperties.getValueTree (), SampleManagerProperties::WrapperType::owner, SampleManagerProperties::EnableCallbacks::no);
 
     presetProperties.wrap (presetPropertiesVT, PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
@@ -228,25 +232,10 @@ juce::int64 EditManager::getMaxLoopStart (int channelIndex, int zoneIndex)
     }
 }
 
-bool EditManager::isSupportedAudioFile (juce::File file)
-{
-    if (file.isDirectory () || file.getFileExtension ().toLowerCase () != ".wav")
-        return false;
-    std::unique_ptr<juce::AudioFormatReader> reader (audioFormatManager.createReaderFor (file));
-    if (reader == nullptr)
-        return false;
-    // check for any format settings that are unsupported
-    if ((reader->usesFloatingPointData == true) || (reader->bitsPerSample < 8 || reader->bitsPerSample > 32) || (reader->numChannels == 0 || reader->numChannels > 2) || (reader->sampleRate > 192000))
-        return false;
-
-    return true;
-}
-
 bool EditManager::assignSamples (int channelIndex, int zoneIndex, const juce::StringArray& files)
 {
-    // TODO - should this have been checked prior to this call?
     for (auto fileName : files)
-        if (! isSupportedAudioFile (fileName))
+        if (! audioManager->isA8ManagerSupportedAudioFile (fileName))
             return false;
 
     const auto initialNumZones { getNumUsedZones (channelIndex) };
@@ -264,23 +253,145 @@ bool EditManager::assignSamples (int channelIndex, int zoneIndex, const juce::St
     // assign the samples
     for (auto filesIndex { 0 }; filesIndex < files.size () && zoneIndex + filesIndex < 8; ++filesIndex)
     {
+        auto convert = [this] (juce::File audioFile)
+        {
+            const bool fileIsInPresetFolder { appProperties.getMostRecentFolder () != audioFile.getParentDirectory ().getFullPathName () };
+            const auto finalFileName { juce::File (appProperties.getMostRecentFolder ()).getChildFile (audioFile.getFileNameWithoutExtension ()).withFileExtension ("wav") };
+            auto destinationFile = [this, audioFile, fileIsInPresetFolder] ()
+            {
+                if (fileIsInPresetFolder)
+                    return juce::File::createTempFile (".wav");
+                else
+                    return juce::File (appProperties.getMostRecentFolder ()).getChildFile (audioFile.getFileNameWithoutExtension ()).withFileExtension ("wav");
+            } ();
+            auto destinationFileStream { std::make_unique<juce::FileOutputStream> (destinationFile) };
+            destinationFileStream->setPosition (0);
+            destinationFileStream->truncate ();
+
+            if (auto reader { audioManager->getReaderFor (audioFile) }; reader != nullptr)
+            {
+                auto sampleRate { reader->sampleRate };
+                auto numChannels { reader->numChannels };
+                auto bitsPerSample { reader->bitsPerSample };
+
+                if (bitsPerSample < 8)
+                    bitsPerSample = 8;
+                else if (bitsPerSample > 24) // the wave writer supports int 8/16/24
+                    bitsPerSample = 24;
+                jassert (numChannels != 0);
+                if (numChannels > 2)
+                    numChannels = 2;
+                if (reader->sampleRate > 192000)
+                {
+                    // we need to do sample rate conversion
+                    jassertfalse;
+                }
+
+                juce::WavAudioFormat wavAudioFormat;
+                if (std::unique_ptr<juce::AudioFormatWriter> writer { wavAudioFormat.createWriterFor (destinationFileStream.get (),
+                                                                      sampleRate, numChannels, bitsPerSample, {}, 0) }; writer != nullptr)
+            {
+                    // audioFormatWriter will delete the file stream when done
+                    destinationFileStream.release ();
+
+                    // copy the whole thing
+                    // TODO - two things
+                    //   a) this needs to be done in a thread
+                    //   b) we should locally read into a buffer and then write that, so we can display progress if needed
+                    if (writer->writeFromAudioReader (*reader.get (), 0, -1) == true)
+                    {
+                        // close the writer and reader, so that we can manipulate the files
+                        writer.reset ();
+                        reader.reset ();
+
+                        // if file is in preset folder, then we delete the original, and move the temp file to the original name
+                        // otherwise the file was not in the preset folder, and we just converted it directly into the preset folder
+                        if (fileIsInPresetFolder)
+                        {
+                            // TODO - should we rename the original, until we have succeeded in copying of the new file, and only then delete it
+                            if (audioFile.deleteFile () == true)
+                            {
+                                if (destinationFile.moveFileTo (finalFileName) == false)
+                                {
+                                    // failure to move temp file to new file
+                                    jassertfalse;
+                                }
+                                else
+                                {
+                                    return finalFileName;
+                                }
+                            }
+                            else
+                            {
+                                // failure to delete original file
+                                jassertfalse;
+                            }
+                        }
+                        else
+                        {
+                            return finalFileName;
+                        }
+                    }
+                    else
+                    {
+                        // failure to convert
+                        jassertfalse;
+                    }
+                }
+                else
+                {
+                    //failure to create writer
+                    jassertfalse;
+                }
+            }
+            else
+            {
+                // failure to create reader
+                jassertfalse;
+            }
+            return juce::File ();
+        };
         juce::File file (files [filesIndex]);
         // if file not in preset folder, then copy
         if (appProperties.getMostRecentFolder () != file.getParentDirectory ().getFullPathName ())
         {
             // TODO handle case where file of same name already exists
-            // TODO should copy be moved to a thread?
-            file.copyFileTo (juce::File (appProperties.getMostRecentFolder ()).getChildFile (file.getFileName ()));
-            // TODO handle failure
+            if (audioManager->isAssimil8orSupportedAudioFile (file))
+            {
+                // TODO should copy be moved to a thread?
+                file.copyFileTo (juce::File (appProperties.getMostRecentFolder ()).getChildFile (file.getFileName ()));
+                // TODO handle failure
+            }
+            else
+            {
+                // convert
+                file = convert (file);
+            }
+        }
+        else // file is in preset folder
+        {
+            if (! audioManager->isAssimil8orSupportedAudioFile (file))
+            {
+                // convert
+                file = convert (file);
+            }
         }
         //juce::Logger::outputDebugString ("assigning '" + file.getFileName () + "' to Zone " + juce::String (zoneIndex + filesIndex));
         // assign file to zone
         auto& zoneProperties { zoneAndSamplePropertiesList [channelIndex][zoneIndex + filesIndex].zoneProperties };
+        auto& sampleProperties { zoneAndSamplePropertiesList [channelIndex][zoneIndex + filesIndex].sampleProperties };
         zoneProperties.setSample (file.getFileName (), false);
         zoneProperties.setSide (0, false);
+        if (zoneProperties.getSampleStart ().value_or (0) > sampleProperties.getLengthInSamples ())
+            zoneProperties.setSampleStart (sampleProperties.getLengthInSamples () - 1, false);
+        if (zoneProperties.getSampleEnd ().value_or (sampleProperties.getLengthInSamples ()) > sampleProperties.getLengthInSamples ())
+            zoneProperties.setSampleEnd (sampleProperties.getLengthInSamples () - 1, false);
+        if (zoneProperties.getLoopStart ().value_or (0) + 4> sampleProperties.getLengthInSamples ())
+            zoneProperties.setLoopStart (sampleProperties.getLengthInSamples () - 4, false);
+        if (zoneProperties.getLoopStart ().value_or (0) + zoneProperties.getLoopLength ().value_or (4) > sampleProperties.getLengthInSamples ())
+            zoneProperties.setLoopLength (static_cast<double> (sampleProperties.getLengthInSamples () - zoneProperties.getLoopStart ().value_or (0)), false);
 
         // check if stereo and set up right channel
-        auto& sampleProperties { zoneAndSamplePropertiesList [channelIndex][zoneIndex + filesIndex].sampleProperties };
         if (sampleProperties.getStatus () == SampleStatus::exists && sampleProperties.getNumChannels () == 2)
         {
             if (auto parentChannelId { channelPropertiesList [channelIndex].getId () }; parentChannelId < 8 && channelPropertiesList [channelIndex].getChannelMode () != ChannelProperties::ChannelMode::stereoRight)

@@ -4,6 +4,7 @@
 #include "ChannelEditor.h"
 #include "CvInputComboBox.h"
 #include "EditManager.h"
+#include "../../GuiControlProperties.h"
 #include "../../../AppProperties.h"
 #include "../../../Assimil8or/Audio/AudioPlayerProperties.h"
 #include "../../../Assimil8or/Preset/PresetProperties.h"
@@ -38,6 +39,7 @@ private:
     RuntimeRootProperties runtimeRootProperties;
     AppProperties appProperties;
     AudioPlayerProperties audioPlayerProperties;
+    GuiControlProperties guiControlProperties;
     PresetProperties presetProperties;
     PresetProperties unEditedPresetProperties;
     PresetProperties defaultPresetProperties;
@@ -47,7 +49,7 @@ private:
     ChannelProperties copyBufferChannelProperties;
     ZoneProperties copyBufferZoneProperties;
     bool copyBufferHasData { false };
-    EditManager editManager;
+    EditManager* editManager { nullptr };
     std::unique_ptr<juce::FileChooser> fileChooser;
 
     juce::Label titleLabel;
@@ -61,6 +63,7 @@ private:
     juce::TextEditor nameEditor;
     juce::Label midiSetupLabel;
     CustomComboBox midiSetupComboBox;
+
     juce::Label data2AsCvLabel;
     CvInputGlobalComboBox data2AsCvComboBox;
     juce::Label xfadeGroupsLabel;
@@ -85,6 +88,7 @@ private:
     std::array<ChannelProperties, 8> channelProperties;
 
     void displayToolsMenu ();
+    void explodeChannel (int channelIndex, int explodeCount);
     void exportPreset ();
     juce::String formatXfadeWidthString (double width);
     void importPreset ();
