@@ -78,7 +78,7 @@ private:
         setText (toStringCallback (newValue));
     }
 
-    void focusLost (FocusChangeType)
+    void focusLost (FocusChangeType) override
     {
         setHighlightedRegion ({});
     }
