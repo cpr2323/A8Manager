@@ -98,6 +98,8 @@ private:
     ClickListener selectSamplePointsClickListener;
     ClickListener selectLoopPointsClickListener;
 
+    AudioPlayerProperties::SamplePointsSelector samplePointsSelector { AudioPlayerProperties::SamplePointsSelector::SamplePoints };
+
     void setEditComponentsEnabled (bool enabled);
     juce::PopupMenu createZoneEditMenu (juce::PopupMenu existingPopupMenu, std::function <void (ZoneProperties&, SampleProperties&)> setter, std::function <void ()> resetter, std::function <void ()> reverter,
                                         std::function<bool (ZoneProperties&)> canCloneToZoneCallback, std::function<bool (ZoneProperties&)> canCloneToAllCallback);
