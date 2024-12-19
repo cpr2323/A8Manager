@@ -168,10 +168,11 @@ bool ZoneEditor::handleSamplesInternal (int startingZoneIndex, juce::StringArray
     return editManager->assignSamples (parentChannelIndex, startingZoneIndex, files); // will end up calling ZoneProperties::setSample ()
 }
 
-void ZoneEditor::setActiveSamplePoints (AudioPlayerProperties::SamplePointsSelector samplePointsSelector, bool forceSetup)
+void ZoneEditor::setActiveSamplePoints (AudioPlayerProperties::SamplePointsSelector newSamplePointsSelector, bool forceSetup)
 {
-    if (audioPlayerProperties.getSamplePointsSelector () != samplePointsSelector || forceSetup)
+    if (samplePointsSelector != newSamplePointsSelector || forceSetup)
     {
+        samplePointsSelector = newSamplePointsSelector;
         activePointBackground = (samplePointsSelector == AudioPlayerProperties::SamplePointsSelector::SamplePoints ? &samplePointsBackground : &loopPointsBackground);
         updateLoopPointsView ();
         repaint ();
@@ -187,7 +188,7 @@ void ZoneEditor::updateLoopPointsView ()
     int side { 0 };
     if (sampleProperties.getStatus () == SampleStatus::exists)
     {
-        if (audioPlayerProperties.getSamplePointsSelector() == AudioPlayerProperties::SamplePointsSelector::SamplePoints)
+        if (samplePointsSelector == AudioPlayerProperties::SamplePointsSelector::SamplePoints)
         {
             startSample = zoneProperties.getSampleStart ().value_or (0);
             numSamples = zoneProperties.getSampleEnd ().value_or (sampleProperties.getLengthInSamples ()) - startSample;
