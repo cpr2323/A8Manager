@@ -1,8 +1,5 @@
 #include "PresetProperties.h"
 
-const auto kNumChannels { 8 };
-const auto kNumZones { 8 };
-
 void PresetProperties::initValueTree ()
 {
     for (auto channelIndex { 0 }; channelIndex < kNumChannels; ++channelIndex)
