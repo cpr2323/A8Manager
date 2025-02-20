@@ -711,7 +711,7 @@ void Assimil8orEditorComponent::exportPresetSettingsAndSamples ()
             appProperties.setImportExportMruFolder (exportContainerFile.getParentDirectory ().getFullPathName ());
 
             auto sampleFolder { juce::File (appProperties.getMostRecentFolder ()) };
-            // we use a set because a sample may be used by more than one channel/zone, but we only need to export/copy it once
+            // we use a std::set because a sample may be used by more than one channel/zone, but we only need to export/copy it once
             std::set<juce::File> sampleFiles;
             SampleManagerProperties sampleManagerProperties (runtimeRootProperties.getValueTree (), SampleManagerProperties::WrapperType::client, SampleManagerProperties::EnableCallbacks::no);
             for (auto channelIndex { 0 }; channelIndex < kNumChannels; ++channelIndex)
@@ -721,22 +721,28 @@ void Assimil8orEditorComponent::exportPresetSettingsAndSamples ()
                      if (sampleProperties.getStatus () == SampleStatus::exists)
                          sampleFiles.emplace (sampleFolder.getChildFile (sampleProperties.getName ()));
                 }
-            juce::ZipFile::Builder exportContainerBuilder;
+            // create temp folder to hold temp preset file
             auto tempFolder { exportContainerFile.getParentDirectory ().getChildFile ("temp_" + juce::String::toHexString (juce::Random::getSystemRandom ().nextInt ())) };
             tempFolder.createDirectory ();
-            auto presetFile { tempFolder.getChildFile (exportContainerFile.getFileNameWithoutExtension () + (".yml")) };
+
+            // write out temp preset file
             Assimil8orPreset assimil8orPreset;
+            auto presetFile { tempFolder.getChildFile (exportContainerFile.getFileNameWithoutExtension () + (".yml")) };
             assimil8orPreset.write (presetFile, presetProperties.getValueTree ());
+
+            juce::ZipFile::Builder exportContainerBuilder;
+            // add preset file to zip file
             exportContainerBuilder.addFile (presetFile, 9);
             // add samples to zip file
             for (auto& sampleFile : sampleFiles)
-            {
                 exportContainerBuilder.addFile (sampleFile, 9);
-            }
+
+            // write out zip file
             {
                 auto outputStream { exportContainerFile.createOutputStream () };
                 exportContainerBuilder.writeToStream (*outputStream, nullptr);
             }
+            // clean up temp folder
             tempFolder.deleteRecursively ();
         }
     }, nullptr);
@@ -775,8 +781,53 @@ void Assimil8orEditorComponent::importPresetSettings ()
 
 void Assimil8orEditorComponent::importPresetSettingsAndSamples ()
 {
-    throw std::logic_error ("The method or operation is not implemented.");
-}
+    // query user for folder/file name to import from. This will be a zip file containing the preset settings and samples
+    fileChooser.reset (new juce::FileChooser ("Please select the zip file to import from...", appProperties.getImportExportMruFolder (), "*.zip"));
+    fileChooser->launchAsync (juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles, [this] (const juce::FileChooser& fc) mutable
+    {
+        if (fc.getURLResults ().size () == 1 && fc.getURLResults () [0].isLocalFile ())
+        {
+            auto importContainerFile { fc.getURLResults () [0].getLocalFile () };
+            appProperties.setImportExportMruFolder (importContainerFile.getParentDirectory ().getFullPathName ());
+
+            juce::ZipFile importContainerReader (importContainerFile);
+            
+            auto sampleFolder { juce::File (appProperties.getMostRecentFolder ()) };
+
+            for (auto curEntryIndex { 0 }; curEntryIndex < importContainerReader.getNumEntries (); ++curEntryIndex)
+            {
+                auto entry { importContainerReader.getEntry (curEntryIndex) };
+                if (entry->filename.endsWithIgnoreCase (".yml"))
+                {
+                     // import settings from this file into the current preset
+                    auto tempFolder { sampleFolder.getChildFile ("temp_" + juce::String::toHexString (juce::Random::getSystemRandom ().nextInt ())) };
+                    tempFolder.createDirectory ();
+
+                    // extract the preset file into the temp folder and read it
+                    importContainerReader.uncompressEntry (curEntryIndex, tempFolder, true);
+                    auto tempPresetFile { tempFolder.getChildFile (entry->filename) };
+                    juce::StringArray fileContents;
+                    tempPresetFile.readLines (fileContents);
+                    // TODO - check for import errors and handle accordingly
+                    Assimil8orPreset assimil8orPreset;
+                    assimil8orPreset.parse (fileContents);
+
+                    // change the imported Preset Id to the current Preset Id
+                    PresetProperties importedPresetProperties (assimil8orPreset.getPresetVT (), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
+                    importedPresetProperties.setId (presetProperties.getId (), false);
+                    // copy imported preset to current preset
+                    PresetProperties::copyTreeProperties (importedPresetProperties.getValueTree (), presetProperties.getValueTree ());
+
+                    tempFolder.deleteRecursively ();
+                }
+                else
+                {
+                    // extract this file into the current preset folder, overwrite if necessary
+                    importContainerReader.uncompressEntry (curEntryIndex, sampleFolder, true);
+                }
+            }
+        }
+    }, nullptr);}
 
 void Assimil8orEditorComponent::resized ()
 {
