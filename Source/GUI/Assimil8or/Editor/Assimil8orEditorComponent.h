@@ -89,9 +89,11 @@ private:
 
     void displayToolsMenu ();
     void explodeChannel (int channelIndex, int explodeCount);
-    void exportPreset ();
+    void exportPresetSettings ();
+    void exportPresetSettingsAndSamples ();
     juce::String formatXfadeWidthString (double width);
-    void importPreset ();
+    void importPresetSettings ();
+    void importPresetSettingsAndSamples ();
     juce::PopupMenu createChannelCloneMenu (int channelIndex,   std::function <void (ChannelProperties&)> setter);
     bool isChannelActive (int channelIndex);
     void revertPreset ();

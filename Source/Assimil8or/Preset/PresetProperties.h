@@ -5,6 +5,9 @@
 #include "ZoneProperties.h"
 #include "../../Utility/ValueTreeWrapper.h"
 
+constexpr auto kNumChannels { 8 };
+constexpr auto kNumZones { 8 };
+
 class PresetProperties : public ValueTreeWrapper<PresetProperties>
 {
 public:
