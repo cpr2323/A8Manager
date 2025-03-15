@@ -78,9 +78,10 @@ private:
         setText (toStringCallback (newValue));
     }
 
-    void focusLost (FocusChangeType) override
+    void focusLost (FocusChangeType fct) override
     {
         setHighlightedRegion ({});
+        TextEditor::focusLost (fct);
     }
 
     void enablementChanged () override
