@@ -200,8 +200,10 @@ MidiSetupEditorComponent::MidiSetupEditorComponent ()
         editMenu.showMenuAsync ({}, [this] (int) {});
     };
     pitchWheelSemiComboBox.setTooltip ("");
-    setupComboBox (pitchWheelSemiComboBox, { "+/- 0", "+/- 1", "+/- 2", "+/- 3", "+/- 4", "+/- 5", "+/- 6", "+/- 7", "+/- 8", "+/- 9", "+/- 10", "+/- 11", "+/- 12" },
-                   [this] () { pitchWheelSemiUiChanged (pitchWheelSemiComboBox.getSelectedId(), false); });
+    for (auto pitchBendAmount { 0 }; pitchBendAmount < 49; ++pitchBendAmount)
+        pitchWheelSemiComboBox.addItem ("+/- " + juce::String (pitchBendAmount), pitchBendAmount + 1);
+    pitchWheelSemiComboBox.onChange = [this] () { pitchWheelSemiUiChanged (pitchWheelSemiComboBox.getSelectedId (), false); };
+    addAndMakeVisible (pitchWheelSemiComboBox);
 
     // VELOCITY DEPTH
     setupLabel (velocityDepthLabel, "Velocity Depth");
