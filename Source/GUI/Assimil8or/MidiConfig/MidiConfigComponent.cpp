@@ -23,9 +23,10 @@ void MidiConfigComponent::handleShowChange (bool show)
 void MidiConfigComponent::resized ()
 {
     constexpr auto kContentWidth { 400 };
-    constexpr auto kContentHeight { 430 };
-    midiConfigComponentDialog.setBounds (getWidth () / 2 - kContentWidth / 2, 27, kContentWidth, kContentHeight);
+    constexpr auto kContentHeight { 459 };
+    midiConfigComponentDialog.setBounds (getWidth () / 2 - kContentWidth / 2, 13, kContentWidth, kContentHeight);
 }
+
 void MidiConfigComponent::paint (juce::Graphics& g)
 {
     g.fillAll (juce::Colours::grey.withAlpha (0.5f));

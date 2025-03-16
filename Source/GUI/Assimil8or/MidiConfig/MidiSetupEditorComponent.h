@@ -8,7 +8,8 @@
 // Mode : Omni, Uni, Multi - 0,1,2
 // Assignment : One set of values for Omni/Uni and another for Multi. The unit seems to remember the setting for each of these
 //              Dynamic, Dynamic II, Chroma 8, Chroma VZ, Chroma KZ, SP-1200, SP-1200 X - (0-6)
-//              Multi, Multi VZ, Multi KZ, No Trigger (10-13)
+//              Multi, Multi VZ, Multi KZ, No Trigger, Indexed KZ (10-14)
+// ?????????????? Index Base Key : (0-127 (or 119))
 // Basic Channel : (1 - 16)
 // Rcv Program Change : Off (0), Exists (1), Any (2)
 // Xmt Program Change : Off (0), On (1)
@@ -61,6 +62,8 @@ private:
     CustomComboBox modeComboBox;
     juce::Label assignLabel;
     CustomComboBox assignComboBox;
+    juce::Label indexBaseKeyLabel;
+    CustomTextEditorInt indexBaseKeyTextEditor;
     juce::Label basicChannelLabel;
     CustomComboBox basicChannelComboBox;
     juce::Label rcvProgramChangeLabel;
@@ -95,6 +98,8 @@ private:
     void assignUiChanged (int assignId, bool updateUi);
     void basicChannelDataChanged (int basicChannel);
     void basicChannelUiChanged (int basicChannelId, bool updateUi);
+    void indexBaseKeyDataChanged (int bsaeKey);
+    void indexBaseKeyUiChanged (int baseKey, bool updateUi);
     void rcvProgramChangeDataChanged (int rcvProgramChange);
     void rcvProgramChangeUiChanged (int rcvProgramChangeId, bool updateUi);
     void xmtProgramChangeDataChanged (int xmtProgramChange);
