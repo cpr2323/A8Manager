@@ -6,7 +6,7 @@
 // Mode : Omni, Uni, Multi - 0,1,2
 // Assignment : One set of values for Omni/Uni and another for Multi. The unit seems to remember the setting for each of these
 //              Dynamic, Dynamic II, Chroma 8, Chroma VZ, Chroma KZ, SP-1200, SP-1200 X - (0-6)
-//              Multi, Multi VZ, Multi KZ, No Trigger (10-13)
+//              Multi, Multi VZ, Multi KZ, No Trigger, Indexed KZ (10-14)
 // Basic Channel : (1 - 16)
 // Rcv Program Change : Off (0), Exists (1), Any (2)
 // Xmt Program Change : Off (0), On (1)
@@ -40,6 +40,7 @@
 // Pitchwheel : +/- (0-12)
 // Velocity Depth : (0-127)
 // Notification: On/Off
+// IndexBaseKey: (0-127 (or 119))
 class MidiSetupProperties : public ValueTreeWrapper<MidiSetupProperties>
 {
 public:
@@ -51,60 +52,60 @@ public:
     {
     }
 
-    void setMode (int mode, bool includeSelfCallback);
     void setAssign (int assign, bool includeSelfCallback);
-    void setIndexBaseKey (int baseKey, bool includeSelfCallback);
     void setBasicChannel (int basicChannel, bool includeSelfCallback);
-    void setRcvProgramChange (int receiveChange, bool includeSelfCallback);
-    void setXmtProgramChange (int transmitChange, bool includeSelfCallback);
     void setColACC (int cc, bool includeSelfCallback);
     void setColBCC (int cc, bool includeSelfCallback);
     void setColCCC (int cc, bool includeSelfCallback);
-    void setPitchWheelSemi (int semiTones, bool includeSelfCallback);
-    void setVelocityDepth (int velocityDepth, bool includeSelfCallback);
+    void setIndexBaseKey (int baseKey, bool includeSelfCallback);
+    void setMode (int mode, bool includeSelfCallback);
     void setNotifications (int notifications, bool includeSelfCallback);
+    void setPitchWheelSemi (int semiTones, bool includeSelfCallback);
+    void setRcvProgramChange (int receiveChange, bool includeSelfCallback);
+    void setVelocityDepth (int velocityDepth, bool includeSelfCallback);
+    void setXmtProgramChange (int transmitChange, bool includeSelfCallback);
 
-    int getMode ();
     int getAssign ();
-    int getIndexBaseKey ();
     int getBasicChannel ();
-    int getRcvProgramChange ();
-    int getXmtProgramChange ();
     int getColACC ();
     int getColBCC ();
     int getColCCC ();
-    int getPitchWheelSemi ();
-    int getVelocityDepth ();
+    int getIndexBaseKey ();
+    int getMode ();
     int getNotifications ();
+    int getPitchWheelSemi ();
+    int getRcvProgramChange ();
+    int getVelocityDepth ();
+    int getXmtProgramChange ();
 
-    std::function<void (int mode)> onModeChange;
     std::function<void (int assign)> onAssignChange;
-    std::function<void (int indexBaseKey)> onIndexBaseKeyChange;
     std::function<void (int basicChannel)> onBasicChannelChange;
-    std::function<void (int rcvProgramChange)> onRcvProgramChangeChange;
-    std::function<void (int xmtProgramChange)> onXmtProgramChangeChange;
     std::function<void (int collAcc)> onColACCChange;
     std::function<void (int collBcc)> onColBCCChange;
     std::function<void (int collCcc)> onColCCCChange;
-    std::function<void (int pitchWheelSmemi)> onPitchWheelSemiChange;
-    std::function<void (int velocityDepth)> onVelocityDepthChange;
+    std::function<void (int indexBaseKey)> onIndexBaseKeyChange;
+    std::function<void (int mode)> onModeChange;
     std::function<void (int notifications)> onNotificationsChange;
+    std::function<void (int pitchWheelSmemi)> onPitchWheelSemiChange;
+    std::function<void (int rcvProgramChange)> onRcvProgramChangeChange;
+    std::function<void (int velocityDepth)> onVelocityDepthChange;
+    std::function<void (int xmtProgramChange)> onXmtProgramChangeChange;
 
     void copyFrom (juce::ValueTree srcMidiSetupPropertiesVT);
 
     static inline const juce::Identifier MidiSetupTypeId { "MidiSetup" };
-    static inline const juce::Identifier ModePropertyId             { "mode" };
     static inline const juce::Identifier AssignPropertyId           { "assign" };
-    static inline const juce::Identifier IndexBaseKeyPropertyId     { "indexBaseKey" };
     static inline const juce::Identifier BasicChannelPropertyId     { "basicChannel" };
-    static inline const juce::Identifier RcvProgramChangePropertyId { "rcvProgramChange" };
-    static inline const juce::Identifier XmtProgramChangePropertyId { "xmtProgramChange" };
     static inline const juce::Identifier ColACCPropertyId           { "colACC" };
     static inline const juce::Identifier ColBCCPropertyId           { "colBCC" };
     static inline const juce::Identifier ColCCCPropertyId           { "colCCC" };
-    static inline const juce::Identifier PitchWheelSemiPropertyId   { "pitchWheelSemi" };
-    static inline const juce::Identifier VelocityDepthPropertyId    { "velocityDepth" };
+    static inline const juce::Identifier IndexBaseKeyPropertyId     { "indexBaseKey" };
+    static inline const juce::Identifier ModePropertyId             { "mode" };
     static inline const juce::Identifier NotificationsPropertyId    { "notifications" };
+    static inline const juce::Identifier PitchWheelSemiPropertyId   { "pitchWheelSemi" };
+    static inline const juce::Identifier RcvProgramChangePropertyId { "rcvProgramChange" };
+    static inline const juce::Identifier VelocityDepthPropertyId    { "velocityDepth" };
+    static inline const juce::Identifier XmtProgramChangePropertyId { "xmtProgramChange" };
 
     void initValueTree ();
     void processValueTree () {}
