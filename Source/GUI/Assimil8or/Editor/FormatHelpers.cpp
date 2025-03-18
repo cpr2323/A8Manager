@@ -12,13 +12,13 @@ namespace FormatHelpers
 
     juce::String getCvInput (const CvInputAndAmount& cvInputAndAmount)
     {
-        auto [cvInput, _] {cvInputAndAmount};
+        auto [cvInput, _] { cvInputAndAmount };
         return cvInput;
     }
 
     double getAmount (const CvInputAndAmount& cvInputAndAmount)
     {
-        auto [_, amount] {cvInputAndAmount};
+        auto [_, amount] { cvInputAndAmount };
         return amount;
 }
 };

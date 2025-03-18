@@ -6,7 +6,6 @@
 using Action = std::function<void ()>;
 using ActionMap = std::map<juce::String, Action>;
 
-
 namespace MidiSetup
 {
     static inline const juce::String ModeId { "mode" };

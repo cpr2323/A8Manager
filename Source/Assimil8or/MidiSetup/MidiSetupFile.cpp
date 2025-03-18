@@ -78,7 +78,7 @@ void MidiSetupFile::initParser ()
         }},
         {MidiSetup::XmtProgramChangeId, [this] ()
         {
-            midiSetupProperties.setXmtProgramChange(value.getIntValue (), false);
+            midiSetupProperties.setXmtProgramChange (value.getIntValue (), false);
         }},
         {MidiSetup::ColACCId, [this] ()
         {

@@ -579,12 +579,12 @@ void ChannelEditor::setupChannelComponents ()
         };
         auto pitchCVInputResetter = [this] ()
         {
-            const auto [defaultCvInput, _] { defaultChannelProperties.getPitchCV ()};
+            const auto [defaultCvInput, _] { defaultChannelProperties.getPitchCV () };
             channelProperties.setPitchCV (defaultCvInput, FormatHelpers::getAmount (channelProperties.getPitchCV ()), true);
         };
         auto pitchCVInputReverter = [this] ()
         {
-            const auto [uneditedCvInput, _] { uneditedChannelProperties.getPitchCV ()};
+            const auto [uneditedCvInput, _] { uneditedChannelProperties.getPitchCV () };
             channelProperties.setPitchCV (uneditedCvInput, FormatHelpers::getAmount (channelProperties.getPitchCV ()), true);
         };
         auto editMenu { createChannelEditMenu (pitchCVInputSetter, pitchCVInputResetter, pitchCVInputReverter) };
@@ -605,12 +605,12 @@ void ChannelEditor::setupChannelComponents ()
         };
         auto pitchCVOffsetResetter = [this] ()
         {
-            const auto [_, defaultCvAmount] { defaultChannelProperties.getPitchCV ()};
+            const auto [_, defaultCvAmount] { defaultChannelProperties.getPitchCV () };
             channelProperties.setPitchCV (FormatHelpers::getCvInput (channelProperties.getPitchCV ()), defaultCvAmount, true);
         };
         auto pitchCVOffsetReverter = [this] ()
         {
-            const auto [_, uneditedCvAmount] { uneditedChannelProperties.getPitchCV ()};
+            const auto [_, uneditedCvAmount] { uneditedChannelProperties.getPitchCV () };
             channelProperties.setPitchCV (FormatHelpers::getCvInput (channelProperties.getPitchCV ()), uneditedCvAmount, true);
         };
         auto editMenu { createChannelEditMenu (pitchCVOffsetSetter, pitchCVOffsetResetter, pitchCVOffsetReverter) };
@@ -637,12 +637,12 @@ void ChannelEditor::setupChannelComponents ()
         };
         auto linFMCVInputResetter = [this] ()
         {
-            const auto [defaultCvInput, _] { defaultChannelProperties.getLinFM ()};
+            const auto [defaultCvInput, _] { defaultChannelProperties.getLinFM () };
             channelProperties.setLinFM (defaultCvInput, FormatHelpers::getAmount (channelProperties.getLinFM ()), true);
         };
         auto linFMCVInputReverter = [this] ()
         {
-            const auto [uneditedCvInput, _] { uneditedChannelProperties.getLinFM ()};
+            const auto [uneditedCvInput, _] { uneditedChannelProperties.getLinFM () };
             channelProperties.setLinFM (uneditedCvInput, FormatHelpers::getAmount (channelProperties.getLinFM ()), true);
         };
         auto editMenu { createChannelEditMenu (linFMCVInputSetter, linFMCVInputResetter, linFMCVInputReverter) };
@@ -663,12 +663,12 @@ void ChannelEditor::setupChannelComponents ()
         };
         auto linFMCVOffsetResetter = [this] ()
         {
-            const auto [_, defaultCvAmount] { defaultChannelProperties.getLinFM ()};
+            const auto [_, defaultCvAmount] { defaultChannelProperties.getLinFM () };
             channelProperties.setLinFM (FormatHelpers::getCvInput (channelProperties.getLinFM ()), defaultCvAmount, true);
         };
         auto linFMCVOffsetReverter = [this] ()
         {
-            const auto [_, uneditedCvAmount] { uneditedChannelProperties.getLinFM ()};
+            const auto [_, uneditedCvAmount] { uneditedChannelProperties.getLinFM () };
             channelProperties.setLinFM (FormatHelpers::getCvInput (channelProperties.getLinFM ()), uneditedCvAmount, true);
         };
         auto editMenu { createChannelEditMenu (linFMCVOffsetSetter, linFMCVOffsetResetter, linFMCVOffsetReverter) };
@@ -695,12 +695,12 @@ void ChannelEditor::setupChannelComponents ()
         };
         auto expFMCVInputResetter = [this] ()
         {
-            const auto [defaultCvInput, _] { defaultChannelProperties.getExpFM ()};
+            const auto [defaultCvInput, _] { defaultChannelProperties.getExpFM () };
             channelProperties.setPitchCV (defaultCvInput, FormatHelpers::getAmount (channelProperties.getExpFM ()), true);
         };
         auto expFMCVInputReverter = [this] ()
         {
-            const auto [uneditedCvInput, _] { uneditedChannelProperties.getExpFM ()};
+            const auto [uneditedCvInput, _] { uneditedChannelProperties.getExpFM () };
             channelProperties.setPitchCV (uneditedCvInput, FormatHelpers::getAmount (channelProperties.getExpFM ()), true);
         };
         auto editMenu { createChannelEditMenu (expFMCVInputSetter, expFMCVInputResetter, expFMCVInputReverter) };
@@ -721,12 +721,12 @@ void ChannelEditor::setupChannelComponents ()
         };
         auto expFMCVOffsetResetter = [this] ()
         {
-            const auto [_, defaultCvAmount] { defaultChannelProperties.getExpFM ()};
+            const auto [_, defaultCvAmount] { defaultChannelProperties.getExpFM () };
             channelProperties.setExpFM (FormatHelpers::getCvInput (channelProperties.getExpFM ()), defaultCvAmount, true);
         };
         auto expFMCVOffsetReverter = [this] ()
         {
-            const auto [_, uneditedCvAmount] { uneditedChannelProperties.getExpFM ()};
+            const auto [_, uneditedCvAmount] { uneditedChannelProperties.getExpFM () };
             channelProperties.setExpFM (FormatHelpers::getCvInput (channelProperties.getExpFM ()), uneditedCvAmount, true);
         };
         auto editMenu { createChannelEditMenu (expFMCVOffsetSetter, expFMCVOffsetResetter, expFMCVOffsetReverter) };
@@ -811,12 +811,12 @@ void ChannelEditor::setupChannelComponents ()
         };
         auto linAMCVInputResetter = [this] ()
         {
-            const auto [defaultCvInput, _] { defaultChannelProperties.getLinAM ()};
+            const auto [defaultCvInput, _] { defaultChannelProperties.getLinAM () };
             channelProperties.setLinAM (defaultCvInput, FormatHelpers::getAmount (channelProperties.getLinAM ()), true);
         };
         auto linAMCVInputReverter = [this] ()
         {
-            const auto [uneditedCvInput, _] { uneditedChannelProperties.getLinAM ()};
+            const auto [uneditedCvInput, _] { uneditedChannelProperties.getLinAM () };
             channelProperties.setLinAM (uneditedCvInput, FormatHelpers::getAmount (channelProperties.getLinAM ()), true);
         };
         auto editMenu { createChannelEditMenu (linAMCVInputSetter, linAMCVInputResetter, linAMCVInputReverter) };
@@ -837,12 +837,12 @@ void ChannelEditor::setupChannelComponents ()
         };
         auto linAMCVOffsetResetter = [this] ()
         {
-            const auto [_, defaultCvAmount] { defaultChannelProperties.getLinAM ()};
+            const auto [_, defaultCvAmount] { defaultChannelProperties.getLinAM () };
             channelProperties.setLinAM (FormatHelpers::getCvInput (channelProperties.getLinAM ()), defaultCvAmount, true);
         };
         auto linAMCVOffsetReverter = [this] ()
         {
-            const auto [_, uneditedCvAmount] { uneditedChannelProperties.getLinAM ()};
+            const auto [_, uneditedCvAmount] { uneditedChannelProperties.getLinAM () };
             channelProperties.setLinAM (FormatHelpers::getCvInput (channelProperties.getLinAM ()), uneditedCvAmount, true);
         };
         auto editMenu { createChannelEditMenu (linAMCVOffsetSetter, linAMCVOffsetResetter, linAMCVOffsetReverter) };
@@ -869,12 +869,12 @@ void ChannelEditor::setupChannelComponents ()
         };
         auto expAMCVInputResetter = [this] ()
         {
-            const auto [defaultCvInput, _] { defaultChannelProperties.getExpAM ()};
+            const auto [defaultCvInput, _] { defaultChannelProperties.getExpAM () };
             channelProperties.setExpAM (defaultCvInput, FormatHelpers::getAmount (channelProperties.getExpAM ()), true);
         };
         auto expAMCVInputReverter = [this] ()
         {
-            const auto [uneditedCvInput, _] { uneditedChannelProperties.getExpAM ()};
+            const auto [uneditedCvInput, _] { uneditedChannelProperties.getExpAM () };
             channelProperties.setExpAM (uneditedCvInput, FormatHelpers::getAmount (channelProperties.getExpAM ()), true);
         };
         auto editMenu { createChannelEditMenu (expAMCVInputSetter, expAMCVInputResetter, expAMCVInputReverter) };
@@ -895,12 +895,12 @@ void ChannelEditor::setupChannelComponents ()
         };
         auto expAMCVOffsetResetter = [this] ()
         {
-            const auto [_, defaultCvAmount] { defaultChannelProperties.getExpAM ()};
+            const auto [_, defaultCvAmount] { defaultChannelProperties.getExpAM () };
             channelProperties.setExpAM (FormatHelpers::getCvInput (channelProperties.getExpAM ()), defaultCvAmount, true);
         };
         auto expAMCVOffsetReverter = [this] ()
         {
-            const auto [_, uneditedCvAmount] { uneditedChannelProperties.getExpAM ()};
+            const auto [_, uneditedCvAmount] { uneditedChannelProperties.getExpAM () };
             channelProperties.setExpAM (FormatHelpers::getCvInput (channelProperties.getExpAM ()), uneditedCvAmount, true);
         };
         auto editMenu { createChannelEditMenu (expAMCVOffsetSetter, expAMCVOffsetResetter, expAMCVOffsetReverter) };
@@ -955,12 +955,12 @@ void ChannelEditor::setupChannelComponents ()
         };
         auto phaseCVInputResetter = [this] ()
         {
-            const auto [defaultCvInput, _] { defaultChannelProperties.getPhaseCV ()};
+            const auto [defaultCvInput, _] { defaultChannelProperties.getPhaseCV () };
             channelProperties.setPhaseCV (defaultCvInput, FormatHelpers::getAmount (channelProperties.getPhaseCV ()), true);
         };
         auto phaseCVInputReverter = [this] ()
         {
-            const auto [uneditedCvInput, _] { uneditedChannelProperties.getPhaseCV ()};
+            const auto [uneditedCvInput, _] { uneditedChannelProperties.getPhaseCV () };
             channelProperties.setPhaseCV (uneditedCvInput, FormatHelpers::getAmount (channelProperties.getPhaseCV ()), true);
         };
         auto editMenu { createChannelEditMenu (phaseCVInputSetter, phaseCVInputResetter, phaseCVInputReverter) };
@@ -981,12 +981,12 @@ void ChannelEditor::setupChannelComponents ()
         };
         auto phaseCVOffsetResetter = [this] ()
         {
-            const auto [_, defaultCvAmount] { defaultChannelProperties.getPhaseCV ()};
+            const auto [_, defaultCvAmount] { defaultChannelProperties.getPhaseCV () };
             channelProperties.setPhaseCV (FormatHelpers::getCvInput (channelProperties.getPhaseCV ()), defaultCvAmount, true);
         };
         auto phaseCVOffsetReverter = [this] ()
         {
-            const auto [_, uneditedCvAmount] { uneditedChannelProperties.getPhaseCV ()};
+            const auto [_, uneditedCvAmount] { uneditedChannelProperties.getPhaseCV () };
             channelProperties.setPhaseCV (FormatHelpers::getCvInput (channelProperties.getPhaseCV ()), uneditedCvAmount, true);
         };
         auto editMenu { createChannelEditMenu (phaseCVOffsetSetter, phaseCVOffsetResetter, phaseCVOffsetReverter) };
@@ -1044,12 +1044,12 @@ void ChannelEditor::setupChannelComponents ()
         };
         auto pMIndexModCVInputResetter = [this] ()
         {
-            const auto [defaultCvInput, _] { defaultChannelProperties.getPMIndexMod ()};
+            const auto [defaultCvInput, _] { defaultChannelProperties.getPMIndexMod () };
             channelProperties.setPMIndexMod (defaultCvInput, FormatHelpers::getAmount (channelProperties.getPMIndexMod ()), true);
         };
         auto pMIndexModCVInputReverter = [this] ()
         {
-            const auto [uneditedCvInput, _] { uneditedChannelProperties.getPMIndexMod ()};
+            const auto [uneditedCvInput, _] { uneditedChannelProperties.getPMIndexMod () };
             channelProperties.setPMIndexMod (uneditedCvInput, FormatHelpers::getAmount (channelProperties.getPMIndexMod ()), true);
         };
         auto editMenu { createChannelEditMenu (pMIndexModCVInputSetter, pMIndexModCVInputResetter, pMIndexModCVInputReverter) };
@@ -1070,12 +1070,12 @@ void ChannelEditor::setupChannelComponents ()
         };
         auto pMIndexModOffsetResetter = [this] ()
         {
-            const auto [_, defaultCvAmount] { defaultChannelProperties.getPMIndexMod ()};
+            const auto [_, defaultCvAmount] { defaultChannelProperties.getPMIndexMod () };
             channelProperties.setPMIndexMod (FormatHelpers::getCvInput (channelProperties.getPMIndexMod ()), defaultCvAmount, true);
         };
         auto pMIndexModOffsetReverter = [this] ()
         {
-            const auto [_, uneditedCvAmount] { uneditedChannelProperties.getPMIndexMod ()};
+            const auto [_, uneditedCvAmount] { uneditedChannelProperties.getPMIndexMod () };
             channelProperties.setPMIndexMod (FormatHelpers::getCvInput (channelProperties.getPMIndexMod ()), uneditedCvAmount, true);
         };
         auto editMenu { createChannelEditMenu (pMIndexModOffsetSetter, pMIndexModOffsetResetter, pMIndexModOffsetReverter) };
@@ -1173,12 +1173,12 @@ void ChannelEditor::setupChannelComponents ()
         };
         auto attackModCVInputResetter = [this] ()
         {
-            const auto [defaultCvInput, _] { defaultChannelProperties.getAttackMod ()};
+            const auto [defaultCvInput, _] { defaultChannelProperties.getAttackMod () };
             channelProperties.setAttackMod (defaultCvInput, FormatHelpers::getAmount (channelProperties.getAttackMod ()), true);
         };
         auto attackModCVInputReverter = [this] ()
         {
-            const auto [uneditedCvInput, _] { uneditedChannelProperties.getAttackMod ()};
+            const auto [uneditedCvInput, _] { uneditedChannelProperties.getAttackMod () };
             channelProperties.setAttackMod (uneditedCvInput, FormatHelpers::getAmount (channelProperties.getAttackMod ()), true);
         };
         auto editMenu { createChannelEditMenu (attackModCVInputSetter, attackModCVInputResetter, attackModCVInputReverter) };
@@ -1199,12 +1199,12 @@ void ChannelEditor::setupChannelComponents ()
         };
         auto attackModOffsetResetter = [this] ()
         {
-            const auto [_, defaultCvAmount] { defaultChannelProperties.getAttackMod ()};
+            const auto [_, defaultCvAmount] { defaultChannelProperties.getAttackMod () };
             channelProperties.setAttackMod (FormatHelpers::getCvInput (channelProperties.getAttackMod ()), defaultCvAmount, true);
         };
         auto attackModOffsetReverter = [this] ()
         {
-            const auto [_, uneditedCvAmount] { uneditedChannelProperties.getAttackMod ()};
+            const auto [_, uneditedCvAmount] { uneditedChannelProperties.getAttackMod () };
             channelProperties.setAttackMod (FormatHelpers::getCvInput (channelProperties.getAttackMod ()), uneditedCvAmount, true);
         };
         auto editMenu { createChannelEditMenu (attackModOffsetSetter, attackModOffsetResetter, attackModOffsetReverter) };
@@ -1275,12 +1275,12 @@ void ChannelEditor::setupChannelComponents ()
         };
         auto releaseModCVInputResetter = [this] ()
         {
-            const auto [defaultCvInput, _] { defaultChannelProperties.getReleaseMod ()};
+            const auto [defaultCvInput, _] { defaultChannelProperties.getReleaseMod () };
             channelProperties.setReleaseMod (defaultCvInput, FormatHelpers::getAmount (channelProperties.getReleaseMod ()), true);
         };
         auto releaseModCVInputReverter = [this] ()
         {
-            const auto [uneditedCvInput, _] { uneditedChannelProperties.getReleaseMod ()};
+            const auto [uneditedCvInput, _] { uneditedChannelProperties.getReleaseMod () };
             channelProperties.setReleaseMod (uneditedCvInput, FormatHelpers::getAmount (channelProperties.getReleaseMod ()), true);
         };
         auto editMenu { createChannelEditMenu (releaseModCVInputSetter, releaseModCVInputResetter, releaseModCVInputReverter) };
@@ -1301,12 +1301,12 @@ void ChannelEditor::setupChannelComponents ()
         };
         auto releaseModOffsetResetter = [this] ()
         {
-            const auto [_, defaultCvAmount] { defaultChannelProperties.getReleaseMod ()};
+            const auto [_, defaultCvAmount] { defaultChannelProperties.getReleaseMod () };
             channelProperties.setReleaseMod (FormatHelpers::getCvInput (channelProperties.getReleaseMod ()), defaultCvAmount, true);
         };
         auto releaseModOffsetReverter = [this] ()
         {
-            const auto [_, uneditedCvAmount] { uneditedChannelProperties.getReleaseMod ()};
+            const auto [_, uneditedCvAmount] { uneditedChannelProperties.getReleaseMod () };
             channelProperties.setReleaseMod (FormatHelpers::getCvInput (channelProperties.getReleaseMod ()), uneditedCvAmount, true);
         };
         auto editMenu { createChannelEditMenu (releaseModOffsetSetter, releaseModOffsetResetter, releaseModOffsetReverter) };
@@ -1375,12 +1375,12 @@ void ChannelEditor::setupChannelComponents ()
         };
         auto bitsModCVInputResetter = [this] ()
         {
-            const auto [defaultCvInput, _] { defaultChannelProperties.getBitsMod ()};
+            const auto [defaultCvInput, _] { defaultChannelProperties.getBitsMod () };
             channelProperties.setBitsMod (defaultCvInput, FormatHelpers::getAmount (channelProperties.getBitsMod ()), true);
         };
         auto bitsModCVInputReverter = [this] ()
         {
-            const auto [uneditedCvInput, _] { uneditedChannelProperties.getBitsMod ()};
+            const auto [uneditedCvInput, _] { uneditedChannelProperties.getBitsMod () };
             channelProperties.setBitsMod (uneditedCvInput, FormatHelpers::getAmount (channelProperties.getBitsMod ()), true);
         };
         auto editMenu { createChannelEditMenu (bitsModCVInputSetter, bitsModCVInputResetter, bitsModCVInputReverter) };
@@ -1401,12 +1401,12 @@ void ChannelEditor::setupChannelComponents ()
         };
         auto bitsModOffsetResetter = [this] ()
         {
-            const auto [_, defaultCvAmount] { defaultChannelProperties.getBitsMod ()};
+            const auto [_, defaultCvAmount] { defaultChannelProperties.getBitsMod () };
             channelProperties.setBitsMod (FormatHelpers::getCvInput (channelProperties.getBitsMod ()), defaultCvAmount, true);
         };
         auto bitsModOffsetReverter = [this] ()
         {
-            const auto [_, uneditedCvAmount] { uneditedChannelProperties.getBitsMod ()};
+            const auto [_, uneditedCvAmount] { uneditedChannelProperties.getBitsMod () };
             channelProperties.setBitsMod (FormatHelpers::getCvInput (channelProperties.getBitsMod ()), uneditedCvAmount, true);
         };
         auto editMenu { createChannelEditMenu (bitsModOffsetSetter, bitsModOffsetResetter, bitsModOffsetReverter) };
@@ -1461,12 +1461,12 @@ void ChannelEditor::setupChannelComponents ()
         };
         auto aliasingModCVInputResetter = [this] ()
         {
-            const auto [defaultCvInput, _] { defaultChannelProperties.getAliasingMod ()};
+            const auto [defaultCvInput, _] { defaultChannelProperties.getAliasingMod () };
             channelProperties.setAliasingMod (defaultCvInput, FormatHelpers::getAmount (channelProperties.getAliasingMod ()), true);
         };
         auto aliasingModCVInputReverter = [this] ()
         {
-            const auto [uneditedCvInput, _] { uneditedChannelProperties.getAliasingMod ()};
+            const auto [uneditedCvInput, _] { uneditedChannelProperties.getAliasingMod () };
             channelProperties.setAliasingMod (uneditedCvInput, FormatHelpers::getAmount (channelProperties.getAliasingMod ()), true);
         };
         auto editMenu { createChannelEditMenu (aliasingModCVInputSetter, aliasingModCVInputResetter, aliasingModCVInputReverter) };
@@ -1487,12 +1487,12 @@ void ChannelEditor::setupChannelComponents ()
         };
         auto aliasingModOffsetResetter = [this] ()
         {
-            const auto [_, defaultCvAmount] { defaultChannelProperties.getAliasingMod ()};
+            const auto [_, defaultCvAmount] { defaultChannelProperties.getAliasingMod () };
             channelProperties.setAliasingMod (FormatHelpers::getCvInput (channelProperties.getAliasingMod ()), defaultCvAmount, true);
         };
         auto aliasingModOffsetReverter = [this] ()
         {
-            const auto [_, uneditedCvAmount] { uneditedChannelProperties.getAliasingMod ()};
+            const auto [_, uneditedCvAmount] { uneditedChannelProperties.getAliasingMod () };
             channelProperties.setAliasingMod (FormatHelpers::getCvInput (channelProperties.getAliasingMod ()), uneditedCvAmount, true);
         };
         auto editMenu { createChannelEditMenu (aliasingModOffsetSetter, aliasingModOffsetResetter, aliasingModOffsetReverter) };
@@ -1570,12 +1570,12 @@ void ChannelEditor::setupChannelComponents ()
         };
         auto panModCVInputResetter = [this] ()
         {
-            const auto [defaultCvInput, _] { defaultChannelProperties.getPanMod ()};
+            const auto [defaultCvInput, _] { defaultChannelProperties.getPanMod () };
             channelProperties.setPanMod (defaultCvInput, FormatHelpers::getAmount (channelProperties.getPanMod ()), true);
         };
         auto panModCVInputReverter = [this] ()
         {
-            const auto [uneditedCvInput, _] { uneditedChannelProperties.getPanMod ()};
+            const auto [uneditedCvInput, _] { uneditedChannelProperties.getPanMod () };
             channelProperties.setPanMod (uneditedCvInput, FormatHelpers::getAmount (channelProperties.getPanMod ()), true);
         };
         auto editMenu { createChannelEditMenu (panModCVInputSetter, panModCVInputResetter, panModCVInputReverter) };
@@ -1596,12 +1596,12 @@ void ChannelEditor::setupChannelComponents ()
         };
         auto panModOffsetResetter = [this] ()
         {
-            const auto [_, defaultCvAmount] { defaultChannelProperties.getPanMod ()};
+            const auto [_, defaultCvAmount] { defaultChannelProperties.getPanMod () };
             channelProperties.setPanMod (FormatHelpers::getCvInput (channelProperties.getPanMod ()), defaultCvAmount, true);
         };
         auto panModOffsetReverter = [this] ()
         {
-            const auto [_, uneditedCvAmount] { uneditedChannelProperties.getPanMod ()};
+            const auto [_, uneditedCvAmount] { uneditedChannelProperties.getPanMod () };
             channelProperties.setPanMod (FormatHelpers::getCvInput (channelProperties.getPanMod ()), uneditedCvAmount, true);
         };
         auto editMenu { createChannelEditMenu (panModOffsetSetter, panModOffsetResetter, panModOffsetReverter) };
@@ -1676,12 +1676,12 @@ void ChannelEditor::setupChannelComponents ()
         };
         auto mixModCVInputResetter = [this] ()
         {
-            const auto [defaultCvInput, _] { defaultChannelProperties.getMixMod ()};
+            const auto [defaultCvInput, _] { defaultChannelProperties.getMixMod () };
             channelProperties.setMixMod (defaultCvInput, FormatHelpers::getAmount (channelProperties.getMixMod ()), true);
         };
         auto mixModCVInputReverter= [this] ()
         {
-            const auto [uneditedCvInput, _] { uneditedChannelProperties.getMixMod ()};
+            const auto [uneditedCvInput, _] { uneditedChannelProperties.getMixMod () };
             channelProperties.setMixMod (uneditedCvInput, FormatHelpers::getAmount (channelProperties.getMixMod ()), true);
         };
         auto editMenu { createChannelEditMenu (mixModCVInputSetter, mixModCVInputResetter, mixModCVInputReverter) };
@@ -1702,12 +1702,12 @@ void ChannelEditor::setupChannelComponents ()
         };
         auto mixModOffsetResetter = [this] ()
         {
-            const auto [_, defaultCvAmount] { defaultChannelProperties.getMixMod ()};
+            const auto [_, defaultCvAmount] { defaultChannelProperties.getMixMod () };
             channelProperties.setMixMod (FormatHelpers::getCvInput (channelProperties.getMixMod ()), defaultCvAmount, true);
         };
         auto mixModOffsetReverter = [this] ()
         {
-            const auto [_, uneditedCvAmount] { uneditedChannelProperties.getMixMod ()};
+            const auto [_, uneditedCvAmount] { uneditedChannelProperties.getMixMod () };
             channelProperties.setMixMod (FormatHelpers::getCvInput (channelProperties.getMixMod ()), uneditedCvAmount, true);
         };
         auto editMenu { createChannelEditMenu (mixModOffsetSetter, mixModOffsetResetter, mixModOffsetReverter) };
@@ -1806,12 +1806,12 @@ void ChannelEditor::setupChannelComponents ()
         };
         auto sampleStartModCVInputResetter = [this] ()
         {
-            const auto [defaultCvInput, _] { defaultChannelProperties.getSampleStartMod ()};
+            const auto [defaultCvInput, _] { defaultChannelProperties.getSampleStartMod () };
             channelProperties.setSampleStartMod (defaultCvInput, FormatHelpers::getAmount (channelProperties.getSampleStartMod ()), true);
         };
         auto sampleStartModCVInputReverter = [this] ()
         {
-            const auto [uneditedCvInput, _] { uneditedChannelProperties.getSampleStartMod ()};
+            const auto [uneditedCvInput, _] { uneditedChannelProperties.getSampleStartMod () };
             channelProperties.setSampleStartMod (uneditedCvInput, FormatHelpers::getAmount (channelProperties.getSampleStartMod ()), true);
         };
         auto editMenu { createChannelEditMenu (sampleStartModCVInputSetter, sampleStartModCVInputResetter, sampleStartModCVInputReverter) };
@@ -1832,12 +1832,12 @@ void ChannelEditor::setupChannelComponents ()
         };
         auto sampleStartModOffsetResetter = [this] ()
         {
-            const auto [_, defaultCvAmount] { defaultChannelProperties.getSampleStartMod ()};
+            const auto [_, defaultCvAmount] { defaultChannelProperties.getSampleStartMod () };
             channelProperties.setSampleStartMod (FormatHelpers::getCvInput (channelProperties.getSampleStartMod ()), defaultCvAmount, true);
         };
         auto sampleStartModOffsetReverter = [this] ()
         {
-            const auto [_, uneditedCvAmount] { uneditedChannelProperties.getSampleStartMod ()};
+            const auto [_, uneditedCvAmount] { uneditedChannelProperties.getSampleStartMod () };
             channelProperties.setSampleStartMod (FormatHelpers::getCvInput (channelProperties.getSampleStartMod ()), uneditedCvAmount, true);
         };
         auto editMenu { createChannelEditMenu (sampleStartModOffsetSetter, sampleStartModOffsetResetter, sampleStartModOffsetReverter) };
@@ -1864,12 +1864,12 @@ void ChannelEditor::setupChannelComponents ()
         };
         auto sampleEndModCVInputResetter = [this] ()
         {
-            const auto [defaultCvInput, _] { defaultChannelProperties.getSampleEndMod ()};
+            const auto [defaultCvInput, _] { defaultChannelProperties.getSampleEndMod () };
             channelProperties.setSampleEndMod (defaultCvInput, FormatHelpers::getAmount (channelProperties.getSampleEndMod ()), true);
         };
         auto sampleEndModCVInputReverter = [this] ()
         {
-            const auto [uneditedCvInput, _] { uneditedChannelProperties.getSampleEndMod ()};
+            const auto [uneditedCvInput, _] { uneditedChannelProperties.getSampleEndMod () };
             channelProperties.setSampleEndMod (uneditedCvInput, FormatHelpers::getAmount (channelProperties.getSampleEndMod ()), true);
         };
         auto editMenu { createChannelEditMenu (sampleEndModCVInputSetter, sampleEndModCVInputResetter, sampleEndModCVInputReverter) };
@@ -1890,12 +1890,12 @@ void ChannelEditor::setupChannelComponents ()
         };
         auto sampleEndModOffsetResetter = [this] ()
         {
-            const auto [_, defaultCvAmount] { defaultChannelProperties.getSampleEndMod ()};
+            const auto [_, defaultCvAmount] { defaultChannelProperties.getSampleEndMod () };
             channelProperties.setSampleEndMod (FormatHelpers::getCvInput (channelProperties.getSampleEndMod ()), defaultCvAmount, true);
         };
         auto sampleEndModOffsetReverter = [this] ()
         {
-            const auto [_, uneditedCvAmount] { uneditedChannelProperties.getSampleEndMod ()};
+            const auto [_, uneditedCvAmount] { uneditedChannelProperties.getSampleEndMod () };
             channelProperties.setSampleEndMod (FormatHelpers::getCvInput (channelProperties.getSampleEndMod ()), uneditedCvAmount, true);
         };
         auto editMenu { createChannelEditMenu (sampleEndModOffsetSetter, sampleEndModOffsetResetter, sampleEndModOffsetReverter) };
@@ -1943,12 +1943,12 @@ void ChannelEditor::setupChannelComponents ()
         };
         auto loopStartModCVInputResetter = [this] ()
         {
-            const auto [defaultCvInput, _] { defaultChannelProperties.getLoopStartMod ()};
+            const auto [defaultCvInput, _] { defaultChannelProperties.getLoopStartMod () };
             channelProperties.setLoopStartMod (defaultCvInput, FormatHelpers::getAmount (channelProperties.getLoopStartMod ()), true);
         };
         auto loopStartModCVInputReverter = [this] ()
         {
-            const auto [uneditedCvInput, _] { uneditedChannelProperties.getLoopStartMod ()};
+            const auto [uneditedCvInput, _] { uneditedChannelProperties.getLoopStartMod () };
             channelProperties.setLoopStartMod (uneditedCvInput, FormatHelpers::getAmount (channelProperties.getLoopStartMod ()), true);
         };
         auto editMenu { createChannelEditMenu (loopStartModCVInputSetter, loopStartModCVInputResetter, loopStartModCVInputReverter) };
@@ -1969,12 +1969,12 @@ void ChannelEditor::setupChannelComponents ()
         };
         auto loopStartModOffsetResetter = [this] ()
         {
-            const auto [_, defaultCvAmount] { defaultChannelProperties.getLoopStartMod ()};
+            const auto [_, defaultCvAmount] { defaultChannelProperties.getLoopStartMod () };
             channelProperties.setLoopStartMod (FormatHelpers::getCvInput (channelProperties.getLoopStartMod ()), defaultCvAmount, true);
         };
         auto loopStartModOffsetReverter = [this] ()
         {
-            const auto [_, uneditedCvAmount] { uneditedChannelProperties.getLoopStartMod ()};
+            const auto [_, uneditedCvAmount] { uneditedChannelProperties.getLoopStartMod () };
             channelProperties.setLoopStartMod (FormatHelpers::getCvInput (channelProperties.getLoopStartMod ()), uneditedCvAmount, true);
         };
         auto editMenu { createChannelEditMenu (loopStartModOffsetSetter, loopStartModOffsetResetter, loopStartModOffsetReverter) };
@@ -2001,12 +2001,12 @@ void ChannelEditor::setupChannelComponents ()
         };
         auto loopLengthModCVInputResetter = [this] ()
         {
-            const auto [defaultCvInput, _] { defaultChannelProperties.getLoopLengthMod ()};
+            const auto [defaultCvInput, _] { defaultChannelProperties.getLoopLengthMod () };
             channelProperties.setLoopLengthMod (defaultCvInput, FormatHelpers::getAmount (channelProperties.getLoopLengthMod ()), true);
         };
         auto loopLengthModCVInputReverter = [this] ()
         {
-            const auto [uneditedCvInput, _] { uneditedChannelProperties.getLoopLengthMod ()};
+            const auto [uneditedCvInput, _] { uneditedChannelProperties.getLoopLengthMod () };
             channelProperties.setLoopLengthMod (uneditedCvInput, FormatHelpers::getAmount (channelProperties.getLoopLengthMod ()), true);
         };
         auto editMenu { createChannelEditMenu (loopLengthModCVInputSetter, loopLengthModCVInputResetter, loopLengthModCVInputReverter) };
@@ -2027,12 +2027,12 @@ void ChannelEditor::setupChannelComponents ()
         };
         auto loopLengthModOffsetResetter = [this] ()
         {
-            const auto [_, defaultCvAmount] { defaultChannelProperties.getLoopLengthMod ()};
+            const auto [_, defaultCvAmount] { defaultChannelProperties.getLoopLengthMod () };
             channelProperties.setLoopLengthMod (FormatHelpers::getCvInput (channelProperties.getLoopLengthMod ()), defaultCvAmount, true);
         };
         auto loopLengthModOffsetReverter = [this] ()
         {
-            const auto [_, uneditedCvAmount] { uneditedChannelProperties.getLoopLengthMod ()};
+            const auto [_, uneditedCvAmount] { uneditedChannelProperties.getLoopLengthMod () };
             channelProperties.setLoopLengthMod (FormatHelpers::getCvInput (channelProperties.getLoopLengthMod ()), uneditedCvAmount, true);
         };
         auto editMenu { createChannelEditMenu (loopLengthModOffsetSetter, loopLengthModOffsetResetter, loopLengthModOffsetReverter) };
@@ -2074,7 +2074,7 @@ void ChannelEditor::setupChannelComponents ()
     zonesCVComboBox.onDragCallback = [this] (DragSpeed dragSpeed, int direction)
     {
         const auto scrollAmount { (dragSpeed == DragSpeed::fast ? 2 : 1) * direction };
-        const auto newCvInputComboBoxIndex { zonesCVComboBox.getSelectedItemIndex () + scrollAmount};
+        const auto newCvInputComboBoxIndex { zonesCVComboBox.getSelectedItemIndex () + scrollAmount };
         zonesCVComboBox.setSelectedItemIndex (std::clamp (newCvInputComboBoxIndex, 0, zonesCVComboBox.getNumItems () - 1));
         channelProperties.setZonesCV (zonesCVComboBox.getSelectedItemText (), false);
     };
@@ -2190,7 +2190,7 @@ void ChannelEditor::balanceVoltages (VoltageBalanceType balanceType)
         break;
         case VoltageBalanceType::distribute1vPerOctMajor:
         {
-            std::array<double, 7> majorNoteVoltages {0.08, 0.25, 0.37, 0.5, 0.67, 0.83, 0.96};
+            std::array<double, 7> majorNoteVoltages { 0.08, 0.25, 0.37, 0.5, 0.67, 0.83, 0.96 };
             fillMinVoltages ([majorNoteVoltages, numUsedZones] (int curZoneIndex)
             {
                 return majorNoteVoltages [numUsedZones - 2 - curZoneIndex];
@@ -2216,7 +2216,7 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree u
     appProperties.wrap (persistentRootProperties.getValueTree (), AppProperties::WrapperType::client, AppProperties::EnableCallbacks::no);
     audioPlayerProperties.wrap (runtimeRootProperties.getValueTree (), AudioPlayerProperties::WrapperType::client, AudioPlayerProperties::EnableCallbacks::no);
 
-    SystemServices systemServices {runtimeRootProperties.getValueTree (), SystemServices::WrapperType::client, SystemServices::EnableCallbacks::yes};
+    SystemServices systemServices { runtimeRootProperties.getValueTree (), SystemServices::WrapperType::client, SystemServices::EnableCallbacks::yes };
     editManager = systemServices.getEditManager ();
 
     sampleManagerProperties.wrap (runtimeRootProperties.getValueTree (), SampleManagerProperties::WrapperType::client, SampleManagerProperties::EnableCallbacks::no);
@@ -2429,7 +2429,7 @@ void ChannelEditor::setupChannelPropertiesCallbacks ()
 
 void ChannelEditor::checkStereoRightOverlay ()
 {
-    const bool isStereoRightMode { channelProperties.getChannelMode () == ChannelProperties::ChannelMode::stereoRight };
+    const auto isStereoRightMode { channelProperties.getChannelMode () == ChannelProperties::ChannelMode::stereoRight };
     stereoRightTransparantOverly.setVisible (isStereoRightMode);
 
     aliasingTextEditor.setEnabled (! isStereoRightMode);
@@ -2763,9 +2763,9 @@ void ChannelEditor::resized ()
     toolsButton.setBounds (5, getHeight () - 5 - 20, 40, 20);
 
     // layout the Zones section. ie. the tabs and the channel level controls
-    auto zoneColumn {getLocalBounds ().removeFromRight (213)};
+    auto zoneColumn { getLocalBounds ().removeFromRight (213) };
     zoneColumn.removeFromTop (3);
-    auto zoneTopSection { zoneColumn.removeFromTop (75).withTrimmedBottom (5).withTrimmedRight (3)};
+    auto zoneTopSection { zoneColumn.removeFromTop (75).withTrimmedBottom (5).withTrimmedRight (3) };
     zonesLabel.setBounds (zoneTopSection.getX () + 15, zoneTopSection.getHeight () / 2 - kMediumLabelIntSize / 2, 80, kMediumLabelIntSize);
     const auto zoneSectionInputWidth { 65 };
     const auto zoneSectionLabelWidth { 85 };
@@ -2806,7 +2806,7 @@ void ChannelEditor::flipZones (int zoneIndex, int flipCount)
     for (auto zoneCount { 0 }; zoneCount< flipCount / 2; ++zoneCount)
     {
         auto& firstZone { zoneProperties [zoneIndex + zoneCount] };
-        const auto firstZoneMinVoltage { firstZone.getMinVoltage() };
+        const auto firstZoneMinVoltage { firstZone.getMinVoltage () };
         auto& secondZone { zoneProperties [zoneIndex + (flipCount - zoneCount - 1)] };
         const auto secondZoneMinVoltage { secondZone.getMinVoltage () };
         tempZoneProperties.copyFrom (secondZone.getValueTree (), false);

@@ -43,7 +43,7 @@ public:
 
     static inline const juce::Identifier SamplePropertiesTypeId { "Sample" };
     static inline const juce::Identifier NamePropertyId            { "name" };
-    static inline const juce::Identifier BitsPerSamplePropertyId   { "bitsPerSample"};
+    static inline const juce::Identifier BitsPerSamplePropertyId   { "bitsPerSample" };
     static inline const juce::Identifier SampleRatePropertyId      { "sampleRate" };
     static inline const juce::Identifier NumChannelsPropertyId     { "numChannels" };
     static inline const juce::Identifier LengthInSamplesPropertyId { "lengthInSamples" };

@@ -170,7 +170,7 @@ void AREnvelopeComponent::mouseDrag (const juce::MouseEvent& e)
     {
         if (newTime - startAnchor.getTime () != attackAnchor.getTime ())
         {
-            const auto newAttackTime { std::fmin (std::fmax ((float) newTime - startAnchor.getTime (), 0.0), std::fmin (attackAnchor.getMaxTime (), 1.0 - releaseAnchor.getTime ()))};
+            const auto newAttackTime { std::fmin (std::fmax ((float) newTime - startAnchor.getTime (), 0.0), std::fmin (attackAnchor.getMaxTime (), 1.0 - releaseAnchor.getTime ())) };
             attackAnchor.setTime (newAttackTime);
             arEnvelopeProperties.setAttackPercent (newAttackTime, false);
         }

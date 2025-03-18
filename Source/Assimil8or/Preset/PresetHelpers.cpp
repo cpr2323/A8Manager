@@ -24,7 +24,7 @@ namespace PresetHelpers
     {
         if (cvInputIndex == 0)
             return "Off";
-        const auto adjustedIndex {cvInputIndex - 1};
+        const auto adjustedIndex { cvInputIndex - 1 };
         jassert (adjustedIndex >= 0 && adjustedIndex <= 27);
         return juce::String::charToString ('0' + adjustedIndex / 3) + juce::String::charToString ('A' + (adjustedIndex % 3));
     }

@@ -40,7 +40,7 @@ public:
     /*
         Pattern for creating specialized wrapper
 
-            Identifier PropertyAIdentifier {"propertyA"};
+            Identifier PropertyAIdentifier { "propertyA" };
 
             std::function <void (int propertyValue)> onPropertyAChanged;
 
@@ -70,7 +70,7 @@ public:
     {
     public:
         ScopedFilterNonChanges (ValueTreeWrapper& theVtWrapper, bool doFilterNonChange)
-            : vtWrapper {theVtWrapper}
+            : vtWrapper { theVtWrapper }
         {
             previousFilterNonChange = vtWrapper.setFilterNonChanges (doFilterNonChange);
         }
@@ -108,7 +108,7 @@ protected:
     template<class T, std::enable_if_t<std::is_pointer_v<T>, void*> = nullptr>
     void setValue (T value, const juce::Identifier property, bool includeSelfCallback)
     {
-        const auto int64Value { reinterpret_cast<juce::int64> (value)};
+        const auto int64Value { reinterpret_cast<juce::int64> (value) };
         juce::int64 previousValue {};
         if (! filterNonChange)
             previousValue = getValue<juce::int64> (property);

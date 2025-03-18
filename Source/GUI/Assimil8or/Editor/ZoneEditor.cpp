@@ -334,7 +334,7 @@ void ZoneEditor::setupZoneComponents ()
                                                 handleSamplesInternal (destZoneIndex, { fileName });
                                             },
                                             nullptr /* reset is not possible for the sample file parameter, since zones have to have contiguous samples assigned, and resetting one in the middle would break that */,
-                                            [this] () { handleSamplesInternal (zoneIndex, {uneditedZoneProperties.getSample ()}); },
+                                            [this] () { handleSamplesInternal (zoneIndex, { uneditedZoneProperties.getSample () }); },
                                             [this] (ZoneProperties& destZoneProperties) { return destZoneProperties.getId () - 1 <= editManager->getNumUsedZones (parentChannelIndex); },
                                             [] (ZoneProperties&) { return true; }) };
         editMenu.showMenuAsync ({}, [this] (int) {});
@@ -380,7 +380,7 @@ void ZoneEditor::setupZoneComponents ()
             else
                 return std::max (sampleProperties.getLengthInSamples () / static_cast<juce::int64> (10), static_cast<juce::int64> (1));
         } ();
-        const auto newValue { zoneProperties.getSampleStart ().value_or (0) + (multiplier * direction)};
+        const auto newValue { zoneProperties.getSampleStart ().value_or (0) + (multiplier * direction) };
         sampleStartTextEditor.setValue (newValue);
     };
     sampleStartTextEditor.onPopupMenuCallback = [this] ()
@@ -604,7 +604,7 @@ void ZoneEditor::setupZoneComponents ()
 
     loopLengthTextEditor.onPopupMenuCallback = [this] ()
     {
-        auto adjustMenu { getSampleAdjustMenu ([this] () { return zoneProperties.getLoopStart ().value_or (0) + static_cast<juce::int64>(zoneProperties.getLoopLength ().value_or (4.)); },
+        auto adjustMenu { getSampleAdjustMenu ([this] () { return zoneProperties.getLoopStart ().value_or (0) + static_cast<juce::int64> (zoneProperties.getLoopLength ().value_or (4.)); },
                                                [this] () { return zoneProperties.getLoopStart ().value_or (0); },
                                                [this] () { return sampleProperties.getLengthInSamples (); },
                                                [this] (juce::int64 sampleOffset) { zoneProperties.setLoopLength (static_cast<double> (sampleOffset - zoneProperties.getLoopStart ().value_or (0.)), true); }) };
@@ -895,7 +895,7 @@ void ZoneEditor::receiveSampleLoadRequest (juce::File sampleFile)
 
 void ZoneEditor::setupZonePropertiesCallbacks ()
 {
-    zoneProperties.onIdChange = [this] ([[maybe_unused]] int id) { jassertfalse; /* I don't think this should change while we are editing */};
+    zoneProperties.onIdChange = [this] ([[maybe_unused]] int id) { jassertfalse; /* I don't think this should change while we are editing */ };
     zoneProperties.onLevelOffsetChange = [this] (double levelOffset) { levelOffsetDataChanged (levelOffset); };
     zoneProperties.onLoopLengthChange = [this] (std::optional<double> loopLength) { loopLengthDataChanged (loopLength); };
     zoneProperties.onLoopStartChange = [this] (std::optional <juce::int64> loopStart) { loopStartDataChanged (loopStart); };
@@ -991,9 +991,9 @@ void ZoneEditor::resized ()
     sampleEndTextEditor.setBounds (sampleEndLabel.getRight () + spaceBetweenLabelAndInput, sampleEndLabel.getY (), scaleWidth (samplePointInputScale) - spaceBetweenLabelAndInput, 20);
     samplePointsBackground = { sampleStartLabel.getX (), sampleStartLabel.getY () - 1,
                                sampleEndTextEditor.getRight () - sampleStartLabel.getX () + 1,
-                               sampleStartTextEditor.getHeight () + sampleEndTextEditor.getHeight () + loopPointsViewHeight + (interParameterYOffset * 2) + 1};
+                               sampleStartTextEditor.getHeight () + sampleEndTextEditor.getHeight () + loopPointsViewHeight + (interParameterYOffset * 2) + 1 };
 
-    auto loopPointsViewBounds { juce::Rectangle<int> {xOffset, sampleEndTextEditor.getBottom () + interParameterYOffset, width + 1, loopPointsViewHeight } };
+    auto loopPointsViewBounds { juce::Rectangle<int> { xOffset, sampleEndTextEditor.getBottom () + interParameterYOffset, width + 1, loopPointsViewHeight } };
     loopPointsView.setBounds (loopPointsViewBounds/*.reduced (3, 0)*/);
 
     loopStartLabel.setBounds (xOffset, loopPointsView.getBottom () + interParameterYOffset, scaleWidth (samplePointLabelScale), 20);
@@ -1226,7 +1226,7 @@ void ZoneEditor::pitchOffsetUiChanged (double pitchOffset)
 void ZoneEditor::updateSampleFileInfo (juce::String sample)
 {
     jassert (! sample.isEmpty ());
-    auto textColor {juce::Colours::white};
+    auto textColor { juce::Colours::white };
     if (sampleProperties.getStatus () == SampleStatus::exists)
     {
         if (! zoneProperties.getSampleEnd ().has_value ())

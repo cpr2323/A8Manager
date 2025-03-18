@@ -130,7 +130,7 @@ void MidiConfigDialogComponent::timerCallback ()
                uneditedMidiSetupProperties.getPitchWheelSemi () == midiSetupProperties.getPitchWheelSemi () &&
                uneditedMidiSetupProperties.getVelocityDepth () == midiSetupProperties.getVelocityDepth () &&
                uneditedMidiSetupProperties.getNotifications () == midiSetupProperties.getNotifications () &&
-               uneditedMidiSetupProperties.getIndexBaseKey() == midiSetupProperties.getIndexBaseKey();
+               uneditedMidiSetupProperties.getIndexBaseKey () == midiSetupProperties.getIndexBaseKey ();
     };
     anyMidiSetupsEdited = false;
     for (auto curMidiSetupIndex { 0 }; curMidiSetupIndex < 9; ++curMidiSetupIndex)

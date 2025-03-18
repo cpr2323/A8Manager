@@ -45,9 +45,9 @@ MidiSetupEditorComponent::MidiSetupEditorComponent ()
             {
                 const auto mode { midiSetupProperties.getMode () };
                 if (mode == 0 || mode == 1)
-                    return std::pair<int, int>{1, 7};
+                    return std::pair<int, int> { 1, 7 };
                 else
-                    return std::pair<int, int>{11, 15};
+                    return std::pair<int, int> { 11, 15 };
             } ();
         assignUiChanged (std::clamp (assignComboBox.getSelectedId () + scrollAmount, minAssign, maxAssign), true);
     };
@@ -87,7 +87,7 @@ MidiSetupEditorComponent::MidiSetupEditorComponent ()
     {
         auto editMenu { createMidiSetupEditMenu ([this] (MidiSetupProperties& destMidiSetupProperties) { destMidiSetupProperties.setBasicChannel (midiSetupProperties.getBasicChannel (), false); },
                                                  [this] () { midiSetupProperties.setBasicChannel (0, true); },
-                                                 [this] () { midiSetupProperties.setBasicChannel( uneditedMidiSetupProperties.getBasicChannel (), true); }) };
+                                                 [this] () { midiSetupProperties.setBasicChannel (uneditedMidiSetupProperties.getBasicChannel (), true); }) };
         editMenu.showMenuAsync ({}, [this] (int) {});
     };
     basicChannelComboBox.setTooltip ("");
@@ -280,7 +280,7 @@ MidiSetupEditorComponent::MidiSetupEditorComponent ()
         juce::PopupMenu toolsMenu;
         toolsMenu.addSubMenu ("Clone", createMidiSetupCloneMenu ([this] (MidiSetupProperties& destMidiSetupProperties)
         {
-            destMidiSetupProperties.copyFrom(midiSetupProperties.getValueTree());
+            destMidiSetupProperties.copyFrom (midiSetupProperties.getValueTree ());
         }), true);
         toolsMenu.addItem ("Default", true, false, [this] ()
         {
@@ -366,7 +366,7 @@ void MidiSetupEditorComponent::init (int theMidiSetupIndex, juce::ValueTree theM
 {
     midiSetupPropertiesListVT = theMidiSetupPropertiesListVT;
     midiSetupIndex = theMidiSetupIndex;
-    
+
     uneditedMidiSetupProperties.wrap (uneditedMidiSetupPropertiesListVT.getChild (midiSetupIndex), MidiSetupProperties::WrapperType::client, MidiSetupProperties::EnableCallbacks::yes);
     midiSetupProperties.wrap (midiSetupPropertiesListVT.getChild (midiSetupIndex), MidiSetupProperties::WrapperType::client, MidiSetupProperties::EnableCallbacks::yes);
     midiSetupProperties.onAssignChange = [this] (int assign) { assignDataChanged (assign); };

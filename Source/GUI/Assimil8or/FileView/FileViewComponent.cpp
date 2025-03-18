@@ -349,7 +349,7 @@ void FileViewComponent::listBoxItemClicked (int row, [[maybe_unused]] const juce
                                                                                          {
                                                                                              if (option == 0) // no
                                                                                                  return;
-                                                                                             if (!directoryEntry.deleteFile ())
+                                                                                             if (! directoryEntry.deleteFile ())
                                                                                              {
                                                                                                 // TODO handle delete error
                                                                                              }
@@ -442,7 +442,7 @@ void FileViewComponent::listBoxItemClicked (int row, [[maybe_unused]] const juce
             }
             else
             {
-                auto folder { getEntryFile ()};
+                auto folder { getEntryFile () };
                 appProperties.setMostRecentFolder (folder.getFullPathName ());
             }
         };
@@ -673,7 +673,6 @@ void FileViewComponent::importSamples (const juce::StringArray& files)
         }
     }
 }
-
 
 bool FileViewComponent::isInterestedInFileDrag ([[maybe_unused]] const juce::StringArray& files)
 {

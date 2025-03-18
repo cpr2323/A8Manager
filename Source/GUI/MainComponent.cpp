@@ -74,7 +74,7 @@ MainComponent::MainComponent (juce::ValueTree rootPropertiesVT)
 
 void MainComponent::restoreLayout ()
 {
-    const auto [pane1Size, pane2Size, pane3Size] {guiProperties.getPaneSizes ()};
+    const auto [pane1Size, pane2Size, pane3Size] { guiProperties.getPaneSizes () };
     presetListEditorSplitter.setSplitOffset (pane1Size);
     folderBrowserEditorSplitter.setSplitOffset (pane2Size);
     topAndBottomSplitter.setSplitOffset (pane3Size);
