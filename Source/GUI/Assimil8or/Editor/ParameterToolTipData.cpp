@@ -21,10 +21,10 @@ void ParameterToolTipData::processValueTree ()
     {
         ValueTreeHelpers::forEachChild (sectionVT, [this] (juce::ValueTree tooltipVT)
         {
-            auto rawToolTipString { tooltipVT.getProperty ("tooltip").toString ()};
+            auto rawToolTipString { tooltipVT.getProperty ("tooltip").toString () };
             juce::String processedToolTipString;
 
-            auto escapeCharacterIndex {rawToolTipString.indexOfChar ('\\')};
+            auto escapeCharacterIndex { rawToolTipString.indexOfChar ('\\') };
             while (escapeCharacterIndex != -1)
             {
                 if (escapeCharacterIndex > 0)

@@ -46,7 +46,7 @@ void DebugLog (juce::String moduleName, juce::String logLine)
     const auto curThreadId { juce::String::toHexString ((uint64_t) juce::Thread::getCurrentThreadId ()).paddedLeft ('0', 8) };
     const auto curThread { juce::Thread::getCurrentThread () };
     const auto curThreadName { juce::MessageManager::existsAndIsCurrentThread () ? "MessageManager" : (curThread != nullptr ? juce::Thread::getCurrentThread ()->getThreadName () : "") };
-    const auto possibleUnnamedThreadName { DebugLogger::getUnnamedThread (juce::Thread::getCurrentThreadId ())};
+    const auto possibleUnnamedThreadName { DebugLogger::getUnnamedThread (juce::Thread::getCurrentThreadId ()) };
     const auto threadIdToDisplay { curThreadName.isNotEmpty () ? curThreadName : (possibleUnnamedThreadName.isNotEmpty () ? possibleUnnamedThreadName : curThreadId) };
     const auto timeSinceStart { juce::String (curTime - startTime).paddedLeft ('0', 10) };
     const auto timeSincePreviousLog { juce::String (curTime - lastTime).paddedLeft ('0', 4) };

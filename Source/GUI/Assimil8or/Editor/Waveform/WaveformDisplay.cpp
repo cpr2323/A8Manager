@@ -107,11 +107,11 @@ void WaveformDisplay::paint (juce::Graphics& g)
 
         // draw sample start marker
         g.fillRect (sampleStartHandle);
-        g.drawLine (juce::Line<int> {sampleStartMarkerX, markerStartY, sampleStartMarkerX, markerEndY}.toFloat ());
+        g.drawLine (juce::Line<int> { sampleStartMarkerX, markerStartY, sampleStartMarkerX, markerEndY }.toFloat ());
 
         // draw sample end marker
         g.fillRect (sampleEndHandle);
-        g.drawLine (juce::Line<int> {sampleEndMarkerX, markerStartY, sampleEndMarkerX, markerEndY}.toFloat ());
+        g.drawLine (juce::Line<int> { sampleEndMarkerX, markerStartY, sampleEndMarkerX, markerEndY }.toFloat ());
 
         // draw loop start marker
         g.fillRect (loopStartHandle);

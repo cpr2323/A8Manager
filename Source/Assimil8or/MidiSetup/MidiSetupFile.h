@@ -6,7 +6,6 @@
 using Action = std::function<void ()>;
 using ActionMap = std::map<juce::String, Action>;
 
-
 namespace MidiSetup
 {
     static inline const juce::String ModeId { "mode" };
@@ -20,6 +19,7 @@ namespace MidiSetup
     static inline const juce::String PitchWheelSemiId { "pitchwheelsemi" };
     static inline const juce::String VelocityDepthId { "velocitydepth" };
     static inline const juce::String NotificationsId { "notifications" };
+    static inline const juce::String IndexBaseKeyId { "indexbasekey" };
 };
 
 class MidiSetupFile

@@ -3,17 +3,18 @@
 void MidiSetupProperties::initValueTree ()
 {
     // initialize to defaults
-    setMode (1, false);
     setAssign (0, false);
     setBasicChannel (0, false);
-    setRcvProgramChange (1, false);
-    setXmtProgramChange (1, false);
     setColACC (-1, false);
     setColBCC (-1, false);
     setColCCC (-1, false);
-    setPitchWheelSemi (12, false);
-    setVelocityDepth (32, false);
+    setIndexBaseKey (120, false);
+    setMode (1, false);
     setNotifications (1, false);
+    setPitchWheelSemi (12, false);
+    setRcvProgramChange (1, false);
+    setVelocityDepth (32, false);
+    setXmtProgramChange (1, false);
 }
 
 void MidiSetupProperties::setMode (int mode, bool includeSelfCallback)
@@ -24,6 +25,11 @@ void MidiSetupProperties::setMode (int mode, bool includeSelfCallback)
 void MidiSetupProperties::setAssign (int assign, bool includeSelfCallback)
 {
     setValue (assign, AssignPropertyId, includeSelfCallback);
+}
+
+void MidiSetupProperties::setIndexBaseKey (int baseKey, bool includeSelfCallback)
+{
+    setValue (baseKey, IndexBaseKeyPropertyId, includeSelfCallback);
 }
 
 void MidiSetupProperties::setBasicChannel (int basicChannel, bool includeSelfCallback)
@@ -81,6 +87,11 @@ int MidiSetupProperties::getAssign ()
     return getValue<int> (AssignPropertyId);
 }
 
+int MidiSetupProperties::getIndexBaseKey ()
+{
+    return getValue<int> (IndexBaseKeyPropertyId);
+}
+
 int MidiSetupProperties::getBasicChannel ()
 {
     return getValue<int> (BasicChannelPropertyId);
@@ -131,6 +142,7 @@ void MidiSetupProperties::copyFrom (juce::ValueTree srcMidiSetupPropertiesVT)
     MidiSetupProperties srcMidiSetupProperties { srcMidiSetupPropertiesVT, MidiSetupProperties::WrapperType::client, MidiSetupProperties::EnableCallbacks::no };
     setMode (srcMidiSetupProperties.getMode (), true);
     setAssign (srcMidiSetupProperties.getAssign (), true);
+    setIndexBaseKey (srcMidiSetupProperties.getIndexBaseKey (), true);
     setBasicChannel (srcMidiSetupProperties.getBasicChannel (), true);
     setRcvProgramChange (srcMidiSetupProperties.getRcvProgramChange (), true);
     setXmtProgramChange (srcMidiSetupProperties.getXmtProgramChange (), true);
@@ -156,6 +168,11 @@ void MidiSetupProperties::valueTreePropertyChanged (juce::ValueTree& vt, const j
     {
         if (onAssignChange != nullptr)
             onAssignChange (getAssign ());
+    }
+    else if (property == IndexBaseKeyPropertyId)
+    {
+        if (onIndexBaseKeyChange != nullptr)
+            onIndexBaseKeyChange (getIndexBaseKey ());
     }
     else if (property == BasicChannelPropertyId)
     {

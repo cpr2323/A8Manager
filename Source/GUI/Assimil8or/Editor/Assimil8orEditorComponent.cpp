@@ -590,7 +590,7 @@ void Assimil8orEditorComponent::explodeChannel (int channelIndex, int explodeCou
     SampleManagerProperties sampleManagerProperties (runtimeRootProperties.getValueTree (), SampleManagerProperties::WrapperType::client, SampleManagerProperties::EnableCallbacks::no);
     channelProperties [channelIndex].forEachZone ([this, channelIndex, explodeCount, &sampleManagerProperties] (juce::ValueTree zonePropertiesVT, int zoneIndex)
     {
-        ZoneProperties zoneProperties {zonePropertiesVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no};
+        ZoneProperties zoneProperties { zonePropertiesVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no };
         SampleProperties sampleProperties (sampleManagerProperties.getSamplePropertiesVT (channelIndex, zoneIndex), SampleProperties::WrapperType::client, SampleProperties::EnableCallbacks::yes);
         juce::int64 sampleSize { sampleProperties.getLengthInSamples () };
         const auto sliceSize { sampleSize / explodeCount };
@@ -717,7 +717,7 @@ void Assimil8orEditorComponent::exportPresetSettingsAndSamples ()
             for (auto channelIndex { 0 }; channelIndex < kNumChannels; ++channelIndex)
                 for (auto zoneIndex { 0 }; zoneIndex < kNumZones; ++zoneIndex)
                 {
-                    SampleProperties sampleProperties (sampleManagerProperties.getSamplePropertiesVT(channelIndex,zoneIndex), SampleProperties::WrapperType::client, SampleProperties::EnableCallbacks::no);
+                    SampleProperties sampleProperties (sampleManagerProperties.getSamplePropertiesVT (channelIndex,zoneIndex), SampleProperties::WrapperType::client, SampleProperties::EnableCallbacks::no);
                      if (sampleProperties.getStatus () == SampleStatus::exists)
                          sampleFiles.emplace (sampleFolder.getChildFile (sampleProperties.getName ()));
                 }
@@ -791,7 +791,7 @@ void Assimil8orEditorComponent::importPresetSettingsAndSamples ()
             appProperties.setImportExportMruFolder (importContainerFile.getParentDirectory ().getFullPathName ());
 
             juce::ZipFile importContainerReader (importContainerFile);
-            
+
             auto sampleFolder { juce::File (appProperties.getMostRecentFolder ()) };
 
             for (auto curEntryIndex { 0 }; curEntryIndex < importContainerReader.getNumEntries (); ++curEntryIndex)
@@ -827,7 +827,8 @@ void Assimil8orEditorComponent::importPresetSettingsAndSamples ()
                 }
             }
         }
-    }, nullptr);}
+    }, nullptr);
+}
 
 void Assimil8orEditorComponent::resized ()
 {

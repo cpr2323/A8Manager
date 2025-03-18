@@ -255,7 +255,7 @@ bool EditManager::assignSamples (int channelIndex, int zoneIndex, const juce::St
     {
         auto convert = [this] (juce::File audioFile)
         {
-            const bool fileIsInPresetFolder { appProperties.getMostRecentFolder () != audioFile.getParentDirectory ().getFullPathName () };
+            const auto fileIsInPresetFolder { appProperties.getMostRecentFolder () != audioFile.getParentDirectory ().getFullPathName () };
             const auto finalFileName { juce::File (appProperties.getMostRecentFolder ()).getChildFile (audioFile.getFileNameWithoutExtension ()).withFileExtension ("wav") };
             auto destinationFile = [this, audioFile, fileIsInPresetFolder] ()
             {

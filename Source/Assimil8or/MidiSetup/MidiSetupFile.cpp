@@ -28,6 +28,7 @@ void MidiSetupFile::write (juce::File midiSetupFile, juce::ValueTree midiSetupPr
     addLine (MidiSetup::PitchWheelSemiId, midiSetupPropertiesToWrite.getPitchWheelSemi ());
     addLine (MidiSetup::VelocityDepthId, midiSetupPropertiesToWrite.getVelocityDepth ());
     addLine (MidiSetup::NotificationsId, midiSetupPropertiesToWrite.getNotifications ());
+    addLine (MidiSetup::IndexBaseKeyId, midiSetupPropertiesToWrite.getIndexBaseKey ());
 
     const auto stringToWrite { lines.joinIntoString ("\r\n") };
     midiSetupFile.replaceWithText (stringToWrite);
@@ -77,7 +78,7 @@ void MidiSetupFile::initParser ()
         }},
         {MidiSetup::XmtProgramChangeId, [this] ()
         {
-            midiSetupProperties.setXmtProgramChange(value.getIntValue (), false);
+            midiSetupProperties.setXmtProgramChange (value.getIntValue (), false);
         }},
         {MidiSetup::ColACCId, [this] ()
         {
@@ -102,6 +103,10 @@ void MidiSetupFile::initParser ()
         {MidiSetup::NotificationsId, [this] ()
         {
             midiSetupProperties.setNotifications (value.getIntValue (), false);
+        }},
+        {MidiSetup::IndexBaseKeyId, [this] ()
+        {
+            midiSetupProperties.setIndexBaseKey (value.getIntValue (), false);
         }},
     });
 }

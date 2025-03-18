@@ -8,7 +8,7 @@
 // Mode : Omni, Uni, Multi - 0,1,2
 // Assignment : One set of values for Omni/Uni and another for Multi. The unit seems to remember the setting for each of these
 //              Dynamic, Dynamic II, Chroma 8, Chroma VZ, Chroma KZ, SP-1200, SP-1200 X - (0-6)
-//              Multi, Multi VZ, Multi KZ, No Trigger (10-13)
+//              Multi, Multi VZ, Multi KZ, No Trigger, Indexed KZ (10-14)
 // Basic Channel : (1 - 16)
 // Rcv Program Change : Off (0), Exists (1), Any (2)
 // Xmt Program Change : Off (0), On (1)
@@ -42,6 +42,7 @@
 // Pitchwheel : +/- (0-12)
 // Velocity Depth : (0-127)     - text box integer
 // Notification: On/Off         - combobox
+// Index Base Key : (0-120)
 
 class MidiSetupEditorComponent : public juce::Component
 {
@@ -79,6 +80,8 @@ private:
     CustomTextEditorInt velocityDepthTextEditor;
     juce::Label notificationsLabel;
     CustomComboBox notificationsComboBox;
+    juce::Label indexBaseKeyLabel;
+    CustomComboBox indexBaseKeyComboBox;
 
     juce::TextButton toolsButton;
 
@@ -89,28 +92,30 @@ private:
     void populateAssignmentComboBox (int mode);
     void populateColCCComboBox (juce::ComboBox& comboBox);
 
-    void modeDataChanged (int mode);
-    void modeUiChanged (int modeId, bool updateUi);
     void assignDataChanged (int assign);
     void assignUiChanged (int assignId, bool updateUi);
     void basicChannelDataChanged (int basicChannel);
     void basicChannelUiChanged (int basicChannelId, bool updateUi);
-    void rcvProgramChangeDataChanged (int rcvProgramChange);
-    void rcvProgramChangeUiChanged (int rcvProgramChangeId, bool updateUi);
-    void xmtProgramChangeDataChanged (int xmtProgramChange);
-    void xmtProgramChangeUiChanged (int xmtProgramChangeId, bool updateUi);
     void colACCDataChanged (int colAcc);
     void colACCUiChanged (int colAccId, bool updateUi);
     void colBCCDataChanged (int colBcc);
     void colBCCUiChanged (int colBccId, bool updateUi);
     void colCCCDataChanged (int colCcc);
     void colCCCUiChanged (int colCccId, bool updateUi);
-    void pitchWheelSemiDataChanged (int pitchWheelSemi);
-    void pitchWheelSemiUiChanged (int pitchWheelSemiId, bool updateUi);
-    void velocityDepthDataChanged (int velocityDepth);
-    void velocityDepthUiChanged (int velocityDepth, bool updateUi);
+    void indexBaseKeyDataChanged (int bsaeKey);
+    void indexBaseKeyUiChanged (int baseKey, bool updateUi);
+    void modeDataChanged (int mode);
+    void modeUiChanged (int modeId, bool updateUi);
     void notificationsDataChanged (int notifications);
     void notificationsUiChanged (int notificationsId, bool updateUi);
+    void pitchWheelSemiDataChanged (int pitchWheelSemi);
+    void pitchWheelSemiUiChanged (int pitchWheelSemiId, bool updateUi);
+    void rcvProgramChangeDataChanged (int rcvProgramChange);
+    void rcvProgramChangeUiChanged (int rcvProgramChangeId, bool updateUi);
+    void velocityDepthDataChanged (int velocityDepth);
+    void velocityDepthUiChanged (int velocityDepth, bool updateUi);
+    void xmtProgramChangeDataChanged (int xmtProgramChange);
+    void xmtProgramChangeUiChanged (int xmtProgramChangeId, bool updateUi);
 
     void resized () override;
 };

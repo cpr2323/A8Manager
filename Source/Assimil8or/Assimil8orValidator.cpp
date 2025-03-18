@@ -20,7 +20,7 @@ const double oneGB { oneMB * oneK };
 const auto maxMemory { static_cast<int> (422 * oneMB) };
 const auto maxPresets { 199 };
 const auto bytesPerSampleInAssimMemory { 4 };
-const auto kValidFileSystemCharacters { juce::String (" !#$%&'()+,-.0123456789;=@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]_`{}~abcdefghijklmnopqrstuvwxyz")};
+const auto kValidFileSystemCharacters { juce::String (" !#$%&'()+,-.0123456789;=@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]_`{}~abcdefghijklmnopqrstuvwxyz") };
 
 juce::String getMemorySizeString (uint64_t memoryUsage)
 {
@@ -362,7 +362,7 @@ std::tuple<uint64_t, std::optional<std::map<juce::String, uint64_t>>> Assimil8or
         {
             ValueTreeHelpers::forEachChildOfType (presetErrorList, "ParseError", [this, &validatorResultProperties] (juce::ValueTree childVT)
             {
-                const auto parseErrorType { childVT.getProperty ("type").toString ()};
+                const auto parseErrorType { childVT.getProperty ("type").toString () };
                 const auto parseErrorDescription { childVT.getProperty ("description").toString () };
                 validatorResultProperties.update (ValidatorResultProperties::ResultTypeError,
                                                   "[Parse error '" + parseErrorDescription + "']", false);

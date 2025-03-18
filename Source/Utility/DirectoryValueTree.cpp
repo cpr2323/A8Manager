@@ -6,7 +6,7 @@
 
 #define LOG_DIRECTORY_VALUE_TREE 0
 #if LOG_DIRECTORY_VALUE_TREE
-#define LogDirectoryValueTree(cond, text) if (cond) {DebugLog ("DirectoryValueTree", text); }
+#define LogDirectoryValueTree(cond, text) if (cond) { DebugLog ("DirectoryValueTree", text); }
 #else
 #define LogDirectoryValueTree(cond, text) ;
 #endif

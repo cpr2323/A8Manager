@@ -34,7 +34,7 @@ private:
     juce::AudioDeviceManager audioDeviceManager;
     juce::AudioSourcePlayer audioSourcePlayer;
     std::unique_ptr < juce::AudioBuffer<float>> sampleBuffer;
-    juce::AudioDeviceSelectorComponent audioSetupComp { audioDeviceManager, 0, 0, 0, 256, false, false, true, false};
+    juce::AudioDeviceSelectorComponent audioSetupComp { audioDeviceManager, 0, 0, 0, 256, false, false, true, false };
 
     juce::CriticalSection dataCS;
     AudioPlayerProperties::PlayState playState { AudioPlayerProperties::PlayState::stop };

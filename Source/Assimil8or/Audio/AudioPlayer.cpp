@@ -62,7 +62,7 @@ void AudioPlayer::init (juce::ValueTree rootPropertiesVT)
 void AudioPlayer::initFromZone (std::tuple<int, int> channelAndZoneIndecies)
 {
     LogAudioPlayer ("initFromZone");
-    auto [channelIndex, zoneIndex] {channelAndZoneIndecies};
+    auto [channelIndex, zoneIndex] { channelAndZoneIndecies };
     jassert (channelIndex < 8);
     jassert (zoneIndex < 8);
     channelProperties.wrap (presetProperties.getChannelVT (channelIndex), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::yes);

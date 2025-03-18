@@ -252,7 +252,7 @@ void Assimil8orValidatorComponent::paintCell (juce::Graphics& g, int rowNumber, 
         else if (validatorResultProperties.getType () == ValidatorResultProperties::ResultTypeError)
             textColor = juce::Colours::red.darker (0.3f);
 
-        juce::String outputText {"  "};
+        juce::String outputText { "  " };
         switch (columnId)
         {
         case Columns::resultType:
@@ -404,7 +404,7 @@ void Assimil8orValidatorComponent::autoRename (juce::File fileToRename, bool doR
             shortString += longString.substring (longString.length () - 1, 1);
             return shortString;
         };
-        if (const auto noVowelsFileName { removeVowels (fileName)}; noVowelsFileName.length () != 0)
+        if (const auto noVowelsFileName { removeVowels (fileName) }; noVowelsFileName.length () != 0)
             fileName = noVowelsFileName;
     }
 
@@ -553,7 +553,7 @@ void Assimil8orValidatorComponent::convert (juce::File file)
                 // TODO - should we rename the original, until we have succeeded in copying of the new file, and only then delete it
                 if (file.deleteFile () == true)
                 {
-                    if (tempFile.moveFileTo (file.withFileExtension("wav")) == false)
+                    if (tempFile.moveFileTo (file.withFileExtension ("wav")) == false)
                     {
                         // failure to move temp file to new file
                         errorDialog ("Failure to move converted file to original file");
@@ -670,7 +670,7 @@ void Assimil8orValidatorComponent::cellClicked (int rowNumber, int columnId, con
             validatorResultProperties.forEachFixerEntry ([this, &pm, kMaxFileNameLength, kMaxFolderNameLength] (juce::ValueTree fixerEntryVT)
             {
                 FixerEntryProperties fixerEntryProperties (fixerEntryVT, FixerEntryProperties::WrapperType::client, FixerEntryProperties::EnableCallbacks::no);
-                auto file {juce::File (fixerEntryProperties.getFileName ())};
+                auto file { juce::File (fixerEntryProperties.getFileName ()) };
                 if (fixerEntryProperties.getType () == FixerEntryProperties::FixerTypeRenameFile)
                 {
                     pm.addItem ("Rename " + file.getFileName (), true, false, [this, kMaxFileNameLength, file] () { rename (file, kMaxFileNameLength); });
