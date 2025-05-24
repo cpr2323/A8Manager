@@ -137,7 +137,7 @@ protected:
     {
         //TODO: this is probably something we want, but also this means we can't use any "trigger"-like functions in initValueTree (), e.g, RuntimeRootProperties::triggerAppResumed ()
         //jassert (data.hasProperty (property));
-        return (juce::int64) data.getProperty (property);
+        return reinterpret_cast<T> (static_cast<juce::int64> (data.getProperty (property)));
     }
 
     // non-pointer version
