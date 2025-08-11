@@ -1,14 +1,12 @@
 #include "Assimil8orPreset.h"
-#include "Assimil8orValidator.h"
 #include "FileTypeHelpers.h"
 #include "Preset/ParameterNames.h"
 #include "Preset/ParameterPresetsSingleton.h"
-// TODO - we should not include something from the UI here, so let's move the FormatHelpers elsewhere
-#include "../GUI/Assimil8or/Editor/FormatHelpers.h"
+#include "../Utility/DebugLog.h"
 
 #define LOG_PARSING 0
 #if LOG_PARSING
-#define LogParsing(text) juce::Logger::outputDebugString (text);
+#define LogParsing(text) DebugLog ("Assimil8orPreset", text);
 #else
 #define LogParsing(text) ;
 #endif
@@ -158,8 +156,6 @@ void Assimil8orPreset::parse (juce::StringArray presetLines)
     parseErrorList.removeAllChildren (nullptr);
     parseErrorList.removeAllProperties (nullptr);
 
-    auto scopeDepth { 0 };
-
     curActions = &globalActions;
     curPresetSection = {};
     channelProperties = {};
@@ -169,38 +165,38 @@ void Assimil8orPreset::parse (juce::StringArray presetLines)
 
     for (const auto& presetLine : presetLines)
     {
-        const auto indent { presetLine.initialSectionContainingOnly (" ") };
-        const auto previousScopeDepth { scopeDepth };
-        scopeDepth = indent.length () / 2;
-        const auto scopeDifference { scopeDepth - previousScopeDepth };
-        // check if we are exiting scope(s)
-        if (scopeDifference < 0)
-        {
-            // for each scope we are exiting, reset the appropriate parent objects
-            for (auto remainingScopes { scopeDifference * -1 }; remainingScopes > 0; --remainingScopes)
-            {
-                // undoActionsStack should have items to reset
-                jassert (! undoActionsStack.empty ());
-                auto undoAction { undoActionsStack.top () };
-                undoActionsStack.pop ();
-                undoAction ();
-            }
-        }
-
-        LogParsing (juce::String (scopeDepth) + "-" + presetLine.trimStart ());
+        LogParsing ("parsing - " + presetLine.trimStart ());
         if (presetLine.trim ().isEmpty ())
             continue;
 
         key = presetLine.upToFirstOccurrenceOf (":", false, false).trim ();
         value = presetLine.fromFirstOccurrenceOf (":", false, false).trim ();
         const auto paramName { key.upToFirstOccurrenceOf (" ", false, false) };
-        if (const auto action { curActions->find (paramName) }; action != curActions->end ())
+
+        auto keyFound { false };
+        while (! keyFound)
         {
-            action->second ();
+            if (const auto action { curActions->find (paramName) }; action != curActions->end ())
+            {
+                action->second ();
+                keyFound = true;
+            }
+            else
+            {
+                // if we can't find the key in the current action map, then let's do the first undo action, and try again
+                // undoActionsStack should have items to reset
+                jassert (! undoActionsStack.empty ());
+                // if we have no undo actions, we are in an invalid state 
+                if (undoActionsStack.empty ())
+                    break;
+                auto undoAction { undoActionsStack.top () };
+                undoActionsStack.pop ();
+                undoAction ();
+            }
         }
-        else
+        if (! keyFound)
         {
-            const auto unknownParameterError { "unknown " + getSectionName () + " parameter: " + key };
+            const auto unknownParameterError { "unknown parameter: " + key };
             LogParsing (unknownParameterError);
             juce::ValueTree newParseError ("ParseError");
             newParseError.setProperty ("type", "UnknownParameterError", nullptr);
