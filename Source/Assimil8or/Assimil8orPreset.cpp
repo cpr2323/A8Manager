@@ -151,6 +151,7 @@ void Assimil8orPreset::write (juce::File presetFile)
 
 void Assimil8orPreset::parse (juce::StringArray presetLines)
 {
+    LogParsing ("Assimil8orPreset::parse - enter");
     jassert (presetProperties.isValid ());
     PresetProperties::copyTreeProperties (ParameterPresetsSingleton::getInstance ()->getParameterPresetListProperties ().getParameterPreset (ParameterPresetListProperties::DefaultParameterPresetType),
                                           presetProperties.getValueTree ());
@@ -207,6 +208,7 @@ void Assimil8orPreset::parse (juce::StringArray presetLines)
             parseErrorList.addChild (newParseError, -1, nullptr);
         }
     }
+    LogParsing ("Assimil8orPreset::parse - exit");
 }
 
 juce::String Assimil8orPreset::getSectionName ()
