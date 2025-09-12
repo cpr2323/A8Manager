@@ -91,7 +91,10 @@ void ChannelProperties::copyFrom (juce::ValueTree sourceVT)
 
 juce::String ChannelProperties::getCvInputAndValueString (juce::String cvInput, double value, int decimalPlaces)
 {
-    return cvInput + " " + juce::String (value, decimalPlaces);
+    if (cvInput.startsWith ("CV"))
+        return "0" + cvInput.substring(3, 4) + " " + juce::String (value, decimalPlaces);
+    else
+        return cvInput + " " + juce::String (value, decimalPlaces);
 }
 
 juce::String ChannelProperties::getCvInputAndValueString (CvInputAndAmount cvInputAndValue, int decimalPlaces)

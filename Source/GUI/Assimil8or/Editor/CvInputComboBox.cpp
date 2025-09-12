@@ -16,7 +16,10 @@ CvInputComboBox::CvInputComboBox (ListType listType)
         for (auto columnIndex { 0 }; columnIndex < 3; ++columnIndex)
         {
             const auto menuId { 2 + (channelIndex * 3) + columnIndex };
-            cvInputComboBox.addItem (juce::String::charToString ('0' + channelIndex) + juce::String::charToString ('A' + columnIndex), menuId);
+            if (channelIndex == 0)
+                cvInputComboBox.addItem ("CV " + juce::String::charToString ('A' + columnIndex), menuId);
+            else
+                cvInputComboBox.addItem (juce::String::charToString ('0' + channelIndex) + juce::String::charToString ('A' + columnIndex), menuId);
         }
     cvInputComboBox.onChange = [this] ()
     {
