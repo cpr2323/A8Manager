@@ -137,7 +137,7 @@ protected:
     {
         //TODO: this is probably something we want, but also this means we can't use any "trigger"-like functions in initValueTree (), e.g, RuntimeRootProperties::triggerAppResumed ()
         //jassert (data.hasProperty (property));
-        return (juce::int64) data.getProperty (property);
+        return reinterpret_cast<T> (static_cast<juce::int64> (data.getProperty (property)));
     }
 
     // non-pointer version
@@ -153,7 +153,7 @@ protected:
     static T getValue (const juce::Identifier property, const juce::ValueTree vt) noexcept
     {
         jassert (vt.hasProperty (property));
-        return (T) ((juce::int64) vt.getProperty (property));
+        return reinterpret_cast<T> (static_cast<juce::int64> (vt.getProperty (property)));
     }
 
     template<class T>
@@ -169,6 +169,24 @@ protected:
             vt.setPropertyExcludingListener (this, property, value, nullptr);
 
         if (! filterNonChange && previousValue == value)
+            vt.sendPropertyChangeMessage (property);
+    }
+
+    // pointer specialization version
+    template<class T, std::enable_if_t<std::is_pointer_v<T>, void*> = nullptr>
+    void setValueInOtherVt (T value, juce::ValueTree vt, const juce::Identifier property, bool includeSelfCallback)
+    {
+        const auto int64Value { reinterpret_cast<juce::int64> (value) };
+        juce::int64 previousValue {};
+        if (! filterNonChange)
+            previousValue = getValue<juce::int64> (property, vt);
+
+        if (includeSelfCallback)
+            vt.setProperty (property, int64Value, nullptr);
+        else
+            vt.setPropertyExcludingListener (this, property, int64Value, nullptr);
+
+        if (! filterNonChange && previousValue == int64Value)
             vt.sendPropertyChangeMessage (property);
     }
 
