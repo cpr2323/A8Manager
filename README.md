@@ -6,6 +6,14 @@ Windows and macOS builds available at: https://cpr2323.github.io/a8manager/index
 
 Currently requires JUCE version 7. The revision from 1/10/2024: 31dfb05ea3299176a416bf9258e030d04a099798
 
+The Projucer exporters expect the JUCE checkout to be next to this repository:
+
+```text
+parent-folder/
+├── A8Manager/
+└── JUCE/
+```
+
 # Windows
 
 There are no special steps to installing on Windows.

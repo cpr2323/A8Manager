@@ -160,6 +160,7 @@ public:
     static juce::String getCvInputAndValueString (juce::String cvInput, double value, int decimalPlaces);
     static juce::String getCvInputAndValueString (CvInputAndAmount cvInputAndValue, int decimalPlaces);
     static CvInputAndAmount getCvInputAndValueFromString (juce::String cvInputAndValueString);
+    static juce::String getNormalizedCvInput (juce::String cvInput);
     static bool isChannelPropertiesVT (juce::ValueTree valueTree);
 
     static inline const juce::Identifier ChannelTypeId { "Channel" };
