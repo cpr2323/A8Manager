@@ -4,6 +4,7 @@
 #include "../../../Assimil8or/FileTypeHelpers.h"
 #include "../../../Utility/PersistentRootProperties.h"
 #include "../../../Utility/RuntimeRootProperties.h"
+#include "../../../Utility/ValueTreeHelpers.h"
 #include "../../../Utility/WatchDogTimer.h"
 
 #define LOG_FILE_VIEW 0
@@ -127,7 +128,11 @@ void FileViewComponent::timerCallback ()
 void FileViewComponent::buildQuickLookupList ()
 {
     updateDirectoryListQuickLookupList->clear ();
-    ValueTreeHelpers::forEachChild (directoryDataProperties.getRootFolderVT (), [this] (juce::ValueTree child)
+    // this runs on the update from new data thread, so we work from a detached snapshot of the live tree
+    const auto rootFolderSnapshotVT { ValueTreeHelpers::getMessageThreadSnapshot (directoryDataProperties.getRootFolderVT ()) };
+    if (! rootFolderSnapshotVT.isValid ())
+        return;
+    ValueTreeHelpers::forEachChild (rootFolderSnapshotVT, [this] (juce::ValueTree child)
     {
         const auto typeIndex { static_cast<int> (child.getProperty ("type")) };
         if (showAllFiles.getToggleState ())
@@ -619,9 +624,13 @@ void FileViewComponent::importSamples (const juce::StringArray& files)
         if (auto reader { audioManager->getReaderFor (file) }; reader != nullptr)
         {
             auto destinationFile { juce::File (appProperties.getMostRecentFolder ()).getChildFile (file.getFileNameWithoutExtension ()).withFileExtension ("wav") };
-            auto destinationFileStream { std::make_unique<juce::FileOutputStream> (destinationFile) };
-            destinationFileStream->setPosition (0);
-            destinationFileStream->truncate ();
+            // setPosition () and truncate () are FileOutputStream only, so the setup has to happen while the pointer still has that type
+            auto destinationOutputFileStream { std::make_unique<juce::FileOutputStream> (destinationFile) };
+            destinationOutputFileStream->setPosition (0);
+            destinationOutputFileStream->truncate ();
+            // createWriterFor takes a unique_ptr<OutputStream>&, and a unique_ptr<FileOutputStream> cannot bind to a reference to a
+            // different type, so the stream is moved into a base typed pointer to hand over. this is the same stream: destinationOutputFileStream is null from here on
+            std::unique_ptr<juce::OutputStream> destinationFileStream { std::move (destinationOutputFileStream) };
 
             auto sampleRate { reader->sampleRate };
             auto numChannels { reader->numChannels };
@@ -641,12 +650,11 @@ void FileViewComponent::importSamples (const juce::StringArray& files)
             }
 
             juce::WavAudioFormat wavAudioFormat;
-            if (std::unique_ptr<juce::AudioFormatWriter> writer { wavAudioFormat.createWriterFor (destinationFileStream.get (),
-                                                                  sampleRate, numChannels, bitsPerSample, {}, 0) }; writer != nullptr)
+            // on success, the writer takes ownership of the output stream, and will delete it when done
+            if (auto writer { wavAudioFormat.createWriterFor (destinationFileStream, juce::AudioFormatWriterOptions {}.withSampleRate (sampleRate)
+                                                                                                                     .withNumChannels (static_cast<int> (numChannels))
+                                                                                                                     .withBitsPerSample (bitsPerSample)) }; writer != nullptr)
             {
-                // audioFormatWriter will delete the file stream when done
-                destinationFileStream.release ();
-
                 // copy the whole thing
                 // TODO - two things
                 //   a) this needs to be done in a thread

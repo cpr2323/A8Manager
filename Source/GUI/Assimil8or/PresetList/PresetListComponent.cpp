@@ -119,7 +119,11 @@ void PresetListComponent::checkPresets ()
     WatchdogTimer timer;
     timer.start (100000);
 
-    FolderProperties rootFolder (directoryDataProperties.getRootFolderVT (), FolderProperties::WrapperType::client, FolderProperties::EnableCallbacks::no);
+    // this runs on the check presets thread, so we work from a detached snapshot of the live tree
+    const auto rootFolderSnapshotVT { ValueTreeHelpers::getMessageThreadSnapshot (directoryDataProperties.getRootFolderVT ()) };
+    if (! rootFolderSnapshotVT.isValid ())
+        return;
+    FolderProperties rootFolder (rootFolderSnapshotVT, FolderProperties::WrapperType::client, FolderProperties::EnableCallbacks::no);
     currentFolder = juce::File (rootFolder.getName ());
 
     const auto showAll { showAllPresets.getToggleState () };
@@ -133,7 +137,7 @@ void PresetListComponent::checkPresets ()
     else
         numPresets = 0;
     auto inPresetList { false };
-    ValueTreeHelpers::forEachChild (directoryDataProperties.getRootFolderVT (), [this, &inPresetList, showAll] (juce::ValueTree child)
+    ValueTreeHelpers::forEachChild (rootFolderSnapshotVT, [this, &inPresetList, showAll] (juce::ValueTree child)
     {
         if (FileProperties::isFileVT (child))
         {

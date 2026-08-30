@@ -4,11 +4,15 @@
 void ValidatorResultListProperties::addResult (juce::ValueTree validatorResultVT)
 {
     jassert (validatorResultVT.getType () == ValidatorResultProperties::ValidatorResultTypeId);
+    if (forwardedToMessageThread ([this, validatorResultVT] () { addResult (validatorResultVT); }))
+        return;
     data.addChild (validatorResultVT, -1, nullptr);
 }
 
 void ValidatorResultListProperties::clear ()
 {
+    if (forwardedToMessageThread ([this] () { clear (); }))
+        return;
     data.removeAllChildren (nullptr);
 }
 

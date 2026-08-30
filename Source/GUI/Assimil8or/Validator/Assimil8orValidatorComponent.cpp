@@ -512,9 +512,13 @@ void Assimil8orValidatorComponent::convert (juce::File file)
     if (auto reader { audioManager->getReaderFor (file) }; reader != nullptr)
     {
         auto tempFile { juce::File::createTempFile (".wav") };
-        auto tempFileStream { std::make_unique<juce::FileOutputStream> (tempFile) };
-        tempFileStream->setPosition (0);
-        tempFileStream->truncate ();
+        // setPosition () and truncate () are FileOutputStream only, so the setup has to happen while the pointer still has that type
+        auto tempOutputFileStream { std::make_unique<juce::FileOutputStream> (tempFile) };
+        tempOutputFileStream->setPosition (0);
+        tempOutputFileStream->truncate ();
+        // createWriterFor takes a unique_ptr<OutputStream>&, and a unique_ptr<FileOutputStream> cannot bind to a reference to a
+        // different type, so the stream is moved into a base typed pointer to hand over. this is the same stream: tempOutputFileStream is null from here on
+        std::unique_ptr<juce::OutputStream> tempFileStream { std::move (tempOutputFileStream) };
 
         auto sampleRate { reader->sampleRate };
         auto numChannels { reader->numChannels };
@@ -534,12 +538,11 @@ void Assimil8orValidatorComponent::convert (juce::File file)
         }
 
         juce::WavAudioFormat wavAudioFormat;
-        if (std::unique_ptr<juce::AudioFormatWriter> writer { wavAudioFormat.createWriterFor (tempFileStream.get (),
-                                                              sampleRate, numChannels, bitsPerSample, {}, 0) }; writer != nullptr)
+        // on success, the writer takes ownership of the output stream, and will delete it when done
+        if (auto writer { wavAudioFormat.createWriterFor (tempFileStream, juce::AudioFormatWriterOptions {}.withSampleRate (sampleRate)
+                                                                                                          .withNumChannels (static_cast<int> (numChannels))
+                                                                                                          .withBitsPerSample (bitsPerSample)) }; writer != nullptr)
         {
-            // audioFormatWriter will delete the file stream when done
-            tempFileStream.release ();
-
             // copy the whole thing
             // TODO - two things
             //   a) this needs to be done in a thread

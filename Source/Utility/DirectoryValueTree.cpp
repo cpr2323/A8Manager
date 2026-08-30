@@ -3,6 +3,7 @@
 #include "../SystemServices.h"
 #include "../Utility/DebugLog.h"
 #include "../Utility/RuntimeRootProperties.h"
+#include "../Utility/ValueTreeHelpers.h"
 
 #define LOG_DIRECTORY_VALUE_TREE 0
 #if LOG_DIRECTORY_VALUE_TREE
@@ -24,7 +25,7 @@ DirectoryValueTree::DirectoryValueTree () : Thread ("DirectoryValueTree")
 
         LogDirectoryValueTree (true, "scanThread.onThreadLoop - calling scanDirectory ()");
         scanDirectory ();
-        setRequestedTaskManagementState (TaskManagementState::idle);
+        setTaskCompleteIfNoScanPending ();
         wakeUpTaskManagmentThread ();
         sendStatusUpdate (DirectoryDataProperties::ScanStatus::done);
         doProgressUpdate ("");
@@ -38,14 +39,15 @@ DirectoryValueTree::DirectoryValueTree () : Thread ("DirectoryValueTree")
             return false;
 
         LogDirectoryValueTree (SHOW_CHECK_STATE_LOG, "checkThread.onThreadLoop - TaskManagementState::checking");
-        if (hasFolderChanged (directoryDataProperties.getRootFolderVT ()))
+        if (hasFolderChanged ())
         {
+            scanRequestPending = true;
             setRequestedTaskManagementState (TaskManagementState::startScan);
             wakeUpTaskManagmentThread ();
         }
         else
         {
-            setRequestedTaskManagementState (TaskManagementState::idle);
+            setTaskCompleteIfNoScanPending ();
             wakeUpTaskManagmentThread ();
         }
 
@@ -56,7 +58,19 @@ DirectoryValueTree::DirectoryValueTree () : Thread ("DirectoryValueTree")
 
 DirectoryValueTree::~DirectoryValueTree ()
 {
+    // the scan and check threads use members of this object, including taskManagementCS and rootFolderNameCS, which are
+    // declared after them and are therefore destroyed before them. left to the LambdaThread destructors, those threads
+    // would still be running while those members were being torn down, and a task reporting its completion would take a
+    // lock that no longer exists. so everything that can call back into this object is shut down here, in order, while
+    // all of it is still alive
+    stopTimer ();
+    // let any scan/check that is part way through give up promptly, instead of running to completion
+    cancelScan = true;
+    cancelCheck = true;
+    // the task management thread first, so that it cannot wake the workers back up after they have been stopped
     stopThread (500);
+    scanThread.stop ();
+    checkThread.stop ();
 }
 
 void DirectoryValueTree::wakeUpTaskManagmentThread ()
@@ -72,6 +86,10 @@ void DirectoryValueTree::init (juce::ValueTree runtimeRootPropertiesVT)
 
     directoryDataProperties.wrap (runtimeRootPropertiesVT, DirectoryDataProperties::WrapperType::owner, DirectoryDataProperties::EnableCallbacks::yes);
     //ddpMonitor.assign (directoryDataProperties.getValueTreeRef ());
+
+    // capture a handle to the live root folder tree while on the message thread. the scan thread only uses it
+    // to pass the live tree to publish operations that run on the message thread
+    rootFolderVTForTask = directoryDataProperties.getRootFolderVT ();
 
     directoryDataProperties.onScanDepthChange = [this] (int scanDepth) { setScanDepth (scanDepth); };
     directoryDataProperties.onStartScanChange = [this] ()
@@ -158,10 +176,34 @@ bool DirectoryValueTree::shouldCancelOperation (LambdaThread& whichTaskThread, s
 void DirectoryValueTree::startScan ()
 {
     LogDirectoryValueTree (true, "startScan - waking up scan thread");
+    // called on the message thread, where reading the live tree is safe. capture the root folder name here,
+    // since the scan/check threads cannot safely read it from the live tree themselves
+    jassert (juce::MessageManager::existsAndIsCurrentThread ());
     FolderProperties rootFolderProperties (directoryDataProperties.getRootFolderVT (), FolderProperties::WrapperType::client, FolderProperties::EnableCallbacks::no);
     jassert (! rootFolderProperties.getName ().isEmpty ());
+    {
+        juce::ScopedLock sl (rootFolderNameCS);
+        rootFolderTaskName = rootFolderProperties.getName ();
+    }
+    scanRequestPending = true;
     setRequestedTaskManagementState (TaskManagementState::startScan);
     wakeUpTaskManagmentThread ();
+}
+
+void DirectoryValueTree::setTaskCompleteIfNoScanPending ()
+{
+    // a scan that was requested while this task was running has not been started yet, so its request must be
+    // left in place. without this, a task finishing right after a request would report idle over it, and the
+    // requested scan would never happen
+    if (scanRequestPending)
+        return;
+    setRequestedTaskManagementState (TaskManagementState::idle);
+}
+
+juce::String DirectoryValueTree::getRootFolderTaskName ()
+{
+    juce::ScopedLock sl (rootFolderNameCS);
+    return rootFolderTaskName;
 }
 
 void DirectoryValueTree::timerCallback ()
@@ -169,14 +211,6 @@ void DirectoryValueTree::timerCallback ()
     LogDirectoryValueTree (SHOW_CHECK_STATE_LOG, "timerCallback - doChangeCheck");
     if (setRequestedTaskManagementState (TaskManagementState::startCheck))
         wakeUpTaskManagmentThread ();
-}
-
-void DirectoryValueTree::handleAsyncUpdate ()
-{
-    LogDirectoryValueTree (true, "handleAsyncUpdate - restarting - startScan");
-    cancelCheck = false;
-    cancelScan = false;
-    wakeUpTaskManagmentThread ();
 }
 
 DirectoryValueTree::TaskManagementState DirectoryValueTree::getCurrentTaskManagementState ()
@@ -229,68 +263,78 @@ bool DirectoryValueTree::setRequestedTaskManagementState (DirectoryValueTree::Ta
 void DirectoryValueTree::run ()
 {
     LogDirectoryValueTree (SHOW_TASK_MANAGEMENT_LOG, "run - enter");
-    while (wait (-1) && ! threadShouldExit ())
+    while (! threadShouldExit ())
     {
-        if (! threadShouldExit ())
+        // while we are waiting for a task to notice that it has been cancelled, the wait is bounded so that we come
+        // back and re-check. the task can finish of its own accord before it ever sees the flag, in which case there
+        // is no wake up coming, and a pending scan request would sit here forever
+        wait ((cancelScan || cancelCheck) ? 10 : -1);
+        if (threadShouldExit ())
+            break;
+        const auto requestedTMS { getRequestedTaskManagementState () };
+        setCurrentTaskManagementState (requestedTMS);
+        LogDirectoryValueTree (SHOW_TASK_MANAGEMENT_LOG, "run - currentTaskMangementState == " + getTaskManagementStateString (requestedTMS));
+        switch (requestedTMS)
         {
-            const auto requestedTMS { getRequestedTaskManagementState () };
-            setCurrentTaskManagementState (requestedTMS);
-            LogDirectoryValueTree (SHOW_TASK_MANAGEMENT_LOG, "run - currentTaskMangementState == " + getTaskManagementStateString (requestedTMS));
-            switch (requestedTMS)
+            case TaskManagementState::idle:
             {
-                case TaskManagementState::idle:
-                {
-                    // spurious wake up?
-                    //jassertfalse;
-                }
-                break;
-                case TaskManagementState::startScan:
-                {
-                    if (! checkThread.isWaiting ())
-                    {
-                        LogDirectoryValueTree (SHOW_TASK_MANAGEMENT_LOG, "run - check thread is still running. waiting for completion");
-                        cancelCheck = true;
-                        triggerAsyncUpdate ();
-                    }
-                    else if (! scanThread.isWaiting ())
-                    {
-                        LogDirectoryValueTree (SHOW_TASK_MANAGEMENT_LOG, "run - scan thread is still running. waiting for completion");
-                        cancelScan = true;
-                        triggerAsyncUpdate ();
-                    }
-                    else
-                    {
-                        LogDirectoryValueTree (SHOW_TASK_MANAGEMENT_LOG, "run - starting scan thread");
-                        currentTaskManagementState = TaskManagementState::scanning;
-                        sendStatusUpdate (DirectoryDataProperties::ScanStatus::scanning);
-                        scanThread.wake ();
-                    }
-                }
-                break;
-                case TaskManagementState::scanning:
-                {
-                    // TODO - I don't think we should ever end up here
-                    jassertfalse;
-                }
-                break;
-                case TaskManagementState::startCheck:
-                {
-                    // as this is a time repeated task, we can skip it if anything else is already going on
-                    if (scanThread.isWaiting () && checkThread.isWaiting ())
-                    {
-                        LogDirectoryValueTree (SHOW_TASK_MANAGEMENT_LOG, "run - starting check thread");
-                        currentTaskManagementState = TaskManagementState::checking;
-                        checkThread.wake ();
-                    }
-                }
-                break;
-                case TaskManagementState::checking:
-                {
-                    // TODO - I don't think we should ever end up here
-                    //jassertfalse;
-                }
-                break;
+                // spurious wake up?
+                //jassertfalse;
             }
+            break;
+            case TaskManagementState::startScan:
+            {
+                if (! checkThread.isWaiting ())
+                {
+                    LogDirectoryValueTree (SHOW_TASK_MANAGEMENT_LOG, "run - check thread is still running. waiting for completion");
+                    // the flag stays set until the check has actually stopped. clearing it before then, as the
+                    // async update used to, means the check never sees it and can never be cancelled
+                    cancelCheck = true;
+                }
+                else if (! scanThread.isWaiting ())
+                {
+                    LogDirectoryValueTree (SHOW_TASK_MANAGEMENT_LOG, "run - scan thread is still running. waiting for completion");
+                    cancelScan = true;
+                }
+                else
+                {
+                    LogDirectoryValueTree (SHOW_TASK_MANAGEMENT_LOG, "run - starting scan thread");
+                    // nothing is running any more, so the cancel requests have been served
+                    cancelCheck = false;
+                    cancelScan = false;
+                    scanRequestPending = false;
+                    // the request has been acted on. left as startScan, the next wake up of this thread would come
+                    // back through here, find the scan thread busy, and cancel the scan that was just started
+                    setRequestedTaskManagementState (TaskManagementState::scanning);
+                    setCurrentTaskManagementState (TaskManagementState::scanning);
+                    sendStatusUpdate (DirectoryDataProperties::ScanStatus::scanning);
+                    scanThread.wake ();
+                }
+            }
+            break;
+            case TaskManagementState::scanning:
+            {
+                // the scan thread is running. it wakes this thread again when it is done
+            }
+            break;
+            case TaskManagementState::startCheck:
+            {
+                // as this is a time repeated task, we can skip it if anything else is already going on
+                if (scanThread.isWaiting () && checkThread.isWaiting ())
+                {
+                    LogDirectoryValueTree (SHOW_TASK_MANAGEMENT_LOG, "run - starting check thread");
+                    setRequestedTaskManagementState (TaskManagementState::checking);
+                    setCurrentTaskManagementState (TaskManagementState::checking);
+                    checkThread.wake ();
+                }
+            }
+            break;
+            case TaskManagementState::checking:
+            {
+                // TODO - I don't think we should ever end up here
+                //jassertfalse;
+            }
+            break;
         }
     }
     LogDirectoryValueTree (true, "run - exit");
@@ -298,8 +342,7 @@ void DirectoryValueTree::run ()
 
 juce::String DirectoryValueTree::getPathFromCurrentRoot (juce::String fullPath)
 {
-    FolderProperties rootFolderProperties (directoryDataProperties.getRootFolderVT (), FolderProperties::WrapperType::client, FolderProperties::EnableCallbacks::no);
-    const auto partialPath { fullPath.fromLastOccurrenceOf (rootFolderProperties .getName (), false, true) };
+    const auto partialPath { fullPath.fromLastOccurrenceOf (getRootFolderTaskName (), false, true) };
     return partialPath;
 }
 
@@ -307,19 +350,27 @@ void DirectoryValueTree::scanDirectory ()
 {
     LogDirectoryValueTree (true, "scanDirectory ()");
     lastScanInProgressUpdate = juce::Time::currentTimeMillis ();
-    FolderProperties rootFolderProperties (directoryDataProperties.getRootFolderVT (), FolderProperties::WrapperType::client, FolderProperties::EnableCallbacks::no);
+    const auto rootFolderName { getRootFolderTaskName () };
     // do one initial progress update to fill in the first one
-    doProgressUpdate ("Reading File System: " + getPathFromCurrentRoot (juce::File (rootFolderProperties.getName ()).getFileName ()));
-    // clear old contents
+    doProgressUpdate ("Reading File System: " + getPathFromCurrentRoot (juce::File (rootFolderName).getFileName ()));
     timer.start (100000);
-    directoryDataProperties.getRootFolderVT ().removeAllChildren (nullptr);
+    // scan into a detached tree, since the live tree (which has listeners) may only be modified on the message thread
+    FolderProperties scannedFolderProperties ({}, FolderProperties::WrapperType::owner, FolderProperties::EnableCallbacks::no);
+    scannedFolderProperties.setName (rootFolderName, false);
     scanType = ScanType::fullScan;
-    getContentsOfFolder (directoryDataProperties.getRootFolderVT (), 0, [this] () { return shouldCancelOperation (scanThread, cancelScan); });
-    // reset the output if scan was canceled
-    if (shouldCancelOperation (scanThread, cancelScan))
+    getContentsOfFolder (scannedFolderProperties.getValueTree (), 0, [this] () { return shouldCancelOperation (scanThread, cancelScan); });
+    if (! shouldCancelOperation (scanThread, cancelScan))
+    {
+        // keep a detached copy for the check thread to compare against
+        lastScanResultVT = scannedFolderProperties.getValueTree ().createCopy ();
+        // publish the scanned data into the live tree on the message thread. this thread must not touch the scanned tree after this
+        ValueTreeHelpers::replaceChildrenOnMessageThread (rootFolderVTForTask, scannedFolderProperties.getValueTree ());
+    }
+    else
     {
         LogDirectoryValueTree (true, "scanDirectory - operation cancelled, removing all data");
-        directoryDataProperties.getRootFolderVT ().removeAllChildren (nullptr);
+        lastScanResultVT = {};
+        ValueTreeHelpers::callOnMessageThread ([liveRootFolderVT = rootFolderVTForTask] () mutable { liveRootFolderVT.removeAllChildren (nullptr); });
     }
     //juce::Logger::outputDebugString ("DirectoryValueTree::scanDirectory ()- elapsed time: " + juce::String (timer.getElapsedTime ()));
 }
@@ -332,11 +383,23 @@ void DirectoryValueTree::doProgressUpdate (juce::String progressString)
     });
 }
 
-bool DirectoryValueTree::hasFolderChanged (juce::ValueTree rootFolderVT)
+bool DirectoryValueTree::hasFolderChanged ()
 {
-    FolderProperties rootFolderProperties (rootFolderVT, FolderProperties::WrapperType::owner, FolderProperties::EnableCallbacks::no);
+    // runs on the check thread, so it compares the file system against a detached copy of the last scan result,
+    // since the live tree may only be safely accessed from the message thread
+    if (! lastScanResultVT.isValid ())
+        return false;
+    FolderProperties rootFolderProperties (lastScanResultVT, FolderProperties::WrapperType::client, FolderProperties::EnableCallbacks::no);
+    // the folder being viewed can change while we are idle, in which case the last scan result describes some other
+    // folder, and the contents need to be rescanned
+    const auto currentRootFolderName { getRootFolderTaskName () };
+    if (rootFolderProperties.getName () != currentRootFolderName)
+    {
+        LogDirectoryValueTree (SHOW_CHECK_STATE_LOG, "hasFolderChanged - root folder changed - do rescan");
+        return true;
+    }
     FolderProperties newCopyOfFolderProperties ({}, FolderProperties::WrapperType::owner, FolderProperties::EnableCallbacks::no);
-    newCopyOfFolderProperties.setName (rootFolderProperties.getName (), false);
+    newCopyOfFolderProperties.setName (currentRootFolderName, false);
     scanType = ScanType::checkForUpdate;
     getContentsOfFolder (newCopyOfFolderProperties.getValueTree (), 0, [this] () { return shouldCancelOperation (checkThread, cancelCheck); });
     if (rootFolderProperties.getValueTree ().getNumChildren () != newCopyOfFolderProperties.getValueTree ().getNumChildren ())
@@ -430,7 +493,15 @@ void DirectoryValueTree::getContentsOfFolder (juce::ValueTree folderVT, int curD
         }
         sortContentsOfFolder (folderVT, shouldCancelFunc);
         if (scanType == ScanType::fullScan && curDepth == 0)
-            directoryDataProperties.triggerRootScanComplete (false);
+        {
+            // publish a snapshot of the root level results right away (they were previously available immediately,
+            // since the scan used to write directly into the live tree). copied, because this thread continues
+            // to fill in the subfolders of folderVT
+            ValueTreeHelpers::replaceChildrenOnMessageThread (rootFolderVTForTask, folderVT.createCopy (), [this] ()
+            {
+                directoryDataProperties.triggerRootScanComplete (false);
+            });
+        }
 
         // scan the subfolders
         ValueTreeHelpers::forEachChildOfType (folderVT, FolderProperties::FolderTypeId, [this, curDepth, shouldCancelFunc] (juce::ValueTree childFolderVT)
