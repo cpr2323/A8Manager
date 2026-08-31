@@ -4,6 +4,21 @@ A tool to manage Presets and Sample files for the Rossum-Electro Assimil8or
 
 Windows and macOS builds available at: https://cpr2323.github.io/a8manager/index.html
 
+# Building
+
+The JUCE submodule must be initialised before the first build:
+
+```
+git submodule update --init --recursive
+```
+
+Then configure and build with CMake:
+
+```
+cmake -B cmake_build
+cmake --build cmake_build --config Release
+```
+
 # Windows
 
 There are no special steps to installing on Windows.
