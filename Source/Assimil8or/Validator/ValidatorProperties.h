@@ -1,8 +1,8 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include "../../Utility/ValueTreeWrapper.h"
 #include "ValidatorResultListProperties.h"
+#include "oolib/ValueTree/ValueTreeWrapper.h"
 
 class ValidatorProperties : public ValueTreeWrapper<ValidatorProperties>
 {

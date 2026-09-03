@@ -1,9 +1,9 @@
 #pragma once
 
 #include "../../../Assimil8or/MidiSetup/MidiSetupProperties.h"
-#include "../../../Utility/CustomComboBox.h"
-#include "../../../Utility/CustomTextEditor.h"
-#include "../../../Utility/NoArrowComboBoxLnF.h"
+#include "oolib/GUI/CustomComboBox.h"
+#include "oolib/GUI/CustomTextEditor.h"
+#include "oolib/GUI/NoArrowComboBoxLnF.h"
 
 // Mode : Omni, Uni, Multi - 0,1,2
 // Assignment : One set of values for Omni/Uni and another for Multi. The unit seems to remember the setting for each of these

@@ -6,11 +6,11 @@
 #include "../../../Assimil8or/Preset/ChannelProperties.h"
 #include "../../../Assimil8or/Preset/PresetProperties.h"
 #include "../../../Assimil8or/Preset/ParameterPresetsSingleton.h"
-#include "../../../Utility/DebugLog.h"
-#include "../../../Utility/DumpStack.h"
-#include "../../../Utility/ErrorHelpers.h"
-#include "../../../Utility/PersistentRootProperties.h"
-#include "../../../Utility/RuntimeRootProperties.h"
+#include "oolib/Debug/DebugLog.h"
+#include "oolib/Debug/DumpStack.h"
+#include "oolib/GUI/ErrorHelpers.h"
+#include "oolib/Properties/PersistentRootProperties.h"
+#include "oolib/Properties/RuntimeRootProperties.h"
 
 #define INCLUDE_WAVE_MATCHING_LOOP_POINT_ALIGN 0
 ZoneEditor::ZoneEditor ()
@@ -314,6 +314,8 @@ void ZoneEditor::setupZoneComponents ()
     sampleNameSelectLabel.setColour (juce::Label::ColourIds::backgroundColourId, levelOffsetTextEditor.findColour (juce::TextEditor::ColourIds::backgroundColourId));
     sampleNameSelectLabel.setOutline (levelOffsetTextEditor.findColour (juce::TextEditor::ColourIds::outlineColourId));
     sampleNameSelectLabel.setBorderSize ({ 0, 2, 0, 0 });
+    sampleNameSelectLabel.setDialogTitle ("Please select the Assimil8or Preset file you want to load...");
+    sampleNameSelectLabel.canMultiSelect (true);
     sampleNameSelectLabel.onFilesSelected = [this] (const juce::StringArray& files)
     {
         if (! handleSamplesInternal (zoneProperties.getId () - 1, files))

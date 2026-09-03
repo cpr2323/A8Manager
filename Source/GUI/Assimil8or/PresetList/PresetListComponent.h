@@ -3,8 +3,9 @@
 #include <JuceHeader.h>
 #include "../../../AppProperties.h"
 #include "../../../Assimil8or/Preset/PresetProperties.h"
-#include "../../../Utility/DirectoryDataProperties.h"
-#include "../../../Utility/LambdaThread.h"
+#include "oolib/Directory/DirectoryDataProperties.h"
+#include "oolib/Directory/DirectoryValueTree.h"
+#include "oolib/Core/LambdaThread.h"
 
 const auto kMaxPresets { 199 };
 class PresetListComponent : public juce::Component,
@@ -21,6 +22,8 @@ public:
 private:
     AppProperties appProperties;
     DirectoryDataProperties directoryDataProperties;
+    // resolved in init (), once DirectoryValueTree has published the types Main registered
+    int presetFileTypeId { DirectoryValueTree::unknownTypeId };
     PresetProperties presetProperties;
     PresetProperties unEditedPresetProperties;
     PresetProperties copyBufferPresetProperties;
@@ -37,10 +40,8 @@ private:
     void copyPreset (int presetNumber);
     void checkPresets ();
     void deletePreset (int presetNumber);
-    void exportPreset (int presetNumber);
     juce::File getPresetFile (int presetNumber);
     void forEachPresetFile (std::function<bool (juce::File presetFile, int index)> presetFileCallback);
-    void importPreset (int presetNumber);
     void loadPresetFile (juce::File presetFile, juce::ValueTree vt);
     void loadDefault (int row);
     void loadFirstPreset ();

@@ -3,10 +3,10 @@
 #include "FileTypeHelpers.h"
 #include "Validator/ValidatorResultProperties.h"
 #include "../SystemServices.h"
-#include "../Utility/DebugLog.h"
-#include "../Utility/RuntimeRootProperties.h"
-#include "../Utility/ValueTreeHelpers.h"
-#include "../Utility/WatchDogTimer.h"
+#include "oolib/Debug/DebugLog.h"
+#include "oolib/Properties/RuntimeRootProperties.h"
+#include "oolib/ValueTree/ValueTreeHelpers.h"
+#include "oolib/Debug/WatchDogTimer.h"
 
 #define LOG_VALIDATION 0
 #if LOG_VALIDATION

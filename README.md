@@ -6,7 +6,7 @@ Windows and macOS builds available at: https://cpr2323.github.io/a8manager/index
 
 # Building
 
-The JUCE submodule must be initialised before the first build:
+The JUCE and oolib submodules must be initialised before the first build:
 
 ```
 git submodule update --init --recursive

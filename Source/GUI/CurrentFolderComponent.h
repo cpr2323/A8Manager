@@ -2,7 +2,7 @@
 
 #include <JuceHeader.h>
 #include "../AppProperties.h"
-#include "../Utility/DirectoryDataProperties.h"
+#include "oolib/Directory/DirectoryDataProperties.h"
 
 class CurrentFolderComponent : public juce::Component
 {

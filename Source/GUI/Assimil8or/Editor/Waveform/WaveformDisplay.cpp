@@ -1,7 +1,7 @@
 #include "WaveformDisplay.h"
 #include "../../../../SystemServices.h"
-#include "../../../../Utility/RuntimeRootProperties.h"
-#include "../../../../Utility/DebugLog.h"
+#include "oolib/Properties/RuntimeRootProperties.h"
+#include "oolib/Debug/DebugLog.h"
 
 void WaveformDisplay::init (juce::ValueTree channelPropertiesVT, juce::ValueTree rootPropertiesVT)
 {

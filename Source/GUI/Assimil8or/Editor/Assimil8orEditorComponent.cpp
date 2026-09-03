@@ -5,10 +5,10 @@
 #include "../../../Assimil8or/PresetManagerProperties.h"
 #include "../../../Assimil8or/Preset/ParameterPresetsSingleton.h"
 #include "../../../Assimil8or/Preset/PresetHelpers.h"
-#include "../../../Utility/DebugLog.h"
-#include "../../../Utility/DumpStack.h"
-#include "../../../Utility/ErrorHelpers.h"
-#include "../../../Utility/PersistentRootProperties.h"
+#include "oolib/Debug/DebugLog.h"
+#include "oolib/Debug/DumpStack.h"
+#include "oolib/GUI/ErrorHelpers.h"
+#include "oolib/Properties/PersistentRootProperties.h"
 #include <algorithm>
 
 Assimil8orEditorComponent::Assimil8orEditorComponent ()

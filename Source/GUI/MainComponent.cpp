@@ -1,5 +1,5 @@
 #include "MainComponent.h"
-#include "../Utility/PersistentRootProperties.h"
+#include "oolib/Properties/PersistentRootProperties.h"
 
 const auto toolWindowHeight { 30 };
 

@@ -8,9 +8,9 @@
 #include "../../../AppProperties.h"
 #include "../../../Assimil8or/Audio/AudioPlayerProperties.h"
 #include "../../../Assimil8or/Preset/PresetProperties.h"
-#include "../../../Utility/CustomTextEditor.h"
-#include "../../../Utility/DebugLog.h"
-#include "../../../Utility/RuntimeRootProperties.h"
+#include "oolib/GUI/CustomTextEditor.h"
+#include "oolib/Debug/DebugLog.h"
+#include "oolib/Properties/RuntimeRootProperties.h"
 
 class WindowDecorator : public juce::Component
 {

@@ -1,6 +1,6 @@
 #include "SampleManagerProperties.h"
 #include "SampleProperties.h"
-#include "../../../../Utility/ValueTreeHelpers.h"
+#include "oolib/ValueTree/ValueTreeHelpers.h"
 
 void SampleManagerProperties::initValueTree ()
 {

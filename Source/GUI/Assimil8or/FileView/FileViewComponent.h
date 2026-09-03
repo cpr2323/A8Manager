@@ -3,8 +3,9 @@
 #include <JuceHeader.h>
 #include "../../../AppProperties.h"
 #include "../../../Assimil8or/Audio/AudioManager.h"
-#include "../../../Utility/DirectoryDataProperties.h"
-#include "../../../Utility/LambdaThread.h"
+#include "oolib/Directory/DirectoryDataProperties.h"
+#include "oolib/Directory/DirectoryValueTree.h"
+#include "oolib/Core/LambdaThread.h"
 
 class FileViewComponent : public juce::Component,
                           private juce::ListBoxModel,
@@ -24,6 +25,8 @@ private:
     AppProperties appProperties;
     DirectoryDataProperties directoryDataProperties;
     AudioManager* audioManager { nullptr };
+    // resolved in init (), once DirectoryValueTree has published the types Main registered
+    int audioFileTypeId { DirectoryValueTree::unknownTypeId };
 
     juce::CriticalSection directoryListQuickLookupListLock;
     std::vector<juce::ValueTree> directoryListQuickLookupListA;

@@ -2,7 +2,7 @@
 #include "FileTypeHelpers.h"
 #include "Preset/ParameterNames.h"
 #include "Preset/ParameterPresetsSingleton.h"
-#include "../Utility/DebugLog.h"
+#include "oolib/Debug/DebugLog.h"
 
 #define LOG_PARSING 0
 #if LOG_PARSING

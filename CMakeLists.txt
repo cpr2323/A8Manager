@@ -6,6 +6,12 @@ project(A8Manager VERSION 2.7.0)
 #   git submodule update --init --recursive
 add_subdirectory(submodules/JUCE builds/JUCE)
 
+# The shared utility sources that used to live in Source/Utility. This defines
+# OOLIB_SOURCES and OOLIB_INCLUDE_DIR, and is included rather than added as a
+# subdirectory because the sources #include <JuceHeader.h> and so have to be
+# compiled as part of a JUCE target.
+include(submodules/oolib/oolib.cmake)
+
 juce_add_gui_app(A8Manager
     PRODUCT_NAME    "A8Manager"
     COMPANY_NAME    "OmOhmProductions"
@@ -173,51 +179,6 @@ set(GUI_VALIDATOR_FILES
     Source/GUI/Assimil8or/Validator/ValidatorToolWindow.cpp
     Source/GUI/Assimil8or/Validator/ValidatorToolWindow.h)
 
-set(UTILITY_FILES
-    Source/Utility/Crc.h
-    Source/Utility/CustomComboBox.cpp
-    Source/Utility/CustomComboBox.h
-    Source/Utility/CustomComponentMouseHandler.cpp
-    Source/Utility/CustomComponentMouseHandler.h
-    Source/Utility/CustomTextButton.cpp
-    Source/Utility/CustomTextButton.h
-    Source/Utility/CustomTextEditor.h
-    Source/Utility/DebugLog.cpp
-    Source/Utility/DebugLog.h
-    Source/Utility/DebugLogImplementation.h
-    Source/Utility/DirectoryDataProperties.cpp
-    Source/Utility/DirectoryDataProperties.h
-    Source/Utility/DirectoryValueTree.cpp
-    Source/Utility/DirectoryValueTree.h
-    Source/Utility/DumpStack.cpp
-    Source/Utility/DumpStack.h
-    Source/Utility/ErrorHelpers.cpp
-    Source/Utility/ErrorHelpers.h
-    Source/Utility/FileSelectLabel.cpp
-    Source/Utility/FileSelectLabel.h
-    Source/Utility/LambdaThread.h
-    Source/Utility/MruListProperties.cpp
-    Source/Utility/MruListProperties.h
-    Source/Utility/NoArrowComboBoxLnF.h
-    Source/Utility/PersistentRootProperties.cpp
-    Source/Utility/PersistentRootProperties.h
-    Source/Utility/RootProperties.cpp
-    Source/Utility/RootProperties.h
-    Source/Utility/RuntimeRootProperties.cpp
-    Source/Utility/RuntimeRootProperties.h
-    Source/Utility/SinglePoleFilter.h
-    Source/Utility/SplitWindowComponent.cpp
-    Source/Utility/SplitWindowComponent.h
-    Source/Utility/ValueTreeFile.cpp
-    Source/Utility/ValueTreeFile.h
-    Source/Utility/ValueTreeHelpers.cpp
-    Source/Utility/ValueTreeHelpers.h
-    Source/Utility/ValueTreeMonitor.cpp
-    Source/Utility/ValueTreeMonitor.h
-    Source/Utility/ValueTreeWrapper.cpp
-    Source/Utility/ValueTreeWrapper.h
-    Source/Utility/WatchDogTimer.h)
-
 # The files the Projucer marked resource="1". They are built into a separate
 # binary data target, but stay listed in the groups above so the IDE tree still
 # shows them next to the code they belong with.
@@ -248,7 +209,10 @@ source_group("Source/GUI/Assimil8or/FileView"             FILES ${GUI_FILEVIEW_F
 source_group("Source/GUI/Assimil8or/MidiConfig"           FILES ${GUI_MIDICONFIG_FILES})
 source_group("Source/GUI/Assimil8or/PresetList"           FILES ${GUI_PRESETLIST_FILES})
 source_group("Source/GUI/Assimil8or/Validator"            FILES ${GUI_VALIDATOR_FILES})
-source_group("Source/Utility"                             FILES ${UTILITY_FILES})
+
+# The oolib sources live outside the project tree, so group them by their own
+# folder layout rather than letting the IDE scatter them.
+source_group(TREE ${OOLIB_INCLUDE_DIR} PREFIX "oolib" FILES ${OOLIB_SOURCES})
 
 target_sources(A8Manager
     PRIVATE
@@ -271,7 +235,13 @@ target_sources(A8Manager
         ${GUI_MIDICONFIG_FILES}
         ${GUI_PRESETLIST_FILES}
         ${GUI_VALIDATOR_FILES}
-        ${UTILITY_FILES})
+        ${OOLIB_SOURCES})
+
+# oolib headers are included as "oolib/<Category>/<File>.h", so the search path is
+# the directory that holds the oolib/ folder
+target_include_directories(A8Manager
+    PRIVATE
+        ${OOLIB_INCLUDE_DIR})
 
 target_compile_definitions(A8Manager
     PUBLIC

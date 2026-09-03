@@ -9,7 +9,7 @@
 #include "Assimil8or/MidiConfig/MidiConfigComponent.h"
 #include "Assimil8or/PresetList/PresetListComponent.h"
 #include "Assimil8or/Validator/Assimil8orValidatorComponent.h"
-#include "../Utility/SplitWindowComponent.h"
+#include "oolib/GUI/SplitWindowComponent.h"
 
 class MainComponent : public juce::Component
 {

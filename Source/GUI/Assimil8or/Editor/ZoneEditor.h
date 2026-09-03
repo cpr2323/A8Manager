@@ -8,8 +8,8 @@
 #include "../../../Assimil8or/Audio/AudioManager.h"
 #include "../../../Assimil8or/Audio/AudioPlayerProperties.h"
 #include "../../../Assimil8or/Preset/ZoneProperties.h"
-#include "../../../Utility/CustomTextEditor.h"
-#include "../../../Utility/FileSelectLabel.h"
+#include "oolib/GUI/CustomTextEditor.h"
+#include "oolib/GUI/FileSelectLabel.h"
 
 class ZoneEditor : public juce::Component,
                    public juce::FileDragAndDropTarget

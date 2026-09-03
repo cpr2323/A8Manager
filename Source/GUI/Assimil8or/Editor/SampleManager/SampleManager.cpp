@@ -1,8 +1,8 @@
 #include "SampleManager.h"
 #include "../../../../SystemServices.h"
 #include "../../../../Assimil8or/PresetManagerProperties.h"
-#include "../../../../Utility/DebugLog.h"
-#include "../../../../Utility/PersistentRootProperties.h"
+#include "oolib/Debug/DebugLog.h"
+#include "oolib/Properties/PersistentRootProperties.h"
 
 #define LOG_SAMPLE_POOL 0
 #if LOG_SAMPLE_POOL

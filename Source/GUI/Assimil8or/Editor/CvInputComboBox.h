@@ -1,8 +1,8 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include "../../../Utility/CustomComboBox.h"
-#include "../../../Utility/NoArrowComboBoxLnF.h"
+#include "oolib/GUI/CustomComboBox.h"
+#include "oolib/GUI/NoArrowComboBoxLnF.h"
 
 class CvInputComboBox : public juce::Component
 {

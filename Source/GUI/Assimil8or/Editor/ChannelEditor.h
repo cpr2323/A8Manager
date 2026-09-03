@@ -11,11 +11,11 @@
 #include "../../../AppProperties.h"
 #include "../../../Assimil8or/Audio/AudioPlayerProperties.h"
 #include "../../../Assimil8or/Preset/ChannelProperties.h"
-#include "../../../Utility/CustomComboBox.h"
-#include "../../../Utility/CustomTextButton.h"
-#include "../../../Utility/CustomTextEditor.h"
-#include "../../../Utility/ErrorHelpers.h"
-#include "../../../Utility/NoArrowComboBoxLnF.h"
+#include "oolib/GUI/CustomComboBox.h"
+#include "oolib/GUI/CustomTextButton.h"
+#include "oolib/GUI/CustomTextEditor.h"
+#include "oolib/GUI/ErrorHelpers.h"
+#include "oolib/GUI/NoArrowComboBoxLnF.h"
 
 class CvOffsetTextEditor : public CustomTextEditorDouble
 {

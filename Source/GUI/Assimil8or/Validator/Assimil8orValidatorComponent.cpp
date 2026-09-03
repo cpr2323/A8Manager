@@ -3,7 +3,7 @@
 #include "LocateFileComponent.h"
 #include "../../../SystemServices.h"
 #include "../../../Assimil8or/Validator/ValidatorResultListProperties.h"
-#include "../../../Utility/RuntimeRootProperties.h"
+#include "oolib/Properties/RuntimeRootProperties.h"
 
 const auto kValidFileSystemCharacters { juce::String (" !#$%&'()+,-.0123456789;=@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]_`{}~abcdefghijklmnopqrstuvwxyz") };
 

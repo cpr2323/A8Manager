@@ -4,8 +4,8 @@
 #include "Validator/ValidatorProperties.h"
 #include "../AppProperties.h"
 #include "../Assimil8or/Audio/AudioManager.h"
-#include "../Utility/DirectoryDataProperties.h"
-#include "../Utility/LambdaThread.h"
+#include "oolib/Directory/DirectoryDataProperties.h"
+#include "oolib/Core/LambdaThread.h"
 
 // validate
 //  SD Card (max folders unknown)

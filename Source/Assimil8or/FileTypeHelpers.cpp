@@ -2,18 +2,6 @@
 
 namespace FileTypeHelpers
 {
-    DirectoryDataProperties::TypeIndex getFileType (juce::File file)
-    {
-        if (FileTypeHelpers::isSystemFile (file))
-            return DirectoryDataProperties::TypeIndex::systemFile;
-        else if (FileTypeHelpers::isPresetFile (file))
-            return DirectoryDataProperties::TypeIndex::presetFile;
-        else if (file.getFileExtension ().toLowerCase () == ".wav")
-            return DirectoryDataProperties::TypeIndex::audioFile;
-        else // unknown file
-            return DirectoryDataProperties::TypeIndex::unknownFile;
-    }
-
     juce::String getPresetFileName (int presetIndex)
     {
         jassert (presetIndex > 0 && presetIndex <= kMaxPresets);
@@ -54,6 +42,11 @@ namespace FileTypeHelpers
                file.getFileNameWithoutExtension ().length () == kPresetFileNameLen &&
                file.getFileNameWithoutExtension ().toLowerCase ().startsWith (kPresetFileNamePrefix) &&
                file.getFileNameWithoutExtension ().substring (kPresetFileNumberOffset).containsOnly ("0123456789");
+    }
+
+    bool isAudioFile (juce::File file)
+    {
+        return file.getFileExtension ().toLowerCase () == kWaveFileExtension;
     }
 
     bool isMidiSetupFile (juce::File file)
