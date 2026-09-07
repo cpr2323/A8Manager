@@ -27,12 +27,12 @@ CvInputComboBox::CvInputComboBox (ListType listType)
             onChange ();
     };
 
-    cvInputComboBox.onDragCallback = [this] (DragSpeed dragSpeed, int direction)
+    cvInputComboBox.onDragCallback = [this] (double valueDelta)
     {
         if (! isEnabled ())
             return;
         if (onDragCallback != nullptr)
-            onDragCallback (dragSpeed, direction);
+            onDragCallback (valueDelta);
     };
     cvInputComboBox.onPopupMenuCallback = [this] ()
     {

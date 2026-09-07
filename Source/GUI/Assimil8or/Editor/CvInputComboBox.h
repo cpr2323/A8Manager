@@ -22,7 +22,7 @@ public:
     juce::String getSelectedItemText ();
     void setTooltip (juce::String toolTip);
     std::function<void ()> onChange;
-    std::function<void (DragSpeed dragSpeed, int direction)> onDragCallback;
+    OnDragCallback onDragCallback;
     std::function<void ()> onPopupMenuCallback;
 
 private:

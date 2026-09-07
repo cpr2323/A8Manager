@@ -23,22 +23,11 @@ public:
     CvOffsetTextEditor ()
     {
         toStringCallback = [this] (double value) { return FormatHelpers::formatDouble (value, 2, true); };
-        onDragCallback = [this] (DragSpeed dragSpeed, int direction)
+        getIncrementCallback = [] () { return 0.01; };
+        onDragCallback = [this] (double valueDelta)
         {
             jassert (getCvInputAndAmount != nullptr);
-
-            const auto incAmount = [this, dragSpeed] ()
-            {
-                switch (dragSpeed)
-                {
-                    default:
-                    case DragSpeed::slow: return 0.01; break;
-                    case DragSpeed::medium: return 0.25; break;
-                    case DragSpeed::fast: return 0.5; break;
-                }
-            } ();
-            const auto newAmount { FormatHelpers::getAmount (getCvInputAndAmount ()) + (incAmount * direction) };
-            setValue (newAmount);
+            setValue (FormatHelpers::getAmount (getCvInputAndAmount ()) + valueDelta);
         };
         onPopupMenuCallback = [this] ()
         {
