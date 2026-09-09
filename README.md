@@ -34,7 +34,8 @@ Since the application is not signed (I don't want to pay the $99/yr) you will ha
 
 # Linux
 
-There is no Linux version yet, but since we are using JUCE it should be _relative simple_.
+There is no Linux version yet, but since we are using JUCE it should be _relative simple_. I actually did a quick test of this back in 2023 and published the results in a youtube video.
+[A8Manager Linux build verification video](https://www.youtube.com/watch?v=fk4RRMh7hZc)
 
 # Thanks
 
