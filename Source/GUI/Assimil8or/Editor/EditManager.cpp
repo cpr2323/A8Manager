@@ -2,9 +2,9 @@
 #include "SampleManager/SampleManagerProperties.h"
 #include "../../../SystemServices.h"
 #include "../../../Assimil8or/Preset/ParameterPresetsSingleton.h"
-#include "../../../Utility/DebugLog.h"
-#include "../../../Utility/PersistentRootProperties.h"
-#include "../../../Utility/RuntimeRootProperties.h"
+#include "oolib/Debug/DebugLog.h"
+#include "oolib/Properties/PersistentRootProperties.h"
+#include "oolib/Properties/RuntimeRootProperties.h"
 
 EditManager::EditManager ()
 {
@@ -264,9 +264,13 @@ bool EditManager::assignSamples (int channelIndex, int zoneIndex, const juce::St
                 else
                     return juce::File (appProperties.getMostRecentFolder ()).getChildFile (audioFile.getFileNameWithoutExtension ()).withFileExtension ("wav");
             } ();
-            auto destinationFileStream { std::make_unique<juce::FileOutputStream> (destinationFile) };
-            destinationFileStream->setPosition (0);
-            destinationFileStream->truncate ();
+            // setPosition () and truncate () are FileOutputStream only, so the setup has to happen while the pointer still has that type
+            auto destinationOutputFileStream { std::make_unique<juce::FileOutputStream> (destinationFile) };
+            destinationOutputFileStream->setPosition (0);
+            destinationOutputFileStream->truncate ();
+            // createWriterFor takes a unique_ptr<OutputStream>&, and a unique_ptr<FileOutputStream> cannot bind to a reference to a
+            // different type, so the stream is moved into a base typed pointer to hand over. this is the same stream: destinationOutputFileStream is null from here on
+            std::unique_ptr<juce::OutputStream> destinationFileStream { std::move (destinationOutputFileStream) };
 
             if (auto reader { audioManager->getReaderFor (audioFile) }; reader != nullptr)
             {
@@ -288,12 +292,11 @@ bool EditManager::assignSamples (int channelIndex, int zoneIndex, const juce::St
                 }
 
                 juce::WavAudioFormat wavAudioFormat;
-                if (std::unique_ptr<juce::AudioFormatWriter> writer { wavAudioFormat.createWriterFor (destinationFileStream.get (),
-                                                                      sampleRate, numChannels, bitsPerSample, {}, 0) }; writer != nullptr)
-            {
-                    // audioFormatWriter will delete the file stream when done
-                    destinationFileStream.release ();
-
+                // on success, the writer takes ownership of the output stream, and will delete it when done
+                if (auto writer { wavAudioFormat.createWriterFor (destinationFileStream, juce::AudioFormatWriterOptions {}.withSampleRate (sampleRate)
+                                                                                                                         .withNumChannels (static_cast<int> (numChannels))
+                                                                                                                         .withBitsPerSample (bitsPerSample)) }; writer != nullptr)
+                {
                     // copy the whole thing
                     // TODO - two things
                     //   a) this needs to be done in a thread

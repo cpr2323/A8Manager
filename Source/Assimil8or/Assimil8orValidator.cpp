@@ -3,9 +3,10 @@
 #include "FileTypeHelpers.h"
 #include "Validator/ValidatorResultProperties.h"
 #include "../SystemServices.h"
-#include "../Utility/DebugLog.h"
-#include "../Utility/RuntimeRootProperties.h"
-#include "../Utility/WatchDogTimer.h"
+#include "oolib/Debug/DebugLog.h"
+#include "oolib/Properties/RuntimeRootProperties.h"
+#include "oolib/ValueTree/ValueTreeHelpers.h"
+#include "oolib/Debug/WatchDogTimer.h"
 
 #define LOG_VALIDATION 0
 #if LOG_VALIDATION
@@ -61,6 +62,8 @@ void Assimil8orValidator::init (juce::ValueTree rootPropertiesVT)
 {
     RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
     validatorProperties.wrap (runtimeRootProperties.getValueTree (), ValidatorProperties::WrapperType::owner, ValidatorProperties::EnableCallbacks::yes);
+    // the validation threads report progress/status/results, so writes from those threads are forwarded to the message thread
+    validatorProperties.setForwardOffMessageThreadWrites (true);
 
     SystemServices systemServices { runtimeRootProperties.getValueTree (), SystemServices::WrapperType::client, SystemServices::EnableCallbacks::yes };
     audioManager = systemServices.getAudioManager ();
@@ -92,6 +95,7 @@ void Assimil8orValidator::init (juce::ValueTree rootPropertiesVT)
 
     validatorResultListProperties.wrap (validatorProperties.getValueTree (),
                                         ValidatorResultListProperties::WrapperType::client, ValidatorResultListProperties::EnableCallbacks::no);
+    validatorResultListProperties.setForwardOffMessageThreadWrites (true);
     startValidation ();
 }
 
@@ -124,6 +128,8 @@ void Assimil8orValidator::doIfProgressTimeElapsed (std::function<void ()> functi
 void Assimil8orValidator::startValidation ()
 {
     LogValidation ("Assimil8orValidator::startValidation - enter");
+    jassert (juce::MessageManager::existsAndIsCurrentThread ());
+    ++validationGeneration;
     if (validateThread.isThreadRunning ())
     {
         valdatationState = ValdatationState::restarting;
@@ -140,6 +146,24 @@ void Assimil8orValidator::startValidation ()
     LogValidation ("Assimil8orValidator::startValidation - notify");
     notify ();
     LogValidation ("Assimil8orValidator::startValidation - exit");
+}
+
+void Assimil8orValidator::reportValidationComplete (int generationOfThisRun)
+{
+    // this runs on the validate thread, and the scan status is what the display uses to know that a set of results is
+    // final, so the check has to happen on the message thread, after any newer startValidation () has been seen.
+    // without it, a superseded run reports 'idle' over the newer run's 'scanning', and because the status is then
+    // already 'idle' when the newer run finishes, the display never hears about the results it produced
+    ValueTreeHelpers::callOnMessageThread ([this, generationOfThisRun] ()
+    {
+        if (generationOfThisRun != validationGeneration)
+        {
+            LogValidation ("Assimil8orValidator::reportValidationComplete - superseded, not reporting");
+            return;
+        }
+        validatorProperties.setProgressUpdate ("", false);
+        validatorProperties.setScanStatus ("idle", false);
+    });
 }
 
 void Assimil8orValidator::run ()
@@ -180,18 +204,29 @@ void Assimil8orValidator::run ()
 void Assimil8orValidator::validateRootFolder ()
 {
     LogValidation ("Assimil8orValidator::validateRootFolder - enter");
+    // the generation this run belongs to. if another validation is asked for while we are running, this run's
+    // results are stale, and it must not report itself as the completed one
+    const auto generationOfThisRun { validationGeneration.load () };
     validatorResultListProperties.clear ();
     lastScanInProgressUpdate = juce::Time::currentTimeMillis ();
 
-    FolderProperties rootFolderProperties (directoryDataProperties.getRootFolderVT (), FolderProperties::WrapperType::client, FolderProperties::EnableCallbacks::no);
+    // this runs on the validate thread, so we work from a detached snapshot of the live tree
+    const auto rootFolderSnapshotVT { ValueTreeHelpers::getMessageThreadSnapshot (directoryDataProperties.getRootFolderVT ()) };
+    if (! rootFolderSnapshotVT.isValid ())
+    {
+        // the message thread did not service the snapshot request in time. report completion anyway, so that the
+        // display does not stay stuck showing this run as still scanning
+        reportValidationComplete (generationOfThisRun);
+        return;
+    }
+    FolderProperties rootFolderProperties (rootFolderSnapshotVT, FolderProperties::WrapperType::client, FolderProperties::EnableCallbacks::no);
     auto rootFolder { juce::File (rootFolderProperties.getName ()) };
     addResult (ValidatorResultProperties::ResultTypeInfo, "Root Folder: " + rootFolder.getFileName ());
 
     // do one initial progress update to fill in the first one
     validatorProperties.setProgressUpdate ("Validating: " + rootFolder.getFileName (), false);
     processFolder (rootFolderProperties.getValueTree ());
-    validatorProperties.setProgressUpdate ("", false);
-    validatorProperties.setScanStatus ("idle", false);
+    reportValidationComplete (generationOfThisRun);
     LogValidation ("Assimil8orValidator::validateRootFolder - exit");
 }
 

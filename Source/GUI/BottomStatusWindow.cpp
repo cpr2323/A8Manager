@@ -1,5 +1,5 @@
 #include "BottomStatusWindow.h"
-#include "../Utility/RuntimeRootProperties.h"
+#include "oolib/Properties/RuntimeRootProperties.h"
 
 BottomStatusWindow::BottomStatusWindow ()
 {

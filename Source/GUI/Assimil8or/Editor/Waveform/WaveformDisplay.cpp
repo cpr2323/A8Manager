@@ -1,7 +1,104 @@
 #include "WaveformDisplay.h"
 #include "../../../../SystemServices.h"
-#include "../../../../Utility/RuntimeRootProperties.h"
-#include "../../../../Utility/DebugLog.h"
+#include "oolib/Properties/RuntimeRootProperties.h"
+
+namespace
+{
+    // The Assimil8or's own loop can never be shorter than this.
+    constexpr juce::int64 kMinLoopLength { 4 };
+}
+
+WaveformDisplay::WaveformDisplay ()
+{
+    setupColours ();
+
+    // Samples is what the module itself deals in, so it leads and is the
+    // default; minutes:seconds is offered from the timeline's right-click menu.
+    // Beats:bars is not on the list - there is no tempo here for it to mean
+    // anything - which is why that menu has only two entries.
+    timeline.setAvailableUnits ({ TimelineComponent::Unit::samples, TimelineComponent::Unit::timeMinutesSeconds });
+    timeline.setUnit (TimelineComponent::Unit::samples);
+    // Marker drag labels are formatted by the timeline, so they follow its unit.
+    timeline.onUnitChanged = [this] (TimelineComponent::Unit) { markerOverlay.repaint (); };
+    addAndMakeVisible (timeline);
+
+    // Every waveform colour is the same black, so there is no RMS body to see -
+    // don't pay for one.
+    waveform.setRmsVisible (false);
+    waveform.onViewChanged = [this] () { publishView (); };
+    waveform.onDoubleClick = [this] ()
+    {
+        waveform.setVerticalZoom (1.0f);
+        waveform.zoomToFit ();
+        publishView ();
+    };
+    addAndMakeVisible (waveform);
+
+    markerOverlay.setWaveformView (&waveform);
+    markerOverlay.constrainPosition = [this] (int markerIndex, double proposedPosition) { return constrainMarker (markerIndex, proposedPosition); };
+    markerOverlay.onMarkerMoved = [this] (int markerIndex) { markerMoved (markerIndex); };
+    markerOverlay.formatPosition = [this] (double sample) { return timeline.formatSamplePosition (sample); };
+    addAndMakeVisible (markerOverlay);
+
+    setupMarkers ();
+}
+
+void WaveformDisplay::setupColours ()
+{
+    const auto backgroundColour { juce::Colours::grey.darker (0.3f) };
+
+    WaveformView::ColourScheme waveformColours;
+    waveformColours.background = backgroundColour;
+    waveformColours.centreLine = juce::Colours::black;
+    waveformColours.peak       = juce::Colours::black;
+    waveformColours.rms        = juce::Colours::black;
+    waveformColours.sampleLine = juce::Colours::black;
+    waveformColours.sampleDot  = juce::Colours::black;
+    waveform.setColourScheme (waveformColours);
+
+    TimelineComponent::ColourScheme timelineColours;
+    timelineColours.background = backgroundColour;
+    timelineColours.majorTick  = juce::Colours::black;
+    timelineColours.minorTick  = juce::Colours::black.withAlpha (0.55f);
+    timelineColours.text       = juce::Colours::black;
+    timeline.setColourScheme (timelineColours);
+}
+
+void WaveformDisplay::setupMarkers ()
+{
+    MarkerOverlay::Style style;
+    style.colour        = juce::Colours::white;
+    style.lineThickness = 1.0f;
+    style.shape         = MarkerOverlay::HandleShape::rectangle;
+    style.handleWidth   = 10.0f;
+    style.handleHeight  = 10.0f;
+    style.label         = MarkerOverlay::LabelVisibility::whileDragging;
+
+    // In each pair the handles hang inwards, off the side of the line that faces
+    // the region they bound, so which line a handle belongs to stays readable
+    // when the two are close together.
+
+    // Sample start / end: solid lines, handles along the top.
+    auto sampleStartStyle { style };
+    sampleStartStyle.placement = MarkerOverlay::HandlePlacement::top;
+    sampleStartStyle.alignment = MarkerOverlay::HandleAlignment::rightOfLine;
+    markerOverlay.addMarker ({ "Start", 0.0, sampleStartStyle });
+
+    auto sampleEndStyle { sampleStartStyle };
+    sampleEndStyle.alignment = MarkerOverlay::HandleAlignment::leftOfLine;
+    markerOverlay.addMarker ({ "End", 0.0, sampleEndStyle });
+
+    // Loop start / end: dashed lines, handles along the bottom.
+    auto loopStartStyle { style };
+    loopStartStyle.placement = MarkerOverlay::HandlePlacement::bottom;
+    loopStartStyle.alignment = MarkerOverlay::HandleAlignment::rightOfLine;
+    loopStartStyle.dashed    = true;
+    markerOverlay.addMarker ({ "Loop Start", 0.0, loopStartStyle });
+
+    auto loopEndStyle { loopStartStyle };
+    loopEndStyle.alignment = MarkerOverlay::HandleAlignment::leftOfLine;
+    markerOverlay.addMarker ({ "Loop End", 0.0, loopEndStyle });
+}
 
 void WaveformDisplay::init (juce::ValueTree channelPropertiesVT, juce::ValueTree rootPropertiesVT)
 {
@@ -19,192 +116,203 @@ void WaveformDisplay::setZone (int zoneIndex)
 {
     zoneProperties.wrap (channelProperties.getZoneVT (zoneIndex), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::yes);
     zoneProperties.onSampleChange = [this] (juce::String) { repaint (); };
-    zoneProperties.onSampleStartChange = [this] (std::optional<juce::int64>) { updateData (); repaint (); };
-    zoneProperties.onSampleEndChange = [this] (std::optional<juce::int64>) { updateData (); repaint (); };
-    zoneProperties.onLoopStartChange = [this] (std::optional<juce::int64>) { updateData (); repaint (); };
-    zoneProperties.onLoopLengthChange = [this] (std::optional<double>) { updateData (); repaint (); };
-    zoneProperties.onSideChange = [this] (int) { updateData (); repaint (); };
+    zoneProperties.onSampleStartChange = [this] (std::optional<juce::int64>) { updateMarkerPositions (); };
+    zoneProperties.onSampleEndChange = [this] (std::optional<juce::int64>) { updateMarkerPositions (); };
+    zoneProperties.onLoopStartChange = [this] (std::optional<juce::int64>) { updateMarkerPositions (); };
+    zoneProperties.onLoopLengthChange = [this] (std::optional<double>) { updateMarkerPositions (); };
+    zoneProperties.onSideChange = [this] (int) { updateDisplayChannel (); };
 
     sampleProperties.wrap (sampleManagerProperties.getSamplePropertiesVT (channelProperties.getId () - 1, zoneIndex), SampleProperties::WrapperType::client, SampleProperties::EnableCallbacks::yes);
-    sampleProperties.onStatusChange = [this] (SampleStatus) { updateData ();  repaint (); };
+    sampleProperties.onStatusChange = [this] (SampleStatus) { updateAudioSource (); };
+    sampleProperties.onAudioBufferPtrChange = [this] (AudioBufferType*) { updateAudioSource (); };
+    sampleProperties.onSampleRateChange = [this] (double newSampleRate) { timeline.setSampleRate (newSampleRate); };
 
-    updateData ();
-    repaint ();
+    updateAudioSource ();
 }
 
-void WaveformDisplay::updateData ()
+//==============================================================================
+bool WaveformDisplay::hasSample ()
 {
-    if (zoneProperties.isValid () && sampleProperties.isValid () && sampleProperties.getStatus () == SampleStatus::exists)
+    return zoneProperties.isValid () && sampleProperties.isValid () && sampleProperties.getStatus () == SampleStatus::exists;
+}
+
+juce::int64 WaveformDisplay::getSampleLength ()
+{
+    return hasSample () ? sampleProperties.getLengthInSamples () : 0;
+}
+
+int WaveformDisplay::getDisplayChannel ()
+{
+    if (! hasSample ())
+        return 0;
+
+    const auto side { zoneProperties.getSide () };
+    return side < sampleProperties.getNumChannels () ? side : 0;
+}
+
+//==============================================================================
+void WaveformDisplay::updateAudioSource ()
+{
+    // The waveform holds the buffer without owning it, and the SampleManager
+    // announces an unload by clearing the status before it clears the pointer.
+    // Letting go of it first means nothing here can read a buffer that has gone
+    // away, and it also makes the channel change below free (there is nothing
+    // left to summarise) rather than a scan of the outgoing buffer.
+    waveform.setAudioBuffer (nullptr);
+    waveform.setDisplayChannel (getDisplayChannel ());
+    waveform.setAudioBuffer (hasSample () ? sampleProperties.getAudioBufferPtr () : nullptr);
+
+    if (hasSample ())
+        timeline.setSampleRate (sampleProperties.getSampleRate ());
+
+    markerOverlay.setVisible (hasSample ());
+    updateMarkerPositions ();
+    publishView ();
+}
+
+void WaveformDisplay::updateDisplayChannel ()
+{
+    waveform.setDisplayChannel (getDisplayChannel ());
+}
+
+void WaveformDisplay::updateMarkerPositions ()
+{
+    if (! hasSample ())
+        return;
+
+    const auto sampleLength { getSampleLength () };
+    const auto sampleStart { zoneProperties.getSampleStart ().value_or (0) };
+    const auto sampleEnd { zoneProperties.getSampleEnd ().value_or (sampleLength) };
+    const auto loopStart { zoneProperties.getLoopStart ().value_or (0) };
+    const auto loopLength { static_cast<juce::int64> (zoneProperties.getLoopLength ().value_or (static_cast<double> (sampleLength - loopStart))) };
+
+    markerOverlay.setPosition (kSampleStart, static_cast<double> (sampleStart));
+    markerOverlay.setPosition (kSampleEnd, static_cast<double> (sampleEnd));
+    markerOverlay.setPosition (kLoopStart, static_cast<double> (loopStart));
+    markerOverlay.setPosition (kLoopEnd, static_cast<double> (loopStart + loopLength));
+}
+
+// The timeline and the overlay both position by sample, so they have to be
+// handed the waveform's view every time a gesture changes it.
+void WaveformDisplay::publishView ()
+{
+    timeline.setView (waveform.getVisibleStartSample (), waveform.getSamplesPerPixel ());
+    markerOverlay.repaint ();
+}
+
+//==============================================================================
+// Where a dragged marker may go, relative to the others. The overlay applies the
+// audio bounds itself afterwards.
+double WaveformDisplay::constrainMarker (int markerIndex, double proposedPosition)
+{
+    if (! hasSample ())
+        return proposedPosition;
+
+    const auto sampleLength { getSampleLength () };
+    const auto position { static_cast<juce::int64> (proposedPosition) };
+
+    switch (markerIndex)
     {
-        numSamples  = sampleProperties.getLengthInSamples ();
-        sampleStart = zoneProperties.getSampleStart ().value_or (0);
-        sampleEnd = zoneProperties.getSampleEnd ().value_or (numSamples);
-        loopStart = zoneProperties.getLoopStart ().value_or (0);
-        loopLength = static_cast<juce::int64> (zoneProperties.getLoopLength ().value_or (static_cast<double> (numSamples - loopStart)));
-        samplesPerPixel = static_cast<float> (numSamples) / getWidth ();
-
-        const auto markerHandleSize { 10 };
-
-        // draw sample start marker
-        sampleStartMarkerX = 1 + static_cast<int> ((static_cast<float> (sampleStart) / static_cast<float> (numSamples) * numPixels));
-        sampleStartHandle = { sampleStartMarkerX, markerStartY, markerHandleSize, markerHandleSize };
-
-        // draw sample end marker
-        sampleEndMarkerX = 1 + static_cast<int> ((static_cast<float> (sampleEnd) / static_cast<float> (numSamples) * numPixels));
-        sampleEndHandle = { sampleEndMarkerX - markerHandleSize, markerStartY, markerHandleSize, markerHandleSize };
-
-        // draw loop start marker
-        loopStartMarkerX = 1 + static_cast<int> ((static_cast<float> (loopStart) / static_cast<float> (numSamples) * numPixels));
-        loopStartHandle = { loopStartMarkerX, markerEndY - markerHandleSize, markerHandleSize, markerHandleSize };
-
-        // draw loop end marker
-        loopEndMarkerX = 1 + static_cast<int> (((static_cast<float> (loopStart + static_cast<juce::int64> (loopLength))) / static_cast<float> (numSamples) * numPixels));
-        loopEndHandle = { loopEndMarkerX - markerHandleSize, markerEndY - markerHandleSize, markerHandleSize, markerHandleSize };
+        case kSampleStart:
+        {
+            const auto sampleEnd { zoneProperties.getSampleEnd ().value_or (sampleLength) };
+            return static_cast<double> (std::clamp (position, juce::int64 { 0 }, std::max (juce::int64 { 0 }, sampleEnd - 1)));
+        }
+        case kSampleEnd:
+        {
+            const auto sampleStart { zoneProperties.getSampleStart ().value_or (0) };
+            return static_cast<double> (std::clamp (position, std::min (sampleStart + 1, sampleLength), sampleLength));
+        }
+        case kLoopStart:
+        {
+            const auto maxLoopStart { editManager == nullptr ? sampleLength
+                                                             : editManager->getMaxLoopStart (channelProperties.getId () - 1, zoneProperties.getId () - 1) };
+            return static_cast<double> (std::clamp (position, juce::int64 { 0 }, std::max (juce::int64 { 0 }, maxLoopStart)));
+        }
+        case kLoopEnd:
+        {
+            const auto loopStart { zoneProperties.getLoopStart ().value_or (0) };
+            return static_cast<double> (std::clamp (position, std::min (loopStart + kMinLoopLength, sampleLength), sampleLength));
+        }
+        default:
+        {
+            return proposedPosition;
+        }
     }
+}
+
+// A marker was dragged; write it back to the zone. A property setter here comes
+// back through the onXChange callbacks above and repositions every marker, which
+// is how the ones that have to follow this one get moved.
+void WaveformDisplay::markerMoved (int markerIndex)
+{
+    if (! hasSample ())
+        return;
+
+    const auto sampleLength { getSampleLength () };
+    const auto position { static_cast<juce::int64> (markerOverlay.getPosition (markerIndex)) };
+
+    switch (markerIndex)
+    {
+        case kSampleStart:
+        {
+            zoneProperties.setSampleStart (position == 0 ? -1 : position, true);
+        }
+        break;
+
+        case kSampleEnd:
+        {
+            zoneProperties.setSampleEnd (position == sampleLength ? -1 : position, true);
+        }
+        break;
+
+        case kLoopStart:
+        {
+            const auto originalLoopStart { zoneProperties.getLoopStart ().value_or (0) };
+            zoneProperties.setLoopStart (position == 0 ? -1 : position, true);
+            if (channelProperties.getLoopLengthIsEnd ())
+            {
+                // Loop Length is always stored as a length, even when it is being
+                // shown as an end, so holding the end still means moving the
+                // length by however far the start travelled.
+                const auto lengthChangeAmount { static_cast<double> (originalLoopStart - position) };
+                const auto newLoopLength { zoneProperties.getLoopLength ().value_or (static_cast<double> (sampleLength)) + lengthChangeAmount };
+                zoneProperties.setLoopLength (newLoopLength == static_cast<double> (sampleLength) ? -1.0 : newLoopLength, true);
+            }
+        }
+        break;
+
+        case kLoopEnd:
+        {
+            const auto newLoopLength { static_cast<double> (position - zoneProperties.getLoopStart ().value_or (0)) };
+            zoneProperties.setLoopLength (newLoopLength == static_cast<double> (sampleLength) ? -1.0 : newLoopLength, true);
+        }
+        break;
+
+        default:
+        break;
+    }
+}
+
+//==============================================================================
+// Disabling the display stops it being edited, but panning, zooming and the
+// timeline's unit menu only change the view, so they stay live.
+void WaveformDisplay::enablementChanged ()
+{
+    markerOverlay.setInterceptsMouseClicks (isEnabled (), false);
 }
 
 void WaveformDisplay::resized ()
 {
-    halfHeight = getHeight () / 2;
-    numPixels = getWidth () - 2;
-    samplesPerPixel = static_cast<float> (numSamples) / getWidth ();
-    markerEndY = getHeight () - 2;
-    const auto dashSize { getHeight () / 11.f };
-    dashedSpec = { dashSize, dashSize };
+    auto bounds { getLocalBounds ().reduced (1) };
+    timeline.setBounds (bounds.removeFromTop (juce::jmin (kTimelineHeight, bounds.getHeight () / 3)));
+    waveform.setBounds (bounds);
+    markerOverlay.setBounds (bounds);
+    publishView ();
 }
 
-void WaveformDisplay::paint (juce::Graphics& g)
+void WaveformDisplay::paintOverChildren (juce::Graphics& g)
 {
-    g.setColour (juce::Colours::grey.darker (0.3f));
-    g.fillRect (getLocalBounds ());
-
-    if (zoneProperties.isValid () && sampleProperties.isValid () && sampleProperties.getStatus () == SampleStatus::exists)
-    {
-        const auto audioBufferPtr { sampleProperties.getAudioBufferPtr () };
-        const auto side { zoneProperties.getSide () };
-        auto readPtr { audioBufferPtr->getReadPointer (side < sampleProperties.getNumChannels () ? side : 0) };
-
-        g.setColour (juce::Colours::black);
-        // TODO - get proper end pixel if sample ends before end of display
-        for (auto pixelIndex { 0 }; pixelIndex < numPixels - 1; ++pixelIndex)
-        {
-            if ((pixelIndex + 1) * samplesPerPixel < numSamples)
-            {
-                const auto pixelOffset { pixelIndex + 1 };
-                g.drawLine (static_cast<float> (pixelOffset),
-                            static_cast<float> (static_cast<int> (halfHeight + (readPtr [static_cast<int> (pixelIndex * samplesPerPixel)] * halfHeight))),
-                            static_cast<float> (pixelOffset + 1),
-                            static_cast<float> (static_cast<int> (halfHeight + (readPtr [static_cast<int> ((pixelIndex + 1) * samplesPerPixel)] * halfHeight))));
-            }
-            else
-            {
-                break;
-            }
-        }
-
-        // setup marker drawing
-        g.setColour (juce::Colours::white);
-
-        // draw sample start marker
-        g.fillRect (sampleStartHandle);
-        g.drawLine (juce::Line<int> { sampleStartMarkerX, markerStartY, sampleStartMarkerX, markerEndY }.toFloat ());
-
-        // draw sample end marker
-        g.fillRect (sampleEndHandle);
-        g.drawLine (juce::Line<int> { sampleEndMarkerX, markerStartY, sampleEndMarkerX, markerEndY }.toFloat ());
-
-        // draw loop start marker
-        g.fillRect (loopStartHandle);
-        g.drawDashedLine (juce::Line<int>{ loopStartMarkerX, markerStartY, loopStartMarkerX, markerEndY }.toFloat (), dashedSpec.data (), 2);
-
-        // draw loop end marker
-        g.fillRect (loopEndHandle);
-        g.drawDashedLine (juce::Line<int>{ loopEndMarkerX, markerStartY, loopEndMarkerX, markerEndY }.toFloat (), dashedSpec.data (), 2);
-    }
-
     g.setColour (juce::Colours::black);
     g.drawRect (getLocalBounds ());
-}
-
-void WaveformDisplay::mouseMove (const juce::MouseEvent& e)
-{
-    if (! isEnabled ())
-        return;
-
-    if (zoneProperties.isValid () && sampleProperties.isValid () && sampleProperties.getStatus () == SampleStatus::exists)
-    {
-        if (sampleStartHandle.contains (e.getPosition ()))
-            handleIndex = EditHandleIndex::kSampleStart;
-        else if (sampleEndHandle.contains (e.getPosition ()))
-            handleIndex = EditHandleIndex::kSampleEnd;
-        else if (loopStartHandle.contains (e.getPosition ()))
-            handleIndex = EditHandleIndex::kLoopStart;
-        else if (loopEndHandle.contains (e.getPosition ()))
-            handleIndex = EditHandleIndex::kLoopEnd;
-        else
-            handleIndex = EditHandleIndex::kNone;
-        repaint ();
-        //DebugLog ("WaveformDisplay", "mouseMove - handleIndex: " + juce::String (handleIndex));
-    }
-}
-
-void WaveformDisplay::mouseDown ([[maybe_unused]] const juce::MouseEvent& e)
-{
-    if (! isEnabled ())
-        return;
-
-    if (handleIndex == EditHandleIndex::kNone)
-        return;
-}
-
-void WaveformDisplay::mouseDrag (const juce::MouseEvent& e)
-{
-    if (! isEnabled ())
-        return;
-
-    switch (handleIndex)
-    {
-        case EditHandleIndex::kNone:
-        {
-            return;
-        }
-        break;
-        case EditHandleIndex::kSampleStart:
-        {
-            const auto newSampleStart { static_cast<juce::int64> (e.getPosition ().getX () * samplesPerPixel) };
-            const auto clampedSampleStart { std::clamp (newSampleStart, static_cast<juce::int64> (0), zoneProperties.getSampleEnd ().value_or (sampleProperties.getLengthInSamples ()) - 1) };
-            zoneProperties.setSampleStart (clampedSampleStart == 0 ? -1 : clampedSampleStart, true);
-        }
-        break;
-        case EditHandleIndex::kSampleEnd:
-        {
-            const auto newSampleEnd { static_cast<juce::int64> (e.getPosition ().getX () * samplesPerPixel) };
-            const auto clampedSampleEnd { std::clamp (newSampleEnd, zoneProperties.getSampleStart ().value_or (0) + 1, sampleProperties.getLengthInSamples ()) };
-            zoneProperties.setSampleEnd (clampedSampleEnd == sampleProperties.getLengthInSamples () ? -1 : clampedSampleEnd, true);
-        }
-        break;
-        case EditHandleIndex::kLoopStart:
-        {
-            const auto originalLoopStart { zoneProperties.getLoopStart ().value_or (0) };
-            const auto newLoopStart { static_cast<juce::int64> (e.getPosition ().getX () * samplesPerPixel) };
-            const auto clampedLoopStart { std::clamp (newLoopStart, static_cast<juce::int64> (0), editManager->getMaxLoopStart (channelProperties.getId () - 1, zoneProperties.getId () - 1)) };
-            //DebugLog ("Waveformdisplay::mouseDrag", "originalLoopStart: " + juce::String (originalLoopStart) + "' newLoopStart: " + juce::String (newLoopStart) + ", clampledLoopStart: " + juce::String (clampedLoopStart));
-            zoneProperties.setLoopStart (clampedLoopStart == 0 ? -1 : clampedLoopStart, true);
-            if (channelProperties.getLoopLengthIsEnd ())
-            {
-                // When treating Loop Length as Loop End, we need to adjust the internal storage of Loop Length by the amount Loop Start changed
-                const auto lengthChangeAmount { static_cast<double> (originalLoopStart - clampedLoopStart) };
-                const auto newLoopLength { zoneProperties.getLoopLength ().value_or (sampleProperties.getLengthInSamples ()) + lengthChangeAmount };
-                zoneProperties.setLoopLength (newLoopLength == sampleProperties.getLengthInSamples () ? -1 : newLoopLength, true);
-            }
-        }
-        break;
-        case EditHandleIndex::kLoopEnd:
-        {
-            const auto newLoopLength { static_cast<double> ((e.getPosition ().getX () * samplesPerPixel) - zoneProperties.getLoopStart ().value_or (0)) };
-            const auto clampedLoopLength { std::clamp (newLoopLength, 4.0, static_cast<double> (sampleProperties.getLengthInSamples () - zoneProperties.getLoopStart ().value_or (0))) };
-            zoneProperties.setLoopLength (clampedLoopLength == sampleProperties.getLengthInSamples () ? -1.0 : clampedLoopLength, true);
-        }
-        break;
-    }
 }

@@ -4,14 +4,19 @@ A tool to manage Presets and Sample files for the Rossum-Electro Assimil8or
 
 Windows and macOS builds available at: https://cpr2323.github.io/a8manager/index.html
 
-Currently requires JUCE version 7. The revision from 1/10/2024: 31dfb05ea3299176a416bf9258e030d04a099798
+# Building
 
-The Projucer exporters expect the JUCE checkout to be next to this repository:
+The JUCE and oolib submodules must be initialised before the first build:
 
-```text
-parent-folder/
-├── A8Manager/
-└── JUCE/
+```
+git submodule update --init --recursive
+```
+
+Then configure and build with CMake:
+
+```
+cmake -B cmake_build
+cmake --build cmake_build --config Release
 ```
 
 # Windows
@@ -29,7 +34,8 @@ Since the application is not signed (I don't want to pay the $99/yr) you will ha
 
 # Linux
 
-There is no Linux version yet, but since we are using JUCE it should be _relative simple_.
+There is no Linux version yet, but since we are using JUCE it should be _relative simple_. I actually did a quick test of this back in 2023 and published the results in a youtube video.
+[A8Manager Linux build verification video](https://www.youtube.com/watch?v=fk4RRMh7hZc)
 
 # Thanks
 

@@ -1,5 +1,5 @@
 #include "AudioManager.h"
-#include "../../Utility/DebugLog.h"
+#include "oolib/Debug/DebugLog.h"
 
 constexpr float epsilon { 1e-6f };
 #define INCLUDE_WAVE_MATCHING_LOOP_POINT_ALIGN 0
@@ -168,14 +168,19 @@ void AudioManager::mixStereoToMono (juce::File inputFile)
         // write mono audio buffer to new file
         const auto monoOutputFileName { inputFile.getFileNameWithoutExtension () + "-mono" };
         juce::File monoOuputFile { inputFile.getParentDirectory ().getChildFile (monoOutputFileName).withFileExtension ("wav") };
-        auto outputStream { monoOuputFile.createOutputStream () };
-        outputStream->setPosition (0);
-        outputStream->truncate ();
+        // setPosition () and truncate () are FileOutputStream only, so the setup has to happen while the pointer still has that type
+        auto outputFileStream { monoOuputFile.createOutputStream () };
+        outputFileStream->setPosition (0);
+        outputFileStream->truncate ();
+        // createWriterFor takes a unique_ptr<OutputStream>&, and a unique_ptr<FileOutputStream> cannot bind to a reference to a
+        // different type, so the stream is moved into a base typed pointer to hand over. this is the same stream: outputFileStream is null from here on
+        std::unique_ptr<juce::OutputStream> outputStream { std::move (outputFileStream) };
         juce::WavAudioFormat wavAudioFormat;
-        if (std::unique_ptr<juce::AudioFormatWriter> writer { wavAudioFormat.createWriterFor (outputStream.get (), sampleFileReader->sampleRate, 1, sampleFileReader->bitsPerSample, {}, 0) }; writer != nullptr)
+        // on success, the writer takes ownership of the output stream, and will delete it when done
+        if (auto writer { wavAudioFormat.createWriterFor (outputStream, juce::AudioFormatWriterOptions {}.withSampleRate (sampleFileReader->sampleRate)
+                                                                                                        .withNumChannels (1)
+                                                                                                        .withBitsPerSample (sampleFileReader->bitsPerSample)) }; writer != nullptr)
         {
-            // audioFormatWriter will delete the file stream when done
-            outputStream.release ();
             writer->writeFromAudioSampleBuffer (monoAudioBuffer, 0, static_cast<int> (sampleFileReader->lengthInSamples));
         }
         else
@@ -217,14 +222,19 @@ void AudioManager::splitStereoIntoTwoMono (juce::File inputFile)
             // write mono audio buffer to new file
             const auto monoOutputFileName { inputFile.getFileNameWithoutExtension () + "-" + postFixChannelIndicator };
             juce::File monoOuputFile { inputFile.getParentDirectory ().getChildFile (monoOutputFileName).withFileExtension ("wav") };
-            auto outputStream { monoOuputFile.createOutputStream () };
-            outputStream->setPosition (0);
-            outputStream->truncate ();
+            // setPosition () and truncate () are FileOutputStream only, so the setup has to happen while the pointer still has that type
+            auto outputFileStream { monoOuputFile.createOutputStream () };
+            outputFileStream->setPosition (0);
+            outputFileStream->truncate ();
+            // createWriterFor takes a unique_ptr<OutputStream>&, and a unique_ptr<FileOutputStream> cannot bind to a reference to a
+            // different type, so the stream is moved into a base typed pointer to hand over. this is the same stream: outputFileStream is null from here on
+            std::unique_ptr<juce::OutputStream> outputStream { std::move (outputFileStream) };
             juce::WavAudioFormat wavAudioFormat;
-            if (std::unique_ptr<juce::AudioFormatWriter> writer { wavAudioFormat.createWriterFor (outputStream.get (), sampleFileReader->sampleRate, 1, sampleFileReader->bitsPerSample, {}, 0) }; writer != nullptr)
+            // on success, the writer takes ownership of the output stream, and will delete it when done
+            if (auto writer { wavAudioFormat.createWriterFor (outputStream, juce::AudioFormatWriterOptions {}.withSampleRate (sampleFileReader->sampleRate)
+                                                                                                            .withNumChannels (1)
+                                                                                                            .withBitsPerSample (sampleFileReader->bitsPerSample)) }; writer != nullptr)
             {
-                // audioFormatWriter will delete the file stream when done
-                outputStream.release ();
                 writer->writeFromAudioSampleBuffer (monoAudioBuffer, 0, static_cast<int> (sampleFileReader->lengthInSamples));
             }
             else

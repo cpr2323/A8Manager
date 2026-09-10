@@ -1,7 +1,6 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include "../Utility/DirectoryDataProperties.h"
 
 namespace FileTypeHelpers
 {
@@ -20,7 +19,12 @@ namespace FileTypeHelpers
     const auto kMaxPresets { 199 };
     const auto kBadPresetNumber { 9999 };
 
-    DirectoryDataProperties::TypeIndex getFileType (juce::File file);
+    // the names A8Manager registers its file types under with DirectoryValueTree. clients turn one of
+    // these into the id stored on a directory entry via DirectoryDataProperties::getFileTypeId
+    const juce::String kSystemFileTypeName { "system" };
+    const juce::String kPresetFileTypeName { "preset" };
+    const juce::String kAudioFileTypeName { "audio" };
+
     juce::String getPresetFileName (int presetIndex);
     int  getPresetNumberFromName (juce::File file);
     bool isPresetFile (juce::File file);
@@ -29,4 +33,5 @@ namespace FileTypeHelpers
     bool isLastPresetFile (juce::File file);
     bool isSystemFile (juce::File file);
     bool isMidiSetupFile (juce::File file);
+    bool isAudioFile (juce::File file);
 };

@@ -1,5 +1,5 @@
 #include "MidiConfigComponent.h"
-#include "../../../Utility/RuntimeRootProperties.h"
+#include "oolib/Properties/RuntimeRootProperties.h"
 
 MidiConfigComponent::MidiConfigComponent ()
 {

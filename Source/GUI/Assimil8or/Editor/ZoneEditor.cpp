@@ -6,11 +6,11 @@
 #include "../../../Assimil8or/Preset/ChannelProperties.h"
 #include "../../../Assimil8or/Preset/PresetProperties.h"
 #include "../../../Assimil8or/Preset/ParameterPresetsSingleton.h"
-#include "../../../Utility/DebugLog.h"
-#include "../../../Utility/DumpStack.h"
-#include "../../../Utility/ErrorHelpers.h"
-#include "../../../Utility/PersistentRootProperties.h"
-#include "../../../Utility/RuntimeRootProperties.h"
+#include "oolib/Debug/DebugLog.h"
+#include "oolib/Debug/DumpStack.h"
+#include "oolib/GUI/ErrorHelpers.h"
+#include "oolib/Properties/PersistentRootProperties.h"
+#include "oolib/Properties/RuntimeRootProperties.h"
 
 #define INCLUDE_WAVE_MATCHING_LOOP_POINT_ALIGN 0
 ZoneEditor::ZoneEditor ()
@@ -314,6 +314,8 @@ void ZoneEditor::setupZoneComponents ()
     sampleNameSelectLabel.setColour (juce::Label::ColourIds::backgroundColourId, levelOffsetTextEditor.findColour (juce::TextEditor::ColourIds::backgroundColourId));
     sampleNameSelectLabel.setOutline (levelOffsetTextEditor.findColour (juce::TextEditor::ColourIds::outlineColourId));
     sampleNameSelectLabel.setBorderSize ({ 0, 2, 0, 0 });
+    sampleNameSelectLabel.setDialogTitle ("Please select the Assimil8or Preset file you want to load...");
+    sampleNameSelectLabel.canMultiSelect (true);
     sampleNameSelectLabel.onFilesSelected = [this] (const juce::StringArray& files)
     {
         if (! handleSamplesInternal (zoneProperties.getId () - 1, files))
@@ -369,18 +371,9 @@ void ZoneEditor::setupZoneComponents ()
     {
         sampleStartUiChanged (value);
     };
-    sampleStartTextEditor.onDragCallback = [this] (DragSpeed dragSpeed, int direction)
+    sampleStartTextEditor.onDragCallback = [this] (double valueDelta)
     {
-        const auto multiplier = [this, dragSpeed] ()
-        {
-            if (dragSpeed == DragSpeed::slow)
-                return static_cast<juce::int64> (1);
-            else if (dragSpeed == DragSpeed::medium)
-                return std::max (sampleProperties.getLengthInSamples () / static_cast<juce::int64> (100), static_cast<juce::int64> (1));
-            else
-                return std::max (sampleProperties.getLengthInSamples () / static_cast<juce::int64> (10), static_cast<juce::int64> (1));
-        } ();
-        const auto newValue { zoneProperties.getSampleStart ().value_or (0) + (multiplier * direction) };
+        const auto newValue { zoneProperties.getSampleStart ().value_or (0) + static_cast<juce::int64> (valueDelta) };
         sampleStartTextEditor.setValue (newValue);
     };
     sampleStartTextEditor.onPopupMenuCallback = [this] ()
@@ -425,18 +418,9 @@ void ZoneEditor::setupZoneComponents ()
     {
         sampleEndUiChanged (value);
     };
-    sampleEndTextEditor.onDragCallback = [this] (DragSpeed dragSpeed, int direction)
+    sampleEndTextEditor.onDragCallback = [this] (double valueDelta)
     {
-        const auto multiplier = [this, dragSpeed] ()
-        {
-            if (dragSpeed == DragSpeed::slow)
-                return static_cast<juce::int64> (1);
-            else if (dragSpeed == DragSpeed::medium)
-                return std::max (sampleProperties.getLengthInSamples () / static_cast<juce::int64> (100), static_cast<juce::int64> (1));
-            else
-                return std::max (sampleProperties.getLengthInSamples () / static_cast<juce::int64> (10), static_cast<juce::int64> (1));
-        } ();
-        const auto newValue { zoneProperties.getSampleEnd ().value_or (sampleProperties.getLengthInSamples ()) + (multiplier * direction) };
+        const auto newValue { zoneProperties.getSampleEnd ().value_or (sampleProperties.getLengthInSamples ()) + static_cast<juce::int64> (valueDelta) };
         sampleEndTextEditor.setValue (newValue);
     };
     sampleEndTextEditor.onPopupMenuCallback = [this] ()
@@ -484,18 +468,9 @@ void ZoneEditor::setupZoneComponents ()
             loopLengthUiChanged (newLoopLength);
         }
     };
-    loopStartTextEditor.onDragCallback = [this] (DragSpeed dragSpeed, int direction)
+    loopStartTextEditor.onDragCallback = [this] (double valueDelta)
     {
-        const auto multiplier = [this, dragSpeed] ()
-        {
-            if (dragSpeed == DragSpeed::slow)
-                return static_cast<juce::int64> (1);
-            else if (dragSpeed == DragSpeed::medium)
-                return std::max (sampleProperties.getLengthInSamples () / static_cast<juce::int64> (100), static_cast<juce::int64> (1));
-            else
-                return std::max (sampleProperties.getLengthInSamples () / static_cast<juce::int64> (10), static_cast<juce::int64> (1));
-        } ();
-        const auto newValue { zoneProperties.getLoopStart ().value_or (0) + (multiplier * direction) };
+        const auto newValue { zoneProperties.getLoopStart ().value_or (0) + static_cast<juce::int64> (valueDelta) };
         loopStartTextEditor.setValue (newValue);
     };
     loopStartTextEditor.onPopupMenuCallback = [this] ()
@@ -587,18 +562,9 @@ void ZoneEditor::setupZoneComponents ()
         } ();
         loopLengthUiChanged (loopLengthInputValue);
     };
-    loopLengthTextEditor.onDragCallback = [this] (DragSpeed dragSpeed, int direction)
+    loopLengthTextEditor.onDragCallback = [this] (double valueDelta)
     {
-        const auto multiplier = [this, dragSpeed] ()
-        {
-            if (dragSpeed == DragSpeed::slow)
-                return static_cast<juce::int64> (1);
-            else if (dragSpeed == DragSpeed::medium)
-                return std::max (sampleProperties.getLengthInSamples () / static_cast<juce::int64> (100), static_cast<juce::int64> (1));
-            else
-                return std::max (sampleProperties.getLengthInSamples () / static_cast<juce::int64> (10), static_cast<juce::int64> (1));
-        } ();
-        const auto newValue { zoneProperties.getLoopLength ().value_or (sampleProperties.getLengthInSamples ()) + (multiplier * direction) };
+        const auto newValue { zoneProperties.getLoopLength ().value_or (sampleProperties.getLengthInSamples ()) + valueDelta };
         loopLengthTextEditor.setValue (newValue);
     };
 
@@ -638,18 +604,10 @@ void ZoneEditor::setupZoneComponents ()
     minVoltageTextEditor.snapValueCallback = [this] (double value) { return editManager->clampMinVoltage (parentChannelIndex, zoneIndex, value); };
     minVoltageTextEditor.toStringCallback = [this] (double value) { return FormatHelpers::formatDouble (value, 2, true); };
     minVoltageTextEditor.updateDataCallback = [this] (double value) { minVoltageUiChanged (value); };
-    minVoltageTextEditor.onDragCallback = [this] (DragSpeed dragSpeed, int direction)
+    minVoltageTextEditor.getIncrementCallback = [] () { return 0.01; };
+    minVoltageTextEditor.onDragCallback = [this] (double valueDelta)
     {
-        const auto multiplier = [this, dragSpeed] ()
-        {
-            if (dragSpeed == DragSpeed::slow)
-                return 0.01;
-            else if (dragSpeed == DragSpeed::medium)
-                return 0.1;
-            else
-                return 1.0;
-        } ();
-        const auto newValue { zoneProperties.getMinVoltage () + (multiplier * static_cast<double> (direction)) };
+        const auto newValue { zoneProperties.getMinVoltage () + valueDelta };
         minVoltageTextEditor.setValue (newValue);
     };
     minVoltageTextEditor.onPopupMenuCallback = [this] ()
@@ -670,18 +628,10 @@ void ZoneEditor::setupZoneComponents ()
     pitchOffsetTextEditor.getMaxValueCallback = [this] { return maxZoneProperties.getPitchOffset (); };
     pitchOffsetTextEditor.toStringCallback = [this] (double value) { return FormatHelpers::formatDouble (value, 2, true); };
     pitchOffsetTextEditor.updateDataCallback = [this] (double value) { pitchOffsetUiChanged (value); };
-    pitchOffsetTextEditor.onDragCallback = [this] (DragSpeed dragSpeed, int direction)
+    pitchOffsetTextEditor.getIncrementCallback = [] () { return 0.01; };
+    pitchOffsetTextEditor.onDragCallback = [this] (double valueDelta)
     {
-        const auto multiplier = [this, dragSpeed] ()
-        {
-            if (dragSpeed == DragSpeed::slow)
-                return 0.01;
-            else if (dragSpeed == DragSpeed::medium)
-                return 0.1;
-            else
-                return (maxZoneProperties.getPitchOffset () - minZoneProperties.getPitchOffset ()) / 10.0;
-        } ();
-        const auto newValue { zoneProperties.getPitchOffset () + (multiplier * static_cast<double> (direction)) };
+        const auto newValue { zoneProperties.getPitchOffset () + valueDelta };
         pitchOffsetTextEditor.setValue (newValue);
     };
     pitchOffsetTextEditor.onPopupMenuCallback = [this] ()
@@ -703,18 +653,10 @@ void ZoneEditor::setupZoneComponents ()
     levelOffsetTextEditor.getMaxValueCallback = [this] { return maxZoneProperties.getLevelOffset (); };
     levelOffsetTextEditor.toStringCallback = [this] (double value) { return FormatHelpers::formatDouble (value, 1, true); };
     levelOffsetTextEditor.updateDataCallback = [this] (double value) { levelOffsetUiChanged (value); };
-    levelOffsetTextEditor.onDragCallback = [this] (DragSpeed dragSpeed, int direction)
+    levelOffsetTextEditor.getIncrementCallback = [] () { return 0.1; };
+    levelOffsetTextEditor.onDragCallback = [this] (double valueDelta)
     {
-        const auto multiplier = [this, dragSpeed] ()
-        {
-            if (dragSpeed == DragSpeed::slow)
-                return 0.1;
-            else if (dragSpeed == DragSpeed::medium)
-                return 1.0;
-            else
-                return (maxZoneProperties.getLevelOffset () - minZoneProperties.getLevelOffset ()) / 10.0;
-        } ();
-        const auto newValue { zoneProperties.getLevelOffset () + (multiplier * static_cast<double> (direction)) };
+        const auto newValue { zoneProperties.getLevelOffset () + valueDelta };
         levelOffsetTextEditor.setValue (newValue);
     };
     levelOffsetTextEditor.onPopupMenuCallback = [this] ()

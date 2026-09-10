@@ -6,7 +6,7 @@
 #include "../../../Assimil8or/Audio/AudioManager.h"
 #include "../../../Assimil8or/Validator/ValidatorProperties.h"
 #include "../../../Assimil8or/Validator/ValidatorResultProperties.h"
-#include "../../../Utility/DirectoryDataProperties.h"
+#include "oolib/Directory/DirectoryDataProperties.h"
 
 class Assimil8orValidatorComponent : public juce::Component,
                                      private juce::TableListBoxModel,

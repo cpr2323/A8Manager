@@ -2,6 +2,7 @@
 #include "AppProperties.h"
 #include "SystemServices.h"
 #include "Assimil8or/Assimil8orValidator.h"
+#include "Assimil8or/FileTypeHelpers.h"
 #include "Assimil8or/PresetManagerProperties.h"
 #include "Assimil8or/Audio/AudioManager.h"
 #include "Assimil8or/Audio/AudioPlayer.h"
@@ -12,13 +13,13 @@
 #include "GUI/MainComponent.h"
 #include "GUI/Assimil8or/Editor/EditManager.h"
 #include "GUI/Assimil8or/Editor/SampleManager/SampleManager.h"
-#include "Utility/DebugLog.h"
-#include "Utility/DirectoryValueTree.h"
-#include "Utility/PersistentRootProperties.h"
-#include "Utility/RootProperties.h"
-#include "Utility/RuntimeRootProperties.h"
-#include "Utility/ValueTreeFile.h"
-#include "Utility/ValueTreeMonitor.h"
+#include "oolib/Debug/DebugLog.h"
+#include "oolib/Directory/DirectoryValueTree.h"
+#include "oolib/Properties/PersistentRootProperties.h"
+#include "oolib/Properties/RootProperties.h"
+#include "oolib/Properties/RuntimeRootProperties.h"
+#include "oolib/ValueTree/ValueTreeFile.h"
+#include "oolib/Debug/ValueTreeMonitor.h"
 
 // used to add things like TEST, or ALPHA, or BETA, etc to the version number when displayed
 constexpr const char* kVersionDecorator { "" };
@@ -123,6 +124,7 @@ public:
 
         // setup the directory scanner
         directoryValueTree.init (runtimeRootProperties.getValueTree ());
+        registerFileTypes ();
         directoryDataProperties.wrap (directoryValueTree.getDirectoryDataPropertiesVT (), DirectoryDataProperties::WrapperType::client, DirectoryDataProperties::EnableCallbacks::no);
         // debug tool for watching changes on the Directory Data Properties Value Tree
         //directoryDataMonitor.assign (directoryDataProperties.getValueTreeRef ());
@@ -143,6 +145,40 @@ public:
 
         // initialize the Validator
         assimil8orValidator.init (rootProperties.getValueTree ());
+    }
+
+    // DirectoryValueTree knows nothing about Assimil8or files, so we describe them to it here. the
+    // predicates are tried in registration order, and cheapest first: the system and preset tests are
+    // filename comparisons, while the audio decorator opens the file to read its header.
+    // NOTE: these callbacks run on the scan thread, never on the message thread
+    void registerFileTypes ()
+    {
+        const auto systemTypeId { directoryValueTree.registerFileType (FileTypeHelpers::kSystemFileTypeName,
+            [] (juce::File file) { return FileTypeHelpers::isSystemFile (file); }) };
+        const auto presetTypeId { directoryValueTree.registerFileType (FileTypeHelpers::kPresetFileTypeName,
+            [] (juce::File file) { return FileTypeHelpers::isPresetFile (file); }) };
+        const auto audioTypeId { directoryValueTree.registerFileType (FileTypeHelpers::kAudioFileTypeName,
+            [] (juce::File file) { return FileTypeHelpers::isAudioFile (file); },
+            [this] (juce::ValueTree entryVT, juce::File file)
+            {
+                if (auto reader { audioManager.getReaderFor (file) }; reader == nullptr)
+                {
+                    entryVT.setProperty ("error", "invalid format", nullptr);
+                }
+                else
+                {
+                    entryVT.setProperty ("dataType", (reader->usesFloatingPointData == true ? "floating point" : "integer"), nullptr);
+                    entryVT.setProperty ("bitDepth", static_cast<int> (reader->bitsPerSample), nullptr);
+                    entryVT.setProperty ("numChannels", static_cast<int> (reader->numChannels), nullptr);
+                    entryVT.setProperty ("sampleRate", static_cast<int> (reader->sampleRate), nullptr);
+                    entryVT.setProperty ("lengthSamples", static_cast<juce::int64> (reader->lengthInSamples), nullptr);
+                }
+            }) };
+
+        // folders, then system files, then presets, then audio, then everything else, as the FileView
+        // has always displayed them
+        directoryValueTree.setSortOrder ({ DirectoryValueTree::folderTypeId, systemTypeId, presetTypeId,
+                                           audioTypeId, DirectoryValueTree::unknownTypeId });
     }
 
     void initUi ()

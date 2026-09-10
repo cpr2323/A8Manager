@@ -4,7 +4,7 @@
 #include <tuple>
 #include "ZoneProperties.h"
 #include "../../Assimil8or/Preset/ParameterHelpers.h"
-#include "../../Utility/ValueTreeWrapper.h"
+#include "oolib/ValueTree/ValueTreeWrapper.h"
 
 class ChannelProperties : public ValueTreeWrapper<ChannelProperties>
 {

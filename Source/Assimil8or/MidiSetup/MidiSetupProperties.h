@@ -1,7 +1,7 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include "../../Utility/ValueTreeWrapper.h"
+#include "oolib/ValueTree/ValueTreeWrapper.h"
 
 // Mode : Omni, Uni, Multi - 0,1,2
 // Assignment : One set of values for Omni/Uni and another for Multi. The unit seems to remember the setting for each of these

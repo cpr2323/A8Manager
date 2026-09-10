@@ -7,9 +7,9 @@
 #include "../../../../AppProperties.h"
 #include "../../../../Assimil8or/Audio/AudioManager.h"
 #include "../../../../Assimil8or/Preset/PresetProperties.h"
-#include "../../../../Utility/DebugLog.h"
-#include "../../../../Utility/DirectoryDataProperties.h"
-#include "../../../../Utility/RuntimeRootProperties.h"
+#include "oolib/Debug/DebugLog.h"
+#include "oolib/Directory/DirectoryDataProperties.h"
+#include "oolib/Properties/RuntimeRootProperties.h"
 
 class SampleManager
 {

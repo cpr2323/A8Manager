@@ -2,9 +2,10 @@
 #include "../../../SystemServices.h"
 #include "../../../Assimil8or/Assimil8orPreset.h"
 #include "../../../Assimil8or/FileTypeHelpers.h"
-#include "../../../Utility/PersistentRootProperties.h"
-#include "../../../Utility/RuntimeRootProperties.h"
-#include "../../../Utility/WatchDogTimer.h"
+#include "oolib/Properties/PersistentRootProperties.h"
+#include "oolib/Properties/RuntimeRootProperties.h"
+#include "oolib/ValueTree/ValueTreeHelpers.h"
+#include "oolib/Debug/WatchDogTimer.h"
 
 #define LOG_FILE_VIEW 0
 #if LOG_FILE_VIEW
@@ -63,6 +64,7 @@ void FileViewComponent::init (juce::ValueTree rootPropertiesVT)
     audioManager = systemServices.getAudioManager ();
 
     directoryDataProperties.wrap (runtimeRootProperties.getValueTree (), DirectoryDataProperties::WrapperType::client, DirectoryDataProperties::EnableCallbacks::yes);
+    audioFileTypeId = directoryDataProperties.getFileTypeId (FileTypeHelpers::kAudioFileTypeName);
     directoryDataProperties.onRootScanComplete = [this] ()
     {
         LogFileView ("FileViewComponent/onRootScanComplete");
@@ -127,15 +129,18 @@ void FileViewComponent::timerCallback ()
 void FileViewComponent::buildQuickLookupList ()
 {
     updateDirectoryListQuickLookupList->clear ();
-    ValueTreeHelpers::forEachChild (directoryDataProperties.getRootFolderVT (), [this] (juce::ValueTree child)
+    // this runs on the update from new data thread, so we work from a detached snapshot of the live tree
+    const auto rootFolderSnapshotVT { ValueTreeHelpers::getMessageThreadSnapshot (directoryDataProperties.getRootFolderVT ()) };
+    if (! rootFolderSnapshotVT.isValid ())
+        return;
+    ValueTreeHelpers::forEachChild (rootFolderSnapshotVT, [this] (juce::ValueTree child)
     {
-        const auto typeIndex { static_cast<int> (child.getProperty ("type")) };
         if (showAllFiles.getToggleState ())
         {
             updateDirectoryListQuickLookupList->emplace_back (child);
         }
-        else if (typeIndex == DirectoryDataProperties::TypeIndex::audioFile ||
-                 typeIndex == DirectoryDataProperties::TypeIndex::folder)
+        else if (FolderProperties::isFolderVT (child) ||
+                 static_cast<int> (child.getProperty (FileProperties::TypePropertyId)) == audioFileTypeId)
         {
             updateDirectoryListQuickLookupList->emplace_back (child);
         }
@@ -227,7 +232,7 @@ void FileViewComponent::paintListBoxItem (int row, juce::Graphics& g, int width,
         {
             filePrefix = "> ";
         }
-        else if (static_cast<int> (directoryEntryVT.getProperty ("type")) == DirectoryDataProperties::TypeIndex::audioFile)
+        else if (static_cast<int> (directoryEntryVT.getProperty (FileProperties::TypePropertyId)) == audioFileTypeId)
         {
             filePrefix = "-  ";
             textColor = juce::Colours::forestgreen;
@@ -264,7 +269,7 @@ juce::String FileViewComponent::getTooltipForRow (int row)
         const auto directoryEntryVT { getDirectoryEntryVT (row) };
 
         juce::String toolTip { juce::File (directoryEntryVT.getProperty ("name").toString ()).getFileName () };
-        if (static_cast<int> (directoryEntryVT.getProperty ("type")) == DirectoryDataProperties::TypeIndex::audioFile)
+        if (static_cast<int> (directoryEntryVT.getProperty (FileProperties::TypePropertyId)) == audioFileTypeId)
         {
             const auto sampleRate { static_cast<int> (directoryEntryVT.getProperty ("sampleRate")) };
             if (auto errorString { directoryEntryVT.getProperty ("error").toString () }; errorString != "")
@@ -287,7 +292,11 @@ void FileViewComponent::listBoxItemClicked (int row, [[maybe_unused]] const juce
     auto getEntryType = [this, row] ()
     {
         const auto directoryEntryVT { getDirectoryEntryVT (row) };
-        return static_cast<int> (directoryEntryVT.getProperty ("type"));
+        return static_cast<int> (directoryEntryVT.getProperty (FileProperties::TypePropertyId));
+    };
+    auto isEntryAFolder = [this, row] ()
+    {
+        return FolderProperties::isFolderVT (getDirectoryEntryVT (row));
     };
     auto getEntryFile = [this, row] ()
     {
@@ -305,8 +314,7 @@ void FileViewComponent::listBoxItemClicked (int row, [[maybe_unused]] const juce
         if (isUpFolder ())
             return;
 
-        const auto entryType { getEntryType () };
-        if (entryType == DirectoryDataProperties::TypeIndex::folder)
+        if (isEntryAFolder ())
         {
             auto directoryEntry { getEntryFile () };
             auto* popupMenuLnF { new juce::LookAndFeel_V4 };
@@ -357,7 +365,7 @@ void FileViewComponent::listBoxItemClicked (int row, [[maybe_unused]] const juce
             });
             pm.showMenuAsync ({}, [this, popupMenuLnF] (int) { delete popupMenuLnF; });
         }
-        else if (entryType == DirectoryDataProperties::TypeIndex::audioFile)
+        else if (getEntryType () == audioFileTypeId)
         {
             auto directoryEntry { getEntryFile () };
             auto* popupMenuLnF { new juce::LookAndFeel_V4 };
@@ -406,7 +414,7 @@ void FileViewComponent::listBoxItemClicked (int row, [[maybe_unused]] const juce
                                                                                                 }
                                                                                             }));
             });
-            if (getEntryType () == DirectoryDataProperties::TypeIndex::audioFile)
+            if (getEntryType () == audioFileTypeId)
             {
                 const auto directoryEntryVT { getDirectoryEntryVT (row) };
                 if (static_cast<int> (directoryEntryVT.getProperty ("numChannels")) == 2)
@@ -431,7 +439,7 @@ void FileViewComponent::listBoxItemClicked (int row, [[maybe_unused]] const juce
     }
     else
     {
-        if (! isUpFolder () && getEntryType () != DirectoryDataProperties::TypeIndex::folder)
+        if (! isUpFolder () && ! isEntryAFolder ())
             return;
 
         auto completeSelection = [this, row, isUpFolder, getEntryFile] ()
@@ -469,7 +477,7 @@ void FileViewComponent::listBoxItemDoubleClicked (int row, [[maybe_unused]] cons
         return;
 
     const auto directoryEntryVT { getDirectoryEntryVT (row) };
-    if (directoryEntryVT.getType ().toString () == "File" && static_cast<int> (directoryEntryVT.getProperty ("type")) == DirectoryDataProperties::TypeIndex::audioFile)
+    if (FileProperties::isFileVT (directoryEntryVT) && static_cast<int> (directoryEntryVT.getProperty (FileProperties::TypePropertyId)) == audioFileTypeId)
     {
         doubleClickedRow = row;
         curBlinkTime = juce::Time::currentTimeMillis ();
@@ -568,7 +576,7 @@ void FileViewComponent::deleteUnusedSamples ()
     {
         const auto name { child.getProperty ("name").toString () };
         auto file { juce::File (name) };
-        if (FileTypeHelpers::getFileType (file) == DirectoryDataProperties::audioFile)
+        if (static_cast<int> (child.getProperty (FileProperties::TypePropertyId)) == audioFileTypeId)
         {
             if (samplesInPresets.find (file) == samplesInPresets.end ())
                 file.moveToTrash ();
@@ -647,21 +655,22 @@ void FileViewComponent::importSamples (const juce::StringArray& files)
             }
 
             juce::TemporaryFile temporaryDestination (destinationFile);
-            auto destinationFileStream { temporaryDestination.getFile ().createOutputStream () };
-            if (destinationFileStream == nullptr || destinationFileStream->failedToOpen ())
+            auto destinationOutputFileStream { temporaryDestination.getFile ().createOutputStream () };
+            if (destinationOutputFileStream == nullptr || destinationOutputFileStream->failedToOpen ())
             {
                 errorDialog ("Unable to create a temporary file for '" + destinationFile.getFileName () + "'.");
                 continue;
             }
 
+            // JUCE's writer takes ownership through a base-typed unique_ptr reference.
+            std::unique_ptr<juce::OutputStream> destinationFileStream { std::move (destinationOutputFileStream) };
             auto writeSucceeded { false };
             juce::WavAudioFormat wavAudioFormat;
-            if (std::unique_ptr<juce::AudioFormatWriter> writer { wavAudioFormat.createWriterFor (destinationFileStream.get (),
-                                                                  sampleRate, numChannels, bitsPerSample, {}, 0) }; writer != nullptr)
+            // on success, the writer takes ownership of the output stream, and will delete it when done
+            if (auto writer { wavAudioFormat.createWriterFor (destinationFileStream, juce::AudioFormatWriterOptions {}.withSampleRate (sampleRate)
+                                                                                                                     .withNumChannels (static_cast<int> (numChannels))
+                                                                                                                     .withBitsPerSample (bitsPerSample)) }; writer != nullptr)
             {
-                // audioFormatWriter will delete the file stream when done
-                destinationFileStream.release ();
-
                 // copy the whole thing
                 // TODO - two things
                 //   a) this needs to be done in a thread

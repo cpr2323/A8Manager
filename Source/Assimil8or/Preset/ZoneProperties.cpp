@@ -1,6 +1,6 @@
 #include "ZoneProperties.h"
-#include "../../Utility/DebugLog.h"
-#include "../../Utility/DumpStack.h"
+#include "oolib/Debug/DebugLog.h"
+#include "oolib/Debug/DumpStack.h"
 
 juce::ValueTree ZoneProperties::create (int id)
 {

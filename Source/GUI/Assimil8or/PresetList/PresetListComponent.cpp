@@ -3,10 +3,10 @@
 #include "../../../Assimil8or/FileTypeHelpers.h"
 #include "../../../Assimil8or/PresetManagerProperties.h"
 #include "../../../Assimil8or/Preset/ParameterPresetsSingleton.h"
-#include "../../../Utility/DebugLog.h"
-#include "../../../Utility/PersistentRootProperties.h"
-#include "../../../Utility/RuntimeRootProperties.h"
-#include "../../../Utility/WatchDogTimer.h"
+#include "oolib/Debug/DebugLog.h"
+#include "oolib/Properties/PersistentRootProperties.h"
+#include "oolib/Properties/RuntimeRootProperties.h"
+#include "oolib/Debug/WatchDogTimer.h"
 
 #define LOG_PRESET_LIST 0
 #if LOG_PRESET_LIST
@@ -43,6 +43,7 @@ void PresetListComponent::init (juce::ValueTree rootPropertiesVT)
 
     RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
     directoryDataProperties.wrap (runtimeRootProperties.getValueTree (), DirectoryDataProperties::WrapperType::client, DirectoryDataProperties::EnableCallbacks::yes);
+    presetFileTypeId = directoryDataProperties.getFileTypeId (FileTypeHelpers::kPresetFileTypeName);
     directoryDataProperties.onRootScanComplete = [this] ()
     {
         LogPresetList ("PresetListComponent::init - directoryDataProperties.onRootScanComplete");
@@ -102,7 +103,7 @@ void PresetListComponent::forEachPresetFile (std::function<bool (juce::File pres
         if (FileProperties::isFileVT (child))
         {
             FileProperties fileProperties (child, FileProperties::WrapperType::client, FileProperties::EnableCallbacks::no);
-            if (fileProperties.getType ()== DirectoryDataProperties::presetFile)
+            if (fileProperties.getType () == presetFileTypeId)
             {
                 inPresetList = true;
                 const auto fileToCheck { juce::File (fileProperties.getName ()) };
@@ -128,7 +129,11 @@ void PresetListComponent::checkPresets (bool showAll)
     WatchdogTimer timer;
     timer.start (100000);
 
-    FolderProperties rootFolder (directoryDataProperties.getRootFolderVT (), FolderProperties::WrapperType::client, FolderProperties::EnableCallbacks::no);
+    // this runs on the check presets thread, so we work from a detached snapshot of the live tree
+    const auto rootFolderSnapshotVT { ValueTreeHelpers::getMessageThreadSnapshot (directoryDataProperties.getRootFolderVT ()) };
+    if (! rootFolderSnapshotVT.isValid ())
+        return;
+    FolderProperties rootFolder (rootFolderSnapshotVT, FolderProperties::WrapperType::client, FolderProperties::EnableCallbacks::no);
     const auto scannedFolder { juce::File (rootFolder.getName ()) };
     PresetInfoList newPresetInfoList;
 
@@ -138,12 +143,12 @@ void PresetListComponent::checkPresets (bool showAll)
 
     auto newNumPresets { showAll ? kMaxPresets : 0 };
     auto inPresetList { false };
-    ValueTreeHelpers::forEachChild (directoryDataProperties.getRootFolderVT (), [&inPresetList, &newNumPresets, &newPresetInfoList, showAll] (juce::ValueTree child)
+    ValueTreeHelpers::forEachChild (rootFolderSnapshotVT, [this, &inPresetList, &newNumPresets, &newPresetInfoList, showAll] (juce::ValueTree child)
     {
         if (FileProperties::isFileVT (child))
         {
             FileProperties fileProperties (child, FileProperties::WrapperType::client, FileProperties::EnableCallbacks::no);
-            if (fileProperties.getType () == DirectoryDataProperties::TypeIndex::presetFile)
+            if (fileProperties.getType () == presetFileTypeId)
             {
                 inPresetList = true;
                 const auto fileToCheck { juce::File (fileProperties.getName ()) };

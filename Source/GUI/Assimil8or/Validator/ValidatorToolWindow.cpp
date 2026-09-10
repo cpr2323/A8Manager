@@ -1,5 +1,5 @@
 #include "ValidatorToolWindow.h"
-#include "../../../Utility/RuntimeRootProperties.h"
+#include "oolib/Properties/RuntimeRootProperties.h"
 
 ValidatorToolWindow::ValidatorToolWindow ()
 {

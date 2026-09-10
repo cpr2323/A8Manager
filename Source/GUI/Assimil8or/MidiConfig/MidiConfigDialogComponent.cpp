@@ -1,7 +1,7 @@
 #include "MidiConfigDialogComponent.h"
 #include "../../../Assimil8or/MidiSetup/MidiSetupFile.h"
-#include "../../../Utility/PersistentRootProperties.h"
-#include "../../../Utility/RuntimeRootProperties.h"
+#include "oolib/Properties/PersistentRootProperties.h"
+#include "oolib/Properties/RuntimeRootProperties.h"
 
 MidiConfigDialogComponent::MidiConfigDialogComponent ()
 {

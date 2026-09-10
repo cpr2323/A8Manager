@@ -1,5 +1,5 @@
 #include "LoopPointsView.h"
-#include "../../../../Utility/DebugLog.h"
+#include "oolib/Debug/DebugLog.h"
 
 void LoopPointsView::setAudioBuffer (juce::AudioBuffer<float>* theAudioBuffer)
 {

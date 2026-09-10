@@ -1,7 +1,7 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include "../../../Utility/DirectoryValueTree.h"
+#include "oolib/Directory/DirectoryValueTree.h"
 
 class DirectoryViewerComponent : public juce::Component,
                                  private juce::ListBoxModel

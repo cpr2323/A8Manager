@@ -3,7 +3,7 @@
 #include <JuceHeader.h>
 #include "ChannelProperties.h"
 #include "ZoneProperties.h"
-#include "../../Utility/ValueTreeWrapper.h"
+#include "oolib/ValueTree/ValueTreeWrapper.h"
 
 constexpr auto kNumChannels { 8 };
 constexpr auto kNumZones { 8 };

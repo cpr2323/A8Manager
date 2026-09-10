@@ -11,11 +11,11 @@
 #include "../../../AppProperties.h"
 #include "../../../Assimil8or/Audio/AudioPlayerProperties.h"
 #include "../../../Assimil8or/Preset/ChannelProperties.h"
-#include "../../../Utility/CustomComboBox.h"
-#include "../../../Utility/CustomTextButton.h"
-#include "../../../Utility/CustomTextEditor.h"
-#include "../../../Utility/ErrorHelpers.h"
-#include "../../../Utility/NoArrowComboBoxLnF.h"
+#include "oolib/GUI/CustomComboBox.h"
+#include "oolib/GUI/CustomTextButton.h"
+#include "oolib/GUI/CustomTextEditor.h"
+#include "oolib/GUI/ErrorHelpers.h"
+#include "oolib/GUI/NoArrowComboBoxLnF.h"
 
 class CvOffsetTextEditor : public CustomTextEditorDouble
 {
@@ -23,22 +23,11 @@ public:
     CvOffsetTextEditor ()
     {
         toStringCallback = [this] (double value) { return FormatHelpers::formatDouble (value, 2, true); };
-        onDragCallback = [this] (DragSpeed dragSpeed, int direction)
+        getIncrementCallback = [] () { return 0.01; };
+        onDragCallback = [this] (double valueDelta)
         {
             jassert (getCvInputAndAmount != nullptr);
-
-            const auto incAmount = [this, dragSpeed] ()
-            {
-                switch (dragSpeed)
-                {
-                    default:
-                    case DragSpeed::slow: return 0.01; break;
-                    case DragSpeed::medium: return 0.25; break;
-                    case DragSpeed::fast: return 0.5; break;
-                }
-            } ();
-            const auto newAmount { FormatHelpers::getAmount (getCvInputAndAmount ()) + (incAmount * direction) };
-            setValue (newAmount);
+            setValue (FormatHelpers::getAmount (getCvInputAndAmount ()) + valueDelta);
         };
         onPopupMenuCallback = [this] ()
         {

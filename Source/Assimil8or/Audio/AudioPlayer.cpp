@@ -1,8 +1,8 @@
 #include "AudioPlayer.h"
 #include "../../Assimil8or/PresetManagerProperties.h"
-#include "../../Utility/DebugLog.h"
-#include "../../Utility/PersistentRootProperties.h"
-#include "../../Utility/RuntimeRootProperties.h"
+#include "oolib/Debug/DebugLog.h"
+#include "oolib/Properties/PersistentRootProperties.h"
+#include "oolib/Properties/RuntimeRootProperties.h"
 
 #define LOG_AUDIO_PLAYER 0
 #if LOG_AUDIO_PLAYER
