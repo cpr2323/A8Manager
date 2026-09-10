@@ -34,7 +34,29 @@ Since the application is not signed (I don't want to pay the $99/yr) you will ha
 
 # Linux
 
-There is no Linux version yet, but since we are using JUCE it should be _relative simple_. I actually did a quick test of this back in 2023 and published the results in a youtube video.
+Linux builds are supported through the CMake/JUCE build. On Fedora, install the build tools and JUCE system dependencies first:
+
+```
+sudo dnf install git cmake gcc-c++ pkgconf-pkg-config \
+    alsa-lib-devel freetype-devel fontconfig-devel libcurl-devel \
+    libX11-devel libXcomposite-devel libXcursor-devel libXext-devel \
+    libXinerama-devel libXrandr-devel libXrender-devel libXi-devel \
+    mesa-libEGL-devel mesa-libGL-devel gtk3-devel webkit2gtk4.1-devel
+```
+
+Then initialise the submodules and build:
+
+```
+git submodule update --init --recursive
+cmake -B cmake_build -DCMAKE_BUILD_TYPE=Release
+cmake --build cmake_build --config Release
+```
+
+The executable will be written under `cmake_build/A8Manager_artefacts/Release/`.
+
+This was verified on Fedora 44 KDE.
+
+I also did a quick test of this back in 2023 and published the results in a youtube video.
 [A8Manager Linux build verification video](https://www.youtube.com/watch?v=fk4RRMh7hZc)
 
 # Thanks
