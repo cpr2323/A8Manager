@@ -217,8 +217,7 @@ void AudioManager::splitStereoIntoTwoMono (juce::File inputFile)
             juce::AudioBuffer<float> monoAudioBuffer;
             monoAudioBuffer.setSize (1, static_cast<int> (sampleFileReader->lengthInSamples), false, true, false);
 
-            auto monoWritePtr { monoAudioBuffer.getWritePointer (0) };
-            std::memcpy (monoWritePtr, monoReadPtr, sampleFileReader->lengthInSamples * (sampleFileReader->bitsPerSample / 8));
+            monoAudioBuffer.copyFrom (0, 0, monoReadPtr, static_cast<int> (sampleFileReader->lengthInSamples));
 
             // write mono audio buffer to new file
             const auto monoOutputFileName { inputFile.getFileNameWithoutExtension () + "-" + postFixChannelIndicator };

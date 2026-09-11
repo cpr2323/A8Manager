@@ -20,6 +20,9 @@ public:
     std::function<void (std::function<void ()>, std::function<void ()>)> overwritePresetOrCancel;
 
 private:
+    using PresetInfo = std::tuple<int, bool, juce::String>;
+    using PresetInfoList = std::array<PresetInfo, kMaxPresets>;
+
     AppProperties appProperties;
     DirectoryDataProperties directoryDataProperties;
     // resolved in init (), once DirectoryValueTree has published the types Main registered
@@ -30,15 +33,16 @@ private:
 
     juce::ToggleButton showAllPresets { "Show All" };
     juce::ListBox presetListBox { {}, this };
-    std::array<std::tuple <int, bool, juce::String>, kMaxPresets> presetInfoList;
+    PresetInfoList presetInfoList {};
     int numPresets { kMaxPresets };
     juce::File currentFolder;
     juce::File previousFolder;
     int lastSelectedPresetIndex { -1 };
+    std::atomic<bool> requestedShowAllPresets { true };
     LambdaThread checkPresetsThread { "CheckPresetsThread", 100 };
 
     void copyPreset (int presetNumber);
-    void checkPresets ();
+    void checkPresets (bool showAll);
     void deletePreset (int presetNumber);
     juce::File getPresetFile (int presetNumber);
     void forEachPresetFile (std::function<bool (juce::File presetFile, int index)> presetFileCallback);
@@ -48,6 +52,7 @@ private:
     void loadPreset (juce::File presetFile);
     void movePresetUp (int row);
     void movePresetDown (int row);
+    void requestPresetCheck ();
     void swapPresets (int fromRow, int toRow);
     void pastePreset (int presetNumber);
 
