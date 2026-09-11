@@ -76,7 +76,7 @@ void PresetListComponent::init (juce::ValueTree rootPropertiesVT)
     unEditedPresetProperties.wrap (presetManagerProperties.getPreset ("unedited"), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::yes);
     presetProperties.wrap (presetManagerProperties.getPreset ("edit"), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::yes);
 
-    checkPresetsThread.startThread ();
+    checkPresetsThread.start ();
 }
 
 void PresetListComponent::requestPresetCheck ()
@@ -84,7 +84,7 @@ void PresetListComponent::requestPresetCheck ()
     if (! checkPresetsThread.isThreadRunning ())
     {
         LogPresetList ("PresetListComponent::requestPresetCheck - starting thread");
-        checkPresetsThread.startThread ();
+        checkPresetsThread.start ();
     }
     else
     {
@@ -320,7 +320,7 @@ void PresetListComponent::timerCallback ()
     if (! checkPresetsThread.isThreadRunning ())
     {
         LogPresetList ("PresetListComponent::timerCallback - starting thread, stopping timer");
-        checkPresetsThread.startThread ();
+        checkPresetsThread.start ();
         stopTimer ();
     }
     LogPresetList ("PresetListComponent::timerCallback - enter");
