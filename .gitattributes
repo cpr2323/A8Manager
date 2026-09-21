@@ -1,0 +1,13 @@
+# Line endings are not stored in a commit - they are whatever the last tool to
+# write the file happened to emit, and git cannot see the difference because
+# both forms normalise to the same blob. That is how this tree ended up mixed.
+#
+# This pins it: text is still stored normalised (LF) in the repository, but any
+# file git writes - clone, checkout, reset, merge - lands in the working tree as
+# CRLF on every machine, whatever that clone's core.autocrlf happens to be.
+* text=auto eol=crlf
+
+# Never touch these.
+*.png binary
+*.wav binary
+*.zip binary

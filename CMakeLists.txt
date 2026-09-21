@@ -1,5 +1,30 @@
 cmake_minimum_required(VERSION 3.22)
 
+# macOS builds are universal binaries, so the one .app runs natively on both Apple silicon
+# and Intel Macs. This has to be set before project(), because that is where CMake inspects
+# the compiler and decides which architectures the build - including JUCE and every other
+# subdirectory - is configured for. It is ignored by the Windows and Linux generators.
+set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "Architectures to build for on macOS")
+
+# arm64 did not exist before macOS 11, and the slices of a universal binary cannot have
+# different deployment targets. Without this CMake would default to the version of macOS
+# doing the building, which makes the app refuse to launch on anything older.
+set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE STRING "Minimum macOS version to build for")
+
+# The line above only supplies a default: it does nothing if the cache already holds a value,
+# such as the empty one left in a build folder configured before it was added, or an older
+# version passed with -D. Treat 11.0 as a floor rather than a suggestion - a newer target is
+# still allowed.
+if(CMAKE_OSX_DEPLOYMENT_TARGET STREQUAL "" OR CMAKE_OSX_DEPLOYMENT_TARGET VERSION_LESS "11.0")
+    set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE STRING "Minimum macOS version to build for" FORCE)
+endif()
+
+# CMake gives the Xcode Debug configuration ONLY_ACTIVE_ARCH=YES, which builds just the
+# architecture of the machine doing the building - so a Debug build on an Apple silicon Mac
+# silently produces an arm64-only app. Forcing it off keeps every configuration universal,
+# whether the Xcode destination is set to "My Mac" or "Any Mac".
+set(CMAKE_XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH "NO")
+
 project(A8Manager VERSION 2.7.0)
 
 # Submodules must be initialised before building:
@@ -15,7 +40,7 @@ include(submodules/oolib/oolib.cmake)
 juce_add_gui_app(A8Manager
     PRODUCT_NAME    "A8Manager"
     COMPANY_NAME    "OmOhmProductions"
-    COMPANY_WEBSITE "www.omohmproductions.com"
+    COMPANY_WEBSITE "https://cpr2323.github.io/"
     ICON_BIG        "Source/GUI/Assimil8or/Data/377906243_984640136172516_2914152204379747274_n.png"
     ICON_SMALL      "Source/GUI/Assimil8or/Data/377906243_984640136172516_2914152204379747274_n.png")
 
@@ -27,6 +52,14 @@ juce_generate_juce_header(A8Manager)
 # "Unable to start program ... ALL_BUILD. Access is denied." - ALL_BUILD is a
 # utility target with nothing to launch.
 set_property(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" PROPERTY VS_STARTUP_PROJECT A8Manager)
+
+# The Xcode equivalent of the line above, as near as Xcode allows. Xcode has no "startup
+# project" setting - the selected scheme is per-user state CMake never writes - but with
+# scheme generation left off everywhere else, A8Manager is the only target CMake writes
+# a scheme for, so Xcode has nothing else to land on. Turn off "Autocreate schemes" in
+# Xcode (Product > Scheme > Manage Schemes) or it will keep inventing one per target,
+# A8ManagerBinaryData and ZERO_CHECK included.
+set_target_properties(A8Manager PROPERTIES XCODE_GENERATE_SCHEME ON)
 
 set(SOURCE_FILES
     Source/AppProperties.cpp
@@ -212,7 +245,7 @@ source_group("Source/GUI/Assimil8or/Validator"            FILES ${GUI_VALIDATOR_
 
 # The oolib sources live outside the project tree, so group them by their own
 # folder layout rather than letting the IDE scatter them.
-source_group(TREE ${OOLIB_INCLUDE_DIR} PREFIX "oolib" FILES ${OOLIB_SOURCES})
+source_group(TREE ${OOLIB_INCLUDE_DIR}/oolib PREFIX "oolib" FILES ${OOLIB_SOURCES})
 
 target_sources(A8Manager
     PRIVATE
@@ -261,3 +294,19 @@ target_link_libraries(A8Manager
         juce::juce_recommended_config_flags
         juce::juce_recommended_lto_flags
         juce::juce_recommended_warning_flags)
+
+# The third party licenses have to travel with the app, so they are copied into the
+# folder JUCE builds it into - A8Manager_artefacts/<config> - beside the .exe, or
+# beside the .app bundle on macOS. That folder can then be distributed as it is.
+#
+# The copy is a target of its own that A8Manager depends on, rather than a post
+# build step: a post build step only runs when the app relinks, so an added or
+# changed license would not arrive until some code changed too. Depending on it
+# means any build of A8Manager - including building just that project in Visual
+# Studio - copies the licenses.
+add_custom_target(A8ManagerLicenses
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/Licenses"
+                                               "$<GENEX_EVAL:$<TARGET_PROPERTY:A8Manager,RUNTIME_OUTPUT_DIRECTORY>>/Licenses"
+    COMMENT "Copying Licenses next to A8Manager"
+    VERBATIM)
+add_dependencies(A8Manager A8ManagerLicenses)
