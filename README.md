@@ -19,6 +19,9 @@ cmake -B cmake_build
 cmake --build cmake_build --config Release
 ```
 
+Optional parser/CV and stereo split regression probes are documented in
+[tests/README.md](tests/README.md).
+
 # Windows
 
 There are no special steps to installing on Windows.

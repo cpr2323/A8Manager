@@ -73,7 +73,18 @@ void CvInputComboBox::setSelectedItemText (juce::String cvInputString)
     }
     if (cvInputString.toLowerCase () != "off")
     {
-        jassert (juce::String ("012345678").containsChar (cvInputString [0]) && juce::String ("ABC").containsChar (cvInputString [1]));
+        if (cvInputString.startsWithIgnoreCase ("CV ") && cvInputString.length () >= 4)
+            cvInputString = "0" + cvInputString.substring (3, 4).toUpperCase ();
+
+        if (cvInputString.length () < 2 ||
+            ! juce::String ("012345678").containsChar (cvInputString [0]) ||
+            ! juce::String ("ABC").containsChar (cvInputString [1]))
+        {
+            jassertfalse;
+            cvInputComboBox.setSelectedId (1, juce::NotificationType::dontSendNotification);
+            return;
+        }
+
         itemId = 2 + ((cvInputString [0] - '0') * 3) + cvInputString [1] - 'A';
         jassert (itemId > 1 && itemId < 29);
     }

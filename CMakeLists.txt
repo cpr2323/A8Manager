@@ -261,3 +261,9 @@ target_link_libraries(A8Manager
         juce::juce_recommended_config_flags
         juce::juce_recommended_lto_flags
         juce::juce_recommended_warning_flags)
+
+option(A8MANAGER_BUILD_TESTS "Build the parser/CV and stereo split regression probes" OFF)
+if(A8MANAGER_BUILD_TESTS)
+    enable_testing()
+    add_subdirectory(tests)
+endif()

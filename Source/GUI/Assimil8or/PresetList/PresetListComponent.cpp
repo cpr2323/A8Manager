@@ -20,13 +20,17 @@ PresetListComponent::PresetListComponent ()
     showAllPresets.setToggleState (true, juce::NotificationType::dontSendNotification);
     showAllPresets.setButtonText ("Show All");
     showAllPresets.setTooltip ("Show all Presets, Show only existing presets");
-    showAllPresets.onClick = [this] () { checkPresetsThread.start (); };
+    showAllPresets.onClick = [this] ()
+    {
+        requestedShowAllPresets.store (showAllPresets.getToggleState ());
+        requestPresetCheck ();
+    };
     addAndMakeVisible (showAllPresets);
     addAndMakeVisible (presetListBox);
 
     checkPresetsThread.onThreadLoop = [this] ()
     {
-        checkPresets ();
+        checkPresets (requestedShowAllPresets.load ());
         return false;
     };
 }
@@ -43,16 +47,7 @@ void PresetListComponent::init (juce::ValueTree rootPropertiesVT)
     directoryDataProperties.onRootScanComplete = [this] ()
     {
         LogPresetList ("PresetListComponent::init - directoryDataProperties.onRootScanComplete");
-        if (! checkPresetsThread.isThreadRunning ())
-        {
-            LogPresetList ("PresetListComponent::init - directoryDataProperties.onRootScanComplete - starting thread");
-            checkPresetsThread.startThread ();
-        }
-        else
-        {
-            LogPresetList ("PresetListComponent::init - directoryDataProperties.onRootScanComplete - starting timer");
-            startTimer (1);
-        }
+        requestPresetCheck ();
     };
 //     directoryDataProperties.onStatusChange = [this] (DirectoryDataProperties::ScanStatus status)
 //     {
@@ -81,7 +76,21 @@ void PresetListComponent::init (juce::ValueTree rootPropertiesVT)
     unEditedPresetProperties.wrap (presetManagerProperties.getPreset ("unedited"), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::yes);
     presetProperties.wrap (presetManagerProperties.getPreset ("edit"), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::yes);
 
-    checkPresetsThread.startThread ();
+    checkPresetsThread.start ();
+}
+
+void PresetListComponent::requestPresetCheck ()
+{
+    if (! checkPresetsThread.isThreadRunning ())
+    {
+        LogPresetList ("PresetListComponent::requestPresetCheck - starting thread");
+        checkPresetsThread.start ();
+    }
+    else
+    {
+        LogPresetList ("PresetListComponent::requestPresetCheck - starting timer");
+        startTimer (1);
+    }
 }
 
 void PresetListComponent::forEachPresetFile (std::function<bool (juce::File presetFile, int index)> presetFileCallback)
@@ -115,7 +124,7 @@ void PresetListComponent::forEachPresetFile (std::function<bool (juce::File pres
     });
 }
 
-void PresetListComponent::checkPresets ()
+void PresetListComponent::checkPresets (bool showAll)
 {
     WatchdogTimer timer;
     timer.start (100000);
@@ -125,20 +134,16 @@ void PresetListComponent::checkPresets ()
     if (! rootFolderSnapshotVT.isValid ())
         return;
     FolderProperties rootFolder (rootFolderSnapshotVT, FolderProperties::WrapperType::client, FolderProperties::EnableCallbacks::no);
-    currentFolder = juce::File (rootFolder.getName ());
-
-    const auto showAll { showAllPresets.getToggleState () };
+    const auto scannedFolder { juce::File (rootFolder.getName ()) };
+    PresetInfoList newPresetInfoList;
 
     // clear preset info list
-    for (auto curPresetInfoIndex { 0 }; curPresetInfoIndex < presetInfoList.size (); ++curPresetInfoIndex)
-        presetInfoList[curPresetInfoIndex] = { curPresetInfoIndex + 1, false, "" };
+    for (auto curPresetInfoIndex { 0 }; curPresetInfoIndex < newPresetInfoList.size (); ++curPresetInfoIndex)
+        newPresetInfoList [curPresetInfoIndex] = { curPresetInfoIndex + 1, false, "" };
 
-    if (showAll)
-        numPresets = kMaxPresets;
-    else
-        numPresets = 0;
+    auto newNumPresets { showAll ? kMaxPresets : 0 };
     auto inPresetList { false };
-    ValueTreeHelpers::forEachChild (rootFolderSnapshotVT, [this, &inPresetList, showAll] (juce::ValueTree child)
+    ValueTreeHelpers::forEachChild (rootFolderSnapshotVT, [this, &inPresetList, &newNumPresets, &newPresetInfoList, showAll] (juce::ValueTree child)
     {
         if (FileProperties::isFileVT (child))
         {
@@ -160,11 +165,11 @@ void PresetListComponent::checkPresets ()
                 presetName = thisPresetProperties.getName ();
 
                 if (showAll)
-                    presetInfoList [presetIndex] = { presetIndex + 1 , true, presetName };
+                    newPresetInfoList [presetIndex] = { presetIndex + 1 , true, presetName };
                 else
                 {
-                    presetInfoList [numPresets] = { presetIndex + 1, true, presetName };
-                    ++numPresets;
+                    newPresetInfoList [newNumPresets] = { presetIndex + 1, true, presetName };
+                    ++newNumPresets;
                 }
             }
             else
@@ -177,17 +182,27 @@ void PresetListComponent::checkPresets ()
         return true; // keep looking
     });
 
-    juce::MessageManager::callAsync ([this, newFolder = (currentFolder != previousFolder)] ()
+    juce::MessageManager::callAsync ([safeThis = juce::Component::SafePointer<PresetListComponent> (this),
+                                      scannedFolder,
+                                      newNumPresets,
+                                      newPresetInfoList = std::move (newPresetInfoList)] () mutable
     {
-        presetListBox.updateContent ();
+        if (safeThis == nullptr)
+            return;
+
+        const auto newFolder { scannedFolder != safeThis->previousFolder };
+        safeThis->currentFolder = scannedFolder;
+        safeThis->numPresets = newNumPresets;
+        safeThis->presetInfoList = std::move (newPresetInfoList);
+        safeThis->presetListBox.updateContent ();
         if (newFolder)
         {
-            presetListBox.scrollToEnsureRowIsOnscreen (0);
-            loadFirstPreset ();
+            safeThis->presetListBox.scrollToEnsureRowIsOnscreen (0);
+            safeThis->loadFirstPreset ();
         }
-        presetListBox.repaint ();
+        safeThis->presetListBox.repaint ();
+        safeThis->previousFolder = scannedFolder;
     });
-    previousFolder = currentFolder;
 
     //juce::Logger::outputDebugString ("PresetListComponent::checkPresets - elapsed time: " + juce::String (timer.getElapsedTime ()));
 }
