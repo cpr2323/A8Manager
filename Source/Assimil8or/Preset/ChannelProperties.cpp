@@ -91,16 +91,21 @@ void ChannelProperties::copyFrom (juce::ValueTree sourceVT)
 
 juce::String ChannelProperties::getCvInputAndValueString (juce::String cvInput, double value, int decimalPlaces)
 {
-    if (cvInput.startsWith ("CV"))
-        return "0" + cvInput.substring(3, 4) + " " + juce::String (value, decimalPlaces);
-    else
-        return cvInput + " " + juce::String (value, decimalPlaces);
+    return getNormalizedCvInput (cvInput) + " " + juce::String (value, decimalPlaces);
 }
 
 juce::String ChannelProperties::getCvInputAndValueString (CvInputAndAmount cvInputAndValue, int decimalPlaces)
 {
     const auto& [cvInput, value] { cvInputAndValue };
     return getCvInputAndValueString (cvInput, value, decimalPlaces);
+}
+
+juce::String ChannelProperties::getNormalizedCvInput (juce::String cvInput)
+{
+    if (cvInput.startsWithIgnoreCase ("CV ") && cvInput.length () >= 4)
+        return "0" + cvInput.substring (3, 4).toUpperCase ();
+
+    return cvInput;
 }
 
 CvInputAndAmount ChannelProperties::getCvInputAndValueFromString (juce::String cvInputAndValueString)
@@ -315,7 +320,7 @@ void ChannelProperties::setXfadeGroup (juce::String xfadeGroup, bool includeSelf
 
 void ChannelProperties::setZonesCV (juce::String zonesCV, bool includeSelfCallback)
 {
-    setValue (zonesCV, ZonesCVPropertyId, includeSelfCallback);
+    setValue (getNormalizedCvInput (zonesCV), ZonesCVPropertyId, includeSelfCallback);
 }
 
 void ChannelProperties::setZonesRT (int zonesRT, bool includeSelfCallback)

@@ -310,3 +310,9 @@ add_custom_target(A8ManagerLicenses
     COMMENT "Copying Licenses next to A8Manager"
     VERBATIM)
 add_dependencies(A8Manager A8ManagerLicenses)
+
+option(A8MANAGER_BUILD_TESTS "Build the parser/CV and stereo split regression probes" OFF)
+if(A8MANAGER_BUILD_TESTS)
+    enable_testing()
+    add_subdirectory(tests)
+endif()
