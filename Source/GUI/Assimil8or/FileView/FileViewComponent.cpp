@@ -1,4 +1,5 @@
 #include "FileViewComponent.h"
+#include "../../Theme/A8ColourIds.h"
 #include "../../../SystemServices.h"
 #include "../../../Assimil8or/Assimil8orPreset.h"
 #include "../../../Assimil8or/FileTypeHelpers.h"
@@ -15,10 +16,14 @@
 #endif
 
 const auto kDialogTextEditorName { "foldername" };
+constexpr auto kRowHeight { 24 };
+constexpr auto kToolGap { 6 };
 
 FileViewComponent::FileViewComponent ()
 {
-    optionsButton.setButtonText ("OPTIONS");
+    setOpaque (true);
+    addAndMakeVisible (paneHeader);
+    optionsButton.setShowsCaret (true);
     optionsButton.setTooltip ("Folder and File options");
     optionsButton.onClick = [this] ()
     {
@@ -36,12 +41,14 @@ FileViewComponent::FileViewComponent ()
                                                                                         deleteUnusedSamples ();
                                                                                     }));
         });
-        optionsMenu.showMenuAsync ({}, [this] (int) {});
+        optionsMenu.showMenuAsync (juce::PopupMenu::Options ().withTargetComponent (&optionsButton), [this] (int) {});
     };
     addAndMakeVisible (optionsButton);
+    directoryContentsListBox.setRowHeight (kRowHeight);
+    directoryContentsListBox.setOutlineThickness (0);
     addAndMakeVisible (directoryContentsListBox);
+    showAllFiles.setClickingTogglesState (true);
     showAllFiles.setToggleState (false, juce::NotificationType::dontSendNotification);
-    showAllFiles.setButtonText ("Show All");
     showAllFiles.setTooltip ("Show all files, or show just Assimil8or files");
     showAllFiles.onClick = [this] () { updateFromNewDataThread.start (); };
     addAndMakeVisible (showAllFiles);
@@ -65,6 +72,7 @@ void FileViewComponent::init (juce::ValueTree rootPropertiesVT)
 
     directoryDataProperties.wrap (runtimeRootProperties.getValueTree (), DirectoryDataProperties::WrapperType::client, DirectoryDataProperties::EnableCallbacks::yes);
     audioFileTypeId = directoryDataProperties.getFileTypeId (FileTypeHelpers::kAudioFileTypeName);
+    presetFileTypeId = directoryDataProperties.getFileTypeId (FileTypeHelpers::kPresetFileTypeName);
     directoryDataProperties.onRootScanComplete = [this] ()
     {
         LogFileView ("FileViewComponent/onRootScanComplete");
@@ -210,51 +218,87 @@ juce::ValueTree FileViewComponent::getDirectoryEntryVT (int row)
     return (*curDirectoryListQuickLookupList) [quickLookupIndex];
 }
 
+void FileViewComponent::selectedRowsChanged (int lastRowSelected)
+{
+    // The list is for navigating, not choosing: clicking a folder opens it, and
+    // nothing in the list stays marked as active afterwards. The ListBox selects a
+    // row on every click before telling the model, so the selection is undone here.
+    if (lastRowSelected >= 0)
+        directoryContentsListBox.deselectAllRows ();
+}
+
 void FileViewComponent::paintListBoxItem (int row, juce::Graphics& g, int width, int height, [[maybe_unused]] bool rowIsSelected)
 {
     if (row >= getNumRows ())
         return;
 
-    if (rowIsSelected)
-        lastSelectedRow = row;
-
-    juce::Colour textColor { juce::Colours::whitesmoke };
-    juce::String fileListItem;
+    // A folder row is marked with a folder, as a place that opens; an audio file
+    // with a small waveform, and a preset file with a gear, as the settings it holds.
+    // Other files keep the same indent so the names line up.
+    auto isFolder { true };
+    auto isAudio { false };
+    auto isPreset { false };
+    auto isLoading { false };
+    auto textColourId { static_cast<int> (A8Colours::textDim) };
+    juce::String name;
     if (! isRootFolder && row == 0)
     {
-        fileListItem = " >  ..";
+        name = "..";
     }
     else
     {
         const auto directoryEntryVT { getDirectoryEntryVT (row) };
-        juce::String filePrefix;
-        if (directoryEntryVT.getType ().toString () == "Folder")
-        {
-            filePrefix = "> ";
-        }
-        else if (static_cast<int> (directoryEntryVT.getProperty (FileProperties::TypePropertyId)) == audioFileTypeId)
-        {
-            filePrefix = "-  ";
-            textColor = juce::Colours::forestgreen;
-            if (curBlinkTime != 0 && doubleClickedRow == row)
-            {
-                filePrefix += "Loading ";
-                textColor = textColor.brighter (0.7f);
-            }
-        }
-        else
-        {
-            filePrefix = "   ";
-            textColor = textColor.darker (0.4f);
-        }
-        auto file { juce::File (directoryEntryVT.getProperty ("name").toString ()) };
-        fileListItem = " " + filePrefix + file.getFileName ();
+        isFolder = FolderProperties::isFolderVT (directoryEntryVT);
+        const auto fileTypeId { static_cast<int> (directoryEntryVT.getProperty (FileProperties::TypePropertyId)) };
+        isAudio = ! isFolder && fileTypeId == audioFileTypeId;
+        isPreset = ! isFolder && fileTypeId == presetFileTypeId;
+        isLoading = isAudio && curBlinkTime != 0 && doubleClickedRow == row;
+        if (! isFolder && ! isPreset)
+            textColourId = isAudio ? A8Colours::textSupported : A8Colours::textGhost;
+        name = juce::File (directoryEntryVT.getProperty ("name").toString ()).getFileName ();
     }
 
-    g.setColour (juce::Colours::darkslategrey);
-    g.fillRect (width - 1, 0, 1, height);
-    g.setColour (textColor);
-    g.drawText (fileListItem, juce::Rectangle<float>{ 0.0f, 0.0f, (float) width, (float) height }, juce::Justification::centredLeft, true);
+    const auto hovered { row == rowHover.getRow () };
+
+    // a double clicked sample is flagged while it is sent to the editor
+    if (isLoading)
+        g.fillAll (findColour (A8Colours::selectedRow));
+
+    auto rowBounds { juce::Rectangle<int> { 0, 0, width, height }.reduced (8, 0) };
+    const auto iconArea { rowBounds.removeFromLeft (9).toFloat () };
+    rowBounds.removeFromLeft (6);
+    if (isFolder)
+    {
+        g.setColour (findColour (A8Colours::accentDeep));
+        A8Paint::folder (g, iconArea.withSizeKeepingCentre (9.0f, 8.0f));
+    }
+    else if (isAudio)
+    {
+        g.setColour (findColour (A8Colours::textSupported));
+        A8Paint::audioFile (g, iconArea.withSizeKeepingCentre (9.0f, 10.0f));
+    }
+    else if (isPreset)
+    {
+        g.setColour (findColour (A8Colours::accentDeep));
+        A8Paint::gear (g, iconArea.withSizeKeepingCentre (10.0f, 10.0f));
+    }
+
+    if (isLoading)
+    {
+        const auto loadingText { juce::String ("LOADING") };
+        g.setFont (A8Type::statusTag ());
+        g.setColour (findColour (A8Colours::accentText));
+        const auto loadingWidth { A8Paint::textWidth (A8Type::statusTag (), loadingText) };
+        g.drawText (loadingText, rowBounds.removeFromRight (loadingWidth), juce::Justification::centredRight, false);
+        rowBounds.removeFromRight (6);
+    }
+
+    g.setFont (A8Type::body ());
+    g.setColour (findColour (hovered || isLoading ? A8Colours::text : textColourId));
+    g.drawText (name, rowBounds, juce::Justification::centredLeft, true);
+
+    if (hovered)
+        ListRowHover::paintOutline (g, *this, width, height);
 }
 
 juce::String FileViewComponent::getTooltipForRow (int row)
@@ -317,10 +361,7 @@ void FileViewComponent::listBoxItemClicked (int row, [[maybe_unused]] const juce
         if (isEntryAFolder ())
         {
             auto directoryEntry { getEntryFile () };
-            auto* popupMenuLnF { new juce::LookAndFeel_V4 };
-            popupMenuLnF->setColour (juce::PopupMenu::ColourIds::headerTextColourId, juce::Colours::white.withAlpha (0.3f));
             juce::PopupMenu pm;
-            pm.setLookAndFeel (popupMenuLnF);
             pm.addSectionHeader (directoryEntry.getFileName ());
             pm.addSeparator ();
             pm.addItem ("Rename", true, false, [this, directoryEntry] ()
@@ -363,15 +404,12 @@ void FileViewComponent::listBoxItemClicked (int row, [[maybe_unused]] const juce
                                                                                              }
                                                                                          }));
             });
-            pm.showMenuAsync ({}, [this, popupMenuLnF] (int) { delete popupMenuLnF; });
+            pm.showMenuAsync ({});
         }
         else if (getEntryType () == audioFileTypeId)
         {
             auto directoryEntry { getEntryFile () };
-            auto* popupMenuLnF { new juce::LookAndFeel_V4 };
-            popupMenuLnF->setColour (juce::PopupMenu::ColourIds::headerTextColourId, juce::Colours::white.withAlpha (0.3f));
             juce::PopupMenu pm;
-            pm.setLookAndFeel (popupMenuLnF);
             pm.addSectionHeader (directoryEntry.getFileName ());
             pm.addSeparator ();
             pm.addItem ("Rename", true, false, [this, directoryEntry] ()
@@ -434,7 +472,7 @@ void FileViewComponent::listBoxItemClicked (int row, [[maybe_unused]] const juce
                 }
             }
 
-            pm.showMenuAsync ({}, [this, popupMenuLnF] (int) { delete popupMenuLnF; });
+            pm.showMenuAsync ({});
         }
     }
     else
@@ -457,12 +495,8 @@ void FileViewComponent::listBoxItemClicked (int row, [[maybe_unused]] const juce
 
         if (overwritePresetOrCancel != nullptr)
         {
-            auto cancelSelection = [this] ()
-            {
-                directoryContentsListBox.selectRow (lastSelectedRow, false, true);
-            };
-
-            overwritePresetOrCancel (completeSelection, cancelSelection);
+            // nothing was marked when the folder was clicked, so there is nothing to put back
+            overwritePresetOrCancel (completeSelection, [] () {});
         }
         else
         {
@@ -487,31 +521,56 @@ void FileViewComponent::listBoxItemDoubleClicked (int row, [[maybe_unused]] cons
     }
 }
 
+int FileViewComponent::getMinimumWidth () const
+{
+    const auto toolsWidth { optionsButton.getIdealWidth () + showAllFiles.getIdealWidth () + kToolGap };
+    // plus the outline on either side
+    return paneHeader.getRequiredWidth (toolsWidth) + 2;
+}
+
 void FileViewComponent::resized ()
 {
-    auto localBounds { getLocalBounds () };
-    localBounds.reduce (3, 3);
-    auto toolRow { localBounds.removeFromTop (25) };
-    optionsButton.setBounds (toolRow.removeFromLeft (70));
-    toolRow.removeFromLeft (5);
-    showAllFiles.setBounds (toolRow);
+    // inside the pane's outline
+    auto localBounds { getLocalBounds ().reduced (1) };
+    auto headerBounds { localBounds.removeFromTop (PaneHeader::kHeight) };
+    paneHeader.setBounds (headerBounds);
 
-    localBounds.removeFromTop (3);
+    // the pane tools live in the header strip, right aligned
+    auto toolRow { paneHeader.getFreeBounds () + headerBounds.getPosition () };
+    auto placeTool = [&toolRow] (ChromeButton& tool)
+    {
+        tool.setBounds (toolRow.removeFromRight (tool.getIdealWidth ()));
+        toolRow.removeFromRight (kToolGap);
+    };
+    placeTool (showAllFiles);
+    placeTool (optionsButton);
+
     directoryContentsListBox.setBounds (localBounds);
+}
+
+void FileViewComponent::paint (juce::Graphics& g)
+{
+    // opaque, so the background behind the rounded corners is this component's to paint
+    g.fillAll (findColour (A8Colours::windowBackground));
+    A8Paint::card (g, *this, getLocalBounds ());
 }
 
 void FileViewComponent::paintOverChildren (juce::Graphics& g)
 {
     if (draggingFilesCount > 0)
     {
-        auto localBounds { getLocalBounds () };
-        juce::Colour fillColor { juce::Colours::white };
-        float activeAlpha { 0.7f };
-        g.setColour (fillColor.withAlpha (activeAlpha));
-        g.fillRect (directoryContentsListBox.getBounds ());
-        g.setColour (supportedFile ? juce::Colours::black : juce::Colours::red);
-        localBounds.reduce (5, 0);
-        g.drawFittedText (dropMsg, localBounds, juce::Justification::centred, 10);
+        const auto listBounds { directoryContentsListBox.getBounds () };
+        g.setColour (findColour (A8Colours::dropOverlay));
+        g.fillRect (listBounds);
+
+        // the message sits on the same plate a tooltip does
+        const auto messageFont { A8Type::body () };
+        const auto plateWidth { std::min (listBounds.getWidth () - 16, A8Paint::textWidth (messageFont, dropMsg) + 24) };
+        const auto plateBounds { listBounds.withSizeKeepingCentre (plateWidth, 28).toFloat () };
+        A8Paint::messagePlate (g, *this, plateBounds, 3.0f);
+        g.setFont (messageFont);
+        g.setColour (A8Paint::messageInk (*this, ! supportedFile));
+        g.drawFittedText (dropMsg, plateBounds.toNearestInt ().reduced (6, 0), juce::Justification::centred, 2);
     }
 }
 

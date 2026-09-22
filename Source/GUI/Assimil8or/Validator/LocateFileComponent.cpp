@@ -1,4 +1,5 @@
 #include "LocateFileComponent.h"
+#include "../../Theme/A8ColourIds.h"
 
 LocateFileComponent::LocateFileComponent (std::vector<juce::File> theMissingFiles, juce::File startingFolder,
                                           std::function<void (std::vector<std::tuple <juce::File, juce::File>>)> theLocatedFilesCallback, std::function<void ()> theCancelCallback)
@@ -9,7 +10,6 @@ LocateFileComponent::LocateFileComponent (std::vector<juce::File> theMissingFile
     locatedFilesCallback = theLocatedFilesCallback;
     cancelCallback = theCancelCallback;
 
-    missingFilesLabel.setColour (juce::Label::ColourIds::textColourId, juce::Colours::black);
     missingFilesLabel.setText ("MISSING FILES", juce::NotificationType::dontSendNotification);
     addAndMakeVisible (missingFilesLabel);
     openButton.onClick = [this] ()
@@ -67,11 +67,9 @@ void LocateFileComponent::locateFiles ()
     locatedFilesCallback (locatedFiles);
 }
 
-void LocateFileComponent::paint ([[maybe_unused]] juce::Graphics& g)
+void LocateFileComponent::paint (juce::Graphics& g)
 {
-//     g.setColour (juce::Colours::black);
-//     g.drawRect (directoryViewerComponent.getBounds ());
-//     g.drawRect (missingFileComponent.getBounds ());
+    g.fillAll (findColour (A8Colours::dialogBackground));
 }
 
 void LocateFileComponent::resized ()

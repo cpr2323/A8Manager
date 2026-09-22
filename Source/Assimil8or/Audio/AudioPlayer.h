@@ -18,6 +18,9 @@ public:
     void init (juce::ValueTree rootProperties);
     void shutdownAudio ();
 
+    // published through SystemServices so the GUI can build a device selector
+    juce::AudioDeviceManager& getAudioDeviceManager () noexcept { return audioDeviceManager; }
+
 private:
     AudioSettingsProperties audioSettingsProperties;
     AudioPlayerProperties audioPlayerProperties;
@@ -34,7 +37,6 @@ private:
     juce::AudioDeviceManager audioDeviceManager;
     juce::AudioSourcePlayer audioSourcePlayer;
     std::unique_ptr < juce::AudioBuffer<float>> sampleBuffer;
-    juce::AudioDeviceSelectorComponent audioSetupComp { audioDeviceManager, 0, 0, 0, 256, false, false, true, false };
 
     juce::CriticalSection dataCS;
     AudioPlayerProperties::PlayState playState { AudioPlayerProperties::PlayState::stop };
@@ -93,7 +95,6 @@ private:
     void initFromZone (std::tuple<int, int> channelAndZoneIndecies);
     void initSamplePoints ();
     void prepareSampleForPlayback ();
-    void showConfigDialog ();
 
     void prepareToPlay (int samplesPerBlockExpected, double sampleRate) override;
     void getNextAudioBlock (const juce::AudioSourceChannelInfo& bufferToFill) override;

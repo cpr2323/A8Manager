@@ -29,15 +29,9 @@ void AudioPlayer::init (juce::ValueTree rootPropertiesVT)
 
     appProperties.wrap (persistentRootProperties.getValueTree (), AppProperties::WrapperType::owner, AppProperties::EnableCallbacks::yes);
 
-    audioSettingsProperties.wrap (persistentRootProperties.getValueTree (), AudioSettingsProperties::WrapperType::owner, AudioSettingsProperties::EnableCallbacks::yes);
-    audioSettingsProperties.onConfigChange = [this] (juce::String config)
-    {
-            // TODO - do we need this callback?
-        //configureAudioDevice (deviceName);
-    };
+    audioSettingsProperties.wrap (persistentRootProperties.getValueTree (), AudioSettingsProperties::WrapperType::owner, AudioSettingsProperties::EnableCallbacks::no);
 
     audioPlayerProperties.wrap (runtimeRootProperties.getValueTree (), AudioPlayerProperties::WrapperType::owner, AudioPlayerProperties::EnableCallbacks::yes);
-    audioPlayerProperties.onShowConfigDialog = [this] () { showConfigDialog (); };
     audioPlayerProperties.onPlayStateChange = [this] (AudioPlayerProperties::PlayState newPlayState)
     {
         LogAudioPlayer ("init: audioPlayerProperties.onPlayStateChange");
@@ -223,7 +217,7 @@ void AudioPlayer::initFromZone (std::tuple<int, int> channelAndZoneIndecies)
 void AudioPlayer::initSamplePoints ()
 {
     LogAudioPlayer ("initSamplePoints");
-    jassert (sampleRateRatio > 0.0);
+    //jassert (sampleRateRatio > 0.0);
     juce::ScopedLock sl (dataCS);
     if (audioPlayerProperties.getSamplePointsSelector () == AudioPlayerProperties::SamplePointsSelector::SamplePoints)
     {
@@ -368,17 +362,6 @@ void AudioPlayer::handlePlayState (AudioPlayerProperties::PlayState newPlayState
         curSampleOffset = sampleStart;
     }
     playState = newPlayState;
-}
-
-void AudioPlayer::showConfigDialog ()
-{
-    juce::DialogWindow::LaunchOptions o;
-    o.escapeKeyTriggersCloseButton = true;
-    o.dialogBackgroundColour = juce::Colours::grey;
-    o.dialogTitle = "AUDIO SETTTINGS";
-    audioSetupComp.setBounds (0, 0, 400, 600);
-    o.content.set (&audioSetupComp, false);
-    o.launchAsync ();
 }
 
 void AudioPlayer::prepareToPlay (int samplesPerBlockExpected, double newSampleRate)

@@ -1,24 +1,23 @@
 #include "BottomStatusWindow.h"
+#include "Theme/A8ColourIds.h"
+#include "Theme/A8Fonts.h"
 #include "oolib/Properties/RuntimeRootProperties.h"
 
 BottomStatusWindow::BottomStatusWindow ()
 {
-    progressUpdateLabel.setColour (juce::Label::ColourIds::textColourId, juce::Colours::white);
+    setOpaque (true);
+
+    progressUpdateLabel.setFont (A8Type::statusMessage ());
+    progressUpdateLabel.setBorderSize ({ 0, 0, 0, 0 });
     addAndMakeVisible (progressUpdateLabel);
 
-    settingsButton.setButtonText ("SETTINGS");
-    settingsButton.onClick = [this] ()
-    {
-        audioPlayerProperties.showConfigDialog (false);
-    };
-    addAndMakeVisible (settingsButton);
+    // Settings now lives in the path bar at the top, alongside the output device;
+    // this strip is left for transient status messages.
 }
 
 void BottomStatusWindow::init (juce::ValueTree rootPropertiesVT)
 {
     RuntimeRootProperties runtimeRootProperties (rootPropertiesVT, RuntimeRootProperties::WrapperType::client, RuntimeRootProperties::EnableCallbacks::no);
-    audioPlayerProperties.wrap (runtimeRootProperties.getValueTree (), AudioPlayerProperties::WrapperType::owner, AudioPlayerProperties::EnableCallbacks::yes);
-
     validatorProperties.wrap (runtimeRootProperties.getValueTree (), ValidatorProperties::WrapperType::client, ValidatorProperties::EnableCallbacks::yes);
     validatorProperties.onProgressUpdateChanged = [this] (juce::String progressUpdate)
     {
@@ -34,17 +33,21 @@ void BottomStatusWindow::updateProgress (juce::String progressUpdate)
     progressUpdateLabel.setText (progressUpdate, juce::NotificationType::dontSendNotification);
 }
 
+void BottomStatusWindow::lookAndFeelChanged ()
+{
+    juce::Component::lookAndFeelChanged ();
+    // status messages are secondary to the work, so they are set in the dim ink
+    progressUpdateLabel.setColour (juce::Label::textColourId, findColour (A8Colours::textDim));
+}
+
 void BottomStatusWindow::paint (juce::Graphics& g)
 {
-    g.fillAll (progressUpdateLabel.findColour (juce::Label::ColourIds::backgroundColourId).brighter (0.9f));
+    g.fillAll (findColour (A8Colours::listBackground));
+    g.setColour (findColour (A8Colours::outline));
+    g.drawHorizontalLine (0, 0.0f, static_cast<float> (getWidth ()));
 }
 
 void BottomStatusWindow::resized ()
 {
-    auto localBounds { getLocalBounds () };
-    localBounds.reduce (5, 3);
-
-    progressUpdateLabel.setBounds (localBounds);
-    const auto buttonWidth { 70 };
-    settingsButton.setBounds (getWidth () - 5 - buttonWidth, getHeight () / 2 - 10, buttonWidth, 20);
+    progressUpdateLabel.setBounds (getLocalBounds ().withTrimmedTop (1).reduced (9, 0));
 }

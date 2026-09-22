@@ -1,5 +1,6 @@
 #include "Assimil8orEditorComponent.h"
 #include "ParameterToolTipData.h"
+#include "../../Theme/A8ColourIds.h"
 #include "../../../SystemServices.h"
 #include "../../../Assimil8or/Assimil8orPreset.h"
 #include "../../../Assimil8or/PresetManagerProperties.h"
@@ -15,26 +16,22 @@ Assimil8orEditorComponent::Assimil8orEditorComponent ()
 {
     setOpaque (true);
 
-    auto setupButton = [this] (juce::TextButton& button, juce::String text, std::function<void ()> buttonFunction)
-    {
-        button.setButtonText (text);
-        button.onClick = buttonFunction;
-        addAndMakeVisible (button);
-    };
-
-    // Title : Preset X
+    // Title : PRESET X
+    titleLabel.setBorderSize ({ 0, 0, 0, 0 });
+    titleLabel.setJustificationType (juce::Justification::centredLeft);
+    titleLabel.setFont (A8Type::sectionHeader ());
     addAndMakeVisible (titleLabel);
 
-    setupButton (saveButton, "SAVE", [this] () { savePreset ();  });
+    saveButton.onClick = [this] () { savePreset (); };
     saveButton.setTooltip ("Save the current Preset");
     saveButton.setEnabled (false);
+    addAndMakeVisible (saveButton);
 
     for (auto curChannelIndex { 0 }; curChannelIndex < 8; ++curChannelIndex)
-        channelTabs.addTab ("CH " + juce::String::charToString ('1' + curChannelIndex), juce::Colours::darkgrey, &channelEditors [curChannelIndex], false);
+        channelTabs.addLedTab ("CH " + juce::String::charToString ('1' + curChannelIndex), &channelEditors [curChannelIndex]);
+    channelTabs.setTabBarDepth (kTabBarHeight);
     addAndMakeVisible (channelTabs);
 
-    // add this AFTER the Channels tabs, because it occupies some of the same space, and ends up behind the tabs if we add it before
-    toolsButton.setButtonText ("TOOLS");
     toolsButton.setTooltip ("Preset Tools");
     toolsButton.onClick = [this] () { displayToolsMenu (); };
     addAndMakeVisible (toolsButton);
@@ -66,26 +63,26 @@ void Assimil8orEditorComponent::setupPresetComponents ()
     auto toolTipsVT { juce::ValueTree::fromXml (*xmlElement) };
     ParameterToolTipData parameterToolTipData (toolTipsVT, ParameterToolTipData::WrapperType::owner, ParameterToolTipData::EnableCallbacks::no);
 
-    auto setupLabel = [this] (juce::Label& label, juce::String text, float fontSize, juce::Justification justification)
+    auto setupLabel = [this] (juce::Label& label, juce::String text, juce::Justification justification)
     {
-        const auto textColor { juce::Colours::white };
         label.setBorderSize ({ 0, 0, 0, 0 });
         label.setJustificationType (justification);
-        label.setColour (juce::Label::ColourIds::textColourId, textColor);
-        label.setFont (label.getFont ().withPointHeight (fontSize));
+        label.setFont (A8Type::parameterLabel ());
         label.setMinimumHorizontalScale (1.0f);
         label.setText (text, juce::NotificationType::dontSendNotification);
         addAndMakeVisible (label);
     };
 
-    titleLabel.setText ("Preset _ :", juce::NotificationType::dontSendNotification);
+    titleLabel.setText ("PRESET", juce::NotificationType::dontSendNotification);
 
     // NAME EDITOR
     //  length
     //  valid characters
     //  names doe not have to be unique, as the preset number is unique
     nameEditor.setJustification (juce::Justification::centredLeft);
-    nameEditor.setIndents (1, 0);
+    nameEditor.setIndents (7, 0);
+    nameEditor.setFont (A8Type::nameField ());
+    HoverHighlight::attach (nameEditor);
     nameEditor.onFocusLost = [this] () { nameUiChanged (nameEditor.getText ()); };
     nameEditor.onReturnKey = [this] () { nameUiChanged (nameEditor.getText ()); };
     nameEditor.onTextChange = [this] () { nameUiChanged (nameEditor.getText ()); };
@@ -93,7 +90,8 @@ void Assimil8orEditorComponent::setupPresetComponents ()
     nameEditor.setTooltip (parameterToolTipData.getToolTip ("Preset", "Name"));
     addAndMakeVisible (nameEditor);
 
-    setupLabel (midiSetupLabel, "MIDI SETUP", 12.0, juce::Justification::centredLeft);
+    setupLabel (midiSetupLabel, "MIDI SETUP", juce::Justification::centredLeft);
+    midiSetupLabel.setFont (A8Type::sectionHeader ());
     for (auto midiSetupId { 0 }; midiSetupId < 9; ++midiSetupId)
         midiSetupComboBox.addItem (juce::String (midiSetupId + 1), midiSetupId + 1);
     midiSetupComboBox.onChange = [this] ()
@@ -108,14 +106,14 @@ void Assimil8orEditorComponent::setupPresetComponents ()
     midiSetupComboBox.onPopupMenuCallback = [this] ()
     {
     };
+    HoverHighlight::attach (midiSetupComboBox);
     addAndMakeVisible (midiSetupComboBox);
 
-    // used to cover the right channel controls for a stereo linked pair
+    // the strip behind the preset wide controls along the bottom
     addAndMakeVisible (windowDecorator);
 
     // Data 2 CV
-    data2AsCvLabel.setBorderSize ({ 1, 0, 1, 0 });
-    data2AsCvLabel.setText ("Data2 As", juce::NotificationType::dontSendNotification);
+    setupLabel (data2AsCvLabel, "DATA2 AS", juce::Justification::centredLeft);
     data2AsCvLabel.setTooltip (parameterToolTipData.getToolTip ("Preset", "Data2asCV"));
     addAndMakeVisible (data2AsCvLabel);
     data2AsCvComboBox.onChange = [this] ()
@@ -140,22 +138,17 @@ void Assimil8orEditorComponent::setupPresetComponents ()
     data2AsCvComboBox.setTooltip (parameterToolTipData.getToolTip ("Preset", "Data2asCV"));
     addAndMakeVisible (data2AsCvComboBox);
 
-    xfadeGroupsLabel.setText ("XFade:", juce::NotificationType::dontSendNotification);
-    addAndMakeVisible (xfadeGroupsLabel);
+    setupLabel (xfadeGroupsLabel, "XFADE", juce::Justification::centredLeft);
 
     for (auto xfadeGroupIndex { 0 }; xfadeGroupIndex < XfadeGroupIndex::numberOfGroups; ++xfadeGroupIndex)
     {
         auto& xfadeGroup { xfadeGroups [xfadeGroupIndex] };
 
-        xfadeGroup.xfadeGroupLabel.setBorderSize ({ 0, 0, 0, 0 });
-        xfadeGroup.xfadeGroupLabel.setText (juce::String::charToString ('A' + xfadeGroupIndex) + ":", juce::NotificationType::dontSendNotification);
-        addAndMakeVisible (xfadeGroup.xfadeGroupLabel);
+        setupLabel (xfadeGroup.xfadeGroupLabel, juce::String::charToString ('A' + xfadeGroupIndex), juce::Justification::centredLeft);
+        xfadeGroup.xfadeGroupLabel.setFont (A8Type::sectionHeader ());
 
         // Xfade Label
-        xfadeGroup.xfadeCvLabel.setBorderSize ({ 0, 0, 0, 0 });
-        xfadeGroup.xfadeCvLabel.setColour (juce::Label::ColourIds::textColourId, juce::Colours::black);
-        xfadeGroup.xfadeCvLabel.setText ("CV", juce::NotificationType::dontSendNotification);
-        addAndMakeVisible (xfadeGroup.xfadeCvLabel);
+        setupLabel (xfadeGroup.xfadeCvLabel, "CV", juce::Justification::centredRight);
 
         // Xfade CV Input ComboBox
         xfadeGroup.xfadeCvComboBox.onChange = [this, xfadeGroupIndex] ()
@@ -231,10 +224,7 @@ void Assimil8orEditorComponent::setupPresetComponents ()
         addAndMakeVisible (xfadeGroup.xfadeCvComboBox);
 
         // Xfade Group Width Label
-        xfadeGroup.xfadeWidthLabel.setBorderSize ({ 0, 0, 0, 0 });
-        xfadeGroup.xfadeWidthLabel.setColour (juce::Label::ColourIds::textColourId, juce::Colours::black);
-        xfadeGroup.xfadeWidthLabel.setText ("Width", juce::NotificationType::dontSendNotification);
-        addAndMakeVisible (xfadeGroup.xfadeWidthLabel);
+        setupLabel (xfadeGroup.xfadeWidthLabel, "WIDTH", juce::Justification::centredRight);
 
         // Xfade Group Width
         //      1 decimal place when above 1.0, 0.1 increment
@@ -254,10 +244,10 @@ void Assimil8orEditorComponent::setupPresetComponents ()
         xfadeGroup.xfadeWidthEditor.getIncrementCallback = [] () { return 0.01; };
         xfadeGroup.xfadeWidthEditor.onDragCallback = [this, xfadeGroupIndex] (double valueDelta)
         {
-            const auto newAmount { editManager->getXfadeGroupValueByIndex (xfadeGroupIndex) + valueDelta };
-            // the min/max values for all of the XFade Group Widths are the same, so we can just use A
-            auto width { std::clamp (newAmount, minPresetProperties.getXfadeAWidth (), maxPresetProperties.getXfadeAWidth ()) };
-            editManager->setXfadeGroupValueByIndex (xfadeGroupIndex, width, true);
+            // setValue constrains to the min/max callbacks, updates the text and writes the value back through
+            // updateDataCallback, the same path a typed value takes
+            const auto newValue { editManager->getXfadeGroupValueByIndex (xfadeGroupIndex) + valueDelta };
+            xfadeGroups [xfadeGroupIndex].xfadeWidthEditor.setValue (newValue);
         };
         xfadeGroup.xfadeWidthEditor.onPopupMenuCallback = [this, xfadeGroupIndex] ()
         {
@@ -401,10 +391,7 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
         };
         channelEditors [channelIndex].displayToolsMenu = [this] (int channelIndex)
         {
-            auto* popupMenuLnF { new juce::LookAndFeel_V4 };
-            popupMenuLnF->setColour (juce::PopupMenu::ColourIds::headerTextColourId, juce::Colours::white.withAlpha (0.3f));
             juce::PopupMenu toolsMenu;
-            toolsMenu.setLookAndFeel (popupMenuLnF);
             toolsMenu.addSectionHeader ("Channel " + juce::String (channelProperties [channelIndex].getId ()));
             toolsMenu.addSeparator ();
             {
@@ -482,7 +469,7 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
             {
                 channelProperties [channelIndex].copyFrom (unEditedPresetProperties.getValueTree ());
             });
-            toolsMenu.showMenuAsync ({}, [this, popupMenuLnF] (int) { delete popupMenuLnF; });
+            toolsMenu.showMenuAsync ({});
         };
 
         channelProperties [channelIndex].wrap (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::yes);
@@ -566,9 +553,54 @@ void Assimil8orEditorComponent::savePreset ()
     PresetProperties::copyTreeProperties (presetProperties.getValueTree (), unEditedPresetProperties.getValueTree ());
 }
 
-void Assimil8orEditorComponent::paint ([[maybe_unused]] juce::Graphics& g)
+void Assimil8orEditorComponent::applyExplicitColours ()
 {
-    g.fillAll (juce::Colours::darkgrey.darker (0.7f));
+    titleLabel.setColour (juce::Label::ColourIds::textColourId, findColour (A8Colours::accentText));
+    midiSetupLabel.setColour (juce::Label::ColourIds::textColourId, findColour (A8Colours::accentText));
+    // the preset wide controls along the bottom are named as the channel and zone parameters are
+    data2AsCvLabel.setColour (juce::Label::ColourIds::textColourId, findColour (A8Colours::textDim));
+    // XFADE heads the four groups after it, so it is set as a section header is
+    xfadeGroupsLabel.setColour (juce::Label::ColourIds::textColourId, findColour (A8Colours::accentText));
+    for (auto& xfadeGroup : xfadeGroups)
+        for (auto* label : { &xfadeGroup.xfadeGroupLabel, &xfadeGroup.xfadeCvLabel, &xfadeGroup.xfadeWidthLabel })
+            label->setColour (juce::Label::ColourIds::textColourId, findColour (A8Colours::textDim));
+    // Save is the one action in this header worth making obvious - but only when
+    // there is something to save, or it would look ready to press with nothing to write.
+    saveButton.setPrimary (presetHasUnsavedEdits);
+}
+
+void Assimil8orEditorComponent::lookAndFeelChanged ()
+{
+    juce::Component::lookAndFeelChanged ();
+    applyExplicitColours ();
+    // a plain TextEditor stores a colour with the text it already holds, so the
+    // existing contents have to be re-tinted (oolib's CustomTextEditor does this
+    // for itself, which is why the value fields do not need it here)
+    nameEditor.applyColourToAllText (findColour (juce::TextEditor::textColourId), true);
+}
+
+void Assimil8orEditorComponent::paint (juce::Graphics& g)
+{
+    // opaque, so the background behind the rounded corners is this component's to paint
+    g.fillAll (findColour (A8Colours::windowBackground));
+    A8Paint::card (g, *this, getLocalBounds (), A8Colours::windowBackground);
+
+    g.setColour (findColour (A8Colours::listBackground));
+    g.fillRect (headerBounds);
+    g.setColour (findColour (A8Colours::outline));
+    g.fillRect (headerBounds.withTop (headerBounds.getBottom () - 1));
+
+    if (presetHasUnsavedEdits)
+    {
+        auto tagBounds { unsavedEditsBounds };
+        const auto ledBounds { tagBounds.removeFromLeft (static_cast<int> (StatusLed::kDiameter)).toFloat ()
+                                        .withSizeKeepingCentre (StatusLed::kDiameter, StatusLed::kDiameter) };
+        StatusLed::draw (g, ledBounds, true, *this, A8Colours::unsavedEdits);
+        tagBounds.removeFromLeft (6);
+        g.setFont (A8Type::statusTag ());
+        g.setColour (findColour (A8Colours::unsavedEdits));
+        g.drawText (kUnsavedEditsText, tagBounds, juce::Justification::centredLeft, false);
+    }
 }
 
 void Assimil8orEditorComponent::explodeChannel (int channelIndex, int explodeCount)
@@ -641,6 +673,8 @@ void Assimil8orEditorComponent::updateChannelTabName (int channelIndex)
     }
 
     channelTabs.setTabName (channelIndex, channelTabTitle);
+    // the left channel of a stereo pair has no divider between it and its right channel
+    channelTabs.setTabJoinedToNext (channelIndex, channelTabTitle.endsWith ("-L"));
 }
 
 void Assimil8orEditorComponent::setPresetToDefaults ()
@@ -656,10 +690,7 @@ void Assimil8orEditorComponent::revertPreset ()
 
 void Assimil8orEditorComponent::displayToolsMenu ()
 {
-    auto* popupMenuLnF { new juce::LookAndFeel_V4 };
-    popupMenuLnF->setColour (juce::PopupMenu::ColourIds::headerTextColourId, juce::Colours::white.withAlpha (0.3f));
     juce::PopupMenu toolsMenu;
-    toolsMenu.setLookAndFeel (popupMenuLnF);
     toolsMenu.addSectionHeader ("Preset");
     toolsMenu.addSeparator ();
 
@@ -679,7 +710,7 @@ void Assimil8orEditorComponent::displayToolsMenu ()
     toolsMenu.addItem ("Revert", true, false, [this] () { revertPreset (); });
     toolsMenu.addItem ("Midi Setups", true, false, [this] () { guiControlProperties.showMidiConfigWindow (true); });
 
-    toolsMenu.showMenuAsync ({}, [this, popupMenuLnF] (int) { delete popupMenuLnF; });
+    toolsMenu.showMenuAsync (juce::PopupMenu::Options ().withTargetComponent (&toolsButton));
 }
 
 void Assimil8orEditorComponent::exportPresetSettings ()
@@ -832,59 +863,66 @@ void Assimil8orEditorComponent::importPresetSettingsAndSamples ()
 
 void Assimil8orEditorComponent::resized ()
 {
-    auto localBounds { getLocalBounds () };
+    // inside the pane's outline
+    auto localBounds { getLocalBounds ().reduced (1) };
 
-    //midiConfigWindow.setBounds (localBounds);
+    headerBounds = localBounds.removeFromTop (kHeaderHeight);
+    static constexpr auto kGap { 9 };
+    auto headerRow { headerBounds.withTrimmedBottom (1).reduced (kGap, 0) };
+    auto placeLeft = [&headerRow] (juce::Component& component, int width, int height)
+    {
+        component.setBounds (headerRow.removeFromLeft (width).withSizeKeepingCentre (width, height));
+        headerRow.removeFromLeft (kGap);
+    };
+    // sized for the widest preset number, so the name field does not move as presets are loaded
+    placeLeft (titleLabel, A8Paint::textWidth (A8Type::sectionHeader (), "PRESET 199") + 2, headerRow.getHeight ());
+    placeLeft (nameEditor, 150, kFieldHeight);
+    placeLeft (midiSetupLabel, A8Paint::textWidth (A8Type::sectionHeader (), midiSetupLabel.getText ()) + 2, headerRow.getHeight ());
+    placeLeft (midiSetupComboBox, 50, kFieldHeight);
+    unsavedEditsBounds = headerRow.removeFromLeft (static_cast<int> (StatusLed::kDiameter) + 6 + A8Paint::textWidth (A8Type::statusTag (), kUnsavedEditsText) + 2);
 
-    auto topRow { localBounds.removeFromTop (25) };
-    topRow.removeFromTop (3);
-    topRow.removeFromLeft (5);
-    titleLabel.setBounds (topRow.removeFromLeft (57));
-    topRow.removeFromLeft (3);
-    // Name
-    nameEditor.setBounds (topRow.removeFromLeft (150));
-    topRow.removeFromLeft (10);
-    // Midi Setup
-    midiSetupLabel.setBounds (topRow.removeFromLeft (75));
-    topRow.removeFromLeft (3);
-    midiSetupComboBox.setBounds (topRow.removeFromLeft (50));
+    const auto saveWidth { saveButton.getIdealWidth () };
+    saveButton.setBounds (headerRow.removeFromRight (saveWidth).withSizeKeepingCentre (saveWidth, ActionButton::kNormalHeight));
+    headerRow.removeFromRight (kGap);
+    const auto toolsWidth { toolsButton.getIdealWidth () };
+    toolsButton.setBounds (headerRow.removeFromRight (toolsWidth).withSizeKeepingCentre (toolsWidth, ActionButton::kNormalHeight));
 
-    topRow.removeFromRight (3);
-    // Save Button
-    saveButton.setBounds (topRow.removeFromRight (75));
-    // Tools Button
-    toolsButton.setBounds (getWidth () - 43, saveButton.getBottom () + 3, 40, 20);
+    // the preset wide controls along the bottom
+    auto bottomRow { localBounds.removeFromBottom (kBottomRowHeight) };
+    windowDecorator.setBounds (bottomRow);
+    bottomRow = bottomRow.withTrimmedTop (1).reduced (6, 0);
+    static constexpr auto kBottomFieldHeight { 20 };
+    auto placeBottom = [&bottomRow] (juce::Component& component, int width, int gapAfter)
+    {
+        component.setBounds (bottomRow.removeFromLeft (width).withSizeKeepingCentre (width, kBottomFieldHeight));
+        bottomRow.removeFromLeft (gapAfter);
+    };
+    auto labelWidth = [] (const juce::Label& label) { return A8Paint::textWidth (label.getFont (), label.getText ()) + 2; };
 
-    // Channel Tabs
-    const auto channelSectionY { titleLabel.getBottom () + 3 };
-    channelTabs.setBounds (3, channelSectionY, 765, 406);
-    const auto bottomRowY (getLocalBounds ().getBottom () - 26);
-    // this is used to overlay the 'right channel' to indicate it is inactive
-    windowDecorator.setBounds (getLocalBounds ().removeFromBottom (26));
-
-    // Data2 as CV
-    data2AsCvLabel.setBounds (6, bottomRowY + 3, 55, 20);
-    data2AsCvComboBox.setBounds (data2AsCvLabel.getRight () + 3, bottomRowY + 3, 28, 20);
-
-    // Cross fade groups
-    xfadeGroupsLabel.setBounds (data2AsCvComboBox.getRight () + 5, bottomRowY + 3, 50, 20);
-    auto startX { xfadeGroupsLabel.getRight () + 2 };
+    // packed to fit the narrowest editor: four groups of about 155 pixels each after the Data2 control
+    placeBottom (data2AsCvLabel, labelWidth (data2AsCvLabel), 3);
+    placeBottom (data2AsCvComboBox, 28, 10);
+    placeBottom (xfadeGroupsLabel, labelWidth (xfadeGroupsLabel), 6);
     for (auto xfadeGroupIndex { 0 }; xfadeGroupIndex < XfadeGroupIndex::numberOfGroups; ++xfadeGroupIndex)
     {
         auto& xfadeGroup { xfadeGroups [xfadeGroupIndex] };
-        xfadeGroup.xfadeGroupLabel.setBounds (startX + (xfadeGroupIndex * 155), bottomRowY + 3, 17, 20);
-
-        xfadeGroup.xfadeCvLabel.setBounds (xfadeGroup.xfadeGroupLabel.getRight (), bottomRowY + 3, 20, 20);
-        xfadeGroup.xfadeCvComboBox.setBounds (xfadeGroup.xfadeCvLabel.getRight () + 1, bottomRowY + 3, 28, 20);
-
-        xfadeGroup.xfadeWidthLabel.setBounds (xfadeGroup.xfadeCvComboBox.getRight () + 3, bottomRowY + 3, 35, 20);
-        xfadeGroup.xfadeWidthEditor.setBounds (xfadeGroup.xfadeWidthLabel.getRight () + 1, bottomRowY + 3, 40, 20);
+        placeBottom (xfadeGroup.xfadeGroupLabel, labelWidth (xfadeGroup.xfadeGroupLabel), 3);
+        placeBottom (xfadeGroup.xfadeCvLabel, labelWidth (xfadeGroup.xfadeCvLabel), 2);
+        placeBottom (xfadeGroup.xfadeCvComboBox, 28, 5);
+        placeBottom (xfadeGroup.xfadeWidthLabel, labelWidth (xfadeGroup.xfadeWidthLabel), 2);
+        placeBottom (xfadeGroup.xfadeWidthEditor, 40, 10);
     }
+
+    // The channel editor lays itself out to whatever size it is given, but below
+    // this it would have to crowd its controls, so it is clipped instead.
+    constexpr auto kMinimumEditorWidth { 765 };
+    channelTabs.setBounds (localBounds.withWidth (std::max (localBounds.getWidth (), kMinimumEditorWidth)));
 }
 
 void Assimil8orEditorComponent::idDataChanged (int id)
 {
-    titleLabel.setText ("Preset " + juce::String (id), juce::NotificationType::dontSendNotification);
+    titleLabel.setText ("PRESET " + juce::String (id), juce::NotificationType::dontSendNotification);
+    resized ();
 }
 
 void Assimil8orEditorComponent::midiSetupDataChanged (int midiSetupId)
@@ -955,5 +993,18 @@ void Assimil8orEditorComponent::xfadeWidthUiChanged (int group, double width)
 
 void Assimil8orEditorComponent::timerCallback ()
 {
-    saveButton.setEnabled (! PresetHelpers::areEntirePresetsEqual (unEditedPresetProperties.getValueTree (), presetProperties.getValueTree ()));
+    // check if data has changed
+    const auto hasUnsavedEdits { ! PresetHelpers::areEntirePresetsEqual (unEditedPresetProperties.getValueTree (), presetProperties.getValueTree ()) };
+    saveButton.setEnabled (hasUnsavedEdits);
+    if (hasUnsavedEdits != presetHasUnsavedEdits)
+    {
+        presetHasUnsavedEdits = hasUnsavedEdits;
+        // the app cannot say which value changed, only that something did
+        repaint (unsavedEditsBounds);
+        applyExplicitColours ();
+    }
+
+    // a channel tab lights when that channel holds a sample
+    for (auto channelIndex { 0 }; channelIndex < channelTabs.getNumTabs (); ++channelIndex)
+        channelTabs.setTabHasContent (channelIndex, isChannelActive (channelIndex));
 }

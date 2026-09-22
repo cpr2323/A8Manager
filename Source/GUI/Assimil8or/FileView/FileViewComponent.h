@@ -1,6 +1,7 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "../../Theme/UiComponents.h"
 #include "../../../AppProperties.h"
 #include "../../../Assimil8or/Audio/AudioManager.h"
 #include "oolib/Directory/DirectoryDataProperties.h"
@@ -18,6 +19,9 @@ public:
 
     void init (juce::ValueTree rootPropertiesVT);
 
+    // narrow enough that the header still fits its title and tools
+    int getMinimumWidth () const;
+
     std::function<void (juce::File audioFile)> onAudioFileSelected;
     std::function<void (std::function<void ()>, std::function<void ()>)> overwritePresetOrCancel;
 
@@ -27,6 +31,7 @@ private:
     AudioManager* audioManager { nullptr };
     // resolved in init (), once DirectoryValueTree has published the types Main registered
     int audioFileTypeId { DirectoryValueTree::unknownTypeId };
+    int presetFileTypeId { DirectoryValueTree::unknownTypeId };
 
     juce::CriticalSection directoryListQuickLookupListLock;
     std::vector<juce::ValueTree> directoryListQuickLookupListA;
@@ -34,14 +39,15 @@ private:
     std::vector<juce::ValueTree>* curDirectoryListQuickLookupList { &directoryListQuickLookupListA };
     std::vector<juce::ValueTree>* updateDirectoryListQuickLookupList { &directoryListQuickLookupListB };
 
-    juce::TextButton optionsButton;
-    juce::ToggleButton showAllFiles { "Show All" };
+    PaneHeader paneHeader { "FOLDERS" };
+    ChromeButton optionsButton { "OPTIONS" };
+    ChromeButton showAllFiles { "ALL" };
     std::unique_ptr<juce::FileChooser> fileChooser;
     juce::ListBox directoryContentsListBox { {}, this };
+    ListRowHover rowHover { directoryContentsListBox };
     juce::CriticalSection queuedFolderLock;
     juce::File queuedFolderToScan;
     bool isRootFolder { false };
-    int lastSelectedRow { -1 };
     std::unique_ptr<juce::AlertWindow> renameAlertWindow;
     std::unique_ptr<juce::AlertWindow> newAlertWindow;
     LambdaThread updateFromNewDataThread { "UpdateFromNewDataThread", 100 };
@@ -75,7 +81,9 @@ private:
     void listBoxItemClicked (int row, const juce::MouseEvent& me) override;
     void listBoxItemDoubleClicked (int row, const juce::MouseEvent& me) override;
     void paintListBoxItem (int rowNumber, juce::Graphics& g, int width, int height, bool rowIsSelected) override;
+    void selectedRowsChanged (int lastRowSelected) override;
     void resized () override;
+    void paint (juce::Graphics& g) override;
     void paintOverChildren (juce::Graphics& g) override;
 };
     

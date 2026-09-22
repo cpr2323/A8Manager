@@ -41,30 +41,39 @@ const auto kMaxEnvelopeTime { 99.0 };
 ChannelEditor::ChannelEditor ()
 {
     // TODO - these lambdas are copies of what is in ChannelEditor::setupChannelComponents, need to DRY
+    // the size a label was designed at says its role: the large ones title a section, the rest name a parameter
     auto setupLabel = [this] (juce::Label& label, juce::String text, float fontSize, juce::Justification justification)
     {
-        const auto textColor { juce::Colours::black };
+        const auto isSectionHeader { fontSize >= kLargeLabelSize };
         label.setBorderSize ({ 0, 0, 0, 0 });
         label.setJustificationType (justification);
-        label.setColour (juce::Label::ColourIds::textColourId, textColor);
-        label.setFont (label.getFont ().withPointHeight (fontSize));
-        label.setMinimumHorizontalScale (1.0f);
+        label.setFont (isSectionHeader ? A8Type::sectionHeader () : A8Type::parameterLabel ());
+        label.setMinimumHorizontalScale (0.75f);
         label.setText (text, juce::NotificationType::dontSendNotification);
+        (isSectionHeader ? sectionHeaderLabels : parameterLabels).push_back (&label);
         addAndMakeVisible (label);
     };
 
-    setupLabel (zonesLabel, "ZONES", kMediumLabelSize, juce::Justification::centredLeft);
-    zonesLabel.setColour (juce::Label::ColourIds::textColourId, juce::Colours::white);
-    setupLabel (zoneMaxVoltage, "+5.00", 10.0, juce::Justification::centredLeft);
-    zoneMaxVoltage.setColour (juce::Label::ColourIds::textColourId, juce::Colours::white.darker (0.1f));
+    setupLabel (zonesLabel, "ZONES", kLargeLabelSize, juce::Justification::centredLeft);
+    zonesLabel.setFont (A8Type::zonesTitle ());
+    setupLabel (zoneMaxVoltage, "+5.00", kSmallLabelSize, juce::Justification::centredLeft);
+    zoneMaxVoltage.setFont (A8Type::cvValue ().withPointHeight (9.5f));
 
     for (auto curZoneIndex { 0 }; curZoneIndex < 8; ++curZoneIndex)
+        zoneTabs.addLedTab (juce::String::charToString ('1' + curZoneIndex), &zoneEditors [curZoneIndex]);
+    zoneTabs.setTabBarDepth (38);
+    zoneTabs.setPageColourId (A8Colours::zoneBackground);
+    // a zone's min voltage is under its number: positive values read as text, zero is dimmed, and
+    // negative values are set in the accent so the sign can be told at a glance
+    zoneTabs.detailColourIdFor = [] (const juce::String& minVoltageText)
     {
-        zoneTabs.addTab (juce::String::charToString ('1' + curZoneIndex), juce::Colours::darkgrey, &zoneEditors [curZoneIndex], false);
-        zoneTabs.setTabBackgroundColour (curZoneIndex, zoneTabs.getTabBackgroundColour (curZoneIndex).darker (0.2f));
-    }
-    zoneTabs.setTabBarDepth (zoneTabs.getTabBarDepth () + 5);
-    zoneTabs.setLookAndFeel (&zonesTabbedLookAndFeel);
+        const auto minVoltage { minVoltageText.getDoubleValue () };
+        if (minVoltage > 0.01)
+            return static_cast<int> (A8Colours::text);
+        if (minVoltage >= -0.01)
+            return static_cast<int> (A8Colours::textGhost);
+        return static_cast<int> (A8Colours::accentText);
+    };
     zoneTabs.onSelectedTabChanged = [this] (int)
     {
         configAudioPlayer ();
@@ -72,17 +81,17 @@ ChannelEditor::ChannelEditor ()
     };
     addAndMakeVisible (zoneTabs);
 
-    attackFromCurrentComboBox.setLookAndFeel (&noArrowComboBoxLnF);
-    autoTriggerComboBox.setLookAndFeel (&noArrowComboBoxLnF);
-    channelModeComboBox.setLookAndFeel (&noArrowComboBoxLnF);
-    linAMisExtEnvComboBox.setLookAndFeel (&noArrowComboBoxLnF);
-    loopLengthIsEndComboBox.setLookAndFeel (&noArrowComboBoxLnF);
-    loopModeComboBox.setLookAndFeel (&noArrowComboBoxLnF);
-    mixModIsFaderComboBox.setLookAndFeel (&noArrowComboBoxLnF);
-    playModeComboBox.setLookAndFeel (&noArrowComboBoxLnF);
-    pMSourceComboBox.setLookAndFeel (&noArrowComboBoxLnF);
-    xfadeGroupComboBox.setLookAndFeel (&noArrowComboBoxLnF);
-    zonesRTComboBox.setLookAndFeel (&noArrowComboBoxLnF);
+    attackFromCurrentComboBox.getProperties ().set (A8LnFProperties::noCaret, true);
+    autoTriggerComboBox.getProperties ().set (A8LnFProperties::noCaret, true);
+    channelModeComboBox.getProperties ().set (A8LnFProperties::noCaret, true);
+    linAMisExtEnvComboBox.getProperties ().set (A8LnFProperties::noCaret, true);
+    loopLengthIsEndComboBox.getProperties ().set (A8LnFProperties::noCaret, true);
+    loopModeComboBox.getProperties ().set (A8LnFProperties::noCaret, true);
+    mixModIsFaderComboBox.getProperties ().set (A8LnFProperties::noCaret, true);
+    playModeComboBox.getProperties ().set (A8LnFProperties::noCaret, true);
+    pMSourceComboBox.getProperties ().set (A8LnFProperties::noCaret, true);
+    xfadeGroupComboBox.getProperties ().set (A8LnFProperties::noCaret, true);
+    zonesRTComboBox.getProperties ().set (A8LnFProperties::noCaret, true);
 
     {
         PresetProperties minPresetProperties (ParameterPresetsSingleton::getInstance ()->getParameterPresetListProperties ().getParameterPreset (ParameterPresetListProperties::MinParameterPresetType),
@@ -101,7 +110,6 @@ ChannelEditor::ChannelEditor ()
         defaultZoneProperties.wrap (defaultChannelProperties.getZoneVT (0), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
     }
 
-    toolsButton.setButtonText ("TOOLS");
     toolsButton.setTooltip ("Channel Tools");
     toolsButton.onClick = [this] ()
     {
@@ -141,18 +149,6 @@ ChannelEditor::ChannelEditor ()
 
 ChannelEditor::~ChannelEditor ()
 {
-    zoneTabs.setLookAndFeel (nullptr);
-    attackFromCurrentComboBox.setLookAndFeel (nullptr);
-    autoTriggerComboBox.setLookAndFeel (nullptr);
-    channelModeComboBox.setLookAndFeel (nullptr);
-    linAMisExtEnvComboBox.setLookAndFeel (nullptr);
-    loopLengthIsEndComboBox.setLookAndFeel (nullptr);
-    loopModeComboBox.setLookAndFeel (nullptr);
-    mixModIsFaderComboBox.setLookAndFeel (nullptr);
-    playModeComboBox.setLookAndFeel (nullptr);
-    pMSourceComboBox.setLookAndFeel (nullptr);
-    xfadeGroupComboBox.setLookAndFeel (nullptr);
-    zonesRTComboBox.setLookAndFeel (nullptr);
 }
 
 void ChannelEditor::visibilityChanged ()
@@ -483,14 +479,16 @@ void ChannelEditor::setupChannelComponents ()
     auto toolTipsVT { juce::ValueTree::fromXml (*xmlElement) };
     ParameterToolTipData parameterToolTipData (toolTipsVT, ParameterToolTipData::WrapperType::owner, ParameterToolTipData::EnableCallbacks::no);
 
+    // the size a label was designed at says its role: the large ones title a section, the rest name a parameter
     auto setupLabel = [this] (juce::Label& label, juce::String text, float fontSize, juce::Justification justification)
     {
-        const auto textColor { juce::Colours::black };
+        const auto isSectionHeader { fontSize >= kLargeLabelSize };
         label.setBorderSize ({ 0, 0, 0, 0 });
         label.setJustificationType (justification);
-        label.setColour (juce::Label::ColourIds::textColourId, textColor);
-        label.setFont (label.getFont ().withPointHeight (fontSize));
+        label.setFont (isSectionHeader ? A8Type::sectionHeader () : A8Type::parameterLabel ());
+        label.setMinimumHorizontalScale (0.75f);
         label.setText (text, juce::NotificationType::dontSendNotification);
+        (isSectionHeader ? sectionHeaderLabels : parameterLabels).push_back (&label);
         addAndMakeVisible (label);
     };
     auto setupTextEditor = [this, &parameterToolTipData] (juce::TextEditor& textEditor, juce::Justification justification, int maxLen, juce::String validInputCharacters,
@@ -498,8 +496,10 @@ void ChannelEditor::setupChannelComponents ()
     {
         textEditor.setJustification (justification);
         textEditor.setIndents (1, 0);
+        textEditor.setFont (A8Type::value ());
         textEditor.setInputRestrictions (maxLen, validInputCharacters);
         textEditor.setTooltip (parameterToolTipData.getToolTip ("Channel", parameterName));
+        HoverHighlight::attach (textEditor);
         addAndMakeVisible (textEditor);
     };
     auto setupCvInputComboBox = [this, &parameterToolTipData] (CvInputComboBox& cvInputComboBox, juce::String parameterName, std::function<void ()> onChangeCallback)
@@ -514,13 +514,13 @@ void ChannelEditor::setupChannelComponents ()
         jassert (onChangeCallback != nullptr);
         comboBox.setTooltip (parameterToolTipData.getToolTip ("Channel", parameterName));
         comboBox.onChange = onChangeCallback;
+        HoverHighlight::attach (comboBox);
         addAndMakeVisible (comboBox);
     };
     auto setupButton = [this, &parameterToolTipData] (juce::TextButton& textButton, juce::String text, juce::String parameterName, std::function<void ()> onClickCallback)
     {
         textButton.setButtonText (text);
         textButton.setClickingTogglesState (true);
-        textButton.setColour (juce::TextButton::ColourIds::buttonOnColourId, textButton.findColour (juce::TextButton::ColourIds::buttonOnColourId).brighter (0.5));
         textButton.setTooltip (parameterToolTipData.getToolTip ("Channel", parameterName));
         textButton.onClick = onClickCallback;
         addAndMakeVisible (textButton);
@@ -2153,10 +2153,7 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree u
         zoneEditor.init (zonePropertiesVT, uneditedChannelProperties.getZoneVT (zoneIndex), rootPropertiesVT);
         zoneEditor.displayToolsMenu = [this] (int zoneIndex)
         {
-            auto* popupMenuLnF { new juce::LookAndFeel_V4 };
-            popupMenuLnF->setColour (juce::PopupMenu::ColourIds::headerTextColourId, juce::Colours::white.withAlpha (0.3f));
             juce::PopupMenu toolsMenu;
-            toolsMenu.setLookAndFeel (popupMenuLnF);
             toolsMenu.addSectionHeader ("Zone " + juce::String (zoneProperties [zoneIndex].getId ()));
             toolsMenu.addSeparator ();
 
@@ -2226,7 +2223,7 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree u
                 toolsMenu.addSubMenu ("Flip", flipMenu, zoneIndex < 7);
             }
 
-            toolsMenu.showMenuAsync ({}, [this, popupMenuLnF] (int) { delete popupMenuLnF; });
+            toolsMenu.showMenuAsync ({});
         };
 
         // Zone Properties setup
@@ -2420,14 +2417,14 @@ void ChannelEditor::configAudioPlayer ()
     audioPlayerProperties.setPlayState (AudioPlayerProperties::PlayState::stop, false);
 }
 
-void ChannelEditor::paint ([[maybe_unused]] juce::Graphics& g)
+void ChannelEditor::lookAndFeelChanged ()
 {
-    auto zoneMaxVoltageBounds { zoneMaxVoltage.getBounds () };
-    zoneMaxVoltageBounds = zoneMaxVoltageBounds.withX (zoneMaxVoltageBounds.getX () - 1).withY (zoneMaxVoltageBounds.getY () - 2).withHeight (zoneMaxVoltageBounds.getHeight () + 6).withTrimmedRight (5);
-    g.setColour (zoneTabs.getTabBackgroundColour (0).darker (0.2f));
-    g.fillRoundedRectangle (zoneMaxVoltageBounds.toFloat (), 2.0f);
-    g.setColour (juce::Colours::white.darker (0.2f));
-    g.drawRoundedRectangle (zoneMaxVoltageBounds.toFloat (), 1.5f, 0.4f);
+    juce::Component::lookAndFeelChanged ();
+    for (auto* label : sectionHeaderLabels)
+        label->setColour (juce::Label::ColourIds::textColourId, findColour (A8Colours::accentText));
+    for (auto* label : parameterLabels)
+        label->setColour (juce::Label::ColourIds::textColourId, findColour (A8Colours::textDim));
+    zoneMaxVoltage.setColour (juce::Label::ColourIds::textColourId, findColour (A8Colours::textGhost));
 }
 
 void ChannelEditor::positionColumnOne (int xOffset, int width)
@@ -2673,16 +2670,16 @@ void ChannelEditor::positionColumnFour (int xOffset, int width)
 void ChannelEditor::resized ()
 {
     const auto columnWidth { 100 };
-    const auto spaceBetweenColumns { 40 };
+    const auto spaceBetweenColumns { 30 };
 
     // this is the overlay that is used to indicate a channel is in Stereo/Right mode
     stereoRightTransparantOverly.setBounds (getLocalBounds ());
 
     jassert (displayToolsMenu != nullptr);
-    toolsButton.setBounds (5, getHeight () - 5 - 20, 40, 20);
+    toolsButton.setBounds (15, getHeight () - 6 - ActionButton::kSmallHeight, toolsButton.getIdealWidth (), ActionButton::kSmallHeight);
 
     // layout the Zones section. ie. the tabs and the channel level controls
-    auto zoneColumn { getLocalBounds ().removeFromRight (213) };
+    auto zoneColumn { getLocalBounds ().removeFromRight (243) };
     zoneColumn.removeFromTop (3);
     auto zoneTopSection { zoneColumn.removeFromTop (75).withTrimmedBottom (5).withTrimmedRight (3) };
     zonesLabel.setBounds (zoneTopSection.getX () + 15, zoneTopSection.getHeight () / 2 - kMediumLabelIntSize / 2, 80, kMediumLabelIntSize);
@@ -2709,8 +2706,11 @@ void ChannelEditor::resized ()
 
     // TODO - improve size calculation
     // Waveform Display
-    sampleWaveformDisplay.setBounds (mixModComboBox.getX (), xfadeGroupComboBox.getBounds ().getBottom () + kInterControlYOffset + 5,
-                                     zoneTabs.getX () - mixModComboBox.getX () - 15, getHeight () - xfadeGroupComboBox.getBounds ().getBottom () - kInterControlYOffset - 15);
+    // the same gap either side: from the envelope editor on the left, and to the zones on the right
+    constexpr auto kWaveformSideGap { 15 };
+    const auto waveformLeft { arEnvelopeComponent.getRight () + kWaveformSideGap };
+    sampleWaveformDisplay.setBounds (waveformLeft, xfadeGroupComboBox.getBounds ().getBottom () + kInterControlYOffset + 5,
+                                     zoneTabs.getX () - kWaveformSideGap - waveformLeft, getHeight () - xfadeGroupComboBox.getBounds ().getBottom () - kInterControlYOffset - 15);
 }
 
 void ChannelEditor::updateWaveformDisplay ()
@@ -2751,6 +2751,7 @@ void ChannelEditor::updateZoneTabName (int zoneIndex)
         zoneTabName += "\r" + juce::String (minVoltage >= 0.0 ? "+" : "") + juce::String (minVoltage, 2);
     }
     zoneTabs.setTabName (zoneIndex, zoneTabName);
+    zoneTabs.setTabHasContent (zoneIndex, zoneProperties [zoneIndex].getSample ().isNotEmpty ());
 }
 
 void ChannelEditor::aliasingDataChanged (int aliasing)

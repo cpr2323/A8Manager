@@ -5,6 +5,7 @@
 #include "CvInputComboBox.h"
 #include "EditManager.h"
 #include "../../GuiControlProperties.h"
+#include "../../Theme/UiComponents.h"
 #include "../../../AppProperties.h"
 #include "../../../Assimil8or/Audio/AudioPlayerProperties.h"
 #include "../../../Assimil8or/Preset/PresetProperties.h"
@@ -12,15 +13,17 @@
 #include "oolib/Debug/DebugLog.h"
 #include "oolib/Properties/RuntimeRootProperties.h"
 
+// the strip along the bottom of the editor, behind the preset wide Data2 and XFade controls
 class WindowDecorator : public juce::Component
 {
 public:
+    WindowDecorator () { setInterceptsMouseClicks (false, false); }
 private:
     void paint (juce::Graphics& g) override
     {
-        g.fillAll (juce::Colours::grey);
-        g.setColour (juce::Colours::white);
-        g.drawLine ({ getLocalBounds ().getTopLeft ().toFloat (),getLocalBounds ().getTopRight ().toFloat () });
+        g.fillAll (findColour (A8Colours::listBackground));
+        g.setColour (findColour (A8Colours::outline));
+        g.fillRect (getLocalBounds ().removeFromTop (1));
     }
 };
 
@@ -53,10 +56,21 @@ private:
     std::unique_ptr<juce::FileChooser> fileChooser;
 
     juce::Label titleLabel;
-    juce::TextButton saveButton;
-    juce::TextButton toolsButton;
+    ActionButton saveButton { "SAVE" };
+    MenuButton toolsButton { "PRESET TOOLS" };
+    bool presetHasUnsavedEdits { false };
 
-    juce::TabbedComponent channelTabs { juce::TabbedButtonBar::Orientation::TabsAtTop };
+    static constexpr int kHeaderHeight { 38 };
+    static constexpr int kTabBarHeight { 31 };
+    static constexpr int kFieldHeight { 23 };
+    static constexpr int kBottomRowHeight { 28 };
+    static inline const juce::String kUnsavedEditsText { "UNSAVED EDITS" };
+
+    // set in resized, drawn in paint
+    juce::Rectangle<int> headerBounds;
+    juce::Rectangle<int> unsavedEditsBounds;
+
+    LedTabbedComponent channelTabs { juce::TabbedButtonBar::Orientation::TabsAtTop };
     WindowDecorator windowDecorator;
 
     // Preset Parameters
@@ -117,7 +131,10 @@ private:
     void xfadeWidthDataChanged (int group, double);
     void xfadeWidthUiChanged (int group, double);
 
+    void applyExplicitColours ();
+
     void timerCallback () override;
     void resized () override;
+    void lookAndFeelChanged () override;
     void paint (juce::Graphics& g) override;
 };

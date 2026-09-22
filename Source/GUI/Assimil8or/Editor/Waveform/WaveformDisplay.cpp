@@ -1,4 +1,6 @@
 #include "WaveformDisplay.h"
+#include "../../../Theme/A8ColourIds.h"
+#include "../../../Theme/A8Fonts.h"
 #include "../../../../SystemServices.h"
 #include "oolib/Properties/RuntimeRootProperties.h"
 
@@ -6,12 +8,13 @@ namespace
 {
     // The Assimil8or's own loop can never be shorter than this.
     constexpr juce::int64 kMinLoopLength { 4 };
+
+    // Vertical divisions behind the trace, fixed to the view, as a scale for the eye.
+    constexpr auto kGridDivisions { 8 };
 }
 
 WaveformDisplay::WaveformDisplay ()
 {
-    setupColours ();
-
     // Samples is what the module itself deals in, so it leads and is the
     // default; minutes:seconds is offered from the timeline's right-click menu.
     // Beats:bars is not on the list - there is no tempo here for it to mean
@@ -22,9 +25,26 @@ WaveformDisplay::WaveformDisplay ()
     timeline.onUnitChanged = [this] (TimelineComponent::Unit) { markerOverlay.repaint (); };
     addAndMakeVisible (timeline);
 
-    // Every waveform colour is the same black, so there is no RMS body to see -
-    // don't pay for one.
+    // Every waveform colour is the same trace colour, so there is no RMS body to
+    // see - don't pay for one.
     waveform.setRmsVisible (false);
+    // the audio outside sample start .. end is washed back, so the part that plays reads as the part that plays
+    waveform.onPaintOverlay = [this] (juce::Graphics& g, WaveformView& view)
+    {
+        if (! hasSample () || markerOverlay.getNumMarkers () <= kSampleEnd)
+            return;
+        // with no audio between start and end there is no part that plays to pick out
+        if (markerOverlay.getPosition (kSampleEnd) <= markerOverlay.getPosition (kSampleStart))
+            return;
+        const auto startX { view.sampleToX (markerOverlay.getPosition (kSampleStart)) };
+        const auto endX { view.sampleToX (markerOverlay.getPosition (kSampleEnd)) };
+        const auto height { static_cast<float> (view.getHeight ()) };
+        g.setColour (findColour (A8Colours::waveformShade));
+        if (startX > 0.0f)
+            g.fillRect (juce::Rectangle<float> { 0.0f, 0.0f, startX, height });
+        if (endX < static_cast<float> (view.getWidth ()))
+            g.fillRect (juce::Rectangle<float> { endX, 0.0f, static_cast<float> (view.getWidth ()) - endX, height });
+    };
     waveform.onViewChanged = [this] () { publishView (); };
     waveform.onDoubleClick = [this] ()
     {
@@ -41,63 +61,89 @@ WaveformDisplay::WaveformDisplay ()
     addAndMakeVisible (markerOverlay);
 
     setupMarkers ();
+    setupColours ();
 }
 
+// Every colour comes from the palette, so this runs again whenever the palette changes.
 void WaveformDisplay::setupColours ()
 {
-    const auto backgroundColour { juce::Colours::grey.darker (0.3f) };
+    // Every part of the waveform is drawn in the one trace colour.
+    const auto foregroundColour { findColour (A8Colours::waveformForeground) };
 
     WaveformView::ColourScheme waveformColours;
-    waveformColours.background = backgroundColour;
-    waveformColours.centreLine = juce::Colours::black;
-    waveformColours.peak       = juce::Colours::black;
-    waveformColours.rms        = juce::Colours::black;
-    waveformColours.sampleLine = juce::Colours::black;
-    waveformColours.sampleDot  = juce::Colours::black;
+    // the same lane as the zone's loop tuner, so the two read as views of the same audio
+    waveformColours.background = findColour (A8Colours::tunerBackground);
+    waveformColours.centreLine = findColour (A8Colours::waveformCentreLine);
+    waveformColours.peak       = foregroundColour;
+    waveformColours.rms        = foregroundColour;
+    waveformColours.sampleLine = foregroundColour;
+    waveformColours.sampleDot  = foregroundColour;
     waveform.setColourScheme (waveformColours);
+    waveform.setGrid (kGridDivisions, findColour (A8Colours::waveformGrid));
 
+    // the ruler is chrome, so it takes the chrome colours rather than the trace colour
     TimelineComponent::ColourScheme timelineColours;
-    timelineColours.background = backgroundColour;
-    timelineColours.majorTick  = juce::Colours::black;
-    timelineColours.minorTick  = juce::Colours::black.withAlpha (0.55f);
-    timelineColours.text       = juce::Colours::black;
+    timelineColours.background = findColour (A8Colours::listBackground);
+    timelineColours.majorTick  = findColour (A8Colours::menuHeaderText);
+    timelineColours.minorTick  = findColour (A8Colours::textGhost);
+    timelineColours.text       = findColour (A8Colours::menuHeaderText);
     timeline.setColourScheme (timelineColours);
+    // a size smaller than SquidManager's, to fit the shorter ruler
+    timeline.setLabelStyle ({ A8Type::ruler ().withPointHeight (8.0f), true, true });
+
+    MarkerOverlay::Appearance markerAppearance;
+    markerAppearance.handleOutline  = juce::Colours::transparentBlack;
+    markerAppearance.labelFont      = A8Type::markerLabel ();
+    markerAppearance.labelSeparator = ": ";
+    markerAppearance.labelPlate     = juce::Colours::transparentBlack;
+    markerAppearance.labelGap       = 6.0f;
+    markerOverlay.setAppearance (markerAppearance);
+
+    // Start is green and End red, the pairing that reads without being learned;
+    // the loop points are gold, told apart by which side of their line the handle hangs
+    const std::array<int, 4> markerColourIds { A8Colours::markerStart, A8Colours::markerEnd, A8Colours::markerLoop, A8Colours::markerLoop };
+    for (auto markerIndex { 0 }; markerIndex < markerOverlay.getNumMarkers (); ++markerIndex)
+    {
+        auto style { markerOverlay.getStyle (markerIndex) };
+        style.colour = findColour (markerColourIds [static_cast<size_t> (markerIndex)]);
+        markerOverlay.setStyle (markerIndex, style);
+    }
 }
 
 void WaveformDisplay::setupMarkers ()
 {
     MarkerOverlay::Style style;
-    style.colour        = juce::Colours::white;
     style.lineThickness = 1.0f;
     style.shape         = MarkerOverlay::HandleShape::rectangle;
-    style.handleWidth   = 10.0f;
-    style.handleHeight  = 10.0f;
+    style.handleWidth   = 8.0f;
+    style.handleHeight  = 12.0f;
+    // whether the labels are always shown depends on the room there is for them, which resized decides
     style.label         = MarkerOverlay::LabelVisibility::whileDragging;
 
     // In each pair the handles hang inwards, off the side of the line that faces
     // the region they bound, so which line a handle belongs to stays readable
-    // when the two are close together.
+    // when the two are close together. The colours are set in setupColours.
 
     // Sample start / end: solid lines, handles along the top.
     auto sampleStartStyle { style };
     sampleStartStyle.placement = MarkerOverlay::HandlePlacement::top;
     sampleStartStyle.alignment = MarkerOverlay::HandleAlignment::rightOfLine;
-    markerOverlay.addMarker ({ "Start", 0.0, sampleStartStyle });
+    markerOverlay.addMarker ({ "START", 0.0, sampleStartStyle });
 
     auto sampleEndStyle { sampleStartStyle };
     sampleEndStyle.alignment = MarkerOverlay::HandleAlignment::leftOfLine;
-    markerOverlay.addMarker ({ "End", 0.0, sampleEndStyle });
+    markerOverlay.addMarker ({ "END", 0.0, sampleEndStyle });
 
     // Loop start / end: dashed lines, handles along the bottom.
     auto loopStartStyle { style };
     loopStartStyle.placement = MarkerOverlay::HandlePlacement::bottom;
     loopStartStyle.alignment = MarkerOverlay::HandleAlignment::rightOfLine;
     loopStartStyle.dashed    = true;
-    markerOverlay.addMarker ({ "Loop Start", 0.0, loopStartStyle });
+    markerOverlay.addMarker ({ "LOOP", 0.0, loopStartStyle });
 
     auto loopEndStyle { loopStartStyle };
     loopEndStyle.alignment = MarkerOverlay::HandleAlignment::leftOfLine;
-    markerOverlay.addMarker ({ "Loop End", 0.0, loopEndStyle });
+    markerOverlay.addMarker ({ "LOOP END", 0.0, loopEndStyle });
 }
 
 void WaveformDisplay::init (juce::ValueTree channelPropertiesVT, juce::ValueTree rootPropertiesVT)
@@ -190,6 +236,7 @@ void WaveformDisplay::updateMarkerPositions ()
     markerOverlay.setPosition (kSampleEnd, static_cast<double> (sampleEnd));
     markerOverlay.setPosition (kLoopStart, static_cast<double> (loopStart));
     markerOverlay.setPosition (kLoopEnd, static_cast<double> (loopStart + loopLength));
+    waveform.repaint ();
 }
 
 // The timeline and the overlay both position by sample, so they have to be
@@ -302,17 +349,39 @@ void WaveformDisplay::enablementChanged ()
     markerOverlay.setInterceptsMouseClicks (isEnabled (), false);
 }
 
+void WaveformDisplay::lookAndFeelChanged ()
+{
+    juce::Component::lookAndFeelChanged ();
+    setupColours ();
+}
+
 void WaveformDisplay::resized ()
 {
     auto bounds { getLocalBounds ().reduced (1) };
     timeline.setBounds (bounds.removeFromTop (juce::jmin (kTimelineHeight, bounds.getHeight () / 3)));
     waveform.setBounds (bounds);
     markerOverlay.setBounds (bounds);
+
+    // The labels name each marker and give its position, as SquidManager's do, but they sit under the
+    // handles, top and bottom, so on a short waveform the two rows would run into each other. There
+    // they are shown only while their marker is being dragged.
+    constexpr auto kLabelRowHeight { 12 + 3 + 16 };
+    const auto labelVisibility { bounds.getHeight () >= (kLabelRowHeight * 2) + 4 ? MarkerOverlay::LabelVisibility::always
+                                                                                   : MarkerOverlay::LabelVisibility::whileDragging };
+    for (auto markerIndex { 0 }; markerIndex < markerOverlay.getNumMarkers (); ++markerIndex)
+    {
+        auto style { markerOverlay.getStyle (markerIndex) };
+        if (style.label == labelVisibility)
+            continue;
+        style.label = labelVisibility;
+        markerOverlay.setStyle (markerIndex, style);
+    }
+
     publishView ();
 }
 
 void WaveformDisplay::paintOverChildren (juce::Graphics& g)
 {
-    g.setColour (juce::Colours::black);
+    g.setColour (findColour (A8Colours::outline));
     g.drawRect (getLocalBounds ());
 }

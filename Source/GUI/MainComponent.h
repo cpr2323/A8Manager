@@ -4,6 +4,7 @@
 #include "CurrentFolderComponent.h"
 #include "GuiProperties.h"
 #include "BottomStatusWindow.h"
+#include "SettingsDialogComponent.h"
 #include "Assimil8or/Editor/Assimil8orEditorComponent.h"
 #include "Assimil8or/FileView/FileViewComponent.h"
 #include "Assimil8or/MidiConfig/MidiConfigComponent.h"
@@ -18,6 +19,7 @@ public:
     ~MainComponent () = default;
 
 private:
+    juce::ValueTree rootProperties;
     Assimil8orEditorComponent assimil8orEditorComponent;
     Assimil8orValidatorComponent assimil8orValidatorComponent;
     GuiProperties guiProperties;
@@ -33,7 +35,11 @@ private:
     juce::TooltipWindow tooltipWindow;
 
     void restoreLayout ();
+    void applyMinimumPaneWidths ();
+    int constrainFolderPaneOffset (int proposedSplitOffset);
+    int constrainPresetPaneOffset (int proposedSplitOffset);
     void saveLayoutChanges ();
+    void showSettingsDialog ();
 
     void resized () override;
     void paint (juce::Graphics& g) override;

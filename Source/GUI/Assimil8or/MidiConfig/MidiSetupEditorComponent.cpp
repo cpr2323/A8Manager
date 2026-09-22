@@ -265,7 +265,6 @@ MidiSetupEditorComponent::MidiSetupEditorComponent ()
     addAndMakeVisible (indexBaseKeyComboBox);
 
     // TOOLS BUTTON
-    toolsButton.setButtonText ("TOOLS");
     toolsButton.onClick = [this] ()
     {
         juce::PopupMenu toolsMenu;
@@ -282,34 +281,24 @@ MidiSetupEditorComponent::MidiSetupEditorComponent ()
         {
             midiSetupProperties.copyFrom (uneditedMidiSetupProperties.getValueTree ());
         });
-        toolsMenu.showMenuAsync ({}, [this] (int) {});
+        toolsMenu.showMenuAsync (juce::PopupMenu::Options ().withTargetComponent (&toolsButton), [this] (int) {});
     };
     addAndMakeVisible (toolsButton);
 
-    modeComboBox.setLookAndFeel (&noArrowComboBoxLnF);
-    assignComboBox.setLookAndFeel (&noArrowComboBoxLnF);
-    basicChannelComboBox.setLookAndFeel (&noArrowComboBoxLnF);
-    rcvProgramChangeComboBox.setLookAndFeel (&noArrowComboBoxLnF);
-    xmtProgramChangeComboBox.setLookAndFeel (&noArrowComboBoxLnF);
-    colACCComboBox.setLookAndFeel (&noArrowComboBoxLnF);
-    colBCCComboBox.setLookAndFeel (&noArrowComboBoxLnF);
-    colCCCComboBox.setLookAndFeel (&noArrowComboBoxLnF);
-    pitchWheelSemiComboBox.setLookAndFeel (&noArrowComboBoxLnF);
-    notificationsComboBox.setLookAndFeel (&noArrowComboBoxLnF);
+    modeComboBox.getProperties ().set (A8LnFProperties::noCaret, true);
+    assignComboBox.getProperties ().set (A8LnFProperties::noCaret, true);
+    basicChannelComboBox.getProperties ().set (A8LnFProperties::noCaret, true);
+    rcvProgramChangeComboBox.getProperties ().set (A8LnFProperties::noCaret, true);
+    xmtProgramChangeComboBox.getProperties ().set (A8LnFProperties::noCaret, true);
+    colACCComboBox.getProperties ().set (A8LnFProperties::noCaret, true);
+    colBCCComboBox.getProperties ().set (A8LnFProperties::noCaret, true);
+    colCCCComboBox.getProperties ().set (A8LnFProperties::noCaret, true);
+    pitchWheelSemiComboBox.getProperties ().set (A8LnFProperties::noCaret, true);
+    notificationsComboBox.getProperties ().set (A8LnFProperties::noCaret, true);
 }
 
 MidiSetupEditorComponent::~MidiSetupEditorComponent ()
 {
-    modeComboBox.setLookAndFeel (nullptr);
-    assignComboBox.setLookAndFeel (nullptr);
-    basicChannelComboBox.setLookAndFeel (nullptr);
-    rcvProgramChangeComboBox.setLookAndFeel (nullptr);
-    xmtProgramChangeComboBox.setLookAndFeel (nullptr);
-    colACCComboBox.setLookAndFeel (nullptr);
-    colBCCComboBox.setLookAndFeel (nullptr);
-    colCCCComboBox.setLookAndFeel (nullptr);
-    pitchWheelSemiComboBox.setLookAndFeel (nullptr);
-    notificationsComboBox.setLookAndFeel (nullptr);
 }
 
 juce::PopupMenu MidiSetupEditorComponent::createMidiSetupCloneMenu (std::function <void (MidiSetupProperties&)> setter)
@@ -598,5 +587,5 @@ void MidiSetupEditorComponent::resized ()
     displayComponentPair (indexBaseKeyLabel, indexBaseKeyComboBox);
 
     localBounds.removeFromLeft (10);
-    toolsButton.setBounds (localBounds.removeFromTop (20).removeFromLeft (40));
+    toolsButton.setBounds (localBounds.removeFromTop (ActionButton::kSmallHeight).removeFromLeft (toolsButton.getIdealWidth ()));
 }

@@ -10,6 +10,36 @@
 #include "../../../Assimil8or/Preset/ZoneProperties.h"
 #include "oolib/GUI/CustomTextEditor.h"
 #include "oolib/GUI/FileSelectLabel.h"
+#include "../../Theme/UiComponents.h"
+
+/*
+    The ONCE / LOOP audition buttons. They say STOP while their sample is playing,
+    and take the accent fill then - cyan means playing, as it does in SquidManager.
+*/
+class ZonePlayButton : public juce::TextButton
+{
+public:
+    void paintButton (juce::Graphics& g, bool isMouseOver, bool isMouseDown) override
+    {
+        const auto enabled { isEnabled () };
+        const auto playing { getButtonText () == "STOP" };
+        const auto hovered { enabled && (isMouseOver || isMouseDown) };
+        const auto area { getLocalBounds ().toFloat ().reduced (0.5f) };
+
+        // a control that cannot be used is dimmed as a whole
+        g.beginTransparencyLayer (enabled ? 1.0f : 0.4f);
+        g.setColour (findColour (playing ? A8Colours::accent : A8Colours::buttonBackground));
+        g.fillRoundedRectangle (area, 2.0f);
+        g.setColour (findColour (playing ? A8Colours::accentEdge
+                                         : (hovered ? A8Colours::accentDeep : A8Colours::outline)));
+        g.drawRoundedRectangle (area, 2.0f, 1.0f);
+        g.setFont (A8Type::transport ().withPointHeight (8.5f));
+        g.setColour (findColour (playing ? A8Colours::accentInk
+                                         : (hovered ? A8Colours::text : A8Colours::textDim)));
+        g.drawText (getButtonText (), getLocalBounds (), juce::Justification::centred, false);
+        g.endTransparencyLayer ();
+    }
+};
 
 class ZoneEditor : public juce::Component,
                    public juce::FileDragAndDropTarget
@@ -69,9 +99,12 @@ private:
     int dropIndex { 0 };
 
     LoopPointsView loopPointsView;
-    juce::TextButton oneShotPlayButton;
-    juce::TextButton loopPlayButton;
-    juce::TextButton toolsButton;
+    ZonePlayButton oneShotPlayButton;
+    ZonePlayButton loopPlayButton;
+    MenuButton toolsButton { "ZONE TOOLS", ActionButton::Size::small };
+    // the labels are dimmed next to the values, and a palette change has to reach them again
+    std::vector<juce::Label*> parameterLabels;
+    bool sampleFileMissing { false };
     juce::Rectangle<int> samplePointsBackground;
     juce::Rectangle<int> loopPointsBackground;
     juce::Rectangle<int>* activePointBackground { &samplePointsBackground };
@@ -143,6 +176,8 @@ private:
     void fileDragMove (const juce::StringArray& files, int, int) override;
     void fileDragExit (const juce::StringArray& files) override;
 
+    void applyExplicitColours ();
+    void lookAndFeelChanged () override;
     void paint (juce::Graphics& g) override;
     void paintOverChildren (juce::Graphics& g) override;
     void resized () override;

@@ -2,6 +2,7 @@
 
 #include <JuceHeader.h>
 #include "ValidatorComponentProperties.h"
+#include "../../Theme/UiComponents.h"
 
 class ValidatorToolWindow : public juce::Component
 {
@@ -12,12 +13,13 @@ public:
 private:
     ValidatorComponentProperties validatorComponentProperties;
 
-    juce::TextButton convertAllButton;
-    juce::TextButton locateAllButton;
-    juce::TextButton renameAllButton;
-    juce::TextButton viewInfoButton;
-    juce::TextButton viewWarningButton;
-    juce::TextButton viewErrorButton;
+    PaneHeader paneHeader { "VALIDATOR" };
+    ChromeButton convertAllButton { "CONVERT ALL" };
+    ChromeButton locateAllButton { "LOCATE ALL" };
+    ChromeButton renameAllButton { "RENAME ALL" };
+    ChromeButton viewInfoButton { "INFO" };
+    ChromeButton viewWarningButton { "WARNING" };
+    ChromeButton viewErrorButton { "ERROR" };
 
     void paint (juce::Graphics& g) override;
     void resized () override;

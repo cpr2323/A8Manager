@@ -138,7 +138,29 @@ set(GUI_FILES
     Source/GUI/GuiProperties.cpp
     Source/GUI/GuiProperties.h
     Source/GUI/MainComponent.cpp
-    Source/GUI/MainComponent.h)
+    Source/GUI/MainComponent.h
+    Source/GUI/SettingsDialogComponent.cpp
+    Source/GUI/SettingsDialogComponent.h)
+
+set(GUI_THEME_FILES
+    Source/GUI/Theme/A8ColourIds.h
+    Source/GUI/Theme/A8Fonts.cpp
+    Source/GUI/Theme/A8Fonts.h
+    Source/GUI/Theme/A8LookAndFeel.cpp
+    Source/GUI/Theme/A8LookAndFeel.h
+    Source/GUI/Theme/Palette.cpp
+    Source/GUI/Theme/Palette.h
+    Source/GUI/Theme/ThemeController.cpp
+    Source/GUI/Theme/ThemeController.h
+    Source/GUI/Theme/UiComponents.h)
+
+# The typefaces the theme sets everything in. They are licensed under the OFL, which
+# travels with the app in Licenses/OFL.txt.
+set(FONT_FILES
+    Assets/Fonts/IBM-Plex-Mono-Regular.ttf
+    Assets/Fonts/IBM-Plex-Sans-Condensed-Regular.ttf
+    Assets/Fonts/IBM-Plex-Sans-Condensed-SemiBold.ttf
+    Assets/Fonts/IBM-Plex-Sans-Regular.ttf)
 
 set(GUI_ASSIMIL8OR_DATA_FILES
     Source/GUI/Assimil8or/Data/377906243_984640136172516_2914152204379747274_n.png
@@ -217,7 +239,8 @@ set(GUI_VALIDATOR_FILES
 # shows them next to the code they belong with.
 set(RESOURCE_FILES
     ${ASSIMIL8OR_PRESET_DATA_FILES}
-    ${GUI_ASSIMIL8OR_DATA_FILES})
+    ${GUI_ASSIMIL8OR_DATA_FILES}
+    ${FONT_FILES})
 
 set_source_files_properties(${RESOURCE_FILES} PROPERTIES HEADER_FILE_ONLY TRUE)
 
@@ -232,6 +255,8 @@ source_group("Source/Assimil8or/Preset"                   FILES ${ASSIMIL8OR_PRE
 source_group("Source/Assimil8or/Preset/Data"              FILES ${ASSIMIL8OR_PRESET_DATA_FILES})
 source_group("Source/Assimil8or/Validator"                FILES ${ASSIMIL8OR_VALIDATOR_FILES})
 source_group("Source/GUI"                                 FILES ${GUI_FILES})
+source_group("Source/GUI/Theme"                           FILES ${GUI_THEME_FILES})
+source_group("Assets/Fonts"                               FILES ${FONT_FILES})
 source_group("Source/GUI/Assimil8or/Data"                 FILES ${GUI_ASSIMIL8OR_DATA_FILES})
 source_group("Source/GUI/Assimil8or/Editor"               FILES ${GUI_EDITOR_FILES})
 source_group("Source/GUI/Assimil8or/Editor/Envelope"      FILES ${GUI_EDITOR_ENVELOPE_FILES})
@@ -258,6 +283,8 @@ target_sources(A8Manager
         ${ASSIMIL8OR_PRESET_DATA_FILES}
         ${ASSIMIL8OR_VALIDATOR_FILES}
         ${GUI_FILES}
+        ${GUI_THEME_FILES}
+        ${FONT_FILES}
         ${GUI_ASSIMIL8OR_DATA_FILES}
         ${GUI_EDITOR_FILES}
         ${GUI_EDITOR_ENVELOPE_FILES}

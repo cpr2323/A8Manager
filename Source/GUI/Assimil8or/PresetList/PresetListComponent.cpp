@@ -1,4 +1,5 @@
 #include "PresetListComponent.h"
+#include "../../Theme/A8ColourIds.h"
 #include "../../../Assimil8or/Assimil8orPreset.h"
 #include "../../../Assimil8or/FileTypeHelpers.h"
 #include "../../../Assimil8or/PresetManagerProperties.h"
@@ -17,8 +18,12 @@
 
 PresetListComponent::PresetListComponent ()
 {
+    setOpaque (true);
+    // there is always a count, so the minimum width allows for one before the first scan has finished
+    paneHeader.setCountText ("0/" + juce::String (kMaxPresets));
+    addAndMakeVisible (paneHeader);
+    showAllPresets.setClickingTogglesState (true);
     showAllPresets.setToggleState (true, juce::NotificationType::dontSendNotification);
-    showAllPresets.setButtonText ("Show All");
     showAllPresets.setTooltip ("Show all Presets, Show only existing presets");
     showAllPresets.onClick = [this] ()
     {
@@ -26,6 +31,8 @@ PresetListComponent::PresetListComponent ()
         requestPresetCheck ();
     };
     addAndMakeVisible (showAllPresets);
+    presetListBox.setRowHeight (24);
+    presetListBox.setOutlineThickness (0);
     addAndMakeVisible (presetListBox);
 
     checkPresetsThread.onThreadLoop = [this] ()
@@ -194,6 +201,16 @@ void PresetListComponent::checkPresets (bool showAll)
         safeThis->currentFolder = scannedFolder;
         safeThis->numPresets = newNumPresets;
         safeThis->presetInfoList = std::move (newPresetInfoList);
+
+        // the count is of the presets that exist, whether or not the empty slots are being shown
+        auto presetsThatExist { 0 };
+        for (const auto& presetInfo : safeThis->presetInfoList)
+            if (std::get<1> (presetInfo))
+                ++presetsThatExist;
+        safeThis->paneHeader.setCountText (juce::String (presetsThatExist) + "/" + juce::String (kMaxPresets));
+        // the tool button is placed against the count, which may have changed width
+        safeThis->resized ();
+
         safeThis->presetListBox.updateContent ();
         if (newFolder)
         {
@@ -267,12 +284,28 @@ void PresetListComponent::loadPreset (juce::File presetFile)
     PresetProperties::copyTreeProperties (unEditedPresetProperties.getValueTree (), presetProperties.getValueTree ());
 }
 
+int PresetListComponent::getMinimumWidth () const
+{
+    // plus the outline on either side
+    return paneHeader.getRequiredWidth (showAllPresets.getIdealWidth ()) + 2;
+}
+
 void PresetListComponent::resized ()
 {
-    auto localBounds { getLocalBounds () };
-    auto toolRow { localBounds.removeFromTop (25) };
-    showAllPresets.setBounds (toolRow.removeFromLeft (100));
+    // inside the pane's outline
+    auto localBounds { getLocalBounds ().reduced (1) };
+    auto headerBounds { localBounds.removeFromTop (PaneHeader::kHeight) };
+    paneHeader.setBounds (headerBounds);
+    // right aligned against the count
+    showAllPresets.setBounds ((paneHeader.getFreeBounds () + headerBounds.getPosition ()).removeFromRight (showAllPresets.getIdealWidth ()));
     presetListBox.setBounds (localBounds);
+}
+
+void PresetListComponent::paint (juce::Graphics& g)
+{
+    // opaque, so the background behind the rounded corners is this component's to paint
+    g.fillAll (findColour (A8Colours::windowBackground));
+    A8Paint::card (g, *this, getLocalBounds ());
 }
 
 int PresetListComponent::getNumRows ()
@@ -284,33 +317,50 @@ void PresetListComponent::paintListBoxItem (int row, juce::Graphics& g, int widt
 {
     if (row < numPresets)
     {
-        juce::Colour textColor;
-        juce::Colour rowColor;
+        if (rowIsSelected)
+            lastSelectedPresetIndex = row;
+        const auto hovered { row == rowHover.getRow () };
+
+        auto [presetNumber, thisPresetExists, presetName] { presetInfoList [row] };
+        auto nameColourId { static_cast<int> (rowIsSelected ? A8Colours::accentText
+                                                            : (hovered ? A8Colours::text : A8Colours::textDim)) };
+        if (! thisPresetExists)
+        {
+            presetName = "empty";
+            if (! rowIsSelected)
+                nameColourId = A8Colours::textGhost;
+        }
+        else if (presetName.isEmpty ())
+        {
+            presetName = "(no name)";
+        }
+
         if (rowIsSelected)
         {
-            lastSelectedPresetIndex = row;
-            rowColor = juce::Colours::darkslategrey;
-            textColor = juce::Colours::yellow;
+            g.fillAll (findColour (A8Colours::selectedRow));
+            g.setColour (findColour (A8Colours::accent));
+            g.fillRect (0, 0, 2, height);
         }
-        else
-        {
-            rowColor = juce::Colours::black;
-            textColor = juce::Colours::whitesmoke;
-        }
-        auto [presetNumber, thisPresetExists, presetName] { presetInfoList [row] };
-        if (thisPresetExists)
-        {
 
-        }
-        else
-        {
-            presetName = "(preset)";
-            textColor = textColor.withAlpha (0.5f);
-        }
-        g.setColour (rowColor);
-        g.fillRect (width - 1, 0, 1, height);
-        g.setColour (textColor);
-        g.drawText ("  " + juce::String (presetNumber) + "-" + presetName, juce::Rectangle<float>{ 0.0f, 0.0f, (float) width, (float) height }, juce::Justification::centredLeft, true);
+        auto rowBounds { juce::Rectangle<int> { 0, 0, width, height }.reduced (8, 0) };
+
+        // the lit dot says the preset file exists, so the name does not have to
+        const auto ledBounds { rowBounds.removeFromRight (static_cast<int> (StatusLed::kDiameter)).toFloat ()
+                                        .withSizeKeepingCentre (StatusLed::kDiameter, StatusLed::kDiameter) };
+        StatusLed::draw (g, ledBounds, thisPresetExists, *this);
+        rowBounds.removeFromRight (7);
+
+        g.setFont (A8Type::presetNumber ());
+        g.setColour (findColour (rowIsSelected ? A8Colours::accentText : A8Colours::textGhost));
+        g.drawText (juce::String (presetNumber), rowBounds.removeFromLeft (24), juce::Justification::centredRight, false);
+        rowBounds.removeFromLeft (7);
+
+        g.setFont (A8Type::body ());
+        g.setColour (findColour (nameColourId));
+        g.drawText (presetName, rowBounds, juce::Justification::centredLeft, true);
+
+        if (hovered)
+            ListRowHover::paintOutline (g, *this, width, height);
     }
 }
 
@@ -441,10 +491,7 @@ void PresetListComponent::listBoxItemClicked (int row, [[maybe_unused]] const ju
         if (! thisPresetExists)
             presetName = "(preset)";
 
-        auto* popupMenuLnF { new juce::LookAndFeel_V4 };
-        popupMenuLnF->setColour (juce::PopupMenu::ColourIds::headerTextColourId, juce::Colours::white.withAlpha (0.3f));
         juce::PopupMenu pm;
-        pm.setLookAndFeel (popupMenuLnF);
         pm.addSectionHeader (juce::String (presetNumber) + " - " + presetName);
         pm.addSeparator ();
         pm.addItem ("Copy", thisPresetExists, false, [this, presetNumber = presetNumber] () { copyPreset (presetNumber); });
@@ -456,7 +503,7 @@ void PresetListComponent::listBoxItemClicked (int row, [[maybe_unused]] const ju
             moveMenu.addItem ("Down", presetNumber < kMaxPresets, false, [this, row] () { movePresetDown (row); });
             pm.addSubMenu ("Move", moveMenu, thisPresetExists);
         }
-        pm.showMenuAsync ({}, [this, popupMenuLnF] (int) { delete popupMenuLnF; });
+        pm.showMenuAsync ({});
     }
     else
     {

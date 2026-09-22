@@ -1,6 +1,7 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "../../Theme/UiComponents.h"
 #include "../../../AppProperties.h"
 #include "../../../Assimil8or/Preset/PresetProperties.h"
 #include "oolib/Directory/DirectoryDataProperties.h"
@@ -17,6 +18,9 @@ public:
     ~PresetListComponent () = default;
     void init (juce::ValueTree rootPropertiesVT);
 
+    // narrow enough that the header still fits its title, tool and count
+    int getMinimumWidth () const;
+
     std::function<void (std::function<void ()>, std::function<void ()>)> overwritePresetOrCancel;
 
 private:
@@ -31,8 +35,10 @@ private:
     PresetProperties unEditedPresetProperties;
     PresetProperties copyBufferPresetProperties;
 
-    juce::ToggleButton showAllPresets { "Show All" };
+    PaneHeader paneHeader { "PRESETS" };
+    ChromeButton showAllPresets { "ALL" };
     juce::ListBox presetListBox { {}, this };
+    ListRowHover rowHover { presetListBox };
     PresetInfoList presetInfoList {};
     int numPresets { kMaxPresets };
     juce::File currentFolder;
@@ -57,6 +63,7 @@ private:
     void pastePreset (int presetNumber);
 
     void resized () override;
+    void paint (juce::Graphics& g) override;
     int getNumRows () override;
     juce::String getTooltipForRow (int row) override;
     void listBoxItemClicked (int row, const juce::MouseEvent& me) override;

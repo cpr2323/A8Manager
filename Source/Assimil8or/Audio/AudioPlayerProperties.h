@@ -15,7 +15,6 @@ public:
     void setPlayState (PlayState playState, bool includeSelfCallback);
     void setSampleSource (int channelIndex, int zoneIndex, bool includeSelfCallback);
     void setSamplePointsSelector (SamplePointsSelector samplePointsSelector, bool includeSelfCallback);
-    void showConfigDialog (bool includeSelfCallback);
 
     PlayState getPlayState ();
     std::tuple<int, int> getSampleSource ();
@@ -24,13 +23,11 @@ public:
     std::function<void (PlayState playState)> onPlayStateChange;
     std::function<void (std::tuple<int, int> channelAndZoneIndecies)> onSampleSourceChanged;
     std::function<void (SamplePointsSelector samplePointsSelector)> onSamplePointsSelectorChanged;
-    std::function<void ()> onShowConfigDialog;
 
     static inline const juce::Identifier AudioConfigTypeId { "AudioPlayer" };
     static inline const juce::Identifier PlayStatePropertyId            { "playState" };
     static inline const juce::Identifier SampleSourcePropertyId         { "sampleSource" };
     static inline const juce::Identifier SamplePointsSelectorPropertyId { "samplePointsSelector" };
-    static inline const juce::Identifier ShowConfigDialogPropertyId     { "showConfigDialog" };
 
     void initValueTree ();
     void processValueTree () {}

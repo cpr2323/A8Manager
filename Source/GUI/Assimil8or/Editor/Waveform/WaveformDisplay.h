@@ -57,7 +57,7 @@ private:
         kLoopEnd
     };
 
-    static constexpr int kTimelineHeight { 20 };
+    static constexpr int kTimelineHeight { 16 };
 
     ChannelProperties channelProperties;
     SampleManagerProperties sampleManagerProperties;
@@ -84,6 +84,7 @@ private:
     void markerMoved (int markerIndex);
 
     void enablementChanged () override;
+    void lookAndFeelChanged () override;
     void resized () override;
     void paintOverChildren (juce::Graphics& g) override;
 };

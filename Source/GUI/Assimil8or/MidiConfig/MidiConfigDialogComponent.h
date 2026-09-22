@@ -2,6 +2,7 @@
 
 #include <JuceHeader.h>
 #include "MidiSetupEditorComponent.h"
+#include "../../Theme/UiComponents.h"
 #include "../../GuiControlProperties.h"
 #include "../../../AppProperties.h"
 #include "../../../Assimil8or/MidiSetup/MidiSetupProperties.h"
@@ -20,9 +21,9 @@ private:
     juce::ValueTree midiSetupPropertiesListVT { "MidiSetupPropertiesList" };
     juce::ValueTree uneditedMidiSetupPropertiesListVT { "MidiSetupPropertiesList" };
 
-    juce::TabbedComponent midiSetupTabs { juce::TabbedButtonBar::Orientation::TabsAtTop };
-    juce::TextButton saveButton;
-    juce::TextButton cancelButton;
+    LedTabbedComponent midiSetupTabs { juce::TabbedButtonBar::Orientation::TabsAtTop };
+    ActionButton saveButton { "SAVE" };
+    ActionButton cancelButton { "CANCEL" };
     std::array<MidiSetupEditorComponent, 9> midiSetupEditorComponents;
     bool anyMidiSetupsEdited { false };
 

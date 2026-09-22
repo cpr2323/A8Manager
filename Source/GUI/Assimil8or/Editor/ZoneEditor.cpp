@@ -1,5 +1,6 @@
 #include "ZoneEditor.h"
 #include "FormatHelpers.h"
+#include "../../Theme/A8ColourIds.h"
 #include "ParameterToolTipData.h"
 #include "SampleManager/SampleManagerProperties.h"
 #include "../../../SystemServices.h"
@@ -28,18 +29,16 @@ ZoneEditor::ZoneEditor ()
         maxZoneProperties.wrap (maxChannelProperties.getZoneVT (0), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
     }
 
-    auto setupLabel = [this] (juce::Label& label, juce::String text, float fontSize, juce::Justification justification)
+    auto setupLabel = [this] (juce::Label& label, juce::String text, [[maybe_unused]] float fontSize, juce::Justification justification)
     {
-        const auto textColor { juce::Colours::black };
         label.setBorderSize ({ 0, 0, 0, 0 });
         label.setJustificationType (justification);
-        label.setColour (juce::Label::ColourIds::textColourId, textColor);
-        label.setFont (label.getFont ().withHeight (fontSize));
+        label.setFont (A8Type::parameterLabel ());
         label.setText (text, juce::NotificationType::dontSendNotification);
+        parameterLabels.push_back (&label);
         addAndMakeVisible (label);
     };
 
-    toolsButton.setButtonText ("TOOLS");
     toolsButton.setTooltip ("Zone Tools");
     toolsButton.onClick = [this] ()
     {
@@ -286,14 +285,13 @@ void ZoneEditor::setupZoneComponents ()
     auto toolTipsVT { juce::ValueTree::fromXml (*xmlElement) };
     ParameterToolTipData parameterToolTipData (toolTipsVT, ParameterToolTipData::WrapperType::owner, ParameterToolTipData::EnableCallbacks::no);
 
-    auto setupLabel = [this] (juce::Label& label, juce::String text, float fontSize, juce::Justification justification)
+    auto setupLabel = [this] (juce::Label& label, juce::String text, [[maybe_unused]] float fontSize, juce::Justification justification)
     {
-        const auto textColor { juce::Colours::black };
         label.setBorderSize ({ 0, 0, 0, 0 });
         label.setJustificationType (justification);
-        label.setColour (juce::Label::ColourIds::textColourId, textColor);
-        label.setFont (label.getFont ().withHeight (fontSize));
+        label.setFont (A8Type::parameterLabel ());
         label.setText (text, juce::NotificationType::dontSendNotification);
+        parameterLabels.push_back (&label);
         addAndMakeVisible (label);
     };
     auto setupTextEditor = [this, &parameterToolTipData] (juce::TextEditor& textEditor, juce::Justification justification, int maxLen, juce::String validInputCharacters,
@@ -301,8 +299,10 @@ void ZoneEditor::setupZoneComponents ()
     {
         textEditor.setJustification (justification);
         textEditor.setIndents (2, 0);
+        textEditor.setFont (A8Type::value ());
         textEditor.setInputRestrictions (maxLen, validInputCharacters);
         textEditor.setTooltip (parameterToolTipData.getToolTip ("Zone", parameterName));
+        HoverHighlight::attach (textEditor);
         addAndMakeVisible (textEditor);
     };
 
@@ -310,9 +310,7 @@ void ZoneEditor::setupZoneComponents ()
     setupLabel (sampleNameLabel, "FILE", 15.0, juce::Justification::centredLeft);
 
     // SAMPLE FILE SELECTOR
-    sampleNameSelectLabel.setColour (juce::Label::ColourIds::textColourId, levelOffsetTextEditor.findColour (juce::TextEditor::ColourIds::textColourId));
-    sampleNameSelectLabel.setColour (juce::Label::ColourIds::backgroundColourId, levelOffsetTextEditor.findColour (juce::TextEditor::ColourIds::backgroundColourId));
-    sampleNameSelectLabel.setOutline (levelOffsetTextEditor.findColour (juce::TextEditor::ColourIds::outlineColourId));
+    // its colours come from the palette, in applyExplicitColours
     sampleNameSelectLabel.setBorderSize ({ 0, 2, 0, 0 });
     sampleNameSelectLabel.setDialogTitle ("Please select the Assimil8or Preset file you want to load...");
     sampleNameSelectLabel.canMultiSelect (true);
@@ -342,12 +340,14 @@ void ZoneEditor::setupZoneComponents ()
         editMenu.showMenuAsync ({}, [this] (int) {});
     };
     setupLabel (sampleNameSelectLabel, "", 15.0, juce::Justification::centredLeft);
+    // it shows a value, not a name, so it is not coloured as a label
+    parameterLabels.pop_back ();
+    sampleNameSelectLabel.setFont (A8Type::value ());
+    applyExplicitColours ();
 
     // AUDIO FILE CHANNEL SELECT BUTTONS
     auto setupChannelSelectButton = [this] (juce::TextButton& channelSelectButton, juce::String buttonText, int side)
     {
-        channelSelectButton.setColour (juce::TextButton::ColourIds::buttonOnColourId, juce::Colours::lightgrey);
-        channelSelectButton.setColour (juce::TextButton::ColourIds::textColourOnId, juce::Colours::black);
         channelSelectButton.setButtonText (buttonText);
         channelSelectButton.setEnabled (false);
         channelSelectButton.onClick = [this, side] ()
@@ -849,71 +849,93 @@ void ZoneEditor::setupZonePropertiesCallbacks ()
     zoneProperties.onSideChange = [this] (int side) { sideDataChanged (side); };
 }
 
-void ZoneEditor::paint ([[maybe_unused]] juce::Graphics& g)
+void ZoneEditor::applyExplicitColours ()
 {
-    // draw area to indicate active sample points (sample or loop)
-    g.setColour (juce::Colours::grey.withAlpha (0.3f));
-    g.fillRoundedRectangle (activePointBackground->toFloat (), 0.5f);
-    g.setColour (juce::Colours::black);
-    g.drawRoundedRectangle (activePointBackground->toFloat (), 0.5f, 1.f);
+    // a sample the folder does not hold is said so in red
+    sampleNameSelectLabel.setColour (juce::Label::ColourIds::textColourId, findColour (sampleFileMissing ? A8Colours::danger : A8Colours::text));
+    sampleNameSelectLabel.setColour (juce::Label::ColourIds::backgroundColourId, findColour (juce::TextEditor::ColourIds::backgroundColourId));
+    sampleNameSelectLabel.setOutline (findColour (juce::TextEditor::ColourIds::outlineColourId));
+}
+
+void ZoneEditor::lookAndFeelChanged ()
+{
+    juce::Component::lookAndFeelChanged ();
+    for (auto* label : parameterLabels)
+        label->setColour (juce::Label::ColourIds::textColourId, findColour (A8Colours::textDim));
+    applyExplicitColours ();
+}
+
+void ZoneEditor::paint (juce::Graphics& g)
+{
+    // the group of sample points (sample or loop) that the waveform and the audition buttons are using;
+    // its outline is drawn in paintOverChildren, as the loop tuner that both groups share covers this
+    g.setColour (findColour (A8Colours::selectedRow));
+    g.fillRoundedRectangle (activePointBackground->toFloat (), 2.0f);
 }
 
 void ZoneEditor::paintOverChildren (juce::Graphics& g)
 {
-    juce::Colour fillColor { juce::Colours::white };
-    float activeAlpha { 0.7f };
-    float nonActiveAlpha { 0.2f };
-    if (draggingFilesCount > 0)
-    {
-        auto localBounds { getLocalBounds () };
-        if (supportedFile)
-        {
-            if (dropIndex == -1 || zoneProperties.getId () == 1)
-            {
-                g.setColour (fillColor.withAlpha (activeAlpha));
-                g.fillRect (localBounds);
-                g.setFont (20.0f);
-                g.setColour (juce::Colours::black);
-                g.drawText ("Start on Zone " + juce::String (zoneProperties.getId ()), localBounds, juce::Justification::centred, false);
-            }
-            else
-            {
-                g.setColour (fillColor.withAlpha (dropIndex == 0 ? activeAlpha : nonActiveAlpha));
-                const auto topHalfBounds { localBounds.removeFromTop (localBounds.getHeight () / 2) };
-                g.fillRect (topHalfBounds);
-                g.setColour (fillColor.withAlpha (dropIndex == 1 ? activeAlpha : nonActiveAlpha));
-                g.fillRect (localBounds);
+    // drawn on the group's own bounds, which end a pixel short of the fields of the other group, so the
+    // outline meets the loop tuner's edge rather than crossing a field
+    g.setColour (findColour (A8Colours::accentDeep));
+    g.drawRoundedRectangle (activePointBackground->toFloat ().reduced (0.5f), 2.0f, 1.0f);
 
-                g.setFont (20.0f);
-                g.setColour (juce::Colours::black);
-                if (dropIndex == 0)
-                    g.drawText ("Start on Zone 1", topHalfBounds, juce::Justification::centred, false);
-                else
-                    g.drawText ("Start on Zone " + juce::String (zoneProperties.getId ()), localBounds, juce::Justification::centred, false);
-            }
-        }
-        else
-        {
-            g.setColour (fillColor.withAlpha (activeAlpha));
-            g.fillRect (localBounds);
-            g.setFont (20.0f);
-            g.setColour (juce::Colours::red);
-            localBounds.reduce (5, 0);
-            g.drawFittedText (draggingFilesCount == 1 ? "Unsupported file type" : "One, or more, unsupported file types", localBounds, juce::Justification::centred, 10);
-        }
+    if (draggingFilesCount == 0)
+        return;
+
+    // the drop target is washed over, and what the drop will do is said on a plate,
+    // as a tooltip would say it
+    auto drawMessage = [this, &g] (juce::Rectangle<int> area, const juce::String& message, bool isProblem)
+    {
+        const auto messageFont { A8Type::body () };
+        const auto plateWidth { std::min (area.getWidth () - 12, A8Paint::textWidth (messageFont, message) + 20) };
+        const auto plateHeight { isProblem ? 44 : 26 };
+        const auto plateBounds { area.withSizeKeepingCentre (plateWidth, plateHeight).toFloat () };
+        A8Paint::messagePlate (g, *this, plateBounds, 3.0f);
+        g.setFont (messageFont);
+        g.setColour (A8Paint::messageInk (*this, isProblem));
+        g.drawFittedText (message, plateBounds.toNearestInt ().reduced (6, 2), juce::Justification::centred, 3);
+    };
+
+    auto localBounds { getLocalBounds () };
+    if (! supportedFile)
+    {
+        g.setColour (findColour (A8Colours::dropOverlay));
+        g.fillRect (localBounds);
+        drawMessage (localBounds, draggingFilesCount == 1 ? "Unsupported file type" : "One, or more, unsupported file types", true);
+        return;
     }
+
+    if (dropIndex == -1 || zoneProperties.getId () == 1)
+    {
+        g.setColour (findColour (A8Colours::dropOverlay));
+        g.fillRect (localBounds);
+        drawMessage (localBounds, "Start on Zone " + juce::String (zoneProperties.getId ()), false);
+        return;
+    }
+
+    // with several files, the upper half starts them on zone 1 and the lower half on this zone; the half
+    // under the pointer is the one washed over
+    const auto topHalfBounds { localBounds.removeFromTop (localBounds.getHeight () / 2) };
+    g.setColour (findColour (A8Colours::dropOverlay));
+    g.fillRect (dropIndex == 0 ? topHalfBounds : localBounds);
+    if (dropIndex == 0)
+        drawMessage (topHalfBounds, "Start on Zone 1", false);
+    else
+        drawMessage (localBounds, "Start on Zone " + juce::String (zoneProperties.getId ()), false);
 }
 
 void ZoneEditor::resized ()
 {
     const auto xOffset { 10 };
-    const auto width { 160 };
+    // the zone column is sized in ChannelEditor; everything here stretches to fill it
+    const auto width { std::max (160, getWidth () - xOffset - 8) };
     const auto interParameterYOffset { 1 };
     const auto spaceBetweenLabelAndInput { 3 };
     auto scaleWidth = [width] (float scaleAmount) { return static_cast<int> (width * scaleAmount); };
 
     jassert (displayToolsMenu != nullptr);
-    toolsButton.setBounds (getWidth () - 5 - 40, getHeight () - 5 - 20, 40, 20);
+    toolsButton.setBounds (getWidth () - 6 - toolsButton.getIdealWidth (), getHeight () - 6 - ActionButton::kSmallHeight, toolsButton.getIdealWidth (), ActionButton::kSmallHeight);
 
     const auto sampleNameLabelScale { 0.156f };
     const auto sampleNameInputScale { 1.f - sampleNameLabelScale };
@@ -1168,20 +1190,16 @@ void ZoneEditor::pitchOffsetUiChanged (double pitchOffset)
 void ZoneEditor::updateSampleFileInfo (juce::String sample)
 {
     jassert (! sample.isEmpty ());
-    auto textColor { juce::Colours::white };
-    if (sampleProperties.getStatus () == SampleStatus::exists)
+    sampleFileMissing = sampleProperties.getStatus () != SampleStatus::exists;
+    if (! sampleFileMissing)
     {
         if (! zoneProperties.getSampleEnd ().has_value ())
             sampleEndTextEditor.setText (juce::String (sampleProperties.getLengthInSamples ()));
         if (! zoneProperties.getLoopLength ().has_value ())
             loopLengthTextEditor.setText (formatLoopLength (static_cast<double> (sampleProperties.getLengthInSamples ())));
     }
-    else
-    {
-        textColor = juce::Colours::red;
-    }
     loopPointsView.repaint ();
-    sampleNameSelectLabel.setColour (juce::Label::ColourIds::textColourId, textColor);
+    applyExplicitColours ();
 }
 
 void ZoneEditor::updateSamplePositionInfo ()
@@ -1221,7 +1239,9 @@ void ZoneEditor::updateSideSelectButtons (int side)
 void ZoneEditor::sampleDataChanged (juce::String sample)
 {
     //DebugLog ("ZoneEditor", "ZoneEditor[" + juce::String (zoneProperties.getId ()) + "]::sampleDataChanged: '" + sample + "'");
-    sampleNameSelectLabel.setText (sample, juce::NotificationType::dontSendNotification);
+    // the file name is shown without its extension, which is always .wav on an Assimil8or card
+    sampleNameSelectLabel.setText (sample.containsChar ('.') ? sample.upToLastOccurrenceOf (".", false, false) : sample,
+                                   juce::NotificationType::dontSendNotification);
 }
 
 void ZoneEditor::sampleUiChanged (juce::String sample)

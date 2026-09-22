@@ -23,11 +23,6 @@ void AudioPlayerProperties::setSamplePointsSelector (SamplePointsSelector sample
     setValue (static_cast<int> (samplePointsSelector), SamplePointsSelectorPropertyId, includeSelfCallback);
 }
 
-void AudioPlayerProperties::showConfigDialog (bool includeSelfCallback)
-{
-    toggleValue (ShowConfigDialogPropertyId, includeSelfCallback);
-}
-
 AudioPlayerProperties::PlayState AudioPlayerProperties::getPlayState ()
 {
     return static_cast<PlayState> (getValue<int> (PlayStatePropertyId));
@@ -63,11 +58,6 @@ void AudioPlayerProperties::valueTreePropertyChanged (juce::ValueTree& treeWhose
         {
             if (onSamplePointsSelectorChanged != nullptr)
                 onSamplePointsSelectorChanged (getSamplePointsSelector ());
-        }
-        else if (property == ShowConfigDialogPropertyId)
-        {
-            if (onShowConfigDialog != nullptr)
-                onShowConfigDialog ();
         }
     }
 }

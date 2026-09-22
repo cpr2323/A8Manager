@@ -1,4 +1,5 @@
 #include "AREnvelopeComponent.h"
+#include "../../../Theme/A8ColourIds.h"
 
 const auto kAnchorSize { 8.0 };
 const auto kOffset { kAnchorSize / 2.0 };
@@ -31,13 +32,17 @@ void AREnvelopeComponent::releasePercentChanged (double releasePercent)
 
 void AREnvelopeComponent::paint (juce::Graphics& g)
 {
-    g.setColour (juce::Colours::grey.darker (0.3f));
-    g.fillRect (getLocalBounds ());
+    // drawn as the waveform is: the trace colour on the waveform lane
+    const auto area { getLocalBounds ().toFloat () };
+    const auto traceColour { findColour (A8Colours::waveformForeground) };
+    g.setColour (findColour (A8Colours::waveformBackground));
+    g.fillRoundedRectangle (area, 2.0f);
 
-    g.setColour (juce::Colours::black);
-    auto drawAnchor = [this, &g] (EnvelopeAnchor& anchor)
+    g.setColour (traceColour);
+    auto drawAnchor = [this, &g, traceColour] (EnvelopeAnchor& anchor)
     {
-        juce::Colour color { anchor.getActive () ? juce::Colours::white : juce::Colours::grey };
+        // an anchor under the pointer lights in the accent
+        const auto color { anchor.getActive () ? findColour (A8Colours::accent) : traceColour.withMultipliedAlpha (0.6f) };
         const auto startSize { 1.0 };
         const auto totalSize { kAnchorSize };
         const auto lineWidth { 1.0f };
@@ -54,7 +59,7 @@ void AREnvelopeComponent::paint (juce::Graphics& g)
                                                    static_cast<float> (curSize)), lineWidth);
             alpha -= alphaStep;
         }
-        g.setColour (juce::Colours::black);
+        g.setColour (traceColour);
         g.drawEllipse (juce::Rectangle<float> (static_cast<float> (kOffset + anchor.getX () - endSize / 2.0f),
                                                static_cast<float> (kOffset + anchor.getY () - endSize / 2.0f),
                                                static_cast<float> (endSize),
@@ -76,8 +81,8 @@ void AREnvelopeComponent::paint (juce::Graphics& g)
     drawAnchor (attackAnchor);
     drawAnchor (releaseAnchor);
 
-    g.setColour (juce::Colours::black);
-    g.drawRect (getLocalBounds ());
+    g.setColour (findColour (A8Colours::outline));
+    g.drawRoundedRectangle (area.reduced (0.5f), 2.0f, 1.0f);
 }
 
 void AREnvelopeComponent::recalcAnchorPositions ()

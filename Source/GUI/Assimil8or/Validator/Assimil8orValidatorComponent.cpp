@@ -1,4 +1,6 @@
 #include "Assimil8orValidatorComponent.h"
+#include "../../Theme/A8ColourIds.h"
+#include "../../Theme/UiComponents.h"
 #include "RenameDialogComponent.h"
 #include "LocateFileComponent.h"
 #include "../../../SystemServices.h"
@@ -14,8 +16,8 @@ Assimil8orValidatorComponent::Assimil8orValidatorComponent ()
     addAndMakeVisible (validatorToolWindow);
 
     validationResultsListBox.setClickingTogglesRowSelection (false);
-    validationResultsListBox.setColour (juce::ListBox::outlineColourId, juce::Colours::grey);
-    validationResultsListBox.setOutlineThickness (1);
+    validationResultsListBox.setOutlineThickness (0);
+    validationResultsListBox.setRowHeight (22);
     validationResultsListBox.getHeader ().addColumn ("Status", Columns::resultType, 60, 60, 60, juce::TableHeaderComponent::visible);
     validationResultsListBox.getHeader ().addColumn ("Fix", Columns::fix, 60, 60, 60, juce::TableHeaderComponent::visible);
     validationResultsListBox.getHeader ().addColumn ("Message", Columns::text, 100, 10, 3000, juce::TableHeaderComponent::visible);
@@ -183,9 +185,11 @@ void Assimil8orValidatorComponent::buildQuickLookupList ()
     validatorComponentProperties.enableRenameAll (renameFilesCount > 0 || renameFoldersCount > 0, false);
 }
 
-void Assimil8orValidatorComponent::paint ([[maybe_unused]] juce::Graphics& g)
+void Assimil8orValidatorComponent::paint (juce::Graphics& g)
 {
-    g.fillAll (juce::Colours::navajowhite);
+    // opaque, so the background behind the rounded corners is this component's to paint
+    g.fillAll (findColour (A8Colours::windowBackground));
+    A8Paint::card (g, *this, getLocalBounds ());
 }
 
 juce::String Assimil8orValidatorComponent::getCellTooltip (int rowNumber, int columnId)
@@ -210,8 +214,9 @@ juce::String Assimil8orValidatorComponent::getCellTooltip (int rowNumber, int co
 }
 void Assimil8orValidatorComponent::resized ()
 {
-    auto localBounds { getLocalBounds () };
-    validatorToolWindow.setBounds (localBounds.removeFromTop (25));
+    // inside the pane's outline
+    auto localBounds { getLocalBounds ().reduced (1) };
+    validatorToolWindow.setBounds (localBounds.removeFromTop (PaneHeader::kHeight));
     validationResultsListBox.setBounds (localBounds);
 }
 
@@ -226,31 +231,27 @@ void Assimil8orValidatorComponent::paintRowBackground (juce::Graphics& g, int ro
         return;
 
     if (rowIsSelected)
-    {
-        g.fillAll (juce::Colours::lightblue);
-    }
+        g.fillAll (findColour (A8Colours::selectedRow));
     else
-    {
-        auto unSelectedBackgroundColour { juce::Colours::lightgrey };
-        if (rowNumber % 2)
-            unSelectedBackgroundColour = unSelectedBackgroundColour.interpolatedWith (juce::Colours::black, 0.1f);
-        g.fillAll (unSelectedBackgroundColour);
-    }
+        // every other row is lifted a little, so a long message can be followed across the columns
+        g.fillAll (findColour (rowNumber % 2 ? A8Colours::panelHeader : A8Colours::listBackground));
 }
 
 void Assimil8orValidatorComponent::paintCell (juce::Graphics& g, int rowNumber, int columnId, int width, int height, [[maybe_unused]] bool rowIsSelected)
 {
     if (rowNumber < validatorResultsQuickLookupList.size ())
     {
-        g.setColour (juce::Colours::lightsteelblue);
+        g.setColour (findColour (A8Colours::outlineDim));
         g.fillRect (width - 1, 0, 1, height);
         ValidatorResultProperties validatorResultProperties (validatorResultsQuickLookupList [rowNumber],
                                                              ValidatorResultProperties::WrapperType::client, ValidatorResultProperties::EnableCallbacks::no);
-        auto textColor { juce::Colours::black };
+        auto textColourId { static_cast<int> (A8Colours::textDim) };
         if (validatorResultProperties.getType () == ValidatorResultProperties::ResultTypeWarning)
-            textColor = juce::Colours::orange.darker (0.3f);
+            textColourId = A8Colours::warning;
         else if (validatorResultProperties.getType () == ValidatorResultProperties::ResultTypeError)
-            textColor = juce::Colours::red.darker (0.3f);
+            textColourId = A8Colours::danger;
+        else if (columnId == Columns::fix)
+            textColourId = A8Colours::accentText;
 
         juce::String outputText { "  " };
         switch (columnId)
@@ -274,7 +275,8 @@ void Assimil8orValidatorComponent::paintCell (juce::Graphics& g, int rowNumber, 
         }
         break;
         }
-        g.setColour (textColor);
+        g.setFont (A8Type::body ());
+        g.setColour (findColour (textColourId));
         g.drawText (outputText, juce::Rectangle<float>{ 0.0f, 0.0f, (float) width, (float) height }, juce::Justification::centredLeft, true);
     }
 }
@@ -342,7 +344,7 @@ void Assimil8orValidatorComponent::handleAsyncUpdate ()
 
     options.content->setSize (area.getWidth (), area.getHeight ());
     options.dialogTitle = "Locate Missing Files";
-    options.dialogBackgroundColour = juce::Colour (juce::Colours::grey);
+    options.dialogBackgroundColour = findColour (A8Colours::dialogBackground);
     options.escapeKeyTriggersCloseButton = true;
     options.useNativeTitleBar = false;
     options.resizable = true;
@@ -366,7 +368,7 @@ void Assimil8orValidatorComponent::rename (juce::File file, int maxLength)
 
     options.content->setSize (area.getWidth (), area.getHeight ());
     options.dialogTitle = "Rename";
-    options.dialogBackgroundColour = juce::Colour (juce::Colours::lightgrey);
+    options.dialogBackgroundColour = findColour (A8Colours::dialogBackground);
     options.escapeKeyTriggersCloseButton = true;
     options.useNativeTitleBar = false;
     options.resizable = false;

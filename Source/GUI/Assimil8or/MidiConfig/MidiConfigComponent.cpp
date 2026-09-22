@@ -1,4 +1,5 @@
 #include "MidiConfigComponent.h"
+#include "../../Theme/A8ColourIds.h"
 #include "oolib/Properties/RuntimeRootProperties.h"
 
 MidiConfigComponent::MidiConfigComponent ()
@@ -29,5 +30,6 @@ void MidiConfigComponent::resized ()
 
 void MidiConfigComponent::paint (juce::Graphics& g)
 {
-    g.fillAll (juce::Colours::grey.withAlpha (0.5f));
+    // washes the app back behind the dialog
+    g.fillAll (findColour (A8Colours::dropOverlay));
 }

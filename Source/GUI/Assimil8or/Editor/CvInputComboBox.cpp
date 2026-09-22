@@ -1,8 +1,11 @@
 #include "CvInputComboBox.h"
+#include "../../Theme/UiComponents.h"
 
 CvInputComboBox::CvInputComboBox (ListType listType)
 {
-    cvInputComboBox.setLookAndFeel (&noArrowComboBoxLnF);
+    // too narrow for a caret; the value takes the whole field
+    cvInputComboBox.getProperties ().set (A8LnFProperties::noCaret, true);
+    HoverHighlight::attach (cvInputComboBox);
     cvInputComboBox.setJustificationType (juce::Justification::centred);
     jassert (listType == ListType::includeZero || listType == ListType::dontIncludeZero);
     if (listType == ListType::includeZero)
@@ -45,7 +48,6 @@ CvInputComboBox::CvInputComboBox (ListType listType)
 
 CvInputComboBox::~CvInputComboBox ()
 {
-    cvInputComboBox.setLookAndFeel (nullptr);
 }
 
 int CvInputComboBox::getNumItems ()

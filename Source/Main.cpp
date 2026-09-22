@@ -11,6 +11,7 @@
 #include "GUI/GuiControlProperties.h"
 #include "GUI/GuiProperties.h"
 #include "GUI/MainComponent.h"
+#include "GUI/Theme/ThemeController.h"
 #include "GUI/Assimil8or/Editor/EditManager.h"
 #include "GUI/Assimil8or/Editor/SampleManager/SampleManager.h"
 #include "oolib/Debug/DebugLog.h"
@@ -185,6 +186,7 @@ public:
     {
         guiControlProperties.wrap (runtimeRootProperties.getValueTree (), GuiControlProperties::WrapperType::owner, GuiControlProperties::EnableCallbacks::no);
         guiProperties.wrap (persistentRootProperties.getValueTree (), GuiProperties::WrapperType::owner, GuiProperties::EnableCallbacks::no);
+        themeController.init (rootProperties.getValueTree ());
         mainWindow.reset (new MainWindow (getApplicationName () + " - " + getVersionDisplayString (), rootProperties.getValueTree ()));
     }
 
@@ -222,6 +224,8 @@ public:
         PresetManagerProperties presetManagerProperties (runtimeRootProperties.getValueTree (), PresetManagerProperties::WrapperType::client, PresetManagerProperties::EnableCallbacks::no);
         editManager.init (rootProperties.getValueTree (), presetManagerProperties.getPreset ("edit"));
         systemServices.setEditManager (&editManager);
+        // the device manager is a member of the player, so it can be published before the player is initialised
+        systemServices.setAudioDeviceManager (&audioPlayer.getAudioDeviceManager ());
     }
 
     void initAppDirectory ()
@@ -361,6 +365,9 @@ private:
     DirectoryDataProperties directoryDataProperties;
     std::unique_ptr<juce::FileLogger> fileLogger;
     std::atomic<RuntimeRootProperties::QuitState> localQuitState { RuntimeRootProperties::QuitState::idle };
+    // declared before the window, so it is destroyed after it: the LookAndFeel it
+    // owns has to outlive every component that resolves through it
+    ThemeController themeController;
     std::unique_ptr<MainWindow> mainWindow;
     AudioPlayer audioPlayer;
     AudioManager audioManager;

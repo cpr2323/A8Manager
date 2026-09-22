@@ -1,4 +1,5 @@
 #include "MidiConfigDialogComponent.h"
+#include "../../Theme/A8ColourIds.h"
 #include "../../../Assimil8or/MidiSetup/MidiSetupFile.h"
 #include "oolib/Properties/PersistentRootProperties.h"
 #include "oolib/Properties/RuntimeRootProperties.h"
@@ -7,14 +8,15 @@ MidiConfigDialogComponent::MidiConfigDialogComponent ()
 {
     setOpaque (true);
     for (auto curMidiSetupIndex { 0 }; curMidiSetupIndex < 9; ++curMidiSetupIndex)
-        midiSetupTabs.addTab (juce::String::charToString ('1' + curMidiSetupIndex), juce::Colours::darkgrey, &midiSetupEditorComponents [curMidiSetupIndex], false);
+        midiSetupTabs.addLedTab (juce::String::charToString ('1' + curMidiSetupIndex), &midiSetupEditorComponents [curMidiSetupIndex]);
+    midiSetupTabs.setTabBarDepth (31);
+    // a lit led on a MIDI setup tab says it has edits that are not saved
+    midiSetupTabs.setLedColourId (A8Colours::danger);
     addAndMakeVisible (midiSetupTabs);
 
-    saveButton.setButtonText ("SAVE");
     saveButton.setEnabled (false);
     addAndMakeVisible (saveButton);
     saveButton.onClick = [this] () { saveClicked (); };
-    cancelButton.setButtonText ("CANCEL");
     addAndMakeVisible (cancelButton);
     cancelButton.onClick = [this] () { cancelClicked (); };
 }
@@ -136,17 +138,18 @@ void MidiConfigDialogComponent::timerCallback ()
     for (auto curMidiSetupIndex { 0 }; curMidiSetupIndex < 9; ++curMidiSetupIndex)
     {
         const auto midiSetupEdited { ! areMidiSetupsEqual (uneditedMidiSetupPropertiesListVT.getChild (curMidiSetupIndex), midiSetupPropertiesListVT.getChild (curMidiSetupIndex)) };
-        midiSetupTabs.setTabName (curMidiSetupIndex, juce::String::charToString ('1' + curMidiSetupIndex) + (midiSetupEdited ? "*" : ""));
+        midiSetupTabs.setTabHasContent (curMidiSetupIndex, midiSetupEdited);
         anyMidiSetupsEdited |= midiSetupEdited;
     }
     saveButton.setEnabled (anyMidiSetupsEdited);
+    saveButton.setPrimary (anyMidiSetupsEdited);
 }
 
 void MidiConfigDialogComponent::resized ()
 {
-    constexpr auto kButtonHeight { 25 };
+    constexpr auto kButtonHeight { ActionButton::kNormalHeight };
     constexpr auto kButtonBorder { 5 };
-    constexpr auto kButtonWidth { 60 };
+    constexpr auto kButtonWidth { 70 };
     constexpr auto kBetweenButtons { 5 };
     auto localBounds { getLocalBounds () };
     localBounds.reduce (5, 5);
@@ -160,7 +163,6 @@ void MidiConfigDialogComponent::resized ()
 
 void MidiConfigDialogComponent::paint (juce::Graphics& g)
 {
-    g.fillAll (juce::Colours::darkgrey);
-    g.setColour (juce::Colours::black);
-    g.drawRect (getLocalBounds (), 1);
+    g.fillAll (findColour (A8Colours::windowBackground));
+    A8Paint::card (g, *this, getLocalBounds (), A8Colours::windowBackground);
 }

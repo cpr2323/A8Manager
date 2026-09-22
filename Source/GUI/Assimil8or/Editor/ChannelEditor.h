@@ -15,7 +15,7 @@
 #include "oolib/GUI/CustomTextButton.h"
 #include "oolib/GUI/CustomTextEditor.h"
 #include "oolib/GUI/ErrorHelpers.h"
-#include "oolib/GUI/NoArrowComboBoxLnF.h"
+#include "../../Theme/UiComponents.h"
 
 class CvOffsetTextEditor : public CustomTextEditorDouble
 {
@@ -37,21 +37,7 @@ public:
 private:
 };
 
-class TabbedComponentWithChangeCallback : public juce::TabbedComponent
-{
-public:
-    TabbedComponentWithChangeCallback (juce::TabbedButtonBar::Orientation orientation) : juce::TabbedComponent (orientation) {}
-
-    std::function<void (int)> onSelectedTabChanged;
-
-private:
-    void currentTabChanged (int newTabIndex, [[maybe_unused]] const juce::String& tabName)
-    {
-        if (onSelectedTabChanged != nullptr)
-            onSelectedTabChanged (newTabIndex);
-    }
-};
-
+// washes a stereo right channel's controls back, as they are set by its left channel
 class TransparantOverlay : public juce::Component
 {
 public:
@@ -60,118 +46,10 @@ public:
         setInterceptsMouseClicks (false, false);
     }
 private:
-    juce::Colour overlayColor { juce::Colours::black };
-    float alphaAmount { 0.3f };
     void paint (juce::Graphics& g) override
     {
-        g.setColour (overlayColor.withAlpha (alphaAmount));
-        g.fillRect (getLocalBounds ());
+        g.fillAll (findColour (A8Colours::disabledOverlay));
     }
-};
-
-class ZonesTabbedLookAndFeel : public juce::LookAndFeel_V4
-{
-public:
-//#define USE_COLOR_VOLTAGE
-#ifdef USE_COLOR_VOLTAGE
-    static inline const juce::Colour kPositiveVoltageColor { juce::Colours::green.darker (0.1f) };
-    static inline const juce::Colour kZeroVoltageColor     { juce::Colours::lightgrey.darker (0.3f) };
-    static inline const juce::Colour kNegativeVoltageColor { juce::Colours::red.darker (0.4f) };
-#else
-    static inline const juce::Colour kPositiveVoltageColor { juce::Colours::white.darker (0.1f) };
-    static inline const juce::Colour kZeroVoltageColor { juce::Colours::lightgrey.darker (0.3f) };
-    static inline const juce::Colour kNegativeVoltageColor { juce::Colours::black };
-#endif
-
-//     int getTabButtonSpaceAroundImage () override;
-//     int getTabButtonOverlap (int tabDepth) override;
-    int getTabButtonBestWidth (juce::TabBarButton& button, [[maybe_unused]] int tabDepth) override
-    {
-        auto& bar { button.getTabbedButtonBar () };
-        return button.getTabbedButtonBar ().getHeight () / bar.getNumTabs ();
-    }
-//     juce::Rectangle< int > getTabButtonExtraComponentBounds (const juce::TabBarButton&, juce::Rectangle< int > &textArea, juce::Component & extraComp) override;
-    void drawTabButton (juce::TabBarButton & button, juce::Graphics & g, bool isMouseOver, bool isMouseDown) override
-    {
-        const auto activeArea { button.getActiveArea () };
-        const auto o { button.getTabbedButtonBar ().getOrientation () };
-        const auto bkg { button.getTabBackgroundColour () };
-        if (button.getToggleState ())
-            g.setColour (bkg);
-        else
-            g.setColour (bkg.darker (0.3f));
-
-        g.fillRect (activeArea);
-        g.setColour (button.findColour (juce::TabbedButtonBar::tabOutlineColourId));
-
-        juce::Rectangle<int> r (activeArea);
-        if (o != juce::TabbedButtonBar::TabsAtBottom)   g.fillRect (r.removeFromTop (1));
-        if (o != juce::TabbedButtonBar::TabsAtTop)      g.fillRect (r.removeFromBottom (1));
-        if (o != juce::TabbedButtonBar::TabsAtRight)    g.fillRect (r.removeFromLeft (1));
-        if (o != juce::TabbedButtonBar::TabsAtLeft)     g.fillRect (r.removeFromRight (1));
-
-        const float alpha { button.isEnabled () ? ((isMouseOver || isMouseDown) ? 1.0f : 0.8f) : 0.3f };
-
-        juce::Colour col (bkg.contrasting ().withMultipliedAlpha (alpha));
-
-        if (juce::TabbedButtonBar * bar { button.findParentComponentOfClass<juce::TabbedButtonBar> () })
-        {
-            juce::TabbedButtonBar::ColourIds colID { button.isFrontTab () ? juce::TabbedButtonBar::frontTextColourId :
-                                                                            juce::TabbedButtonBar::tabTextColourId };
-
-            if (bar->isColourSpecified (colID))
-                col = bar->findColour (colID);
-            else if (isColourSpecified (colID))
-                col = findColour (colID);
-        }
-
-        //const juce::Rectangle<float> area (button.getTextArea ().toFloat ());
-        const juce::Rectangle<float> area (button.getActiveArea ().toFloat ());
-
-        float length { area.getWidth () };
-        float depth { area.getHeight () };
-
-        if (button.getTabbedButtonBar ().isVertical ())
-            std::swap (length, depth);
-
-        auto textToDraw { button.getButtonText ().trim () };
-        auto zoneIndexString { textToDraw.upToFirstOccurrenceOf ("\r" , false, true) };
-        auto minVoltageString { textToDraw.fromFirstOccurrenceOf ("\r", false, true) };
-        const auto zoneIndexBounds { juce::Rectangle<float> { 0.f, 3.f, static_cast<float> (area.getWidth ()), static_cast<float> (area.getHeight () / 2) } };
-        g.setColour (col);
-        g.drawText (zoneIndexString, zoneIndexBounds, juce::Justification::centred, false);
-        if (minVoltageString.isNotEmpty ())
-        {
-#define COLORIZE_VOLTAGE_VALUES 1
-#if COLORIZE_VOLTAGE_VALUES
-            if (auto minVoltage { minVoltageString.getDoubleValue () }; minVoltage > 0.01)
-                col = juce::Colours::white.darker (0.1f);
-            else if (minVoltage <= 0.01 && minVoltage >= -0.01)
-                col = juce::Colours::lightgrey.darker (0.3f);
-            else
-                col = juce::Colours::black;
-#else
-            col = kZeroVoltageColor;
-#endif
-            auto currentFont { g.getCurrentFont () };
-            juce::Font voltageFont { currentFont.withHeight (depth * 0.35f) };
-            g.setFont (voltageFont);
-
-            const auto minVoltageBounds { juce::Rectangle<float> { 2.f, static_cast<float> (area.getHeight () / 2), static_cast<float> (area.getWidth () - 4), static_cast<float> (area.getHeight () / 2) } };
-            g.setColour (col);
-            g.drawText (minVoltageString, minVoltageBounds, juce::Justification::centred, false);
-            g.setFont (currentFont);
-        }
-    }
-
-//     juce::Font getTabButtonFont (juce::TabBarButton&, float height) override;
-//     void drawTabButtonText (juce::TabBarButton& button, juce::Graphics& g, bool isMouseOver, bool isMouseDown) override
-//     void drawTabbedButtonBarBackground (juce::TabbedButtonBar&, juce::Graphics&) override;
-//     void drawTabAreaBehindFrontButton (juce::TabbedButtonBar&, juce::Graphics&, int w, int h) override;
-//     void createTabButtonShape (juce::TabBarButton&, juce::Path & path, bool isMouseOver, bool isMouseDown) override;
-//     void fillTabButtonShape (juce::TabBarButton&, juce::Graphics&, const juce::Path & path, bool isMouseOver, bool isMouseDown) override;
-//     juce::Button* createTabBarExtrasButton () override;
-private:
 };
 
 class ChannelEditor : public juce::Component
@@ -213,8 +91,11 @@ private:
 
     juce::Label zonesLabel;
     juce::Label zoneMaxVoltage;
-    TabbedComponentWithChangeCallback zoneTabs { juce::TabbedButtonBar::Orientation::TabsAtLeft };
-    juce::TextButton toolsButton;
+    LedTabbedComponent zoneTabs { juce::TabbedButtonBar::Orientation::TabsAtLeft };
+    MenuButton toolsButton { "CHANNEL TOOLS", ActionButton::Size::small };
+    // the labels are coloured by role, and a palette change has to reach them again
+    std::vector<juce::Label*> sectionHeaderLabels;
+    std::vector<juce::Label*> parameterLabels;
 
     juce::Label aliasingLabel;
     CustomTextEditorInt aliasingTextEditor; // integer
@@ -313,9 +194,6 @@ private:
 
     AREnvelopeComponent arEnvelopeComponent;
     AREnvelopeProperties arEnvelopeProperties;
-
-    NoArrowComboBoxLnF noArrowComboBoxLnF;
-    ZonesTabbedLookAndFeel zonesTabbedLookAndFeel;
 
     WaveformDisplay sampleWaveformDisplay;
 
@@ -432,7 +310,7 @@ private:
     void zonesRTUiChanged (int zonesRT);
 
     void visibilityChanged () override;
-    void paint (juce::Graphics& g) override;
+    void lookAndFeelChanged () override;
     void resized () override;
     void updateWaveformDisplay ();
 };
