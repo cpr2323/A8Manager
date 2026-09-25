@@ -384,35 +384,59 @@ bool EditManager::assignSamples (int channelIndex, int zoneIndex, const juce::St
         // assign file to zone
         auto& zoneProperties { zoneAndSamplePropertiesList [channelIndex][zoneIndex + filesIndex].zoneProperties };
         auto& sampleProperties { zoneAndSamplePropertiesList [channelIndex][zoneIndex + filesIndex].sampleProperties };
+        const auto originalSampleFileName { zoneProperties.getSample () };
         zoneProperties.setSample (file.getFileName (), false);
         zoneProperties.setSide (0, false);
         if (zoneProperties.getSampleStart ().value_or (0) > sampleProperties.getLengthInSamples ())
             zoneProperties.setSampleStart (sampleProperties.getLengthInSamples () - 1, false);
         if (zoneProperties.getSampleEnd ().value_or (sampleProperties.getLengthInSamples ()) > sampleProperties.getLengthInSamples ())
             zoneProperties.setSampleEnd (sampleProperties.getLengthInSamples () - 1, false);
-        if (zoneProperties.getLoopStart ().value_or (0) + 4> sampleProperties.getLengthInSamples ())
+        if (zoneProperties.getLoopStart ().value_or (0) + 4 > sampleProperties.getLengthInSamples ())
             zoneProperties.setLoopStart (sampleProperties.getLengthInSamples () - 4, false);
         if (zoneProperties.getLoopStart ().value_or (0) + zoneProperties.getLoopLength ().value_or (4) > sampleProperties.getLengthInSamples ())
             zoneProperties.setLoopLength (static_cast<double> (sampleProperties.getLengthInSamples () - zoneProperties.getLoopStart ().value_or (0)), false);
 
         // check if stereo and set up right channel
-        if (sampleProperties.getStatus () == SampleStatus::exists && sampleProperties.getNumChannels () == 2)
+        if (sampleProperties.getStatus () == SampleStatus::exists)
         {
-            if (auto parentChannelId { channelPropertiesList [channelIndex].getId () }; parentChannelId < 8 && channelPropertiesList [channelIndex].getChannelMode () != ChannelProperties::ChannelMode::stereoRight)
+            auto updateRightChannelZone =[&zoneProperties] (ZoneProperties& rightChannelZoneProperties)
             {
-                // NOTE PresetProperties.getChannelVT takes a 0 based index, but Id's are 1 based. and since we want the NEXT channel, we can use the Id, because it is already +1 to the index
-                ChannelProperties nextChannelProperties (presetProperties.getChannelVT (parentChannelId), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
-                ZoneProperties nextChannelZoneProperties (nextChannelProperties.getZoneVT (zoneProperties.getId () - 1), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
-                // if next Channel does not have a sample
-                if (nextChannelZoneProperties.getSample ().isEmpty ())
+                rightChannelZoneProperties.setSide (1, false);
+                rightChannelZoneProperties.setSampleStart (-1, true); // I think this,and the next 3 lines, could pass false for doSelfCallback
+                rightChannelZoneProperties.setSampleEnd (-1, true);
+                rightChannelZoneProperties.setLoopStart (-1, true);
+                rightChannelZoneProperties.setLoopLength (-1, true);
+                rightChannelZoneProperties.setSample (zoneProperties.getSample (), false); // when the other editor receives this update, it will also update the sample positions, so do it after setting them
+
+            };
+            if (sampleProperties.getNumChannels () == 2)
+            {
+                if (auto parentChannelId { channelPropertiesList [channelIndex].getId () }; parentChannelId < 8 && channelPropertiesList [channelIndex].getChannelMode () != ChannelProperties::ChannelMode::stereoRight)
                 {
-                    nextChannelProperties.setChannelMode (ChannelProperties::ChannelMode::stereoRight, false);
-                    nextChannelZoneProperties.setSide (1, false);
-                    nextChannelZoneProperties.setSampleStart (-1, true); // I think this,and the next 3 lines, could pass false for doSelfCallback
-                    nextChannelZoneProperties.setSampleEnd (-1, true);
-                    nextChannelZoneProperties.setLoopStart (-1, true);
-                    nextChannelZoneProperties.setLoopLength (-1, true);
-                    nextChannelZoneProperties.setSample (zoneProperties.getSample (), false); // when the other editor receives this update, it will also update the sample positions, so do it after setting them
+                    // NOTE PresetProperties.getChannelVT takes a 0 based index, but Id's are 1 based. and since we want the NEXT channel, we can use the Id, because it is already +1 to the index
+                    ChannelProperties nextChannelProperties (presetProperties.getChannelVT (parentChannelId), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
+                    ZoneProperties nextChannelZoneProperties (nextChannelProperties.getZoneVT (zoneProperties.getId () - 1), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
+                    // if next Channel does not have a sample
+                    if (nextChannelZoneProperties.getSample () == originalSampleFileName || nextChannelZoneProperties.getSample ().isEmpty ())
+                    {
+                        nextChannelProperties.setChannelMode (ChannelProperties::ChannelMode::stereoRight, false);
+                        updateRightChannelZone (nextChannelZoneProperties);
+                    }
+                }
+            }
+            else if (sampleProperties.getNumChannels () == 1)
+            {
+                if (auto parentChannelId { channelPropertiesList [channelIndex].getId () }; parentChannelId < 8 && channelPropertiesList [channelIndex].getChannelMode () != ChannelProperties::ChannelMode::stereoRight)
+                {
+                    // NOTE PresetProperties.getChannelVT takes a 0 based index, but Id's are 1 based. and since we want the NEXT channel, we can use the Id, because it is already +1 to the index
+                    ChannelProperties nextChannelProperties (presetProperties.getChannelVT (parentChannelId), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
+                    ZoneProperties nextChannelZoneProperties (nextChannelProperties.getZoneVT (zoneProperties.getId () - 1), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
+                    // if next Channel does not have a sample
+                    if (nextChannelProperties.getChannelMode () == ChannelProperties::ChannelMode::stereoRight &&
+                        (nextChannelZoneProperties.getSample () == originalSampleFileName || nextChannelZoneProperties.getSample ().isEmpty ()))
+                    {
+                        updateRightChannelZone (nextChannelZoneProperties);
+                    }
                 }
             }
         }
