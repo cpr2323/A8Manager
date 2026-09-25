@@ -47,6 +47,7 @@ ZoneEditor::ZoneEditor ()
     };
     addAndMakeVisible (toolsButton);
 
+    loopPointsView.onPopupMenu = [this] (bool isStartSide) { showLoopPointsViewMenu (isStartSide); };
     addAndMakeVisible (loopPointsView);
 
     setActiveSamplePoints (AudioPlayerProperties::SamplePointsSelector::SamplePoints, true);
@@ -177,7 +178,14 @@ void ZoneEditor::setActiveSamplePoints (AudioPlayerProperties::SamplePointsSelec
         repaint ();
         audioPlayerProperties.setPlayState (AudioPlayerProperties::PlayState::stop, true);
         audioPlayerProperties.setSamplePointsSelector (samplePointsSelector, false);
+        if (onActiveSamplePointsChanged != nullptr)
+            onActiveSamplePointsChanged (samplePointsSelector);
     }
+}
+
+void ZoneEditor::selectSamplePoints (AudioPlayerProperties::SamplePointsSelector newSamplePointsSelector)
+{
+    setActiveSamplePoints (newSamplePointsSelector, false);
 }
 
 void ZoneEditor::updateLoopPointsView ()
@@ -208,9 +216,9 @@ void ZoneEditor::updateLoopPointsView ()
     loopPointsView.repaint ();
 }
 
-auto ZoneEditor::getSampleAdjustMenu (std::function<juce::int64 ()> getSampleOffset, std::function<juce::int64 ()> getMinSampleOffset, std::function<juce::int64 ()>getMaxSampleOffset, std::function<void (juce::int64)> setSampleOffset)
+juce::PopupMenu ZoneEditor::getSampleAdjustMenu (juce::PopupMenu adjustMenu, std::function<juce::int64 ()> getSampleOffset, std::function<juce::int64 ()> getMinSampleOffset,
+                                                 std::function<juce::int64 ()>getMaxSampleOffset, std::function<void (juce::int64)> setSampleOffset)
 {
-    juce::PopupMenu adjustMenu;
     {
 #if INCLUDE_WAVE_MATCHING_LOOP_POINT_ALIGN
         juce::PopupMenu adjustMenuOptions;
@@ -272,6 +280,67 @@ auto ZoneEditor::getSampleAdjustMenu (std::function<juce::int64 ()> getSampleOff
 #endif
     }
     return adjustMenu;
+}
+
+juce::PopupMenu ZoneEditor::createSamplePointAdjustMenu (SamplePoint samplePoint, juce::PopupMenu adjustMenu)
+{
+    switch (samplePoint)
+    {
+        case SamplePoint::sampleStart:
+            return getSampleAdjustMenu (adjustMenu,
+                                        [this] () { return zoneProperties.getSampleStart ().value_or (0); },
+                                        [this] () { return juce::int64 { 0 }; },
+                                        [this] () { return zoneProperties.getSampleEnd ().value_or (sampleProperties.getLengthInSamples ()); },
+                                        [this] (juce::int64 sampleOffset) { zoneProperties.setSampleStart (sampleOffset, true); });
+        case SamplePoint::sampleEnd:
+            return getSampleAdjustMenu (adjustMenu,
+                                        [this] () { return zoneProperties.getSampleEnd ().value_or (sampleProperties.getLengthInSamples ()); },
+                                        [this] () { return zoneProperties.getSampleStart ().value_or (0); },
+                                        [this] () { return sampleProperties.getLengthInSamples (); },
+                                        [this] (juce::int64 sampleOffset) { zoneProperties.setSampleEnd (sampleOffset, true); });
+        case SamplePoint::loopStart:
+            return getSampleAdjustMenu (adjustMenu,
+                                        [this] () { return zoneProperties.getLoopStart ().value_or (0); },
+                                        [this] () { return minZoneProperties.getLoopStart ().value_or (0); },
+                                        [this] () { return editManager->getMaxLoopStart (parentChannelIndex, zoneIndex); },
+                                        // through the field, which holds the loop end still when Loop Length is shown as Loop End
+                                        [this] (juce::int64 sampleOffset) { loopStartTextEditor.setValue (sampleOffset); });
+        case SamplePoint::loopEnd:
+        default:
+            return getSampleAdjustMenu (adjustMenu,
+                                        [this] () { return zoneProperties.getLoopStart ().value_or (0) + static_cast<juce::int64> (zoneProperties.getLoopLength ().value_or (4.)); },
+                                        [this] () { return zoneProperties.getLoopStart ().value_or (0); },
+                                        [this] () { return sampleProperties.getLengthInSamples (); },
+                                        [this] (juce::int64 sampleOffset) { zoneProperties.setLoopLength (static_cast<double> (sampleOffset - zoneProperties.getLoopStart ().value_or (0.)), true); });
+    }
+}
+
+// The loop tuner's two sides are the end (left) and the start (right) of whichever pair the zone is
+// working with, so a right-click on either side offers that point's adjustments.
+void ZoneEditor::showLoopPointsViewMenu (bool isStartSide)
+{
+    if (isStereoRightChannelMode || sampleProperties.getStatus () != SampleStatus::exists)
+        return;
+
+    const auto samplePointsActive { samplePointsSelector == AudioPlayerProperties::SamplePointsSelector::SamplePoints };
+    const auto samplePoint { samplePointsActive ? (isStartSide ? SamplePoint::sampleStart : SamplePoint::sampleEnd)
+                                                : (isStartSide ? SamplePoint::loopStart : SamplePoint::loopEnd) };
+    const auto pointName = [this, samplePoint] () -> juce::String
+    {
+        switch (samplePoint)
+        {
+            case SamplePoint::sampleStart: return "SAMPLE START";
+            case SamplePoint::sampleEnd: return "SAMPLE END";
+            case SamplePoint::loopStart: return "LOOP START";
+            case SamplePoint::loopEnd:
+            default: return treatLoopLengthAsEndInUi ? "LOOP END" : "LOOP LENGTH";
+        }
+    } ();
+
+    juce::PopupMenu menu;
+    menu.addSectionHeader (pointName);
+    menu.addSeparator ();
+    createSamplePointAdjustMenu (samplePoint, menu).showMenuAsync ({});
 }
 
 void ZoneEditor::setupZoneComponents ()
@@ -378,10 +447,7 @@ void ZoneEditor::setupZoneComponents ()
     };
     sampleStartTextEditor.onPopupMenuCallback = [this] ()
     {
-        auto adjustMenu { getSampleAdjustMenu ([this] () { return zoneProperties.getSampleStart ().value_or (0); },
-                                               [this] () { return 0; },
-                                               [this] () { return zoneProperties.getSampleEnd ().value_or (sampleProperties.getLengthInSamples ()); },
-                                               [this] (juce::int64 sampleOffset) { zoneProperties.setSampleStart (sampleOffset, true); }) };
+        auto adjustMenu { createSamplePointAdjustMenu (SamplePoint::sampleStart) };
         auto editMenu { createZoneEditMenu (adjustMenu, [this] (ZoneProperties& destZoneProperties, SampleProperties& destSampleProperties)
                                             {
                                                 const auto clampedSampleStart { std::clamp (zoneProperties.getSampleStart ().value_or (0),
@@ -425,10 +491,7 @@ void ZoneEditor::setupZoneComponents ()
     };
     sampleEndTextEditor.onPopupMenuCallback = [this] ()
     {
-        auto adjustMenu { getSampleAdjustMenu ([this] () { return zoneProperties.getSampleEnd ().value_or (sampleProperties.getLengthInSamples ()); },
-                                               [this] () { return zoneProperties.getSampleStart ().value_or (0); },
-                                               [this] () { return sampleProperties.getLengthInSamples (); },
-                                               [this] (juce::int64 sampleOffset) { zoneProperties.setSampleEnd (sampleOffset, true); }) };
+        auto adjustMenu { createSamplePointAdjustMenu (SamplePoint::sampleEnd) };
 
         auto editMenu { createZoneEditMenu (adjustMenu, [this] (ZoneProperties& destZoneProperties, SampleProperties& destSampleProperties)
                                             {
@@ -475,10 +538,7 @@ void ZoneEditor::setupZoneComponents ()
     };
     loopStartTextEditor.onPopupMenuCallback = [this] ()
     {
-        auto adjustMenu { getSampleAdjustMenu ([this] () { return zoneProperties.getLoopStart ().value_or (0); },
-                                               [this] () { return minZoneProperties.getLoopStart ().value_or (0); },
-                                               [this] () { return editManager->getMaxLoopStart (parentChannelIndex, zoneIndex); },
-                                               [this] (juce::int64 sampleOffset) { zoneProperties.setLoopStart (sampleOffset, true); }) };
+        auto adjustMenu { createSamplePointAdjustMenu (SamplePoint::loopStart) };
 
         auto editMenu { createZoneEditMenu (adjustMenu , [this] (ZoneProperties& destZoneProperties, SampleProperties& destSampleProperties)
                                             {
@@ -570,10 +630,7 @@ void ZoneEditor::setupZoneComponents ()
 
     loopLengthTextEditor.onPopupMenuCallback = [this] ()
     {
-        auto adjustMenu { getSampleAdjustMenu ([this] () { return zoneProperties.getLoopStart ().value_or (0) + static_cast<juce::int64> (zoneProperties.getLoopLength ().value_or (4.)); },
-                                               [this] () { return zoneProperties.getLoopStart ().value_or (0); },
-                                               [this] () { return sampleProperties.getLengthInSamples (); },
-                                               [this] (juce::int64 sampleOffset) { zoneProperties.setLoopLength (static_cast<double> (sampleOffset - zoneProperties.getLoopStart ().value_or (0.)), true); }) };
+        auto adjustMenu { createSamplePointAdjustMenu (SamplePoint::loopEnd) };
         auto editMenu { createZoneEditMenu (adjustMenu, [this] (ZoneProperties& destZoneProperties, SampleProperties& destSampleProperties)
                                             {
                                                 const auto clampedLoopLength { std::clamp (zoneProperties.getLoopLength ().value_or (sampleProperties.getLengthInSamples ()),
@@ -871,6 +928,21 @@ void ZoneEditor::paint (juce::Graphics& g)
     // its outline is drawn in paintOverChildren, as the loop tuner that both groups share covers this
     g.setColour (findColour (A8Colours::selectedRow));
     g.fillRoundedRectangle (activePointBackground->toFloat (), 2.0f);
+
+    // A short bar between each point's name and its field, in the colour of its marker on the waveform,
+    // as SquidManager has, so the number and the line it moves read as one object. The labels are cut
+    // short in resized to leave room for it.
+    auto drawSwatch = [this, &g] (const juce::Label& label, int colourId)
+    {
+        const auto swatchBounds { juce::Rectangle<int> { label.getRight () + kSwatchGap, label.getY (), kSwatchWidth, label.getHeight () }
+                                    .withSizeKeepingCentre (kSwatchWidth, std::min (14, label.getHeight ())) };
+        g.setColour (findColour (colourId));
+        g.fillRoundedRectangle (swatchBounds.toFloat (), 1.0f);
+    };
+    drawSwatch (sampleStartLabel, A8Colours::markerStart);
+    drawSwatch (sampleEndLabel, A8Colours::markerEnd);
+    drawSwatch (loopStartLabel, A8Colours::markerLoop);
+    drawSwatch (loopLengthLabel, A8Colours::markerLoopEnd);
 }
 
 void ZoneEditor::paintOverChildren (juce::Graphics& g)
@@ -967,6 +1039,10 @@ void ZoneEditor::resized ()
     loopPointsBackground = { loopStartLabel.getX (), loopStartLabel.getY () - loopPointsViewHeight,
                              loopLengthTextEditor.getRight () - loopStartLabel.getX () + 1,
                              loopStartTextEditor.getHeight () + loopLengthTextEditor.getHeight () + loopPointsViewHeight + (interParameterYOffset * 2) + 1 };
+
+    // the names give up the right of their space to their marker swatches, which are drawn in paint
+    for (auto* label : { &sampleStartLabel, &sampleEndLabel, &loopStartLabel, &loopLengthLabel })
+        label->setBounds (label->getBounds ().withTrimmedRight (kSwatchGap + kSwatchWidth));
 
     auto playControlsArea { loopPointsView.getBounds () };
     const auto buttonHeight { playControlsArea.getHeight () / 3 };

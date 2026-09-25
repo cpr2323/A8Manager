@@ -15,6 +15,12 @@ void LoopPointsView::setLoopPoints (juce::int64 theSampleOffset, juce::int64 the
     side = theSide;
 }
 
+void LoopPointsView::mouseDown (const juce::MouseEvent& e)
+{
+    if (e.mods.isPopupMenu () && onPopupMenu != nullptr)
+        onPopupMenu (e.x >= getWidth () / 2);
+}
+
 void LoopPointsView::paint (juce::Graphics& g)
 {
     const auto halfWidth { getWidth () / 2 };

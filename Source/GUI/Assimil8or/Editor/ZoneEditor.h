@@ -55,6 +55,13 @@ public:
     void setLoopLengthIsEnd (bool loopLengthIsEnd);
     void setStereoRightChannelMode (bool isStereoRightChannelMode);
 
+    // Which pair of points - sample start/end or loop start/end - the zone is working with: the one
+    // outlined here, auditioned, and picked out on the waveform. The waveform can change it too, by
+    // moving a marker of the other pair.
+    AudioPlayerProperties::SamplePointsSelector getActiveSamplePoints () const { return samplePointsSelector; }
+    void selectSamplePoints (AudioPlayerProperties::SamplePointsSelector newSamplePointsSelector);
+    std::function<void (AudioPlayerProperties::SamplePointsSelector samplePointsSelector)> onActiveSamplePointsChanged;
+
     // TODO - can we make this local, since we should be able to access the edits through the EditManager
     std::function<void (int zoneIndex)> displayToolsMenu;
 
@@ -108,6 +115,9 @@ private:
     juce::Rectangle<int> samplePointsBackground;
     juce::Rectangle<int> loopPointsBackground;
     juce::Rectangle<int>* activePointBackground { &samplePointsBackground };
+    // the marker colour bar between each sample point's name and its field
+    static constexpr int kSwatchWidth { 3 };
+    static constexpr int kSwatchGap { 3 };
 
     juce::Label levelOffsetLabel;
     CustomTextEditorDouble levelOffsetTextEditor; // double
@@ -133,11 +143,17 @@ private:
 
     AudioPlayerProperties::SamplePointsSelector samplePointsSelector { AudioPlayerProperties::SamplePointsSelector::SamplePoints };
 
+    enum class SamplePoint { sampleStart, sampleEnd, loopStart, loopEnd };
+
     void setEditComponentsEnabled (bool enabled);
     juce::PopupMenu createZoneEditMenu (juce::PopupMenu existingPopupMenu, std::function <void (ZoneProperties&, SampleProperties&)> setter, std::function <void ()> resetter, std::function <void ()> reverter,
                                         std::function<bool (ZoneProperties&)> canCloneToZoneCallback, std::function<bool (ZoneProperties&)> canCloneToAllCallback);
     juce::String formatLoopLength (double loopLength);
-    auto getSampleAdjustMenu (std::function<juce::int64 ()> getSampleOffset, std::function<juce::int64 ()> getMinSampleOffset, std::function<juce::int64 ()>getMaxSampleOffset, std::function<void (juce::int64)> setSampleOffset);
+    juce::PopupMenu getSampleAdjustMenu (juce::PopupMenu adjustMenu, std::function<juce::int64 ()> getSampleOffset, std::function<juce::int64 ()> getMinSampleOffset,
+                                         std::function<juce::int64 ()>getMaxSampleOffset, std::function<void (juce::int64)> setSampleOffset);
+    // the adjustments for one of the four points, added to the end of adjustMenu
+    juce::PopupMenu createSamplePointAdjustMenu (SamplePoint samplePoint, juce::PopupMenu adjustMenu = {});
+    void showLoopPointsViewMenu (bool isStartSide);
     bool handleSamplesInternal (int zoneIndex, juce::StringArray files);
     void setActiveSamplePoints (AudioPlayerProperties::SamplePointsSelector samplePointsSelector, bool forceSetup);
     void setupZoneComponents ();

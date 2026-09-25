@@ -7,6 +7,7 @@
 #include "ZoneEditor.h"
 #include "Envelope/AREnvelopeComponent.h"
 #include "Envelope/AREnvelopeProperties.h"
+#include "Waveform/ExpandedWaveformPanel.h"
 #include "Waveform/WaveformDisplay.h"
 #include "../../../AppProperties.h"
 #include "../../../Assimil8or/Audio/AudioPlayerProperties.h"
@@ -66,6 +67,11 @@ public:
 
     // TODO - can we make this local, since we should be able to access the edits through the EditManager
     std::function<void (int channelIndex)> displayToolsMenu;
+
+    // The expanded waveform is one setting for every channel, so it stays up while moving between
+    // them: the expand and collapse tools ask the owner, which sets it on all of the channels.
+    void setWaveformExpanded (bool isExpanded);
+    std::function<void (bool isExpanded)> onWaveformExpandedChange;
 
 private:
     enum class VoltageBalanceType
@@ -196,6 +202,7 @@ private:
     AREnvelopeProperties arEnvelopeProperties;
 
     WaveformDisplay sampleWaveformDisplay;
+    ExpandedWaveformPanel expandedWaveformPanel;
 
     std::array<ZoneEditor, 8> zoneEditors;
     std::array<ZoneProperties, 8> zoneProperties;
@@ -313,4 +320,5 @@ private:
     void lookAndFeelChanged () override;
     void resized () override;
     void updateWaveformDisplay ();
+    void requestWaveformExpanded (bool isExpanded);
 };

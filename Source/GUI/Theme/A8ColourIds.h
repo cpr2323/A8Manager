@@ -46,8 +46,9 @@ namespace A8Colours
         waveformForeground,
         waveformCentreLine,
         markerStart,                    // green: where playback starts
-        markerLoop,                     // gold - the one value shared by both ends; the loop points
+        markerLoop,                     // gold - the one value shared by both ends; where the loop starts
         markerEnd,                      // red: where playback ends
+        markerLoopEnd,                  // violet: where the loop ends
 
         // drag and drop overlay
         dropOverlay,                    // wash drawn over the drop target; the message on it uses the tooltip colours

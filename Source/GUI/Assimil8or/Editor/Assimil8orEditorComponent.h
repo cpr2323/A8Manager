@@ -99,6 +99,7 @@ private:
     };
     std::array<XfadeGroupControls, 4> xfadeGroups;
     std::array<ChannelEditor, 8> channelEditors;
+    void setWaveformExpanded (bool isExpanded);
     std::array<ChannelProperties, 8> channelProperties;
 
     void displayToolsMenu ();

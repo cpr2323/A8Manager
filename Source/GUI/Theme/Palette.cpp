@@ -41,9 +41,12 @@ namespace
     // markers. Start green and End red is the pairing that reads without being
     // learned; Loop is gold, and is the one value identical at both ends - it has
     // to hold on a near-black lane and a near-white one, so it must be a mid tone.
-    const juce::Colour kMarkerStartDark { 0xff35a97b }, kMarkerStartLight { 0xff0b7a50 };
-    const juce::Colour kMarkerLoop      { 0xffc58309 };
-    const juce::Colour kMarkerEndDark   { 0xffd9483e }, kMarkerEndLight   { 0xffb0271d };
+    // Loop End is violet: the one hue the other three, and the cyan trace, leave
+    // free, and it sits with the violet bias of the inks rather than against it.
+    const juce::Colour kMarkerStartDark   { 0xff35a97b }, kMarkerStartLight   { 0xff0b7a50 };
+    const juce::Colour kMarkerLoop        { 0xffc58309 };
+    const juce::Colour kMarkerEndDark     { 0xffd9483e }, kMarkerEndLight     { 0xffb0271d };
+    const juce::Colour kMarkerLoopEndDark { 0xffa574e6 }, kMarkerLoopEndLight { 0xff7236b8 };
 
 
     // the switch track, and the halos that only do any work on a dark background
@@ -135,6 +138,7 @@ Palette::Palette ()
         { A8Colours::waveformCentreLine, kCentreDark, kCentreLight,      S::lane, 0.40f },
         { A8Colours::markerStart,        kMarkerStartDark, kMarkerStartLight, S::lane, 0.35f },
         { A8Colours::markerEnd,          kMarkerEndDark,   kMarkerEndLight,   S::lane, 0.35f },
+        { A8Colours::markerLoopEnd,      kMarkerLoopEndDark, kMarkerLoopEndLight, S::lane, 0.35f },
         { A8Colours::tunerCaption,       kCaptionDark,     kCaptionLight,     S::lane, 0.60f },
 
         // ---- ink on an accent fill ----

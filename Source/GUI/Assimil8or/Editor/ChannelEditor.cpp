@@ -138,7 +138,19 @@ ChannelEditor::ChannelEditor ()
     addAndMakeVisible (arEnvelopeComponent);
 
     // Waveform display
+    sampleWaveformDisplay.onExpandToggle = [this] () { requestWaveformExpanded (true); };
+    // a marker of the other pair moved on either waveform: the zone switches to that pair, and says so back
+    // to both waveforms through its onActiveSamplePointsChanged
+    for (auto* waveformDisplay : { &sampleWaveformDisplay, &expandedWaveformPanel.waveformDisplay })
+        waveformDisplay->onActiveSamplePointsRequested = [this] (AudioPlayerProperties::SamplePointsSelector samplePointsSelector)
+        {
+            zoneEditors [static_cast<size_t> (zoneTabs.getCurrentTabIndex ())].selectSamplePoints (samplePointsSelector);
+        };
     addAndMakeVisible (sampleWaveformDisplay);
+    // over everything else, once it is shown
+    expandedWaveformPanel.waveformDisplay.onExpandToggle = [this] () { requestWaveformExpanded (false); };
+    expandedWaveformPanel.setCollapsedDisplay (&sampleWaveformDisplay);
+    addChildComponent (expandedWaveformPanel);
 
     updateAllZoneTabNames ();
     addChildComponent (stereoRightTransparantOverly);
@@ -154,7 +166,12 @@ ChannelEditor::~ChannelEditor ()
 void ChannelEditor::visibilityChanged ()
 {
     if (isVisible ())
+    {
         configAudioPlayer ();
+        // switched to with the waveform expanded: nothing under it may keep the focus
+        if (expandedWaveformPanel.isShowing ())
+            expandedWaveformPanel.waveformDisplay.grabKeyboardFocus ();
+    }
 }
 
 // TODO - move this to the EditManger
@@ -2145,12 +2162,21 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree u
     channelIndex = channelProperties.getId () - 1;
     setupChannelPropertiesCallbacks ();
     sampleWaveformDisplay.init (channelPropertiesVT, rootPropertiesVT);
+    expandedWaveformPanel.waveformDisplay.init (channelPropertiesVT, rootPropertiesVT);
 
     channelProperties.forEachZone ([this, rootPropertiesVT] (juce::ValueTree zonePropertiesVT, int zoneIndex)
     {
         // Zone Editor setup
         auto& zoneEditor { zoneEditors [zoneIndex] };
         zoneEditor.init (zonePropertiesVT, uneditedChannelProperties.getZoneVT (zoneIndex), rootPropertiesVT);
+        // the waveforms show the current zone, so only its changes reach them
+        zoneEditor.onActiveSamplePointsChanged = [this, zoneIndex] (AudioPlayerProperties::SamplePointsSelector samplePointsSelector)
+        {
+            if (zoneIndex != zoneTabs.getCurrentTabIndex ())
+                return;
+            sampleWaveformDisplay.setActiveSamplePoints (samplePointsSelector);
+            expandedWaveformPanel.waveformDisplay.setActiveSamplePoints (samplePointsSelector);
+        };
         zoneEditor.displayToolsMenu = [this] (int zoneIndex)
         {
             juce::PopupMenu toolsMenu;
@@ -2406,7 +2432,10 @@ void ChannelEditor::checkStereoRightOverlay ()
     zonesCVComboBox.setEnabled (! isStereoRightMode);
     zonesRTComboBox.setEnabled (! isStereoRightMode);
     arEnvelopeComponent.setEnabled (! isStereoRightMode);
-    sampleWaveformDisplay.setEnabled (! isStereoRightMode);
+    // the markers are set by the left channel, but the waveform can still be looked around, and
+    // expanded or collapsed along with the other channels
+    sampleWaveformDisplay.setEditable (! isStereoRightMode);
+    expandedWaveformPanel.waveformDisplay.setEditable (! isStereoRightMode);
     toolsButton.setEnabled (! isStereoRightMode);
     for (auto zoneIndex { 0 }; zoneIndex < 8; ++zoneIndex)
         dynamic_cast<ZoneEditor*> (zoneTabs.getTabContentComponent (zoneIndex))->setStereoRightChannelMode (isStereoRightMode);
@@ -2711,12 +2740,40 @@ void ChannelEditor::resized ()
     const auto waveformLeft { arEnvelopeComponent.getRight () + kWaveformSideGap };
     sampleWaveformDisplay.setBounds (waveformLeft, xfadeGroupComboBox.getBounds ().getBottom () + kInterControlYOffset + 5,
                                      zoneTabs.getX () - kWaveformSideGap - waveformLeft, getHeight () - xfadeGroupComboBox.getBounds ().getBottom () - kInterControlYOffset - 15);
+
+    // The expanded waveform covers everything left of the zones. It starts level with the top of the
+    // zone tabs, lines up on the left with the parameter columns, and keeps the small waveform's gap to
+    // the zones and its bottom edge.
+    expandedWaveformPanel.setBounds (getLocalBounds ().withRight (zoneTabs.getX ()));
+    expandedWaveformPanel.setExpandedWaveformBounds (juce::Rectangle<int>::leftTopRightBottom (15, zoneTabs.getY (),
+                                                                                               sampleWaveformDisplay.getRight (),
+                                                                                               sampleWaveformDisplay.getBottom ()));
 }
 
 void ChannelEditor::updateWaveformDisplay ()
 {
     const auto currentZoneIndex { zoneTabs.getCurrentTabIndex () };
     sampleWaveformDisplay.setZone (currentZoneIndex);
+    expandedWaveformPanel.waveformDisplay.setZone (currentZoneIndex);
+    // each zone keeps its own choice of pair
+    const auto activeSamplePoints { zoneEditors [static_cast<size_t> (currentZoneIndex)].getActiveSamplePoints () };
+    sampleWaveformDisplay.setActiveSamplePoints (activeSamplePoints);
+    expandedWaveformPanel.waveformDisplay.setActiveSamplePoints (activeSamplePoints);
+}
+
+void ChannelEditor::requestWaveformExpanded (bool isExpanded)
+{
+    if (onWaveformExpandedChange != nullptr)
+        onWaveformExpandedChange (isExpanded);
+    else
+        setWaveformExpanded (isExpanded);
+}
+
+void ChannelEditor::setWaveformExpanded (bool isExpanded)
+{
+    // the channel on screen opens and closes it in steps; the others, out of sight, just take the end state.
+    // The panel keeps the focus on its waveform while open, so a field under it cannot go on taking typing.
+    expandedWaveformPanel.setExpanded (isExpanded, isShowing ());
 }
 
 void ChannelEditor::flipZones (int zoneIndex, int flipCount)

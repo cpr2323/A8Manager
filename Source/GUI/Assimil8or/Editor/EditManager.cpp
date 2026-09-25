@@ -221,8 +221,9 @@ juce::int64 EditManager::getMaxLoopStart (int channelIndex, int zoneIndex)
     else
     {
         // if Loop Length is being viewed as Loop End, then Loop Length will be changed by the location of Loop Start, down to a End Of Sample - 4
+        // an unset Loop Length is a loop that runs to the end of the sample, as in the Loop Length branch above
         const auto loopStart { zoneProperties.getLoopStart ().value_or (0) };
-        const auto loopLength { static_cast<juce::int64> (zoneProperties.getLoopLength ().value_or (minZoneProperties.getLoopLength ().value ())) };
+        const auto loopLength { static_cast<juce::int64> (zoneProperties.getLoopLength ().value_or (sampleProperties.getLengthInSamples () - loopStart)) };
         const auto loopEnd { loopStart + loopLength };
         const auto maxLoopStart { loopEnd - 4 };
         //const auto sampleLength { sampleProperties.getLengthInSamples () };

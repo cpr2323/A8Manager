@@ -25,7 +25,7 @@ endif()
 # whether the Xcode destination is set to "My Mac" or "Any Mac".
 set(CMAKE_XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH "NO")
 
-project(A8Manager VERSION 2.7.0)
+project(A8Manager VERSION 2.7)
 
 # Submodules must be initialised before building:
 #   git submodule update --init --recursive
@@ -203,6 +203,8 @@ set(GUI_EDITOR_SAMPLEMANAGER_FILES
     Source/GUI/Assimil8or/Editor/SampleManager/SampleStatus.h)
 
 set(GUI_EDITOR_WAVEFORM_FILES
+    Source/GUI/Assimil8or/Editor/Waveform/ExpandedWaveformPanel.cpp
+    Source/GUI/Assimil8or/Editor/Waveform/ExpandedWaveformPanel.h
     Source/GUI/Assimil8or/Editor/Waveform/WaveformDisplay.cpp
     Source/GUI/Assimil8or/Editor/Waveform/WaveformDisplay.h)
 

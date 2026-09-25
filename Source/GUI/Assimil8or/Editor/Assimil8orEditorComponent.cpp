@@ -28,7 +28,10 @@ Assimil8orEditorComponent::Assimil8orEditorComponent ()
     addAndMakeVisible (saveButton);
 
     for (auto curChannelIndex { 0 }; curChannelIndex < 8; ++curChannelIndex)
+    {
         channelTabs.addLedTab ("CH " + juce::String::charToString ('1' + curChannelIndex), &channelEditors [curChannelIndex]);
+        channelEditors [curChannelIndex].onWaveformExpandedChange = [this] (bool isExpanded) { setWaveformExpanded (isExpanded); };
+    }
     channelTabs.setTabBarDepth (kTabBarHeight);
     addAndMakeVisible (channelTabs);
 
@@ -50,6 +53,13 @@ Assimil8orEditorComponent::Assimil8orEditorComponent ()
     //addChildComponent (midiConfigWindow);
 
     startTimer (250);
+}
+
+// one setting across all of the channels, so the expanded waveform stays up while moving between them
+void Assimil8orEditorComponent::setWaveformExpanded (bool isExpanded)
+{
+    for (auto& channelEditor : channelEditors)
+        channelEditor.setWaveformExpanded (isExpanded);
 }
 
 void Assimil8orEditorComponent::setupPresetComponents ()
@@ -369,6 +379,8 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
         //dumpStacktrace (-1, [this] (juce::String logLine) { DebugLog ("Assimil8orEditorComponent", logLine); });
         audioPlayerProperties.setPlayState (AudioPlayerProperties::PlayState::stop, false);
         channelTabs.setCurrentTabIndex (0);
+        // a new preset opens on the full channel view
+        setWaveformExpanded (false);
     };
 
     guiControlProperties.wrap (runtimeRootProperties.getValueTree (), GuiControlProperties::WrapperType::client, GuiControlProperties::EnableCallbacks::no);
