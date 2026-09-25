@@ -474,3 +474,163 @@ bool EditManager::assignSamples (int channelIndex, int zoneIndex, const juce::St
 #endif
     return true;
 }
+
+void EditManager::clearAllZones (int channelIndex)
+{
+    const auto numZones { getNumUsedZones (channelIndex) };
+    for (auto curZoneIndex { 0 }; curZoneIndex < numZones; ++curZoneIndex)
+        zoneAndSamplePropertiesList [channelIndex][curZoneIndex].zoneProperties.copyFrom (defaultZoneProperties.getValueTree (), false);
+}
+
+std::vector<int> EditManager::getLinkedChannels (int channelIndex, int zoneIndex)
+{
+    jassert (channelIndex >= 0 && channelIndex < 8);
+    jassert (zoneIndex >= 0 && zoneIndex < 8);
+    std::vector<int> channels { channelIndex };
+    if (channelIndex < 7 && channelPropertiesList [channelIndex].getChannelMode () != ChannelProperties::ChannelMode::stereoRight &&
+        channelPropertiesList [channelIndex + 1].getChannelMode () == ChannelProperties::ChannelMode::stereoRight)
+    {
+        const auto sample { zoneAndSamplePropertiesList [channelIndex][zoneIndex].zoneProperties.getSample () };
+        // if the right channel has a different sample, it is not linked, and is left alone
+        if (sample.isNotEmpty () && zoneAndSamplePropertiesList [channelIndex + 1][zoneIndex].zoneProperties.getSample () == sample)
+            channels.push_back (channelIndex + 1);
+    }
+    return channels;
+}
+
+void EditManager::deleteZone (int channelIndex, int zoneIndex)
+{
+    for (const auto curChannelIndex : getLinkedChannels (channelIndex, zoneIndex))
+        deleteZoneInChannel (curChannelIndex, zoneIndex);
+}
+
+void EditManager::duplicateZone (int channelIndex, int zoneIndex)
+{
+    for (const auto curChannelIndex : getLinkedChannels (channelIndex, zoneIndex))
+        duplicateZoneInChannel (curChannelIndex, zoneIndex);
+}
+
+void EditManager::explodeZone (int channelIndex, int zoneIndex, int explodeCount)
+{
+    for (const auto curChannelIndex : getLinkedChannels (channelIndex, zoneIndex))
+        explodeZoneInChannel (curChannelIndex, zoneIndex, explodeCount);
+}
+
+void EditManager::deleteZoneInChannel (int channelIndex, int zoneIndex)
+{
+    auto& zones { zoneAndSamplePropertiesList [channelIndex] };
+    zones [zoneIndex].zoneProperties.copyFrom (defaultZoneProperties.getValueTree (), false);
+    // if this zone was the last in the list, but not also the first, then set the minVoltage for the new last in list to -5
+    if (zoneIndex == getNumUsedZones (channelIndex) && zoneIndex != 0)
+        zones [zoneIndex - 1].zoneProperties.setMinVoltage (-5.0, false);
+    removeEmptyZones (channelIndex);
+}
+
+void EditManager::duplicateZoneInChannel (int channelIndex, int zoneIndex)
+{
+    jassert (zoneIndex > 0 && zoneIndex < 7);
+    auto& zones { zoneAndSamplePropertiesList [channelIndex] };
+    const auto topBoundary { zones [zoneIndex - 1].zoneProperties.getMinVoltage () };
+    const auto bottomBoundary { zones [zoneIndex].zoneProperties.getMinVoltage () };
+    const auto newZoneVoltage { bottomBoundary + ((topBoundary - bottomBoundary) / 2) };
+    for (auto curZoneIndex { 6 }; curZoneIndex >= zoneIndex; --curZoneIndex)
+        zones [curZoneIndex + 1].zoneProperties.copyFrom (zones [curZoneIndex].zoneProperties.getValueTree (), false);
+    zones [zoneIndex].zoneProperties.setMinVoltage (newZoneVoltage, false);
+    if (getNumUsedZones (channelIndex) == 8)
+        zones [7].zoneProperties.setMinVoltage (-5.0, false);
+}
+
+void EditManager::explodeZoneInChannel (int channelIndex, int zoneIndex, int explodeCount)
+{
+    auto& zones { zoneAndSamplePropertiesList [channelIndex] };
+    const juce::int64 sampleSize { zones [zoneIndex].sampleProperties.getLengthInSamples () };
+    const auto sliceSize { sampleSize / explodeCount };
+    auto& sourceZoneProperties { zones [zoneIndex].zoneProperties };
+    auto setSamplePoints = [sliceSize] (ZoneProperties& zpToUpdate, int index)
+    {
+        const auto sampleStart { index * sliceSize };
+        const auto sampleEnd { sampleStart + sliceSize };
+        zpToUpdate.setSampleStart (sampleStart, false);
+        zpToUpdate.setSampleEnd (sampleEnd, false);
+        zpToUpdate.setLoopStart (sampleStart, false);
+        zpToUpdate.setLoopLength (static_cast<double> (sliceSize), false);
+    };
+    setSamplePoints (sourceZoneProperties, 0);
+
+    for (auto destinationZoneIndex { zoneIndex + 1 }; destinationZoneIndex < zoneIndex + explodeCount; ++destinationZoneIndex)
+    {
+        auto& destZoneProperties { zones [destinationZoneIndex].zoneProperties };
+        destZoneProperties.copyFrom (sourceZoneProperties.getValueTree (), false);
+        setSamplePoints (destZoneProperties, destinationZoneIndex - zoneIndex);
+    }
+
+    // distribute the minVoltages evenly across the 10V range
+    const auto numUsedZones { getNumUsedZones (channelIndex) };
+    zones [numUsedZones - 1].zoneProperties.setMinVoltage (-5.0, false);
+    if (numUsedZones > 1)
+    {
+        const auto voltageRange { 10.0 / numUsedZones };
+        auto curVoltage { -5.0 };
+        for (auto curZoneIndex { numUsedZones - 2 }; curZoneIndex >= 0; --curZoneIndex)
+        {
+            curVoltage += voltageRange;
+            zones [curZoneIndex].zoneProperties.setMinVoltage (curVoltage, false);
+        }
+    }
+}
+
+void EditManager::flipZones (int channelIndex, int zoneIndex, int flipCount)
+{
+    // the right channel is only flipped if every zone in the range is linked to it
+    auto channels { getLinkedChannels (channelIndex, zoneIndex) };
+    for (auto curZoneIndex { zoneIndex + 1 }; curZoneIndex < zoneIndex + flipCount && channels.size () > 1; ++curZoneIndex)
+        if (getLinkedChannels (channelIndex, curZoneIndex).size () < 2)
+            channels.pop_back ();
+    for (const auto curChannelIndex : channels)
+        flipZonesInChannel (curChannelIndex, zoneIndex, flipCount);
+}
+
+void EditManager::flipZonesInChannel (int channelIndex, int zoneIndex, int flipCount)
+{
+    auto& zones { zoneAndSamplePropertiesList [channelIndex] };
+    ZoneProperties tempZoneProperties;
+    for (auto zoneCount { 0 }; zoneCount < flipCount / 2; ++zoneCount)
+    {
+        auto& firstZone { zones [zoneIndex + zoneCount].zoneProperties };
+        const auto firstZoneMinVoltage { firstZone.getMinVoltage () };
+        auto& secondZone { zones [zoneIndex + (flipCount - zoneCount - 1)].zoneProperties };
+        const auto secondZoneMinVoltage { secondZone.getMinVoltage () };
+        tempZoneProperties.copyFrom (secondZone.getValueTree (), false);
+        secondZone.copyFrom (firstZone.getValueTree (), false);
+        secondZone.setMinVoltage (secondZoneMinVoltage, false);
+        firstZone.copyFrom (tempZoneProperties.getValueTree (), false);
+        firstZone.setMinVoltage (firstZoneMinVoltage, false);
+    }
+}
+
+// TODO - does this function really need to look for multiple empty zones? assuming it gets called when a zone is deleted, there should only be one
+void EditManager::removeEmptyZones (int channelIndex)
+{
+    auto& zones { zoneAndSamplePropertiesList [channelIndex] };
+    for (auto zoneIndex { 0 }; zoneIndex < 7; ++zoneIndex)
+    {
+        if (zones [zoneIndex].zoneProperties.getSample ().isNotEmpty ())
+            continue;
+        // move the next used zone down into this empty one
+        auto moveHappened { false };
+        for (auto nextZoneIndex { zoneIndex + 1 }; nextZoneIndex < 8; ++nextZoneIndex)
+        {
+            auto& nextZoneProperties { zones [nextZoneIndex].zoneProperties };
+            if (nextZoneProperties.getSample ().isNotEmpty ())
+            {
+                zones [zoneIndex].zoneProperties.copyFrom (nextZoneProperties.getValueTree (), false);
+                nextZoneProperties.copyFrom (defaultZoneProperties.getValueTree (), false);
+                moveHappened = true;
+                break;
+            }
+        }
+        // there were none others to move
+        if (! moveHappened)
+            break;
+    }
+}

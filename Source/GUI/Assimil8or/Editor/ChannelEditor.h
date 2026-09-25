@@ -73,6 +73,13 @@ public:
     void setWaveformExpanded (bool isExpanded);
     std::function<void (bool isExpanded)> onWaveformExpandedChange;
 
+    // the owner keeps the active zone the same across the channels of a stereo pair
+    void setActiveZone (int zoneIndex);
+    int getActiveZone () { return zoneTabs.getCurrentTabIndex (); }
+    // called when the channel mode is changed, by the user or by another edit
+    std::function<void (int channelIndex)> onChannelModeChanged;
+    std::function<void (int channelIndex, int zoneIndex)> onActiveZoneChanged;
+
 private:
     enum class VoltageBalanceType
     {
@@ -209,21 +216,15 @@ private:
 
     void balanceVoltages (VoltageBalanceType balanceType);
     void checkStereoRightOverlay ();
-    void clearAllZones ();
     void configAudioPlayer ();
     void copyZone (int zoneIndex, bool settingsOnly);
-    void deleteZone (int zoneIndex);
-    void duplicateZone (int zoneIndex);
     void ensureProperZoneIsSelected ();
-    void explodeZone (int zoneIndex, int explodeCount);
     int getEnvelopeValueResolution (double envelopeValue);
-    void flipZones (int zoneIndex, int flipCount);
     void pasteZone (int zoneIndex);
     void positionColumnOne (int xOffset, int width);
     void positionColumnTwo (int xOffset, int width);
     void positionColumnThree (int xOffset, int width);
     void positionColumnFour (int xOffset, int width);
-    void removeEmptyZones ();
     void setupChannelComponents ();
     void setupChannelPropertiesCallbacks ();
     double snapBitsValue (double rawValue);

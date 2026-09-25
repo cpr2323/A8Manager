@@ -111,12 +111,14 @@ private:
     void importPresetSettingsAndSamples ();
     juce::PopupMenu createChannelCloneMenu (int channelIndex,   std::function <void (ChannelProperties&)> setter);
     bool isChannelActive (int channelIndex);
+    void channelModeChanged (int channelIndex);
     void revertPreset ();
     void savePreset ();
     void setPresetToDefaults ();
     void setupPresetComponents ();
     void setupPresetPropertiesCallbacks ();
     void updateAllChannelTabNames ();
+    void setChannelTabName (int channelIndex);
     void updateChannelTabName (int channelIndex);
 
     // Preset callbacks
