@@ -49,8 +49,19 @@ public:
 private:
     void paint (juce::Graphics& g) override
     {
+        for (const auto& hole : holes)
+            g.excludeClipRegion (hole);
         g.fillAll (findColour (A8Colours::disabledOverlay));
     }
+public:
+    // areas, in this component's coordinates, that are left uncovered
+    void setHoles (juce::Array<juce::Rectangle<int>> newHoles)
+    {
+        holes = std::move (newHoles);
+        repaint ();
+    }
+private:
+    juce::Array<juce::Rectangle<int>> holes;
 };
 
 class ChannelEditor : public juce::Component

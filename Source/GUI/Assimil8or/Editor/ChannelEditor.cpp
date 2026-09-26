@@ -2326,7 +2326,7 @@ void ChannelEditor::checkStereoRightOverlay ()
     mixModComboBox.setEnabled (! isStereoRightMode);
     mixModTextEditor.setEnabled (! isStereoRightMode);
     mixModIsFaderComboBox.setEnabled (! isStereoRightMode);
-    panTextEditor.setEnabled (! isStereoRightMode);
+    //panTextEditor.setEnabled (! isStereoRightMode); // this is still editable in stereo/right mode
     panModComboBox.setEnabled (! isStereoRightMode);
     panModTextEditor.setEnabled (! isStereoRightMode);
     phaseCVComboBox.setEnabled (! isStereoRightMode);
@@ -2652,6 +2652,10 @@ void ChannelEditor::resized ()
     positionColumnThree (xOffSet, columnWidth);
     xOffSet += columnWidth + spaceBetweenColumns;
     positionColumnFour (xOffSet, columnWidth);
+
+    // MODE and PAN stay editable (and so uncovered) on a stereo right channel
+    stereoRightTransparantOverly.setHoles ({ channelModeLabel.getBounds ().getUnion (channelModeComboBox.getBounds ()),
+                                             panLabel.getBounds ().getUnion (panTextEditor.getBounds ()) });
 
     // TODO - improve size calculation
     // Waveform Display
