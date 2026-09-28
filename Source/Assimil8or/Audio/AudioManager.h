@@ -17,12 +17,19 @@ public:
     void splitStereoIntoTwoMono (juce::File inputFile);
     juce::int64 findNextZeroCrossing (juce::int64 startSampleOffset, juce::int64 maxSampleOffset, juce::AudioBuffer<float>& buffer, int side);
     juce::int64 findPreviousZeroCrossing (juce::int64 startSampleOffset, juce::int64 minSampleOffset, juce::AudioBuffer<float>& buffer, int side);
+    juce::int64 findNextMatchingLevel (juce::int64 startSampleOffset, juce::int64 maxSampleOffset, juce::int64 matchSampleOffset, bool matchMovesWithStart,
+                                       juce::AudioBuffer<float>& buffer, int side);
+    juce::int64 findPreviousMatchingLevel (juce::int64 startSampleOffset, juce::int64 minSampleOffset, juce::int64 matchSampleOffset, bool matchMovesWithStart,
+                                           juce::AudioBuffer<float>& buffer, int side);
 //    juce::int64 findNextZeroWaveMatching (juce::int64 startSampleOffset, juce::int64 maxSampleOffset, juce::AudioBuffer<float>& buffer, int side);
 //    juce::int64 findPreviousWaveMatching (juce::int64 startSampleOffset, juce::int64 minSampleOffset, juce::AudioBuffer<float>& buffer, int side);
 
 private:
     juce::AudioFormatManager audioFormatManager;
     juce::StringArray audioFileExtensions;
+
+    juce::int64 findMatchingLevel (juce::int64 startSampleOffset, juce::int64 limitSampleOffset, juce::int64 matchSampleOffset, bool matchMovesWithStart,
+                                   juce::AudioBuffer<float>& buffer, int side, bool searchRight);
 
 //    enum class SearchDirection { left, right };
 //    float calculateSimilarity (const float* buffer, size_t start1, size_t start2, size_t window_size);

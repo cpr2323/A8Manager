@@ -180,6 +180,8 @@ set(GUI_EDITOR_FILES
     Source/GUI/Assimil8or/Editor/MinVoltageTests.h
     Source/GUI/Assimil8or/Editor/ParameterToolTipData.cpp
     Source/GUI/Assimil8or/Editor/ParameterToolTipData.h
+    Source/GUI/Assimil8or/Editor/SamplePointAdjust.cpp
+    Source/GUI/Assimil8or/Editor/SamplePointAdjust.h
     Source/GUI/Assimil8or/Editor/ZoneEditor.cpp
     Source/GUI/Assimil8or/Editor/ZoneEditor.h)
 

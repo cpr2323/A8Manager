@@ -3,6 +3,7 @@
 #include <JuceHeader.h>
 #include "EditManager.h"
 #include "LoopPoints/LoopPointsView.h"
+#include "SamplePointAdjust.h"
 #include "SampleManager/SampleProperties.h"
 #include "../../../AppProperties.h"
 #include "../../../Assimil8or/Audio/AudioManager.h"
@@ -149,8 +150,7 @@ private:
     juce::PopupMenu createZoneEditMenu (juce::PopupMenu existingPopupMenu, std::function <void (ZoneProperties&, SampleProperties&)> setter, std::function <void ()> resetter, std::function <void ()> reverter,
                                         std::function<bool (ZoneProperties&)> canCloneToZoneCallback, std::function<bool (ZoneProperties&)> canCloneToAllCallback);
     juce::String formatLoopLength (double loopLength);
-    juce::PopupMenu getSampleAdjustMenu (juce::PopupMenu adjustMenu, std::function<juce::int64 ()> getSampleOffset, std::function<juce::int64 ()> getMinSampleOffset,
-                                         std::function<juce::int64 ()>getMaxSampleOffset, std::function<void (juce::int64)> setSampleOffset);
+    SamplePointAdjust getSamplePointAdjust (SamplePoint samplePoint);
     // the adjustments for one of the four points, added to the end of adjustMenu
     juce::PopupMenu createSamplePointAdjustMenu (SamplePoint samplePoint, juce::PopupMenu adjustMenu = {});
     void showLoopPointsViewMenu (bool isStartSide);

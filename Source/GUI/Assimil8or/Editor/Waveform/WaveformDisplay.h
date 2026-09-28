@@ -2,6 +2,7 @@
 
 #include <JuceHeader.h>
 #include "../EditManager.h"
+#include "../SamplePointAdjust.h"
 #include "../SampleManager/SampleManagerProperties.h"
 #include "../SampleManager/SampleProperties.h"
 #include "../../../../Assimil8or/Audio/AudioManager.h"
@@ -155,7 +156,7 @@ private:
     void resetVerticalZoom ();
     void zoomToMarkers (int leftMarkerIndex, int rightMarkerIndex);
     void jumpToMarker (int markerIndex);
-    void moveMarkerToZeroCrossing (int markerIndex, bool searchRight);
+    SamplePointAdjust getMarkerAdjust (int markerIndex);
     std::optional<double> getMarkerPositionAt (int markerIndex, double sample);
     // why a marker cannot be set to this sample, for the tooltip on its greyed out menu item
     juce::String getSetMarkerBlockedReason (int markerIndex, double sample);

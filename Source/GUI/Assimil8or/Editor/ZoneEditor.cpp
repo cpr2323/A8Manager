@@ -13,7 +13,6 @@
 #include "oolib/Properties/PersistentRootProperties.h"
 #include "oolib/Properties/RuntimeRootProperties.h"
 
-#define INCLUDE_WAVE_MATCHING_LOOP_POINT_ALIGN 0
 ZoneEditor::ZoneEditor ()
 {
     {
@@ -216,103 +215,62 @@ void ZoneEditor::updateLoopPointsView ()
     loopPointsView.repaint ();
 }
 
-juce::PopupMenu ZoneEditor::getSampleAdjustMenu (juce::PopupMenu adjustMenu, std::function<juce::int64 ()> getSampleOffset, std::function<juce::int64 ()> getMinSampleOffset,
-                                                 std::function<juce::int64 ()>getMaxSampleOffset, std::function<void (juce::int64)> setSampleOffset)
+SamplePointAdjust ZoneEditor::getSamplePointAdjust (SamplePoint samplePoint)
 {
-    {
-#if INCLUDE_WAVE_MATCHING_LOOP_POINT_ALIGN
-        juce::PopupMenu adjustMenuOptions;
-        {
-            juce::PopupMenu zeroCrossingMenuOptions;
-            zeroCrossingMenuOptions.addItem ("Left  <<", true, false, [this, getSampleOffset, getMinSampleOffset, setSampleOffset] ()
-            {
-                auto newSampleStart { audioManager->findPreviousZeroCrossing (getSampleOffset (), getMinSampleOffset (),
-                                                                              *sampleProperties.getAudioBufferPtr (), zoneProperties.getSide ()) };
-                if (newSampleStart != -1)
-                    setSampleOffset (newSampleStart);
-            });
-            zeroCrossingMenuOptions.addItem ("Right >>", true, false, [this, getSampleOffset, getMaxSampleOffset, setSampleOffset] ()
-            {
-                auto newSampleStart { audioManager->findNextZeroCrossing (getSampleOffset (), getMaxSampleOffset (),
-                                                                          *sampleProperties.getAudioBufferPtr (), zoneProperties.getSide ()) };
-                if (newSampleStart != -1)
-                    setSampleOffset (newSampleStart);
-            });
-            adjustMenuOptions.addSubMenu ("Zero Crossing", zeroCrossingMenuOptions);
-        }
-        {
-            juce::PopupMenu matchOtherMenuOptions;
-            matchOtherMenuOptions.addItem ("Left  <<", true, false, [this, getSampleOffset, getMinSampleOffset, setSampleOffset] ()
-            {
-                auto newSampleStart { audioManager->findPreviousWaveMatching (getSampleOffset (), getMinSampleOffset (),
-                                                                              *sampleProperties.getAudioBufferPtr (), zoneProperties.getSide ()) };
-                if (newSampleStart != -1)
-                    setSampleOffset (newSampleStart);
-            });
-            matchOtherMenuOptions.addItem ("Right >>", true, false, [this, getSampleOffset, getMaxSampleOffset, setSampleOffset] ()
-            {
-                auto newSampleStart { audioManager->findNextZeroWaveMatching (getSampleOffset (), getMaxSampleOffset (),
-                                                                          *sampleProperties.getAudioBufferPtr (), zoneProperties.getSide ()) };
-                if (newSampleStart != -1)
-                    setSampleOffset (newSampleStart);
-            });
-            adjustMenuOptions.addSubMenu ("Match Other", matchOtherMenuOptions);
-        }
+    SamplePointAdjust adjust;
+    adjust.audioManager = audioManager;
+    adjust.getAudioBuffer = [this] () { return sampleProperties.getStatus () == SampleStatus::exists ? sampleProperties.getAudioBufferPtr () : nullptr; };
+    adjust.getChannel = [this] () { return zoneProperties.getSide (); };
 
-        adjustMenu.addSubMenu ("Adjust", adjustMenuOptions);
-#else
-        juce::PopupMenu zeroCrossingMenuOptions;
-        zeroCrossingMenuOptions.addItem ("Left  <<", true, false, [this, getSampleOffset, getMinSampleOffset, setSampleOffset] ()
-                                         {
-                                             auto newSampleStart { audioManager->findPreviousZeroCrossing (getSampleOffset (), getMinSampleOffset (),
-                                                                                                           *sampleProperties.getAudioBufferPtr (), zoneProperties.getSide ()) };
-                                             if (newSampleStart != -1)
-                                                 setSampleOffset (newSampleStart);
-                                         });
-        zeroCrossingMenuOptions.addItem ("Right >>", true, false, [this, getSampleOffset, getMaxSampleOffset, setSampleOffset] ()
-                                         {
-                                             auto newSampleStart { audioManager->findNextZeroCrossing (getSampleOffset (), getMaxSampleOffset (),
-                                                                                                       *sampleProperties.getAudioBufferPtr (), zoneProperties.getSide ()) };
-                                             if (newSampleStart != -1)
-                                                 setSampleOffset (newSampleStart);
-                                         });
-        adjustMenu.addSubMenu ("Zero Crossing", zeroCrossingMenuOptions);
-#endif
+    auto getSampleStart = [this] () { return zoneProperties.getSampleStart ().value_or (0); };
+    auto getSampleEnd = [this] () { return zoneProperties.getSampleEnd ().value_or (sampleProperties.getLengthInSamples ()); };
+    auto getLoopStart = [this] () { return zoneProperties.getLoopStart ().value_or (0); };
+    auto getLoopEnd = [this] () { return zoneProperties.getLoopStart ().value_or (0) + static_cast<juce::int64> (zoneProperties.getLoopLength ().value_or (4.)); };
+    auto getSampleLength = [this] () { return sampleProperties.getLengthInSamples (); };
+
+    switch (samplePoint)
+    {
+        case SamplePoint::sampleStart:
+            adjust.getPosition = getSampleStart;
+            adjust.getMinPosition = [] () { return juce::int64 { 0 }; };
+            adjust.getMaxPosition = getSampleEnd;
+            adjust.getOppositePosition = getSampleEnd;
+            adjust.setPosition = [this] (juce::int64 sampleOffset) { zoneProperties.setSampleStart (sampleOffset, true); };
+            break;
+        case SamplePoint::sampleEnd:
+            adjust.getPosition = getSampleEnd;
+            adjust.getMinPosition = getSampleStart;
+            adjust.getMaxPosition = getSampleLength;
+            adjust.getOppositePosition = getSampleStart;
+            adjust.setPosition = [this] (juce::int64 sampleOffset) { zoneProperties.setSampleEnd (sampleOffset, true); };
+            break;
+        case SamplePoint::loopStart:
+            adjust.getPosition = getLoopStart;
+            adjust.getMinPosition = [this] () { return minZoneProperties.getLoopStart ().value_or (0); };
+            adjust.getMaxPosition = [this] () { return editManager->getMaxLoopStart (parentChannelIndex, zoneIndex); };
+            adjust.getOppositePosition = getLoopEnd;
+            adjust.oppositeMovesWithPoint = ! treatLoopLengthAsEndInUi;
+            // through the field, which holds the loop end still when Loop Length is shown as Loop End
+            adjust.setPosition = [this] (juce::int64 sampleOffset) { loopStartTextEditor.setValue (sampleOffset); };
+            break;
+        case SamplePoint::loopEnd:
+        default:
+            adjust.getPosition = getLoopEnd;
+            adjust.getMinPosition = getLoopStart;
+            adjust.getMaxPosition = getSampleLength;
+            adjust.getOppositePosition = getLoopStart;
+            adjust.setPosition = [this] (juce::int64 sampleOffset) { zoneProperties.setLoopLength (static_cast<double> (sampleOffset - zoneProperties.getLoopStart ().value_or (0.)), true); };
+            break;
     }
-    return adjustMenu;
+    return adjust;
 }
 
 juce::PopupMenu ZoneEditor::createSamplePointAdjustMenu (SamplePoint samplePoint, juce::PopupMenu adjustMenu)
 {
-    switch (samplePoint)
-    {
-        case SamplePoint::sampleStart:
-            return getSampleAdjustMenu (adjustMenu,
-                                        [this] () { return zoneProperties.getSampleStart ().value_or (0); },
-                                        [this] () { return juce::int64 { 0 }; },
-                                        [this] () { return zoneProperties.getSampleEnd ().value_or (sampleProperties.getLengthInSamples ()); },
-                                        [this] (juce::int64 sampleOffset) { zoneProperties.setSampleStart (sampleOffset, true); });
-        case SamplePoint::sampleEnd:
-            return getSampleAdjustMenu (adjustMenu,
-                                        [this] () { return zoneProperties.getSampleEnd ().value_or (sampleProperties.getLengthInSamples ()); },
-                                        [this] () { return zoneProperties.getSampleStart ().value_or (0); },
-                                        [this] () { return sampleProperties.getLengthInSamples (); },
-                                        [this] (juce::int64 sampleOffset) { zoneProperties.setSampleEnd (sampleOffset, true); });
-        case SamplePoint::loopStart:
-            return getSampleAdjustMenu (adjustMenu,
-                                        [this] () { return zoneProperties.getLoopStart ().value_or (0); },
-                                        [this] () { return minZoneProperties.getLoopStart ().value_or (0); },
-                                        [this] () { return editManager->getMaxLoopStart (parentChannelIndex, zoneIndex); },
-                                        // through the field, which holds the loop end still when Loop Length is shown as Loop End
-                                        [this] (juce::int64 sampleOffset) { loopStartTextEditor.setValue (sampleOffset); });
-        case SamplePoint::loopEnd:
-        default:
-            return getSampleAdjustMenu (adjustMenu,
-                                        [this] () { return zoneProperties.getLoopStart ().value_or (0) + static_cast<juce::int64> (zoneProperties.getLoopLength ().value_or (4.)); },
-                                        [this] () { return zoneProperties.getLoopStart ().value_or (0); },
-                                        [this] () { return sampleProperties.getLengthInSamples (); },
-                                        [this] (juce::int64 sampleOffset) { zoneProperties.setLoopLength (static_cast<double> (sampleOffset - zoneProperties.getLoopStart ().value_or (0.)), true); });
-    }
+    const auto adjust { getSamplePointAdjust (samplePoint) };
+    adjustMenu.addSubMenu ("Zero Crossing", adjust.createZeroCrossingMenu (true));
+    adjustMenu.addSubMenu ("Match Opposite Boundary", adjust.createMatchOppositeMenu (true));
+    return adjustMenu;
 }
 
 // The loop tuner's two sides are the end (left) and the start (right) of whichever pair the zone is

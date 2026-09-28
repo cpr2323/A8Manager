@@ -84,6 +84,51 @@ juce::int64 AudioManager::findPreviousZeroCrossing (juce::int64 startSampleOffse
 
 }
 
+// From startSampleOffset, either way, to the next place its sample value matches the value at matchSampleOffset -
+// where the waveform crosses that level, landing on whichever of the two samples either side is the closer match.
+// With matchMovesWithStart, the match point is carried along with the search (a loop start moving its end with it),
+// so each sample is matched against where the match point would be carried to rather than where it is now.
+juce::int64 AudioManager::findMatchingLevel (juce::int64 startSampleOffset, juce::int64 limitSampleOffset, juce::int64 matchSampleOffset, bool matchMovesWithStart,
+                                             juce::AudioBuffer<float>& buffer, int side, bool searchRight)
+{
+    const auto numSamples { static_cast<juce::int64> (buffer.getNumSamples ()) };
+    if (numSamples == 0)
+        return -1;
+
+    const auto readPtr { buffer.getReadPointer (side) };
+    auto valueAt = [readPtr, numSamples] (juce::int64 sample) { return readPtr [std::clamp (sample, juce::int64 { 0 }, numSamples - 1)]; };
+    auto difference = [&] (juce::int64 sample)
+    {
+        return valueAt (sample) - valueAt (matchMovesWithStart ? matchSampleOffset + (sample - startSampleOffset) : matchSampleOffset);
+    };
+
+    const auto step { searchRight ? juce::int64 { 1 } : juce::int64 { -1 } };
+    const auto limit { std::clamp (limitSampleOffset, juce::int64 { 0 }, numSamples - 1) };
+    // starting a sample away from the start, so that it moves on from a match it is already sitting on
+    for (auto sample { startSampleOffset + step }; searchRight ? sample + step <= limit : sample + step >= limit; sample += step)
+    {
+        const auto thisDifference { difference (sample) };
+        const auto nextDifference { difference (sample + step) };
+        if (thisDifference == 0.0f)
+            return sample;
+        if ((thisDifference < 0.0f) != (nextDifference < 0.0f) || nextDifference == 0.0f)
+            return std::abs (thisDifference) <= std::abs (nextDifference) ? sample : sample + step;
+    }
+    return -1; // No match found
+}
+
+juce::int64 AudioManager::findNextMatchingLevel (juce::int64 startSampleOffset, juce::int64 maxSampleOffset, juce::int64 matchSampleOffset, bool matchMovesWithStart,
+                                                 juce::AudioBuffer<float>& buffer, int side)
+{
+    return findMatchingLevel (startSampleOffset, maxSampleOffset, matchSampleOffset, matchMovesWithStart, buffer, side, true);
+}
+
+juce::int64 AudioManager::findPreviousMatchingLevel (juce::int64 startSampleOffset, juce::int64 minSampleOffset, juce::int64 matchSampleOffset, bool matchMovesWithStart,
+                                                     juce::AudioBuffer<float>& buffer, int side)
+{
+    return findMatchingLevel (startSampleOffset, minSampleOffset, matchSampleOffset, matchMovesWithStart, buffer, side, false);
+}
+
 #if INCLUDE_WAVE_MATCHING_LOOP_POINT_ALIGN
 // Function to calculate similarity (e.g., RMSE) between two segments
 float AudioManager::calculateSimilarity (const float* buffer, size_t index1, size_t index2, size_t window_size)

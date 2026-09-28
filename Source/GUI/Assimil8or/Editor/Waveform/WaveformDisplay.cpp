@@ -483,21 +483,24 @@ void WaveformDisplay::jumpToMarker (int markerIndex)
     publishView ();
 }
 
-// The zero crossing search the zone editor's fields offer, from the marker to the next crossing either
-// side, searching only as far as the marker is allowed to go.
-void WaveformDisplay::moveMarkerToZeroCrossing (int markerIndex, bool searchRight)
+// The same adjustments the zone editor's fields and loop tuner offer, searching only as far as the marker
+// is allowed to go, and setting it as a drag that ended there would.
+SamplePointAdjust WaveformDisplay::getMarkerAdjust (int markerIndex)
 {
-    if (! hasSample () || ! editable || audioManager == nullptr)
-        return;
+    // the markers are in pairs, start then end
+    const auto oppositeMarkerIndex { markerIndex ^ 1 };
 
-    const auto position { static_cast<juce::int64> (markerOverlay.getPosition (markerIndex)) };
-    auto& audioBuffer { *sampleProperties.getAudioBufferPtr () };
-    const auto zeroCrossing { searchRight ? audioManager->findNextZeroCrossing (position, static_cast<juce::int64> (constrainMarker (markerIndex, static_cast<double> (getSampleLength ()))),
-                                                                                audioBuffer, getDisplayChannel ())
-                                          : audioManager->findPreviousZeroCrossing (position, static_cast<juce::int64> (constrainMarker (markerIndex, 0.0)),
-                                                                                    audioBuffer, getDisplayChannel ()) };
-    if (zeroCrossing != -1)
-        setMarkerAt (markerIndex, static_cast<double> (zeroCrossing));
+    SamplePointAdjust adjust;
+    adjust.audioManager = audioManager;
+    adjust.getAudioBuffer = [this] () { return hasSample () ? sampleProperties.getAudioBufferPtr () : nullptr; };
+    adjust.getChannel = [this] () { return getDisplayChannel (); };
+    adjust.getPosition = [this, markerIndex] () { return static_cast<juce::int64> (markerOverlay.getPosition (markerIndex)); };
+    adjust.getMinPosition = [this, markerIndex] () { return static_cast<juce::int64> (constrainMarker (markerIndex, 0.0)); };
+    adjust.getMaxPosition = [this, markerIndex] () { return static_cast<juce::int64> (constrainMarker (markerIndex, static_cast<double> (getSampleLength ()))); };
+    adjust.getOppositePosition = [this, oppositeMarkerIndex] () { return static_cast<juce::int64> (markerOverlay.getPosition (oppositeMarkerIndex)); };
+    adjust.oppositeMovesWithPoint = markerIndex == kLoopStart && channelProperties.isValid () && ! channelProperties.getLoopLengthIsEnd ();
+    adjust.setPosition = [this, markerIndex] (juce::int64 sample) { setMarkerAt (markerIndex, static_cast<double> (sample)); };
+    return adjust;
 }
 
 // Where a marker would land if it were set to this sample, or nothing if the rules between the markers
@@ -583,16 +586,22 @@ juce::PopupMenu WaveformDisplay::createToolsMenu (std::optional<double> clickSam
         menu.addItem (jumpItem);
     }
 
-    // as the zone editor's fields offer it
-    menu.addSectionHeader ("ZERO CROSSING NUDGE");
+    menu.addSectionHeader ("MOVE MARKER");
     menu.addSeparator ();
+
+    // as the zone editor's fields and loop tuner offer them
+    const std::array<juce::String, 4> matchBoundaryNames { "Sample Start to End", "Sample End to Start", "Loop Start to End", "Loop End to Start" };
+    juce::PopupMenu zeroCrossingNudgeMenu;
+    juce::PopupMenu matchBoundaryMenu;
     for (auto markerIndex { 0 }; markerIndex < kNumMarkers; ++markerIndex)
     {
-        juce::PopupMenu zeroCrossingMenu;
-        zeroCrossingMenu.addItem ("Left  <<", canEdit, false, [this, markerIndex] () { moveMarkerToZeroCrossing (markerIndex, false); });
-        zeroCrossingMenu.addItem ("Right >>", canEdit, false, [this, markerIndex] () { moveMarkerToZeroCrossing (markerIndex, true); });
-        menu.addSubMenu ("Nudge " + markerNames [static_cast<size_t> (markerIndex)], zeroCrossingMenu, canEdit);
+        const auto adjust { getMarkerAdjust (markerIndex) };
+        zeroCrossingNudgeMenu.addSubMenu ("Nudge " + markerNames [static_cast<size_t> (markerIndex)], adjust.createZeroCrossingMenu (canEdit), canEdit);
+        // each marker, to where the sample value matches the other end of its pair
+        matchBoundaryMenu.addSubMenu (matchBoundaryNames [static_cast<size_t> (markerIndex)], adjust.createMatchOppositeMenu (canEdit), canEdit);
     }
+    menu.addSubMenu ("Zero Crossing Nudge", zeroCrossingNudgeMenu, canEdit);
+    menu.addSubMenu ("Match Opposite Boundary", matchBoundaryMenu, canEdit);
 
     // from a right-click on the waveform, the markers that can be moved to the point clicked
     if (clickSample.has_value ())
