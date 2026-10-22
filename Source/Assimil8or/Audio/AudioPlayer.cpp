@@ -11,13 +11,6 @@
 #define LogAudioPlayer(text) ;
 #endif
 
-#define LOG_AUDIO_PLAY_BACK 0
-#if LOG_AUDIO_PLAY_BACK
-#define LogAudioPlayback(text) DebugLog ("AudioPlayer", text);
-#else
-#define LogAudioPlayback(text) ;
-#endif
-
 void AudioPlayer::init (juce::ValueTree rootPropertiesVT)
 {
     PersistentRootProperties persistentRootProperties (rootPropertiesVT, PersistentRootProperties::WrapperType::client, PersistentRootProperties::EnableCallbacks::no);
@@ -43,11 +36,16 @@ void AudioPlayer::init (juce::ValueTree rootPropertiesVT)
         LogAudioPlayer ("init: audioPlayerProperties.onSampleSourceChanged");
         initFromZone (channelAndZoneIndecies);
     };
-    // Clients call this to change which sample points are used, Sample or Loop
-    audioPlayerProperties.onSamplePointsSelectorChanged = [this] (AudioPlayerProperties::SamplePointsSelector)
+    // Clients call these to play the voice, as the gate input of the module does
+    audioPlayerProperties.onTrigger = [this] ()
     {
-        LogAudioPlayer ("init: audioPlayerProperties.onSamplePointsSelectorChanged");
-        initSamplePoints ();
+        LogAudioPlayer ("init: audioPlayerProperties.onTrigger");
+        handleTrigger ();
+    };
+    audioPlayerProperties.onGateChange = [this] (bool newGateHigh)
+    {
+        LogAudioPlayer ("init: audioPlayerProperties.onGateChange");
+        handleGate (newGateHigh);
     };
     audioDeviceManager.addChangeListener (this);
     configureAudioDevice (audioSettingsProperties.getConfig ());
@@ -56,19 +54,26 @@ void AudioPlayer::init (juce::ValueTree rootPropertiesVT)
 void AudioPlayer::initFromZone (std::tuple<int, int> channelAndZoneIndecies)
 {
     LogAudioPlayer ("initFromZone");
-    auto [channelIndex, zoneIndex] { channelAndZoneIndecies };
-    jassert (channelIndex < 8);
-    jassert (zoneIndex < 8);
-    channelProperties.wrap (presetProperties.getChannelVT (channelIndex), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::yes);
-    zoneProperties.wrap (channelProperties.getZoneVT (zoneIndex), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::yes);
-    sampleProperties.wrap (sampleManagerProperties.getSamplePropertiesVT (channelIndex, zoneIndex), SampleProperties::WrapperType::owner, SampleProperties::EnableCallbacks::yes);
-
-    if (channelIndex < 7)
+    auto [newChannelIndex, newZoneIndex] { channelAndZoneIndecies };
+    jassert (newChannelIndex < 8);
+    jassert (newZoneIndex < 8);
+    // the voice belongs to the zone it was playing
+    stopVoiceNow ();
     {
-        const auto nextChannelIndex { channelIndex + 1 };
+        juce::ScopedLock sl (dataCS);
+        channelIndex = newChannelIndex;
+        zoneIndex = newZoneIndex;
+    }
+    channelProperties.wrap (presetProperties.getChannelVT (newChannelIndex), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::yes);
+    zoneProperties.wrap (channelProperties.getZoneVT (newZoneIndex), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::yes);
+    sampleProperties.wrap (sampleManagerProperties.getSamplePropertiesVT (newChannelIndex, newZoneIndex), SampleProperties::WrapperType::owner, SampleProperties::EnableCallbacks::yes);
+
+    if (newChannelIndex < 7)
+    {
+        const auto nextChannelIndex { newChannelIndex + 1 };
         nextChannelProperties.wrap (presetProperties.getChannelVT (nextChannelIndex), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::yes);
-        nextZoneProperties.wrap (nextChannelProperties.getZoneVT (zoneIndex), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::yes);
-        nextSampleProperties.wrap (sampleManagerProperties.getSamplePropertiesVT (nextChannelIndex, zoneIndex), SampleProperties::WrapperType::owner, SampleProperties::EnableCallbacks::yes);
+        nextZoneProperties.wrap (nextChannelProperties.getZoneVT (newZoneIndex), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::yes);
+        nextSampleProperties.wrap (sampleManagerProperties.getSamplePropertiesVT (nextChannelIndex, newZoneIndex), SampleProperties::WrapperType::owner, SampleProperties::EnableCallbacks::yes);
     }
     else
     {
@@ -77,168 +82,137 @@ void AudioPlayer::initFromZone (std::tuple<int, int> channelAndZoneIndecies)
         nextSampleProperties.wrap ({}, SampleProperties::WrapperType::owner, SampleProperties::EnableCallbacks::no);
     }
 
-    channelProperties.onChannelModeChange = [this] (int)
+    // a different sample, or a different pair of samples, has to be prepared again, and ends the voice
+    auto preparePlayback = [this] ()
+    {
+        prepareSampleForPlayback ();
+        updateWindow ();
+    };
+    channelProperties.onChannelModeChange = [this, preparePlayback] (int)
     {
         LogAudioPlayer ("channelProperties.onChannelModeChange");
-        initSamplePoints ();
-        prepareSampleForPlayback ();
+        preparePlayback ();
     };
-    zoneProperties.onSampleChange = [this] (juce::String)
+    zoneProperties.onSampleChange = [this, preparePlayback] (juce::String)
     {
         LogAudioPlayer ("zoneProperties.onSampleChange");
-        initSamplePoints ();
-        prepareSampleForPlayback ();
+        preparePlayback ();
     };
-    zoneProperties.onSideChange = [this] (int)
+    zoneProperties.onSideChange = [this, preparePlayback] (int)
     {
         LogAudioPlayer ("zoneProperties.onSideChange");
-        initSamplePoints ();
-        prepareSampleForPlayback ();
+        preparePlayback ();
     };
-    nextChannelProperties.onChannelModeChange = [this] (int)
+    nextChannelProperties.onChannelModeChange = [this, preparePlayback] (int)
     {
         LogAudioPlayer ("nextChannelProperties.onChannelModeChange");
-        prepareSampleForPlayback ();
+        preparePlayback ();
     };
-    nextZoneProperties.onSampleChange = [this] (juce::String)
+    nextZoneProperties.onSampleChange = [this, preparePlayback] (juce::String)
     {
         LogAudioPlayer ("nextZoneProperties.onSampleChange");
-        prepareSampleForPlayback ();
+        preparePlayback ();
     };
-    nextZoneProperties.onSideChange = [this] (int)
+    nextZoneProperties.onSideChange = [this, preparePlayback] (int)
     {
         LogAudioPlayer ("nextZoneProperties.onSideChange");
-        prepareSampleForPlayback ();
+        preparePlayback ();
     };
 
-    // TODO - can I refactor these callback?
-    //  issues:
-    //      onSampleStartChange recalculates sampleLength, but onLoopStartChange does NOT change sampleLength
-    //      onLoopLengthChange a double parameter, the other three have int64
-    zoneProperties.onSampleStartChange = [this] (std::optional<juce::int64> newSampleStart)
+    // As on the module, the points and the modes can change while the voice plays: the playhead stays where it is,
+    // and the rules carry on with the new values
+    zoneProperties.onSampleStartChange = [this] (std::optional<juce::int64>) { updateWindow (); };
+    zoneProperties.onSampleEndChange = [this] (std::optional <juce::int64>) { updateWindow (); };
+    zoneProperties.onLoopStartChange = [this] (std::optional <juce::int64>) { updateWindow (); };
+    zoneProperties.onLoopLengthChange = [this] (std::optional<double>) { updateWindow (); };
+    channelProperties.onPlayModeChange = [this] (int) { updateModes (); };
+    channelProperties.onLoopModeChange = [this] (int) { updateModes (); };
+
+    sampleProperties.onStatusChange = [this, preparePlayback] (SampleStatus status)
     {
-        LogAudioPlayer ("zoneProperties.onSampleStartChange");
-        jassert (sampleRateRatio > 0.0);
-        juce::ScopedLock sl (dataCS);
-        if (audioPlayerProperties.getSamplePointsSelector () == AudioPlayerProperties::SamplePointsSelector::LoopPoints)
-            return;
-        sampleStart = static_cast<int> (newSampleStart.value_or (0) * sampleRateRatio);
-        sampleLength = static_cast<int> ((zoneProperties.getSampleEnd ().value_or (sampleProperties.getLengthInSamples ()) - zoneProperties.getSampleStart ().value_or (0)) * sampleRateRatio);
-        if (curSampleOffset < sampleStart || curSampleOffset >= sampleStart + sampleLength)
-            curSampleOffset = sampleStart;
-        LogAudioPlayer ("zoneProperties.onSampleStartChange - sampleStart: " + juce::String (sampleStart) + ", sampleLength: " + juce::String (sampleLength) + ", curSampleOffset: " + juce::String (curSampleOffset));
-    };
-    zoneProperties.onSampleEndChange = [this] (std::optional <juce::int64> newSampleEnd)
-    {
-        LogAudioPlayer ("zoneProperties.onSampleEndChange");
-        jassert (sampleRateRatio > 0.0);
-        juce::ScopedLock sl (dataCS);
-        if (audioPlayerProperties.getSamplePointsSelector () == AudioPlayerProperties::SamplePointsSelector::LoopPoints)
-            return;
-        sampleLength = static_cast<int> ((newSampleEnd.value_or (sampleProperties.getLengthInSamples ()) - zoneProperties.getSampleStart ().value_or (0)) * sampleRateRatio);
-        if (curSampleOffset >= sampleStart + sampleLength)
-            curSampleOffset = sampleStart;
-        LogAudioPlayer ("zoneProperties.onSampleEndChange - sampleStart: " + juce::String (sampleStart) + ", sampleLength: " + juce::String (sampleLength) + ", curSampleOffset: " + juce::String (curSampleOffset));
-    };
-    zoneProperties.onLoopStartChange = [this] (std::optional <juce::int64> newLoopStart)
-    {
-        LogAudioPlayer ("zoneProperties.onLoopStartChange");
-        jassert (sampleRateRatio > 0.0);
-        juce::ScopedLock sl (dataCS);
-        if (audioPlayerProperties.getSamplePointsSelector () == AudioPlayerProperties::SamplePointsSelector::SamplePoints)
-            return;
-        sampleStart = static_cast<int> (newLoopStart.value_or (0) * sampleRateRatio);
-        if (curSampleOffset < sampleStart || curSampleOffset >= sampleStart + sampleLength)
-            curSampleOffset = sampleStart;
-        LogAudioPlayer ("zoneProperties.onLoopStartChange - sampleStart: " + juce::String (sampleStart) + ", sampleLength: " + juce::String (sampleLength) + ", curSampleOffset: " + juce::String (curSampleOffset));
-    };
-    zoneProperties.onLoopLengthChange = [this] (std::optional<double> newLoopLength)
-    {
-        LogAudioPlayer ("zoneProperties.onLoopLengthChange");
-        jassert (sampleRateRatio > 0.0);
-        juce::ScopedLock sl (dataCS);
-        if (audioPlayerProperties.getSamplePointsSelector () == AudioPlayerProperties::SamplePointsSelector::SamplePoints)
-            return;
-        sampleLength = static_cast<int> (newLoopLength.value_or (sampleProperties.getLengthInSamples ()) * sampleRateRatio);
-        if (curSampleOffset >= sampleStart + sampleLength)
-            curSampleOffset = sampleStart;
-        LogAudioPlayer ("zoneProperties.onLoopLengthChange - sampleStart: " + juce::String (sampleStart) + ", sampleLength: " + juce::String (sampleLength) + ", curSampleOffset: " + juce::String (curSampleOffset));
-    };
-    sampleProperties.onStatusChange = [this] (SampleStatus status)
-    {
+        LogAudioPlayer ("sampleProperties.onStatusChange");
         if (status == SampleStatus::exists)
         {
-            LogAudioPlayer ("sampleProperties.onStatusChange: SampleStatus::exists");
-            initSamplePoints ();
-            prepareSampleForPlayback ();
+            preparePlayback ();
         }
         else
         {
-            // TODO - reset somethings?
-            LogAudioPlayer ("sampleProperties.onStatusChange: NOT SampleStatus::exists");
-            audioPlayerProperties.setPlayState (AudioPlayerProperties::PlayState::stop, true);
-            {
-                juce::ScopedLock sl (dataCS);
-                sampleStart = 0;
-                sampleLength = 0;
-                sampleBuffer.reset ();
-            }
+            stopVoiceNow ();
+            juce::ScopedLock sl (dataCS);
+            window = {};
+            sampleBuffer.reset ();
         }
     };
-    nextSampleProperties.onStatusChange = [this] (SampleStatus status)
+    nextSampleProperties.onStatusChange = [this, preparePlayback] (SampleStatus status)
     {
+        LogAudioPlayer ("nextSampleProperties.onStatusChange");
         if (status == SampleStatus::exists)
         {
-            LogAudioPlayer ("nextSampleProperties.onStatusChange: SampleStatus::exists");
-            initSamplePoints ();
-            prepareSampleForPlayback ();
+            preparePlayback ();
         }
         else
         {
-            // TODO - reset somethings?
-            LogAudioPlayer ("nextSampleProperties.onStatusChange: NOT SampleStatus::exists");
-            audioPlayerProperties.setPlayState (AudioPlayerProperties::PlayState::stop, true);
-            {
-                juce::ScopedLock sl (dataCS);
-                sampleStart = 0;
-                sampleLength = 0;
-                sampleBuffer.reset ();
-            }
+            stopVoiceNow ();
+            juce::ScopedLock sl (dataCS);
+            window = {};
+            sampleBuffer.reset ();
         }
     };
 
-    // create local copy of audio data, with resampling if needed
-    prepareSampleForPlayback ();
-
-    // setup local sample start and sample length based on samplePointsSource
-    initSamplePoints ();
+    // create local copy of audio data, with resampling if needed, and the points that go with it
+    preparePlayback ();
+    updateModes ();
 }
 
-void AudioPlayer::initSamplePoints ()
+void AudioPlayer::updateWindow ()
 {
-    LogAudioPlayer ("initSamplePoints");
-    //jassert (sampleRateRatio > 0.0);
+    Window newWindow;
+    if (zoneProperties.isValid () && sampleProperties.isValid () && sampleProperties.getStatus () == SampleStatus::exists)
+    {
+        // As the module does, each point is clamped against the sample length, and never against the other points,
+        // so the loop may lie before Sample Start, or past Sample End. The engine's shortest loop is 4 frames.
+        constexpr auto kMinLoopLength { 4.0 };
+        const auto frames { static_cast<double> (sampleProperties.getLengthInSamples ()) };
+        newWindow.sampleStart = std::clamp (static_cast<double> (zoneProperties.getSampleStart ().value_or (0)), 0.0, frames);
+        newWindow.sampleEnd = std::clamp (static_cast<double> (zoneProperties.getSampleEnd ().value_or (sampleProperties.getLengthInSamples ())), 0.0, frames);
+        if (frames >= kMinLoopLength)
+        {
+            const auto storedLoopStart { static_cast<double> (zoneProperties.getLoopStart ().value_or (0)) };
+            const auto loopLength { std::min (zoneProperties.getLoopLength ().value_or (frames), frames - storedLoopStart) };
+            const auto loopStart { std::min (std::clamp (storedLoopStart, 0.0, frames - kMinLoopLength), frames - loopLength) };
+            newWindow.loopStart = loopStart;
+            newWindow.loopEnd = std::clamp (loopStart + loopLength, loopStart + kMinLoopLength, frames);
+        }
+        else
+        {
+            newWindow.loopStart = 0.0;
+            newWindow.loopEnd = frames;
+        }
+    }
+
     juce::ScopedLock sl (dataCS);
-    if (audioPlayerProperties.getSamplePointsSelector () == AudioPlayerProperties::SamplePointsSelector::SamplePoints)
-    {
-        LogAudioPlayer (" using SamplePoints");
-        sampleStart = static_cast<int> (zoneProperties.getSampleStart ().value_or (0) * sampleRateRatio);
-        sampleLength = static_cast<int> ((zoneProperties.getSampleEnd ().value_or (sampleProperties.getLengthInSamples ()) - zoneProperties.getSampleStart ().value_or (0)) * sampleRateRatio);
-    }
-    else
-    {
-        LogAudioPlayer (" using LoopPoints");
-        sampleStart = static_cast<int> (zoneProperties.getLoopStart ().value_or (0) * sampleRateRatio);
-        sampleLength = static_cast<int> (zoneProperties.getLoopLength ().value_or (sampleProperties.getLengthInSamples ()) * sampleRateRatio);
-    }
-    if (curSampleOffset < sampleStart || curSampleOffset >= sampleStart + sampleLength)
-        curSampleOffset = sampleStart;
-    LogAudioPlayer ("AudioPlayer::initSamplePoints - sampleStart: " + juce::String (sampleStart) + ", sampleLength: " + juce::String (sampleLength) + ", curSampleOffset: " + juce::String (curSampleOffset));
+    // the points are in frames of the sample, and the playback buffer has been resampled to the device rate
+    window.sampleStart = newWindow.sampleStart * sampleRateRatio;
+    window.sampleEnd = newWindow.sampleEnd * sampleRateRatio;
+    window.loopStart = newWindow.loopStart * sampleRateRatio;
+    window.loopEnd = newWindow.loopEnd * sampleRateRatio;
+    LogAudioPlayer ("updateWindow - sampleStart: " + juce::String (window.sampleStart) + ", sampleEnd: " + juce::String (window.sampleEnd) +
+                    ", loopStart: " + juce::String (window.loopStart) + ", loopEnd: " + juce::String (window.loopEnd));
+}
+
+void AudioPlayer::updateModes ()
+{
+    const auto newPlayMode { channelProperties.isValid () ? channelProperties.getPlayMode () : 0 };
+    const auto newLoopMode { channelProperties.isValid () ? channelProperties.getLoopMode () : 0 };
+    juce::ScopedLock sl (dataCS);
+    playMode = newPlayMode;
+    loopMode = newLoopMode;
 }
 
 void AudioPlayer::prepareSampleForPlayback ()
 {
-    jassert (playState == AudioPlayerProperties::PlayState::stop);
+    // the buffer is about to change under the voice
+    stopVoiceNow ();
     if (zoneProperties.isValid () && sampleProperties.isValid () && sampleProperties.getStatus () == SampleStatus::exists)
     {
         juce::AudioSource* leftAudioSource { nullptr };
@@ -253,12 +227,13 @@ void AudioPlayer::prepareSampleForPlayback ()
         std::unique_ptr <juce::MemoryAudioSource> rightReaderSource;
         std::unique_ptr<juce::ResamplingAudioSource> rightResamplingAudioSource;
 
+        // we use the master channel sample rate, since we use the sample points from that
+        const auto newSampleRateRatio { sampleRate / sampleProperties.getSampleRate () };
         if (channelProperties.getChannelMode () == ChannelProperties::ChannelMode::master && nextChannelProperties.getChannelMode () != ChannelProperties::ChannelMode::stereoRight)
         {
             LogAudioPlayer ("prepareSampleForPlayback: master channel only");
             leftReaderSource = std::make_unique<juce::MemoryAudioSource> (*sampleProperties.getAudioBufferPtr (), false, false);
             leftResamplingAudioSource = std::make_unique<juce::ResamplingAudioSource> (leftReaderSource.get (), false, 1);
-            sampleRateRatio = sampleRate / sampleProperties.getSampleRate (); // we use the master channel sample rate, since we use the sample points from that
             leftResamplingAudioSource->setResamplingRatio (sampleProperties.getSampleRate () / sampleRate);
             leftResamplingAudioSource->prepareToPlay (blockSize, sampleRate);
             leftAudioSource = leftResamplingAudioSource.get ();
@@ -276,7 +251,6 @@ void AudioPlayer::prepareSampleForPlayback ()
             LogAudioPlayer ("prepareSampleForPlayback: master and stereo/right");
             leftReaderSource = std::make_unique<juce::MemoryAudioSource> (*sampleProperties.getAudioBufferPtr (), false, false);
             leftResamplingAudioSource = std::make_unique<juce::ResamplingAudioSource> (leftReaderSource.get (), false, 2);
-            sampleRateRatio = sampleRate / sampleProperties.getSampleRate (); // we use the master channel sample rate, since we use the sample points from that
             leftResamplingAudioSource->setResamplingRatio (sampleProperties.getSampleRate () / sampleRate);
             leftResamplingAudioSource->prepareToPlay (blockSize, sampleRate);
             leftAudioSource = leftResamplingAudioSource.get ();
@@ -295,8 +269,8 @@ void AudioPlayer::prepareSampleForPlayback ()
         else
         {
             jassertfalse;
+            juce::ScopedLock sl (dataCS);
             sampleBuffer = std::make_unique<juce::AudioBuffer<float>> (2, 0);
-            curSampleOffset = 0;
             return;
         }
 
@@ -304,14 +278,18 @@ void AudioPlayer::prepareSampleForPlayback ()
         std::unique_ptr<LeftRightCombinerAudioSource> leftRightCombinerAudioSource { std::make_unique<LeftRightCombinerAudioSource> (leftAudioSource, leftAudioSourceChannel,
                                                                                                                                      rightAudioSource, rightAudioSourceChannel, false) };
 
-        sampleBuffer = std::make_unique<juce::AudioBuffer<float>> (2, static_cast<int> (sampleProperties.getLengthInSamples () * sampleRate / sampleProperties.getSampleRate ()));
+        auto newSampleBuffer { std::make_unique<juce::AudioBuffer<float>> (2, static_cast<int> (sampleProperties.getLengthInSamples () * sampleRate / sampleProperties.getSampleRate ())) };
+        leftRightCombinerAudioSource->getNextAudioBlock (juce::AudioSourceChannelInfo (*newSampleBuffer.get ()));
 
-        leftRightCombinerAudioSource->getNextAudioBlock (juce::AudioSourceChannelInfo (*sampleBuffer.get ()));
-        curSampleOffset = 0;
+        juce::ScopedLock sl (dataCS);
+        sampleBuffer = std::move (newSampleBuffer);
+        sampleRateRatio = newSampleRateRatio;
     }
     else
     {
         LogAudioPlayer ("prepareSampleForPlayback: sample is NOT ready");
+        juce::ScopedLock sl (dataCS);
+        sampleBuffer.reset ();
     }
 }
 
@@ -346,22 +324,90 @@ void AudioPlayer::configureAudioDevice (juce::String config)
 
 void AudioPlayer::handlePlayState (AudioPlayerProperties::PlayState newPlayState)
 {
-    juce::ScopedLock sl (dataCS);
+    // a client stopping the voice, which is the only play state a client sets
     if (newPlayState == AudioPlayerProperties::PlayState::stop)
     {
         LogAudioPlayer ("AudioPlayer::handlePlayState: stop");
+        juce::ScopedLock sl (dataCS);
+        startFadeOut ();
     }
-    else if (newPlayState == AudioPlayerProperties::PlayState::loop)
+}
+
+void AudioPlayer::handleTrigger ()
+{
+    LogAudioPlayer ("AudioPlayer::handleTrigger");
     {
-        LogAudioPlayer ("AudioPlayer::handlePlayState: loop");
-        curSampleOffset = sampleStart;
+        juce::ScopedLock sl (dataCS);
+        if (sampleBuffer == nullptr || sampleBuffer->getNumSamples () == 0)
+            return;
+        // a gate rise always restarts the voice at Sample Start - Loop Start has no part in it
+        playPosition = window.sampleStart;
+        voiceState = VoiceState::playing;
+        // a Sample Start at or past Loop End wraps before the first frame is heard
+        wrapAndTestForEnd ();
+        auditionPlayhead.channelIndex.store (channelIndex);
+        auditionPlayhead.zoneIndex.store (zoneIndex);
     }
-    else if (newPlayState == AudioPlayerProperties::PlayState::play)
+    audioPlayerProperties.setPlayState (AudioPlayerProperties::PlayState::play, false);
+}
+
+void AudioPlayer::handleGate (bool newGateHigh)
+{
+    LogAudioPlayer ("AudioPlayer::handleGate: " + juce::String (newGateHigh ? "high" : "low"));
+    // what the gate does is up to the modes, and the audio callback looks at it every frame
+    juce::ScopedLock sl (dataCS);
+    gateHigh = newGateHigh;
+}
+
+void AudioPlayer::stopVoiceNow ()
+{
+    juce::ScopedLock sl (dataCS);
+    if (voiceState == VoiceState::idle)
+        return;
+    voiceState = VoiceState::idle;
+    // published from the message thread, by handleAsyncUpdate
+    triggerAsyncUpdate ();
+}
+
+bool AudioPlayer::isLoopingEnabled () const noexcept
+{
+    return loopMode == kLoopModeOn || (loopMode == kLoopModeGated && gateHigh);
+}
+
+void AudioPlayer::wrapAndTestForEnd () noexcept
+{
+    // the wrap is tested before the end, so a loop that ends on Sample End loops for ever
+    if (isLoopingEnabled () && playPosition >= window.loopEnd)
     {
-        LogAudioPlayer ("AudioPlayer::handlePlayState: play");
-        curSampleOffset = sampleStart;
+        const auto loopLength { window.loopEnd - window.loopStart };
+        if (loopLength > 0.0)
+            playPosition = window.loopStart + std::fmod (playPosition - window.loopEnd, loopLength);
     }
-    playState = newPlayState;
+    if (playPosition >= window.sampleEnd)
+    {
+        voiceState = VoiceState::idle;
+        triggerAsyncUpdate ();
+    }
+}
+
+void AudioPlayer::startFadeOut () noexcept
+{
+    if (voiceState != VoiceState::playing)
+        return;
+    voiceState = VoiceState::fadingOut;
+    fadeSamplesRemaining = fadeLength;
+}
+
+void AudioPlayer::handleAsyncUpdate ()
+{
+    {
+        juce::ScopedLock sl (dataCS);
+        // retriggered since the voice ended
+        if (voiceState != VoiceState::idle)
+            return;
+    }
+    LogAudioPlayer ("AudioPlayer::handleAsyncUpdate: voice ended");
+    audioPlayerProperties.setPlayState (AudioPlayerProperties::PlayState::stop, false);
 }
 
 void AudioPlayer::prepareToPlay (int samplesPerBlockExpected, double newSampleRate)
@@ -369,7 +415,9 @@ void AudioPlayer::prepareToPlay (int samplesPerBlockExpected, double newSampleRa
     LogAudioPlayer ("prepareToPlay");
     sampleRate = newSampleRate;
     blockSize = samplesPerBlockExpected;
+    fadeLength = juce::jmax (1, juce::roundToInt (kDeclickFadeSeconds * sampleRate));
     prepareSampleForPlayback ();
+    updateWindow ();
 }
 
 void AudioPlayer::releaseResources ()
@@ -390,80 +438,49 @@ void AudioPlayer::changeListenerCallback (juce::ChangeBroadcaster*)
 void AudioPlayer::getNextAudioBlock (const juce::AudioSourceChannelInfo& bufferToFill)
 {
     bufferToFill.clearActiveBufferRegion ();
-    // fill buffer with data
 
-    if (playState == AudioPlayerProperties::PlayState::stop)
+    // NOTE: I am using a lock in the audio callback ONLY BECAUSE the audio play back is a simple audition feature, not recording or performance playback
+    juce::ScopedLock sl (dataCS);
+    if (voiceState == VoiceState::idle || sampleBuffer == nullptr)
+    {
+        auditionPlayhead.position.store (-1.0);
         return;
+    }
 
-    const auto numOutputSamples { bufferToFill.numSamples };
     auto& outputBuffer { *bufferToFill.buffer };
     const auto channels { juce::jmin (outputBuffer.getNumChannels (), sampleBuffer->getNumChannels ()) };
-
-    auto originalSampleOffset { 0 };
-    auto cachedSampleLength { 0 };
-    auto cachedSampleStart { 0 };
-    auto cachedLocalSampleOffset { 0 };
-    auto chachedPlayState { AudioPlayerProperties::PlayState::stop };
+    const auto sampleBufferLength { sampleBuffer->getNumSamples () };
+    for (auto frame { 0 }; frame < bufferToFill.numSamples && voiceState != VoiceState::idle; ++frame)
     {
-        // NOTE: I am using a lock in the audio callback ONLY BECAUSE the audio play back is a simple audition feature, not recording or performance playback
-        juce::ScopedLock sl (dataCS);
-        jassert (curSampleOffset >= sampleStart);
-        jassert (curSampleOffset < sampleStart + sampleLength);
-        originalSampleOffset =  curSampleOffset; // should be >= sampleStart and < sampleStart + sampleLength
-        cachedSampleLength = sampleLength;
-        cachedSampleStart = sampleStart;
-        chachedPlayState = playState;
-        cachedLocalSampleOffset = curSampleOffset - sampleStart;
-        LogAudioPlayback ("AudioPlayer::getNextAudioBlock - cachedSampleStart: " + juce::String (cachedSampleStart) + ", chachedSampleLength: " + juce::String (cachedSampleLength) +
-                        ", curSampleOffset: " + juce::String (curSampleOffset) + ", cachedLocalSampleOffset: " + juce::String (cachedLocalSampleOffset));
-    }
-    auto numSamplesToCopy { 0 };
-    auto outputBufferWritePos { 0 };
-    while (cachedSampleLength > 0 && outputBufferWritePos < numOutputSamples)
-    {
-        numSamplesToCopy = juce::jmin (numOutputSamples - outputBufferWritePos, cachedSampleLength - cachedLocalSampleOffset);
-        LogAudioPlayback ("AudioPlayer::getNextAudioBlock - numSamplesToCopy: " + juce::String (numSamplesToCopy));
-        jassert (numSamplesToCopy >= 0);
+        // Gated Play Mode ends the voice when the gate goes low. It is looked at every frame, as the module does,
+        // so changing to Gated while the gate is low ends a 1 Shot voice that is still running.
+        if (voiceState == VoiceState::playing && playMode == kPlayModeGated && ! gateHigh)
+            startFadeOut ();
 
-        // copy data from sample buffer to output buffer, this may, or may not, fill the entire output buffer
-        auto ch { 0 };
-        for (; ch < channels; ++ch)
-            outputBuffer.copyFrom (ch, bufferToFill.startSample + outputBufferWritePos, *sampleBuffer, ch, cachedSampleStart + cachedLocalSampleOffset, numSamplesToCopy);
-
-        // clear any unused channels
-        for (; ch < outputBuffer.getNumChannels (); ++ch)
-            outputBuffer.clear (ch, bufferToFill.startSample + outputBufferWritePos, numSamplesToCopy);
-
-        outputBufferWritePos += numSamplesToCopy;
-        cachedLocalSampleOffset += numSamplesToCopy;
-        if (chachedPlayState == AudioPlayerProperties::PlayState::loop)
+        const auto readIndex { static_cast<int> (playPosition) };
+        if (readIndex >= 0 && readIndex < sampleBufferLength)
         {
-            if (cachedLocalSampleOffset >= cachedSampleLength)
-                cachedLocalSampleOffset = 0;
-        }
-        else
-        {
-            LogAudioPlayback ("AudioPlayer::getNextAudioBlock - outputBufferWritePos : " + juce::String (outputBufferWritePos) + ", numOutputSamples: " + juce::String (numOutputSamples));
-            if (outputBufferWritePos < numOutputSamples)
+            const auto fraction { static_cast<float> (playPosition - readIndex) };
+            const auto nextReadIndex { juce::jmin (readIndex + 1, sampleBufferLength - 1) };
+            const auto gain { voiceState == VoiceState::fadingOut ? static_cast<float> (fadeSamplesRemaining) / static_cast<float> (fadeLength) : 1.0f };
+            for (auto ch { 0 }; ch < channels; ++ch)
             {
-                outputBuffer.clear (bufferToFill.startSample + outputBufferWritePos, numOutputSamples - outputBufferWritePos);
-                audioPlayerProperties.setPlayState (AudioPlayerProperties::PlayState::stop, true);
-                break;
+                const auto* sampleData { sampleBuffer->getReadPointer (ch) };
+                const auto sampleValue { sampleData [readIndex] + fraction * (sampleData [nextReadIndex] - sampleData [readIndex]) };
+                outputBuffer.setSample (ch, bufferToFill.startSample + frame, sampleValue * gain);
             }
         }
-    }
-    {
-        // NOTE: I am using a lock in the audio callback ONLY BECAUSE the audio play back is a simple audition feature, not recording or performance playback
-        juce::ScopedLock sl (dataCS);
-        if (originalSampleOffset == curSampleOffset && cachedSampleStart == sampleStart && cachedSampleLength == sampleLength) // if the offset has not changed externally
+
+        if (voiceState == VoiceState::fadingOut && --fadeSamplesRemaining <= 0)
         {
-            curSampleOffset = cachedSampleStart + cachedLocalSampleOffset;
-            LogAudioPlayback ("AudioPlayer::getNextAudioBlock setting new curSampleOffset: " + juce::String (curSampleOffset) + ", cachedSampleStart: " + juce::String (cachedSampleStart) + ", chachedSampleLength: " + juce::String (cachedSampleLength) +
-                            ", cachedLocalSampleOffset: " + juce::String (cachedLocalSampleOffset));
+            voiceState = VoiceState::idle;
+            triggerAsyncUpdate ();
+            break;
         }
-        else
-        {
-            LogAudioPlayback ("AudioPlayer::getNextAudioBlock - curSampleOffset: " + juce::String (cachedSampleStart) + " != originalSampleOffset: " + juce::String (originalSampleOffset));
-        }
+
+        playPosition += 1.0;
+        wrapAndTestForEnd ();
     }
+    // the displays draw it in frames of the sample, as they do the markers
+    auditionPlayhead.position.store (voiceState == VoiceState::idle || sampleRateRatio <= 0.0 ? -1.0 : playPosition / sampleRateRatio);
 }

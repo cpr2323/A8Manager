@@ -14,16 +14,29 @@
 #include "../../Theme/UiComponents.h"
 
 /*
-    The ONCE / LOOP audition buttons. They say STOP while their sample is playing,
-    and take the accent fill then - cyan means playing, as it does in SquidManager.
+    The TRIGGER / LATCH audition buttons. They act on press, as the gate input of the module
+    does, and say when they are released, so TRIGGER can hold the gate for as long as it is held.
+    A lit button takes the accent fill - cyan means playing, as it does in SquidManager: TRIGGER
+    while it is held, LATCH while it holds the gate.
 */
 class ZonePlayButton : public juce::TextButton
 {
 public:
+    std::function<void ()> onPress;
+    std::function<void ()> onRelease;
+
+    void setLit (bool shouldBeLit)
+    {
+        if (lit == shouldBeLit)
+            return;
+        lit = shouldBeLit;
+        repaint ();
+    }
+
     void paintButton (juce::Graphics& g, bool isMouseOver, bool isMouseDown) override
     {
         const auto enabled { isEnabled () };
-        const auto playing { getButtonText () == "STOP" };
+        const auto playing { lit || pressed };
         const auto hovered { enabled && (isMouseOver || isMouseDown) };
         const auto area { getLocalBounds ().toFloat ().reduced (0.5f) };
 
@@ -39,6 +52,31 @@ public:
                                          : (hovered ? A8Colours::text : A8Colours::textDim)));
         g.drawText (getButtonText (), getLocalBounds (), juce::Justification::centred, false);
         g.endTransparencyLayer ();
+    }
+
+private:
+    bool lit { false };
+    bool pressed { false };
+
+    void mouseDown (const juce::MouseEvent& e) override
+    {
+        juce::TextButton::mouseDown (e);
+        if (! isEnabled () || ! e.mods.isLeftButtonDown ())
+            return;
+        pressed = true;
+        repaint ();
+        if (onPress != nullptr)
+            onPress ();
+    }
+    void mouseUp (const juce::MouseEvent& e) override
+    {
+        juce::TextButton::mouseUp (e);
+        if (! pressed)
+            return;
+        pressed = false;
+        repaint ();
+        if (onRelease != nullptr)
+            onRelease ();
     }
 };
 
@@ -57,7 +95,7 @@ public:
     void setStereoRightChannelMode (bool isStereoRightChannelMode);
 
     // Which pair of points - sample start/end or loop start/end - the zone is working with: the one
-    // outlined here, auditioned, and picked out on the waveform. The waveform can change it too, by
+    // outlined here, and picked out on the waveform. The waveform can change it too, by
     // moving a marker of the other pair.
     AudioPlayerProperties::SamplePointsSelector getActiveSamplePoints () const { return samplePointsSelector; }
     void selectSamplePoints (AudioPlayerProperties::SamplePointsSelector newSamplePointsSelector);
@@ -107,8 +145,11 @@ private:
     int dropIndex { 0 };
 
     LoopPointsView loopPointsView;
-    ZonePlayButton oneShotPlayButton;
-    ZonePlayButton loopPlayButton;
+    ZonePlayButton triggerButton;
+    ZonePlayButton latchButton;
+    // the gate this zone is giving the audition voice: high while TRIGGER is held, or while LATCH holds it
+    bool triggerHeld { false };
+    bool latched { false };
     MenuButton toolsButton { "ZONE TOOLS", ActionButton::Size::small };
     // the labels are dimmed next to the values, and a palette change has to reach them again
     std::vector<juce::Label*> parameterLabels;
@@ -116,6 +157,8 @@ private:
     juce::Rectangle<int> samplePointsBackground;
     juce::Rectangle<int> loopPointsBackground;
     juce::Rectangle<int>* activePointBackground { &samplePointsBackground };
+    // the rule between the loop points and the audition buttons
+    juce::Rectangle<int> auditionDivider;
     // the marker colour bar between each sample point's name and its field
     static constexpr int kSwatchWidth { 3 };
     static constexpr int kSwatchGap { 3 };
@@ -147,6 +190,10 @@ private:
     enum class SamplePoint { sampleStart, sampleEnd, loopStart, loopEnd };
 
     void setEditComponentsEnabled (bool enabled);
+    void setPlayButtonsEnabled (bool enabled);
+    bool isPlayingThisZone ();
+    void triggerVoice ();
+    void unlatch ();
     juce::PopupMenu createZoneEditMenu (juce::PopupMenu existingPopupMenu, std::function <void (ZoneProperties&, SampleProperties&)> setter, std::function <void ()> resetter, std::function <void ()> reverter,
                                         std::function<bool (ZoneProperties&)> canCloneToZoneCallback, std::function<bool (ZoneProperties&)> canCloneToAllCallback);
     juce::String formatLoopLength (double loopLength);

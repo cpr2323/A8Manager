@@ -29,3 +29,13 @@ juce::AudioDeviceManager* SystemServices::getAudioDeviceManager ()
 {
     return getValue<juce::AudioDeviceManager*> (AudioDeviceManagerPropertyId, data);
 }
+
+void SystemServices::setAuditionPlayhead (AuditionPlayhead* auditionPlayhead)
+{
+    setValue (auditionPlayhead, AuditionPlayheadPropertyId, false);
+}
+
+AuditionPlayhead* SystemServices::getAuditionPlayhead ()
+{
+    return getValue<AuditionPlayhead*> (AuditionPlayheadPropertyId, data);
+}

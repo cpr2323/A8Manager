@@ -55,13 +55,13 @@ private:
     }
 public:
     // areas, in this component's coordinates, that are left uncovered
-    void setHoles (juce::Array<juce::Rectangle<int>> newHoles)
+    void setHoles (juce::RectangleList<int> newHoles)
     {
         holes = std::move (newHoles);
         repaint ();
     }
 private:
-    juce::Array<juce::Rectangle<int>> holes;
+    juce::RectangleList<int> holes;
 };
 
 class ChannelEditor : public juce::Component
@@ -227,6 +227,7 @@ private:
 
     void balanceVoltages (VoltageBalanceType balanceType);
     void checkStereoRightOverlay ();
+    void updateStereoRightOverlayHoles ();
     void configAudioPlayer ();
     void copyZone (int zoneIndex, bool settingsOnly);
     void ensureProperZoneIsSelected ();

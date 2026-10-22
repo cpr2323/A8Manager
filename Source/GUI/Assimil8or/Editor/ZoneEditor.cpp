@@ -1,6 +1,7 @@
 #include "ZoneEditor.h"
 #include "FormatHelpers.h"
 #include "../../Theme/A8ColourIds.h"
+#include "../../Theme/Palette.h"
 #include "ParameterToolTipData.h"
 #include "SampleManager/SampleManagerProperties.h"
 #include "../../../SystemServices.h"
@@ -51,38 +52,45 @@ ZoneEditor::ZoneEditor ()
 
     setActiveSamplePoints (AudioPlayerProperties::SamplePointsSelector::SamplePoints, true);
 
-    auto setupPlayButton = [this] (juce::TextButton& playButton, juce::String text, juce::String otherButtonText,
-                                   AudioPlayerProperties::PlayState playState)
+    // The audition buttons are the zone's gate, and the voice follows the channel's Play Mode and Loop Mode, as
+    // the module does. Either one starts the voice on press. TRIGGER holds the gate while it is held. LATCH holds
+    // it until LATCH is pressed again, which stops the voice whatever the modes are, as LATCH and the channel's
+    // button do on the module - and a press while a voice of this zone is still sounding stops that, too.
+    triggerButton.setButtonText ("TRIGGER");
+    triggerButton.setTooltip ("Plays the zone while held, as a gate held high would on the module, following the channel's Play Mode and Loop Mode");
+    triggerButton.setEnabled (false);
+    triggerButton.onPress = [this] ()
     {
-        playButton.setButtonText (text);
-        playButton.setEnabled (false);
-        playButton.onClick = [this, text, &playButton, playState, otherButtonText] ()
-        {
-            if (playButton.getButtonText () == "STOP")
-            {
-                // stopping
-                audioPlayerProperties.setPlayState (AudioPlayerProperties::PlayState::stop, false);
-                playButton.setButtonText (text);
-            }
-            else
-            {
-                audioPlayerProperties.setSampleSource (parentChannelIndex, zoneIndex, false);
-                // starting
-                audioPlayerProperties.setPlayState (playState, false);
-                playButton.setButtonText ("STOP");
-                if (&playButton == &oneShotPlayButton)
-                    loopPlayButton.setButtonText (otherButtonText);
-                else
-                    oneShotPlayButton.setButtonText (otherButtonText);
-            }
-        };
-        addAndMakeVisible (playButton);
+        triggerHeld = true;
+        // pressed while latched, it retriggers, and the latch keeps the gate up when it is let go
+        triggerVoice ();
     };
-    loopPlayButton.setTooltip ("Plays the currently selected SOURCE in looping mode");
-    setupPlayButton (loopPlayButton, "LOOP", "ONCE", AudioPlayerProperties::PlayState::loop);
+    triggerButton.onRelease = [this] ()
+    {
+        triggerHeld = false;
+        audioPlayerProperties.setGate (latched, false);
+    };
+    addAndMakeVisible (triggerButton);
 
-    oneShotPlayButton.setTooltip ("Plays the currently selected SOURCE in one shot mode");
-    setupPlayButton (oneShotPlayButton, "ONCE", "LOOP", AudioPlayerProperties::PlayState::play);
+    latchButton.setButtonText ("LATCH");
+    latchButton.setTooltip ("Plays the zone, holding the gate high until pressed again, which stops it. Follows the channel's Play Mode and Loop Mode");
+    latchButton.setEnabled (false);
+    latchButton.onPress = [this] ()
+    {
+        if (latched || isPlayingThisZone ())
+        {
+            unlatch ();
+            audioPlayerProperties.setPlayState (AudioPlayerProperties::PlayState::stop, false);
+        }
+        else
+        {
+            latched = true;
+            latchButton.setLit (true);
+            triggerVoice ();
+        }
+    };
+    addAndMakeVisible (latchButton);
+
     setupZoneComponents ();
     setEditComponentsEnabled (false);
 }
@@ -175,7 +183,7 @@ void ZoneEditor::setActiveSamplePoints (AudioPlayerProperties::SamplePointsSelec
         activePointBackground = (samplePointsSelector == AudioPlayerProperties::SamplePointsSelector::SamplePoints ? &samplePointsBackground : &loopPointsBackground);
         updateLoopPointsView ();
         repaint ();
-        audioPlayerProperties.setPlayState (AudioPlayerProperties::PlayState::stop, true);
+        // the selection is for editing only - the audition plays the zone as the module does, whichever pair is selected
         audioPlayerProperties.setSamplePointsSelector (samplePointsSelector, false);
         if (onActiveSamplePointsChanged != nullptr)
             onActiveSamplePointsChanged (samplePointsSelector);
@@ -699,36 +707,16 @@ void ZoneEditor::init (juce::ValueTree zonePropertiesVT, juce::ValueTree unedite
     editManager = systemServices.getEditManager ();
 
     audioPlayerProperties.wrap (runtimeRootProperties.getValueTree (), AudioPlayerProperties::WrapperType::client, AudioPlayerProperties::EnableCallbacks::yes);
+    // a voice that ends, or is stopped, lets go of the latch, as does a voice started on another zone
     audioPlayerProperties.onPlayStateChange = [this] (AudioPlayerProperties::PlayState playState)
     {
         if (playState == AudioPlayerProperties::PlayState::stop)
-        {
-            juce::MessageManager::callAsync ([this] ()
-            {
-                oneShotPlayButton.setButtonText ("ONCE");
-                loopPlayButton.setButtonText ("LOOP");
-            });
-        }
-        else if (playState == AudioPlayerProperties::PlayState::play)
-        {
-            juce::MessageManager::callAsync ([this] ()
-            {
-                oneShotPlayButton.setButtonText ("STOP");
-                loopPlayButton.setButtonText ("LOOP");
-            });
-        }
-        else if (playState == AudioPlayerProperties::PlayState::loop)
-        {
-            juce::MessageManager::callAsync ([this] ()
-            {
-                oneShotPlayButton.setButtonText ("ONCE");
-                loopPlayButton.setButtonText ("STOP");
-            });
-        }
-        else
-        {
-            jassertfalse;
-        }
+            unlatch ();
+    };
+    audioPlayerProperties.onSampleSourceChanged = [this] (std::tuple<int, int> channelAndZoneIndecies)
+    {
+        if (channelAndZoneIndecies != std::tuple<int, int> { parentChannelIndex, zoneIndex })
+            unlatch ();
     };
 
     zoneProperties.wrap (zonePropertiesVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::yes);
@@ -747,8 +735,7 @@ void ZoneEditor::init (juce::ValueTree zonePropertiesVT, juce::ValueTree unedite
             //DebugLog ("ZoneEditor", "sample Status exists");
             // when we receive this callback, it means all of the other sample data is updated too
             setEditComponentsEnabled (true);
-            oneShotPlayButton.setEnabled (true && ! isStereoRightChannelMode);
-            loopPlayButton.setEnabled (true && ! isStereoRightChannelMode);
+            setPlayButtonsEnabled (true);
             updateLoopPointsView ();
             updateSamplePositionInfo ();
             updateSampleFileInfo (zoneProperties.getSample ());
@@ -759,8 +746,7 @@ void ZoneEditor::init (juce::ValueTree zonePropertiesVT, juce::ValueTree unedite
             //DebugLog ("ZoneEditor", "sample Status uninitialized");
             // this means the sample has been unloaded
             setEditComponentsEnabled (false);
-            oneShotPlayButton.setEnabled (false);
-            loopPlayButton.setEnabled (false);
+            setPlayButtonsEnabled (false);
             updateLoopPointsView ();
             updateSamplePositionInfo ();
             updateSideSelectButtons (0);
@@ -770,8 +756,7 @@ void ZoneEditor::init (juce::ValueTree zonePropertiesVT, juce::ValueTree unedite
             //DebugLog ("ZoneEditor", "sample Status doesNotExist");
             // obviously none of the sample data can be used
             setEditComponentsEnabled (false);
-            oneShotPlayButton.setEnabled (false);
-            loopPlayButton.setEnabled (false);
+            setPlayButtonsEnabled (false);
             updateLoopPointsView ();
             updateSamplePositionInfo ();
             updateSampleFileInfo (zoneProperties.getSample ());
@@ -782,8 +767,7 @@ void ZoneEditor::init (juce::ValueTree zonePropertiesVT, juce::ValueTree unedite
             //DebugLog ("ZoneEditor", "sample Status wrongFormat");
             // we should not be able to load a sample of the wrong format, but if an already loaded sample is changed outside of the app, this could happen
             setEditComponentsEnabled (false);
-            oneShotPlayButton.setEnabled (false);
-            loopPlayButton.setEnabled (false);
+            setPlayButtonsEnabled (false);
             updateLoopPointsView ();
             updateSamplePositionInfo ();
             updateSampleFileInfo (zoneProperties.getSample ());
@@ -827,8 +811,7 @@ void ZoneEditor::setStereoRightChannelMode (bool newStereoRightChannelMode)
 {
     isStereoRightChannelMode = newStereoRightChannelMode;
 
-    oneShotPlayButton.setEnabled (! isStereoRightChannelMode && sampleProperties.getStatus () == SampleStatus::exists);
-    loopPlayButton.setEnabled (! isStereoRightChannelMode && sampleProperties.getStatus () == SampleStatus::exists);
+    setPlayButtonsEnabled (sampleProperties.getStatus () == SampleStatus::exists);
     toolsButton.setEnabled (! isStereoRightChannelMode);
     levelOffsetTextEditor.setEnabled (! isStereoRightChannelMode);
     loopLengthTextEditor.setEnabled (! isStereoRightChannelMode);
@@ -882,7 +865,7 @@ void ZoneEditor::lookAndFeelChanged ()
 
 void ZoneEditor::paint (juce::Graphics& g)
 {
-    // the group of sample points (sample or loop) that the waveform and the audition buttons are using;
+    // the group of sample points (sample or loop) that the waveform is working with;
     // its outline is drawn in paintOverChildren, as the loop tuner that both groups share covers this
     g.setColour (findColour (A8Colours::selectedRow));
     g.fillRoundedRectangle (activePointBackground->toFloat (), 2.0f);
@@ -901,6 +884,12 @@ void ZoneEditor::paint (juce::Graphics& g)
     drawSwatch (sampleEndLabel, A8Colours::markerEnd);
     drawSwatch (loopStartLabel, A8Colours::markerLoop);
     drawSwatch (loopLengthLabel, A8Colours::markerLoopEnd);
+
+    // in the labels' ink, so it is as easy to see as they are, and follows them when the palette changes. On a
+    // dark background it takes the muted ink, so it sits behind the labels.
+    const auto isDarkBackground { Palette::relativeLuminance (findColour (A8Colours::zoneBackground)) < Palette::kCrossover };
+    g.setColour (findColour (isDarkBackground ? A8Colours::menuHeaderText : A8Colours::textDim));
+    g.fillRect (auditionDivider);
 }
 
 void ZoneEditor::paintOverChildren (juce::Graphics& g)
@@ -1002,14 +991,17 @@ void ZoneEditor::resized ()
     for (auto* label : { &sampleStartLabel, &sampleEndLabel, &loopStartLabel, &loopLengthLabel })
         label->setBounds (label->getBounds ().withTrimmedRight (kSwatchGap + kSwatchWidth));
 
-    auto playControlsArea { loopPointsView.getBounds () };
-    const auto buttonHeight { playControlsArea.getHeight () / 3 };
-    oneShotPlayButton.setBounds (playControlsArea.getX () + 3, playControlsArea.getY () + 3, 35, buttonHeight);
-    loopPlayButton.setBounds (playControlsArea.getX () + 3, playControlsArea.getBottom () - 3 - buttonHeight, 35, buttonHeight);
+    // the audition buttons, a row of their own under the loop points, set off from them by a short rule
+    const auto dividerInset { 8 };
+    auditionDivider = { xOffset + dividerInset, loopPointsBackground.getBottom () + 6, loopLengthTextEditor.getRight () - xOffset - (dividerInset * 2), 1 };
+    const auto playButtonGap { 4 };
+    const auto playButtonWidth { (loopLengthTextEditor.getRight () - xOffset - playButtonGap) / 2 };
+    triggerButton.setBounds (xOffset, auditionDivider.getBottom () + 6, playButtonWidth, 18);
+    latchButton.setBounds (triggerButton.getRight () + playButtonGap, triggerButton.getY (), playButtonWidth, 18);
 
     const auto otherLabelScale { 0.66f };
     const auto otherInputScale { 1.f - otherLabelScale };
-    minVoltageLabel.setBounds (xOffset, loopLengthTextEditor.getBottom () + 5, scaleWidth (otherLabelScale), 20);
+    minVoltageLabel.setBounds (xOffset, triggerButton.getBottom () + 5, scaleWidth (otherLabelScale), 20);
     minVoltageTextEditor.setBounds (minVoltageLabel.getRight () + spaceBetweenLabelAndInput, minVoltageLabel.getY (), scaleWidth (otherInputScale) - spaceBetweenLabelAndInput, 20);
 
     pitchOffsetLabel.setBounds (xOffset, minVoltageTextEditor.getBottom () + 3, scaleWidth (otherLabelScale), 20);
@@ -1017,6 +1009,35 @@ void ZoneEditor::resized ()
 
     levelOffsetLabel.setBounds (xOffset, pitchOffsetLabel.getBottom () + 3, scaleWidth (otherLabelScale), 20);
     levelOffsetTextEditor.setBounds (levelOffsetLabel.getRight () + spaceBetweenLabelAndInput, levelOffsetLabel.getY (), scaleWidth (otherInputScale) - spaceBetweenLabelAndInput, 20);
+}
+
+void ZoneEditor::setPlayButtonsEnabled (bool enabled)
+{
+    triggerButton.setEnabled (enabled && ! isStereoRightChannelMode);
+    latchButton.setEnabled (enabled && ! isStereoRightChannelMode);
+}
+
+bool ZoneEditor::isPlayingThisZone ()
+{
+    return audioPlayerProperties.getPlayState () == AudioPlayerProperties::PlayState::play &&
+           audioPlayerProperties.getSampleSource () == std::tuple<int, int> { parentChannelIndex, zoneIndex };
+}
+
+void ZoneEditor::triggerVoice ()
+{
+    audioPlayerProperties.setSampleSource (parentChannelIndex, zoneIndex, false);
+    // the gate goes up first, so a Loop/Release loop is already enabled when the voice starts
+    audioPlayerProperties.setGate (true, false);
+    audioPlayerProperties.trigger (false);
+}
+
+void ZoneEditor::unlatch ()
+{
+    if (! latched)
+        return;
+    latched = false;
+    latchButton.setLit (false);
+    audioPlayerProperties.setGate (triggerHeld, false);
 }
 
 void ZoneEditor::setEditComponentsEnabled (bool enabled)

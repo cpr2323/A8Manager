@@ -226,6 +226,7 @@ public:
         systemServices.setEditManager (&editManager);
         // the device manager is a member of the player, so it can be published before the player is initialised
         systemServices.setAudioDeviceManager (&audioPlayer.getAudioDeviceManager ());
+        systemServices.setAuditionPlayhead (&audioPlayer.getAuditionPlayhead ());
     }
 
     void initAppDirectory ()

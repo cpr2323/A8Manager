@@ -7,6 +7,7 @@
 #include "../SampleManager/SampleProperties.h"
 #include "../../../../Assimil8or/Audio/AudioManager.h"
 #include "../../../../Assimil8or/Audio/AudioPlayerProperties.h"
+#include "../../../../Assimil8or/Audio/AuditionPlayhead.h"
 #include "../../../../Assimil8or/Preset/ChannelProperties.h"
 #include "../../../../Assimil8or/Preset/ZoneProperties.h"
 #include "oolib/GUI/InteractiveWaveform.h"
@@ -37,8 +38,12 @@
     markers that can be set to the point clicked added to it. With the keyboard
     focus, which a click anywhere on it gives it, the keys 1 to 4 jump to the
     four markers.
+
+    While the audition is playing this zone, its playhead is drawn over the
+    waveform, polled from the audio player a few dozen times a second.
 */
-class WaveformDisplay : public juce::Component
+class WaveformDisplay : public juce::Component,
+                        private juce::Timer
 {
 public:
     WaveformDisplay ();
@@ -127,6 +132,9 @@ private:
     SampleProperties sampleProperties;
     EditManager* editManager { nullptr };
     AudioManager* audioManager { nullptr };
+    AuditionPlayhead* auditionPlayhead { nullptr };
+    // where the playhead was last drawn, in this component's coordinates, or nothing while it is not shown
+    std::optional<float> playheadX;
     bool editable { true };
     AudioPlayerProperties::SamplePointsSelector activeSamplePoints { AudioPlayerProperties::SamplePointsSelector::SamplePoints };
 
@@ -169,6 +177,10 @@ private:
     double constrainMarker (int markerIndex, double proposedPosition);
     void markerMoved (int markerIndex);
 
+    bool isAuditionedZone ();
+    void repaintPlayhead (std::optional<float> x);
+
+    void timerCallback () override;
     void lookAndFeelChanged () override;
     bool keyPressed (const juce::KeyPress& key) override;
     void resized () override;

@@ -2653,9 +2653,6 @@ void ChannelEditor::resized ()
     xOffSet += columnWidth + spaceBetweenColumns;
     positionColumnFour (xOffSet, columnWidth);
 
-    // MODE and PAN stay editable (and so uncovered) on a stereo right channel
-    stereoRightTransparantOverly.setHoles ({ channelModeLabel.getBounds ().getUnion (channelModeComboBox.getBounds ()),
-                                             panLabel.getBounds ().getUnion (panTextEditor.getBounds ()) });
 
     // TODO - improve size calculation
     // Waveform Display
@@ -2672,6 +2669,19 @@ void ChannelEditor::resized ()
     expandedWaveformPanel.setExpandedWaveformBounds (juce::Rectangle<int>::leftTopRightBottom (15, zoneTabs.getY (),
                                                                                                sampleWaveformDisplay.getRight (),
                                                                                                sampleWaveformDisplay.getBottom ()));
+    updateStereoRightOverlayHoles ();
+}
+
+void ChannelEditor::updateStereoRightOverlayHoles ()
+{
+    // MODE and PAN stay editable (and so uncovered) on a stereo right channel
+    juce::RectangleList<int> holes;
+    holes.add (channelModeLabel.getBounds ().getUnion (channelModeComboBox.getBounds ()));
+    holes.add (panLabel.getBounds ().getUnion (panTextEditor.getBounds ()));
+    // but not where the expanded waveform covers them, as the hole would show through it
+    if (expandedWaveformPanel.isExpanded ())
+        holes.subtract (expandedWaveformPanel.waveformDisplay.getBounds () + expandedWaveformPanel.getPosition ());
+    stereoRightTransparantOverly.setHoles (holes);
 }
 
 void ChannelEditor::updateWaveformDisplay ()
@@ -2698,6 +2708,7 @@ void ChannelEditor::setWaveformExpanded (bool isExpanded)
     // the channel on screen opens and closes it in steps; the others, out of sight, just take the end state.
     // The panel keeps the focus on its waveform while open, so a field under it cannot go on taking typing.
     expandedWaveformPanel.setExpanded (isExpanded, isShowing ());
+    updateStereoRightOverlayHoles ();
 }
 
 void ChannelEditor::updateAllZoneTabNames ()

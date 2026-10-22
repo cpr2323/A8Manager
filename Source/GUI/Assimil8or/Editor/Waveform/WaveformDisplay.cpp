@@ -315,8 +315,46 @@ void WaveformDisplay::init (juce::ValueTree channelPropertiesVT, juce::ValueTree
     SystemServices systemServices { runtimeRootProperties.getValueTree (), SystemServices::WrapperType::client, SystemServices::EnableCallbacks::yes };
     editManager = systemServices.getEditManager ();
     audioManager = systemServices.getAudioManager ();
+    auditionPlayhead = systemServices.getAuditionPlayhead ();
 
     setZone (0);
+    startTimerHz (30);
+}
+
+bool WaveformDisplay::isAuditionedZone ()
+{
+    const auto playheadChannelIndex { auditionPlayhead->channelIndex.load () };
+    const auto displayChannelIndex { channelProperties.getId () - 1 };
+    // a Stereo/Right channel plays along with the channel before it, on the same playhead
+    const auto isPlayheadChannel { displayChannelIndex == playheadChannelIndex ||
+                                   (displayChannelIndex == playheadChannelIndex + 1 && channelProperties.getChannelMode () == ChannelProperties::ChannelMode::stereoRight) };
+    return isPlayheadChannel && zoneProperties.getId () - 1 == auditionPlayhead->zoneIndex.load ();
+}
+
+void WaveformDisplay::repaintPlayhead (std::optional<float> x)
+{
+    if (x.has_value ())
+        repaint (juce::Rectangle<int> { static_cast<int> (*x) - 1, waveform.getY (), 3, waveform.getHeight () });
+}
+
+void WaveformDisplay::timerCallback ()
+{
+    std::optional<float> newPlayheadX;
+    if (auditionPlayhead != nullptr && isShowing () && hasSample ())
+    {
+        const auto position { auditionPlayhead->position.load () };
+        if (position >= 0.0 && isAuditionedZone ())
+        {
+            const auto x { static_cast<float> (waveform.getX ()) + waveform.sampleToX (position) };
+            if (x >= static_cast<float> (waveform.getX ()) && x < static_cast<float> (waveform.getRight ()))
+                newPlayheadX = x;
+        }
+    }
+    if (newPlayheadX == playheadX)
+        return;
+    repaintPlayhead (playheadX);
+    playheadX = newPlayheadX;
+    repaintPlayhead (playheadX);
 }
 
 void WaveformDisplay::setZone (int zoneIndex)
@@ -886,6 +924,13 @@ void WaveformDisplay::paintOverChildren (juce::Graphics& g)
     // the hairline under each tool
     for (const auto* tool : { &expandButton, &toolsButton })
         g.fillRect (tool->getX (), tool->getBottom (), tool->getWidth (), 1);
+
+    // the audition's playhead, over the markers - cyan is playing
+    if (playheadX.has_value ())
+    {
+        g.setColour (findColour (A8Colours::accent));
+        g.fillRect (juce::Rectangle<float> { std::floor (*playheadX), static_cast<float> (waveform.getY ()), 1.0f, static_cast<float> (waveform.getHeight ()) });
+    }
 }
 
 //==============================================================================

@@ -5,6 +5,8 @@ void AudioPlayerProperties::initValueTree ()
     setPlayState (PlayState::stop, false);
     setSampleSource (-1, -1, false);
     setSamplePointsSelector (SamplePointsSelector::SamplePoints, false);
+    setValue (0, TriggerPropertyId, false);
+    setGate (false, false);
 }
 
 void AudioPlayerProperties::setPlayState (PlayState playState, bool includeSelfCallback)
@@ -23,6 +25,17 @@ void AudioPlayerProperties::setSamplePointsSelector (SamplePointsSelector sample
     setValue (static_cast<int> (samplePointsSelector), SamplePointsSelectorPropertyId, includeSelfCallback);
 }
 
+void AudioPlayerProperties::trigger (bool includeSelfCallback)
+{
+    // a count, so that every trigger is a change, and reaches the listeners
+    setValue (getValue<int> (TriggerPropertyId) + 1, TriggerPropertyId, includeSelfCallback);
+}
+
+void AudioPlayerProperties::setGate (bool gateHigh, bool includeSelfCallback)
+{
+    setValue (gateHigh, GatePropertyId, includeSelfCallback);
+}
+
 AudioPlayerProperties::PlayState AudioPlayerProperties::getPlayState ()
 {
     return static_cast<PlayState> (getValue<int> (PlayStatePropertyId));
@@ -38,6 +51,11 @@ std::tuple<int, int> AudioPlayerProperties::getSampleSource ()
 AudioPlayerProperties::SamplePointsSelector AudioPlayerProperties::getSamplePointsSelector ()
 {
     return static_cast<SamplePointsSelector> (getValue<int> (SamplePointsSelectorPropertyId));
+}
+
+bool AudioPlayerProperties::getGate ()
+{
+    return getValue<bool> (GatePropertyId);
 }
 
 void AudioPlayerProperties::valueTreePropertyChanged (juce::ValueTree& treeWhosePropertyHasChanged, const juce::Identifier& property)
@@ -58,6 +76,16 @@ void AudioPlayerProperties::valueTreePropertyChanged (juce::ValueTree& treeWhose
         {
             if (onSamplePointsSelectorChanged != nullptr)
                 onSamplePointsSelectorChanged (getSamplePointsSelector ());
+        }
+        else if (property == TriggerPropertyId)
+        {
+            if (onTrigger != nullptr)
+                onTrigger ();
+        }
+        else if (property == GatePropertyId)
+        {
+            if (onGateChange != nullptr)
+                onGateChange (getGate ());
         }
     }
 }
