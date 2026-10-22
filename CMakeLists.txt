@@ -27,6 +27,10 @@ set(CMAKE_XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH "NO")
 
 project(A8Manager VERSION 2.7)
 
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
 # Submodules must be initialised before building:
 #   git submodule update --init --recursive
 add_subdirectory(submodules/JUCE builds/JUCE)
