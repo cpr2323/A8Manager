@@ -43,6 +43,93 @@ std::unique_ptr<juce::AudioFormatReader> AudioManager::getReaderFor (const juce:
     return std::unique_ptr<juce::AudioFormatReader> (audioFormatManager.createReaderFor (file));
 }
 
+AudioManager::StagedSample AudioManager::stageSampleForPreset (juce::File sourceFile, juce::File presetFolder, std::function<bool (juce::File)> removeOriginal)
+{
+    // juce::File comparisons follow the platform's case sensitivity rules, which a plain string comparison of the paths does not
+    const auto sourceIsInPresetFolder { sourceFile.getParentDirectory () == presetFolder };
+    auto collisionError = [] (juce::File existingFile)
+    {
+        return "A different file named '" + existingFile.getFileName () + "' is already in the preset folder. Rename one of them and try again.";
+    };
+
+    if (isAssimil8orSupportedAudioFile (sourceFile))
+    {
+        if (sourceIsInPresetFolder)
+            return { sourceFile, {} };
+
+        const auto destinationFile { presetFolder.getChildFile (sourceFile.getFileName ()) };
+        if (destinationFile.exists ())
+        {
+            // the same sample being assigned again
+            if (destinationFile.hasIdenticalContentTo (sourceFile))
+                return { destinationFile, {} };
+            return { {}, collisionError (destinationFile) };
+        }
+
+        // copy through a temporary file, so a failed copy does not leave a partial sample in the preset folder
+        juce::TemporaryFile temporaryFile (destinationFile);
+        if (! sourceFile.copyFileTo (temporaryFile.getFile ()) || ! temporaryFile.overwriteTargetFileWithTemporary ())
+            return { {}, "Unable to copy '" + sourceFile.getFileName () + "' to the preset folder." };
+        return { destinationFile, {} };
+    }
+
+    // the file needs to be converted to a format the Assimil8or supports
+    const auto destinationFile { presetFolder.getChildFile (sourceFile.getFileNameWithoutExtension ()).withFileExtension ("wav") };
+    // ie. a floating point .wav in the preset folder, which is replaced by the converted version
+    const auto replacesSource { destinationFile == sourceFile };
+
+    // the conversion is written to a temporary file next to the destination, and only moved into place once it has succeeded,
+    // so neither the source, nor an existing file, is touched if something goes wrong
+    juce::TemporaryFile temporaryFile (destinationFile);
+    {
+        auto reader { getReaderFor (sourceFile) };
+        if (reader == nullptr)
+            return { {}, "Unable to read '" + sourceFile.getFileName () + "'." };
+        if (reader->numChannels == 0)
+            return { {}, "'" + sourceFile.getFileName () + "' contains no audio channels." };
+        if (reader->sampleRate > 192000)
+            return { {}, "The sample rate of '" + sourceFile.getFileName () + "' exceeds 192 kHz." };
+
+        std::unique_ptr<juce::OutputStream> outputStream { temporaryFile.getFile ().createOutputStream () };
+        if (outputStream == nullptr)
+            return { {}, "Unable to create a temporary file for '" + destinationFile.getFileName () + "'." };
+
+        const auto bitsPerSample { juce::jlimit (8, 24, static_cast<int> (reader->bitsPerSample)) }; // the wave writer supports int 8/16/24
+        const auto numChannels { juce::jmin (static_cast<int> (reader->numChannels), 2) };
+        juce::WavAudioFormat wavAudioFormat;
+        // on success, the writer takes ownership of the output stream, and will delete it when done
+        auto writer { wavAudioFormat.createWriterFor (outputStream, juce::AudioFormatWriterOptions {}.withSampleRate (reader->sampleRate)
+                                                                                                     .withNumChannels (numChannels)
+                                                                                                     .withBitsPerSample (bitsPerSample)) };
+        if (writer == nullptr)
+            return { {}, "Unable to create a writer for '" + destinationFile.getFileName () + "'." };
+        // TODO - this should be done in a thread, reading into a buffer, so progress can be displayed
+        if (! writer->writeFromAudioReader (*reader.get (), 0, -1))
+            return { {}, "Unable to convert '" + sourceFile.getFileName () + "'." };
+        // the reader and writer go out of scope here, closing both files before they are moved
+    }
+
+    if (destinationFile.exists () && ! replacesSource)
+    {
+        // the same sample being assigned again
+        if (destinationFile.hasIdenticalContentTo (temporaryFile.getFile ()))
+            return { destinationFile, {} };
+        return { {}, collisionError (destinationFile) };
+    }
+
+    if (! temporaryFile.overwriteTargetFileWithTemporary ())
+        return { {}, "Unable to move the converted '" + destinationFile.getFileName () + "' into the preset folder." };
+
+    if (replacesSource)
+        return { sourceFile, {} };
+
+    // a file that was converted to a new name in the preset folder is replaced by the new file. files from elsewhere are never removed
+    if (sourceIsInPresetFolder && ! removeOriginal (sourceFile))
+        return { destinationFile, "'" + sourceFile.getFileName () + "' was converted to '" + destinationFile.getFileName () + "', but the original could not be removed." };
+
+    return { destinationFile, {} };
+}
+
 juce::String AudioManager::getFileTypesList ()
 {
     juce::String fileTypesList;

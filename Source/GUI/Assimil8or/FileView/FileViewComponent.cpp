@@ -446,7 +446,7 @@ void FileViewComponent::listBoxItemClicked (int row, [[maybe_unused]] const juce
                                                                                             {
                                                                                                 if (option == 0) // no
                                                                                                     return;
-                                                                                                if (! directoryEntry.deleteFile ())
+                                                                                                if (! directoryEntry.moveToTrash ())
                                                                                                 {
                                                                                                 // TODO handle delete error
                                                                                                 }

@@ -33,4 +33,5 @@ target_link_libraries(A8ManagerRegressionTests PRIVATE
 
 add_test(NAME ParserCvRegression COMMAND A8ManagerRegressionTests --parser-cv)
 add_test(NAME StereoSplitRegression COMMAND A8ManagerRegressionTests --stereo-split)
-set_tests_properties(ParserCvRegression StereoSplitRegression PROPERTIES TIMEOUT 60)
+add_test(NAME SampleStagingRegression COMMAND A8ManagerRegressionTests --sample-staging)
+set_tests_properties(ParserCvRegression StereoSplitRegression SampleStagingRegression PROPERTIES TIMEOUT 60)

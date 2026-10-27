@@ -251,135 +251,33 @@ bool EditManager::assignSamples (int channelIndex, int zoneIndex, const juce::St
 //     LogMinVoltageDistribution ("  dropZoneStartIndex: " + juce::String (dropZoneStartIndex));
 //     LogMinVoltageDistribution ("  dropZoneEndIndex: " + juce::String (dropZoneEndIndex));
 
-    // assign the samples
+    // copy, or convert, the files into the preset folder before changing any zones, so a failure leaves the zones as they were
+    const auto presetFolder { juce::File (appProperties.getMostRecentFolder ()) };
+    std::vector<juce::File> stagedFiles;
+    juce::StringArray stagingMessages;
+    auto stagingFailed { false };
     for (auto filesIndex { 0 }; filesIndex < files.size () && zoneIndex + filesIndex < 8; ++filesIndex)
     {
-        auto convert = [this] (juce::File audioFile)
-        {
-            const auto fileIsInPresetFolder { appProperties.getMostRecentFolder () != audioFile.getParentDirectory ().getFullPathName () };
-            const auto finalFileName { juce::File (appProperties.getMostRecentFolder ()).getChildFile (audioFile.getFileNameWithoutExtension ()).withFileExtension ("wav") };
-            auto destinationFile = [this, audioFile, fileIsInPresetFolder] ()
-            {
-                if (fileIsInPresetFolder)
-                    return juce::File::createTempFile (".wav");
-                else
-                    return juce::File (appProperties.getMostRecentFolder ()).getChildFile (audioFile.getFileNameWithoutExtension ()).withFileExtension ("wav");
-            } ();
-            // setPosition () and truncate () are FileOutputStream only, so the setup has to happen while the pointer still has that type
-            auto destinationOutputFileStream { std::make_unique<juce::FileOutputStream> (destinationFile) };
-            destinationOutputFileStream->setPosition (0);
-            destinationOutputFileStream->truncate ();
-            // createWriterFor takes a unique_ptr<OutputStream>&, and a unique_ptr<FileOutputStream> cannot bind to a reference to a
-            // different type, so the stream is moved into a base typed pointer to hand over. this is the same stream: destinationOutputFileStream is null from here on
-            std::unique_ptr<juce::OutputStream> destinationFileStream { std::move (destinationOutputFileStream) };
+        const auto stagedSample { audioManager->stageSampleForPreset (juce::File (files [filesIndex]), presetFolder) };
+        if (stagedSample.errorMessage.isNotEmpty ())
+            stagingMessages.add (stagedSample.errorMessage);
+        if (stagedSample.file == juce::File ())
+            stagingFailed = true;
+        stagedFiles.emplace_back (stagedSample.file);
+    }
+    if (stagingFailed)
+    {
+        juce::AlertWindow::showMessageBoxAsync (juce::AlertWindow::WarningIcon, "Assign Samples Failed",
+                                                stagingMessages.joinIntoString ("\n") + "\n\nNo zones were changed.", {}, nullptr, nullptr);
+        return false;
+    }
+    if (! stagingMessages.isEmpty ())
+        juce::AlertWindow::showMessageBoxAsync (juce::AlertWindow::WarningIcon, "Assign Samples", stagingMessages.joinIntoString ("\n"), {}, nullptr, nullptr);
 
-            if (auto reader { audioManager->getReaderFor (audioFile) }; reader != nullptr)
-            {
-                auto sampleRate { reader->sampleRate };
-                auto numChannels { reader->numChannels };
-                auto bitsPerSample { reader->bitsPerSample };
-
-                if (bitsPerSample < 8)
-                    bitsPerSample = 8;
-                else if (bitsPerSample > 24) // the wave writer supports int 8/16/24
-                    bitsPerSample = 24;
-                jassert (numChannels != 0);
-                if (numChannels > 2)
-                    numChannels = 2;
-                if (reader->sampleRate > 192000)
-                {
-                    // we need to do sample rate conversion
-                    jassertfalse;
-                }
-
-                juce::WavAudioFormat wavAudioFormat;
-                // on success, the writer takes ownership of the output stream, and will delete it when done
-                if (auto writer { wavAudioFormat.createWriterFor (destinationFileStream, juce::AudioFormatWriterOptions {}.withSampleRate (sampleRate)
-                                                                                                                         .withNumChannels (static_cast<int> (numChannels))
-                                                                                                                         .withBitsPerSample (bitsPerSample)) }; writer != nullptr)
-                {
-                    // copy the whole thing
-                    // TODO - two things
-                    //   a) this needs to be done in a thread
-                    //   b) we should locally read into a buffer and then write that, so we can display progress if needed
-                    if (writer->writeFromAudioReader (*reader.get (), 0, -1) == true)
-                    {
-                        // close the writer and reader, so that we can manipulate the files
-                        writer.reset ();
-                        reader.reset ();
-
-                        // if file is in preset folder, then we delete the original, and move the temp file to the original name
-                        // otherwise the file was not in the preset folder, and we just converted it directly into the preset folder
-                        if (fileIsInPresetFolder)
-                        {
-                            // TODO - should we rename the original, until we have succeeded in copying of the new file, and only then delete it
-                            if (audioFile.deleteFile () == true)
-                            {
-                                if (destinationFile.moveFileTo (finalFileName) == false)
-                                {
-                                    // failure to move temp file to new file
-                                    jassertfalse;
-                                }
-                                else
-                                {
-                                    return finalFileName;
-                                }
-                            }
-                            else
-                            {
-                                // failure to delete original file
-                                jassertfalse;
-                            }
-                        }
-                        else
-                        {
-                            return finalFileName;
-                        }
-                    }
-                    else
-                    {
-                        // failure to convert
-                        jassertfalse;
-                    }
-                }
-                else
-                {
-                    //failure to create writer
-                    jassertfalse;
-                }
-            }
-            else
-            {
-                // failure to create reader
-                jassertfalse;
-            }
-            return juce::File ();
-        };
-        juce::File file (files [filesIndex]);
-        // if file not in preset folder, then copy
-        if (appProperties.getMostRecentFolder () != file.getParentDirectory ().getFullPathName ())
-        {
-            // TODO handle case where file of same name already exists
-            if (audioManager->isAssimil8orSupportedAudioFile (file))
-            {
-                // TODO should copy be moved to a thread?
-                file.copyFileTo (juce::File (appProperties.getMostRecentFolder ()).getChildFile (file.getFileName ()));
-                // TODO handle failure
-            }
-            else
-            {
-                // convert
-                file = convert (file);
-            }
-        }
-        else // file is in preset folder
-        {
-            if (! audioManager->isAssimil8orSupportedAudioFile (file))
-            {
-                // convert
-                file = convert (file);
-            }
-        }
+    // assign the samples
+    for (auto filesIndex { 0 }; filesIndex < static_cast<int> (stagedFiles.size ()); ++filesIndex)
+    {
+        const auto& file { stagedFiles [filesIndex] };
         //juce::Logger::outputDebugString ("assigning '" + file.getFileName () + "' to Zone " + juce::String (zoneIndex + filesIndex));
         // assign file to zone
         auto& zoneProperties { zoneAndSamplePropertiesList [channelIndex][zoneIndex + filesIndex].zoneProperties };

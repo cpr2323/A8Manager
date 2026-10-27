@@ -19,12 +19,12 @@ ctest --test-dir cmake_build -C Debug --output-on-failure
 
 The `--config`/`-C` options also select Debug for multi-configuration generators
 such as Visual Studio. Tests are disabled by default; normal application builds
-are unchanged. The probes were verified on macOS; other platforms have not been
-verified. They do not open an application window or audio device.
+are unchanged. The probes were verified on macOS and Windows (Visual Studio); Linux
+has not been verified. They do not open an application window or audio device.
 
-CTest registers two tests, each with a 60-second timeout. Use `ctest --test-dir
+CTest registers three tests, each with a 60-second timeout. Use `ctest --test-dir
 cmake_build -C Debug -V` for detailed output or add `-R ParserCvRegression` /
-`-R StereoSplitRegression` to select one test. Failed checks return a nonzero exit
+`-R StereoSplitRegression` / `-R SampleStagingRegression` to select one test. Failed checks return a nonzero exit
 code, including in Release builds.
 
 - **ParserCvRegression:** unknown parameters at global, preset, channel, and zone
@@ -44,3 +44,17 @@ code, including in Release builds.
 The stereo content checks catch the original byte-count bug: copying 16-/24-bit
 file-sized byte counts from a float buffer leaves part of each output channel
 uncopied. Merely checking output file existence and length would miss it.
+
+- **SampleStagingRegression:** calls `AudioManager::stageSampleForPreset()`, which
+  copies or converts a sample into the preset folder when it is assigned to a zone,
+  using generated WAV (16-bit and 32-bit float) and AIFF files in a unique temporary
+  folder. Checks that files from outside the preset folder are never modified or
+  removed, that a float WAV in the preset folder is converted in place without losing
+  its audio, that a converted AIFF in the preset folder is removed only through the
+  `removeOriginal` callback (the tests record it instead of using the Recycle Bin),
+  that a different file of the same name is never overwritten, that assigning the
+  same sample twice reuses the identical file, that unreadable files are reported
+  with nothing left behind, and (Windows only) that the preset folder is recognised
+  when its path is spelled with different case. These cases caught source files being
+  deleted and in-place conversions being truncated in the logic that
+  `EditManager::assignSamples()` used before.

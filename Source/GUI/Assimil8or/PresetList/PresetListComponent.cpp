@@ -461,7 +461,7 @@ void PresetListComponent::deletePreset (int presetNumber)
         {
             if (option == 0) // no
                 return;
-            presetFile.deleteFile ();
+            presetFile.moveToTrash ();
             // TODO handle delete error
             auto [lastSelectedPresetNumber, thisPresetExists, presetName] { presetInfoList [lastSelectedPresetIndex] };
             if (presetNumber == lastSelectedPresetNumber)
