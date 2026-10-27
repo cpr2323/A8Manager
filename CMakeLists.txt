@@ -25,7 +25,7 @@ endif()
 # whether the Xcode destination is set to "My Mac" or "Any Mac".
 set(CMAKE_XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH "NO")
 
-project(A8Manager VERSION 2.7)
+project(A8Manager VERSION 2.7.1)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
