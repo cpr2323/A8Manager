@@ -12,6 +12,51 @@
 #include "../../../Utility/DebugLog.h"
 #include "../../../Utility/RuntimeRootProperties.h"
 
+/*
+    The channel tabs, with the two tabs of a stereo pair drawn as one: the outlines where they meet are
+    filled over. The default leaves a pixel between tabs, which no outline could cover, so here they touch,
+    and a tab that is not joined to its neighbour keeps its own outline on that side.
+*/
+class ChannelTabsLookAndFeel : public juce::LookAndFeel_V4
+{
+public:
+    static inline const juce::Identifier kJoinedToNextPropertyId { "joinedToNext" };
+
+    int getTabButtonOverlap ([[maybe_unused]] int tabDepth) override { return 0; }
+
+    void drawTabButton (juce::TabBarButton& button, juce::Graphics& g, bool isMouseOver, bool isMouseDown) override
+    {
+        juce::LookAndFeel_V4::drawTabButton (button, g, isMouseOver, isMouseDown);
+
+        const auto* previousTab { button.getTabbedButtonBar ().getTabButton (button.getIndex () - 1) };
+        const auto joinedToNext { isJoinedToNext (&button) };
+        const auto joinedToPrevious { isJoinedToNext (previousTab) };
+        if (! joinedToNext && ! joinedToPrevious)
+            return;
+
+        // filled as LookAndFeel_V3::drawTabButton fills the tab, for tabs along the top
+        const auto activeArea { button.getActiveArea () };
+        const auto bkg { button.getTabBackgroundColour () };
+        if (button.getToggleState ())
+            g.setColour (bkg);
+        else
+            g.setGradientFill (juce::ColourGradient (bkg.brighter (0.2f), activeArea.getTopLeft ().toFloat (),
+                                                     bkg.darker (0.1f), activeArea.getBottomLeft ().toFloat (), false));
+        // leaving the outline along the top
+        const auto edgeArea { activeArea.withTrimmedTop (1) };
+        if (joinedToNext)
+            g.fillRect (edgeArea.withLeft (edgeArea.getRight () - 1));
+        if (joinedToPrevious)
+            g.fillRect (edgeArea.withWidth (1));
+    }
+
+private:
+    static bool isJoinedToNext (const juce::TabBarButton* tabButton)
+    {
+        return tabButton != nullptr && static_cast<bool> (tabButton->getProperties ().getWithDefault (kJoinedToNextPropertyId, false));
+    }
+};
+
 class WindowDecorator : public juce::Component
 {
 public:
@@ -58,6 +103,7 @@ private:
     juce::TextButton saveButton;
     juce::TextButton toolsButton;
 
+    ChannelTabsLookAndFeel channelTabsLookAndFeel;
     juce::TabbedComponent channelTabs { juce::TabbedButtonBar::Orientation::TabsAtTop };
     WindowDecorator windowDecorator;
 

@@ -31,6 +31,7 @@ Assimil8orEditorComponent::Assimil8orEditorComponent ()
 
     for (auto curChannelIndex { 0 }; curChannelIndex < 8; ++curChannelIndex)
         channelTabs.addTab ("CH " + juce::String::charToString ('1' + curChannelIndex), juce::Colours::darkgrey, &channelEditors [curChannelIndex], false);
+    channelTabs.getTabbedButtonBar ().setLookAndFeel (&channelTabsLookAndFeel);
     addAndMakeVisible (channelTabs);
 
     // add this AFTER the Channels tabs, because it occupies some of the same space, and ends up behind the tabs if we add it before
@@ -64,6 +65,7 @@ Assimil8orEditorComponent::Assimil8orEditorComponent ()
 
 Assimil8orEditorComponent::~Assimil8orEditorComponent ()
 {
+    channelTabs.getTabbedButtonBar ().setLookAndFeel (nullptr);
     juce::Desktop::getInstance ().removeFocusChangeListener (this);
     if (focusedKeyTarget != nullptr)
         focusedKeyTarget->removeKeyListener (this);
@@ -796,6 +798,10 @@ void Assimil8orEditorComponent::setChannelTabName (int channelIndex)
     }
 
     channelTabs.setTabName (channelIndex, channelTabTitle);
+    // the left tab of a stereo pair is drawn joined to the right one
+    auto& tabbedButtonBar { channelTabs.getTabbedButtonBar () };
+    tabbedButtonBar.getTabButton (channelIndex)->getProperties ().set (ChannelTabsLookAndFeel::kJoinedToNextPropertyId, channelTabTitle.endsWith ("-L"));
+    tabbedButtonBar.repaint ();
 }
 
 void Assimil8orEditorComponent::setPresetToDefaults ()
