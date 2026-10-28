@@ -15,4 +15,4 @@ namespace PresetHelpers
     void setCvInputAndAmount (CvInputAndAmount cvInputAndAmount, std::function<void (juce::String, double)> setter);
     int getCvInputIndex (juce::String cvInput);
     juce::String getCvInputString (int cvInputIndex);
-};
+}

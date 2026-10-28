@@ -17,9 +17,9 @@ void ParameterToolTipData::processValueTree ()
 {
 #if 1
     // process all of the tooltip strings for escape characters
-    ValueTreeHelpers::forEachChild (data, [this] (juce::ValueTree sectionVT)
+    ValueTreeHelpers::forEachChild (data, [] (juce::ValueTree sectionVT)
     {
-        ValueTreeHelpers::forEachChild (sectionVT, [this] (juce::ValueTree tooltipVT)
+        ValueTreeHelpers::forEachChild (sectionVT, [] (juce::ValueTree tooltipVT)
         {
             auto rawToolTipString { tooltipVT.getProperty ("tooltip").toString () };
             juce::String processedToolTipString;

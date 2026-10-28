@@ -10,9 +10,9 @@ void MidiSetupFile::write (juce::File midiSetupFile, juce::ValueTree midiSetupPr
     MidiSetupProperties midiSetupPropertiesToWrite (midiSetupPropertiesVT, MidiSetupProperties::WrapperType::owner, MidiSetupProperties::EnableCallbacks::no);
 
     juce::StringArray lines;
-    auto addLine = [this, &lines] (juce::String key, int value)
+    auto addLine = [&lines] (juce::String keyToAdd, int valueToAdd)
     {
-        juce::String lineToAdd { key + " : " + juce::String (value) };
+        juce::String lineToAdd { keyToAdd + " : " + juce::String (valueToAdd) };
         lines.add (juce::String (lineToAdd));
     };
 

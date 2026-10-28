@@ -15,7 +15,7 @@ AudioManager::AudioManager ()
     }
 }
 
-void AudioManager::init (juce::ValueTree rootPropertiesVT)
+void AudioManager::init ([[maybe_unused]] juce::ValueTree rootPropertiesVT)
 {
 }
 
@@ -311,7 +311,7 @@ void AudioManager::mixStereoToMono (juce::File inputFile)
         // on success, the writer takes ownership of the output stream, and will delete it when done
         if (auto writer { wavAudioFormat.createWriterFor (outputStream, juce::AudioFormatWriterOptions {}.withSampleRate (sampleFileReader->sampleRate)
                                                                                                         .withNumChannels (1)
-                                                                                                        .withBitsPerSample (sampleFileReader->bitsPerSample)) }; writer != nullptr)
+                                                                                                        .withBitsPerSample (static_cast<int> (sampleFileReader->bitsPerSample))) }; writer != nullptr)
         {
             writer->writeFromAudioSampleBuffer (monoAudioBuffer, 0, static_cast<int> (sampleFileReader->lengthInSamples));
         }
@@ -365,7 +365,7 @@ void AudioManager::splitStereoIntoTwoMono (juce::File inputFile)
             // on success, the writer takes ownership of the output stream, and will delete it when done
             if (auto writer { wavAudioFormat.createWriterFor (outputStream, juce::AudioFormatWriterOptions {}.withSampleRate (sampleFileReader->sampleRate)
                                                                                                             .withNumChannels (1)
-                                                                                                            .withBitsPerSample (sampleFileReader->bitsPerSample)) }; writer != nullptr)
+                                                                                                            .withBitsPerSample (static_cast<int> (sampleFileReader->bitsPerSample))) }; writer != nullptr)
             {
                 writer->writeFromAudioSampleBuffer (monoAudioBuffer, 0, static_cast<int> (sampleFileReader->lengthInSamples));
             }

@@ -39,11 +39,11 @@ void LoopPointsView::paint (juce::Graphics& g)
     if (audioBuffer != nullptr && audioBuffer->getNumSamples () >= numSamples && numSamples > 4 && audioBuffer->getNumSamples () >= sampleOffset + numSamples)
     {
         juce::dsp::AudioBlock<float> audioBlock { *audioBuffer };
-        juce::dsp::AudioBlock<float> loopSamples { audioBlock.getSubBlock (sampleOffset, numSamples) };
+        juce::dsp::AudioBlock<float> loopSamples { audioBlock.getSubBlock (static_cast<size_t> (sampleOffset), static_cast<size_t> (numSamples)) };
         const auto samplesToDisplay { static_cast<int> (std::min<juce::int64> (numSamples, halfWidth)) };
 
         g.setColour (findColour (A8Colours::waveformForeground));
-        auto readPtr { loopSamples.getChannelPointer (side < audioBuffer->getNumChannels () ? side : 0) };
+        auto readPtr { loopSamples.getChannelPointer (static_cast<size_t> (side < audioBuffer->getNumChannels () ? side : 0)) };
         for (auto sampleCount { 0 }; sampleCount < samplesToDisplay - 1; ++sampleCount)
         {
             // draw one line of sample going reverse from middle to left

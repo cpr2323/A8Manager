@@ -18,7 +18,7 @@ public:
     static inline const juce::Identifier PresetHolderPropertiesTypeId { "PresetHolder" };
     static inline const juce::Identifier PresetHolderNamePropertyId { "name" };
 
-    void initValueTree () {};
+    void initValueTree () {}
     void processValueTree () {}
 
 private:

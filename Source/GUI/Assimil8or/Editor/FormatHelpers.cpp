@@ -8,7 +8,7 @@ namespace FormatHelpers
         if (includeSign && value >= 0.0)
             signString = "+";
         return signString + juce::String (value, decimalPlaces);
-    };
+    }
 
     juce::String getCvInput (const CvInputAndAmount& cvInputAndAmount)
     {
@@ -21,4 +21,4 @@ namespace FormatHelpers
         auto [_, amount] { cvInputAndAmount };
         return amount;
 }
-};
+}

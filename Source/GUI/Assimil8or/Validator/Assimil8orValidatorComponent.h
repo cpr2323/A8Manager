@@ -14,7 +14,7 @@ class Assimil8orValidatorComponent : public juce::Component,
 {
 public:
     Assimil8orValidatorComponent ();
-    ~Assimil8orValidatorComponent ();
+    ~Assimil8orValidatorComponent () override;
 
     void init (juce::ValueTree rootPropertiesVT);
 

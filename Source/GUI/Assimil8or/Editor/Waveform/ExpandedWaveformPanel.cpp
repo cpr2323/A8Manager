@@ -62,7 +62,7 @@ void ExpandedWaveformPanel::timerCallback ()
     updateWaveformVisibility ();
     repaint ();
 
-    if (washAmount == (expanded ? 1.0 : 0.0))
+    if (juce::exactlyEqual (washAmount, (expanded ? 1.0 : 0.0)))
     {
         stopTimer ();
         if (! expanded)

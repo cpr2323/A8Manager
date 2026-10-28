@@ -57,7 +57,7 @@ void AREnvelopeComponent::paint (juce::Graphics& g)
                                                    static_cast<float> (kOffset + anchor.getY () - curRadius),
                                                    static_cast<float> (curSize),
                                                    static_cast<float> (curSize)), lineWidth);
-            alpha -= alphaStep;
+            alpha = static_cast<float> (alpha - alphaStep);
         }
         g.setColour (traceColour);
         g.drawEllipse (juce::Rectangle<float> (static_cast<float> (kOffset + anchor.getX () - endSize / 2.0f),
@@ -173,7 +173,7 @@ void AREnvelopeComponent::mouseDrag (const juce::MouseEvent& e)
     const auto newTime { newX / editorWidth };
     if (curActiveAnchor == &attackAnchor)
     {
-        if (newTime - startAnchor.getTime () != attackAnchor.getTime ())
+        if (! juce::exactlyEqual (newTime - startAnchor.getTime (), attackAnchor.getTime ()))
         {
             const auto newAttackTime { std::fmin (std::fmax ((float) newTime - startAnchor.getTime (), 0.0), std::fmin (attackAnchor.getMaxTime (), 1.0 - releaseAnchor.getTime ())) };
             attackAnchor.setTime (newAttackTime);
@@ -182,7 +182,7 @@ void AREnvelopeComponent::mouseDrag (const juce::MouseEvent& e)
     }
     else
     {
-        if (newTime - attackAnchor.getTime () != releaseAnchor.getTime ())
+        if (! juce::exactlyEqual (newTime - attackAnchor.getTime (), releaseAnchor.getTime ()))
         {
             const auto newReleaseTime { std::fmin (std::fmax ((float) newTime - attackAnchor.getTime (), 0.0), std::fmin (releaseAnchor.getMaxTime (), 1.0 - attackAnchor.getTime ())) };
             releaseAnchor.setTime (newReleaseTime);

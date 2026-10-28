@@ -15,7 +15,7 @@ class PresetListComponent : public juce::Component,
 {
 public:
     PresetListComponent ();
-    ~PresetListComponent () = default;
+    ~PresetListComponent () override = default;
     void init (juce::ValueTree rootPropertiesVT);
 
     // narrow enough that the header still fits its title, tool and count

@@ -45,7 +45,7 @@ void RenameDialogContent::doRename (juce::File oldFile)
         // rename failed
         juce::AlertWindow::showMessageBoxAsync (juce::AlertWindow::WarningIcon, "Rename Failed",
                                                 "Unable to rename '" + oldFile.getFileName () + "' to '" + newFile.getFileName () + "'", {}, nullptr,
-                                                juce::ModalCallbackFunction::create ([this] (int) {}));
+                                                juce::ModalCallbackFunction::create ([] (int) {}));
     }
 }
 

@@ -91,7 +91,7 @@ void ValidatorResultProperties::addFixerEntry (juce::String fixerType, juce::Str
 void ValidatorResultProperties::forEachFixerEntry (std::function<bool (juce::ValueTree fixerEntryVT)> fixerEntryVTCallback)
 {
     jassert (fixerEntryVTCallback != nullptr);
-    ValueTreeHelpers::forEachChildOfType (data, FixerEntryProperties::FixerEntryTypeId, [this, fixerEntryVTCallback] (juce::ValueTree validatorResultsVT)
+    ValueTreeHelpers::forEachChildOfType (data, FixerEntryProperties::FixerEntryTypeId, [fixerEntryVTCallback] (juce::ValueTree validatorResultsVT)
     {
         return fixerEntryVTCallback (validatorResultsVT);
     });

@@ -34,4 +34,4 @@ namespace FileTypeHelpers
     bool isSystemFile (juce::File file);
     bool isMidiSetupFile (juce::File file);
     bool isAudioFile (juce::File file);
-};
+}

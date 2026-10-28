@@ -56,4 +56,4 @@ namespace FileTypeHelpers
                file.getFileNameWithoutExtension ().toLowerCase ().startsWith (kMidiSetupFileNamePrefix) &&
                file.getFileNameWithoutExtension ().substring (kMidiSetupNumberOffset, kMidiSetupNumberOffset + 1).containsOnly ("123456789");
     }
-};
+}

@@ -18,7 +18,7 @@ class Assimil8orValidator : public juce::Thread
 {
 public:
     Assimil8orValidator ();
-    ~Assimil8orValidator ();
+    ~Assimil8orValidator () override;
 
     void init (juce::ValueTree rootPropertiesVT);
 

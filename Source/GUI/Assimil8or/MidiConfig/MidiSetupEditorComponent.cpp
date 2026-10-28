@@ -9,8 +9,8 @@ MidiSetupEditorComponent::MidiSetupEditorComponent ()
     };
     auto setupComboBox = [this] (juce::ComboBox& comboBox, const std::vector<juce::String>& comboBoxItems, std::function<void ()> onChangeCallback)
     {
-        for (auto itemIndex { 0 }; itemIndex < comboBoxItems.size (); ++itemIndex)
-            comboBox.addItem (comboBoxItems [itemIndex], itemIndex + 1);
+        for (auto itemIndex { 0 }; itemIndex < static_cast<int> (comboBoxItems.size ()); ++itemIndex)
+            comboBox.addItem (comboBoxItems [static_cast<size_t> (itemIndex)], itemIndex + 1);
         comboBox.setTooltip ("");
         comboBox.onChange = onChangeCallback;
         addAndMakeVisible (comboBox);
@@ -27,7 +27,7 @@ MidiSetupEditorComponent::MidiSetupEditorComponent ()
         auto editMenu { createMidiSetupEditMenu ([this] (MidiSetupProperties& destMidiSetupProperties) { destMidiSetupProperties.setMode (midiSetupProperties.getMode (), false); },
                                                  [this] () { midiSetupProperties.setMode (1, true); },
                                                  [this] () { midiSetupProperties.setMode (uneditedMidiSetupProperties.getMode (), true); }) };
-        editMenu.showMenuAsync ({}, [this] (int) {});
+        editMenu.showMenuAsync ({}, [] (int) {});
     };
     modeComboBox.setTooltip ("");
     setupComboBox (modeComboBox, { "Omni", "Uni", "Multi" }, [this] ()
@@ -68,7 +68,7 @@ MidiSetupEditorComponent::MidiSetupEditorComponent ()
                                                      midiSetupProperties.setMode (uneditedMidiSetupProperties.getMode (), true);
                                                      midiSetupProperties.setAssign (uneditedMidiSetupProperties.getAssign (), true);
                                                  }) };
-        editMenu.showMenuAsync ({}, [this] (int) {});
+        editMenu.showMenuAsync ({}, [] (int) {});
     };
     assignComboBox.setTooltip ("");
     // the assignComboBox is populated in MidiSetupEditorComponent::populateAssignmentComboBox based on current mode
@@ -88,7 +88,7 @@ MidiSetupEditorComponent::MidiSetupEditorComponent ()
         auto editMenu { createMidiSetupEditMenu ([this] (MidiSetupProperties& destMidiSetupProperties) { destMidiSetupProperties.setBasicChannel (midiSetupProperties.getBasicChannel (), false); },
                                                  [this] () { midiSetupProperties.setBasicChannel (0, true); },
                                                  [this] () { midiSetupProperties.setBasicChannel (uneditedMidiSetupProperties.getBasicChannel (), true); }) };
-        editMenu.showMenuAsync ({}, [this] (int) {});
+        editMenu.showMenuAsync ({}, [] (int) {});
     };
     basicChannelComboBox.setTooltip ("");
     setupComboBox (basicChannelComboBox, { "1", "2", "3", "4","5", "6", "7", "8", "9", "10", "11", "12", "13", "14","15", "16" },
@@ -106,7 +106,7 @@ MidiSetupEditorComponent::MidiSetupEditorComponent ()
         auto editMenu { createMidiSetupEditMenu ([this] (MidiSetupProperties& destMidiSetupProperties) { destMidiSetupProperties.setRcvProgramChange (midiSetupProperties.getRcvProgramChange (), false); },
                                                  [this] () { midiSetupProperties.setRcvProgramChange (1, true); },
                                                  [this] () { midiSetupProperties.setRcvProgramChange (uneditedMidiSetupProperties.getRcvProgramChange (), true); }) };
-        editMenu.showMenuAsync ({}, [this] (int) {});
+        editMenu.showMenuAsync ({}, [] (int) {});
     };
     rcvProgramChangeComboBox.setTooltip ("");
     setupComboBox (rcvProgramChangeComboBox, { "Off", "Exists","Any" }, [this] () { rcvProgramChangeUiChanged (rcvProgramChangeComboBox.getSelectedId (), false); });
@@ -123,7 +123,7 @@ MidiSetupEditorComponent::MidiSetupEditorComponent ()
         auto editMenu { createMidiSetupEditMenu ([this] (MidiSetupProperties& destMidiSetupProperties) { destMidiSetupProperties.setXmtProgramChange (midiSetupProperties.getXmtProgramChange (), false); },
                                                  [this] () { midiSetupProperties.setXmtProgramChange (1, true); },
                                                  [this] () { midiSetupProperties.setXmtProgramChange (uneditedMidiSetupProperties.getXmtProgramChange (), true); }) };
-        editMenu.showMenuAsync ({}, [this] (int) {});
+        editMenu.showMenuAsync ({}, [] (int) {});
     };
 
     xmtProgramChangeComboBox.setTooltip ("");
@@ -141,7 +141,7 @@ MidiSetupEditorComponent::MidiSetupEditorComponent ()
         auto editMenu { createMidiSetupEditMenu ([this] (MidiSetupProperties& destMidiSetupProperties) { destMidiSetupProperties.setColACC (midiSetupProperties.getColACC (), false); },
                                                  [this] () { midiSetupProperties.setColACC (-1, true); },
                                                  [this] () { midiSetupProperties.setColACC (uneditedMidiSetupProperties.getColACC (), true); }) };
-        editMenu.showMenuAsync ({}, [this] (int) {});
+        editMenu.showMenuAsync ({}, [] (int) {});
     };
     colACCComboBox.setTooltip ("");
     populateColCCComboBox (colACCComboBox);
@@ -160,7 +160,7 @@ MidiSetupEditorComponent::MidiSetupEditorComponent ()
         auto editMenu { createMidiSetupEditMenu ([this] (MidiSetupProperties& destMidiSetupProperties) { destMidiSetupProperties.setColBCC (midiSetupProperties.getColBCC (), false); },
                                                  [this] () { midiSetupProperties.setColBCC (-1, true); },
                                                  [this] () { midiSetupProperties.setColBCC (uneditedMidiSetupProperties.getColBCC (), true); }) };
-        editMenu.showMenuAsync ({}, [this] (int) {});
+        editMenu.showMenuAsync ({}, [] (int) {});
     };
     colBCCComboBox.setTooltip ("");
     populateColCCComboBox (colBCCComboBox);
@@ -179,7 +179,7 @@ MidiSetupEditorComponent::MidiSetupEditorComponent ()
         auto editMenu { createMidiSetupEditMenu ([this] (MidiSetupProperties& destMidiSetupProperties) { destMidiSetupProperties.setColCCC (midiSetupProperties.getColCCC (), false); },
                                                 [this] () { midiSetupProperties.setColCCC (-1, true); },
                                                 [this] () { midiSetupProperties.setColCCC (uneditedMidiSetupProperties.getColCCC (), true); }) };
-        editMenu.showMenuAsync ({}, [this] (int) {});
+        editMenu.showMenuAsync ({}, [] (int) {});
     };
     colCCCComboBox.setTooltip ("");
     populateColCCComboBox (colCCCComboBox);
@@ -198,7 +198,7 @@ MidiSetupEditorComponent::MidiSetupEditorComponent ()
         auto editMenu { createMidiSetupEditMenu ([this] (MidiSetupProperties& destMidiSetupProperties) { destMidiSetupProperties.setPitchWheelSemi (midiSetupProperties.getPitchWheelSemi (), false); },
                                                  [this] () { midiSetupProperties.setPitchWheelSemi (12, true); },
                                                  [this] () { midiSetupProperties.setPitchWheelSemi (uneditedMidiSetupProperties.getPitchWheelSemi (), true); }) };
-        editMenu.showMenuAsync ({}, [this] (int) {});
+        editMenu.showMenuAsync ({}, [] (int) {});
     };
     pitchWheelSemiComboBox.setTooltip ("");
     for (auto pitchBendAmount { 0 }; pitchBendAmount < 49; ++pitchBendAmount)
@@ -208,9 +208,9 @@ MidiSetupEditorComponent::MidiSetupEditorComponent ()
 
     // VELOCITY DEPTH
     setupLabel (velocityDepthLabel, "Velocity Depth");
-    velocityDepthTextEditor.getMinValueCallback = [this] () { return 0; };
-    velocityDepthTextEditor.getMaxValueCallback = [this] () { return 127; };
-    velocityDepthTextEditor.toStringCallback = [this] (int value) { return juce::String (value); };
+    velocityDepthTextEditor.getMinValueCallback = [] () { return 0; };
+    velocityDepthTextEditor.getMaxValueCallback = [] () { return 127; };
+    velocityDepthTextEditor.toStringCallback = [] (int value) { return juce::String (value); };
     velocityDepthTextEditor.updateDataCallback = [this] (int value) { velocityDepthUiChanged (value, false); };
     velocityDepthTextEditor.onDragCallback = [this] (double valueDelta)
     {
@@ -222,7 +222,7 @@ MidiSetupEditorComponent::MidiSetupEditorComponent ()
         auto editMenu { createMidiSetupEditMenu ([this] (MidiSetupProperties& destMidiSetupProperties) { destMidiSetupProperties.setVelocityDepth (midiSetupProperties.getVelocityDepth (), false); },
                                                  [this] () { midiSetupProperties.setVelocityDepth (32, true); },
                                                  [this] () { midiSetupProperties.setVelocityDepth (uneditedMidiSetupProperties.getVelocityDepth (), true); }) };
-        editMenu.showMenuAsync ({}, [this] (int) {});
+        editMenu.showMenuAsync ({}, [] (int) {});
     };
     velocityDepthTextEditor.setTooltip ("");
     addAndMakeVisible (velocityDepthTextEditor);
@@ -239,7 +239,7 @@ MidiSetupEditorComponent::MidiSetupEditorComponent ()
         auto editMenu { createMidiSetupEditMenu ([this] (MidiSetupProperties& destMidiSetupProperties) { destMidiSetupProperties.setNotifications (midiSetupProperties.getNotifications (), false); },
                                                  [this] () { midiSetupProperties.setNotifications (1, true); },
                                                  [this] () { midiSetupProperties.setNotifications (uneditedMidiSetupProperties.getNotifications (), true); }) };
-        editMenu.showMenuAsync ({}, [this] (int) {});
+        editMenu.showMenuAsync ({}, [] (int) {});
     };
     notificationsComboBox.setTooltip ("");
     setupComboBox (notificationsComboBox, { "Off", "On" }, [this] () { notificationsUiChanged (notificationsComboBox.getSelectedId (), false); });
@@ -256,7 +256,7 @@ MidiSetupEditorComponent::MidiSetupEditorComponent ()
         auto editMenu { createMidiSetupEditMenu ([this] (MidiSetupProperties& destMidiSetupProperties) { destMidiSetupProperties.setIndexBaseKey (midiSetupProperties.getIndexBaseKey (), false); },
                                                     [this] () { midiSetupProperties.setIndexBaseKey (120, true); },
                                                     [this] () { midiSetupProperties.setIndexBaseKey (uneditedMidiSetupProperties.getIndexBaseKey (), true); }) };
-        editMenu.showMenuAsync ({}, [this] (int) {});
+        editMenu.showMenuAsync ({}, [] (int) {});
     };
     indexBaseKeyComboBox.setTooltip ("");
     for (auto baseKey { 0 }; baseKey < 121; ++baseKey)
@@ -281,7 +281,7 @@ MidiSetupEditorComponent::MidiSetupEditorComponent ()
         {
             midiSetupProperties.copyFrom (uneditedMidiSetupProperties.getValueTree ());
         });
-        toolsMenu.showMenuAsync (juce::PopupMenu::Options ().withTargetComponent (&toolsButton), [this] (int) {});
+        toolsMenu.showMenuAsync (juce::PopupMenu::Options ().withTargetComponent (&toolsButton), [] (int) {});
     };
     addAndMakeVisible (toolsButton);
 
@@ -336,11 +336,11 @@ juce::PopupMenu MidiSetupEditorComponent::createMidiSetupEditMenu (std::function
     juce::PopupMenu editMenu;
     editMenu.addSubMenu ("Clone", createMidiSetupCloneMenu (setter), true);
     if (resetter != nullptr)
-        editMenu.addItem ("Default", true, false, [this, resetter] () { resetter (); });
+        editMenu.addItem ("Default", true, false, [resetter] () { resetter (); });
     if (reverter != nullptr)
-        editMenu.addItem ("Revert", true, false, [this, reverter] () { reverter (); });
+        editMenu.addItem ("Revert", true, false, [reverter] () { reverter (); });
     return editMenu;
-};
+}
 
 void MidiSetupEditorComponent::init (int theMidiSetupIndex, juce::ValueTree theMidiSetupPropertiesListVT, juce::ValueTree uneditedMidiSetupPropertiesListVT)
 {
@@ -381,8 +381,8 @@ void MidiSetupEditorComponent::populateAssignmentComboBox (int mode)
     auto populateComboBox = [this] (int idOffset, const std::vector<juce::String>& comboBoxItems)
     {
         assignComboBox.clear ();
-        for (auto itemIndex { 0 }; itemIndex < comboBoxItems.size (); ++itemIndex)
-            assignComboBox.addItem (comboBoxItems [itemIndex], idOffset + itemIndex + 1);
+        for (auto itemIndex { 0 }; itemIndex < static_cast<int> (comboBoxItems.size ()); ++itemIndex)
+            assignComboBox.addItem (comboBoxItems [static_cast<size_t> (itemIndex)], idOffset + itemIndex + 1);
     };
 
     if (mode == 0 || mode == 1) // Omni || Uni
@@ -565,7 +565,7 @@ void MidiSetupEditorComponent::resized ()
     auto localBounds { getLocalBounds () };
     localBounds.reduce (5, 5);
 
-    auto displayComponentPair = [this, &localBounds] (juce::Component& Label, juce::Component& editor)
+    auto displayComponentPair = [&localBounds] (juce::Component& Label, juce::Component& editor)
     {
         auto displayLine { localBounds.removeFromTop (25) };
         Label.setBounds (displayLine.removeFromLeft (140));

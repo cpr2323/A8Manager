@@ -12,7 +12,7 @@ public:
         dontIncludeZero
     };
     CvInputComboBox (ListType listType);
-    virtual ~CvInputComboBox ();
+    ~CvInputComboBox () override;
 
     int getNumItems ();
     int getSelectedItemIndex ();
@@ -34,11 +34,11 @@ private:
 class CvInputGlobalComboBox : public CvInputComboBox
 {
 public:
-    CvInputGlobalComboBox () : CvInputComboBox (CvInputComboBox::ListType::dontIncludeZero) {};
+    CvInputGlobalComboBox () : CvInputComboBox (CvInputComboBox::ListType::dontIncludeZero) {}
 };
 
 class CvInputChannelComboBox : public CvInputComboBox
 {
 public:
-    CvInputChannelComboBox () : CvInputComboBox (CvInputComboBox::ListType::includeZero) {};
+    CvInputChannelComboBox () : CvInputComboBox (CvInputComboBox::ListType::includeZero) {}
 };

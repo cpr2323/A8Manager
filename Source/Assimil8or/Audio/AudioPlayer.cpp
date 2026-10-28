@@ -88,32 +88,32 @@ void AudioPlayer::initFromZone (std::tuple<int, int> channelAndZoneIndecies)
         prepareSampleForPlayback ();
         updateWindow ();
     };
-    channelProperties.onChannelModeChange = [this, preparePlayback] (int)
+    channelProperties.onChannelModeChange = [preparePlayback] (int)
     {
         LogAudioPlayer ("channelProperties.onChannelModeChange");
         preparePlayback ();
     };
-    zoneProperties.onSampleChange = [this, preparePlayback] (juce::String)
+    zoneProperties.onSampleChange = [preparePlayback] (juce::String)
     {
         LogAudioPlayer ("zoneProperties.onSampleChange");
         preparePlayback ();
     };
-    zoneProperties.onSideChange = [this, preparePlayback] (int)
+    zoneProperties.onSideChange = [preparePlayback] (int)
     {
         LogAudioPlayer ("zoneProperties.onSideChange");
         preparePlayback ();
     };
-    nextChannelProperties.onChannelModeChange = [this, preparePlayback] (int)
+    nextChannelProperties.onChannelModeChange = [preparePlayback] (int)
     {
         LogAudioPlayer ("nextChannelProperties.onChannelModeChange");
         preparePlayback ();
     };
-    nextZoneProperties.onSampleChange = [this, preparePlayback] (juce::String)
+    nextZoneProperties.onSampleChange = [preparePlayback] (juce::String)
     {
         LogAudioPlayer ("nextZoneProperties.onSampleChange");
         preparePlayback ();
     };
-    nextZoneProperties.onSideChange = [this, preparePlayback] (int)
+    nextZoneProperties.onSideChange = [preparePlayback] (int)
     {
         LogAudioPlayer ("nextZoneProperties.onSideChange");
         preparePlayback ();

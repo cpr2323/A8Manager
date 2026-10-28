@@ -39,7 +39,7 @@ void Assimil8orPreset::write (juce::File presetFile, juce::ValueTree presetPrope
 
     auto indentAmount { 0 };
     juce::StringArray lines;
-    auto addLine = [this, &indentAmount, &lines] (bool doAdd, juce::String lineToAdd)
+    auto addLine = [&indentAmount, &lines] (bool doAdd, juce::String lineToAdd)
     {
         if (doAdd)
             lines.add (juce::String (lineToAdd).paddedLeft (' ', lineToAdd.length () + indentAmount * 2));
@@ -51,83 +51,83 @@ void Assimil8orPreset::write (juce::File presetFile, juce::ValueTree presetPrope
     addLine (presetPropertiesToWrite.getMidiSetup () != defaultPresetProperties.getMidiSetup (), Parameter::Preset::MidiSetupId + " : " + juce::String (presetPropertiesToWrite.getMidiSetup ()));
     addLine (presetPropertiesToWrite.getData2AsCV () != defaultPresetProperties.getData2AsCV (), Parameter::Preset::Data2asCVId + " : " + presetPropertiesToWrite.getData2AsCV ());
     addLine (presetPropertiesToWrite.getXfadeACV () != defaultPresetProperties.getXfadeACV (), Parameter::Preset::XfadeACVId + " : " + presetPropertiesToWrite.getXfadeACV ());
-    addLine (presetPropertiesToWrite.getXfadeAWidth () != defaultPresetProperties.getXfadeAWidth (), Parameter::Preset::XfadeAWidthId + " : " + juce::String (presetPropertiesToWrite.getXfadeAWidth (), 2));
+    addLine (! juce::exactlyEqual (presetPropertiesToWrite.getXfadeAWidth (), defaultPresetProperties.getXfadeAWidth ()), Parameter::Preset::XfadeAWidthId + " : " + juce::String (presetPropertiesToWrite.getXfadeAWidth (), 2));
     addLine (presetPropertiesToWrite.getXfadeBCV () != defaultPresetProperties.getXfadeBCV (), Parameter::Preset::XfadeBCVId + " : " + presetPropertiesToWrite.getXfadeBCV ());
-    addLine (presetPropertiesToWrite.getXfadeBWidth () != defaultPresetProperties.getXfadeBWidth (), Parameter::Preset::XfadeBWidthId + " : " + juce::String (presetPropertiesToWrite.getXfadeBWidth (), 2));
+    addLine (! juce::exactlyEqual (presetPropertiesToWrite.getXfadeBWidth (), defaultPresetProperties.getXfadeBWidth ()), Parameter::Preset::XfadeBWidthId + " : " + juce::String (presetPropertiesToWrite.getXfadeBWidth (), 2));
     addLine (presetPropertiesToWrite.getXfadeCCV () != defaultPresetProperties.getXfadeCCV (), Parameter::Preset::XfadeCCVId + " : " + presetPropertiesToWrite.getXfadeCCV ());
-    addLine (presetPropertiesToWrite.getXfadeCWidth () != defaultPresetProperties.getXfadeCWidth (), Parameter::Preset::XfadeCWidthId + " : " + juce::String (presetPropertiesToWrite.getXfadeCWidth (), 2));
+    addLine (! juce::exactlyEqual (presetPropertiesToWrite.getXfadeCWidth (), defaultPresetProperties.getXfadeCWidth ()), Parameter::Preset::XfadeCWidthId + " : " + juce::String (presetPropertiesToWrite.getXfadeCWidth (), 2));
     addLine (presetPropertiesToWrite.getXfadeDCV () != defaultPresetProperties.getXfadeDCV (), Parameter::Preset::XfadeDCVId + " : " + presetPropertiesToWrite.getXfadeDCV ());
-    addLine (presetPropertiesToWrite.getXfadeDWidth () != defaultPresetProperties.getXfadeDWidth (), Parameter::Preset::XfadeDWidthId + " : " + juce::String (presetPropertiesToWrite.getXfadeDWidth (), 2));
+    addLine (! juce::exactlyEqual (presetPropertiesToWrite.getXfadeDWidth (), defaultPresetProperties.getXfadeDWidth ()), Parameter::Preset::XfadeDWidthId + " : " + juce::String (presetPropertiesToWrite.getXfadeDWidth (), 2));
 
-    presetPropertiesToWrite.forEachChannel ([this, &addLine, &indentAmount, &defaultZoneProperties, &defaultChannelProperties] (juce::ValueTree channelVT, int)
+    presetPropertiesToWrite.forEachChannel ([&addLine, &indentAmount, &defaultZoneProperties, &defaultChannelProperties] (juce::ValueTree channelVT, int)
     {
-        ChannelProperties channelProperties (channelVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
-        ZoneProperties zoneProperties (channelProperties.getZoneVT (0), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
-        if (! zoneProperties.getSample ().isEmpty ())
+        ChannelProperties curChannelProperties (channelVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
+        ZoneProperties firstZoneProperties (curChannelProperties.getZoneVT (0), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
+        if (! firstZoneProperties.getSample ().isEmpty ())
         {
-            addLine (true, Section::ChannelId + " " + juce::String (channelProperties.getId ()) + " :");
+            addLine (true, Section::ChannelId + " " + juce::String (curChannelProperties.getId ()) + " :");
             ++indentAmount;
-            addLine (channelProperties.getAliasing () != defaultChannelProperties.getAliasing (), Parameter::Channel::AliasingId + " : " + juce::String (channelProperties.getAliasing ()));
-            addLine (channelProperties.getAliasingMod () != defaultChannelProperties.getAliasingMod (), Parameter::Channel::AliasingModId + " : " + ChannelProperties::getCvInputAndValueString (channelProperties.getAliasingMod (), 4));
-            addLine (channelProperties.getAttack () != defaultChannelProperties.getAttack (), Parameter::Channel::AttackId + " : " + juce::String (channelProperties.getAttack ()));
-            addLine (channelProperties.getAttackFromCurrent () != defaultChannelProperties.getAttackFromCurrent (), Parameter::Channel::AttackFromCurrentId + " : " + (channelProperties.getAttackFromCurrent () ? "1" : "0"));
-            addLine (channelProperties.getAttackMod () != defaultChannelProperties.getAttackMod (), Parameter::Channel::AttackModId + " : " + ChannelProperties::getCvInputAndValueString (channelProperties.getAttackMod (), 4));
-            addLine (channelProperties.getAutoTrigger () != defaultChannelProperties.getAutoTrigger (), Parameter::Channel::AutoTriggerId + " : " + (channelProperties.getAutoTrigger () ? "1" : "0"));
-            addLine (channelProperties.getBits () != defaultChannelProperties.getBits (), Parameter::Channel::BitsId + " : " + juce::String (channelProperties.getBits (), 1));
-            addLine (channelProperties.getBitsMod () != defaultChannelProperties.getBitsMod (), Parameter::Channel::BitsModId + " : " + ChannelProperties::getCvInputAndValueString (channelProperties.getBitsMod (), 4));
-            addLine (channelProperties.getChannelMode () != defaultChannelProperties.getChannelMode (), Parameter::Channel::ChannelModeId + " : " + juce::String (channelProperties.getChannelMode ()));
-            addLine (channelProperties.getExpAM () != defaultChannelProperties.getExpAM (), Parameter::Channel::ExpAMId + " : " + ChannelProperties::getCvInputAndValueString (channelProperties.getExpAM (), 4));
-            addLine (channelProperties.getExpFM () != defaultChannelProperties.getExpFM (), Parameter::Channel::ExpFMId + " : " + ChannelProperties::getCvInputAndValueString (channelProperties.getExpFM (), 4));
-            addLine (channelProperties.getLevel () != defaultChannelProperties.getLevel (), Parameter::Channel::LevelId + " : " + juce::String (channelProperties.getLevel (), 1));
-            addLine (channelProperties.getLinAM () != defaultChannelProperties.getLinAM (), Parameter::Channel::LinAMId + " : " + ChannelProperties::getCvInputAndValueString (channelProperties.getLinAM (), 4));
-            addLine (channelProperties.getLinAMisExtEnv () != defaultChannelProperties.getLinAMisExtEnv (), Parameter::Channel::LinAMisExtEnvId + " : " + (channelProperties.getLinAMisExtEnv () ? "1" : "0"));
-            addLine (channelProperties.getLinFM () != defaultChannelProperties.getLinFM (), Parameter::Channel::LinFMId + " : " + ChannelProperties::getCvInputAndValueString (channelProperties.getLinFM (), 4));
-            addLine (channelProperties.getLoopLengthIsEnd () != defaultChannelProperties.getLoopLengthIsEnd (), Parameter::Channel::LoopLengthIsEndId + " : " + (channelProperties.getLoopLengthIsEnd () ? "1" : "0"));
-            addLine (channelProperties.getLoopLengthMod () != defaultChannelProperties.getLoopLengthMod (), Parameter::Channel::LoopLengthModId + " : " + ChannelProperties::getCvInputAndValueString (channelProperties.getLoopLengthMod (), 4));
-            addLine (channelProperties.getLoopMode () != defaultChannelProperties.getLoopMode (), Parameter::Channel::LoopModeId + " : " + juce::String (channelProperties.getLoopMode ()));
-            addLine (channelProperties.getLoopStartMod () != defaultChannelProperties.getLoopStartMod (), Parameter::Channel::LoopStartModId + " : " + ChannelProperties::getCvInputAndValueString (channelProperties.getLoopStartMod (), 4));
-            addLine (channelProperties.getMixLevel () != defaultChannelProperties.getMixLevel (), Parameter::Channel::MixLevelId + " : " + juce::String (channelProperties.getMixLevel ()));
-            addLine (channelProperties.getMixMod () != defaultChannelProperties.getMixMod (), Parameter::Channel::MixModId + " : " + ChannelProperties::getCvInputAndValueString (channelProperties.getMixMod (), 4));
-            addLine (channelProperties.getMixModIsFader () != defaultChannelProperties.getMixModIsFader (), Parameter::Channel::MixModIsFaderId + " : " + (channelProperties.getMixModIsFader () ? "1" : "0"));
-            addLine (channelProperties.getPan () != defaultChannelProperties.getPan (), Parameter::Channel::PanId + " : " + juce::String (channelProperties.getPan ()));
-            addLine (channelProperties.getPanMod () != defaultChannelProperties.getPanMod (), Parameter::Channel::PanModId + " : " + ChannelProperties::getCvInputAndValueString (channelProperties.getPanMod (), 4));
-            addLine (channelProperties.getPhaseCV () != defaultChannelProperties.getPhaseCV (), Parameter::Channel::PhaseCVId + " : " + ChannelProperties::getCvInputAndValueString (channelProperties.getPhaseCV (), 4));
-            addLine (channelProperties.getPitch () != defaultChannelProperties.getPitch (), Parameter::Channel::PitchId + " : " + juce::String (channelProperties.getPitch ()));
-            addLine (channelProperties.getPitchCV () != defaultChannelProperties.getPitchCV (), Parameter::Channel::PitchCVId + " : " + ChannelProperties::getCvInputAndValueString (channelProperties.getPitchCV (), 4));
-            addLine (channelProperties.getPlayMode () != defaultChannelProperties.getPlayMode (), Parameter::Channel::PlayModeId + " : " + juce::String (channelProperties.getPlayMode ()));
-            addLine (channelProperties.getPMIndex () != defaultChannelProperties.getPMIndex (), Parameter::Channel::PMIndexId + " : " + juce::String (channelProperties.getPMIndex ()));
-            addLine (channelProperties.getPMIndexMod () != defaultChannelProperties.getPMIndexMod (), Parameter::Channel::PMIndexModId + " : " + ChannelProperties::getCvInputAndValueString (channelProperties.getPMIndexMod (), 4));
-            addLine (channelProperties.getPMSource () != defaultChannelProperties.getPMSource (), Parameter::Channel::PMSourceId + " : " + juce::String (channelProperties.getPMSource ()));
-            addLine (channelProperties.getRelease () != defaultChannelProperties.getRelease (), Parameter::Channel::ReleaseId + " : " + juce::String (channelProperties.getRelease ()));
-            addLine (channelProperties.getReleaseMod () != defaultChannelProperties.getReleaseMod (), Parameter::Channel::ReleaseModId + " : " + ChannelProperties::getCvInputAndValueString (channelProperties.getReleaseMod (), 4));
-            addLine (channelProperties.getReverse () != defaultChannelProperties.getReverse (), Parameter::Channel::ReverseId + " : " + (channelProperties.getReverse () ? "1" : "0"));
-            addLine (channelProperties.getSampleStartMod () != defaultChannelProperties.getSampleStartMod (), Parameter::Channel::SampleStartModId + " : " + ChannelProperties::getCvInputAndValueString (channelProperties.getSampleStartMod (), 4));
-            addLine (channelProperties.getSampleEndMod () != defaultChannelProperties.getSampleEndMod (), Parameter::Channel::SampleEndModId + " : " + ChannelProperties::getCvInputAndValueString (channelProperties.getSampleEndMod (), 4));
-            addLine (channelProperties.getSpliceSmoothing () != defaultChannelProperties.getSpliceSmoothing (), Parameter::Channel::SpliceSmoothingId + " : " + (channelProperties.getSpliceSmoothing () ? "1" : "0"));
-            addLine (channelProperties.getXfadeGroup () != defaultChannelProperties.getXfadeGroup (), Parameter::Channel::XfadeGroupId + " : " + channelProperties.getXfadeGroup ());
-            addLine (channelProperties.getZonesCV () != defaultChannelProperties.getZonesCV (), Parameter::Channel::ZonesCVId + " : " + channelProperties.getZonesCV ());
-            addLine (channelProperties.getZonesRT () != defaultChannelProperties.getZonesRT (), Parameter::Channel::ZonesRTId + " : " + juce::String (channelProperties.getZonesRT ()));
+            addLine (curChannelProperties.getAliasing () != defaultChannelProperties.getAliasing (), Parameter::Channel::AliasingId + " : " + juce::String (curChannelProperties.getAliasing ()));
+            addLine (curChannelProperties.getAliasingMod () != defaultChannelProperties.getAliasingMod (), Parameter::Channel::AliasingModId + " : " + ChannelProperties::getCvInputAndValueString (curChannelProperties.getAliasingMod (), 4));
+            addLine (! juce::exactlyEqual (curChannelProperties.getAttack (), defaultChannelProperties.getAttack ()), Parameter::Channel::AttackId + " : " + juce::String (curChannelProperties.getAttack ()));
+            addLine (curChannelProperties.getAttackFromCurrent () != defaultChannelProperties.getAttackFromCurrent (), Parameter::Channel::AttackFromCurrentId + " : " + (curChannelProperties.getAttackFromCurrent () ? "1" : "0"));
+            addLine (curChannelProperties.getAttackMod () != defaultChannelProperties.getAttackMod (), Parameter::Channel::AttackModId + " : " + ChannelProperties::getCvInputAndValueString (curChannelProperties.getAttackMod (), 4));
+            addLine (curChannelProperties.getAutoTrigger () != defaultChannelProperties.getAutoTrigger (), Parameter::Channel::AutoTriggerId + " : " + (curChannelProperties.getAutoTrigger () ? "1" : "0"));
+            addLine (! juce::exactlyEqual (curChannelProperties.getBits (), defaultChannelProperties.getBits ()), Parameter::Channel::BitsId + " : " + juce::String (curChannelProperties.getBits (), 1));
+            addLine (curChannelProperties.getBitsMod () != defaultChannelProperties.getBitsMod (), Parameter::Channel::BitsModId + " : " + ChannelProperties::getCvInputAndValueString (curChannelProperties.getBitsMod (), 4));
+            addLine (curChannelProperties.getChannelMode () != defaultChannelProperties.getChannelMode (), Parameter::Channel::ChannelModeId + " : " + juce::String (curChannelProperties.getChannelMode ()));
+            addLine (curChannelProperties.getExpAM () != defaultChannelProperties.getExpAM (), Parameter::Channel::ExpAMId + " : " + ChannelProperties::getCvInputAndValueString (curChannelProperties.getExpAM (), 4));
+            addLine (curChannelProperties.getExpFM () != defaultChannelProperties.getExpFM (), Parameter::Channel::ExpFMId + " : " + ChannelProperties::getCvInputAndValueString (curChannelProperties.getExpFM (), 4));
+            addLine (! juce::exactlyEqual (curChannelProperties.getLevel (), defaultChannelProperties.getLevel ()), Parameter::Channel::LevelId + " : " + juce::String (curChannelProperties.getLevel (), 1));
+            addLine (curChannelProperties.getLinAM () != defaultChannelProperties.getLinAM (), Parameter::Channel::LinAMId + " : " + ChannelProperties::getCvInputAndValueString (curChannelProperties.getLinAM (), 4));
+            addLine (curChannelProperties.getLinAMisExtEnv () != defaultChannelProperties.getLinAMisExtEnv (), Parameter::Channel::LinAMisExtEnvId + " : " + (curChannelProperties.getLinAMisExtEnv () ? "1" : "0"));
+            addLine (curChannelProperties.getLinFM () != defaultChannelProperties.getLinFM (), Parameter::Channel::LinFMId + " : " + ChannelProperties::getCvInputAndValueString (curChannelProperties.getLinFM (), 4));
+            addLine (curChannelProperties.getLoopLengthIsEnd () != defaultChannelProperties.getLoopLengthIsEnd (), Parameter::Channel::LoopLengthIsEndId + " : " + (curChannelProperties.getLoopLengthIsEnd () ? "1" : "0"));
+            addLine (curChannelProperties.getLoopLengthMod () != defaultChannelProperties.getLoopLengthMod (), Parameter::Channel::LoopLengthModId + " : " + ChannelProperties::getCvInputAndValueString (curChannelProperties.getLoopLengthMod (), 4));
+            addLine (curChannelProperties.getLoopMode () != defaultChannelProperties.getLoopMode (), Parameter::Channel::LoopModeId + " : " + juce::String (curChannelProperties.getLoopMode ()));
+            addLine (curChannelProperties.getLoopStartMod () != defaultChannelProperties.getLoopStartMod (), Parameter::Channel::LoopStartModId + " : " + ChannelProperties::getCvInputAndValueString (curChannelProperties.getLoopStartMod (), 4));
+            addLine (! juce::exactlyEqual (curChannelProperties.getMixLevel (), defaultChannelProperties.getMixLevel ()), Parameter::Channel::MixLevelId + " : " + juce::String (curChannelProperties.getMixLevel ()));
+            addLine (curChannelProperties.getMixMod () != defaultChannelProperties.getMixMod (), Parameter::Channel::MixModId + " : " + ChannelProperties::getCvInputAndValueString (curChannelProperties.getMixMod (), 4));
+            addLine (curChannelProperties.getMixModIsFader () != defaultChannelProperties.getMixModIsFader (), Parameter::Channel::MixModIsFaderId + " : " + (curChannelProperties.getMixModIsFader () ? "1" : "0"));
+            addLine (! juce::exactlyEqual (curChannelProperties.getPan (), defaultChannelProperties.getPan ()), Parameter::Channel::PanId + " : " + juce::String (curChannelProperties.getPan ()));
+            addLine (curChannelProperties.getPanMod () != defaultChannelProperties.getPanMod (), Parameter::Channel::PanModId + " : " + ChannelProperties::getCvInputAndValueString (curChannelProperties.getPanMod (), 4));
+            addLine (curChannelProperties.getPhaseCV () != defaultChannelProperties.getPhaseCV (), Parameter::Channel::PhaseCVId + " : " + ChannelProperties::getCvInputAndValueString (curChannelProperties.getPhaseCV (), 4));
+            addLine (! juce::exactlyEqual (curChannelProperties.getPitch (), defaultChannelProperties.getPitch ()), Parameter::Channel::PitchId + " : " + juce::String (curChannelProperties.getPitch ()));
+            addLine (curChannelProperties.getPitchCV () != defaultChannelProperties.getPitchCV (), Parameter::Channel::PitchCVId + " : " + ChannelProperties::getCvInputAndValueString (curChannelProperties.getPitchCV (), 4));
+            addLine (curChannelProperties.getPlayMode () != defaultChannelProperties.getPlayMode (), Parameter::Channel::PlayModeId + " : " + juce::String (curChannelProperties.getPlayMode ()));
+            addLine (! juce::exactlyEqual (curChannelProperties.getPMIndex (), defaultChannelProperties.getPMIndex ()), Parameter::Channel::PMIndexId + " : " + juce::String (curChannelProperties.getPMIndex ()));
+            addLine (curChannelProperties.getPMIndexMod () != defaultChannelProperties.getPMIndexMod (), Parameter::Channel::PMIndexModId + " : " + ChannelProperties::getCvInputAndValueString (curChannelProperties.getPMIndexMod (), 4));
+            addLine (curChannelProperties.getPMSource () != defaultChannelProperties.getPMSource (), Parameter::Channel::PMSourceId + " : " + juce::String (curChannelProperties.getPMSource ()));
+            addLine (! juce::exactlyEqual (curChannelProperties.getRelease (), defaultChannelProperties.getRelease ()), Parameter::Channel::ReleaseId + " : " + juce::String (curChannelProperties.getRelease ()));
+            addLine (curChannelProperties.getReleaseMod () != defaultChannelProperties.getReleaseMod (), Parameter::Channel::ReleaseModId + " : " + ChannelProperties::getCvInputAndValueString (curChannelProperties.getReleaseMod (), 4));
+            addLine (curChannelProperties.getReverse () != defaultChannelProperties.getReverse (), Parameter::Channel::ReverseId + " : " + (curChannelProperties.getReverse () ? "1" : "0"));
+            addLine (curChannelProperties.getSampleStartMod () != defaultChannelProperties.getSampleStartMod (), Parameter::Channel::SampleStartModId + " : " + ChannelProperties::getCvInputAndValueString (curChannelProperties.getSampleStartMod (), 4));
+            addLine (curChannelProperties.getSampleEndMod () != defaultChannelProperties.getSampleEndMod (), Parameter::Channel::SampleEndModId + " : " + ChannelProperties::getCvInputAndValueString (curChannelProperties.getSampleEndMod (), 4));
+            addLine (curChannelProperties.getSpliceSmoothing () != defaultChannelProperties.getSpliceSmoothing (), Parameter::Channel::SpliceSmoothingId + " : " + (curChannelProperties.getSpliceSmoothing () ? "1" : "0"));
+            addLine (curChannelProperties.getXfadeGroup () != defaultChannelProperties.getXfadeGroup (), Parameter::Channel::XfadeGroupId + " : " + curChannelProperties.getXfadeGroup ());
+            addLine (curChannelProperties.getZonesCV () != defaultChannelProperties.getZonesCV (), Parameter::Channel::ZonesCVId + " : " + curChannelProperties.getZonesCV ());
+            addLine (curChannelProperties.getZonesRT () != defaultChannelProperties.getZonesRT (), Parameter::Channel::ZonesRTId + " : " + juce::String (curChannelProperties.getZonesRT ()));
 
-            channelProperties.forEachZone ([this, &indentAmount, &addLine, &defaultZoneProperties] (juce::ValueTree zoneVT, int)
+            curChannelProperties.forEachZone ([&indentAmount, &addLine, &defaultZoneProperties] (juce::ValueTree zoneVT, int)
             {
-                ZoneProperties zoneProperties (zoneVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
-                if (! zoneProperties.getSample ().isEmpty ())
+                ZoneProperties curZoneProperties (zoneVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
+                if (! curZoneProperties.getSample ().isEmpty ())
                 {
-                    addLine (true, Section::ZoneId + " " + juce::String (zoneProperties.getId ()) + " :");
+                    addLine (true, Section::ZoneId + " " + juce::String (curZoneProperties.getId ()) + " :");
                     ++indentAmount;
-                    addLine (zoneProperties.getLevelOffset () != defaultZoneProperties.getLevelOffset (), Parameter::Zone::LevelOffsetId + " : " + juce::String (zoneProperties.getLevelOffset ()));
-                    addLine (zoneProperties.getLoopLength ().has_value () && zoneProperties.getLoopLength () != defaultZoneProperties.getLoopLength (),
-                             Parameter::Zone::LoopLengthId + " : " + juce::String (zoneProperties.getLoopLength ().value_or (0)));
-                    addLine (zoneProperties.getLoopStart ().has_value () && zoneProperties.getLoopStart () != defaultZoneProperties.getLoopStart (),
-                             Parameter::Zone::LoopStartId + " : " + juce::String (zoneProperties.getLoopStart ().value_or (0)));
-                    addLine (zoneProperties.getMinVoltage () != defaultZoneProperties.getMinVoltage (), Parameter::Zone::MinVoltageId + " : " + juce::String (zoneProperties.getMinVoltage ()));
-                    addLine (zoneProperties.getPitchOffset () != defaultZoneProperties.getPitchOffset (), Parameter::Zone::PitchOffsetId + " : " + juce::String (zoneProperties.getPitchOffset ()));
-                    addLine (zoneProperties.getSample () != defaultZoneProperties.getSample (), Parameter::Zone::SampleId + " : " + zoneProperties.getSample ());
-                    addLine (zoneProperties.getSampleStart ().has_value () && zoneProperties.getSampleStart () != defaultZoneProperties.getSampleStart (),
-                             Parameter::Zone::SampleStartId + " : " + juce::String (zoneProperties.getSampleStart ().value_or (0)));
-                    addLine (zoneProperties.getSampleEnd ().has_value () && zoneProperties.getSampleEnd () != defaultZoneProperties.getSampleEnd (),
-                             Parameter::Zone::SampleEndId + " : " + juce::String (zoneProperties.getSampleEnd ().value_or (0)));
-                    addLine (zoneProperties.getSide () != defaultZoneProperties.getSide (), Parameter::Zone::SideId + " : " + juce::String (zoneProperties.getSide ()));
+                    addLine (! juce::exactlyEqual (curZoneProperties.getLevelOffset (), defaultZoneProperties.getLevelOffset ()), Parameter::Zone::LevelOffsetId + " : " + juce::String (curZoneProperties.getLevelOffset ()));
+                    addLine (curZoneProperties.getLoopLength ().has_value () && curZoneProperties.getLoopLength () != defaultZoneProperties.getLoopLength (),
+                             Parameter::Zone::LoopLengthId + " : " + juce::String (curZoneProperties.getLoopLength ().value_or (0)));
+                    addLine (curZoneProperties.getLoopStart ().has_value () && curZoneProperties.getLoopStart () != defaultZoneProperties.getLoopStart (),
+                             Parameter::Zone::LoopStartId + " : " + juce::String (curZoneProperties.getLoopStart ().value_or (0)));
+                    addLine (! juce::exactlyEqual (curZoneProperties.getMinVoltage (), defaultZoneProperties.getMinVoltage ()), Parameter::Zone::MinVoltageId + " : " + juce::String (curZoneProperties.getMinVoltage ()));
+                    addLine (! juce::exactlyEqual (curZoneProperties.getPitchOffset (), defaultZoneProperties.getPitchOffset ()), Parameter::Zone::PitchOffsetId + " : " + juce::String (curZoneProperties.getPitchOffset ()));
+                    addLine (curZoneProperties.getSample () != defaultZoneProperties.getSample (), Parameter::Zone::SampleId + " : " + curZoneProperties.getSample ());
+                    addLine (curZoneProperties.getSampleStart ().has_value () && curZoneProperties.getSampleStart () != defaultZoneProperties.getSampleStart (),
+                             Parameter::Zone::SampleStartId + " : " + juce::String (curZoneProperties.getSampleStart ().value_or (0)));
+                    addLine (curZoneProperties.getSampleEnd ().has_value () && curZoneProperties.getSampleEnd () != defaultZoneProperties.getSampleEnd (),
+                             Parameter::Zone::SampleEndId + " : " + juce::String (curZoneProperties.getSampleEnd ().value_or (0)));
+                    addLine (curZoneProperties.getSide () != defaultZoneProperties.getSide (), Parameter::Zone::SideId + " : " + juce::String (curZoneProperties.getSide ()));
                     --indentAmount;
                 }
                 return true;
@@ -253,7 +253,7 @@ void Assimil8orPreset::checkCvInputAndAmountFormat (juce::String theKey, juce::S
         newParseError.setProperty ("description", parameterFormatError, nullptr);
         parseErrorList.addChild (newParseError, -1, nullptr);
     }
-};
+}
 
 void Assimil8orPreset::initParser ()
 {
@@ -270,7 +270,7 @@ void Assimil8orPreset::initParser ()
         undoActionsStack.push (undoAction);
     };
 
-    auto undoAction = [this, setActions] (ActionMap* newActions, juce::ValueTree & sectionToRevert)
+    auto undoAction = [this] (ActionMap* newActions, juce::ValueTree & sectionToRevert)
     {
         curActions = newActions;
         sectionToRevert = {};

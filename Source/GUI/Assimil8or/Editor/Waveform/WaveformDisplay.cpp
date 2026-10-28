@@ -551,7 +551,7 @@ std::optional<double> WaveformDisplay::getMarkerPositionAt (int markerIndex, dou
 
     const auto clickPosition { std::round (sample) };
     const auto position { std::clamp (constrainMarker (markerIndex, clickPosition), 0.0, static_cast<double> (getSampleLength ())) };
-    if (position != clickPosition)
+    if (! juce::exactlyEqual (position, clickPosition))
         return {};
     return position;
 }
@@ -565,7 +565,7 @@ juce::String WaveformDisplay::getSetMarkerBlockedReason (int markerIndex, double
 
     const auto clickPosition { std::round (sample) };
     const auto nearestPosition { std::clamp (constrainMarker (markerIndex, clickPosition), 0.0, static_cast<double> (getSampleLength ())) };
-    if (nearestPosition == clickPosition)
+    if (juce::exactlyEqual (nearestPosition, clickPosition))
         return {};
 
     const auto loopLengthIsEnd { channelProperties.getLoopLengthIsEnd () };
@@ -827,7 +827,7 @@ void WaveformDisplay::markerMoved (int markerIndex)
                 const auto lengthChangeAmount { static_cast<double> (originalLoopStart - position) };
                 // an unset length runs from the start to the end of the sample
                 const auto newLoopLength { zoneProperties.getLoopLength ().value_or (static_cast<double> (sampleLength - originalLoopStart)) + lengthChangeAmount };
-                zoneProperties.setLoopLength (newLoopLength == static_cast<double> (sampleLength) ? -1.0 : newLoopLength, true);
+                zoneProperties.setLoopLength (juce::exactlyEqual (newLoopLength, static_cast<double> (sampleLength)) ? -1.0 : newLoopLength, true);
             }
         }
         break;
@@ -842,7 +842,7 @@ void WaveformDisplay::markerMoved (int markerIndex)
                 break;
             }
             const auto newLoopLength { static_cast<double> (position - zoneProperties.getLoopStart ().value_or (0)) };
-            zoneProperties.setLoopLength (newLoopLength == static_cast<double> (sampleLength) ? -1.0 : newLoopLength, true);
+            zoneProperties.setLoopLength (juce::exactlyEqual (newLoopLength, static_cast<double> (sampleLength)) ? -1.0 : newLoopLength, true);
         }
         break;
 

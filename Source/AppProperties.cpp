@@ -19,7 +19,7 @@ int AppProperties::getNumMRUEntries ()
 {
     auto mruListVT { getMRUListChildVT () };
     auto count { 0 };
-    ValueTreeHelpers::forEachChildOfType (mruListVT, MRUEntryTypeId , [this, &count] (juce::ValueTree child)
+    ValueTreeHelpers::forEachChildOfType (mruListVT, MRUEntryTypeId , [&count] (juce::ValueTree)
     {
         ++count;
         return true;
@@ -83,7 +83,7 @@ juce::StringArray AppProperties::getMRUList ()
 {
     auto mruListVT { getMRUListChildVT () };
     juce::StringArray mruList;
-    ValueTreeHelpers::forEachChildOfType (mruListVT, MRUEntryTypeId , [this, &mruList] (juce::ValueTree child)
+    ValueTreeHelpers::forEachChildOfType (mruListVT, MRUEntryTypeId , [&mruList] (juce::ValueTree child)
     {
         mruList.add (child.getProperty (MRUEntryNamePropertyId));
         return true;

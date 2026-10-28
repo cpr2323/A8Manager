@@ -41,7 +41,7 @@ FileViewComponent::FileViewComponent ()
                                                                                         deleteUnusedSamples ();
                                                                                     }));
         });
-        optionsMenu.showMenuAsync (juce::PopupMenu::Options ().withTargetComponent (&optionsButton), [this] (int) {});
+        optionsMenu.showMenuAsync (juce::PopupMenu::Options ().withTargetComponent (&optionsButton), [] (int) {});
     };
     addAndMakeVisible (optionsButton);
     directoryContentsListBox.setRowHeight (kRowHeight);
@@ -215,7 +215,7 @@ juce::ValueTree FileViewComponent::getDirectoryEntryVT (int row)
 {
     juce::ScopedLock sl (directoryListQuickLookupListLock);
     const auto quickLookupIndex { row - (isRootFolder ? 0 : 1) };
-    return (*curDirectoryListQuickLookupList) [quickLookupIndex];
+    return (*curDirectoryListQuickLookupList) [static_cast<size_t> (quickLookupIndex)];
 }
 
 void FileViewComponent::selectedRowsChanged (int lastRowSelected)
@@ -390,11 +390,11 @@ void FileViewComponent::listBoxItemClicked (int row, [[maybe_unused]] const juce
                                                                                                     renameAlertWindow.reset ();
                                                                                                 }));
             });
-            pm.addItem ("Delete", true, false, [this, directoryEntry] ()
+            pm.addItem ("Delete", true, false, [directoryEntry] ()
             {
                 juce::AlertWindow::showOkCancelBox (juce::AlertWindow::WarningIcon, "DELETE FOLDER",
                                                     "Are you sure you want to delete the folder '" + directoryEntry.getFileName () + "'", "YES", "NO", nullptr,
-                                                    juce::ModalCallbackFunction::create ([this, directoryEntry] (int option)
+                                                    juce::ModalCallbackFunction::create ([directoryEntry] (int option)
                                                                                          {
                                                                                              if (option == 0) // no
                                                                                                  return;
@@ -438,11 +438,11 @@ void FileViewComponent::listBoxItemClicked (int row, [[maybe_unused]] const juce
                                                                                                     renameAlertWindow.reset ();
                                                                                                 }));
             });
-            pm.addItem ("Delete", true, false, [this, directoryEntry] ()
+            pm.addItem ("Delete", true, false, [directoryEntry] ()
             {
                 juce::AlertWindow::showOkCancelBox (juce::AlertWindow::WarningIcon, "DELETE FILE",
                                                     "Are you sure you want to delete the file '" + directoryEntry.getFileName () + "'", "YES", "NO", nullptr,
-                                                    juce::ModalCallbackFunction::create ([this, directoryEntry] (int option)
+                                                    juce::ModalCallbackFunction::create ([directoryEntry] (int option)
                                                                                             {
                                                                                                 if (option == 0) // no
                                                                                                     return;
@@ -480,7 +480,7 @@ void FileViewComponent::listBoxItemClicked (int row, [[maybe_unused]] const juce
         if (! isUpFolder () && ! isEntryAFolder ())
             return;
 
-        auto completeSelection = [this, row, isUpFolder, getEntryFile] ()
+        auto completeSelection = [this, isUpFolder, getEntryFile] ()
         {
             if (isUpFolder ())
             {
@@ -578,7 +578,7 @@ void FileViewComponent::deleteUnusedSamples ()
 {
     // build list of files in the preset files
     std::set<juce::File> samplesInPresets;
-    ValueTreeHelpers::forEachChild (directoryDataProperties.getRootFolderVT (), [this, &samplesInPresets] (juce::ValueTree child)
+    ValueTreeHelpers::forEachChild (directoryDataProperties.getRootFolderVT (), [&samplesInPresets] (juce::ValueTree child)
     {
         const auto name { child.getProperty ("name").toString () };
         auto file { juce::File (name) };
@@ -596,7 +596,7 @@ void FileViewComponent::deleteUnusedSamples ()
             // TODO - how should we handle errors in the preset file
             if (auto presetErrorList { assimil8orPreset.getParseErrorsVT () }; presetErrorList.getNumChildren () > 0)
             {
-                ValueTreeHelpers::forEachChildOfType (presetErrorList, "ParseError", [this] (juce::ValueTree childVT)
+                ValueTreeHelpers::forEachChildOfType (presetErrorList, "ParseError", [] (juce::ValueTree childVT)
                 {
                     const auto parseErrorType { childVT.getProperty ("type").toString () };
                     const auto parseErrorDescription { childVT.getProperty ("description").toString () };
@@ -606,10 +606,10 @@ void FileViewComponent::deleteUnusedSamples ()
             PresetProperties presetProperties (assimil8orPreset.getPresetVT (), PresetProperties::WrapperType::client, PresetProperties::EnableCallbacks::no);
             if (presetProperties.isValid ())
             {
-                presetProperties.forEachChannel ([this, &samplesInPresets, &file] (juce::ValueTree channelVT, int)
+                presetProperties.forEachChannel ([&samplesInPresets, &file] (juce::ValueTree channelVT, int)
                 {
                     ChannelProperties channelProperties (channelVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
-                    channelProperties.forEachZone ([this, &samplesInPresets, &file] (juce::ValueTree zoneVT, int)
+                    channelProperties.forEachZone ([&samplesInPresets, &file] (juce::ValueTree zoneVT, int)
                     {
                         ZoneProperties zoneProperties (zoneVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
                         const auto sampleFileName { zoneProperties.getSample () };
@@ -671,10 +671,10 @@ void FileViewComponent::resetDropInfo ()
 
 void FileViewComponent::importSamples (const juce::StringArray& files)
 {
-    auto errorDialog = [this] (juce::String message)
+    auto errorDialog = [] (juce::String message)
     {
         juce::AlertWindow::showMessageBoxAsync (juce::AlertWindow::WarningIcon, "Import Failed", message, {}, nullptr,
-                                                juce::ModalCallbackFunction::create ([this] (int) {}));
+                                                juce::ModalCallbackFunction::create ([] (int) {}));
     };
 
     for (auto& fileName : files)
@@ -728,7 +728,7 @@ void FileViewComponent::importSamples (const juce::StringArray& files)
             // on success, the writer takes ownership of the output stream, and will delete it when done
             if (auto writer { wavAudioFormat.createWriterFor (destinationFileStream, juce::AudioFormatWriterOptions {}.withSampleRate (sampleRate)
                                                                                                                      .withNumChannels (static_cast<int> (numChannels))
-                                                                                                                     .withBitsPerSample (bitsPerSample)) }; writer != nullptr)
+                                                                                                                     .withBitsPerSample (static_cast<int> (bitsPerSample))) }; writer != nullptr)
             {
                 // copy the whole thing
                 // TODO - two things

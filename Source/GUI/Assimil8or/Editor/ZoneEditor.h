@@ -85,7 +85,7 @@ class ZoneEditor : public juce::Component,
 {
 public:
     ZoneEditor ();
-    ~ZoneEditor () = default;
+    ~ZoneEditor () override = default;
 
     void init (juce::ValueTree zonePropertiesVT, juce::ValueTree uneditedZonePropertiesVT, juce::ValueTree rootPropertiesVT);
     // TODO - can we move this to the EditManager, as it just calls editManager->assignSamples (parentChannelIndex, startingZoneIndex, files); in the ZoneEditor

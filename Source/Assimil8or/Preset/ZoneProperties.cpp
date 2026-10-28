@@ -100,7 +100,7 @@ double ZoneProperties::getLevelOffset ()
 std::optional<double> ZoneProperties::getLoopLength ()
 {
     const auto loopLength { getValue<double> (LoopLengthPropertyId) };
-    if (loopLength == -1.0) // -1 indicates uninitialized
+    if (juce::exactlyEqual (loopLength, -1.0)) // -1 indicates uninitialized
         return {};
     return loopLength;
 }

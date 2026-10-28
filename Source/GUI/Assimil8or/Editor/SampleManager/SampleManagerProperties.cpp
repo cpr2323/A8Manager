@@ -22,7 +22,7 @@ juce::ValueTree SampleManagerProperties::getSamplePropertiesVT (int channelIndex
     auto curZoneIndex { 0 };
     SampleProperties requestedSampleProperties;
     ValueTreeHelpers::forEachChildOfType (data, SampleProperties::SamplePropertiesTypeId,
-                                          [this, channelIndex, zoneIndex, &curChannelIndex, &curZoneIndex, &requestedSampleProperties] (juce::ValueTree samplePropertiesVT)
+                                          [channelIndex, zoneIndex, &curChannelIndex, &curZoneIndex, &requestedSampleProperties] (juce::ValueTree samplePropertiesVT)
     {
         if (curChannelIndex == channelIndex && curZoneIndex == zoneIndex)
         {

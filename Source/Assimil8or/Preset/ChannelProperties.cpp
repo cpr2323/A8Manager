@@ -19,7 +19,7 @@ void ChannelProperties::forEachZone (std::function<bool (juce::ValueTree zoneVT,
 {
     jassert (zoneVTCallback != nullptr);
     auto curZoneIndex { 0 };
-    ValueTreeHelpers::forEachChildOfType (data, ZoneProperties::ZoneTypeId, [this, &curZoneIndex, zoneVTCallback] (juce::ValueTree zoneVT)
+    ValueTreeHelpers::forEachChildOfType (data, ZoneProperties::ZoneTypeId, [&curZoneIndex, zoneVTCallback] (juce::ValueTree zoneVT)
     {
         auto keepIterating { zoneVTCallback (zoneVT, curZoneIndex) };
         ++curZoneIndex;
@@ -31,7 +31,7 @@ juce::ValueTree ChannelProperties::getZoneVT (int zoneIndex)
 {
     jassert (zoneIndex < getNumZones ());
     juce::ValueTree requestedChannelVT;
-    forEachZone ([this, &requestedChannelVT, zoneIndex] (juce::ValueTree channelVT, int curZoneIndex)
+    forEachZone ([&requestedChannelVT, zoneIndex] (juce::ValueTree channelVT, int curZoneIndex)
     {
         if (curZoneIndex == zoneIndex)
         {

@@ -48,7 +48,7 @@ class MidiSetupEditorComponent : public juce::Component
 {
 public:
     MidiSetupEditorComponent ();
-    ~MidiSetupEditorComponent ();
+    ~MidiSetupEditorComponent () override;
     void init (int theMidiSetupIndex, juce::ValueTree theMidiSetupPropertiesListVT, juce::ValueTree theUneditedMidiSetupPropertiesListVT);
 
 private:

@@ -20,13 +20,13 @@ void ParameterPresetListProperties::initValueTree ()
 {
     auto addParameterPresetList = [this] (juce::String parameterPresetType, const char* parameterPresetXml)
     {
-        auto getPresetPropertiesForType = [] (juce::String parameterPresetType, const char* parameterPresetXml)
+        auto getPresetPropertiesForType = [] ([[maybe_unused]] juce::String presetType, const char* presetXml)
         {
-            juce::XmlDocument xmlDoc { parameterPresetXml };
+            juce::XmlDocument xmlDoc { presetXml };
             auto xmlElement { xmlDoc.getDocumentElement (false) };
 //             if (auto parseError { xmlDoc.getLastParseError () }; parseError != "")
-//                 juce::Logger::outputDebugString ("XML Parsing Error for ParameterPreset type '" + parameterPresetType + "': " + parseError);
-            // NOTE: this is a hard failure, which indicates there is a problem in the file the parameterPresetXml passed in
+//                 juce::Logger::outputDebugString ("XML Parsing Error for ParameterPreset type '" + presetType + "': " + parseError);
+            // NOTE: this is a hard failure, which indicates there is a problem in the file the presetXml passed in
             jassert (xmlDoc.getLastParseError () == "");
             if (xmlElement == nullptr)
                 return juce::ValueTree ();

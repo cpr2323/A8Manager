@@ -76,7 +76,7 @@ void A8LookAndFeel::drawComboBox (juce::Graphics& g, int width, int height, bool
     const auto enabled { box.isEnabled () };
     const auto hovered { isHovered (box) };
 
-    g.setColour (box.findColour (enabled ? juce::ComboBox::backgroundColourId : A8Colours::listBackground));
+    g.setColour (box.findColour (enabled ? static_cast<int> (juce::ComboBox::backgroundColourId) : static_cast<int> (A8Colours::listBackground)));
     g.fillRoundedRectangle (area, kFieldCornerSize);
 
     const auto outlineId { ! enabled ? A8Colours::outlineDim

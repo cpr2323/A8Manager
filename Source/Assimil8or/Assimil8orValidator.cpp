@@ -23,11 +23,11 @@ const auto maxPresets { 199 };
 const auto bytesPerSampleInAssimMemory { 4 };
 const auto kValidFileSystemCharacters { juce::String (" !#$%&'()+,-.0123456789;=@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]_`{}~abcdefghijklmnopqrstuvwxyz") };
 
-juce::String getMemorySizeString (uint64_t memoryUsage)
+static juce::String getMemorySizeString (uint64_t memoryUsage)
 {
     auto formatString = [] (double usage, juce::String postFix)
     {
-        return (usage == 0 ? "0" : juce::String (usage, 2).trimCharactersAtEnd ("0.")) + postFix;
+        return (juce::exactlyEqual (usage, 0.0) ? "0" : juce::String (usage, 2).trimCharactersAtEnd ("0.")) + postFix;
     };
     if (memoryUsage >= oneGB)
         return formatString (static_cast<float> (memoryUsage) / oneGB, "GB");
@@ -37,7 +37,7 @@ juce::String getMemorySizeString (uint64_t memoryUsage)
         return formatString (static_cast<float> (memoryUsage) / oneK, "k");
     else
         return formatString (static_cast<float> (memoryUsage), " bytes");
-};
+}
 
 Assimil8orValidator::Assimil8orValidator () : Thread ("Assimil8orValidator")
 {
@@ -104,7 +104,7 @@ void Assimil8orValidator::addResult (juce::String statusType, juce::String statu
     ValidatorResultProperties validatorResultProperties;
     validatorResultProperties.update (statusType, statusText, false);
     addResult (validatorResultProperties.getValueTree ());
-};
+}
 
 void Assimil8orValidator::addResult (juce::ValueTree validatorResultsVT)
 {
@@ -113,7 +113,7 @@ void Assimil8orValidator::addResult (juce::ValueTree validatorResultsVT)
     jassert (validatorResultProperties.getType () != ValidatorResultProperties::ResultTypeNone);
     if (validatorResultProperties.getType () != ValidatorResultProperties::ResultTypeNone)
         validatorResultListProperties.addResult (validatorResultsVT);
-};
+}
 
 void Assimil8orValidator::doIfProgressTimeElapsed (std::function<void ()> functionToDo)
 {
@@ -395,7 +395,7 @@ std::tuple<uint64_t, std::optional<std::map<juce::String, uint64_t>>> Assimil8or
 
         if (auto presetErrorList { assimil8orPreset.getParseErrorsVT () }; presetErrorList.getNumChildren () > 0)
         {
-            ValueTreeHelpers::forEachChildOfType (presetErrorList, "ParseError", [this, &validatorResultProperties] (juce::ValueTree childVT)
+            ValueTreeHelpers::forEachChildOfType (presetErrorList, "ParseError", [&validatorResultProperties] (juce::ValueTree childVT)
             {
                 const auto parseErrorType { childVT.getProperty ("type").toString () };
                 const auto parseErrorDescription { childVT.getProperty ("description").toString () };
@@ -434,7 +434,7 @@ std::tuple<uint64_t, std::optional<std::map<juce::String, uint64_t>>> Assimil8or
                         if (auto reader { audioManager->getReaderFor (sampleFile) }; reader != nullptr)
                         {
                             // stereo files are always fully loaded, even if only one channel is used
-                            sampleSizeList [sampleFileName] = reader->lengthInSamples * reader->numChannels * bytesPerSampleInAssimMemory;
+                            sampleSizeList [sampleFileName] = static_cast<uint64_t> (reader->lengthInSamples * reader->numChannels * bytesPerSampleInAssimMemory);
                         }
                         else
                         {
@@ -513,8 +513,8 @@ std::tuple<uint64_t, std::optional<std::map<juce::String, uint64_t>>> Assimil8or
                                                       juce::String (reader->bitsPerSample) + "bits/" + sampleRateString + "k, " +
                                                       juce::String (reader->numChannels == 1 ? "mono" : (reader->numChannels == 2 ? "stereo" : juce::String (reader->numChannels) + " channels")) + "}, " +
                                                       juce::String (reader->lengthInSamples / reader->sampleRate, 2) + " seconds, " +
-                                                      "RAM: " + getMemorySizeString (memoryUsage), false);
-                sizeRequiredForSamples = reader->numChannels * reader->lengthInSamples * bytesPerSampleInAssimMemory;
+                                                      "RAM: " + getMemorySizeString (static_cast<uint64_t> (memoryUsage)), false);
+                sizeRequiredForSamples = static_cast<uint64_t> (reader->numChannels * reader->lengthInSamples * bytesPerSampleInAssimMemory);
                 reportErrorIfTrue (reader->usesFloatingPointData == true, "[sample format must be integer]");
                 reportErrorIfTrue (reader->bitsPerSample < 8 || reader->bitsPerSample > 32, "[bit depth must be between 8 and 32]");
                 if (reader->numChannels == 0)

@@ -19,6 +19,6 @@ private:
     juce::int64 numSamples { 0 };
     int side { 0 };
 
-    void paint (juce::Graphics& g);
+    void paint (juce::Graphics& g) override;
     void mouseDown (const juce::MouseEvent& e) override;
 };

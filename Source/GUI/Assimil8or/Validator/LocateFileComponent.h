@@ -87,7 +87,7 @@ private:
         }
         else
         {
-            const auto directoryEntryVT { directoryListQuickLookupList [row - (isRootFolder ? 0 : 1)] };
+            const auto directoryEntryVT { directoryListQuickLookupList [static_cast<size_t> (row - (isRootFolder ? 0 : 1))] };
             auto folder { juce::File (directoryEntryVT.getProperty ("name").toString ()) };
             directoryDataProperties.setRootFolder (folder.getFullPathName (), false);
         }
@@ -107,7 +107,7 @@ private:
             }
             else
             {
-                const auto directoryEntry { juce::File (directoryListQuickLookupList [rowNumber - (isRootFolder ? 0 : 1)].getProperty (FileProperties::NamePropertyId).toString ()) };
+                const auto directoryEntry { juce::File (directoryListQuickLookupList [static_cast<size_t> (rowNumber - (isRootFolder ? 0 : 1))].getProperty (FileProperties::NamePropertyId).toString ()) };
                 if (directoryEntry.isDirectory ())
                 {
                     g.setColour (findColour (A8Colours::textDim));
@@ -158,10 +158,10 @@ private:
     }
     void paintListBoxItem (int rowNumber, juce::Graphics& g, int width, int height, bool /*rowIsSelected*/) override
     {
-        if (rowNumber < missingFilesList.size ())
+        if (rowNumber < static_cast<int> (missingFilesList.size ()))
         {
             g.setColour (findColour (A8Colours::danger));
-            g.drawText (" " + missingFilesList [rowNumber].getFileName (), juce::Rectangle<float>{ 0.0f, 0.0f, (float) width, (float) height }, juce::Justification::centredLeft, true);
+            g.drawText (" " + missingFilesList [static_cast<size_t> (rowNumber)].getFileName (), juce::Rectangle<float>{ 0.0f, 0.0f, (float) width, (float) height }, juce::Justification::centredLeft, true);
         }
     }
     void resized () override

@@ -31,7 +31,7 @@ constexpr const char* kVersionDecorator { "" };
 
 const juce::String PropertiesFileExtension { ".properties" };
 
-void crashHandler (void* /*data*/)
+static void crashHandler (void* /*data*/)
 {
     FlushDebugLog ();
     juce::Logger::writeToLog (juce::SystemStats::getStackBacktrace ());
@@ -242,7 +242,7 @@ public:
             {
                 juce::AlertWindow::showMessageBoxAsync (juce::AlertWindow::WarningIcon, "Application Startup Error",
                     "Unable to create " + getApplicationName () + " preferences directory, '" + appDirectory.getFullPathName () + "'", {}, nullptr,
-                    juce::ModalCallbackFunction::create ([this] (int) { quit (); }));
+                    juce::ModalCallbackFunction::create ([] (int) { quit (); }));
                 return;
             }
         }

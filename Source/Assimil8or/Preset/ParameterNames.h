@@ -7,7 +7,7 @@ namespace Section
     static juce::String PresetId  { "Preset" };
     static juce::String ChannelId { "Channel" };
     static juce::String ZoneId    { "Zone" };
-};
+}
 
 namespace Parameter
 {
@@ -24,7 +24,7 @@ namespace Parameter
         static juce::String XfadeCWidthId { "XfadeCWidth" };
         static juce::String XfadeDCVId    { "XfadeDCV" };
         static juce::String XfadeDWidthId { "XfadeDWidth" };
-    };
+    }
     namespace Channel
     {
         static juce::String AliasingId          { "Aliasing" };
@@ -67,7 +67,7 @@ namespace Parameter
         static juce::String XfadeGroupId        { "XfadeGroup" };
         static juce::String ZonesCVId           { "ZonesCV" };
         static juce::String ZonesRTId           { "ZonesRT" };
-    };
+    }
     namespace Zone
     {
         static juce::String LevelOffsetId { "LevelOffset" };
@@ -79,5 +79,5 @@ namespace Parameter
         static juce::String SampleStartId { "SampleStart" };
         static juce::String SampleEndId   { "SampleEnd" };
         static juce::String SideId        { "Side" };
-    };
-};
+    }
+}

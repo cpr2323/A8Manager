@@ -23,14 +23,14 @@ class CvOffsetTextEditor : public CustomTextEditorDouble
 public:
     CvOffsetTextEditor ()
     {
-        toStringCallback = [this] (double value) { return FormatHelpers::formatDouble (value, 2, true); };
+        toStringCallback = [] (double value) { return FormatHelpers::formatDouble (value, 2, true); };
         getIncrementCallback = [] () { return 0.01; };
         onDragCallback = [this] (double valueDelta)
         {
             jassert (getCvInputAndAmount != nullptr);
             setValue (FormatHelpers::getAmount (getCvInputAndAmount ()) + valueDelta);
         };
-        onPopupMenuCallback = [this] ()
+        onPopupMenuCallback = [] ()
         {
         };
     }
@@ -68,7 +68,7 @@ class ChannelEditor : public juce::Component
 {
 public:
     ChannelEditor ();
-    ~ChannelEditor ();
+    ~ChannelEditor () override;
 
     void init (juce::ValueTree channelPropertiesVT, juce::ValueTree uneditedChannelPropertiesVT, juce::ValueTree rootPropertiesVT,
                juce::ValueTree copyBufferZonePropertiesVT, bool* theZoneCopyBufferHasData);

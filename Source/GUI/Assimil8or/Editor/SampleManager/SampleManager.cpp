@@ -52,13 +52,13 @@ void SampleManager::init (juce::ValueTree rootPropertiesVT)
         ChannelProperties channelProperties (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::yes);
         channelProperties.forEachZone ([this, channelIndex] (juce::ValueTree zonePropertiesVT, int zoneIndex)
         {
-            auto& zoneProperties { zoneAndSamplePropertiesList [channelIndex][zoneIndex].zoneProperties };
+            auto& zoneProperties { zoneAndSamplePropertiesList [static_cast<size_t> (channelIndex)][static_cast<size_t> (zoneIndex)].zoneProperties };
             zoneProperties.wrap (zonePropertiesVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::yes);
             zoneProperties.onSampleChange = [this, channelIndex, zoneIndex] (juce::String sampleName)
             {
                 handleSampleChange (channelIndex, zoneIndex, sampleName);
             };
-            zoneAndSamplePropertiesList [channelIndex][zoneIndex].sampleProperties.wrap (sampleManagerProperties.getSamplePropertiesVT (channelIndex, zoneIndex), SampleProperties::WrapperType::client, SampleProperties::EnableCallbacks::yes);
+            zoneAndSamplePropertiesList [static_cast<size_t> (channelIndex)][static_cast<size_t> (zoneIndex)].sampleProperties.wrap (sampleManagerProperties.getSamplePropertiesVT (channelIndex, zoneIndex), SampleProperties::WrapperType::client, SampleProperties::EnableCallbacks::yes);
             return true;
         });
         return true;
@@ -67,7 +67,7 @@ void SampleManager::init (juce::ValueTree rootPropertiesVT)
 
 juce::ValueTree SampleManager::getSampleProperties (int channelIndex, int zoneIndex)
 {
-    return zoneAndSamplePropertiesList [channelIndex][zoneIndex].sampleProperties.getValueTree ();
+    return zoneAndSamplePropertiesList [static_cast<size_t> (channelIndex)][static_cast<size_t> (zoneIndex)].sampleProperties.getValueTree ();
 }
 
 void SampleManager::handleSampleChange (int channelIndex, int zoneIndex, juce::String sampleName)
@@ -77,7 +77,7 @@ void SampleManager::handleSampleChange (int channelIndex, int zoneIndex, juce::S
     // TODO: Does this also means we need to make sure, when loading a sample that we bypass the ValueTree feature of not executing callbacks for same data, or do we set the name to empty before loading, which
     //       would enable the callbacks to happen correctly?
     //       ** Currently I think we need to reset the sampleName to "" before setting it to a new value, so it will force a reloading of the sample data
-    auto& sampleProperties { zoneAndSamplePropertiesList [channelIndex][zoneIndex].sampleProperties };
+    auto& sampleProperties { zoneAndSamplePropertiesList [static_cast<size_t> (channelIndex)][static_cast<size_t> (zoneIndex)].sampleProperties };
 
     // if there is an already open sample, we want to close it
     if (sampleProperties.getName ().isNotEmpty ())
@@ -139,7 +139,7 @@ void SampleManager::updateSampleProperties (juce::String fileName, SampleData& s
     for (auto channelIndex { 0 }; channelIndex < 8; ++channelIndex)
         for (auto zoneIndex { 0 }; zoneIndex < 8; ++zoneIndex)
         {
-            auto& sampleProperties { zoneAndSamplePropertiesList [channelIndex][zoneIndex].sampleProperties };
+            auto& sampleProperties { zoneAndSamplePropertiesList [static_cast<size_t> (channelIndex)][static_cast<size_t> (zoneIndex)].sampleProperties };
             if (sampleProperties.getName () == fileName)
             {
                 sampleProperties.setBitsPerSample (sampleData.bitsPerSample, false);
@@ -162,9 +162,9 @@ void SampleManager::updateSample (juce::String fileName, SampleData& sampleData)
         {
             // cache sample attributes
             sampleData.status = SampleStatus::exists;
-            sampleData.bitsPerSample = sampleFileReader->bitsPerSample;
+            sampleData.bitsPerSample = static_cast<int> (sampleFileReader->bitsPerSample);
             sampleData.sampleRate = sampleFileReader->sampleRate;
-            sampleData.numChannels = sampleFileReader->numChannels;
+            sampleData.numChannels = static_cast<int> (sampleFileReader->numChannels);
             sampleData.lengthInSamples = sampleFileReader->lengthInSamples;
 
             // ensure that a mono sample does not have side set to 1
@@ -172,7 +172,7 @@ void SampleManager::updateSample (juce::String fileName, SampleData& sampleData)
             for (auto channelIndex { 0 }; channelIndex < 8; ++channelIndex)
                 for (auto zoneIndex { 0 }; zoneIndex < 8; ++zoneIndex)
                 {
-                    auto& zoneProperties { zoneAndSamplePropertiesList [channelIndex][zoneIndex].zoneProperties };
+                    auto& zoneProperties { zoneAndSamplePropertiesList [static_cast<size_t> (channelIndex)][static_cast<size_t> (zoneIndex)].zoneProperties };
                     if (zoneProperties.getSample () == fileName && sampleData.numChannels == 1 && zoneProperties.getSide () == 1)
                         zoneProperties.setSide (0, false);
                 }

@@ -145,8 +145,8 @@ void PresetListComponent::checkPresets (bool showAll)
     PresetInfoList newPresetInfoList;
 
     // clear preset info list
-    for (auto curPresetInfoIndex { 0 }; curPresetInfoIndex < newPresetInfoList.size (); ++curPresetInfoIndex)
-        newPresetInfoList [curPresetInfoIndex] = { curPresetInfoIndex + 1, false, "" };
+    for (auto curPresetInfoIndex { 0 }; curPresetInfoIndex < static_cast<int> (newPresetInfoList.size ()); ++curPresetInfoIndex)
+        newPresetInfoList [static_cast<size_t> (curPresetInfoIndex)] = { curPresetInfoIndex + 1, false, "" };
 
     auto newNumPresets { showAll ? kMaxPresets : 0 };
     auto inPresetList { false };
@@ -172,10 +172,10 @@ void PresetListComponent::checkPresets (bool showAll)
                 presetName = thisPresetProperties.getName ();
 
                 if (showAll)
-                    newPresetInfoList [presetIndex] = { presetIndex + 1 , true, presetName };
+                    newPresetInfoList [static_cast<size_t> (presetIndex)] = { presetIndex + 1 , true, presetName };
                 else
                 {
-                    newPresetInfoList [newNumPresets] = { presetIndex + 1, true, presetName };
+                    newPresetInfoList [static_cast<size_t> (newNumPresets)] = { presetIndex + 1, true, presetName };
                     ++newNumPresets;
                 }
             }
@@ -192,7 +192,7 @@ void PresetListComponent::checkPresets (bool showAll)
     juce::MessageManager::callAsync ([safeThis = juce::Component::SafePointer<PresetListComponent> (this),
                                       scannedFolder,
                                       newNumPresets,
-                                      newPresetInfoList = std::move (newPresetInfoList)] () mutable
+                                      scannedPresetInfoList = std::move (newPresetInfoList)] () mutable
     {
         if (safeThis == nullptr)
             return;
@@ -200,7 +200,7 @@ void PresetListComponent::checkPresets (bool showAll)
         const auto newFolder { scannedFolder != safeThis->previousFolder };
         safeThis->currentFolder = scannedFolder;
         safeThis->numPresets = newNumPresets;
-        safeThis->presetInfoList = std::move (newPresetInfoList);
+        safeThis->presetInfoList = std::move (scannedPresetInfoList);
 
         // the count is of the presets that exist, whether or not the empty slots are being shown
         auto presetsThatExist { 0 };
@@ -231,7 +231,7 @@ void PresetListComponent::loadFirstPreset ()
     juce::File loadedPresetFile;
     forEachPresetFile ([this, &presetLoaded, &loadedPresetFile] (juce::File presetFile, int presetIndex)
     {
-        if (auto [presetNumber, thisPresetExists, presetName] { presetInfoList [presetIndex] }; ! thisPresetExists)
+        if (auto [presetNumber, thisPresetExists, presetName] { presetInfoList [static_cast<size_t> (presetIndex)] }; ! thisPresetExists)
             return true;
 
         presetListBox.selectRow (presetIndex, false, true);
@@ -321,7 +321,7 @@ void PresetListComponent::paintListBoxItem (int row, juce::Graphics& g, int widt
             lastSelectedPresetIndex = row;
         const auto hovered { row == rowHover.getRow () };
 
-        auto [presetNumber, thisPresetExists, presetName] { presetInfoList [row] };
+        auto [presetNumber, thisPresetExists, presetName] { presetInfoList [static_cast<size_t> (row)] };
         auto nameColourId { static_cast<int> (rowIsSelected ? A8Colours::accentText
                                                             : (hovered ? A8Colours::text : A8Colours::textDim)) };
         if (! thisPresetExists)
@@ -390,9 +390,9 @@ void PresetListComponent::movePresetDown (int row)
 
 void PresetListComponent::swapPresets (int fromRow, int toRow)
 {
-    auto [moveFromPresetNumber, moveFromPresetExists, moveFromPresetName] { presetInfoList [fromRow] };
+    auto [moveFromPresetNumber, moveFromPresetExists, moveFromPresetName] { presetInfoList [static_cast<size_t> (fromRow)] };
     jassert (moveFromPresetExists == true);
-    auto [moveToPresetNumber, moveToPresetExists, moveToPresetName] { presetInfoList [toRow] };
+    auto [moveToPresetNumber, moveToPresetExists, moveToPresetName] { presetInfoList [static_cast<size_t> (toRow)] };
     auto newFile { getPresetFile (moveToPresetNumber) };
     auto oldFile { getPresetFile (moveFromPresetNumber) };
     if (! moveToPresetExists)
@@ -411,7 +411,7 @@ void PresetListComponent::swapPresets (int fromRow, int toRow)
 
 juce::String PresetListComponent::getTooltipForRow (int row)
 {
-    auto [presetNumber, thisPresetExists, presetName] { presetInfoList [row] };
+    auto [presetNumber, thisPresetExists, presetName] { presetInfoList [static_cast<size_t> (row)] };
     return "Preset " + juce::String (presetNumber);
 }
 
@@ -427,7 +427,7 @@ void PresetListComponent::pastePreset (int presetNumber)
         Assimil8orPreset assimil8orPreset;
         PresetProperties::copyTreeProperties (copyBufferPresetProperties.getValueTree (), assimil8orPreset.getPresetVT ());
         assimil8orPreset.write (getPresetFile (presetNumber));
-        auto [lastSelectedPresetNumber, thisPresetExists, presetName] { presetInfoList [lastSelectedPresetIndex] };
+        auto [lastSelectedPresetNumber, thisPresetExists, presetName] { presetInfoList [static_cast<size_t> (lastSelectedPresetIndex)] };
         if (presetNumber == lastSelectedPresetNumber)
         {
             PresetProperties::copyTreeProperties (copyBufferPresetProperties.getValueTree (), unEditedPresetProperties.getValueTree ());
@@ -437,11 +437,11 @@ void PresetListComponent::pastePreset (int presetNumber)
         }
     };
 
-    auto [thisPresetNumber, thisPresetExists, presetName] { presetInfoList [lastSelectedPresetIndex] };
+    auto [thisPresetNumber, thisPresetExists, presetName] { presetInfoList [static_cast<size_t> (lastSelectedPresetIndex)] };
     if (thisPresetExists)
     {
         juce::AlertWindow::showOkCancelBox (juce::AlertWindow::WarningIcon, "OVERWRITE PRESET", "Are you sure you want to overwrite '" + FileTypeHelpers::getPresetFileName (presetNumber) + "'", "YES", "NO", nullptr,
-            juce::ModalCallbackFunction::create ([this, doPaste] (int option)
+            juce::ModalCallbackFunction::create ([doPaste] (int option)
             {
                 if (option == 0) // no
                     return;
@@ -463,7 +463,7 @@ void PresetListComponent::deletePreset (int presetNumber)
                 return;
             presetFile.moveToTrash ();
             // TODO handle delete error
-            auto [lastSelectedPresetNumber, thisPresetExists, presetName] { presetInfoList [lastSelectedPresetIndex] };
+            auto [lastSelectedPresetNumber, thisPresetExists, presetName] { presetInfoList [static_cast<size_t> (lastSelectedPresetIndex)] };
             if (presetNumber == lastSelectedPresetNumber)
             {
                 auto defaultPreset { ParameterPresetsSingleton::getInstance ()->getParameterPresetListProperties ().getParameterPreset (ParameterPresetListProperties::DefaultParameterPresetType) };
@@ -487,16 +487,16 @@ void PresetListComponent::listBoxItemClicked (int row, [[maybe_unused]] const ju
         if (row != lastSelectedPresetIndex)
             presetListBox.selectRow (lastSelectedPresetIndex, true, true);
 
-        auto [presetNumber, thisPresetExists, presetName] { presetInfoList [row] };
+        auto [presetNumber, thisPresetExists, presetName] { presetInfoList [static_cast<size_t> (row)] };
         if (! thisPresetExists)
             presetName = "(preset)";
 
         juce::PopupMenu pm;
         pm.addSectionHeader (juce::String (presetNumber) + " - " + presetName);
         pm.addSeparator ();
-        pm.addItem ("Copy", thisPresetExists, false, [this, presetNumber = presetNumber] () { copyPreset (presetNumber); });
-        pm.addItem ("Paste", copyBufferPresetProperties.getName ().isNotEmpty (), false, [this, presetNumber = presetNumber] () { pastePreset (presetNumber); });
-        pm.addItem ("Delete", thisPresetExists, false, [this, presetNumber = presetNumber] () { deletePreset (presetNumber); });
+        pm.addItem ("Copy", thisPresetExists, false, [this, selectedPresetNumber = presetNumber] () { copyPreset (selectedPresetNumber); });
+        pm.addItem ("Paste", copyBufferPresetProperties.getName ().isNotEmpty (), false, [this, selectedPresetNumber = presetNumber] () { pastePreset (selectedPresetNumber); });
+        pm.addItem ("Delete", thisPresetExists, false, [this, selectedPresetNumber = presetNumber] () { deletePreset (selectedPresetNumber); });
         {
             juce::PopupMenu moveMenu;
             moveMenu.addItem ("Up", presetNumber > 1, false, [this, row] () { movePresetUp (row); });
@@ -513,7 +513,7 @@ void PresetListComponent::listBoxItemClicked (int row, [[maybe_unused]] const ju
 
         auto completeSelection = [this, row] ()
         {
-            auto [presetNumber, thisPresetExists, presetName] { presetInfoList [row] };
+            auto [presetNumber, thisPresetExists, presetName] { presetInfoList [static_cast<size_t> (row)] };
             auto presetFile { getPresetFile (presetNumber) };
             if (thisPresetExists)
                 loadPreset (presetFile);
@@ -527,7 +527,7 @@ void PresetListComponent::listBoxItemClicked (int row, [[maybe_unused]] const ju
         if (overwritePresetOrCancel != nullptr)
         {
             presetListBox.selectRow (lastSelectedPresetIndex, false, true);
-            overwritePresetOrCancel (completeSelection, [this] () {});
+            overwritePresetOrCancel (completeSelection, [] () {});
         }
         else
         {

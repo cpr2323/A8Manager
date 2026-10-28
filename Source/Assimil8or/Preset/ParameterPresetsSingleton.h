@@ -10,7 +10,7 @@ public:
     ParameterPresetsSingleton ()
     {
         parameterPresetListProperties.wrap ({}, ParameterPresetListProperties::WrapperType::owner, ParameterPresetListProperties::EnableCallbacks::no);
-    };
+    }
     ~ParameterPresetsSingleton ()
     {
         clearSingletonInstance ();
@@ -18,7 +18,7 @@ public:
 
     ParameterPresetListProperties& getParameterPresetListProperties () { return parameterPresetListProperties; }
 
-    JUCE_DECLARE_SINGLETON (ParameterPresetsSingleton, false);
+    JUCE_DECLARE_SINGLETON (ParameterPresetsSingleton, false)
 
 private:
     ParameterPresetListProperties parameterPresetListProperties;

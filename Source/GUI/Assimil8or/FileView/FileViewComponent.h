@@ -15,7 +15,7 @@ class FileViewComponent : public juce::Component,
 {
 public:
     FileViewComponent ();
-    ~FileViewComponent () = default;
+    ~FileViewComponent () override = default;
 
     void init (juce::ValueTree rootPropertiesVT);
 

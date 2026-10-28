@@ -8,7 +8,7 @@ namespace PresetHelpers
         jassert (setter != nullptr);
         const auto& [cvInput, value] { cvInputAndAmount };
         setter (cvInput, value);
-    };
+    }
 
     int getCvInputIndex (juce::String cvInput)
     {
@@ -81,14 +81,14 @@ namespace PresetHelpers
                 presetPropertiesOne.getMidiSetup () == presetPropertiesTwo.getMidiSetup () &&
                 presetPropertiesOne.getName () == presetPropertiesTwo.getName () &&
                 presetPropertiesOne.getXfadeACV () == presetPropertiesTwo.getXfadeACV () &&
-                presetPropertiesOne.getXfadeAWidth () == presetPropertiesTwo.getXfadeAWidth () &&
+                juce::exactlyEqual (presetPropertiesOne.getXfadeAWidth (), presetPropertiesTwo.getXfadeAWidth ()) &&
                 presetPropertiesOne.getXfadeBCV () == presetPropertiesTwo.getXfadeBCV () &&
-                presetPropertiesOne.getXfadeBWidth () == presetPropertiesTwo.getXfadeBWidth () &&
+                juce::exactlyEqual (presetPropertiesOne.getXfadeBWidth (), presetPropertiesTwo.getXfadeBWidth ()) &&
                 presetPropertiesOne.getXfadeCCV () == presetPropertiesTwo.getXfadeCCV () &&
-                presetPropertiesOne.getXfadeCWidth () == presetPropertiesTwo.getXfadeCWidth () &&
+                juce::exactlyEqual (presetPropertiesOne.getXfadeCWidth (), presetPropertiesTwo.getXfadeCWidth ()) &&
                 presetPropertiesOne.getXfadeDCV () == presetPropertiesTwo.getXfadeDCV () &&
-                presetPropertiesOne.getXfadeDWidth () == presetPropertiesTwo.getXfadeDWidth ();
-    };
+                juce::exactlyEqual (presetPropertiesOne.getXfadeDWidth (), presetPropertiesTwo.getXfadeDWidth ());
+    }
 
     bool areChannelsEqual (juce::ValueTree channelOneVT, juce::ValueTree channelTwoVT)
     {
@@ -98,16 +98,16 @@ namespace PresetHelpers
 #endif
         return  channelPropertiesOne.getAliasing () == channelPropertiesTwo.getAliasing () &&
                 channelPropertiesOne.getAliasingMod () == channelPropertiesTwo.getAliasingMod () &&
-                channelPropertiesOne.getAttack () == channelPropertiesTwo.getAttack () &&
+                juce::exactlyEqual (channelPropertiesOne.getAttack (), channelPropertiesTwo.getAttack ()) &&
                 channelPropertiesOne.getAttackFromCurrent () == channelPropertiesTwo.getAttackFromCurrent () &&
                 channelPropertiesOne.getAttackMod () == channelPropertiesTwo.getAttackMod () &&
                 channelPropertiesOne.getAutoTrigger () == channelPropertiesTwo.getAutoTrigger () &&
-                channelPropertiesOne.getBits () == channelPropertiesTwo.getBits () &&
+                juce::exactlyEqual (channelPropertiesOne.getBits (), channelPropertiesTwo.getBits ()) &&
                 channelPropertiesOne.getBitsMod () == channelPropertiesTwo.getBitsMod () &&
                 channelPropertiesOne.getChannelMode () == channelPropertiesTwo.getChannelMode () &&
                 channelPropertiesOne.getExpAM () == channelPropertiesTwo.getExpAM () &&
                 channelPropertiesOne.getExpFM () == channelPropertiesTwo.getExpFM () &&
-                channelPropertiesOne.getLevel () == channelPropertiesTwo.getLevel () &&
+                juce::exactlyEqual (channelPropertiesOne.getLevel (), channelPropertiesTwo.getLevel ()) &&
                 channelPropertiesOne.getLinAM () == channelPropertiesTwo.getLinAM () &&
                 channelPropertiesOne.getLinAMisExtEnv () == channelPropertiesTwo.getLinAMisExtEnv () &&
                 channelPropertiesOne.getLinFM () == channelPropertiesTwo.getLinFM () &&
@@ -115,19 +115,19 @@ namespace PresetHelpers
                 channelPropertiesOne.getLoopLengthMod () == channelPropertiesTwo.getLoopLengthMod () &&
                 channelPropertiesOne.getLoopMode () == channelPropertiesTwo.getLoopMode () &&
                 channelPropertiesOne.getLoopStartMod () == channelPropertiesTwo.getLoopStartMod () &&
-                channelPropertiesOne.getMixLevel () == channelPropertiesTwo.getMixLevel () &&
+                juce::exactlyEqual (channelPropertiesOne.getMixLevel (), channelPropertiesTwo.getMixLevel ()) &&
                 channelPropertiesOne.getMixMod () == channelPropertiesTwo.getMixMod () &&
                 channelPropertiesOne.getMixModIsFader () == channelPropertiesTwo.getMixModIsFader () &&
-                channelPropertiesOne.getPan () == channelPropertiesTwo.getPan () &&
+                juce::exactlyEqual (channelPropertiesOne.getPan (), channelPropertiesTwo.getPan ()) &&
                 channelPropertiesOne.getPanMod () == channelPropertiesTwo.getPanMod () &&
                 channelPropertiesOne.getPhaseCV () == channelPropertiesTwo.getPhaseCV () &&
-                channelPropertiesOne.getPitch () == channelPropertiesTwo.getPitch () &&
+                juce::exactlyEqual (channelPropertiesOne.getPitch (), channelPropertiesTwo.getPitch ()) &&
                 channelPropertiesOne.getPitchCV () == channelPropertiesTwo.getPitchCV () &&
                 channelPropertiesOne.getPlayMode () == channelPropertiesTwo.getPlayMode () &&
-                channelPropertiesOne.getPMIndex () == channelPropertiesTwo.getPMIndex () &&
+                juce::exactlyEqual (channelPropertiesOne.getPMIndex (), channelPropertiesTwo.getPMIndex ()) &&
                 channelPropertiesOne.getPMIndexMod () == channelPropertiesTwo.getPMIndexMod () &&
                 channelPropertiesOne.getPMSource () == channelPropertiesTwo.getPMSource () &&
-                channelPropertiesOne.getRelease () == channelPropertiesTwo.getRelease () &&
+                juce::exactlyEqual (channelPropertiesOne.getRelease (), channelPropertiesTwo.getRelease ()) &&
                 channelPropertiesOne.getReleaseMod () == channelPropertiesTwo.getReleaseMod () &&
                 channelPropertiesOne.getReverse () == channelPropertiesTwo.getReverse () &&
                 channelPropertiesOne.getSampleStartMod () == channelPropertiesTwo.getSampleStartMod () &&
@@ -136,7 +136,7 @@ namespace PresetHelpers
                 channelPropertiesOne.getXfadeGroup () == channelPropertiesTwo.getXfadeGroup () &&
                 channelPropertiesOne.getZonesCV () == channelPropertiesTwo.getZonesCV () &&
                 channelPropertiesOne.getZonesRT () == channelPropertiesTwo.getZonesRT ();
-    };
+    }
     bool areZonesEqual (juce::ValueTree zoneOneVT, juce::ValueTree zoneTwoVT)
     {
         ZoneProperties zonePropertiesOne (zoneOneVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
@@ -169,22 +169,22 @@ namespace PresetHelpers
         displayIfNotEqual ("side", zonePropertiesOne.getSide () == zonePropertiesTwo.getSide ());
 
 #endif
-        return  zonePropertiesOne.getLevelOffset () == zonePropertiesTwo.getLevelOffset () &&
-                zonePropertiesOne.getLoopLength ().value_or (-1.0) == zonePropertiesTwo.getLoopLength ().value_or (-1.0) &&
+        return  juce::exactlyEqual (zonePropertiesOne.getLevelOffset (), zonePropertiesTwo.getLevelOffset ()) &&
+                juce::exactlyEqual (zonePropertiesOne.getLoopLength ().value_or (-1.0), zonePropertiesTwo.getLoopLength ().value_or (-1.0)) &&
                 zonePropertiesOne.getLoopStart ().value_or (-1) == zonePropertiesTwo.getLoopStart ().value_or (-1) &&
-                zonePropertiesOne.getMinVoltage () == zonePropertiesTwo.getMinVoltage () &&
-                zonePropertiesOne.getPitchOffset () == zonePropertiesTwo.getPitchOffset () &&
+                juce::exactlyEqual (zonePropertiesOne.getMinVoltage (), zonePropertiesTwo.getMinVoltage ()) &&
+                juce::exactlyEqual (zonePropertiesOne.getPitchOffset (), zonePropertiesTwo.getPitchOffset ()) &&
                 zonePropertiesOne.getSample () == zonePropertiesTwo.getSample () &&
                 zonePropertiesOne.getSampleStart ().value_or (-1) == zonePropertiesTwo.getSampleStart ().value_or (-1) &&
                 zonePropertiesOne.getSampleEnd ().value_or (-1) == zonePropertiesTwo.getSampleEnd ().value_or (-1) &&
                 zonePropertiesOne.getSide () == zonePropertiesTwo.getSide ();
-    };
+    }
 
     void displayZoneDifferences (juce::ValueTree zonePropertiesOneVT, juce::ValueTree zonePropertiesTwoVT)
     {
         auto displayIfDiff = [] (auto value1, auto value2, juce::String parameterName)
         {
-            if (value1 != value2)
+            if (! juce::exactlyEqual (value1, value2))
                 juce::Logger::outputDebugString (parameterName + " mismatch. " + juce::String (value1) + " != " + juce::String (value2));
         };
 
@@ -200,5 +200,5 @@ namespace PresetHelpers
         displayIfDiff (zonePropertiesOne.getSampleStart ().value_or (-1), zonePropertiesTwo.getSampleStart ().value_or (-1), "SampleStart");
         displayIfDiff (zonePropertiesOne.getSampleEnd ().value_or (-1), zonePropertiesTwo.getSampleEnd ().value_or (-1), "SampleEnd");
         displayIfDiff (zonePropertiesOne.getSide (), zonePropertiesTwo.getSide (), "Side");
-    };
-};
+    }
+}

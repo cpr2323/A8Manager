@@ -20,7 +20,7 @@ namespace MidiSetup
     static inline const juce::String VelocityDepthId { "velocitydepth" };
     static inline const juce::String NotificationsId { "notifications" };
     static inline const juce::String IndexBaseKeyId { "indexbasekey" };
-};
+}
 
 class MidiSetupFile
 {

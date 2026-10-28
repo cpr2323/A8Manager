@@ -19,7 +19,7 @@ void ValidatorResultListProperties::clear ()
 void ValidatorResultListProperties::forEachResult (std::function<bool (juce::ValueTree validatorResultVT)> validatorResultVTCallback)
 {
     jassert (validatorResultVTCallback!= nullptr);
-    ValueTreeHelpers::forEachChildOfType (data, ValidatorResultProperties::ValidatorResultTypeId, [this, validatorResultVTCallback] (juce::ValueTree validatorResultsVT)
+    ValueTreeHelpers::forEachChildOfType (data, ValidatorResultProperties::ValidatorResultTypeId, [validatorResultVTCallback] (juce::ValueTree validatorResultsVT)
     {
         return validatorResultVTCallback (validatorResultsVT);
     });

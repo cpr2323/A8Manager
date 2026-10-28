@@ -60,7 +60,7 @@ ChannelEditor::ChannelEditor ()
     zoneMaxVoltage.setFont (A8Type::cvValue ().withPointHeight (9.5f));
 
     for (auto curZoneIndex { 0 }; curZoneIndex < 8; ++curZoneIndex)
-        zoneTabs.addLedTab (juce::String::charToString ('1' + curZoneIndex), &zoneEditors [curZoneIndex]);
+        zoneTabs.addLedTab (juce::String::charToString ('1' + curZoneIndex), &zoneEditors [static_cast<size_t> (curZoneIndex)]);
     zoneTabs.setTabBarDepth (38);
     zoneTabs.setPageColourId (A8Colours::zoneBackground);
     // a zone's min voltage is under its number: positive values read as text, zero is dimmed, and
@@ -178,7 +178,7 @@ void ChannelEditor::visibilityChanged ()
 // TODO - move this to the EditManger
 void ChannelEditor::copyZone (int zoneIndex, bool settingsOnly)
 {
-    copyBufferZoneProperties.copyFrom (zoneProperties [zoneIndex].getValueTree (), settingsOnly);
+    copyBufferZoneProperties.copyFrom (zoneProperties [static_cast<size_t> (zoneIndex)].getValueTree (), settingsOnly);
     if (settingsOnly)
         copyBufferZoneProperties.setSample ("", false);
     *zoneCopyBufferHasData = true;
@@ -187,30 +187,30 @@ void ChannelEditor::copyZone (int zoneIndex, bool settingsOnly)
 // TODO - move this to the EditManger
 void ChannelEditor::pasteZone (int zoneIndex)
 {
-    zoneProperties [zoneIndex].copyFrom (copyBufferZoneProperties.getValueTree (), copyBufferZoneProperties.getSample ().isEmpty ());
+    zoneProperties [static_cast<size_t> (zoneIndex)].copyFrom (copyBufferZoneProperties.getValueTree (), copyBufferZoneProperties.getSample ().isEmpty ());
     // if this is not on the end
     if (zoneIndex < editManager->getNumUsedZones (channelIndex) - 1)
     {
         // ensure pasted minVoltage is valid
         const auto [topBoundary, bottomBoundary] { editManager->getVoltageBoundaries (channelIndex, zoneIndex, 0) };
-        const auto curMinVolatage { zoneProperties [zoneIndex].getMinVoltage () };
+        const auto curMinVolatage { zoneProperties [static_cast<size_t> (zoneIndex)].getMinVoltage () };
         if (curMinVolatage >= topBoundary || curMinVolatage <= bottomBoundary)
-            zoneProperties [zoneIndex].setMinVoltage (bottomBoundary + ((topBoundary - bottomBoundary) / 2), false);
+            zoneProperties [static_cast<size_t> (zoneIndex)].setMinVoltage (bottomBoundary + ((topBoundary - bottomBoundary) / 2), false);
     }
     else
     {
         // this handles pasting to the end, and pasting past the end, which cannot discern at this point
         // so first we ensure that the last zone is -5
-        zoneProperties [zoneIndex].setMinVoltage (-5.0, false);
+        zoneProperties [static_cast<size_t> (zoneIndex)].setMinVoltage (-5.0, false);
 
         // if this isn't the first item, verify the previous item is valid
         if (zoneIndex > 0)
         {
             const auto minValue { -5.0 };
             const auto [topBoundary, _] { editManager->getVoltageBoundaries (channelIndex, zoneIndex, 1) };
-            const auto prevMinVolatage { zoneProperties [zoneIndex - 1].getMinVoltage () };
+            const auto prevMinVolatage { zoneProperties [static_cast<size_t> (zoneIndex - 1)].getMinVoltage () };
             if (prevMinVolatage >= topBoundary || prevMinVolatage <= minValue)
-                zoneProperties [zoneIndex - 1].setMinVoltage (minValue + ((topBoundary - minValue) / 2), false);
+                zoneProperties [static_cast<size_t> (zoneIndex - 1)].setMinVoltage (minValue + ((topBoundary - minValue) / 2), false);
         }
     }
 }
@@ -346,7 +346,7 @@ juce::PopupMenu ChannelEditor::createChannelCloneMenu (std::function <void (Chan
         if (destChannelIndex != channelIndex)
         {
             auto canCloneToDestChannel { true };
-            editManager->forChannels ({ destChannelIndex }, [this, canCloneCallback, &canCloneToDestChannel] (juce::ValueTree channelPropertiesVT)
+            editManager->forChannels ({ destChannelIndex }, [canCloneCallback, &canCloneToDestChannel] (juce::ValueTree channelPropertiesVT)
             {
                 ChannelProperties destChannelProperties (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
                 canCloneToDestChannel = canCloneCallback (destChannelProperties);
@@ -355,7 +355,7 @@ juce::PopupMenu ChannelEditor::createChannelCloneMenu (std::function <void (Chan
             {
                 cloneMenu.addItem ("To Channel " + juce::String (destChannelIndex + 1), true, false, [this, destChannelIndex, setter] ()
                 {
-                    editManager->forChannels ({ destChannelIndex }, [this, setter] (juce::ValueTree channelPropertiesVT)
+                    editManager->forChannels ({ destChannelIndex }, [setter] (juce::ValueTree channelPropertiesVT)
                     {
                         ChannelProperties destChannelProperties (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
                         setter (destChannelProperties);
@@ -370,7 +370,7 @@ juce::PopupMenu ChannelEditor::createChannelCloneMenu (std::function <void (Chan
         if (destChannelIndex != channelIndex)
             channelIndexList.emplace_back (destChannelIndex);
     auto canCloneDestChannelCount { 0 };
-    editManager->forChannels ({ channelIndexList }, [this, canCloneToAllCallback, &canCloneDestChannelCount] (juce::ValueTree channelPropertiesVT)
+    editManager->forChannels ({ channelIndexList }, [canCloneToAllCallback, &canCloneDestChannelCount] (juce::ValueTree channelPropertiesVT)
     {
         ChannelProperties destChannelProperties (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
         if (canCloneToAllCallback (destChannelProperties))
@@ -381,7 +381,7 @@ juce::PopupMenu ChannelEditor::createChannelCloneMenu (std::function <void (Chan
         cloneMenu.addItem ("To All", true, false, [this, setter, channelIndexList] ()
         {
             // clone to other channels
-            editManager->forChannels (channelIndexList, [this, setter] (juce::ValueTree channelPropertiesVT)
+            editManager->forChannels (channelIndexList, [setter] (juce::ValueTree channelPropertiesVT)
             {
                 ChannelProperties destChannelProperties (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
                 setter (destChannelProperties);
@@ -394,14 +394,14 @@ juce::PopupMenu ChannelEditor::createChannelCloneMenu (std::function <void (Chan
 juce::PopupMenu ChannelEditor::createChannelEditMenu (std::function <void (ChannelProperties&)> setter, std::function <void ()> resetter, std::function <void ()> reverter)
 {
     juce::PopupMenu editMenu;
-    editMenu.addSubMenu ("Clone", createChannelCloneMenu (setter, [this] (ChannelProperties&) { return true; }, [this] (ChannelProperties&) { return true; }), true);
+    editMenu.addSubMenu ("Clone", createChannelCloneMenu (setter, [] (ChannelProperties&) { return true; }, [] (ChannelProperties&) { return true; }), true);
     if (resetter != nullptr)
-        editMenu.addItem ("Default", true, false, [this, resetter] () { resetter (); });
+        editMenu.addItem ("Default", true, false, [resetter] () { resetter (); });
     if (reverter != nullptr)
-        editMenu.addItem ("Revert", true, false, [this, reverter] () { reverter (); });
+        editMenu.addItem ("Revert", true, false, [reverter] () { reverter (); });
 
     return editMenu;
-};
+}
 
 void ChannelEditor::setupChannelComponents ()
 {
@@ -470,7 +470,7 @@ void ChannelEditor::setupChannelComponents ()
     // PITCH EDITOR
     pitchTextEditor.getMinValueCallback = [this] () { return minChannelProperties.getPitch (); };
     pitchTextEditor.getMaxValueCallback = [this] () { return maxChannelProperties.getPitch (); };
-    pitchTextEditor.toStringCallback = [this] (double value) { return FormatHelpers::formatDouble (value, 2, true); };
+    pitchTextEditor.toStringCallback = [] (double value) { return FormatHelpers::formatDouble (value, 2, true); };
     pitchTextEditor.updateDataCallback = [this] (double value) { pitchUiChanged (value); };
     pitchTextEditor.getIncrementCallback = [] () { return 0.01; };
     pitchTextEditor.onDragCallback = [this] (double valueDelta)
@@ -483,7 +483,7 @@ void ChannelEditor::setupChannelComponents ()
         auto editMenu { createChannelEditMenu ([this] (ChannelProperties& destChannelProperties) { destChannelProperties.setPitch (channelProperties.getPitch (), false); },
                                                [this] () { channelProperties.setPitch (defaultChannelProperties.getPitch (), true); },
                                                [this] () { channelProperties.setPitch (uneditedChannelProperties.getPitch (), true); }) };
-        editMenu.showMenuAsync ({}, [this] (int) {});
+        editMenu.showMenuAsync ({}, [] (int) {});
     };
     setupTextEditor (pitchTextEditor, juce::Justification::centred, 0, "+-.0123456789", "Pitch");
 
@@ -515,7 +515,7 @@ void ChannelEditor::setupChannelComponents ()
             channelProperties.setPitchCV (uneditedCvInput, FormatHelpers::getAmount (channelProperties.getPitchCV ()), true);
         };
         auto editMenu { createChannelEditMenu (pitchCVInputSetter, pitchCVInputResetter, pitchCVInputReverter) };
-        editMenu.showMenuAsync ({}, [this] (int) {});
+        editMenu.showMenuAsync ({}, [] (int) {});
     };
     setupCvInputComboBox (pitchCVComboBox, "PitchCV", [this] () { pitchCVUiChanged (pitchCVComboBox.getSelectedItemText (), pitchCVTextEditor.getText ().getDoubleValue ()); });
 
@@ -541,7 +541,7 @@ void ChannelEditor::setupChannelComponents ()
             channelProperties.setPitchCV (FormatHelpers::getCvInput (channelProperties.getPitchCV ()), uneditedCvAmount, true);
         };
         auto editMenu { createChannelEditMenu (pitchCVOffsetSetter, pitchCVOffsetResetter, pitchCVOffsetReverter) };
-        editMenu.showMenuAsync ({}, [this] (int) {});
+        editMenu.showMenuAsync ({}, [] (int) {});
     };
     setupTextEditor (pitchCVTextEditor, juce::Justification::centred, 0, "+-.0123456789", "PitchCV");
 
@@ -573,7 +573,7 @@ void ChannelEditor::setupChannelComponents ()
             channelProperties.setLinFM (uneditedCvInput, FormatHelpers::getAmount (channelProperties.getLinFM ()), true);
         };
         auto editMenu { createChannelEditMenu (linFMCVInputSetter, linFMCVInputResetter, linFMCVInputReverter) };
-        editMenu.showMenuAsync ({}, [this] (int) {});
+        editMenu.showMenuAsync ({}, [] (int) {});
     };
     setupCvInputComboBox (linFMComboBox, "LinFM", [this] () { linFMUiChanged (linFMComboBox.getSelectedItemText (), linFMTextEditor.getText ().getDoubleValue ()); });
 
@@ -599,7 +599,7 @@ void ChannelEditor::setupChannelComponents ()
             channelProperties.setLinFM (FormatHelpers::getCvInput (channelProperties.getLinFM ()), uneditedCvAmount, true);
         };
         auto editMenu { createChannelEditMenu (linFMCVOffsetSetter, linFMCVOffsetResetter, linFMCVOffsetReverter) };
-        editMenu.showMenuAsync ({}, [this] (int) {});
+        editMenu.showMenuAsync ({}, [] (int) {});
     };
     setupTextEditor (linFMTextEditor, juce::Justification::centred, 0, "+-.0123456789", "LinFM");
 
@@ -631,7 +631,7 @@ void ChannelEditor::setupChannelComponents ()
             channelProperties.setPitchCV (uneditedCvInput, FormatHelpers::getAmount (channelProperties.getExpFM ()), true);
         };
         auto editMenu { createChannelEditMenu (expFMCVInputSetter, expFMCVInputResetter, expFMCVInputReverter) };
-        editMenu.showMenuAsync ({}, [this] (int) {});
+        editMenu.showMenuAsync ({}, [] (int) {});
     };
     setupCvInputComboBox (expFMComboBox, "ExpFM", [this] () { expFMUiChanged (expFMComboBox.getSelectedItemText (), expFMTextEditor.getText ().getDoubleValue ()); });
 
@@ -657,7 +657,7 @@ void ChannelEditor::setupChannelComponents ()
             channelProperties.setExpFM (FormatHelpers::getCvInput (channelProperties.getExpFM ()), uneditedCvAmount, true);
         };
         auto editMenu { createChannelEditMenu (expFMCVOffsetSetter, expFMCVOffsetResetter, expFMCVOffsetReverter) };
-        editMenu.showMenuAsync ({}, [this] (int) {});
+        editMenu.showMenuAsync ({}, [] (int) {});
     };
     setupTextEditor (expFMTextEditor, juce::Justification::centred, 0, "+-.0123456789", "ExpFM");
 
@@ -667,7 +667,7 @@ void ChannelEditor::setupChannelComponents ()
     // LEVEL EDITOR
     levelTextEditor.getMinValueCallback = [this] () { return minChannelProperties.getLevel (); };
     levelTextEditor.getMaxValueCallback = [this] () { return maxChannelProperties.getLevel (); };
-    levelTextEditor.toStringCallback = [this] (double value) { return FormatHelpers::formatDouble (value, 1, false); };
+    levelTextEditor.toStringCallback = [] (double value) { return FormatHelpers::formatDouble (value, 1, false); };
     levelTextEditor.updateDataCallback = [this] (double value) { levelUiChanged (value); };
     levelTextEditor.getIncrementCallback = [] () { return 0.1; };
     levelTextEditor.onDragCallback = [this] (double valueDelta)
@@ -680,7 +680,7 @@ void ChannelEditor::setupChannelComponents ()
         auto editMenu { createChannelEditMenu ([this] (ChannelProperties& destChannelProperties) { destChannelProperties.setLevel (channelProperties.getLevel (), false); },
                                                [this] () { channelProperties.setLevel (defaultChannelProperties.getLevel (), true); },
                                                [this] () { channelProperties.setLevel (uneditedChannelProperties.getLevel (), true); }) };
-        editMenu.showMenuAsync ({}, [this] (int) {});
+        editMenu.showMenuAsync ({}, [] (int) {});
     };
     setupTextEditor (levelTextEditor, juce::Justification::centred, 0, "+-.0123456789", "Level");
 
@@ -706,7 +706,7 @@ void ChannelEditor::setupChannelComponents ()
         auto editMenu { createChannelEditMenu ([this] (ChannelProperties& destChannelProperties) { destChannelProperties.setLinAMisExtEnv (channelProperties.getLinAMisExtEnv (), false); },
                                                [this] () { channelProperties.setLinAMisExtEnv (defaultChannelProperties.getLinAMisExtEnv (), true); },
                                                [this] () { channelProperties.setLinAMisExtEnv (uneditedChannelProperties.getLinAMisExtEnv (), true); }) };
-        editMenu.showMenuAsync ({}, [this] (int) {});
+        editMenu.showMenuAsync ({}, [] (int) {});
     };
     setupComboBox (linAMisExtEnvComboBox, "LinAMisExtEnv", [this] ()
     {
@@ -739,7 +739,7 @@ void ChannelEditor::setupChannelComponents ()
             channelProperties.setLinAM (uneditedCvInput, FormatHelpers::getAmount (channelProperties.getLinAM ()), true);
         };
         auto editMenu { createChannelEditMenu (linAMCVInputSetter, linAMCVInputResetter, linAMCVInputReverter) };
-        editMenu.showMenuAsync ({}, [this] (int) {});
+        editMenu.showMenuAsync ({}, [] (int) {});
     };
     setupCvInputComboBox (linAMComboBox, "LinAM", [this] () { linAMUiChanged (linAMComboBox.getSelectedItemText (), linAMTextEditor.getText ().getDoubleValue ()); });
 
@@ -765,7 +765,7 @@ void ChannelEditor::setupChannelComponents ()
             channelProperties.setLinAM (FormatHelpers::getCvInput (channelProperties.getLinAM ()), uneditedCvAmount, true);
         };
         auto editMenu { createChannelEditMenu (linAMCVOffsetSetter, linAMCVOffsetResetter, linAMCVOffsetReverter) };
-        editMenu.showMenuAsync ({}, [this] (int) {});
+        editMenu.showMenuAsync ({}, [] (int) {});
     };
     setupTextEditor (linAMTextEditor, juce::Justification::centred, 0, "+-.0123456789", "LinAM");
 
@@ -797,7 +797,7 @@ void ChannelEditor::setupChannelComponents ()
             channelProperties.setExpAM (uneditedCvInput, FormatHelpers::getAmount (channelProperties.getExpAM ()), true);
         };
         auto editMenu { createChannelEditMenu (expAMCVInputSetter, expAMCVInputResetter, expAMCVInputReverter) };
-        editMenu.showMenuAsync ({}, [this] (int) {});
+        editMenu.showMenuAsync ({}, [] (int) {});
     };
     setupCvInputComboBox (expAMComboBox, "ExpAM", [this] () { expAMUiChanged (expAMComboBox.getSelectedItemText (), expAMTextEditor.getText ().getDoubleValue ()); });
 
@@ -823,7 +823,7 @@ void ChannelEditor::setupChannelComponents ()
             channelProperties.setExpAM (FormatHelpers::getCvInput (channelProperties.getExpAM ()), uneditedCvAmount, true);
         };
         auto editMenu { createChannelEditMenu (expAMCVOffsetSetter, expAMCVOffsetResetter, expAMCVOffsetReverter) };
-        editMenu.showMenuAsync ({}, [this] (int) {});
+        editMenu.showMenuAsync ({}, [] (int) {});
     };
     setupTextEditor (expAMTextEditor, juce::Justification::centred, 0, "+-.0123456789", "ExpAM");
 
@@ -854,7 +854,7 @@ void ChannelEditor::setupChannelComponents ()
         auto editMenu { createChannelEditMenu ([this] (ChannelProperties& destChannelProperties) { destChannelProperties.setPMSource (channelProperties.getPMSource (), false); },
                                                [this] () { channelProperties.setPMSource (defaultChannelProperties.getPMSource (), true); },
                                                [this] () { channelProperties.setPMSource (uneditedChannelProperties.getPMSource (), true); }) };
-        editMenu.showMenuAsync ({}, [this] (int) {});
+        editMenu.showMenuAsync ({}, [] (int) {});
     };
     setupComboBox (pMSourceComboBox, "PMSource", [this] () { pMSourceUiChanged (pMSourceComboBox.getSelectedId () - 1); });
 
@@ -883,7 +883,7 @@ void ChannelEditor::setupChannelComponents ()
             channelProperties.setPhaseCV (uneditedCvInput, FormatHelpers::getAmount (channelProperties.getPhaseCV ()), true);
         };
         auto editMenu { createChannelEditMenu (phaseCVInputSetter, phaseCVInputResetter, phaseCVInputReverter) };
-        editMenu.showMenuAsync ({}, [this] (int) {});
+        editMenu.showMenuAsync ({}, [] (int) {});
     };
     setupCvInputComboBox (phaseCVComboBox, "PhaseCV", [this] () { phaseCVUiChanged (phaseCVComboBox.getSelectedItemText (), phaseCVTextEditor.getText ().getDoubleValue ()); });
 
@@ -909,7 +909,7 @@ void ChannelEditor::setupChannelComponents ()
             channelProperties.setPhaseCV (FormatHelpers::getCvInput (channelProperties.getPhaseCV ()), uneditedCvAmount, true);
         };
         auto editMenu { createChannelEditMenu (phaseCVOffsetSetter, phaseCVOffsetResetter, phaseCVOffsetReverter) };
-        editMenu.showMenuAsync ({}, [this] (int) {});
+        editMenu.showMenuAsync ({}, [] (int) {});
     };
     setupTextEditor (phaseCVTextEditor, juce::Justification::centred, 0, "+-.0123456789", "PhaseCV");
 
@@ -923,7 +923,7 @@ void ChannelEditor::setupChannelComponents ()
     pMIndexTextEditor.getMinValueCallback = [this] () { return minChannelProperties.getPMIndex (); };
     pMIndexTextEditor.getMaxValueCallback = [this] () { return maxChannelProperties.getPMIndex (); };
     pMIndexTextEditor.updateDataCallback = [this] (double value) { pMIndexUiChanged (value); };
-    pMIndexTextEditor.toStringCallback = [this] (double value) { return FormatHelpers::formatDouble (value, 2, true); };
+    pMIndexTextEditor.toStringCallback = [] (double value) { return FormatHelpers::formatDouble (value, 2, true); };
     pMIndexTextEditor.getIncrementCallback = [] () { return 0.01; };
     pMIndexTextEditor.onDragCallback = [this] (double valueDelta)
     {
@@ -935,7 +935,7 @@ void ChannelEditor::setupChannelComponents ()
         auto editMenu { createChannelEditMenu ([this] (ChannelProperties& destChannelProperties) { destChannelProperties.setPMIndex (channelProperties.getPMIndex (), false); },
                                                [this] () { channelProperties.setPMIndex (defaultChannelProperties.getPMIndex (), true); },
                                                [this] () { channelProperties.setPMIndex (uneditedChannelProperties.getPMIndex (), true); }) };
-        editMenu.showMenuAsync ({}, [this] (int) {});
+        editMenu.showMenuAsync ({}, [] (int) {});
     };
     setupTextEditor (pMIndexTextEditor, juce::Justification::centred, 0, "+-.0123456789", "PMIndex");
 
@@ -964,7 +964,7 @@ void ChannelEditor::setupChannelComponents ()
             channelProperties.setPMIndexMod (uneditedCvInput, FormatHelpers::getAmount (channelProperties.getPMIndexMod ()), true);
         };
         auto editMenu { createChannelEditMenu (pMIndexModCVInputSetter, pMIndexModCVInputResetter, pMIndexModCVInputReverter) };
-        editMenu.showMenuAsync ({}, [this] (int) {});
+        editMenu.showMenuAsync ({}, [] (int) {});
     };
     setupCvInputComboBox (pMIndexModComboBox, "PMIndexMod", [this] () { pMIndexModUiChanged (pMIndexModComboBox.getSelectedItemText (), pMIndexModTextEditor.getText ().getDoubleValue ()); });
 
@@ -990,7 +990,7 @@ void ChannelEditor::setupChannelComponents ()
             channelProperties.setPMIndexMod (FormatHelpers::getCvInput (channelProperties.getPMIndexMod ()), uneditedCvAmount, true);
         };
         auto editMenu { createChannelEditMenu (pMIndexModOffsetSetter, pMIndexModOffsetResetter, pMIndexModOffsetReverter) };
-        editMenu.showMenuAsync ({}, [this] (int) {});
+        editMenu.showMenuAsync ({}, [] (int) {});
     };
     setupTextEditor (pMIndexModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "PMIndexMod");
 
@@ -1013,7 +1013,7 @@ void ChannelEditor::setupChannelComponents ()
         auto editMenu { createChannelEditMenu ([this] (ChannelProperties& destChannelProperties) { destChannelProperties.setAttackFromCurrent (channelProperties.getAttackFromCurrent (), false); },
                                                [this] () { channelProperties.setAttackFromCurrent (defaultChannelProperties.getAttackFromCurrent (), true); },
                                                [this] () { channelProperties.setAttackFromCurrent (uneditedChannelProperties.getAttackFromCurrent (), true); }) };
-        editMenu.showMenuAsync ({}, [this] (int) {});
+        editMenu.showMenuAsync ({}, [] (int) {});
     };
     setupComboBox (attackFromCurrentComboBox, "AttackFromCurrent", [this] ()
     {
@@ -1056,7 +1056,7 @@ void ChannelEditor::setupChannelComponents ()
         auto editMenu { createChannelEditMenu ([this] (ChannelProperties& destChannelProperties) { destChannelProperties.setAttack (channelProperties.getAttack (), false); },
                                                [this] () { channelProperties.setAttack (defaultChannelProperties.getAttack (), true); },
                                                [this] () { channelProperties.setAttack (uneditedChannelProperties.getAttack (), true); }) };
-        editMenu.showMenuAsync ({}, [this] (int) {});
+        editMenu.showMenuAsync ({}, [] (int) {});
     };
     setupTextEditor (attackTextEditor, juce::Justification::centred, 0, ".0123456789", "Attack");
 
@@ -1085,7 +1085,7 @@ void ChannelEditor::setupChannelComponents ()
             channelProperties.setAttackMod (uneditedCvInput, FormatHelpers::getAmount (channelProperties.getAttackMod ()), true);
         };
         auto editMenu { createChannelEditMenu (attackModCVInputSetter, attackModCVInputResetter, attackModCVInputReverter) };
-        editMenu.showMenuAsync ({}, [this] (int) {});
+        editMenu.showMenuAsync ({}, [] (int) {});
     };
     setupCvInputComboBox (attackModComboBox, "AttackMod", [this] () { attackModUiChanged (attackModComboBox.getSelectedItemText (), attackModTextEditor.getText ().getDoubleValue ()); });
 
@@ -1111,7 +1111,7 @@ void ChannelEditor::setupChannelComponents ()
             channelProperties.setAttackMod (FormatHelpers::getCvInput (channelProperties.getAttackMod ()), uneditedCvAmount, true);
         };
         auto editMenu { createChannelEditMenu (attackModOffsetSetter, attackModOffsetResetter, attackModOffsetReverter) };
-        editMenu.showMenuAsync ({}, [this] (int) {});
+        editMenu.showMenuAsync ({}, [] (int) {});
     };
     setupTextEditor (attackModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "AttackMod");
 
@@ -1150,7 +1150,7 @@ void ChannelEditor::setupChannelComponents ()
         auto editMenu { createChannelEditMenu ([this] (ChannelProperties& destChannelProperties) { destChannelProperties.setRelease (channelProperties.getRelease (), false); },
                                                [this] () { channelProperties.setRelease (defaultChannelProperties.getRelease (), true); },
                                                [this] () { channelProperties.setRelease (uneditedChannelProperties.getRelease (), true); }) };
-        editMenu.showMenuAsync ({}, [this] (int) {});
+        editMenu.showMenuAsync ({}, [] (int) {});
     };
     setupTextEditor (releaseTextEditor, juce::Justification::centred, 0, ".0123456789", "Release");
 
@@ -1179,7 +1179,7 @@ void ChannelEditor::setupChannelComponents ()
             channelProperties.setReleaseMod (uneditedCvInput, FormatHelpers::getAmount (channelProperties.getReleaseMod ()), true);
         };
         auto editMenu { createChannelEditMenu (releaseModCVInputSetter, releaseModCVInputResetter, releaseModCVInputReverter) };
-        editMenu.showMenuAsync ({}, [this] (int) {});
+        editMenu.showMenuAsync ({}, [] (int) {});
     };
     setupCvInputComboBox (releaseModComboBox, "ReleaseMod", [this] () { releaseModUiChanged (releaseModComboBox.getSelectedItemText (), releaseModTextEditor.getText ().getDoubleValue ()); });
 
@@ -1205,7 +1205,7 @@ void ChannelEditor::setupChannelComponents ()
             channelProperties.setReleaseMod (FormatHelpers::getCvInput (channelProperties.getReleaseMod ()), uneditedCvAmount, true);
         };
         auto editMenu { createChannelEditMenu (releaseModOffsetSetter, releaseModOffsetResetter, releaseModOffsetReverter) };
-        editMenu.showMenuAsync ({}, [this] (int) {});
+        editMenu.showMenuAsync ({}, [] (int) {});
     };
     setupTextEditor (releaseModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "ReleaseMod");
 
@@ -1221,7 +1221,7 @@ void ChannelEditor::setupChannelComponents ()
     // BITS EDITOR
     bitsTextEditor.getMinValueCallback = [this] () { return minChannelProperties.getBits (); };
     bitsTextEditor.getMaxValueCallback = [this] () { return maxChannelProperties.getBits (); };
-    bitsTextEditor.toStringCallback = [this] (double value) { return FormatHelpers::formatDouble (value, 1, false); };
+    bitsTextEditor.toStringCallback = [] (double value) { return FormatHelpers::formatDouble (value, 1, false); };
     bitsTextEditor.updateDataCallback = [this] (double value) { bitsUiChanged (value); };
     bitsTextEditor.getIncrementCallback = [this] () { return channelProperties.getBits () < 10.0 ? 0.1 : 1.0; };
     bitsTextEditor.onDragCallback = [this] (double valueDelta)
@@ -1234,7 +1234,7 @@ void ChannelEditor::setupChannelComponents ()
         auto editMenu { createChannelEditMenu ([this] (ChannelProperties& destChannelProperties) { destChannelProperties.setBits (channelProperties.getBits (), false); },
                                                [this] () { channelProperties.setBits (defaultChannelProperties.getBits (), true); },
                                                [this] () { channelProperties.setBits (uneditedChannelProperties.getBits (), true); }) };
-        editMenu.showMenuAsync ({}, [this] (int) {});
+        editMenu.showMenuAsync ({}, [] (int) {});
     };
     setupTextEditor (bitsTextEditor, juce::Justification::centred, 0, "+-.0123456789", "Bits");
 
@@ -1263,7 +1263,7 @@ void ChannelEditor::setupChannelComponents ()
             channelProperties.setBitsMod (uneditedCvInput, FormatHelpers::getAmount (channelProperties.getBitsMod ()), true);
         };
         auto editMenu { createChannelEditMenu (bitsModCVInputSetter, bitsModCVInputResetter, bitsModCVInputReverter) };
-        editMenu.showMenuAsync ({}, [this] (int) {});
+        editMenu.showMenuAsync ({}, [] (int) {});
     };
     setupCvInputComboBox (bitsModComboBox, "BitsMod", [this] () { bitsModUiChanged (bitsModComboBox.getSelectedItemText (), bitsModTextEditor.getText ().getDoubleValue ()); });
 
@@ -1289,7 +1289,7 @@ void ChannelEditor::setupChannelComponents ()
             channelProperties.setBitsMod (FormatHelpers::getCvInput (channelProperties.getBitsMod ()), uneditedCvAmount, true);
         };
         auto editMenu { createChannelEditMenu (bitsModOffsetSetter, bitsModOffsetResetter, bitsModOffsetReverter) };
-        editMenu.showMenuAsync ({}, [this] (int) {});
+        editMenu.showMenuAsync ({}, [] (int) {});
     };
     setupTextEditor (bitsModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "BitsMod");
 
@@ -1299,7 +1299,7 @@ void ChannelEditor::setupChannelComponents ()
     // ALIAS EDITOR
     aliasingTextEditor.getMinValueCallback = [this] () { return minChannelProperties.getAliasing (); };
     aliasingTextEditor.getMaxValueCallback = [this] () { return maxChannelProperties.getAliasing (); };
-    aliasingTextEditor.toStringCallback = [this] (int value) { return juce::String (value); };
+    aliasingTextEditor.toStringCallback = [] (int value) { return juce::String (value); };
     aliasingTextEditor.updateDataCallback = [this] (int value) { aliasingUiChanged (value); };
     aliasingTextEditor.onDragCallback = [this] (double valueDelta)
     {
@@ -1311,7 +1311,7 @@ void ChannelEditor::setupChannelComponents ()
         auto editMenu { createChannelEditMenu ([this] (ChannelProperties& destChannelProperties) { destChannelProperties.setAliasing (channelProperties.getAliasing (), false); },
                                                [this] () { channelProperties.setAliasing (defaultChannelProperties.getAliasing (), true); },
                                                [this] () { channelProperties.setAliasing (uneditedChannelProperties.getAliasing (), true); }) };
-        editMenu.showMenuAsync ({}, [this] (int) {});
+        editMenu.showMenuAsync ({}, [] (int) {});
     };
     setupTextEditor (aliasingTextEditor, juce::Justification::centred, 0, "0123456789", "Aliasing");
 
@@ -1340,7 +1340,7 @@ void ChannelEditor::setupChannelComponents ()
             channelProperties.setAliasingMod (uneditedCvInput, FormatHelpers::getAmount (channelProperties.getAliasingMod ()), true);
         };
         auto editMenu { createChannelEditMenu (aliasingModCVInputSetter, aliasingModCVInputResetter, aliasingModCVInputReverter) };
-        editMenu.showMenuAsync ({}, [this] (int) {});
+        editMenu.showMenuAsync ({}, [] (int) {});
     };
     setupCvInputComboBox (aliasingModComboBox, "AliasingMod", [this] () { aliasingModUiChanged (aliasingModComboBox.getSelectedItemText (), aliasingModTextEditor.getText ().getDoubleValue ()); });
 
@@ -1366,7 +1366,7 @@ void ChannelEditor::setupChannelComponents ()
             channelProperties.setAliasingMod (FormatHelpers::getCvInput (channelProperties.getAliasingMod ()), uneditedCvAmount, true);
         };
         auto editMenu { createChannelEditMenu (aliasingModOffsetSetter, aliasingModOffsetResetter, aliasingModOffsetReverter) };
-        editMenu.showMenuAsync ({}, [this] (int) {});
+        editMenu.showMenuAsync ({}, [] (int) {});
     };
     setupTextEditor (aliasingModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "AliasingMod");
 
@@ -1376,7 +1376,7 @@ void ChannelEditor::setupChannelComponents ()
         auto editMenu { createChannelEditMenu ([this] (ChannelProperties& destChannelProperties) { destChannelProperties.setReverse (channelProperties.getReverse (), false); },
                                                [this] () { channelProperties.setReverse (defaultChannelProperties.getReverse (), true); },
                                                [this] () { channelProperties.setReverse (uneditedChannelProperties.getReverse (), true); }) };
-        editMenu.showMenuAsync ({}, [this] (int) {});
+        editMenu.showMenuAsync ({}, [] (int) {});
     };
     setupButton (reverseButton, "REV", "Reverse", [this] () { reverseUiChanged (reverseButton.getToggleState ()); });
 
@@ -1386,7 +1386,7 @@ void ChannelEditor::setupChannelComponents ()
         auto editMenu { createChannelEditMenu ([this] (ChannelProperties& destChannelProperties) { destChannelProperties.setSpliceSmoothing (channelProperties.getSpliceSmoothing (), false); },
                                                [this] () { channelProperties.setSpliceSmoothing (defaultChannelProperties.getSpliceSmoothing (), true); },
                                                [this] () { channelProperties.setSpliceSmoothing (uneditedChannelProperties.getSpliceSmoothing (), true); }) };
-        editMenu.showMenuAsync ({}, [this] (int) {});
+        editMenu.showMenuAsync ({}, [] (int) {});
     };
     setupButton (spliceSmoothingButton, "SMOOTH", "SpliceSmoothing", [this] () { spliceSmoothingUiChanged (spliceSmoothingButton.getToggleState ()); });
 
@@ -1399,7 +1399,7 @@ void ChannelEditor::setupChannelComponents ()
     // PAN EDITOR
     panTextEditor.getMinValueCallback = [this] () { return minChannelProperties.getPan (); };
     panTextEditor.getMaxValueCallback = [this] () { return maxChannelProperties.getPan (); };
-    panTextEditor.toStringCallback = [this] (double value) { return FormatHelpers::formatDouble (value, 2, true); };
+    panTextEditor.toStringCallback = [] (double value) { return FormatHelpers::formatDouble (value, 2, true); };
     panTextEditor.updateDataCallback = [this] (double value) { panUiChanged (value); };
     panTextEditor.getIncrementCallback = [] () { return 0.01; };
     panTextEditor.onDragCallback = [this] (double valueDelta)
@@ -1412,7 +1412,7 @@ void ChannelEditor::setupChannelComponents ()
         auto editMenu { createChannelEditMenu ([this] (ChannelProperties& destChannelProperties) { destChannelProperties.setPan (channelProperties.getPan (), false); },
                                                [this] () { channelProperties.setPan (defaultChannelProperties.getPan (), true); },
                                                [this] () { channelProperties.setPan (uneditedChannelProperties.getPan (), true); }) };
-        editMenu.showMenuAsync ({}, [this] (int) {});
+        editMenu.showMenuAsync ({}, [] (int) {});
     };
     setupTextEditor (panTextEditor, juce::Justification::centred, 0, "+-.0123456789", "Pan");
 
@@ -1441,7 +1441,7 @@ void ChannelEditor::setupChannelComponents ()
             channelProperties.setPanMod (uneditedCvInput, FormatHelpers::getAmount (channelProperties.getPanMod ()), true);
         };
         auto editMenu { createChannelEditMenu (panModCVInputSetter, panModCVInputResetter, panModCVInputReverter) };
-        editMenu.showMenuAsync ({}, [this] (int) {});
+        editMenu.showMenuAsync ({}, [] (int) {});
     };
     setupCvInputComboBox (panModComboBox, "PanMod", [this] () { panModUiChanged (panModComboBox.getSelectedItemText (), panModTextEditor.getText ().getDoubleValue ()); });
 
@@ -1467,7 +1467,7 @@ void ChannelEditor::setupChannelComponents ()
             channelProperties.setPanMod (FormatHelpers::getCvInput (channelProperties.getPanMod ()), uneditedCvAmount, true);
         };
         auto editMenu { createChannelEditMenu (panModOffsetSetter, panModOffsetResetter, panModOffsetReverter) };
-        editMenu.showMenuAsync ({}, [this] (int) {});
+        editMenu.showMenuAsync ({}, [] (int) {});
     };
     setupTextEditor (panModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "PanMod");
 
@@ -1477,7 +1477,7 @@ void ChannelEditor::setupChannelComponents ()
     // MIX EDITOR
     mixLevelTextEditor.getMinValueCallback = [this] () { return minChannelProperties.getMixLevel (); };
     mixLevelTextEditor.getMaxValueCallback = [this] () { return maxChannelProperties.getMixLevel (); };
-    mixLevelTextEditor.toStringCallback = [this] (double value) { return FormatHelpers::formatDouble (value, 1, false); };
+    mixLevelTextEditor.toStringCallback = [] (double value) { return FormatHelpers::formatDouble (value, 1, false); };
     mixLevelTextEditor.updateDataCallback = [this] (double value) { mixLevelUiChanged (value); };
     mixLevelTextEditor.getIncrementCallback = [] () { return 0.1; };
     mixLevelTextEditor.onDragCallback = [this] (double valueDelta)
@@ -1490,7 +1490,7 @@ void ChannelEditor::setupChannelComponents ()
         auto editMenu { createChannelEditMenu ([this] (ChannelProperties& destChannelProperties) { destChannelProperties.setMixLevel (channelProperties.getMixLevel (), false); },
                                                [this] () { channelProperties.setMixLevel (defaultChannelProperties.getMixLevel (), true); },
                                                [this] () { channelProperties.setMixLevel (uneditedChannelProperties.getMixLevel (), true); }) };
-        editMenu.showMenuAsync ({}, [this] (int) {});
+        editMenu.showMenuAsync ({}, [] (int) {});
     };
     setupTextEditor (mixLevelTextEditor, juce::Justification::centred, 0, "+-.0123456789", "MixLevel");
 
@@ -1510,7 +1510,7 @@ void ChannelEditor::setupChannelComponents ()
         auto editMenu { createChannelEditMenu ([this] (ChannelProperties& destChannelProperties) { destChannelProperties.setMixModIsFader (channelProperties.getMixModIsFader (), false); },
                                                [this] () { channelProperties.setMixModIsFader (defaultChannelProperties.getMixModIsFader (), true); },
                                                [this] () { channelProperties.setMixModIsFader (uneditedChannelProperties.getMixModIsFader (), true); }) };
-        editMenu.showMenuAsync ({}, [this] (int) {});
+        editMenu.showMenuAsync ({}, [] (int) {});
     };
     setupComboBox (mixModIsFaderComboBox, "MixModIsFader", [this] () { mixModIsFaderUiChanged (mixModIsFaderComboBox.getSelectedId () == 2); });
 
@@ -1539,7 +1539,7 @@ void ChannelEditor::setupChannelComponents ()
             channelProperties.setMixMod (uneditedCvInput, FormatHelpers::getAmount (channelProperties.getMixMod ()), true);
         };
         auto editMenu { createChannelEditMenu (mixModCVInputSetter, mixModCVInputResetter, mixModCVInputReverter) };
-        editMenu.showMenuAsync ({}, [this] (int) {});
+        editMenu.showMenuAsync ({}, [] (int) {});
     };
     setupCvInputComboBox (mixModComboBox, "MixMod", [this] () { mixModUiChanged (mixModComboBox.getSelectedItemText (), mixModTextEditor.getText ().getDoubleValue ()); });
 
@@ -1565,7 +1565,7 @@ void ChannelEditor::setupChannelComponents ()
             channelProperties.setMixMod (FormatHelpers::getCvInput (channelProperties.getMixMod ()), uneditedCvAmount, true);
         };
         auto editMenu { createChannelEditMenu (mixModOffsetSetter, mixModOffsetResetter, mixModOffsetReverter) };
-        editMenu.showMenuAsync ({}, [this] (int) {});
+        editMenu.showMenuAsync ({}, [] (int) {});
     };
     setupTextEditor (mixModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "MixMod");
 
@@ -1590,7 +1590,7 @@ void ChannelEditor::setupChannelComponents ()
         auto editMenu { createChannelEditMenu ([this] (ChannelProperties& destChannelProperties) { destChannelProperties.setChannelMode (channelProperties.getChannelMode (), false); },
                                                [this] () { channelProperties.setChannelMode (defaultChannelProperties.getChannelMode (), true); },
                                                [this] () { channelProperties.setChannelMode (uneditedChannelProperties.getChannelMode (), true); }) };
-        editMenu.showMenuAsync ({}, [this] (int) {});
+        editMenu.showMenuAsync ({}, [] (int) {});
     };
     setupComboBox (channelModeComboBox, "ChannelMode", [this] ()
     {
@@ -1613,7 +1613,7 @@ void ChannelEditor::setupChannelComponents ()
         auto editMenu { createChannelEditMenu ([this] (ChannelProperties& destChannelProperties) { destChannelProperties.setAutoTrigger (channelProperties.getAutoTrigger (), true); },
                                                [this] () { channelProperties.setAutoTrigger (defaultChannelProperties.getAutoTrigger (), true); },
                                                [this] () { channelProperties.setAutoTrigger (uneditedChannelProperties.getAutoTrigger (), true); }) };
-        editMenu.showMenuAsync ({}, [this] (int) {});
+        editMenu.showMenuAsync ({}, [] (int) {});
     };
     setupComboBox (autoTriggerComboBox, "AutoTrigger", [this] ()
     {
@@ -1637,7 +1637,7 @@ void ChannelEditor::setupChannelComponents ()
         auto editMenu { createChannelEditMenu ([this] (ChannelProperties& destChannelProperties) { destChannelProperties.setPlayMode (channelProperties.getPlayMode (), false); },
                                                [this] () { channelProperties.setPlayMode (defaultChannelProperties.getPlayMode (), true); },
                                                [this] () { channelProperties.setPlayMode (uneditedChannelProperties.getPlayMode (), true); }) };
-        editMenu.showMenuAsync ({}, [this] (int) {});
+        editMenu.showMenuAsync ({}, [] (int) {});
     };
     setupComboBox (playModeComboBox, "PlayMode", [this] () { playModeUiChanged (playModeComboBox.getSelectedId () - 1); });
 
@@ -1669,7 +1669,7 @@ void ChannelEditor::setupChannelComponents ()
             channelProperties.setSampleStartMod (uneditedCvInput, FormatHelpers::getAmount (channelProperties.getSampleStartMod ()), true);
         };
         auto editMenu { createChannelEditMenu (sampleStartModCVInputSetter, sampleStartModCVInputResetter, sampleStartModCVInputReverter) };
-        editMenu.showMenuAsync ({}, [this] (int) {});
+        editMenu.showMenuAsync ({}, [] (int) {});
     };
     setupCvInputComboBox (sampleStartModComboBox, "SampleStartMod", [this] () { sampleStartModUiChanged (sampleStartModComboBox.getSelectedItemText (), sampleStartModTextEditor.getText ().getDoubleValue ()); });
 
@@ -1695,7 +1695,7 @@ void ChannelEditor::setupChannelComponents ()
             channelProperties.setSampleStartMod (FormatHelpers::getCvInput (channelProperties.getSampleStartMod ()), uneditedCvAmount, true);
         };
         auto editMenu { createChannelEditMenu (sampleStartModOffsetSetter, sampleStartModOffsetResetter, sampleStartModOffsetReverter) };
-        editMenu.showMenuAsync ({}, [this] (int) {});
+        editMenu.showMenuAsync ({}, [] (int) {});
     };
     setupTextEditor (sampleStartModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "SampleStartMod");
 
@@ -1727,7 +1727,7 @@ void ChannelEditor::setupChannelComponents ()
             channelProperties.setSampleEndMod (uneditedCvInput, FormatHelpers::getAmount (channelProperties.getSampleEndMod ()), true);
         };
         auto editMenu { createChannelEditMenu (sampleEndModCVInputSetter, sampleEndModCVInputResetter, sampleEndModCVInputReverter) };
-        editMenu.showMenuAsync ({}, [this] (int) {});
+        editMenu.showMenuAsync ({}, [] (int) {});
     };
     setupCvInputComboBox (sampleEndModComboBox, "SampleEndMod", [this] () { sampleEndModUiChanged (sampleEndModComboBox.getSelectedItemText (), sampleEndModTextEditor.getText ().getDoubleValue ()); });
 
@@ -1753,7 +1753,7 @@ void ChannelEditor::setupChannelComponents ()
             channelProperties.setSampleEndMod (FormatHelpers::getCvInput (channelProperties.getSampleEndMod ()), uneditedCvAmount, true);
         };
         auto editMenu { createChannelEditMenu (sampleEndModOffsetSetter, sampleEndModOffsetResetter, sampleEndModOffsetReverter) };
-        editMenu.showMenuAsync ({}, [this] (int) {});
+        editMenu.showMenuAsync ({}, [] (int) {});
     };
     setupTextEditor (sampleEndModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "SampleEndMod");
 
@@ -1774,7 +1774,7 @@ void ChannelEditor::setupChannelComponents ()
         auto editMenu { createChannelEditMenu ([this] (ChannelProperties& destChannelProperties) { destChannelProperties.setLoopMode (channelProperties.getLoopMode (), false); },
                                                [this] () { channelProperties.setLoopMode (defaultChannelProperties.getLoopMode (), true); },
                                                [this] () { channelProperties.setLoopMode (uneditedChannelProperties.getLoopMode (), true); }) };
-        editMenu.showMenuAsync ({}, [this] (int) {});
+        editMenu.showMenuAsync ({}, [] (int) {});
     };
     setupComboBox (loopModeComboBox, "LoopMode", [this] () { loopModeUiChanged (loopModeComboBox.getSelectedId () - 1); });
 
@@ -1806,7 +1806,7 @@ void ChannelEditor::setupChannelComponents ()
             channelProperties.setLoopStartMod (uneditedCvInput, FormatHelpers::getAmount (channelProperties.getLoopStartMod ()), true);
         };
         auto editMenu { createChannelEditMenu (loopStartModCVInputSetter, loopStartModCVInputResetter, loopStartModCVInputReverter) };
-        editMenu.showMenuAsync ({}, [this] (int) {});
+        editMenu.showMenuAsync ({}, [] (int) {});
     };
     setupCvInputComboBox (loopStartModComboBox, "LoopStartMod", [this] () { loopStartModUiChanged (loopStartModComboBox.getSelectedItemText (), loopStartModTextEditor.getText ().getDoubleValue ()); });
 
@@ -1832,7 +1832,7 @@ void ChannelEditor::setupChannelComponents ()
             channelProperties.setLoopStartMod (FormatHelpers::getCvInput (channelProperties.getLoopStartMod ()), uneditedCvAmount, true);
         };
         auto editMenu { createChannelEditMenu (loopStartModOffsetSetter, loopStartModOffsetResetter, loopStartModOffsetReverter) };
-        editMenu.showMenuAsync ({}, [this] (int) {});
+        editMenu.showMenuAsync ({}, [] (int) {});
     };
     setupTextEditor (loopStartModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "LoopStartMod");
 
@@ -1864,7 +1864,7 @@ void ChannelEditor::setupChannelComponents ()
             channelProperties.setLoopLengthMod (uneditedCvInput, FormatHelpers::getAmount (channelProperties.getLoopLengthMod ()), true);
         };
         auto editMenu { createChannelEditMenu (loopLengthModCVInputSetter, loopLengthModCVInputResetter, loopLengthModCVInputReverter) };
-        editMenu.showMenuAsync ({}, [this] (int) {});
+        editMenu.showMenuAsync ({}, [] (int) {});
     };
     setupCvInputComboBox (loopLengthModComboBox, "LoopLengthMod", [this] () { loopLengthModUiChanged (loopLengthModComboBox.getSelectedItemText (), loopLengthModTextEditor.getText ().getDoubleValue ()); });
 
@@ -1890,7 +1890,7 @@ void ChannelEditor::setupChannelComponents ()
             channelProperties.setLoopLengthMod (FormatHelpers::getCvInput (channelProperties.getLoopLengthMod ()), uneditedCvAmount, true);
         };
         auto editMenu { createChannelEditMenu (loopLengthModOffsetSetter, loopLengthModOffsetResetter, loopLengthModOffsetReverter) };
-        editMenu.showMenuAsync ({}, [this] (int) {});
+        editMenu.showMenuAsync ({}, [] (int) {});
     };
     setupTextEditor (loopLengthModTextEditor, juce::Justification::centred, 0, "+-.0123456789", "LoopLengthMod");
 
@@ -1914,7 +1914,7 @@ void ChannelEditor::setupChannelComponents ()
         auto editMenu { createChannelEditMenu ([this] (ChannelProperties& destChannelProperties) { destChannelProperties.setXfadeGroup (channelProperties.getXfadeGroup (), false); },
                                                [this] () { channelProperties.setXfadeGroup (defaultChannelProperties.getXfadeGroup (), true); },
                                                [this] () { channelProperties.setXfadeGroup (uneditedChannelProperties.getXfadeGroup (), true); }) };
-        editMenu.showMenuAsync ({}, [this] (int) {});
+        editMenu.showMenuAsync ({}, [] (int) {});
     };
     setupComboBox (xfadeGroupComboBox, "XfadeGroup", [this] () { xfadeGroupUiChanged (xfadeGroupComboBox.getText ()); });
 
@@ -1937,7 +1937,7 @@ void ChannelEditor::setupChannelComponents ()
         auto editMenu { createChannelEditMenu ([this] (ChannelProperties& destChannelProperties) { destChannelProperties.setZonesCV (channelProperties.getZonesCV (), false); },
                                                [this] () { channelProperties.setZonesCV (defaultChannelProperties.getZonesCV (), true); },
                                                [this] () { channelProperties.setZonesCV (uneditedChannelProperties.getZonesCV (), true); }) };
-        editMenu.showMenuAsync ({}, [this] (int) {});
+        editMenu.showMenuAsync ({}, [] (int) {});
     };
     setupCvInputComboBox (zonesCVComboBox, "ZonesCV", [this] () { zonesCVUiChanged (zonesCVComboBox.getSelectedItemText ()); });
 
@@ -1959,7 +1959,7 @@ void ChannelEditor::setupChannelComponents ()
         auto editMenu { createChannelEditMenu ([this] (ChannelProperties& destChannelProperties) { destChannelProperties.setZonesRT (channelProperties.getZonesRT (), false); },
                                                [this] () { channelProperties.setZonesRT (defaultChannelProperties.getZonesRT (), true); },
                                                [this] () { channelProperties.setZonesRT (uneditedChannelProperties.getZonesRT (), true); }) };
-        editMenu.showMenuAsync ({}, [this] (int) {});
+        editMenu.showMenuAsync ({}, [] (int) {});
     };
     setupComboBox (zonesRTComboBox, "ZonesRT", [this] () { zonesRTUiChanged (zonesRTComboBox.getSelectedId () - 1); });
 
@@ -1979,7 +1979,7 @@ void ChannelEditor::setupChannelComponents ()
         auto editMenu { createChannelEditMenu ([this] (ChannelProperties& destChannelProperties) { destChannelProperties.setLoopLengthIsEnd (channelProperties.getLoopLengthIsEnd (), false); },
                                                [this] () { channelProperties.setLoopLengthIsEnd (defaultChannelProperties.getLoopLengthIsEnd (), true); },
                                                [this] () { channelProperties.setLoopLengthIsEnd (uneditedChannelProperties.getLoopLengthIsEnd (), true); }) };
-        editMenu.showMenuAsync ({}, [this] (int) {});
+        editMenu.showMenuAsync ({}, [] (int) {});
     };
     setupComboBox (loopLengthIsEndComboBox, "LoopLengthIsEnd", [this] ()
     {
@@ -2003,7 +2003,7 @@ void ChannelEditor::balanceVoltages (VoltageBalanceType balanceType)
         jassert (minVoltageUpdateFunction != nullptr);
         for (auto curZoneIndex { numUsedZones - 2 }; curZoneIndex >= 0; --curZoneIndex)
         {
-            zoneProperties [curZoneIndex].setMinVoltage (minVoltageUpdateFunction (curZoneIndex), false);
+            zoneProperties [static_cast<size_t> (curZoneIndex)].setMinVoltage (minVoltageUpdateFunction (curZoneIndex), false);
         }
     };
     switch (balanceType)
@@ -2047,7 +2047,7 @@ void ChannelEditor::balanceVoltages (VoltageBalanceType balanceType)
             std::array<double, 7> majorNoteVoltages { 0.08, 0.25, 0.37, 0.5, 0.67, 0.83, 0.96 };
             fillMinVoltages ([majorNoteVoltages, numUsedZones] (int curZoneIndex)
             {
-                return majorNoteVoltages [numUsedZones - 2 - curZoneIndex];
+                return majorNoteVoltages [static_cast<size_t> (numUsedZones - 2 - curZoneIndex)];
             });
         }
         break;
@@ -2085,7 +2085,7 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree u
     channelProperties.forEachZone ([this, rootPropertiesVT] (juce::ValueTree zonePropertiesVT, int zoneIndex)
     {
         // Zone Editor setup
-        auto& zoneEditor { zoneEditors [zoneIndex] };
+        auto& zoneEditor { zoneEditors [static_cast<size_t> (zoneIndex)] };
         zoneEditor.init (zonePropertiesVT, uneditedChannelProperties.getZoneVT (zoneIndex), rootPropertiesVT);
         // the waveforms show the current zone, so only its changes reach them
         zoneEditor.onActiveSamplePointsChanged = [this, zoneIndex] (AudioPlayerProperties::SamplePointsSelector samplePointsSelector)
@@ -2095,10 +2095,10 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree u
             sampleWaveformDisplay.setActiveSamplePoints (samplePointsSelector);
             expandedWaveformPanel.waveformDisplay.setActiveSamplePoints (samplePointsSelector);
         };
-        zoneEditor.displayToolsMenu = [this] (int zoneIndex)
+        zoneEditor.displayToolsMenu = [this] (int toolsZoneIndex)
         {
             juce::PopupMenu toolsMenu;
-            toolsMenu.addSectionHeader ("Zone " + juce::String (zoneProperties [zoneIndex].getId ()));
+            toolsMenu.addSectionHeader ("Zone " + juce::String (zoneProperties [static_cast<size_t> (toolsZoneIndex)].getId ()));
             toolsMenu.addSeparator ();
 
             {
@@ -2107,33 +2107,33 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree u
                 balanceMenu.addItem ("10V", true, false, [this] () { balanceVoltages (VoltageBalanceType::distributeAcross10V); });
                 balanceMenu.addItem ("Kbd", true, false, [this] () { balanceVoltages (VoltageBalanceType::distribute1vPerOct); });
                 balanceMenu.addItem ("Maj", true, false, [this] () { balanceVoltages (VoltageBalanceType::distribute1vPerOctMajor); });
-                toolsMenu.addSubMenu ("Balance", balanceMenu, zoneProperties [zoneIndex].getSample ().isNotEmpty ());
+                toolsMenu.addSubMenu ("Balance", balanceMenu, zoneProperties [static_cast<size_t> (toolsZoneIndex)].getSample ().isNotEmpty ());
             }
             {
                 juce::PopupMenu editMenu;
                 {
                     juce::PopupMenu copyMenu;
-                    copyMenu.addItem ("Settings", zoneProperties [zoneIndex].getSample ().isNotEmpty (), false, [this, zoneIndex] () { copyZone (zoneIndex, true); });
-                    copyMenu.addItem ("Sample and Settings", zoneProperties [zoneIndex].getSample ().isNotEmpty (), false, [this, zoneIndex] () { copyZone (zoneIndex, false); });
-                    editMenu.addSubMenu ("Copy", copyMenu, zoneProperties [zoneIndex].getSample ().isNotEmpty ());
+                    copyMenu.addItem ("Settings", zoneProperties [static_cast<size_t> (toolsZoneIndex)].getSample ().isNotEmpty (), false, [this, toolsZoneIndex] () { copyZone (toolsZoneIndex, true); });
+                    copyMenu.addItem ("Sample and Settings", zoneProperties [static_cast<size_t> (toolsZoneIndex)].getSample ().isNotEmpty (), false, [this, toolsZoneIndex] () { copyZone (toolsZoneIndex, false); });
+                    editMenu.addSubMenu ("Copy", copyMenu, zoneProperties [static_cast<size_t> (toolsZoneIndex)].getSample ().isNotEmpty ());
                 }
-                editMenu.addItem ("Paste", *zoneCopyBufferHasData && (zoneProperties [zoneIndex].getSample ().isNotEmpty () || copyBufferZoneProperties.getSample ().isNotEmpty ()), false, [this, zoneIndex] ()
+                editMenu.addItem ("Paste", *zoneCopyBufferHasData && (zoneProperties [static_cast<size_t> (toolsZoneIndex)].getSample ().isNotEmpty () || copyBufferZoneProperties.getSample ().isNotEmpty ()), false, [this, toolsZoneIndex] ()
                 {
-                    pasteZone (zoneIndex);
+                    pasteZone (toolsZoneIndex);
                     updateAllZoneTabNames ();
                     ensureProperZoneIsSelected ();
                 });
-                editMenu.addItem ("Insert", zoneProperties [zoneIndex].getSample ().isNotEmpty () && zoneIndex > 0 && zoneIndex < zoneProperties.size () - 1, false, [this, zoneIndex] ()
+                editMenu.addItem ("Insert", zoneProperties [static_cast<size_t> (toolsZoneIndex)].getSample ().isNotEmpty () && toolsZoneIndex > 0 && toolsZoneIndex < static_cast<int> (zoneProperties.size ()) - 1, false, [this, toolsZoneIndex] ()
                 {
-                    editManager->duplicateZone (channelIndex, zoneIndex);
+                    editManager->duplicateZone (channelIndex, toolsZoneIndex);
                     ensureProperZoneIsSelected ();
                     updateAllZoneTabNames ();
                 });
                 {
                     juce::PopupMenu deleteMenu;
-                    deleteMenu.addItem ("Zone " + juce::String (zoneProperties [zoneIndex].getId ()), zoneProperties [zoneIndex].getSample ().isNotEmpty (), false, [this, zoneIndex] ()
+                    deleteMenu.addItem ("Zone " + juce::String (zoneProperties [static_cast<size_t> (toolsZoneIndex)].getId ()), zoneProperties [static_cast<size_t> (toolsZoneIndex)].getSample ().isNotEmpty (), false, [this, toolsZoneIndex] ()
                     {
-                        editManager->deleteZone (channelIndex, zoneIndex);
+                        editManager->deleteZone (channelIndex, toolsZoneIndex);
                         ensureProperZoneIsSelected ();
                         updateAllZoneTabNames ();
                     });
@@ -2143,39 +2143,39 @@ void ChannelEditor::init (juce::ValueTree channelPropertiesVT, juce::ValueTree u
                         ensureProperZoneIsSelected ();
                         updateAllZoneTabNames ();
                     });
-                    editMenu.addSubMenu ("Delete", deleteMenu, zoneProperties [zoneIndex].getSample ().isNotEmpty ());
+                    editMenu.addSubMenu ("Delete", deleteMenu, zoneProperties [static_cast<size_t> (toolsZoneIndex)].getSample ().isNotEmpty ());
                 }
                 toolsMenu.addSubMenu ("Edit", editMenu, true);
             }
             {
                 juce::PopupMenu explodeMenu;
-                for (auto explodeCount { 2 }; explodeCount < 9 - zoneIndex; ++explodeCount)
-                    explodeMenu.addItem (juce::String (explodeCount) + " zones", true, false, [this, zoneIndex, explodeCount] ()
+                for (auto explodeCount { 2 }; explodeCount < 9 - toolsZoneIndex; ++explodeCount)
+                    explodeMenu.addItem (juce::String (explodeCount) + " zones", true, false, [this, toolsZoneIndex, explodeCount] ()
                     {
-                        editManager->explodeZone (channelIndex, zoneIndex, explodeCount);
+                        editManager->explodeZone (channelIndex, toolsZoneIndex, explodeCount);
                         ensureProperZoneIsSelected ();
                         updateAllZoneTabNames ();
                     });
-                toolsMenu.addSubMenu ("Explode", explodeMenu, zoneIndex < 7);
+                toolsMenu.addSubMenu ("Explode", explodeMenu, toolsZoneIndex < 7);
             }
             {
                 juce::PopupMenu flipMenu;
-                const auto maxFlipCount { editManager->getNumUsedZones (channelIndex) + 1 - zoneIndex };
+                const auto maxFlipCount { editManager->getNumUsedZones (channelIndex) + 1 - toolsZoneIndex };
                 for (auto flipCount { 2 }; flipCount < maxFlipCount; ++flipCount)
-                    flipMenu.addItem (juce::String (flipCount) + " zones", true, false, [this, zoneIndex, flipCount] ()
+                    flipMenu.addItem (juce::String (flipCount) + " zones", true, false, [this, toolsZoneIndex, flipCount] ()
                     {
-                        editManager->flipZones (channelIndex, zoneIndex, flipCount);
+                        editManager->flipZones (channelIndex, toolsZoneIndex, flipCount);
                     });
-                toolsMenu.addSubMenu ("Flip", flipMenu, zoneIndex < 7);
+                toolsMenu.addSubMenu ("Flip", flipMenu, toolsZoneIndex < 7);
             }
 
             toolsMenu.showMenuAsync ({});
         };
 
         // Zone Properties setup
-        auto& curZoneProperties { zoneProperties [zoneIndex] };
+        auto& curZoneProperties { zoneProperties [static_cast<size_t> (zoneIndex)] };
         curZoneProperties.wrap (zonePropertiesVT, ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::yes);
-        curZoneProperties.onSampleChange = [this] (juce::String sample)
+        curZoneProperties.onSampleChange = [this] ([[maybe_unused]] juce::String sample)
         {
             // TODO - optimize so we only update the zone that is changing
             ensureProperZoneIsSelected ();
@@ -2246,7 +2246,7 @@ void ChannelEditor::receiveSampleLoadRequest (juce::File sampleFile)
 
 void ChannelEditor::setupChannelPropertiesCallbacks ()
 {
-    channelProperties.onIdChange = [this] ([[maybe_unused]] int id) { jassertfalse; };
+    channelProperties.onIdChange = [] ([[maybe_unused]] int id) { jassertfalse; };
     channelProperties.onAliasingChange = [this] (int aliasing) { aliasingDataChanged (aliasing);  };
     channelProperties.onAliasingModChange = [this] (CvInputAndAmount amountAndCvInput) { const auto& [cvInput, value] { amountAndCvInput }; aliasingModDataChanged (cvInput, value); };
     channelProperties.onAttackChange = [this] (double attack) { attackDataChanged (attack); };
@@ -2720,13 +2720,13 @@ void ChannelEditor::updateAllZoneTabNames ()
 void ChannelEditor::updateZoneTabName (int zoneIndex)
 {
     auto zoneTabName { juce::String (zoneIndex + 1) };
-    if (zoneProperties [zoneIndex].getSample ().isNotEmpty ())
+    if (zoneProperties [static_cast<size_t> (zoneIndex)].getSample ().isNotEmpty ())
     {
-        const auto minVoltage { zoneProperties [zoneIndex].getMinVoltage () };
+        const auto minVoltage { zoneProperties [static_cast<size_t> (zoneIndex)].getMinVoltage () };
         zoneTabName += "\r" + juce::String (minVoltage >= 0.0 ? "+" : "") + juce::String (minVoltage, 2);
     }
     zoneTabs.setTabName (zoneIndex, zoneTabName);
-    zoneTabs.setTabHasContent (zoneIndex, zoneProperties [zoneIndex].getSample ().isNotEmpty ());
+    zoneTabs.setTabHasContent (zoneIndex, zoneProperties [static_cast<size_t> (zoneIndex)].getSample ().isNotEmpty ());
 }
 
 void ChannelEditor::aliasingDataChanged (int aliasing)

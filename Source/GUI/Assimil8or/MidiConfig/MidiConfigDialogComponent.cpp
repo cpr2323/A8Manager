@@ -8,7 +8,7 @@ MidiConfigDialogComponent::MidiConfigDialogComponent ()
 {
     setOpaque (true);
     for (auto curMidiSetupIndex { 0 }; curMidiSetupIndex < 9; ++curMidiSetupIndex)
-        midiSetupTabs.addLedTab (juce::String::charToString ('1' + curMidiSetupIndex), &midiSetupEditorComponents [curMidiSetupIndex]);
+        midiSetupTabs.addLedTab (juce::String::charToString ('1' + curMidiSetupIndex), &midiSetupEditorComponents [static_cast<size_t> (curMidiSetupIndex)]);
     midiSetupTabs.setTabBarDepth (31);
     // a lit led on a MIDI setup tab says it has edits that are not saved
     midiSetupTabs.setLedColourId (A8Colours::danger);
@@ -35,7 +35,7 @@ void MidiConfigDialogComponent::init (juce::ValueTree rootPropertiesVT)
         midiSetupPropertiesListVT.addChild (midiSetupProperties.getValueTree (), -1, nullptr);
         uneditedMidiSetupPropertiesListVT.addChild (midiSetupProperties.getValueTree ().createCopy (), -1, nullptr);
 
-        midiSetupEditorComponents [curMidiSetupIndex].init (curMidiSetupIndex, midiSetupPropertiesListVT, uneditedMidiSetupPropertiesListVT);
+        midiSetupEditorComponents [static_cast<size_t> (curMidiSetupIndex)].init (curMidiSetupIndex, midiSetupPropertiesListVT, uneditedMidiSetupPropertiesListVT);
     }
 }
 
