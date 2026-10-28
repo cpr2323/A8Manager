@@ -169,6 +169,8 @@ private:
     // why a marker cannot be set to this sample, for the tooltip on its greyed out menu item
     juce::String getSetMarkerBlockedReason (int markerIndex, double sample);
     void setMarkerAt (int markerIndex, double sample);
+    void setLoopToSample ();
+    void setSampleToLoop ();
     // clickSample is where the waveform was right-clicked, and adds the markers that can be set there
     juce::PopupMenu createToolsMenu (std::optional<double> clickSample);
 

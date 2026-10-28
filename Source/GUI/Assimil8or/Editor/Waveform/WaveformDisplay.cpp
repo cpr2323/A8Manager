@@ -598,6 +598,27 @@ void WaveformDisplay::setMarkerAt (int markerIndex, double sample)
     markerMoved (markerIndex);
 }
 
+void WaveformDisplay::setLoopToSample()
+{
+    const auto sampleStart { markerOverlay.getPosition (kSampleStart) };
+    const auto sampleEnd { markerOverlay.getPosition (kSampleEnd) };
+
+    markerOverlay.setPosition (kLoopStart, sampleStart);
+    markerMoved (kLoopStart);
+    markerOverlay.setPosition (kLoopEnd, sampleEnd);
+    markerMoved (kLoopEnd);
+}
+
+void WaveformDisplay::setSampleToLoop ()
+{
+    const auto loopStart { markerOverlay.getPosition (kLoopStart) };
+    const auto loopEnd { markerOverlay.getPosition (kLoopEnd) };
+    markerOverlay.setPosition (kSampleStart, loopStart);
+    markerMoved (kSampleStart);
+    markerOverlay.setPosition (kSampleEnd, loopEnd);
+    markerMoved (kSampleEnd);
+}
+
 juce::PopupMenu WaveformDisplay::createToolsMenu (std::optional<double> clickSample)
 {
     const auto hasAudio { hasSample () };
@@ -640,6 +661,8 @@ juce::PopupMenu WaveformDisplay::createToolsMenu (std::optional<double> clickSam
     }
     menu.addSubMenu ("Zero Crossing Nudge", zeroCrossingNudgeMenu, canEdit);
     menu.addSubMenu ("Match Opposite Boundary", matchBoundaryMenu, canEdit);
+    menu.addItem ("Set Loop To Sample", hasAudio, false, [this] () { setLoopToSample (); });
+    menu.addItem ("Set Sample To Loop", hasAudio, false, [this] () { setSampleToLoop (); });
 
     // from a right-click on the waveform, the markers that can be moved to the point clicked
     if (clickSample.has_value ())
