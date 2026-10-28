@@ -57,38 +57,16 @@ ZoneEditor::ZoneEditor ()
     // it until LATCH is pressed again, which stops the voice whatever the modes are, as LATCH and the channel's
     // button do on the module - and a press while a voice of this zone is still sounding stops that, too.
     triggerButton.setButtonText ("TRIGGER");
-    triggerButton.setTooltip ("Plays the zone while held, as a gate held high would on the module, following the channel's Play Mode and Loop Mode");
+    triggerButton.setTooltip ("Plays the zone while held, as a gate held high would on the module, following the channel's Play Mode and Loop Mode (Space)");
     triggerButton.setEnabled (false);
-    triggerButton.onPress = [this] ()
-    {
-        triggerHeld = true;
-        // pressed while latched, it retriggers, and the latch keeps the gate up when it is let go
-        triggerVoice ();
-    };
-    triggerButton.onRelease = [this] ()
-    {
-        triggerHeld = false;
-        audioPlayerProperties.setGate (latched, false);
-    };
+    triggerButton.onPress = [this] () { pressTrigger (); };
+    triggerButton.onRelease = [this] () { releaseTrigger (); };
     addAndMakeVisible (triggerButton);
 
     latchButton.setButtonText ("LATCH");
-    latchButton.setTooltip ("Plays the zone, holding the gate high until pressed again, which stops it. Follows the channel's Play Mode and Loop Mode");
+    latchButton.setTooltip ("Plays the zone, holding the gate high until pressed again, which stops it. Follows the channel's Play Mode and Loop Mode (Shift+Space)");
     latchButton.setEnabled (false);
-    latchButton.onPress = [this] ()
-    {
-        if (latched || isPlayingThisZone ())
-        {
-            unlatch ();
-            audioPlayerProperties.setPlayState (AudioPlayerProperties::PlayState::stop, false);
-        }
-        else
-        {
-            latched = true;
-            latchButton.setLit (true);
-            triggerVoice ();
-        }
-    };
+    latchButton.onPress = [this] () { pressLatch (); };
     addAndMakeVisible (latchButton);
 
     setupZoneComponents ();
@@ -1015,6 +993,40 @@ void ZoneEditor::setPlayButtonsEnabled (bool enabled)
 {
     triggerButton.setEnabled (enabled && ! isStereoRightChannelMode);
     latchButton.setEnabled (enabled && ! isStereoRightChannelMode);
+}
+
+void ZoneEditor::pressTrigger ()
+{
+    if (! triggerButton.isEnabled ())
+        return;
+    triggerHeld = true;
+    // pressed while latched, it retriggers, and the latch keeps the gate up when it is let go
+    triggerVoice ();
+}
+
+void ZoneEditor::releaseTrigger ()
+{
+    if (! triggerHeld)
+        return;
+    triggerHeld = false;
+    audioPlayerProperties.setGate (latched, false);
+}
+
+void ZoneEditor::pressLatch ()
+{
+    if (! latchButton.isEnabled ())
+        return;
+    if (latched || isPlayingThisZone ())
+    {
+        unlatch ();
+        audioPlayerProperties.setPlayState (AudioPlayerProperties::PlayState::stop, false);
+    }
+    else
+    {
+        latched = true;
+        latchButton.setLit (true);
+        triggerVoice ();
+    }
 }
 
 bool ZoneEditor::isPlayingThisZone ()

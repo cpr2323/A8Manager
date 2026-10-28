@@ -825,7 +825,8 @@ void WaveformDisplay::markerMoved (int markerIndex)
                 // shown as an end, so holding the end still means moving the
                 // length by however far the start travelled.
                 const auto lengthChangeAmount { static_cast<double> (originalLoopStart - position) };
-                const auto newLoopLength { zoneProperties.getLoopLength ().value_or (static_cast<double> (sampleLength)) + lengthChangeAmount };
+                // an unset length runs from the start to the end of the sample
+                const auto newLoopLength { zoneProperties.getLoopLength ().value_or (static_cast<double> (sampleLength - originalLoopStart)) + lengthChangeAmount };
                 zoneProperties.setLoopLength (newLoopLength == static_cast<double> (sampleLength) ? -1.0 : newLoopLength, true);
             }
         }

@@ -87,6 +87,7 @@ public:
     // the owner keeps the active zone the same across the channels of a stereo pair
     void setActiveZone (int zoneIndex);
     int getActiveZone () { return zoneTabs.getCurrentTabIndex (); }
+    ZoneEditor* getActiveZoneEditor () { return dynamic_cast<ZoneEditor*> (zoneTabs.getTabContentComponent (getActiveZone ())); }
     // called when the channel mode is changed, by the user or by another edit
     std::function<void (int channelIndex)> onChannelModeChanged;
     std::function<void (int channelIndex, int zoneIndex)> onActiveZoneChanged;

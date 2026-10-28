@@ -94,6 +94,11 @@ public:
     void setLoopLengthIsEnd (bool loopLengthIsEnd);
     void setStereoRightChannelMode (bool isStereoRightChannelMode);
 
+    // the TRIGGER and LATCH buttons, for the keyboard; each does nothing while its button is disabled
+    void pressTrigger ();
+    void releaseTrigger ();
+    void pressLatch ();
+
     // Which pair of points - sample start/end or loop start/end - the zone is working with: the one
     // outlined here, and picked out on the waveform. The waveform can change it too, by
     // moving a marker of the other pair.

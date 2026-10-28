@@ -28,11 +28,13 @@ private:
 };
 
 class Assimil8orEditorComponent : public juce::Component,
-                                  public juce::Timer
+                                  public juce::Timer,
+                                  private juce::KeyListener,
+                                  private juce::FocusChangeListener
 {
 public:
     Assimil8orEditorComponent ();
-    ~Assimil8orEditorComponent () = default;
+    ~Assimil8orEditorComponent () override;
 
     void init (juce::ValueTree rootPropertiesVT);
     void receiveSampleLoadRequest (juce::File sampleFile);
@@ -136,7 +138,31 @@ private:
 
     void applyExplicitColours ();
 
+    // The hot keys: ctrl (cmd on the Mac) + 1-8 selects a channel, alt (option) + 1-8 a zone, Space is TRIGGER
+    // and Shift+Space is LATCH. A key goes to the focused component, and then up through its parents, so a
+    // text editor would take them first, typing the digit or space. A KeyListener on the focused component
+    // hears the key before the component does, so the listener follows the focus, and also sits on the
+    // window, which takes the keys when nothing has the focus.
+    juce::Component::SafePointer<juce::Component> focusedKeyTarget;
+    juce::Component::SafePointer<juce::Component> windowKeyTarget;
+    // the zone the space bar is holding TRIGGER on, which is let go there, whichever zone is selected by then
+    ZoneEditor* spaceKeyZoneEditor { nullptr };
+    bool spaceKeyDown { false };
+    // a key release can happen anywhere, so the space bar is watched until it is let go
+    struct SpaceKeyWatcher : public juce::Timer
+    {
+        std::function<void ()> onTimer;
+        void timerCallback () override { onTimer (); }
+    };
+    SpaceKeyWatcher spaceKeyWatcher;
+
+    using juce::Component::keyPressed;
+    bool keyPressed (const juce::KeyPress& key, juce::Component* originatingComponent) override;
+    void globalFocusChanged (juce::Component* focusedComponent) override;
+    void spaceKeyReleased ();
+
     void timerCallback () override;
+    void parentHierarchyChanged () override;
     void resized () override;
     void lookAndFeelChanged () override;
     void paint (juce::Graphics& g) override;
