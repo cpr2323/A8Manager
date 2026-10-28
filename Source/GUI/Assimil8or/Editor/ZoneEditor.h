@@ -70,6 +70,11 @@ public:
     void setLoopLengthIsEnd (bool loopLengthIsEnd);
     void setStereoRightChannelMode (bool isStereoRightChannelMode);
 
+    // the TRIGGER and LATCH buttons, for the keyboard; each does nothing while its button is disabled
+    void pressTrigger ();
+    void releaseTrigger ();
+    void pressLatch ();
+
     // TODO - can we make this local, since we should be able to access the edits through the EditManager
     std::function<void (int zoneIndex)> displayToolsMenu;
 

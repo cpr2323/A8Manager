@@ -6,6 +6,7 @@ out/**
 .vs/**
 hide_from_git/**
 cmake_build/**
+cmake_build_2_6_maintenance/**
 *.xcuserdatad
 *.vcxproj.user
 *.smproj

@@ -52,7 +52,118 @@ Assimil8orEditorComponent::Assimil8orEditorComponent ()
     // NOTE: This must go last to overlay the entire window when activated
     //addChildComponent (midiConfigWindow);
 
+    spaceKeyWatcher.onTimer = [this] ()
+    {
+        if (! juce::KeyPress::isKeyCurrentlyDown (juce::KeyPress::spaceKey))
+            spaceKeyReleased ();
+    };
+    juce::Desktop::getInstance ().addFocusChangeListener (this);
+
     startTimer (250);
+}
+
+Assimil8orEditorComponent::~Assimil8orEditorComponent ()
+{
+    juce::Desktop::getInstance ().removeFocusChangeListener (this);
+    if (focusedKeyTarget != nullptr)
+        focusedKeyTarget->removeKeyListener (this);
+    if (windowKeyTarget != nullptr)
+        windowKeyTarget->removeKeyListener (this);
+}
+
+void Assimil8orEditorComponent::parentHierarchyChanged ()
+{
+    auto* window { getTopLevelComponent () };
+    if (window == windowKeyTarget.getComponent ())
+        return;
+    if (windowKeyTarget != nullptr)
+        windowKeyTarget->removeKeyListener (this);
+    windowKeyTarget = window;
+    if (window != this)
+        window->addKeyListener (this);
+}
+
+void Assimil8orEditorComponent::globalFocusChanged (juce::Component* focusedComponent)
+{
+    if (focusedComponent == focusedKeyTarget.getComponent ())
+        return;
+    if (focusedKeyTarget != nullptr)
+        focusedKeyTarget->removeKeyListener (this);
+    focusedKeyTarget = nullptr;
+    // only the components of this window, and not the window itself, which has a listener of its own
+    if (focusedComponent != nullptr && windowKeyTarget != nullptr && windowKeyTarget->isParentOf (focusedComponent))
+    {
+        focusedKeyTarget = focusedComponent;
+        focusedComponent->addKeyListener (this);
+    }
+}
+
+bool Assimil8orEditorComponent::keyPressed (const juce::KeyPress& key, [[maybe_unused]] juce::Component* originatingComponent)
+{
+    const auto channelIndex { channelTabs.getCurrentTabIndex () };
+    if (! isShowing () || juce::Component::getCurrentlyModalComponent () != nullptr || channelIndex < 0)
+        return false;
+
+    const auto modifiers { key.getModifiers () };
+    const auto keyCode { key.getKeyCode () };
+    const auto keyNumberIndex = [keyCode] ()
+    {
+        if (keyCode >= '1' && keyCode <= '8')
+            return keyCode - '1';
+        if (keyCode >= juce::KeyPress::numberPad1 && keyCode <= juce::KeyPress::numberPad8)
+            return keyCode - juce::KeyPress::numberPad1;
+        return -1;
+    } ();
+
+    // channel select
+    if (keyNumberIndex >= 0 && modifiers.isCommandDown () && ! modifiers.isAltDown () && ! modifiers.isShiftDown ())
+    {
+        channelTabs.setCurrentTabIndex (keyNumberIndex);
+        return true;
+    }
+    // zone select, on the channel being shown. ChannelEditor::setActiveZone ignores zones that cannot be selected
+    if (keyNumberIndex >= 0 && modifiers.isAltDown () && ! modifiers.isCommandDown () && ! modifiers.isShiftDown ())
+    {
+        channelEditors [static_cast<size_t> (channelIndex)].setActiveZone (keyNumberIndex);
+        return true;
+    }
+
+    // TRIGGER and LATCH, on the zone being shown
+    if (keyCode == juce::KeyPress::spaceKey && ! modifiers.isCommandDown () && ! modifiers.isAltDown ())
+    {
+        // a space typed into a text editor is a space
+        if (dynamic_cast<juce::TextEditor*> (juce::Component::getCurrentlyFocusedComponent ()) != nullptr)
+            return false;
+        // the key repeating while it is held
+        if (spaceKeyDown)
+            return true;
+        auto* zoneEditor { channelEditors [static_cast<size_t> (channelIndex)].getActiveZoneEditor () };
+        if (zoneEditor == nullptr)
+            return true;
+        spaceKeyDown = true;
+        spaceKeyWatcher.startTimer (20);
+        if (modifiers.isShiftDown ())
+        {
+            zoneEditor->pressLatch ();
+        }
+        else
+        {
+            spaceKeyZoneEditor = zoneEditor;
+            zoneEditor->pressTrigger ();
+        }
+        return true;
+    }
+
+    return false;
+}
+
+void Assimil8orEditorComponent::spaceKeyReleased ()
+{
+    spaceKeyWatcher.stopTimer ();
+    spaceKeyDown = false;
+    if (spaceKeyZoneEditor != nullptr)
+        spaceKeyZoneEditor->releaseTrigger ();
+    spaceKeyZoneEditor = nullptr;
 }
 
 void Assimil8orEditorComponent::setupPresetComponents ()

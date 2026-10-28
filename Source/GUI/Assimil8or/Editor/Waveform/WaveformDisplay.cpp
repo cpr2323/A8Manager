@@ -302,7 +302,8 @@ void WaveformDisplay::setMarker (int markerIndex, juce::int64 position, bool lin
             {
                 // When treating Loop Length as Loop End, we need to adjust the internal storage of Loop Length by the amount Loop Start changed
                 const auto lengthChangeAmount { static_cast<double> (originalLoopStart - position) };
-                const auto newLoopLength { zoneProperties.getLoopLength ().value_or (static_cast<double> (sampleLength)) + lengthChangeAmount };
+                // an unset length runs from the start to the end of the sample
+                const auto newLoopLength { zoneProperties.getLoopLength ().value_or (static_cast<double> (sampleLength - originalLoopStart)) + lengthChangeAmount };
                 zoneProperties.setLoopLength (newLoopLength == static_cast<double> (sampleLength) ? -1.0 : newLoopLength, true);
             }
         }
@@ -323,6 +324,22 @@ void WaveformDisplay::setMarker (int markerIndex, juce::int64 position, bool lin
         }
         break;
     }
+}
+
+void WaveformDisplay::setLoopToSample ()
+{
+    const auto sampleStart { getMarkerPosition (static_cast<int> (EditHandleIndex::kSampleStart)) };
+    const auto sampleEnd { getMarkerPosition (static_cast<int> (EditHandleIndex::kSampleEnd)) };
+    setMarker (static_cast<int> (EditHandleIndex::kLoopStart), sampleStart, false);
+    setMarker (static_cast<int> (EditHandleIndex::kLoopEnd), sampleEnd, false);
+}
+
+void WaveformDisplay::setSampleToLoop ()
+{
+    const auto loopStart { getMarkerPosition (static_cast<int> (EditHandleIndex::kLoopStart)) };
+    const auto loopEnd { getMarkerPosition (static_cast<int> (EditHandleIndex::kLoopEnd)) };
+    setMarker (static_cast<int> (EditHandleIndex::kSampleStart), loopStart, false);
+    setMarker (static_cast<int> (EditHandleIndex::kSampleEnd), loopEnd, false);
 }
 
 // The same adjustments the zone editor's fields and loop tuner offer, searching only as far as the marker
@@ -366,6 +383,8 @@ juce::PopupMenu WaveformDisplay::createMarkerMenu (juce::int64 clickSample)
     }
     menu.addSubMenu ("Zero Crossing Nudge", zeroCrossingNudgeMenu);
     menu.addSubMenu ("Match Opposite Boundary", matchBoundaryMenu);
+    menu.addItem ("Set Loop To Sample", hasSample (), false, [this] () { setLoopToSample (); });
+    menu.addItem ("Set Sample To Loop", hasSample (), false, [this] () { setSampleToLoop (); });
 
     // a marker that cannot go where the click was, because of where the others are, is greyed out
     menu.addSectionHeader ("SET MARKER HERE");

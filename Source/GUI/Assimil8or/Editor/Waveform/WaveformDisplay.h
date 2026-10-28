@@ -68,6 +68,8 @@ private:
     juce::int64 getMarkerPosition (int markerIndex);
     juce::int64 constrainMarker (int markerIndex, juce::int64 proposedPosition, bool linked);
     void setMarker (int markerIndex, juce::int64 position, bool linked);
+    void setLoopToSample ();
+    void setSampleToLoop ();
     SamplePointAdjust getMarkerAdjust (int markerIndex);
     juce::PopupMenu createMarkerMenu (juce::int64 clickSample);
     bool isAuditionedZone ();

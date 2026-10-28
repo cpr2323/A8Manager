@@ -11,7 +11,7 @@ set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "Architectures to build 
 # regardless, as macOS on Apple silicon starts there.
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.11" CACHE STRING "Minimum macOS version to build for")
 
-project(A8Manager VERSION 2.6.2)
+project(A8Manager VERSION 2.6.3)
 
 # 2.6 stays on C++17 and on the JUCE version it has always been built with: the submodule is
 # pinned at 31dfb05ea3299176a416bf9258e030d04a099798 (JUCE 7.0.9 + 62 commits)
