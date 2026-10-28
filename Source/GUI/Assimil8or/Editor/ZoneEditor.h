@@ -3,6 +3,7 @@
 #include <JuceHeader.h>
 #include "EditManager.h"
 #include "LoopPoints/LoopPointsView.h"
+#include "SamplePointAdjust.h"
 #include "SampleManager/SampleProperties.h"
 #include "../../../AppProperties.h"
 #include "../../../Assimil8or/Audio/AudioManager.h"
@@ -10,6 +11,50 @@
 #include "../../../Assimil8or/Preset/ZoneProperties.h"
 #include "../../../Utility/CustomTextEditor.h"
 #include "../../../Utility/FileSelectLabel.h"
+
+/*
+    The TRIGGER / LATCH audition buttons. They act on press, as the gate input of the module
+    does, and say when they are released, so TRIGGER can hold the gate for as long as it is held.
+    A lit button shows its 'on' colour: LATCH while it holds the gate.
+*/
+class ZonePlayButton : public juce::TextButton
+{
+public:
+    ZonePlayButton ()
+    {
+        setColour (juce::TextButton::ColourIds::buttonOnColourId, juce::Colours::darkcyan);
+    }
+
+    std::function<void ()> onPress;
+    std::function<void ()> onRelease;
+
+    void setLit (bool shouldBeLit)
+    {
+        setToggleState (shouldBeLit, juce::NotificationType::dontSendNotification);
+    }
+
+private:
+    bool pressed { false };
+
+    void mouseDown (const juce::MouseEvent& e) override
+    {
+        juce::TextButton::mouseDown (e);
+        if (! isEnabled () || ! e.mods.isLeftButtonDown ())
+            return;
+        pressed = true;
+        if (onPress != nullptr)
+            onPress ();
+    }
+    void mouseUp (const juce::MouseEvent& e) override
+    {
+        juce::TextButton::mouseUp (e);
+        if (! pressed)
+            return;
+        pressed = false;
+        if (onRelease != nullptr)
+            onRelease ();
+    }
+};
 
 class ZoneEditor : public juce::Component,
                    public juce::FileDragAndDropTarget
@@ -69,8 +114,11 @@ private:
     int dropIndex { 0 };
 
     LoopPointsView loopPointsView;
-    juce::TextButton oneShotPlayButton;
-    juce::TextButton loopPlayButton;
+    ZonePlayButton triggerButton;
+    ZonePlayButton latchButton;
+    // the gate this zone is giving the audition voice: high while TRIGGER is held, or while LATCH holds it
+    bool triggerHeld { false };
+    bool latched { false };
     juce::TextButton toolsButton;
     juce::Rectangle<int> samplePointsBackground;
     juce::Rectangle<int> loopPointsBackground;
@@ -101,10 +149,18 @@ private:
     AudioPlayerProperties::SamplePointsSelector samplePointsSelector { AudioPlayerProperties::SamplePointsSelector::SamplePoints };
 
     void setEditComponentsEnabled (bool enabled);
+    void setPlayButtonsEnabled (bool enabled);
+    bool isPlayingThisZone ();
+    void triggerVoice ();
+    void unlatch ();
     juce::PopupMenu createZoneEditMenu (juce::PopupMenu existingPopupMenu, std::function <void (ZoneProperties&, SampleProperties&)> setter, std::function <void ()> resetter, std::function <void ()> reverter,
                                         std::function<bool (ZoneProperties&)> canCloneToZoneCallback, std::function<bool (ZoneProperties&)> canCloneToAllCallback);
     juce::String formatLoopLength (double loopLength);
-    auto getSampleAdjustMenu (std::function<juce::int64 ()> getSampleOffset, std::function<juce::int64 ()> getMinSampleOffset, std::function<juce::int64 ()>getMaxSampleOffset, std::function<void (juce::int64)> setSampleOffset);
+    enum class SamplePoint { sampleStart, sampleEnd, loopStart, loopEnd };
+    SamplePointAdjust getSamplePointAdjust (SamplePoint samplePoint);
+    // the adjustments for one of the four points, added to the end of adjustMenu
+    juce::PopupMenu createSamplePointAdjustMenu (SamplePoint samplePoint, juce::PopupMenu adjustMenu = {});
+    void showLoopPointsViewMenu (bool isStartSide);
     bool handleSamplesInternal (int zoneIndex, juce::StringArray files);
     void setActiveSamplePoints (AudioPlayerProperties::SamplePointsSelector samplePointsSelector, bool forceSetup);
     void setupZoneComponents ();

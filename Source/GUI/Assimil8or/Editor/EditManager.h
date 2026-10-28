@@ -22,6 +22,12 @@ public:
     void forZones (int channelIndex, std::vector<int> zoneIndexList, std::function<void (juce::ValueTree, juce::ValueTree)> zoneCallback);
 
     bool assignSamples (int channelIndex, int zoneIndex, const juce::StringArray& files);
+    void clearAllZones (int channelIndex);
+    // delete, duplicate and explode also apply to the zone in the stereo right channel, when this zone is linked to it
+    void deleteZone (int channelIndex, int zoneIndex);
+    void duplicateZone (int channelIndex, int zoneIndex);
+    void explodeZone (int channelIndex, int zoneIndex, int explodeCount);
+    void flipZones (int channelIndex, int zoneIndex, int flipCount);
     double clampMinVoltage (int channelIndex, int zoneIndex, double voltage);
     juce::ValueTree getChannelDefaults ();
     juce::ValueTree getZoneDefaults ();
@@ -32,6 +38,14 @@ public:
     void resetMinVoltage (int channelIndex, int zoneIndex);
 
 private:
+    // returns channelIndex, followed by its stereo right channel if that channel's zone is linked to the zone (ie. has the same sample)
+    std::vector<int> getLinkedChannels (int channelIndex, int zoneIndex);
+    void removeEmptyZones (int channelIndex);
+    void deleteZoneInChannel (int channelIndex, int zoneIndex);
+    void duplicateZoneInChannel (int channelIndex, int zoneIndex);
+    void explodeZoneInChannel (int channelIndex, int zoneIndex, int explodeCount);
+    void flipZonesInChannel (int channelIndex, int zoneIndex, int flipCount);
+
     PresetProperties presetProperties;
     AppProperties appProperties;
     ChannelProperties defaultChannelProperties;

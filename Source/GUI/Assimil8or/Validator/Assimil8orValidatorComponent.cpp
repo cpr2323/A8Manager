@@ -551,7 +551,7 @@ void Assimil8orValidatorComponent::convert (juce::File file)
                 reader.reset ();
 
                 // TODO - should we rename the original, until we have succeeded in copying of the new file, and only then delete it
-                if (file.deleteFile () == true)
+                if (file.moveToTrash () == true)
                 {
                     if (tempFile.moveFileTo (file.withFileExtension ("wav")) == false)
                     {

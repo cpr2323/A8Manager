@@ -6,12 +6,15 @@
 class CustomComboBox : public juce::ComboBox
 {
 public:
-    std::function<void (DragSpeed dragSpeed, int direction)> onDragCallback;
+    OnDragCallback onDragCallback;
     std::function<void ()> onPopupMenuCallback;
 
 private:
     CustomComponentMouseHandler customComponentMouseHandler;
     bool evenEvent { true };
+
+    // the range of a combo box is the list of items it holds, and it can only ever land on one of them
+    DragRange getDragRange () const { return { 0.0, static_cast<double> (getNumItems () - 1), 1.0 }; }
 
     void mouseDown (const juce::MouseEvent& mouseEvent) override;
     void mouseUp (const juce::MouseEvent& mouseEvent) override;

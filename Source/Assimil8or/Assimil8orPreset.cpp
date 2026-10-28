@@ -156,6 +156,9 @@ void Assimil8orPreset::parse (juce::StringArray presetLines)
     parseErrorList.removeAllChildren (nullptr);
     parseErrorList.removeAllProperties (nullptr);
 
+    while (! undoActionsStack.empty ())
+        undoActionsStack.pop ();
+
     curActions = &globalActions;
     curPresetSection = {};
     channelProperties = {};
@@ -173,28 +176,43 @@ void Assimil8orPreset::parse (juce::StringArray presetLines)
         value = presetLine.fromFirstOccurrenceOf (":", false, false).trim ();
         const auto paramName { key.upToFirstOccurrenceOf (" ", false, false) };
 
-        auto keyFound { false };
-        while (! keyFound)
+        auto findActionMapContaining = [this, &paramName] () -> ActionMap*
         {
-            if (const auto action { curActions->find (paramName) }; action != curActions->end ())
+            auto actionMapToCheck { curActions };
+            while (actionMapToCheck != nullptr)
             {
-                action->second ();
-                keyFound = true;
+                if (actionMapToCheck->find (paramName) != actionMapToCheck->end ())
+                    return actionMapToCheck;
+
+                if (actionMapToCheck == &zoneActions)
+                    actionMapToCheck = &channelActions;
+                else if (actionMapToCheck == &channelActions)
+                    actionMapToCheck = &presetActions;
+                else if (actionMapToCheck == &presetActions)
+                    actionMapToCheck = &globalActions;
+                else
+                    actionMapToCheck = nullptr;
             }
-            else
+            return nullptr;
+        };
+
+        if (auto actionMap { findActionMapContaining () }; actionMap != nullptr)
+        {
+            while (curActions != actionMap)
             {
-                // if we can't find the key in the current action map, then let's do the first undo action, and try again
-                // undoActionsStack should have items to reset
                 jassert (! undoActionsStack.empty ());
-                // if we have no undo actions, we are in an invalid state 
                 if (undoActionsStack.empty ())
                     break;
+
                 auto undoAction { undoActionsStack.top () };
                 undoActionsStack.pop ();
                 undoAction ();
             }
+
+            if (curActions == actionMap)
+                actionMap->find (paramName)->second ();
         }
-        if (! keyFound)
+        else
         {
             const auto unknownParameterError { "unknown parameter: " + key };
             LogParsing (unknownParameterError);
@@ -226,7 +244,7 @@ juce::String Assimil8orPreset::getSectionName ()
 void Assimil8orPreset::checkCvInputAndAmountFormat (juce::String theKey, juce::String theValue)
 {
     const auto delimiterLocation { theValue.indexOfChar (0, ' ') };
-    if (delimiterLocation == 0)
+    if (delimiterLocation <= 0 || delimiterLocation >= theValue.length () - 1)
     {
         const auto parameterFormatError { juce::String ("value '") + theValue + "' for parameter '" + theKey + "' - incorrect format" };
         LogParsing (parameterFormatError);
@@ -234,7 +252,6 @@ void Assimil8orPreset::checkCvInputAndAmountFormat (juce::String theKey, juce::S
         newParseError.setProperty ("type", "ParameterFormatError", nullptr);
         newParseError.setProperty ("description", parameterFormatError, nullptr);
         parseErrorList.addChild (newParseError, -1, nullptr);
-        jassertfalse;
     }
 };
 

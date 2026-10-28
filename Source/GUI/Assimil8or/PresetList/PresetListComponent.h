@@ -15,10 +15,15 @@ public:
     PresetListComponent ();
     ~PresetListComponent () = default;
     void init (juce::ValueTree rootPropertiesVT);
+    // the narrowest the pane can be and still show its tool row
+    int getMinimumWidth () const;
 
     std::function<void (std::function<void ()>, std::function<void ()>)> overwritePresetOrCancel;
 
 private:
+    using PresetInfo = std::tuple<int, bool, juce::String>;
+    using PresetInfoList = std::array<PresetInfo, kMaxPresets>;
+
     AppProperties appProperties;
     DirectoryDataProperties directoryDataProperties;
     PresetProperties presetProperties;
@@ -27,15 +32,16 @@ private:
 
     juce::ToggleButton showAllPresets { "Show All" };
     juce::ListBox presetListBox { {}, this };
-    std::array<std::tuple <int, bool, juce::String>, kMaxPresets> presetInfoList;
+    PresetInfoList presetInfoList {};
     int numPresets { kMaxPresets };
     juce::File currentFolder;
     juce::File previousFolder;
     int lastSelectedPresetIndex { -1 };
+    std::atomic<bool> requestedShowAllPresets { true };
     LambdaThread checkPresetsThread { "CheckPresetsThread", 100 };
 
     void copyPreset (int presetNumber);
-    void checkPresets ();
+    void checkPresets (bool showAll);
     void deletePreset (int presetNumber);
     void exportPreset (int presetNumber);
     juce::File getPresetFile (int presetNumber);
@@ -47,6 +53,7 @@ private:
     void loadPreset (juce::File presetFile);
     void movePresetUp (int row);
     void movePresetDown (int row);
+    void requestPresetCheck ();
     void swapPresets (int fromRow, int toRow);
     void pastePreset (int presetNumber);
 

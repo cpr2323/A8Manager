@@ -250,165 +250,90 @@ bool EditManager::assignSamples (int channelIndex, int zoneIndex, const juce::St
 //     LogMinVoltageDistribution ("  dropZoneStartIndex: " + juce::String (dropZoneStartIndex));
 //     LogMinVoltageDistribution ("  dropZoneEndIndex: " + juce::String (dropZoneEndIndex));
 
-    // assign the samples
+    // copy, or convert, the files into the preset folder before changing any zones, so a failure leaves the zones as they were
+    const auto presetFolder { juce::File (appProperties.getMostRecentFolder ()) };
+    std::vector<juce::File> stagedFiles;
+    juce::StringArray stagingMessages;
+    auto stagingFailed { false };
     for (auto filesIndex { 0 }; filesIndex < files.size () && zoneIndex + filesIndex < 8; ++filesIndex)
     {
-        auto convert = [this] (juce::File audioFile)
-        {
-            const auto fileIsInPresetFolder { appProperties.getMostRecentFolder () != audioFile.getParentDirectory ().getFullPathName () };
-            const auto finalFileName { juce::File (appProperties.getMostRecentFolder ()).getChildFile (audioFile.getFileNameWithoutExtension ()).withFileExtension ("wav") };
-            auto destinationFile = [this, audioFile, fileIsInPresetFolder] ()
-            {
-                if (fileIsInPresetFolder)
-                    return juce::File::createTempFile (".wav");
-                else
-                    return juce::File (appProperties.getMostRecentFolder ()).getChildFile (audioFile.getFileNameWithoutExtension ()).withFileExtension ("wav");
-            } ();
-            auto destinationFileStream { std::make_unique<juce::FileOutputStream> (destinationFile) };
-            destinationFileStream->setPosition (0);
-            destinationFileStream->truncate ();
+        const auto stagedSample { audioManager->stageSampleForPreset (juce::File (files [filesIndex]), presetFolder) };
+        if (stagedSample.errorMessage.isNotEmpty ())
+            stagingMessages.add (stagedSample.errorMessage);
+        if (stagedSample.file == juce::File ())
+            stagingFailed = true;
+        stagedFiles.emplace_back (stagedSample.file);
+    }
+    if (stagingFailed)
+    {
+        juce::AlertWindow::showMessageBoxAsync (juce::AlertWindow::WarningIcon, "Assign Samples Failed",
+                                                stagingMessages.joinIntoString ("\n") + "\n\nNo zones were changed.", {}, nullptr, nullptr);
+        return false;
+    }
+    if (! stagingMessages.isEmpty ())
+        juce::AlertWindow::showMessageBoxAsync (juce::AlertWindow::WarningIcon, "Assign Samples", stagingMessages.joinIntoString ("\n"), {}, nullptr, nullptr);
 
-            if (auto reader { audioManager->getReaderFor (audioFile) }; reader != nullptr)
-            {
-                auto sampleRate { reader->sampleRate };
-                auto numChannels { reader->numChannels };
-                auto bitsPerSample { reader->bitsPerSample };
-
-                if (bitsPerSample < 8)
-                    bitsPerSample = 8;
-                else if (bitsPerSample > 24) // the wave writer supports int 8/16/24
-                    bitsPerSample = 24;
-                jassert (numChannels != 0);
-                if (numChannels > 2)
-                    numChannels = 2;
-                if (reader->sampleRate > 192000)
-                {
-                    // we need to do sample rate conversion
-                    jassertfalse;
-                }
-
-                juce::WavAudioFormat wavAudioFormat;
-                if (std::unique_ptr<juce::AudioFormatWriter> writer { wavAudioFormat.createWriterFor (destinationFileStream.get (),
-                                                                      sampleRate, numChannels, bitsPerSample, {}, 0) }; writer != nullptr)
-            {
-                    // audioFormatWriter will delete the file stream when done
-                    destinationFileStream.release ();
-
-                    // copy the whole thing
-                    // TODO - two things
-                    //   a) this needs to be done in a thread
-                    //   b) we should locally read into a buffer and then write that, so we can display progress if needed
-                    if (writer->writeFromAudioReader (*reader.get (), 0, -1) == true)
-                    {
-                        // close the writer and reader, so that we can manipulate the files
-                        writer.reset ();
-                        reader.reset ();
-
-                        // if file is in preset folder, then we delete the original, and move the temp file to the original name
-                        // otherwise the file was not in the preset folder, and we just converted it directly into the preset folder
-                        if (fileIsInPresetFolder)
-                        {
-                            // TODO - should we rename the original, until we have succeeded in copying of the new file, and only then delete it
-                            if (audioFile.deleteFile () == true)
-                            {
-                                if (destinationFile.moveFileTo (finalFileName) == false)
-                                {
-                                    // failure to move temp file to new file
-                                    jassertfalse;
-                                }
-                                else
-                                {
-                                    return finalFileName;
-                                }
-                            }
-                            else
-                            {
-                                // failure to delete original file
-                                jassertfalse;
-                            }
-                        }
-                        else
-                        {
-                            return finalFileName;
-                        }
-                    }
-                    else
-                    {
-                        // failure to convert
-                        jassertfalse;
-                    }
-                }
-                else
-                {
-                    //failure to create writer
-                    jassertfalse;
-                }
-            }
-            else
-            {
-                // failure to create reader
-                jassertfalse;
-            }
-            return juce::File ();
-        };
-        juce::File file (files [filesIndex]);
-        // if file not in preset folder, then copy
-        if (appProperties.getMostRecentFolder () != file.getParentDirectory ().getFullPathName ())
-        {
-            // TODO handle case where file of same name already exists
-            if (audioManager->isAssimil8orSupportedAudioFile (file))
-            {
-                // TODO should copy be moved to a thread?
-                file.copyFileTo (juce::File (appProperties.getMostRecentFolder ()).getChildFile (file.getFileName ()));
-                // TODO handle failure
-            }
-            else
-            {
-                // convert
-                file = convert (file);
-            }
-        }
-        else // file is in preset folder
-        {
-            if (! audioManager->isAssimil8orSupportedAudioFile (file))
-            {
-                // convert
-                file = convert (file);
-            }
-        }
+    // assign the samples
+    for (auto filesIndex { 0 }; filesIndex < static_cast<int> (stagedFiles.size ()); ++filesIndex)
+    {
+        const auto& file { stagedFiles [filesIndex] };
         //juce::Logger::outputDebugString ("assigning '" + file.getFileName () + "' to Zone " + juce::String (zoneIndex + filesIndex));
         // assign file to zone
         auto& zoneProperties { zoneAndSamplePropertiesList [channelIndex][zoneIndex + filesIndex].zoneProperties };
         auto& sampleProperties { zoneAndSamplePropertiesList [channelIndex][zoneIndex + filesIndex].sampleProperties };
+        const auto originalSampleFileName { zoneProperties.getSample () };
         zoneProperties.setSample (file.getFileName (), false);
         zoneProperties.setSide (0, false);
         if (zoneProperties.getSampleStart ().value_or (0) > sampleProperties.getLengthInSamples ())
             zoneProperties.setSampleStart (sampleProperties.getLengthInSamples () - 1, false);
         if (zoneProperties.getSampleEnd ().value_or (sampleProperties.getLengthInSamples ()) > sampleProperties.getLengthInSamples ())
             zoneProperties.setSampleEnd (sampleProperties.getLengthInSamples () - 1, false);
-        if (zoneProperties.getLoopStart ().value_or (0) + 4> sampleProperties.getLengthInSamples ())
+        if (zoneProperties.getLoopStart ().value_or (0) + 4 > sampleProperties.getLengthInSamples ())
             zoneProperties.setLoopStart (sampleProperties.getLengthInSamples () - 4, false);
         if (zoneProperties.getLoopStart ().value_or (0) + zoneProperties.getLoopLength ().value_or (4) > sampleProperties.getLengthInSamples ())
             zoneProperties.setLoopLength (static_cast<double> (sampleProperties.getLengthInSamples () - zoneProperties.getLoopStart ().value_or (0)), false);
 
         // check if stereo and set up right channel
-        if (sampleProperties.getStatus () == SampleStatus::exists && sampleProperties.getNumChannels () == 2)
+        if (sampleProperties.getStatus () == SampleStatus::exists)
         {
-            if (auto parentChannelId { channelPropertiesList [channelIndex].getId () }; parentChannelId < 8 && channelPropertiesList [channelIndex].getChannelMode () != ChannelProperties::ChannelMode::stereoRight)
+            auto updateRightChannelZone =[&zoneProperties] (ZoneProperties& rightChannelZoneProperties)
             {
-                // NOTE PresetProperties.getChannelVT takes a 0 based index, but Id's are 1 based. and since we want the NEXT channel, we can use the Id, because it is already +1 to the index
-                ChannelProperties nextChannelProperties (presetProperties.getChannelVT (parentChannelId), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
-                ZoneProperties nextChannelZoneProperties (nextChannelProperties.getZoneVT (zoneProperties.getId () - 1), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
-                // if next Channel does not have a sample
-                if (nextChannelZoneProperties.getSample ().isEmpty ())
+                rightChannelZoneProperties.setSide (1, false);
+                rightChannelZoneProperties.setSampleStart (-1, true); // I think this,and the next 3 lines, could pass false for doSelfCallback
+                rightChannelZoneProperties.setSampleEnd (-1, true);
+                rightChannelZoneProperties.setLoopStart (-1, true);
+                rightChannelZoneProperties.setLoopLength (-1, true);
+                rightChannelZoneProperties.setSample (zoneProperties.getSample (), false); // when the other editor receives this update, it will also update the sample positions, so do it after setting them
+
+            };
+            if (sampleProperties.getNumChannels () == 2)
+            {
+                if (auto parentChannelId { channelPropertiesList [channelIndex].getId () }; parentChannelId < 8 && channelPropertiesList [channelIndex].getChannelMode () != ChannelProperties::ChannelMode::stereoRight)
                 {
-                    nextChannelProperties.setChannelMode (ChannelProperties::ChannelMode::stereoRight, false);
-                    nextChannelZoneProperties.setSide (1, false);
-                    nextChannelZoneProperties.setSampleStart (-1, true); // I think this,and the next 3 lines, could pass false for doSelfCallback
-                    nextChannelZoneProperties.setSampleEnd (-1, true);
-                    nextChannelZoneProperties.setLoopStart (-1, true);
-                    nextChannelZoneProperties.setLoopLength (-1, true);
-                    nextChannelZoneProperties.setSample (zoneProperties.getSample (), false); // when the other editor receives this update, it will also update the sample positions, so do it after setting them
+                    // NOTE PresetProperties.getChannelVT takes a 0 based index, but Id's are 1 based. and since we want the NEXT channel, we can use the Id, because it is already +1 to the index
+                    ChannelProperties nextChannelProperties (presetProperties.getChannelVT (parentChannelId), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
+                    ZoneProperties nextChannelZoneProperties (nextChannelProperties.getZoneVT (zoneProperties.getId () - 1), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
+                    // if next Channel does not have a sample
+                    if (nextChannelZoneProperties.getSample () == originalSampleFileName || nextChannelZoneProperties.getSample ().isEmpty ())
+                    {
+                        nextChannelProperties.setChannelMode (ChannelProperties::ChannelMode::stereoRight, false);
+                        updateRightChannelZone (nextChannelZoneProperties);
+                    }
+                }
+            }
+            else if (sampleProperties.getNumChannels () == 1)
+            {
+                if (auto parentChannelId { channelPropertiesList [channelIndex].getId () }; parentChannelId < 8 && channelPropertiesList [channelIndex].getChannelMode () != ChannelProperties::ChannelMode::stereoRight)
+                {
+                    // NOTE PresetProperties.getChannelVT takes a 0 based index, but Id's are 1 based. and since we want the NEXT channel, we can use the Id, because it is already +1 to the index
+                    ChannelProperties nextChannelProperties (presetProperties.getChannelVT (parentChannelId), ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::no);
+                    ZoneProperties nextChannelZoneProperties (nextChannelProperties.getZoneVT (zoneProperties.getId () - 1), ZoneProperties::WrapperType::client, ZoneProperties::EnableCallbacks::no);
+                    // if next Channel does not have a sample
+                    if (nextChannelProperties.getChannelMode () == ChannelProperties::ChannelMode::stereoRight &&
+                        (nextChannelZoneProperties.getSample () == originalSampleFileName || nextChannelZoneProperties.getSample ().isEmpty ()))
+                    {
+                        updateRightChannelZone (nextChannelZoneProperties);
+                    }
                 }
             }
         }
@@ -445,4 +370,164 @@ bool EditManager::assignSamples (int channelIndex, int zoneIndex, const juce::St
         }
 #endif
     return true;
+}
+
+void EditManager::clearAllZones (int channelIndex)
+{
+    const auto numZones { getNumUsedZones (channelIndex) };
+    for (auto curZoneIndex { 0 }; curZoneIndex < numZones; ++curZoneIndex)
+        zoneAndSamplePropertiesList [channelIndex][curZoneIndex].zoneProperties.copyFrom (defaultZoneProperties.getValueTree (), false);
+}
+
+std::vector<int> EditManager::getLinkedChannels (int channelIndex, int zoneIndex)
+{
+    jassert (channelIndex >= 0 && channelIndex < 8);
+    jassert (zoneIndex >= 0 && zoneIndex < 8);
+    std::vector<int> channels { channelIndex };
+    if (channelIndex < 7 && channelPropertiesList [channelIndex].getChannelMode () != ChannelProperties::ChannelMode::stereoRight &&
+        channelPropertiesList [channelIndex + 1].getChannelMode () == ChannelProperties::ChannelMode::stereoRight)
+    {
+        const auto sample { zoneAndSamplePropertiesList [channelIndex][zoneIndex].zoneProperties.getSample () };
+        // if the right channel has a different sample, it is not linked, and is left alone
+        if (sample.isNotEmpty () && zoneAndSamplePropertiesList [channelIndex + 1][zoneIndex].zoneProperties.getSample () == sample)
+            channels.push_back (channelIndex + 1);
+    }
+    return channels;
+}
+
+void EditManager::deleteZone (int channelIndex, int zoneIndex)
+{
+    for (const auto curChannelIndex : getLinkedChannels (channelIndex, zoneIndex))
+        deleteZoneInChannel (curChannelIndex, zoneIndex);
+}
+
+void EditManager::duplicateZone (int channelIndex, int zoneIndex)
+{
+    for (const auto curChannelIndex : getLinkedChannels (channelIndex, zoneIndex))
+        duplicateZoneInChannel (curChannelIndex, zoneIndex);
+}
+
+void EditManager::explodeZone (int channelIndex, int zoneIndex, int explodeCount)
+{
+    for (const auto curChannelIndex : getLinkedChannels (channelIndex, zoneIndex))
+        explodeZoneInChannel (curChannelIndex, zoneIndex, explodeCount);
+}
+
+void EditManager::deleteZoneInChannel (int channelIndex, int zoneIndex)
+{
+    auto& zones { zoneAndSamplePropertiesList [channelIndex] };
+    zones [zoneIndex].zoneProperties.copyFrom (defaultZoneProperties.getValueTree (), false);
+    // if this zone was the last in the list, but not also the first, then set the minVoltage for the new last in list to -5
+    if (zoneIndex == getNumUsedZones (channelIndex) && zoneIndex != 0)
+        zones [zoneIndex - 1].zoneProperties.setMinVoltage (-5.0, false);
+    removeEmptyZones (channelIndex);
+}
+
+void EditManager::duplicateZoneInChannel (int channelIndex, int zoneIndex)
+{
+    jassert (zoneIndex > 0 && zoneIndex < 7);
+    auto& zones { zoneAndSamplePropertiesList [channelIndex] };
+    const auto topBoundary { zones [zoneIndex - 1].zoneProperties.getMinVoltage () };
+    const auto bottomBoundary { zones [zoneIndex].zoneProperties.getMinVoltage () };
+    const auto newZoneVoltage { bottomBoundary + ((topBoundary - bottomBoundary) / 2) };
+    for (auto curZoneIndex { 6 }; curZoneIndex >= zoneIndex; --curZoneIndex)
+        zones [curZoneIndex + 1].zoneProperties.copyFrom (zones [curZoneIndex].zoneProperties.getValueTree (), false);
+    zones [zoneIndex].zoneProperties.setMinVoltage (newZoneVoltage, false);
+    if (getNumUsedZones (channelIndex) == 8)
+        zones [7].zoneProperties.setMinVoltage (-5.0, false);
+}
+
+void EditManager::explodeZoneInChannel (int channelIndex, int zoneIndex, int explodeCount)
+{
+    auto& zones { zoneAndSamplePropertiesList [channelIndex] };
+    const juce::int64 sampleSize { zones [zoneIndex].sampleProperties.getLengthInSamples () };
+    const auto sliceSize { sampleSize / explodeCount };
+    auto& sourceZoneProperties { zones [zoneIndex].zoneProperties };
+    auto setSamplePoints = [sliceSize] (ZoneProperties& zpToUpdate, int index)
+    {
+        const auto sampleStart { index * sliceSize };
+        const auto sampleEnd { sampleStart + sliceSize };
+        zpToUpdate.setSampleStart (sampleStart, false);
+        zpToUpdate.setSampleEnd (sampleEnd, false);
+        zpToUpdate.setLoopStart (sampleStart, false);
+        zpToUpdate.setLoopLength (static_cast<double> (sliceSize), false);
+    };
+    setSamplePoints (sourceZoneProperties, 0);
+
+    for (auto destinationZoneIndex { zoneIndex + 1 }; destinationZoneIndex < zoneIndex + explodeCount; ++destinationZoneIndex)
+    {
+        auto& destZoneProperties { zones [destinationZoneIndex].zoneProperties };
+        destZoneProperties.copyFrom (sourceZoneProperties.getValueTree (), false);
+        setSamplePoints (destZoneProperties, destinationZoneIndex - zoneIndex);
+    }
+
+    // distribute the minVoltages evenly across the 10V range
+    const auto numUsedZones { getNumUsedZones (channelIndex) };
+    zones [numUsedZones - 1].zoneProperties.setMinVoltage (-5.0, false);
+    if (numUsedZones > 1)
+    {
+        const auto voltageRange { 10.0 / numUsedZones };
+        auto curVoltage { -5.0 };
+        for (auto curZoneIndex { numUsedZones - 2 }; curZoneIndex >= 0; --curZoneIndex)
+        {
+            curVoltage += voltageRange;
+            zones [curZoneIndex].zoneProperties.setMinVoltage (curVoltage, false);
+        }
+    }
+}
+
+void EditManager::flipZones (int channelIndex, int zoneIndex, int flipCount)
+{
+    // the right channel is only flipped if every zone in the range is linked to it
+    auto channels { getLinkedChannels (channelIndex, zoneIndex) };
+    for (auto curZoneIndex { zoneIndex + 1 }; curZoneIndex < zoneIndex + flipCount && channels.size () > 1; ++curZoneIndex)
+        if (getLinkedChannels (channelIndex, curZoneIndex).size () < 2)
+            channels.pop_back ();
+    for (const auto curChannelIndex : channels)
+        flipZonesInChannel (curChannelIndex, zoneIndex, flipCount);
+}
+
+void EditManager::flipZonesInChannel (int channelIndex, int zoneIndex, int flipCount)
+{
+    auto& zones { zoneAndSamplePropertiesList [channelIndex] };
+    ZoneProperties tempZoneProperties;
+    for (auto zoneCount { 0 }; zoneCount < flipCount / 2; ++zoneCount)
+    {
+        auto& firstZone { zones [zoneIndex + zoneCount].zoneProperties };
+        const auto firstZoneMinVoltage { firstZone.getMinVoltage () };
+        auto& secondZone { zones [zoneIndex + (flipCount - zoneCount - 1)].zoneProperties };
+        const auto secondZoneMinVoltage { secondZone.getMinVoltage () };
+        tempZoneProperties.copyFrom (secondZone.getValueTree (), false);
+        secondZone.copyFrom (firstZone.getValueTree (), false);
+        secondZone.setMinVoltage (secondZoneMinVoltage, false);
+        firstZone.copyFrom (tempZoneProperties.getValueTree (), false);
+        firstZone.setMinVoltage (firstZoneMinVoltage, false);
+    }
+}
+
+// TODO - does this function really need to look for multiple empty zones? assuming it gets called when a zone is deleted, there should only be one
+void EditManager::removeEmptyZones (int channelIndex)
+{
+    auto& zones { zoneAndSamplePropertiesList [channelIndex] };
+    for (auto zoneIndex { 0 }; zoneIndex < 7; ++zoneIndex)
+    {
+        if (zones [zoneIndex].zoneProperties.getSample ().isNotEmpty ())
+            continue;
+        // move the next used zone down into this empty one
+        auto moveHappened { false };
+        for (auto nextZoneIndex { zoneIndex + 1 }; nextZoneIndex < 8; ++nextZoneIndex)
+        {
+            auto& nextZoneProperties { zones [nextZoneIndex].zoneProperties };
+            if (nextZoneProperties.getSample ().isNotEmpty ())
+            {
+                zones [zoneIndex].zoneProperties.copyFrom (nextZoneProperties.getValueTree (), false);
+                nextZoneProperties.copyFrom (defaultZoneProperties.getValueTree (), false);
+                moveHappened = true;
+                break;
+            }
+        }
+        // there were none others to move
+        if (! moveHappened)
+            break;
+    }
 }

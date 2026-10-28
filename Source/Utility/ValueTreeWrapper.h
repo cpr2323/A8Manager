@@ -66,6 +66,16 @@ public:
 
     bool setFilterNonChanges (bool doFilterNonChange) noexcept { const auto prevFilterNonChangeSetting { filterNonChange }; filterNonChange = doFilterNonChange; return prevFilterNonChangeSetting; }
 
+    /*
+        ValueTrees that have listeners attached may only be read or modified on the message thread.
+        When enabled, setValue/toggleValue calls (ie. the derived class' setters) made from any other thread are
+        automatically forwarded to the message thread (fire and forget), which makes the setters safe to call from
+        any thread. Note that this only covers writes. Reading from a background thread requires a detached copy,
+        see ValueTreeHelpers::getMessageThreadSnapshot.
+        NOTE: do not move a wrapper that has forwarding enabled while forwarded writes may still be in flight
+    */
+    void setForwardOffMessageThreadWrites (bool shouldForward) noexcept { forwardOffMessageThreadWrites = shouldForward; }
+
     class ScopedFilterNonChanges
     {
     public:
@@ -87,10 +97,28 @@ public:
 protected:
     juce::ValueTree data;
 
+    // if forwarding is enabled and we are not on the message thread, queues setterFunction to run on the
+    // message thread and returns true. otherwise returns false, ie. the caller should do the work directly.
+    // available to derived classes for operations that do not go through setValue (eg. adding/removing children)
+    bool forwardedToMessageThread (std::function<void ()> setterFunction)
+    {
+        if (! forwardOffMessageThreadWrites || juce::MessageManager::existsAndIsCurrentThread ())
+            return false;
+        juce::MessageManager::callAsync ([aliveToken = std::weak_ptr<bool> (crossThreadAliveToken), setterFunction] ()
+        {
+            if (aliveToken.lock () != nullptr)
+                setterFunction ();
+        });
+        return true;
+    }
+
     // non-pointer version
     template<class T, std::enable_if_t<! std::is_pointer_v<T>, void*> = nullptr>
     void setValue (T value, const juce::Identifier property, bool includeSelfCallback)
     {
+        if (forwardedToMessageThread ([this, value, property, includeSelfCallback] () { setValue (value, property, includeSelfCallback); }))
+            return;
+
         T previousValue {};
         if (! filterNonChange)
             previousValue = getValue<T> (property);
@@ -108,6 +136,9 @@ protected:
     template<class T, std::enable_if_t<std::is_pointer_v<T>, void*> = nullptr>
     void setValue (T value, const juce::Identifier property, bool includeSelfCallback)
     {
+        if (forwardedToMessageThread ([this, value, property, includeSelfCallback] () { setValue (value, property, includeSelfCallback); }))
+            return;
+
         const auto int64Value { reinterpret_cast<juce::int64> (value) };
         juce::int64 previousValue {};
         if (! filterNonChange)
@@ -159,6 +190,9 @@ protected:
     template<class T>
     void setValueInOtherVt (T value, juce::ValueTree vt, const juce::Identifier property, bool includeSelfCallback)
     {
+        if (forwardedToMessageThread ([this, value, vt, property, includeSelfCallback] () { setValueInOtherVt (value, vt, property, includeSelfCallback); }))
+            return;
+
         T previousValue {};
         if (! filterNonChange)
             previousValue = vt.getProperty (property);
@@ -174,6 +208,10 @@ protected:
 
     void toggleValue (const juce::Identifier property, bool includeSelfCallback)
     {
+        // the whole toggle is forwarded, since the read half must also happen on the message thread
+        if (forwardedToMessageThread ([this, property, includeSelfCallback] () { toggleValue (property, includeSelfCallback); }))
+            return;
+
         setValue (! getValue<bool> (property), property, includeSelfCallback);
     }
 
@@ -193,6 +231,9 @@ private:
     juce::Identifier type;
     bool filterNonChange { true };
     bool dataWasRestored { false };
+    bool forwardOffMessageThreadWrites { false };
+    // used to safely skip forwarded writes that arrive after this wrapper has been destroyed
+    std::shared_ptr<bool> crossThreadAliveToken { std::make_shared<bool> (true) };
 
     void init (juce::ValueTree vt, bool createIfNotFound);
     void createValueTree ();

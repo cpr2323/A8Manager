@@ -3,6 +3,7 @@
 #include <JuceHeader.h>
 #include "AudioPlayerProperties.h"
 #include "AudioSettingsProperties.h"
+#include "AuditionPlayhead.h"
 #include "../Preset/ChannelProperties.h"
 #include "../Preset/PresetProperties.h"
 #include "../Preset/ZoneProperties.h"
@@ -11,12 +12,33 @@
 #include "../../GUI/Assimil8or/Editor/SampleManager/SampleManagerProperties.h"
 #include "../../GUI/Assimil8or/Editor/SampleManager/SampleProperties.h"
 
+/*
+    The audition voice. It moves its playhead through the zone as the Assimil8or does
+    (see LOOP_PLAYBACK.md), every output frame:
+
+        trigger  a gate rise, or a retrigger, puts the playhead on Sample Start
+        advance  the playhead moves on one frame
+        wrap     if looping is enabled right now - Loop Mode On, or Loop Mode Loop/Release
+                 with the gate high - and the playhead is at or past Loop End, it goes back
+                 by whole loop lengths
+        end      then, if the playhead is at or past Sample End, the voice ends
+
+    Nothing ties the loop to the Sample Start..End window, so a loop that is wholly, or
+    partly, before Sample Start is played, and one that ends past Sample End is never
+    reached. With Play Mode Gated the voice lasts while the gate is high; with 1 Shot gate
+    low is ignored. The Release is not modelled: a gated voice, or one stopped by a client,
+    fades out over a few milliseconds only so that it does not click.
+*/
 class AudioPlayer : public juce::AudioSource,
-                    public juce::ChangeListener
+                    public juce::ChangeListener,
+                    private juce::AsyncUpdater
 {
 public:
     void init (juce::ValueTree rootProperties);
     void shutdownAudio ();
+
+    // published through SystemServices so the waveform displays can draw the playhead
+    AuditionPlayhead& getAuditionPlayhead () noexcept { return auditionPlayhead; }
 
 private:
     AudioSettingsProperties audioSettingsProperties;
@@ -36,11 +58,34 @@ private:
     std::unique_ptr < juce::AudioBuffer<float>> sampleBuffer;
     juce::AudioDeviceSelectorComponent audioSetupComp { audioDeviceManager, 0, 0, 0, 256, false, false, true, false };
 
+    // the zone's points as the engine uses them, clamped against the sample length only, in frames of sampleBuffer
+    struct Window
+    {
+        double sampleStart { 0.0 };
+        double sampleEnd { 0.0 };
+        double loopStart { 0.0 };
+        double loopEnd { 0.0 };
+    };
+    enum class VoiceState { idle, playing, fadingOut };
+    // the channel's Play Mode and Loop Mode values
+    static constexpr int kPlayModeGated { 0 };
+    static constexpr int kLoopModeOn { 1 };
+    static constexpr int kLoopModeGated { 2 };
+    // the fade that keeps a stop from clicking - it is not the Release
+    static constexpr double kDeclickFadeSeconds { 0.003 };
+
     juce::CriticalSection dataCS;
-    AudioPlayerProperties::PlayState playState { AudioPlayerProperties::PlayState::stop };
-    int curSampleOffset { 0 };
-    int sampleStart { 0 };
-    int sampleLength { 0 };
+    Window window;
+    VoiceState voiceState { VoiceState::idle };
+    double playPosition { 0.0 };
+    bool gateHigh { false };
+    int playMode { 0 };
+    int loopMode { 0 };
+    int fadeLength { 1 };
+    int fadeSamplesRemaining { 0 };
+    int channelIndex { -1 };
+    int zoneIndex { -1 };
+    AuditionPlayhead auditionPlayhead;
 
     double sampleRate { 44100.0 };
     int blockSize { 128 };
@@ -90,10 +135,21 @@ private:
 
     void configureAudioDevice (juce::String deviceName);
     void handlePlayState (AudioPlayerProperties::PlayState playState);
+    void handleTrigger ();
+    void handleGate (bool newGateHigh);
     void initFromZone (std::tuple<int, int> channelAndZoneIndecies);
-    void initSamplePoints ();
+    void updateWindow ();
+    void updateModes ();
     void prepareSampleForPlayback ();
     void showConfigDialog ();
+    void stopVoiceNow ();
+
+    // the engine, called with dataCS held
+    bool isLoopingEnabled () const noexcept;
+    void wrapAndTestForEnd () noexcept;
+    void startFadeOut () noexcept;
+
+    void handleAsyncUpdate () override;
 
     void prepareToPlay (int samplesPerBlockExpected, double sampleRate) override;
     void getNextAudioBlock (const juce::AudioSourceChannelInfo& bufferToFill) override;

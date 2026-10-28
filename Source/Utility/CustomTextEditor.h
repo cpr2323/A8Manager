@@ -49,12 +49,22 @@ public:
     // optional
     std::function<void ()> highlightErrorCallback;
     std::function<T (T)> snapValueCallback;
+    // the smallest change that is useful for this value. defaults to 1, which suits a value that is a whole number of anything
+    std::function<T ()> getIncrementCallback;
     OnDragCallback onDragCallback;
     OnPopupMenuCallback onPopupMenuCallback;
 
 private:
     CustomComponentMouseHandler customComponentMouseHandler;
     juce::Colour textColor;
+
+    DragRange getDragRange ()
+    {
+        jassert (getMinValueCallback != nullptr);
+        jassert (getMaxValueCallback != nullptr);
+        const auto increment { getIncrementCallback != nullptr ? static_cast<double> (getIncrementCallback ()) : 1.0 };
+        return { static_cast<double> (getMinValueCallback ()), static_cast<double> (getMaxValueCallback ()), increment };
+    }
 
     void constrainAndSet (T value)
     {
@@ -141,7 +151,7 @@ private:
     {
         if (! isEnabled ())
             return;
-        if (! customComponentMouseHandler.mouseDrag (mouseEvent, onDragCallback))
+        if (! customComponentMouseHandler.mouseDrag (mouseEvent, getDragRange (), onDragCallback))
             juce::TextEditor::mouseDrag (mouseEvent);
     }
 
@@ -157,7 +167,7 @@ private:
     {
         if (! isEnabled ())
             return;
-        if (! customComponentMouseHandler.mouseWheelMove (mouseEvent, wheel, onDragCallback))
+        if (! customComponentMouseHandler.mouseWheelMove (mouseEvent, wheel, getDragRange (), onDragCallback))
             juce::TextEditor::mouseWheelMove (mouseEvent, wheel);
     }
 };

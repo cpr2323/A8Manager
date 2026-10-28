@@ -19,3 +19,13 @@ EditManager* SystemServices::getEditManager ()
 {
     return getValue<EditManager*> (EditManagerPropertyId, data);
 }
+
+void SystemServices::setAuditionPlayhead (AuditionPlayhead* auditionPlayhead)
+{
+    setValue (auditionPlayhead, AuditionPlayheadPropertyId, false);
+}
+
+AuditionPlayhead* SystemServices::getAuditionPlayhead ()
+{
+    return getValue<AuditionPlayhead*> (AuditionPlayheadPropertyId, data);
+}

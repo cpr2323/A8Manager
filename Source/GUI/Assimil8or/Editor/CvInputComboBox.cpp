@@ -16,7 +16,10 @@ CvInputComboBox::CvInputComboBox (ListType listType)
         for (auto columnIndex { 0 }; columnIndex < 3; ++columnIndex)
         {
             const auto menuId { 2 + (channelIndex * 3) + columnIndex };
-            cvInputComboBox.addItem (juce::String::charToString ('0' + channelIndex) + juce::String::charToString ('A' + columnIndex), menuId);
+            if (channelIndex == 0)
+                cvInputComboBox.addItem ("CV " + juce::String::charToString ('A' + columnIndex), menuId);
+            else
+                cvInputComboBox.addItem (juce::String::charToString ('0' + channelIndex) + juce::String::charToString ('A' + columnIndex), menuId);
         }
     cvInputComboBox.onChange = [this] ()
     {
@@ -24,12 +27,12 @@ CvInputComboBox::CvInputComboBox (ListType listType)
             onChange ();
     };
 
-    cvInputComboBox.onDragCallback = [this] (DragSpeed dragSpeed, int direction)
+    cvInputComboBox.onDragCallback = [this] (double valueDelta)
     {
         if (! isEnabled ())
             return;
         if (onDragCallback != nullptr)
-            onDragCallback (dragSpeed, direction);
+            onDragCallback (valueDelta);
     };
     cvInputComboBox.onPopupMenuCallback = [this] ()
     {
@@ -70,7 +73,18 @@ void CvInputComboBox::setSelectedItemText (juce::String cvInputString)
     }
     if (cvInputString.toLowerCase () != "off")
     {
-        jassert (juce::String ("012345678").containsChar (cvInputString [0]) && juce::String ("ABC").containsChar (cvInputString [1]));
+        if (cvInputString.startsWithIgnoreCase ("CV ") && cvInputString.length () >= 4)
+            cvInputString = "0" + cvInputString.substring (3, 4).toUpperCase ();
+
+        if (cvInputString.length () < 2 ||
+            ! juce::String ("012345678").containsChar (cvInputString [0]) ||
+            ! juce::String ("ABC").containsChar (cvInputString [1]))
+        {
+            jassertfalse;
+            cvInputComboBox.setSelectedId (1, juce::NotificationType::dontSendNotification);
+            return;
+        }
+
         itemId = 2 + ((cvInputString [0] - '0') * 3) + cvInputString [1] - 'A';
         jassert (itemId > 1 && itemId < 29);
     }

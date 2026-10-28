@@ -23,22 +23,11 @@ public:
     CvOffsetTextEditor ()
     {
         toStringCallback = [this] (double value) { return FormatHelpers::formatDouble (value, 2, true); };
-        onDragCallback = [this] (DragSpeed dragSpeed, int direction)
+        getIncrementCallback = [] () { return 0.01; };
+        onDragCallback = [this] (double valueDelta)
         {
             jassert (getCvInputAndAmount != nullptr);
-
-            const auto incAmount = [this, dragSpeed] ()
-            {
-                switch (dragSpeed)
-                {
-                    default:
-                    case DragSpeed::slow: return 0.01; break;
-                    case DragSpeed::medium: return 0.25; break;
-                    case DragSpeed::fast: return 0.5; break;
-                }
-            } ();
-            const auto newAmount { FormatHelpers::getAmount (getCvInputAndAmount ()) + (incAmount * direction) };
-            setValue (newAmount);
+            setValue (FormatHelpers::getAmount (getCvInputAndAmount ()) + valueDelta);
         };
         onPopupMenuCallback = [this] ()
         {
@@ -75,9 +64,20 @@ private:
     float alphaAmount { 0.3f };
     void paint (juce::Graphics& g) override
     {
+        for (const auto& hole : holes)
+            g.excludeClipRegion (hole);
         g.setColour (overlayColor.withAlpha (alphaAmount));
         g.fillRect (getLocalBounds ());
     }
+public:
+    // areas, in this component's coordinates, that are left uncovered
+    void setHoles (juce::RectangleList<int> newHoles)
+    {
+        holes = std::move (newHoles);
+        repaint ();
+    }
+private:
+    juce::RectangleList<int> holes;
 };
 
 class ZonesTabbedLookAndFeel : public juce::LookAndFeel_V4
@@ -199,6 +199,13 @@ public:
 
     // TODO - can we make this local, since we should be able to access the edits through the EditManager
     std::function<void (int channelIndex)> displayToolsMenu;
+
+    // the owner keeps the active zone the same across the channels of a stereo pair
+    void setActiveZone (int zoneIndex);
+    int getActiveZone () { return zoneTabs.getCurrentTabIndex (); }
+    // called when the channel mode is changed, by the user or by another edit
+    std::function<void (int channelIndex)> onChannelModeChanged;
+    std::function<void (int channelIndex, int zoneIndex)> onActiveZoneChanged;
 
 private:
     enum class VoltageBalanceType
@@ -335,21 +342,15 @@ private:
 
     void balanceVoltages (VoltageBalanceType balanceType);
     void checkStereoRightOverlay ();
-    void clearAllZones ();
     void configAudioPlayer ();
     void copyZone (int zoneIndex, bool settingsOnly);
-    void deleteZone (int zoneIndex);
-    void duplicateZone (int zoneIndex);
     void ensureProperZoneIsSelected ();
-    void explodeZone (int zoneIndex, int explodeCount);
     int getEnvelopeValueResolution (double envelopeValue);
-    void flipZones (int zoneIndex, int flipCount);
     void pasteZone (int zoneIndex);
     void positionColumnOne (int xOffset, int width);
     void positionColumnTwo (int xOffset, int width);
     void positionColumnThree (int xOffset, int width);
     void positionColumnFour (int xOffset, int width);
-    void removeEmptyZones ();
     void setupChannelComponents ();
     void setupChannelPropertiesCallbacks ();
     double snapBitsValue (double rawValue);

@@ -36,6 +36,66 @@ static void dumpValueTreeContentInternal (juce::ValueTree vt, bool displayProper
 
 namespace ValueTreeHelpers
 {
+    void callOnMessageThread (std::function<void ()> function)
+    {
+        jassert (function != nullptr);
+        if (juce::MessageManager::existsAndIsCurrentThread ())
+            function ();
+        else
+            juce::MessageManager::callAsync (function);
+    }
+
+    juce::ValueTree getMessageThreadSnapshot (juce::ValueTree liveVT, int timeoutMs)
+    {
+        if (juce::MessageManager::existsAndIsCurrentThread ())
+            return liveVT.createCopy ();
+
+        // shared state, so the async lambda stays valid even if we time out and return early
+        struct SnapshotState
+        {
+            juce::WaitableEvent copyCompleteSignal;
+            juce::ValueTree snapshot;
+        };
+        auto snapshotState { std::make_shared<SnapshotState> () };
+        juce::MessageManager::callAsync ([snapshotState, liveVT] ()
+        {
+            snapshotState->snapshot = liveVT.createCopy ();
+            snapshotState->copyCompleteSignal.signal ();
+        });
+        // waited for in short slices, so that a thread which has been asked to exit does not sit here for the whole
+        // timeout. at shutdown the message thread stops servicing callAsync, and the request would never complete.
+        // the slice is well under the shortest stop timeout the LambdaThread users have (100ms), so that a thread
+        // blocked here still exits on its own rather than being killed
+        const auto callingThread { juce::Thread::getCurrentThread () };
+        const auto giveUpTime { juce::Time::getMillisecondCounter () + static_cast<juce::uint32> (timeoutMs) };
+        while (! snapshotState->copyCompleteSignal.wait (20))
+        {
+            if (callingThread != nullptr && callingThread->threadShouldExit ())
+                return {};
+            if (juce::Time::getMillisecondCounter () >= giveUpTime)
+                return {};
+        }
+        return snapshotState->snapshot;
+    }
+
+    void replaceChildrenOnMessageThread (juce::ValueTree liveDestinationVT, juce::ValueTree detachedSourceVT, std::function<void ()> onCompletion)
+    {
+        callOnMessageThread ([liveDestinationVT, detachedSourceVT, onCompletion] ()
+        {
+            auto destinationVT { liveDestinationVT };
+            auto sourceVT { detachedSourceVT };
+            destinationVT.removeAllChildren (nullptr);
+            while (sourceVT.getNumChildren () > 0)
+            {
+                auto childVT { sourceVT.getChild (0) };
+                sourceVT.removeChild (0, nullptr);
+                destinationVT.appendChild (childVT, nullptr);
+            }
+            if (onCompletion != nullptr)
+                onCompletion ();
+        });
+    }
+
     juce::ValueTree fromXmlString (juce::StringRef xmlString)
     {
         return juce::ValueTree::fromXml (*(juce::XmlDocument::parse (xmlString).get ()));

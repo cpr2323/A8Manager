@@ -43,6 +43,93 @@ std::unique_ptr<juce::AudioFormatReader> AudioManager::getReaderFor (const juce:
     return std::unique_ptr<juce::AudioFormatReader> (audioFormatManager.createReaderFor (file));
 }
 
+AudioManager::StagedSample AudioManager::stageSampleForPreset (juce::File sourceFile, juce::File presetFolder, std::function<bool (juce::File)> removeOriginal)
+{
+    // juce::File comparisons follow the platform's case sensitivity rules, which a plain string comparison of the paths does not
+    const auto sourceIsInPresetFolder { sourceFile.getParentDirectory () == presetFolder };
+    auto collisionError = [] (juce::File existingFile)
+    {
+        return "A different file named '" + existingFile.getFileName () + "' is already in the preset folder. Rename one of them and try again.";
+    };
+
+    if (isAssimil8orSupportedAudioFile (sourceFile))
+    {
+        if (sourceIsInPresetFolder)
+            return { sourceFile, {} };
+
+        const auto destinationFile { presetFolder.getChildFile (sourceFile.getFileName ()) };
+        if (destinationFile.exists ())
+        {
+            // the same sample being assigned again
+            if (destinationFile.hasIdenticalContentTo (sourceFile))
+                return { destinationFile, {} };
+            return { {}, collisionError (destinationFile) };
+        }
+
+        // copy through a temporary file, so a failed copy does not leave a partial sample in the preset folder
+        juce::TemporaryFile temporaryFile (destinationFile);
+        if (! sourceFile.copyFileTo (temporaryFile.getFile ()) || ! temporaryFile.overwriteTargetFileWithTemporary ())
+            return { {}, "Unable to copy '" + sourceFile.getFileName () + "' to the preset folder." };
+        return { destinationFile, {} };
+    }
+
+    // the file needs to be converted to a format the Assimil8or supports
+    const auto destinationFile { presetFolder.getChildFile (sourceFile.getFileNameWithoutExtension ()).withFileExtension ("wav") };
+    // ie. a floating point .wav in the preset folder, which is replaced by the converted version
+    const auto replacesSource { destinationFile == sourceFile };
+
+    // the conversion is written to a temporary file next to the destination, and only moved into place once it has succeeded,
+    // so neither the source, nor an existing file, is touched if something goes wrong
+    juce::TemporaryFile temporaryFile (destinationFile);
+    {
+        auto reader { getReaderFor (sourceFile) };
+        if (reader == nullptr)
+            return { {}, "Unable to read '" + sourceFile.getFileName () + "'." };
+        if (reader->numChannels == 0)
+            return { {}, "'" + sourceFile.getFileName () + "' contains no audio channels." };
+        if (reader->sampleRate > 192000)
+            return { {}, "The sample rate of '" + sourceFile.getFileName () + "' exceeds 192 kHz." };
+
+        std::unique_ptr<juce::OutputStream> outputStream { temporaryFile.getFile ().createOutputStream () };
+        if (outputStream == nullptr)
+            return { {}, "Unable to create a temporary file for '" + destinationFile.getFileName () + "'." };
+
+        const auto bitsPerSample { juce::jlimit (8, 24, static_cast<int> (reader->bitsPerSample)) }; // the wave writer supports int 8/16/24
+        const auto numChannels { juce::jmin (static_cast<int> (reader->numChannels), 2) };
+        juce::WavAudioFormat wavAudioFormat;
+        std::unique_ptr<juce::AudioFormatWriter> writer { wavAudioFormat.createWriterFor (outputStream.get (), reader->sampleRate,
+                                                                                          static_cast<unsigned int> (numChannels), bitsPerSample, {}, 0) };
+        if (writer == nullptr)
+            return { {}, "Unable to create a writer for '" + destinationFile.getFileName () + "'." };
+        // the writer has taken ownership of the output stream, and will delete it when done
+        outputStream.release ();
+        // TODO - this should be done in a thread, reading into a buffer, so progress can be displayed
+        if (! writer->writeFromAudioReader (*reader.get (), 0, -1))
+            return { {}, "Unable to convert '" + sourceFile.getFileName () + "'." };
+        // the reader and writer go out of scope here, closing both files before they are moved
+    }
+
+    if (destinationFile.exists () && ! replacesSource)
+    {
+        // the same sample being assigned again
+        if (destinationFile.hasIdenticalContentTo (temporaryFile.getFile ()))
+            return { destinationFile, {} };
+        return { {}, collisionError (destinationFile) };
+    }
+
+    if (! temporaryFile.overwriteTargetFileWithTemporary ())
+        return { {}, "Unable to move the converted '" + destinationFile.getFileName () + "' into the preset folder." };
+
+    if (replacesSource)
+        return { sourceFile, {} };
+
+    // a file that was converted to a new name in the preset folder is replaced by the new file. files from elsewhere are never removed
+    if (sourceIsInPresetFolder && ! removeOriginal (sourceFile))
+        return { destinationFile, "'" + sourceFile.getFileName () + "' was converted to '" + destinationFile.getFileName () + "', but the original could not be removed." };
+
+    return { destinationFile, {} };
+}
+
 juce::String AudioManager::getFileTypesList ()
 {
     juce::String fileTypesList;
@@ -82,6 +169,51 @@ juce::int64 AudioManager::findPreviousZeroCrossing (juce::int64 startSampleOffse
     }
     return -1; // No zero crossing found
 
+}
+
+// From startSampleOffset, either way, to the next place its sample value matches the value at matchSampleOffset -
+// where the waveform crosses that level, landing on whichever of the two samples either side is the closer match.
+// With matchMovesWithStart, the match point is carried along with the search (a loop start moving its end with it),
+// so each sample is matched against where the match point would be carried to rather than where it is now.
+juce::int64 AudioManager::findMatchingLevel (juce::int64 startSampleOffset, juce::int64 limitSampleOffset, juce::int64 matchSampleOffset, bool matchMovesWithStart,
+                                             juce::AudioBuffer<float>& buffer, int side, bool searchRight)
+{
+    const auto numSamples { static_cast<juce::int64> (buffer.getNumSamples ()) };
+    if (numSamples == 0)
+        return -1;
+
+    const auto readPtr { buffer.getReadPointer (side) };
+    auto valueAt = [readPtr, numSamples] (juce::int64 sample) { return readPtr [std::clamp (sample, juce::int64 { 0 }, numSamples - 1)]; };
+    auto difference = [&] (juce::int64 sample)
+    {
+        return valueAt (sample) - valueAt (matchMovesWithStart ? matchSampleOffset + (sample - startSampleOffset) : matchSampleOffset);
+    };
+
+    const auto step { searchRight ? juce::int64 { 1 } : juce::int64 { -1 } };
+    const auto limit { std::clamp (limitSampleOffset, juce::int64 { 0 }, numSamples - 1) };
+    // starting a sample away from the start, so that it moves on from a match it is already sitting on
+    for (auto sample { startSampleOffset + step }; searchRight ? sample + step <= limit : sample + step >= limit; sample += step)
+    {
+        const auto thisDifference { difference (sample) };
+        const auto nextDifference { difference (sample + step) };
+        if (thisDifference == 0.0f)
+            return sample;
+        if ((thisDifference < 0.0f) != (nextDifference < 0.0f) || nextDifference == 0.0f)
+            return std::abs (thisDifference) <= std::abs (nextDifference) ? sample : sample + step;
+    }
+    return -1; // No match found
+}
+
+juce::int64 AudioManager::findNextMatchingLevel (juce::int64 startSampleOffset, juce::int64 maxSampleOffset, juce::int64 matchSampleOffset, bool matchMovesWithStart,
+                                                 juce::AudioBuffer<float>& buffer, int side)
+{
+    return findMatchingLevel (startSampleOffset, maxSampleOffset, matchSampleOffset, matchMovesWithStart, buffer, side, true);
+}
+
+juce::int64 AudioManager::findPreviousMatchingLevel (juce::int64 startSampleOffset, juce::int64 minSampleOffset, juce::int64 matchSampleOffset, bool matchMovesWithStart,
+                                                     juce::AudioBuffer<float>& buffer, int side)
+{
+    return findMatchingLevel (startSampleOffset, minSampleOffset, matchSampleOffset, matchMovesWithStart, buffer, side, false);
 }
 
 #if INCLUDE_WAVE_MATCHING_LOOP_POINT_ALIGN
@@ -212,8 +344,7 @@ void AudioManager::splitStereoIntoTwoMono (juce::File inputFile)
             juce::AudioBuffer<float> monoAudioBuffer;
             monoAudioBuffer.setSize (1, static_cast<int> (sampleFileReader->lengthInSamples), false, true, false);
 
-            auto monoWritePtr { monoAudioBuffer.getWritePointer (0) };
-            std::memcpy (monoWritePtr, monoReadPtr, sampleFileReader->lengthInSamples * (sampleFileReader->bitsPerSample / 8));
+            monoAudioBuffer.copyFrom (0, 0, monoReadPtr, static_cast<int> (sampleFileReader->lengthInSamples));
 
             // write mono audio buffer to new file
             const auto monoOutputFileName { inputFile.getFileNameWithoutExtension () + "-" + postFixChannelIndicator };

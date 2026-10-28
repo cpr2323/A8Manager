@@ -33,7 +33,7 @@ void CustomComboBox::mouseExit (const juce::MouseEvent& mouseEvent)
 
 void CustomComboBox::mouseDrag (const juce::MouseEvent& mouseEvent)
 {
-    if (! customComponentMouseHandler.mouseDrag (mouseEvent, onDragCallback))
+    if (! customComponentMouseHandler.mouseDrag (mouseEvent, getDragRange (), onDragCallback))
         juce::ComboBox::mouseDrag (mouseEvent);
 }
 
@@ -48,7 +48,7 @@ void CustomComboBox::mouseWheelMove (const juce::MouseEvent& mouseEvent, const j
     // NOTE: there is a bug in the JUCE library regarding scroll wheel and comboboxes, which causes two events for every event.
     if (evenEvent)
     {
-        if (! customComponentMouseHandler.mouseWheelMove (mouseEvent, wheel, onDragCallback))
+        if (! customComponentMouseHandler.mouseWheelMove (mouseEvent, wheel, getDragRange (), onDragCallback))
             juce::ComboBox::mouseWheelMove (mouseEvent, wheel);
     }
     evenEvent = ! evenEvent;

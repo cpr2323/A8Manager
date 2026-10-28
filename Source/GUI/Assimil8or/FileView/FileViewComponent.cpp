@@ -4,6 +4,7 @@
 #include "../../../Assimil8or/FileTypeHelpers.h"
 #include "../../../Utility/PersistentRootProperties.h"
 #include "../../../Utility/RuntimeRootProperties.h"
+#include "../../../Utility/ValueTreeHelpers.h"
 #include "../../../Utility/WatchDogTimer.h"
 
 #define LOG_FILE_VIEW 0
@@ -127,7 +128,11 @@ void FileViewComponent::timerCallback ()
 void FileViewComponent::buildQuickLookupList ()
 {
     updateDirectoryListQuickLookupList->clear ();
-    ValueTreeHelpers::forEachChild (directoryDataProperties.getRootFolderVT (), [this] (juce::ValueTree child)
+    // this runs on the update from new data thread, so we work from a detached snapshot of the live tree
+    const auto rootFolderSnapshotVT { ValueTreeHelpers::getMessageThreadSnapshot (directoryDataProperties.getRootFolderVT ()) };
+    if (! rootFolderSnapshotVT.isValid ())
+        return;
+    ValueTreeHelpers::forEachChild (rootFolderSnapshotVT, [this] (juce::ValueTree child)
     {
         const auto typeIndex { static_cast<int> (child.getProperty ("type")) };
         if (showAllFiles.getToggleState ())
@@ -400,7 +405,7 @@ void FileViewComponent::listBoxItemClicked (int row, [[maybe_unused]] const juce
                                                                                             {
                                                                                                 if (option == 0) // no
                                                                                                     return;
-                                                                                                if (! directoryEntry.deleteFile ())
+                                                                                                if (! directoryEntry.moveToTrash ())
                                                                                                 {
                                                                                                 // TODO handle delete error
                                                                                                 }
@@ -477,6 +482,12 @@ void FileViewComponent::listBoxItemDoubleClicked (int row, [[maybe_unused]] cons
         if (onAudioFileSelected != nullptr)
             onAudioFileSelected (juce::File (directoryEntryVT.getProperty ("name").toString ()));
     }
+}
+
+int FileViewComponent::getMinimumWidth () const
+{
+    // as laid out in resized (): the margin, the OPTIONS button, the gap, and room for the Show All toggle's tick and text
+    return 3 + 70 + 5 + 80 + 3;
 }
 
 void FileViewComponent::resized ()
@@ -606,7 +617,7 @@ void FileViewComponent::importSamples (const juce::StringArray& files)
 {
     auto errorDialog = [this] (juce::String message)
     {
-        juce::AlertWindow::showMessageBoxAsync (juce::AlertWindow::WarningIcon, "Conversion Failed", message, {}, nullptr,
+        juce::AlertWindow::showMessageBoxAsync (juce::AlertWindow::WarningIcon, "Import Failed", message, {}, nullptr,
                                                 juce::ModalCallbackFunction::create ([this] (int) {}));
     };
 
@@ -619,9 +630,11 @@ void FileViewComponent::importSamples (const juce::StringArray& files)
         if (auto reader { audioManager->getReaderFor (file) }; reader != nullptr)
         {
             auto destinationFile { juce::File (appProperties.getMostRecentFolder ()).getChildFile (file.getFileNameWithoutExtension ()).withFileExtension ("wav") };
-            auto destinationFileStream { std::make_unique<juce::FileOutputStream> (destinationFile) };
-            destinationFileStream->setPosition (0);
-            destinationFileStream->truncate ();
+            if (destinationFile.existsAsFile ())
+            {
+                errorDialog ("The file '" + destinationFile.getFileName () + "' already exists. Import was skipped.");
+                continue;
+            }
 
             auto sampleRate { reader->sampleRate };
             auto numChannels { reader->numChannels };
@@ -631,15 +644,28 @@ void FileViewComponent::importSamples (const juce::StringArray& files)
                 bitsPerSample = 8;
             else if (bitsPerSample > 24) // the wave writer supports int 8/16/24
                 bitsPerSample = 24;
-            jassert (numChannels != 0);
+            if (numChannels == 0)
+            {
+                errorDialog ("The file '" + file.getFileName () + "' contains no audio channels.");
+                continue;
+            }
             if (numChannels > 2)
                 numChannels = 2;
             if (reader->sampleRate > 192000)
             {
-                // we need to do sample rate conversion
-                jassertfalse;
+                errorDialog ("The sample rate of '" + file.getFileName () + "' exceeds 192 kHz.");
+                continue;
             }
 
+            juce::TemporaryFile temporaryDestination (destinationFile);
+            auto destinationFileStream { temporaryDestination.getFile ().createOutputStream () };
+            if (destinationFileStream == nullptr || destinationFileStream->failedToOpen ())
+            {
+                errorDialog ("Unable to create a temporary file for '" + destinationFile.getFileName () + "'.");
+                continue;
+            }
+
+            auto writeSucceeded { false };
             juce::WavAudioFormat wavAudioFormat;
             if (std::unique_ptr<juce::AudioFormatWriter> writer { wavAudioFormat.createWriterFor (destinationFileStream.get (),
                                                                   sampleRate, numChannels, bitsPerSample, {}, 0) }; writer != nullptr)
@@ -651,25 +677,28 @@ void FileViewComponent::importSamples (const juce::StringArray& files)
                 // TODO - two things
                 //   a) this needs to be done in a thread
                 //   b) we should locally read into a buffer and then write that, so we can display progress if needed
-                if (! writer->writeFromAudioReader (*reader.get (), 0, -1) == true)
-                {
-                    // failure to convert
-                    errorDialog ("Failure to write new file");
-                    jassertfalse;
-                }
+                writeSucceeded = writer->writeFromAudioReader (*reader.get (), 0, -1);
             }
             else
             {
                 //failure to create writer
-                errorDialog ("Failure to create writer");
-                jassertfalse;
+                errorDialog ("Failure to create a writer for '" + destinationFile.getFileName () + "'.");
+                continue;
             }
+
+            if (! writeSucceeded)
+            {
+                errorDialog ("Failure to write '" + destinationFile.getFileName () + "'.");
+                continue;
+            }
+
+            if (destinationFile.existsAsFile () || ! temporaryDestination.overwriteTargetFileWithTemporary ())
+                errorDialog ("Unable to complete the import of '" + destinationFile.getFileName () + "'.");
         }
         else
         {
             // failure to create reader
-            errorDialog ("Failure to create reader");
-            jassertfalse;
+            errorDialog ("Failure to read '" + file.getFileName () + "'.");
         }
     }
 }

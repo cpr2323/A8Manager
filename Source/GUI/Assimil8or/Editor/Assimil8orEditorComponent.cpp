@@ -100,9 +100,9 @@ void Assimil8orEditorComponent::setupPresetComponents ()
     {
         midiSetupUiChanged (midiSetupComboBox.getSelectedItemIndex ());
     };
-    midiSetupComboBox.onDragCallback = [this] (DragSpeed dragSpeed, int direction)
+    midiSetupComboBox.onDragCallback = [this] (double valueDelta)
     {
-        const auto scrollAmount { (dragSpeed == DragSpeed::fast ? 2 : 1) * direction };
+        const auto scrollAmount { static_cast<int> (valueDelta) };
         presetProperties.setMidiSetup (std::clamp (midiSetupComboBox.getSelectedItemIndex () + scrollAmount, 0, midiSetupComboBox.getNumItems () - 1), true);
     };
     midiSetupComboBox.onPopupMenuCallback = [this] ()
@@ -122,9 +122,9 @@ void Assimil8orEditorComponent::setupPresetComponents ()
     {
         data2AsCvUiChanged (data2AsCvComboBox.getSelectedItemText ());
     };
-    data2AsCvComboBox.onDragCallback = [this] (DragSpeed dragSpeed, int direction)
+    data2AsCvComboBox.onDragCallback = [this] (double valueDelta)
     {
-        const auto scrollAmount { (dragSpeed == DragSpeed::fast ? 2 : 1) * direction };
+        const auto scrollAmount { static_cast<int> (valueDelta) };
         const auto newCvInputComboBoxIndex { data2AsCvComboBox.getSelectedItemIndex () + scrollAmount };
         data2AsCvComboBox.setSelectedItemIndex (std::clamp (newCvInputComboBoxIndex, 0, data2AsCvComboBox.getNumItems () - 1));
         presetProperties.setData2AsCV (data2AsCvComboBox.getSelectedItemText (), false);
@@ -162,9 +162,9 @@ void Assimil8orEditorComponent::setupPresetComponents ()
         {
             xfadeCvUiChanged (xfadeGroupIndex, xfadeGroups [xfadeGroupIndex].xfadeCvComboBox.getSelectedItemText ());
         };
-        xfadeGroup.xfadeCvComboBox.onDragCallback = [this, xfadeGroupIndex] (DragSpeed dragSpeed, int direction)
+        xfadeGroup.xfadeCvComboBox.onDragCallback = [this, xfadeGroupIndex] (double valueDelta)
         {
-            const auto scrollAmount { (dragSpeed == DragSpeed::fast ? 2 : 1) * direction };
+            const auto scrollAmount { static_cast<int> (valueDelta) };
             auto& xfadeGroup { xfadeGroups [xfadeGroupIndex] };
             const auto newCvInputComboBoxIndex { xfadeGroup.xfadeCvComboBox.getSelectedItemIndex () + scrollAmount };
             xfadeGroup.xfadeCvComboBox.setSelectedItemIndex (std::clamp (newCvInputComboBoxIndex, 0, xfadeGroup.xfadeCvComboBox.getNumItems () - 1));
@@ -251,10 +251,10 @@ void Assimil8orEditorComponent::setupPresetComponents ()
         xfadeGroup.xfadeWidthEditor.getMaxValueCallback = [this] () { return maxPresetProperties.getXfadeAWidth (); };
         xfadeGroup.xfadeWidthEditor.toStringCallback = [this] (double value) { return formatXfadeWidthString (value); };
         xfadeGroup.xfadeWidthEditor.updateDataCallback = [this, xfadeGroupIndex] (double value) { xfadeWidthUiChanged (xfadeGroupIndex, value); };
-        xfadeGroup.xfadeWidthEditor.onDragCallback = [this, xfadeGroupIndex] (DragSpeed dragSpeed, int direction)
+        xfadeGroup.xfadeWidthEditor.getIncrementCallback = [] () { return 0.01; };
+        xfadeGroup.xfadeWidthEditor.onDragCallback = [this, xfadeGroupIndex] (double valueDelta)
         {
-            const auto scrollAmount { (dragSpeed == DragSpeed::fast ? 1.0 : 0.1) * static_cast<float> (direction) };
-            const auto newAmount { editManager->getXfadeGroupValueByIndex (xfadeGroupIndex) + (0.1 * scrollAmount) };
+            const auto newAmount { editManager->getXfadeGroupValueByIndex (xfadeGroupIndex) + valueDelta };
             // the min/max values for all of the XFade Group Widths are the same, so we can just use A
             auto width { std::clamp (newAmount, minPresetProperties.getXfadeAWidth (), maxPresetProperties.getXfadeAWidth ()) };
             editManager->setXfadeGroupValueByIndex (xfadeGroupIndex, width, true);
@@ -395,9 +395,25 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
     {
         channelEditors [channelIndex].init (channelPropertiesVT, unEditedPresetProperties.getChannelVT (channelIndex), rootPropertiesVT, copyBufferZoneProperties.getValueTree (), &copyBufferHasData);
         channelProperties [channelIndex].wrap (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::yes);
-        channelProperties [channelIndex].onChannelModeChange = [this] (int)
+        channelProperties [channelIndex].onChannelModeChange = [this, channelIndex] (int)
         {
-            updateAllChannelTabNames ();
+            channelModeChanged (channelIndex);
+        };
+        channelEditors [channelIndex].onChannelModeChanged = [this] (int changedChannelIndex) { channelModeChanged (changedChannelIndex); };
+        channelEditors [channelIndex].onActiveZoneChanged = [this] (int changedChannelIndex, int zoneIndex)
+        {
+            // when the channel is part of a stereo pair, the other channel follows to the same zone
+            // (setActiveZone does nothing if it is already there, so the two do not chase each other)
+            const auto isStereoRight { [this] (int index) { return channelProperties [index].getChannelMode () == ChannelProperties::ChannelMode::stereoRight; } };
+            if (isStereoRight (changedChannelIndex))
+            {
+                if (changedChannelIndex > 0 && ! isStereoRight (changedChannelIndex - 1))
+                    channelEditors [changedChannelIndex - 1].setActiveZone (zoneIndex);
+            }
+            else if (changedChannelIndex < 7 && isStereoRight (changedChannelIndex + 1))
+            {
+                channelEditors [changedChannelIndex + 1].setActiveZone (zoneIndex);
+            }
         };
         channelEditors [channelIndex].displayToolsMenu = [this] (int channelIndex)
         {
@@ -486,9 +502,9 @@ void Assimil8orEditorComponent::init (juce::ValueTree rootPropertiesVT)
         };
 
         channelProperties [channelIndex].wrap (channelPropertiesVT, ChannelProperties::WrapperType::client, ChannelProperties::EnableCallbacks::yes);
-        channelProperties [channelIndex].onChannelModeChange = [this] (int)
+        channelProperties [channelIndex].onChannelModeChange = [this, channelIndex] (int)
         {
-            updateAllChannelTabNames ();
+            channelModeChanged (channelIndex);
         };
         return true;
     });
@@ -614,6 +630,26 @@ void Assimil8orEditorComponent::explodeChannel (int channelIndex, int explodeCou
     });
 }
 
+void Assimil8orEditorComponent::channelModeChanged (int changedChannelIndex)
+{
+    updateAllChannelTabNames ();
+
+    // if this made, or changed, a stereo pair, the right channel takes the zone that the left channel is on
+    const auto isStereoRight { [this] (int index) { return channelProperties [index].getChannelMode () == ChannelProperties::ChannelMode::stereoRight; } };
+    auto leftChannelIndex { -1 };
+    if (isStereoRight (changedChannelIndex))
+    {
+        if (changedChannelIndex > 0 && ! isStereoRight (changedChannelIndex - 1))
+            leftChannelIndex = changedChannelIndex - 1;
+    }
+    else if (changedChannelIndex < 7 && isStereoRight (changedChannelIndex + 1))
+    {
+        leftChannelIndex = changedChannelIndex;
+    }
+    if (leftChannelIndex != -1)
+        channelEditors [leftChannelIndex + 1].setActiveZone (channelEditors [leftChannelIndex].getActiveZone ());
+}
+
 void Assimil8orEditorComponent::updateAllChannelTabNames ()
 {
     for (auto channelIndex { 0 }; channelIndex < channelTabs.getNumTabs (); ++channelIndex)
@@ -628,9 +664,17 @@ bool Assimil8orEditorComponent::isChannelActive (int channelIndex)
 
 void Assimil8orEditorComponent::updateChannelTabName (int channelIndex)
 {
+    // a tab's name depends on its neighbours (the left of a pair is decorated because of its right, and vice versa)
+    // so updating either channel of a pair updates both
+    for (auto curChannelIndex { std::max (channelIndex - 1, 0) }; curChannelIndex <= std::min (channelIndex + 1, channelTabs.getNumTabs () - 1); ++curChannelIndex)
+        setChannelTabName (curChannelIndex);
+}
+
+void Assimil8orEditorComponent::setChannelTabName (int channelIndex)
+{
     auto channelTabTitle { juce::String ("CH ") + juce::String::charToString ('1' + channelIndex) };
 
-    if (channelIndex != 7 && channelProperties [channelIndex].getChannelMode () != ChannelProperties::ChannelMode::stereoRight && isChannelActive (channelIndex) &&
+    if (channelIndex != 7 && channelProperties [channelIndex].getChannelMode () != ChannelProperties::ChannelMode::stereoRight &&
         channelProperties [channelIndex + 1].getChannelMode () == ChannelProperties::ChannelMode::stereoRight)
     {
         channelTabTitle += "-L";

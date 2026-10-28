@@ -2,7 +2,22 @@
 
 A tool to manage Presets and Sample files for the Rossum-Electro Assimil8or
 
-Currently requires JUCE version 7. The revision from 1/10/2024: 31dfb05ea3299176a416bf9258e030d04a099798
+Built with JUCE version 7, the revision from 1/10/2024: 31dfb05ea3299176a416bf9258e030d04a099798. JUCE is a submodule pinned to that revision.
+
+# Building
+
+The JUCE submodule must be initialised before the first build:
+
+```
+git submodule update --init --recursive
+```
+
+Then configure and build with CMake:
+
+```
+cmake -B cmake_build
+cmake --build cmake_build --config Release
+```
 
 # Windows
 

@@ -115,7 +115,13 @@ void SplitWindowComponent::mouseDrag (const juce::MouseEvent& me)
     if (mouseOver)
     {
         auto mousePosition { me.getPosition () };
-        setSplitOffset (horizontalSplit ? mousePosition.getY () : mousePosition.getX ());
+        auto newSplitOffset { horizontalSplit ? mousePosition.getY () : mousePosition.getX () };
+        if (constrainSplitOffset != nullptr)
+            newSplitOffset = constrainSplitOffset (newSplitOffset);
+        // a drag event that does not move the split has nothing to lay out
+        if (newSplitOffset == splitOffset)
+            return;
+        setSplitOffset (newSplitOffset);
         repaint ();
         if (onLayoutChange != nullptr)
             onLayoutChange ();

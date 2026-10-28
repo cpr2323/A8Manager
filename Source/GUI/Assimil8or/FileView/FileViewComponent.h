@@ -16,6 +16,8 @@ public:
     ~FileViewComponent () = default;
 
     void init (juce::ValueTree rootPropertiesVT);
+    // the narrowest the pane can be and still show its tool row
+    int getMinimumWidth () const;
 
     std::function<void (juce::File audioFile)> onAudioFileSelected;
     std::function<void (std::function<void ()>, std::function<void ()>)> overwritePresetOrCancel;

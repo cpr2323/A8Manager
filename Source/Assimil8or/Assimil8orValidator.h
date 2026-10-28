@@ -39,12 +39,16 @@ private:
     ValdatationState valdatationState { ValdatationState::idle };
     juce::CriticalSection threadManagmentLock;
     std::atomic<bool> cancelCurrentValidation { false };
+    // bumped on the message thread every time a validation is asked for. a run carries the value it started with,
+    // so that a run which has been superseded can tell that its results are no longer the ones being displayed
+    std::atomic<int> validationGeneration { 0 };
     LambdaThread validateThread { "ValidateThread", 100 };
 
     void addResult (juce::String statusType, juce::String statusText);
     void addResult (juce::ValueTree validatorResultsVT);
     void doIfProgressTimeElapsed (std::function<void ()> functionToDo);
     void processFolder (juce::ValueTree folder);
+    void reportValidationComplete (int generationOfThisRun);
     bool shouldCancelOperation ();
     void startValidation ();
     std::tuple<uint64_t, std::optional<std::map<juce::String, uint64_t>>> validateFile (juce::File file, juce::ValueTree validatorResultsVT);

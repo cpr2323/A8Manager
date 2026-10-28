@@ -17,9 +17,9 @@ MidiSetupEditorComponent::MidiSetupEditorComponent ()
     };
     // MODE
     setupLabel (modeLabel, "Mode");
-    modeComboBox.onDragCallback = [this] ([[maybe_unused]]DragSpeed dragSpeed, int direction)
+    modeComboBox.onDragCallback = [this] (double valueDelta)
     {
-        const auto scrollAmount { 1 * direction };
+        const auto scrollAmount { static_cast<int> (valueDelta) };
         modeUiChanged (std::clamp (modeComboBox.getSelectedId () + scrollAmount, 1, modeComboBox.getNumItems ()), true);
     };
     modeComboBox.onPopupMenuCallback = [this] ()
@@ -38,9 +38,9 @@ MidiSetupEditorComponent::MidiSetupEditorComponent ()
 
     // ASSIGN
     setupLabel (assignLabel, "Assign");
-    assignComboBox.onDragCallback = [this] ([[maybe_unused]] DragSpeed dragSpeed, int direction)
+    assignComboBox.onDragCallback = [this] (double valueDelta)
     {
-        const auto scrollAmount { 1 * direction };
+        const auto scrollAmount { static_cast<int> (valueDelta) };
         auto [minAssign, maxAssign] = [this] ()
             {
                 const auto mode { midiSetupProperties.getMode () };
@@ -78,9 +78,9 @@ MidiSetupEditorComponent::MidiSetupEditorComponent ()
 
     // BASIC CHANNEL
     setupLabel (basicChannelLabel, "Basic Channel");
-    basicChannelComboBox.onDragCallback = [this] ([[maybe_unused]] DragSpeed dragSpeed, int direction)
+    basicChannelComboBox.onDragCallback = [this] (double valueDelta)
     {
-        const auto scrollAmount { 1 * direction };
+        const auto scrollAmount { static_cast<int> (valueDelta) };
         basicChannelUiChanged (std::clamp (basicChannelComboBox.getSelectedId () + scrollAmount, 1, basicChannelComboBox.getNumItems ()), true);
     };
     basicChannelComboBox.onPopupMenuCallback = [this] ()
@@ -96,9 +96,9 @@ MidiSetupEditorComponent::MidiSetupEditorComponent ()
 
     // RCV PROGRAM CHANGE
     setupLabel (rcvProgramChangeLabel, "Rcv Program Change");
-    rcvProgramChangeComboBox.onDragCallback = [this] ([[maybe_unused]] DragSpeed dragSpeed, int direction)
+    rcvProgramChangeComboBox.onDragCallback = [this] (double valueDelta)
     {
-        const auto scrollAmount { 1 * direction };
+        const auto scrollAmount { static_cast<int> (valueDelta) };
         rcvProgramChangeUiChanged (std::clamp (rcvProgramChangeComboBox.getSelectedId () + scrollAmount, 1, rcvProgramChangeComboBox.getNumItems ()), true);
     };
     rcvProgramChangeComboBox.onPopupMenuCallback = [this] ()
@@ -113,9 +113,9 @@ MidiSetupEditorComponent::MidiSetupEditorComponent ()
 
     // XMT PROGRAM CHANGE
     setupLabel (xmtProgramChangeLabel, "Xmt Program Change");
-    xmtProgramChangeComboBox.onDragCallback = [this] ([[maybe_unused]] DragSpeed dragSpeed, int direction)
+    xmtProgramChangeComboBox.onDragCallback = [this] (double valueDelta)
     {
-        const auto scrollAmount { 1 * direction };
+        const auto scrollAmount { static_cast<int> (valueDelta) };
         xmtProgramChangeUiChanged (std::clamp (xmtProgramChangeComboBox.getSelectedId () + scrollAmount, 1, xmtProgramChangeComboBox.getNumItems ()), true);
     };
     xmtProgramChangeComboBox.onPopupMenuCallback = [this] ()
@@ -131,9 +131,9 @@ MidiSetupEditorComponent::MidiSetupEditorComponent ()
 
     // COL A CC
     setupLabel (colACCLabel, "Col A CC");
-    colACCComboBox.onDragCallback = [this] (DragSpeed dragSpeed, int direction)
+    colACCComboBox.onDragCallback = [this] (double valueDelta)
     {
-        const auto scrollAmount { (dragSpeed == DragSpeed::fast ? 2 : 1) * direction };
+        const auto scrollAmount { static_cast<int> (valueDelta) };
         colACCUiChanged (std::clamp (colACCComboBox.getSelectedId () + scrollAmount, 1, colACCComboBox.getNumItems ()), true);
     };
     colACCComboBox.onPopupMenuCallback = [this] ()
@@ -150,9 +150,9 @@ MidiSetupEditorComponent::MidiSetupEditorComponent ()
 
     // COL B CC
     setupLabel (colBCCLabel, "Col B CC");
-    colBCCComboBox.onDragCallback = [this] (DragSpeed dragSpeed, int direction)
+    colBCCComboBox.onDragCallback = [this] (double valueDelta)
     {
-        const auto scrollAmount { (dragSpeed == DragSpeed::fast ? 2 : 1) * direction };
+        const auto scrollAmount { static_cast<int> (valueDelta) };
         colBCCUiChanged (std::clamp (colBCCComboBox.getSelectedId () + scrollAmount, 1, colBCCComboBox.getNumItems ()), true);
     };
     colBCCComboBox.onPopupMenuCallback = [this] ()
@@ -169,9 +169,9 @@ MidiSetupEditorComponent::MidiSetupEditorComponent ()
 
     // COL C CC
     setupLabel (colCCCLabel, "Col C CC");
-    colCCCComboBox.onDragCallback = [this] (DragSpeed dragSpeed, int direction)
+    colCCCComboBox.onDragCallback = [this] (double valueDelta)
     {
-        const auto scrollAmount { (dragSpeed == DragSpeed::fast ? 2 : 1) * direction };
+        const auto scrollAmount { static_cast<int> (valueDelta) };
         colCCCUiChanged (std::clamp (colCCCComboBox.getSelectedId () + scrollAmount, 1, colCCCComboBox.getNumItems ()), true);
     };
     colCCCComboBox.onPopupMenuCallback = [this] ()
@@ -188,9 +188,9 @@ MidiSetupEditorComponent::MidiSetupEditorComponent ()
 
     // PITCH WHEEL SEMI
     setupLabel (pitchWheelSemiLabel, "Pitch Wheel Semi");
-    pitchWheelSemiComboBox.onDragCallback = [this] ([[maybe_unused]] DragSpeed dragSpeed, int direction)
+    pitchWheelSemiComboBox.onDragCallback = [this] (double valueDelta)
     {
-        const auto scrollAmount { 1 * direction };
+        const auto scrollAmount { static_cast<int> (valueDelta) };
         pitchWheelSemiUiChanged (std::clamp (pitchWheelSemiComboBox.getSelectedId () + scrollAmount, 1, pitchWheelSemiComboBox.getNumItems ()), true);
     };
     pitchWheelSemiComboBox.onPopupMenuCallback = [this] ()
@@ -212,18 +212,9 @@ MidiSetupEditorComponent::MidiSetupEditorComponent ()
     velocityDepthTextEditor.getMaxValueCallback = [this] () { return 127; };
     velocityDepthTextEditor.toStringCallback = [this] (int value) { return juce::String (value); };
     velocityDepthTextEditor.updateDataCallback = [this] (int value) { velocityDepthUiChanged (value, false); };
-    velocityDepthTextEditor.onDragCallback = [this] (DragSpeed dragSpeed, int direction)
+    velocityDepthTextEditor.onDragCallback = [this] (double valueDelta)
     {
-        const auto multiplier = [this, dragSpeed] ()
-        {
-            if (dragSpeed == DragSpeed::slow)
-                return 1;
-            else if (dragSpeed == DragSpeed::medium)
-                return 5;
-            else
-                return 10;
-        } ();
-        const auto newValue { midiSetupProperties.getVelocityDepth () + (multiplier * direction) };
+        const auto newValue { midiSetupProperties.getVelocityDepth () + static_cast<int> (valueDelta) };
         velocityDepthTextEditor.setValue (newValue);
     };
     velocityDepthTextEditor.onPopupMenuCallback = [this] ()
@@ -238,9 +229,9 @@ MidiSetupEditorComponent::MidiSetupEditorComponent ()
 
     // NOTIFICATIONS
     setupLabel (notificationsLabel, "Notifications");
-    notificationsComboBox.onDragCallback = [this] ([[maybe_unused]] DragSpeed dragSpeed, int direction)
+    notificationsComboBox.onDragCallback = [this] (double valueDelta)
     {
-        const auto scrollAmount { 1 * direction };
+        const auto scrollAmount { static_cast<int> (valueDelta) };
         notificationsUiChanged (std::clamp (notificationsComboBox.getSelectedId () + scrollAmount, 1, notificationsComboBox.getNumItems ()), true);
     };
     notificationsComboBox.onPopupMenuCallback = [this] ()
@@ -255,9 +246,9 @@ MidiSetupEditorComponent::MidiSetupEditorComponent ()
 
     // INDEX BASE KEY
     setupLabel (indexBaseKeyLabel, "Index Base Key");
-    indexBaseKeyComboBox.onDragCallback = [this] ([[maybe_unused]] DragSpeed dragSpeed, int direction)
+    indexBaseKeyComboBox.onDragCallback = [this] (double valueDelta)
     {
-        const auto scrollAmount { 1 * direction };
+        const auto scrollAmount { static_cast<int> (valueDelta) };
         indexBaseKeyUiChanged (std::clamp (indexBaseKeyComboBox.getSelectedId () + scrollAmount, 1, indexBaseKeyComboBox.getNumItems ()), true);
     };
     indexBaseKeyComboBox.onPopupMenuCallback = [this] ()

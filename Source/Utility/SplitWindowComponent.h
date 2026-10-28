@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../JuceLibraryCode/JuceHeader.h"
+#include <JuceHeader.h>
 
 class StretchableLayoutResizerBarWithCallback : public juce::StretchableLayoutResizerBar
 {
@@ -56,6 +56,12 @@ public:
     void setSplitOffset (int newSplitOffset);
     int getSplitOffset ();
 
+    /*
+        Given the offset a drag is asking for, return the offset to use. This lets the owner keep a pane
+        from being dragged narrower than it can be used at, or off the edge of the window. When unset,
+        the pointer position is used as it is.
+    */
+    std::function<int (int proposedSplitOffset)> constrainSplitOffset;
     std::function<void ()> onLayoutChange;
 
 private:
