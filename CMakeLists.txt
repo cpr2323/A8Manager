@@ -7,9 +7,10 @@ cmake_minimum_required(VERSION 3.22)
 set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "Architectures to build for on macOS")
 
 # 2.6 still supports older Intel Macs (users are running it on 10.13), so the deployment target
-# is JUCE 7's minimum rather than the 11.0 that 2.7 requires. The arm64 slice is built for 11.0
-# regardless, as macOS on Apple silicon starts there.
-set(CMAKE_OSX_DEPLOYMENT_TARGET "10.11" CACHE STRING "Minimum macOS version to build for")
+# is 10.13 rather than the 11.0 that 2.7 requires. It cannot go lower than 10.13, as that is
+# where Apple added std::optional::value() and the other C++17 library calls that throw.
+# The arm64 slice is built for 11.0 regardless, as macOS on Apple silicon starts there.
+set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13" CACHE STRING "Minimum macOS version to build for")
 
 project(A8Manager VERSION 2.6.3)
 
