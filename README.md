@@ -28,6 +28,8 @@ There are no special steps to installing on Windows.
 
 # OSX
 
+A8Manager 2.7 and later require macOS 11 (Big Sur) or later. For older Macs, use 2.6.3, which runs on macOS 10.13 (High Sierra) or later. 2.6.3 cannot support anything older than 10.13 because `std::optional::value()` requires macOS 10.13+.
+
 Since the application is not signed (I don't want to pay the $99/yr) you will have to do a manual step in the console to allow it to run.
 
 1. Download A8Manager.zip, the app will be automatically extracted during download.
