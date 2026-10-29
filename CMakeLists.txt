@@ -12,6 +12,20 @@ set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "Architectures to build 
 # The arm64 slice is built for 11.0 regardless, as macOS on Apple silicon starts there.
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13" CACHE STRING "Minimum macOS version to build for")
 
+# JUCE 7.0.9 calls CGWindowListCreateImage, which the macOS 15 SDK no longer allows, so 2.6
+# builds against an older SDK. ENV{SDKROOT} is what reaches juceaide, which JUCE builds in a
+# separate CMake run during configure that does not pass CMAKE_OSX_SYSROOT along. APPLE is
+# not defined until project(), hence CMAKE_HOST_APPLE.
+if(CMAKE_HOST_APPLE)
+    set(A8_MACOS_SDK "/Library/Developer/CommandLineTools/SDKs/MacOSX14.2.sdk" CACHE PATH "macOS SDK to build 2.6 against")
+    if(EXISTS "${A8_MACOS_SDK}")
+        set(CMAKE_OSX_SYSROOT "${A8_MACOS_SDK}" CACHE PATH "macOS SDK to build against" FORCE)
+        set(ENV{SDKROOT} "${A8_MACOS_SDK}")
+    else()
+        message(WARNING "${A8_MACOS_SDK} not found - JUCE 7.0.9 does not build with the macOS 15 SDK")
+    endif()
+endif()
+
 project(A8Manager VERSION 2.6.3)
 
 # 2.6 stays on C++17 and on the JUCE version it has always been built with: the submodule is
