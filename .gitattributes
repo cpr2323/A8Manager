@@ -7,6 +7,12 @@
 # CRLF on every machine, whatever that clone's core.autocrlf happens to be.
 * text=auto eol=crlf
 
+# Except files that are only used on Linux, which break with CRLF - a shell script
+# fails with "bash\r: No such file or directory".
+*.sh      text eol=lf
+*.desktop text eol=lf
+packaging/linux/README.txt text eol=lf
+
 # Never touch these.
 *.png binary
 *.wav binary

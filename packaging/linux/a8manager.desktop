@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=A8Manager
+Comment=Preset and sample manager for the Rossum Electro-Music Assimil8or
+Exec=A8Manager
+Icon=a8manager
+Terminal=false
+Categories=AudioVideo;Audio;
+StartupWMClass=A8Manager
