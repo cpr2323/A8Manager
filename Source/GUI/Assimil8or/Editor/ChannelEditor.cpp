@@ -1929,10 +1929,10 @@ void ChannelEditor::setupChannelComponents ()
     setupLabel (zonesRTLabel, "SELECT", kSmallLabelSize, juce::Justification::centredRight);
 
     // ZONE SELECT MODE COMBOBOX
-    zonesRTComboBox.addItem ("Gate Rise", 1); // 0 = Gate Rise, 1 = Continuous, 2 = Advance, 3 = Random
+    zonesRTComboBox.addItem ("Gate Rise", 1); // 0 = Gate Rise, 1 = Continuous, 2 = Random, 3 = Advance
     zonesRTComboBox.addItem ("Continuous", 2);
-    zonesRTComboBox.addItem ("Advance", 3);
-    zonesRTComboBox.addItem ("Random", 4);
+    zonesRTComboBox.addItem ("Random", 3);
+    zonesRTComboBox.addItem ("Advance", 4);
     zonesRTComboBox.onDragCallback = [this] (double valueDelta)
     {
         const auto scrollAmount { static_cast<int> (valueDelta) };

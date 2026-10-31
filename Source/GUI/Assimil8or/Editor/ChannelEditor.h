@@ -327,7 +327,7 @@ private:
     juce::Label zonesCVLabel;
     CvInputChannelComboBox zonesCVComboBox; // 0A - 8C
     juce::Label zonesRTLabel;
-    CustomComboBox zonesRTComboBox; // 0 = Gate Rise, 1 = Continuous, 2 = Advance, 3 = Random
+    CustomComboBox zonesRTComboBox; // 0 = Gate Rise, 1 = Continuous, 2 = Random, 3 = Advance
     TransparantOverlay stereoRightTransparantOverly;
 
     AREnvelopeComponent arEnvelopeComponent;
